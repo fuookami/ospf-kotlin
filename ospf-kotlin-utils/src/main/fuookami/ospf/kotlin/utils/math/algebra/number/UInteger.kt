@@ -3,6 +3,7 @@
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
 import fuookami.ospf.kotlin.utils.operator.orderOf
@@ -43,7 +44,7 @@ private fun uIntegerPowByFloatingIndex(
     else -> throw IllegalArgumentException("Unknown argument type to $source.pow: ${index.javaClass}")
 }
 
-interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self> {
+interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<Self> {
     override fun abs() = copy()
     override fun reciprocal() = when (this) {
         constants.one -> constants.one.copy()
@@ -52,8 +53,8 @@ interface UIntegerNumberImpl<Self : UIntegerNumber<Self>> : UIntegerNumber<Self>
 
     override fun intDiv(rhs: Self) = this / rhs
 
-    override fun inc(): Self = this + constants.one
-    override fun dec(): Self = this - constants.one
+    override operator fun inc(): Self = this + constants.one
+    override operator fun dec(): Self = this - constants.one
 
     override fun lg() = log(Flt64.ten)
     override fun lg2() = log(Flt64.two)
@@ -163,13 +164,13 @@ value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyab
     override fun partialOrd(rhs: UInt8) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt8) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = maximum - this
+    override operator fun unaryMinus() = maximum - this
 
-    override fun plus(rhs: UInt8) = UInt8((value + rhs.value).toUByte())
-    override fun minus(rhs: UInt8) = UInt8((value - rhs.value).toUByte())
-    override fun times(rhs: UInt8) = UInt8((value * rhs.value).toUByte())
-    override fun div(rhs: UInt8) = UInt8((value / rhs.value).toUByte())
-    override fun rem(rhs: UInt8) = UInt8((value % rhs.value).toUByte())
+    override operator fun plus(rhs: UInt8) = UInt8((value + rhs.value).toUByte())
+    override operator fun minus(rhs: UInt8) = UInt8((value - rhs.value).toUByte())
+    override operator fun times(rhs: UInt8) = UInt8((value * rhs.value).toUByte())
+    override operator fun div(rhs: UInt8) = UInt8((value / rhs.value).toUByte())
+    override operator fun rem(rhs: UInt8) = UInt8((value % rhs.value).toUByte())
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
@@ -247,13 +248,13 @@ value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Cop
     override fun partialOrd(rhs: UInt16) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt16) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = maximum - this
+    override operator fun unaryMinus() = maximum - this
 
-    override fun plus(rhs: UInt16) = UInt16((value + rhs.value).toUShort())
-    override fun minus(rhs: UInt16) = UInt16((value - rhs.value).toUShort())
-    override fun times(rhs: UInt16) = UInt16((value * rhs.value).toUShort())
-    override fun div(rhs: UInt16) = UInt16((value / rhs.value).toUShort())
-    override fun rem(rhs: UInt16) = UInt16((value % rhs.value).toUShort())
+    override operator fun plus(rhs: UInt16) = UInt16((value + rhs.value).toUShort())
+    override operator fun minus(rhs: UInt16) = UInt16((value - rhs.value).toUShort())
+    override operator fun times(rhs: UInt16) = UInt16((value * rhs.value).toUShort())
+    override operator fun div(rhs: UInt16) = UInt16((value / rhs.value).toUShort())
+    override operator fun rem(rhs: UInt16) = UInt16((value % rhs.value).toUShort())
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
@@ -331,13 +332,13 @@ value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copya
     override fun partialOrd(rhs: UInt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt32) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = maximum - this
+    override operator fun unaryMinus() = maximum - this
 
-    override fun plus(rhs: UInt32) = UInt32(value + rhs.value)
-    override fun minus(rhs: UInt32) = UInt32(value - rhs.value)
-    override fun times(rhs: UInt32) = UInt32(value * rhs.value)
-    override fun div(rhs: UInt32) = UInt32(value / rhs.value)
-    override fun rem(rhs: UInt32) = UInt32(value % rhs.value)
+    override operator fun plus(rhs: UInt32) = UInt32(value + rhs.value)
+    override operator fun minus(rhs: UInt32) = UInt32(value - rhs.value)
+    override operator fun times(rhs: UInt32) = UInt32(value * rhs.value)
+    override operator fun div(rhs: UInt32) = UInt32(value / rhs.value)
+    override operator fun rem(rhs: UInt32) = UInt32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
@@ -420,13 +421,13 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
     override fun partialOrd(rhs: UInt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UInt64) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = maximum - this
+    override operator fun unaryMinus() = maximum - this
 
-    override fun plus(rhs: UInt64) = UInt64(value + rhs.value)
+    override operator fun plus(rhs: UInt64) = UInt64(value + rhs.value)
     override operator fun minus(rhs: UInt64) = UInt64(value - rhs.value)
-    override fun times(rhs: UInt64) = UInt64(value * rhs.value)
-    override fun div(rhs: UInt64) = UInt64(value / rhs.value)
-    override fun rem(rhs: UInt64) = UInt64(value % rhs.value)
+    override operator fun times(rhs: UInt64) = UInt64(value * rhs.value)
+    override operator fun div(rhs: UInt64) = UInt64(value / rhs.value)
+    override operator fun rem(rhs: UInt64) = UInt64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
@@ -521,13 +522,13 @@ value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, C
     override fun partialOrd(rhs: UIntX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: UIntX) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = maximum - this
+    override operator fun unaryMinus() = maximum - this
 
-    override fun plus(rhs: UIntX) = UIntX(value + rhs.value)
-    override fun minus(rhs: UIntX) = UIntX(value - rhs.value)
-    override fun times(rhs: UIntX) = UIntX(value * rhs.value)
-    override fun div(rhs: UIntX) = UIntX(value / rhs.value)
-    override fun rem(rhs: UIntX) = UIntX(value % rhs.value)
+    override operator fun plus(rhs: UIntX) = UIntX(value + rhs.value)
+    override operator fun minus(rhs: UIntX) = UIntX(value - rhs.value)
+    override operator fun times(rhs: UIntX) = UIntX(value * rhs.value)
+    override operator fun div(rhs: UIntX) = UIntX(value / rhs.value)
+    override operator fun rem(rhs: UIntX) = UIntX(value % rhs.value)
 
     @kotlin.jvm.Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
@@ -619,6 +620,8 @@ fun String.toUInt64() = UInt64(toULong())
 fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
 fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
 fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
+
+
 
 
 

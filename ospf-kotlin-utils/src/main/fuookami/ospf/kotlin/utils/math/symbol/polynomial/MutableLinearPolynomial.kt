@@ -1,11 +1,16 @@
-package fuookami.ospf.kotlin.utils.math.symbol.polynomial
+﻿package fuookami.ospf.kotlin.utils.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.div
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.times
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
 /**
  * Mutable version of LinearPolynomial for in-place modifications.
@@ -13,12 +18,12 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
  * Use this when you need to build or modify polynomials incrementally.
  * Convert to [LinearPolynomial] when you need an immutable version.
  */
-class MutableLinearPolynomial<T>(
+class MutableLinearPolynomial<T : NumberField<T>>(
     monomials: List<LinearMonomial<T>> = emptyList(),
     constant: T
 ) {
-    private val _monomials: MutableList<LinearMonomial<T>> = monomials.toMutableList()
-    private var _constant: T = constant
+    internal val _monomials: MutableList<LinearMonomial<T>> = monomials.toMutableList()
+    internal var _constant: T = constant
 
     val monomials: List<LinearMonomial<T>> get() = _monomials.toList()
     val constant: T get() = _constant
@@ -30,6 +35,7 @@ class MutableLinearPolynomial<T>(
         val One: Flt64 = Flt64.one
 
         fun <T : NumberField<T>> zero(): MutableLinearPolynomial<T> {
+            @Suppress("UNCHECKED_CAST")
             return MutableLinearPolynomial(emptyList(), One as T)
         }
 
@@ -151,3 +157,4 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.divAssign(rhs: T) {
     }
     _constant = _constant / rhs
 }
+

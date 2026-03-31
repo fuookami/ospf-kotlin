@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.*
@@ -27,6 +28,19 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
     return mergedFactors.entries.fold(constants.one) { lhs, (factor, index) ->
         lhs * factor.pow(index)
     }
+}
+
+@Suppress("UNCHECKED_CAST")
+inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmImpl(numbers, (I::class.companionObjectInstance as RealNumberConstants<I>))
+}
+
+inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmByFactorization(listOf(x, y))
+}
+
+inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmByFactorization(listOf(x, y, z) + numbers.toList())
 }
 
 inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
@@ -92,6 +106,7 @@ fun lcm(numbers: Iterable<RtnX>): RtnX {
 fun lcm(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return lcm(listOf(x, y, z) + numbers.toList())
 }
+
 
 
 

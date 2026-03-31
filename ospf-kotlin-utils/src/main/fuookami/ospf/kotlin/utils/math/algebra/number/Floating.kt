@@ -3,6 +3,7 @@
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.*
 import fuookami.ospf.kotlin.utils.operator.ExpP
@@ -68,7 +69,7 @@ private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
 }
 
 @Suppress("UNCHECKED_CAST")
-interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
+interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
     override infix fun neq(rhs: Self) = !this.eq(rhs)
 
@@ -77,8 +78,8 @@ interface FloatingImpl<Self : FloatingNumber<Self>> : FloatingNumber<Self> {
     override infix fun gr(rhs: Self) = (this - rhs) > this.constants.decimalPrecision
     override infix fun geq(rhs: Self) = (this - rhs) >= -this.constants.decimalPrecision
 
-    override fun inc(): Self = this + constants.one
-    override fun dec(): Self = this - constants.one
+    override operator fun inc(): Self = this + constants.one
+    override operator fun dec(): Self = this - constants.one
 
     override fun sqr() = pow(2)
     override fun cub() = pow(3)
@@ -202,16 +203,16 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
     override fun partialOrd(rhs: Flt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: Flt32) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = Flt32(-value)
+    override operator fun unaryMinus() = Flt32(-value)
     override fun abs() = Flt32(abs(value))
     override fun reciprocal() = Flt32(1.0F / value)
 
-    override fun plus(rhs: Flt32) = Flt32(value + rhs.value)
-    override fun minus(rhs: Flt32) = Flt32(value - rhs.value)
-    override fun times(rhs: Flt32) = Flt32(value * rhs.value)
-    override fun div(rhs: Flt32) = Flt32(value / rhs.value)
+    override operator fun plus(rhs: Flt32) = Flt32(value + rhs.value)
+    override operator fun minus(rhs: Flt32) = Flt32(value - rhs.value)
+    override operator fun times(rhs: Flt32) = Flt32(value * rhs.value)
+    override operator fun div(rhs: Flt32) = Flt32(value / rhs.value)
     override fun intDiv(rhs: Flt32) = Flt32(value - value % rhs.value)
-    override fun rem(rhs: Flt32) = Flt32(value % rhs.value)
+    override operator fun rem(rhs: Flt32) = Flt32(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
@@ -491,16 +492,16 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     override fun partialOrd(rhs: Flt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: Flt64) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = Flt64(-value)
+    override operator fun unaryMinus() = Flt64(-value)
     override fun abs() = Flt64(abs(value))
     override fun reciprocal() = Flt64(1.0 / value)
 
-    override fun plus(rhs: Flt64) = Flt64(value + rhs.value)
-    override fun minus(rhs: Flt64) = Flt64(value - rhs.value)
-    override fun times(rhs: Flt64) = Flt64(value * rhs.value)
-    override fun div(rhs: Flt64) = Flt64(value / rhs.value)
+    override operator fun plus(rhs: Flt64) = Flt64(value + rhs.value)
+    override operator fun minus(rhs: Flt64) = Flt64(value - rhs.value)
+    override operator fun times(rhs: Flt64) = Flt64(value * rhs.value)
+    override operator fun div(rhs: Flt64) = Flt64(value / rhs.value)
     override fun intDiv(rhs: Flt64) = Flt64(value - value % rhs.value)
-    override fun rem(rhs: Flt64) = Flt64(value % rhs.value)
+    override operator fun rem(rhs: Flt64) = Flt64(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
@@ -810,20 +811,20 @@ value class FltX(internal val value: BigDecimal) :
     override fun partialOrd(rhs: FltX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: FltX) = (value.compareTo(rhs.value) == 0)
 
-    override fun unaryMinus() = FltX(-value)
+    override operator fun unaryMinus() = FltX(-value)
     override fun abs() = FltX(value.abs())
     override fun reciprocal() = FltX(one.value / value)
 
-    override fun plus(rhs: FltX) = FltX(value + rhs.value)
-    override fun minus(rhs: FltX) = FltX(value - rhs.value)
-    override fun times(rhs: FltX) = FltX(value * rhs.value)
-    override fun div(rhs: FltX) = FltX(
+    override operator fun plus(rhs: FltX) = FltX(value + rhs.value)
+    override operator fun minus(rhs: FltX) = FltX(value - rhs.value)
+    override operator fun times(rhs: FltX) = FltX(value * rhs.value)
+    override operator fun div(rhs: FltX) = FltX(
         value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
                 / rhs.value.setScale(max(value.scale(), decimalDigits), RoundingMode.HALF_UP)
     )
 
     override fun intDiv(rhs: FltX) = FltX(value - value % rhs.value)
-    override fun rem(rhs: FltX) = FltX(value % rhs.value)
+    override operator fun rem(rhs: FltX) = FltX(value % rhs.value)
 
     @Throws(IllegalArgumentException::class)
     override fun log(base: FloatingNumber<*>): FltX? = when (base) {
@@ -1056,6 +1057,8 @@ fun String.toFlt64() = Flt64(toDouble())
 fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
 fun String.toFltX() = FltX(toBigDecimal())
 fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }
+
+
 
 
 

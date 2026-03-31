@@ -1,10 +1,31 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import kotlin.math.abs
+
+private fun <T> scaleByInt(
+    value: T,
+    amount: Int,
+    zero: T
+): T where T : Ring<T> {
+    if (amount == 0) {
+        return zero
+    }
+    var result = zero
+    repeat(abs(amount)) {
+        result += value
+    }
+    return if (amount < 0) {
+        -result
+    } else {
+        result
+    }
+}
 
 fun <T> GenericLinearMonomial<T>.derivative(
     symbol: Symbol,
@@ -122,23 +143,24 @@ fun <T> GenericCanonicalMonomial<T>.derivative(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): GenericCanonicalPolynomial<T> where T : Ring<T> {
-    val matchedAmount = factors.count { it == symbol }
-    if (matchedAmount == 0) {
+    val exponent = powers[symbol] ?: 0
+    if (exponent == 0) {
         return GenericCanonicalPolynomial(constant = zero)
     }
 
-    val oneRemovedFactors = factors.toMutableList()
-    oneRemovedFactors.remove(symbol)
-    var scaledCoefficient = zero
-    repeat(matchedAmount) {
-        scaledCoefficient += coefficient
+    val remainedPowers = LinkedHashMap(powers)
+    if (exponent == 1) {
+        remainedPowers.remove(symbol)
+    } else {
+        remainedPowers[symbol] = exponent - 1
     }
 
+    val scaledCoefficient = scaleByInt(coefficient, exponent, zero)
     val derivative = GenericCanonicalPolynomial(
         monomials = listOf(
             GenericCanonicalMonomial(
                 coefficient = scaledCoefficient,
-                factors = oneRemovedFactors
+                powers = remainedPowers
             )
         ),
         constant = zero
@@ -197,3 +219,4 @@ fun <T> GenericCanonicalPolynomial<T>.gradient(
         )
     }
 }
+

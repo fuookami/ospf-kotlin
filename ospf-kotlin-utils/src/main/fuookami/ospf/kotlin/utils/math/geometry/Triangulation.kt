@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -154,6 +155,7 @@ fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
     }
     return triangles
 }
+
 
 
 

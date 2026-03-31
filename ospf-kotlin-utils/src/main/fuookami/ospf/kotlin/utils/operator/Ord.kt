@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.utils.operator
+﻿package fuookami.ospf.kotlin.utils.operator
 
 sealed interface Order : Neg<Order> {
     val value: Int
@@ -80,7 +80,7 @@ interface Ord<in Self> : PartialOrd<Self>, Eq<Self>, Comparable<Self> {
         return (this partialOrd rhs)!!
     }
 
-    override fun compareTo(other: Self): Int {
+    override operator fun compareTo(other: Self): Int {
         return (this ord other).value
     }
 
@@ -134,3 +134,4 @@ fun <T : Ord<T>> T.coerceIn(lb: T?, ub: T?): T {
         this
     }
 }
+

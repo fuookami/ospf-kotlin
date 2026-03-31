@@ -3,18 +3,25 @@
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
+import kotlin.test.assertEquals
 
 class LCMTest {
     @Test
     fun lcmTwo() {
-        assert(lcm(UInt64(4), UInt64(6)) == UInt64(12))
-        assert(lcm(UInt64(6), UInt64(9)) == UInt64(18))
+        assertEquals(UInt64(12), lcm(UInt64(4), UInt64(6)))
+        assertEquals(UInt64(18), lcm(UInt64(6), UInt64(9)))
     }
 
     @Test
     fun lcmSome() {
-        assert(lcm(listOf(UInt64(4), UInt64(6), UInt64(8))) == UInt64(24))
-        assert(lcm(listOf(UInt64(6), UInt64(9), UInt64(12))) == UInt64(36))
+        assertEquals(UInt64(24), lcm(listOf(UInt64(4), UInt64(6), UInt64(8))))
+        assertEquals(UInt64(36), lcm(listOf(UInt64(6), UInt64(9), UInt64(12))))
+    }
+
+    @Test
+    fun lcmByFactorization() {
+        assertEquals(UInt64(24), lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))))
+        assertEquals(UInt64(36), lcmByFactorization(UInt64(6), UInt64(9), UInt64(12)))
     }
 
     @Test

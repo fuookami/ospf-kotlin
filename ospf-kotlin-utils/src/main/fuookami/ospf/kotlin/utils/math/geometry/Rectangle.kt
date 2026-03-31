@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -117,6 +118,7 @@ fun Rectangle2.contains(
 }
 
 typealias Rectangle3 = Rectangle<Point3, Dim3>
+
 
 
 

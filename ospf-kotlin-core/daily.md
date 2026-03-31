@@ -34,6 +34,17 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 4. `cacheKey` 已统一为 `Any`，并已引入 `TokenCacheKey/newTokenCacheKey` 供非符号对象安全缓存。
 5. 中间符号、单项式、多项式、不等式均已接入新缓存通道（当前仍保留 Cell 兼容层做过渡）。
 
+### 5) `math.symbol` 符号重载补齐（本轮新增）
+1. 已补齐 `LinearMonomial`/`QuadraticMonomial` 的常用运算符重载（`+ - * / unary-`，含常量、线性/二次多项式互算）。
+2. 已补齐 `LinearPolynomial`/`QuadraticPolynomial` 的不可变运算符重载（`+ - * / unary-`，含线性与二次互转场景）。
+3. 已补齐 `LinearInequality`/`QuadraticInequality` 的比较重载（`lt/le/eq/ne/ge/gt`），支持 monomial/polynomial/constant 组合。
+4. 已新增重载回归测试：`MonomialTest`、`PolynomialTest`、`InequalityTest`。
+5. 本轮同时补回 `CanonicalMonomial` / `CanonicalPolynomial` 缺失类型，打通 `generic/operation/serde` 对 canonical 数据层的直接编译依赖。
+
+### 6) 本轮验证记录（增量）
+1. `mvn -pl ospf-kotlin-utils -DskipTests compile` 在一次增量链路下可通过（`math.symbol` 本轮改动文件可编译）。
+2. 当前工作区存在更大范围历史断点（与本轮重载改动非同一层级），在触发更大范围重编译时会在 `utils/math/*` 与 `symbol/operation/*` 出现大量既有编译错误，导致本轮定向测试命令无法完成收敛验证。
+
 ### 4) 现有验证记录（最近一次）
 1. `mvn -pl ospf-kotlin-core "-Dtest=TokenCacheContextsTest,PrepareCacheKeyRegressionTest" "-Dsurefire.failIfNoSpecifiedTests=false" test` 通过（8 tests）。
 2. `mvn -pl ospf-kotlin-core -am test` 通过（utils 362 / core 77）。

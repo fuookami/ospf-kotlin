@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -201,7 +202,7 @@ fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolyn
     )
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.toMatrixForm(
+fun CanonicalPolynomial<Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

@@ -2,17 +2,9 @@
 
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.operator.Abs
-import fuookami.ospf.kotlin.utils.operator.Cross
-import fuookami.ospf.kotlin.utils.operator.Eq
-import fuookami.ospf.kotlin.utils.operator.Exp
-import fuookami.ospf.kotlin.utils.operator.Log
-import fuookami.ospf.kotlin.utils.operator.Ord
-import fuookami.ospf.kotlin.utils.operator.Pow
-import fuookami.ospf.kotlin.utils.operator.PowF
-import fuookami.ospf.kotlin.utils.operator.RangeTo
-import fuookami.ospf.kotlin.utils.operator.Trigonometry
+import fuookami.ospf.kotlin.utils.operator.*
 
 interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
 
@@ -87,23 +79,23 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
     fun toFltX(): FltX
 }
 
-interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Self> {
-    val two: Self
-    val three: Self
-    val five: Self
-    val ten: Self
+interface RealNumberConstants<Self : RealNumber<Self>> : ArithmeticConstants<Self>, RealConst<Self> {
+    override val two: Self
+    override val three: Self
+    override val five: Self
+    override val ten: Self
 
-    val minimum: Self
-    val maximum: Self
+    override val minimum: Self
+    override val maximum: Self
     val positiveMinimum get() = one
 
-    val decimalDigits: Int? get() = null
-    val decimalPrecision: Self get() = zero
-    val epsilon: Self get() = zero
+    override val decimalDigits: Int? get() = null
+    override val decimalPrecision: Self get() = zero
+    override val epsilon: Self get() = zero
 
-    val nan: Self? get() = null
-    val infinity: Self? get() = null
-    val negativeInfinity: Self? get() = null
+    override val nan: Self? get() = null
+    override val infinity: Self? get() = null
+    override val negativeInfinity: Self? get() = null
 }
 
 interface Integer<Self : RealNumber<Self>> : RealNumber<Self>, RangeTo<Self, Self>
@@ -124,13 +116,13 @@ interface FloatingNumber<Self : FloatingNumber<Self>> : RealNumber<Self>, Number
     override val constants: FloatingNumberConstants<Self>
 }
 
-interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConstants<Self> {
+interface FloatingNumberConstants<Self : FloatingNumber<Self>> : RealNumberConstants<Self>, FloatingConst<Self> {
     override val positiveMinimum: Self get() = epsilon
 
-    val half: Self
-    val pi: Self
-    val e: Self
-    val lg2: Self
+    override val half: Self
+    override val pi: Self
+    override val e: Self
+    override val lg2: Self
 }
 
 interface NumericIntegerNumber<Self : NumericIntegerNumber<Self, I>, I : IntegerNumber<I>> : Integer<Self>,
@@ -151,5 +143,6 @@ interface NumericUIntegerNumber<Self : NumericUIntegerNumber<Self, I>, I : UInte
     fuookami.ospf.kotlin.utils.operator.IntDiv<Self, Self>,
     fuookami.ospf.kotlin.utils.operator.Rem<Self, Self>,
     Pow<RationalNumber<*, I>>
+
 
 

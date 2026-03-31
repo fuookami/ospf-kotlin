@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -40,7 +41,7 @@ fun QuadraticPolynomial<Flt64>.compileEval(
     )
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.compileEval(
+fun CanonicalPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -50,7 +51,8 @@ fun CanonicalPolynomial<Flt64, Int32>.compileEval(
         combineTerms = combineTerms,
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
-        symbolComparator = symbolComparator
+        symbolComparator = symbolComparator,
+        one = Flt64.one
     )
 }
 
@@ -80,7 +82,7 @@ fun QuadraticPolynomial<Flt64>.compileGradient(
     )
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.compileGradient(
+fun CanonicalPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null

@@ -3,6 +3,7 @@
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.gcd
 import fuookami.ospf.kotlin.utils.math.ordinary.pow
@@ -75,14 +76,14 @@ abstract class Rational<Self, I> protected constructor(
     override fun partialOrd(rhs: Self) = orderOf((num * rhs.den).compareTo(den * rhs.num))
     override fun partialEq(rhs: Self) = num.eq(rhs.num) && den.eq(rhs.den)
 
-    override fun unaryMinus() = ctor(-num, den)
+    override operator fun unaryMinus() = ctor(-num, den)
     override fun reciprocal() = ctor(den, num)
     override fun abs() = ctor(num.abs(), den)
 
-    override fun inc() = ctor(num + den, den)
-    override fun dec() = ctor(num - den, den)
+    override operator fun inc() = ctor(num + den, den)
+    override operator fun dec() = ctor(num - den, den)
 
-    override fun rem(rhs: Self): Self {
+    override operator fun rem(rhs: Self): Self {
         val k = this intDiv rhs;
         return this - k * rhs;
     }
@@ -208,10 +209,10 @@ data class Rtn8 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: Rtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: Rtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: Rtn8) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: Rtn8) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: Rtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: Rtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: Rtn8) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: Rtn8) = invoke(num * rhs.den, rhs.num * den)
 }
 
 data object Rtn16Serializer : RationalSerializer<Rtn16, Int16>("Rtn16", Rtn16::invoke) {
@@ -236,10 +237,10 @@ data class Rtn16 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: Rtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: Rtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: Rtn16) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: Rtn16) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: Rtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: Rtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: Rtn16) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: Rtn16) = invoke(num * rhs.den, rhs.num * den)
 }
 
 data object Rtn32Serializer : RationalSerializer<Rtn32, Int32>("Rtn32", Rtn32::invoke) {
@@ -264,10 +265,10 @@ data class Rtn32 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: Rtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: Rtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: Rtn32) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: Rtn32) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: Rtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: Rtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: Rtn32) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: Rtn32) = invoke(num * rhs.den, rhs.num * den)
 }
 
 data object Rtn64Serializer : RationalSerializer<Rtn64, Int64>("Rtn64", Rtn64::invoke) {
@@ -292,10 +293,10 @@ data class Rtn64 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: Rtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: Rtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: Rtn64) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: Rtn64) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: Rtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: Rtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: Rtn64) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: Rtn64) = invoke(num * rhs.den, rhs.num * den)
 }
 
 data object RtnXSerializer : RationalSerializer<RtnX, IntX>("RtnX", RtnX::invoke) {
@@ -327,10 +328,10 @@ data class RtnX internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: RtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: RtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: RtnX) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: RtnX) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: RtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: RtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: RtnX) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: RtnX) = invoke(num * rhs.den, rhs.num * den)
 }
 
 object URtn8Serializer : RationalSerializer<URtn8, UInt8>("URtn8", URtn8::invoke) {
@@ -355,10 +356,10 @@ data class URtn8 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: URtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: URtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: URtn8) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: URtn8) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: URtn8) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: URtn8) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: URtn8) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: URtn8) = invoke(num * rhs.den, rhs.num * den)
 }
 
 object URtn16Serializer : RationalSerializer<URtn16, UInt16>("URtn16", URtn16::invoke) {
@@ -383,10 +384,10 @@ data class URtn16 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: URtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: URtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: URtn16) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: URtn16) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: URtn16) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: URtn16) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: URtn16) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: URtn16) = invoke(num * rhs.den, rhs.num * den)
 }
 
 object URtn32Serializer : RationalSerializer<URtn32, UInt32>("URtn32", URtn32::invoke) {
@@ -411,10 +412,10 @@ data class URtn32 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: URtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: URtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: URtn32) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: URtn32) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: URtn32) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: URtn32) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: URtn32) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: URtn32) = invoke(num * rhs.den, rhs.num * den)
 }
 
 object URtn64Serializer : RationalSerializer<URtn64, UInt64>("URtn64", URtn64::invoke) {
@@ -443,10 +444,10 @@ data class URtn64 internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: URtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: URtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: URtn64) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: URtn64) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: URtn64) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: URtn64) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: URtn64) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: URtn64) = invoke(num * rhs.den, rhs.num * den)
 }
 
 object URtnXSerializer : RationalSerializer<URtnX, UIntX>("URtnX", URtnX::invoke) {
@@ -474,11 +475,13 @@ data class URtnX internal constructor(
 
     override fun toString(radix: Int) = "(${num.toString(radix)} / ${den.toString(radix)})"
 
-    override fun plus(rhs: URtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
-    override fun minus(rhs: URtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
-    override fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
-    override fun div(rhs: URtnX) = invoke(num * rhs.den, rhs.num * den)
+    override operator fun plus(rhs: URtnX) = invoke(num * rhs.den + rhs.num * den, den * rhs.den)
+    override operator fun minus(rhs: URtnX) = invoke(num * rhs.den - rhs.num * den, den * rhs.den)
+    override operator fun times(rhs: URtnX) = invoke(num * rhs.num, den * rhs.den)
+    override operator fun div(rhs: URtnX) = invoke(num * rhs.den, rhs.num * den)
 }
+
+
 
 
 

@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -41,6 +42,7 @@ fun Circle.Companion.circumcircleOf(triangle: Triangle2): Circle2 {
 
     return Circle2(Point2(x, y), Vector2(r, Flt64.zero))
 }
+
 
 
 

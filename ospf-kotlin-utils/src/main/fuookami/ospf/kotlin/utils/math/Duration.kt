@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.utils.math
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import kotlin.time.Duration
@@ -204,3 +205,4 @@ operator fun Duration.div(value: UIntX) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt32) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt64) = this.div(value.toDouble())
 operator fun Duration.div(value: FltX) = this.div(value.toFlt64())
+

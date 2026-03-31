@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
@@ -147,6 +148,7 @@ object FltXPowerStrategy {
         return exp(index * lnBase, digits, precision, maxIterations)
     }
 }
+
 
 
 

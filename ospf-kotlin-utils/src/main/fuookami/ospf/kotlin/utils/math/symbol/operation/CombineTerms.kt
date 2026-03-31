@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -72,9 +73,9 @@ fun QuadraticPolynomial<Flt64>.combineTerms(
         .toQuadraticPolynomial()
 }
 
-fun Iterable<CanonicalMonomial<Flt64, Int32>>.combineCanonicalTerms(
+fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<CanonicalMonomial<Flt64, Int32>> {
+): List<CanonicalMonomial<Flt64>> {
     return map { it.toGenericCanonicalMonomial() }
         .combineGenericCanonicalMonomialTerms(
             zero = Flt64.zero,
@@ -84,9 +85,9 @@ fun Iterable<CanonicalMonomial<Flt64, Int32>>.combineCanonicalTerms(
         .map { it.toCanonicalMonomial() }
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.combineTerms(
+fun CanonicalPolynomial<Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     return this.toGenericCanonicalPolynomial()
         .combineGenericCanonicalTerms(
             zero = Flt64.zero,

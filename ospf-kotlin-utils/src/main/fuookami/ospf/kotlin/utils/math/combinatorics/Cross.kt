@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.combinatorics
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.parallel.*
@@ -46,6 +47,72 @@ fun <T> cross(
     return result
 }
 
+fun <T> crossCount(input: List<List<T>>): Long {
+    if (input.isEmpty()) {
+        return 0L
+    }
+    var value = 1L
+    for (values in input) {
+        if (values.isEmpty()) {
+            return 0L
+        }
+        value *= values.size.toLong()
+    }
+    return value
+}
+
+fun <T> crossSequence(input: List<List<T>>): Sequence<List<T>> = sequence {
+    if (input.isEmpty() || input.any { it.isEmpty() }) {
+        return@sequence
+    }
+    val n = input.size
+    val indices = IntArray(n)
+    while (true) {
+        yield(List(n) { input[it][indices[it]] })
+        var i = n - 1
+        while (i >= 0 && indices[i] == input[i].lastIndex) {
+            i -= 1
+        }
+        if (i < 0) {
+            break
+        }
+        indices[i] += 1
+        for (j in i + 1 until n) {
+            indices[j] = 0
+        }
+    }
+}
+
+fun <A, B> cross2(lhs: List<A>, rhs: List<B>): List<Pair<A, B>> {
+    return lhs.flatMap { l -> rhs.map { r -> l to r } }
+}
+
+fun <A, B> cross2Sequence(lhs: List<A>, rhs: List<B>): Sequence<Pair<A, B>> = sequence {
+    for (l in lhs) {
+        for (r in rhs) {
+            yield(l to r)
+        }
+    }
+}
+
+fun <A, B, C> cross3(a: List<A>, b: List<B>, c: List<C>): List<Triple<A, B, C>> {
+    return a.flatMap { x ->
+        b.flatMap { y ->
+            c.map { z -> Triple(x, y, z) }
+        }
+    }
+}
+
+fun <A, B, C> cross3Sequence(a: List<A>, b: List<B>, c: List<C>): Sequence<Triple<A, B, C>> = sequence {
+    for (x in a) {
+        for (y in b) {
+            for (z in c) {
+                yield(Triple(x, y, z))
+            }
+        }
+    }
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 fun <T> crossAsync(
     input: List<List<T>>,
@@ -89,6 +156,7 @@ fun <T> crossAsync(
     }
     return ChannelGuard(promise)
 }
+
 
 
 

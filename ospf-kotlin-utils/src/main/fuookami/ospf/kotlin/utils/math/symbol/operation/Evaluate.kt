@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.error.Error
@@ -87,7 +88,7 @@ private fun QuadraticMonomial<Flt64>.toSingleGenericQuadraticPolynomial(): Gener
     )
 }
 
-private fun CanonicalMonomial<Flt64, Int32>.toSingleGenericCanonicalPolynomial(): GenericCanonicalPolynomial<Flt64> {
+private fun CanonicalMonomial<Flt64>.toSingleGenericCanonicalPolynomial(): GenericCanonicalPolynomial<Flt64> {
     return GenericCanonicalPolynomial(
         monomials = listOf(toGenericCanonicalMonomial()),
         constant = Flt64.zero
@@ -265,7 +266,7 @@ fun QuadraticMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Quadra
     return partialEvaluate(MapValueProvider(values))
 }
 
-fun CanonicalMonomial<Flt64, Int32>.evaluate(
+fun CanonicalMonomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -282,14 +283,14 @@ fun CanonicalMonomial<Flt64, Int32>.evaluate(
     )
 }
 
-fun CanonicalMonomial<Flt64, Int32>.evaluate(
+fun CanonicalMonomial<Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<Flt64, Int32>.evaluateRet(
+fun CanonicalMonomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
@@ -321,21 +322,21 @@ fun CanonicalMonomial<Flt64, Int32>.evaluateRet(
     }
 }
 
-fun CanonicalMonomial<Flt64, Int32>.evaluateRet(
+fun CanonicalMonomial<Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<Flt64, Int32>.evaluateOrdered(
+fun CanonicalMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
 ): Flt64 {
     return toSingleGenericCanonicalPolynomial().evaluateOrderedGeneric(order, values, Flt64.one)
 }
 
-fun CanonicalMonomial<Flt64, Int32>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<Flt64, Int32> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<Flt64> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (symbol in powers.keys) {
         provider[symbol]?.let { values[symbol] = it }
@@ -354,7 +355,7 @@ fun CanonicalMonomial<Flt64, Int32>.partialEvaluate(provider: ValueProvider): Ca
         )
 }
 
-fun CanonicalMonomial<Flt64, Int32>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<Flt64, Int32> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
@@ -549,7 +550,7 @@ fun QuadraticPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Quad
         .toQuadraticPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.evaluate(
+fun CanonicalPolynomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -566,17 +567,21 @@ fun CanonicalPolynomial<Flt64, Int32>.evaluate(
     )
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.evaluate(
+fun CanonicalPolynomial<Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
     return when (policy) {
-        MissingValuePolicy.AsZero -> toGenericCanonicalPolynomial().evaluateGeneric(values, one = Flt64.one) { Flt64.zero }
+        MissingValuePolicy.AsZero -> toGenericCanonicalPolynomial().evaluateGeneric(
+            values = values,
+            onMissing = { Flt64.zero },
+            one = Flt64.one
+        )
         MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> toGenericCanonicalPolynomial().evaluateGeneric(values, one = Flt64.one)
     }
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.evaluateRet(
+fun CanonicalPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
@@ -607,24 +612,24 @@ fun CanonicalPolynomial<Flt64, Int32>.evaluateRet(
     }
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.evaluateRet(
+fun CanonicalPolynomial<Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.evaluateOrdered(
+fun CanonicalPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
     values: List<Flt64>
 ): Flt64 {
     return toGenericCanonicalPolynomial().evaluateOrderedGeneric(order, values, Flt64.one)
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.partialEvaluate(
+fun CanonicalPolynomial<Flt64>.partialEvaluate(
     provider: ValueProvider,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         for (symbol in monomial.powers.keys) {
@@ -642,10 +647,10 @@ fun CanonicalPolynomial<Flt64, Int32>.partialEvaluate(
         .toCanonicalPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.partialEvaluate(
+fun CanonicalPolynomial<Flt64>.partialEvaluate(
     values: Map<Symbol, Flt64>,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     return toGenericCanonicalPolynomial()
         .partialEvaluateGeneric(
             values = values,
@@ -656,3 +661,4 @@ fun CanonicalPolynomial<Flt64, Int32>.partialEvaluate(
         )
         .toCanonicalPolynomialFromGeneric()
 }
+

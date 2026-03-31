@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 val Collection<*>.usize: UInt64
@@ -8,6 +9,7 @@ val Collection<*>.usize: UInt64
 
 val Collection<*>.uIndices: IntegerRange<UInt64>
     get() = UInt64.zero until usize
+
 
 
 

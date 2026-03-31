@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.combinatorics
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
@@ -46,6 +47,69 @@ fun <T> permute(
     return perms
 }
 
+fun permuteCount(n: Int, choose: Int = n): Long {
+    if (choose < 0 || choose > n) {
+        return 0L
+    }
+    var value = 1L
+    for (i in 0 until choose) {
+        value *= (n - i).toLong()
+    }
+    return value
+}
+
+fun <T> permuteSequence(input: List<T>): Sequence<List<T>> = sequence {
+    yieldAll(permuteSequence(input, input.size))
+}
+
+fun <T> permuteSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
+    if (choose < 0 || choose > input.size) {
+        return@sequence
+    }
+    if (choose == 0) {
+        yield(emptyList())
+        return@sequence
+    }
+
+    val used = BooleanArray(input.size)
+    val path = ArrayList<T>(choose)
+
+    suspend fun SequenceScope<List<T>>.dfs() {
+        if (path.size == choose) {
+            yield(path.toList())
+            return
+        }
+        for (i in input.indices) {
+            if (used[i]) {
+                continue
+            }
+            used[i] = true
+            path.add(input[i])
+            dfs()
+            path.removeAt(path.lastIndex)
+            used[i] = false
+        }
+    }
+    dfs()
+}
+
+fun <T> permute(
+    input: List<T>,
+    choose: Int,
+    callBack: ((List<T>) -> Unit)? = null,
+    stopped: ((List<T>) -> Boolean)? = null
+): List<List<T>> {
+    val result = ArrayList<List<T>>()
+    for (permutation in permuteSequence(input, choose)) {
+        result.add(permutation)
+        callBack?.invoke(permutation)
+        if (stopped?.invoke(permutation) == true) {
+            break
+        }
+    }
+    return result
+}
+
 @OptIn(DelicateCoroutinesApi::class)
 fun <T> permuteAsync(
     input: List<T>,
@@ -88,6 +152,7 @@ fun <T> permuteAsync(
     }
     return ChannelGuard(promise)
 }
+
 
 
 

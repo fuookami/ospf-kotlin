@@ -1,13 +1,18 @@
-package fuookami.ospf.kotlin.utils.math.symbol.polynomial
+﻿package fuookami.ospf.kotlin.utils.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.div
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.times
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
 /**
  * Mutable version of CanonicalPolynomial for in-place modifications.
@@ -15,12 +20,12 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
  * Use this when you need to build or modify polynomials incrementally.
  * Convert to [CanonicalPolynomial] when you need an immutable version.
  */
-class MutableCanonicalPolynomial<T>(
+class MutableCanonicalPolynomial<T : NumberField<T>>(
     monomials: List<CanonicalMonomial<T>> = emptyList(),
     constant: T
 ) {
-    private val _monomials: MutableList<CanonicalMonomial<T>> = monomials.toMutableList()
-    private var _constant: T = constant
+    internal val _monomials: MutableList<CanonicalMonomial<T>> = monomials.toMutableList()
+    internal var _constant: T = constant
 
     val monomials: List<CanonicalMonomial<T>> get() = _monomials.toList()
     val constant: T get() = _constant
@@ -36,6 +41,7 @@ class MutableCanonicalPolynomial<T>(
         val One: Flt64 = Flt64.one
 
         fun <T : NumberField<T>> zero(): MutableCanonicalPolynomial<T> {
+            @Suppress("UNCHECKED_CAST")
             return MutableCanonicalPolynomial(emptyList(), One as T)
         }
 
@@ -157,3 +163,4 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.divAssign(rhs: T
     }
     _constant = _constant / rhs
 }
+

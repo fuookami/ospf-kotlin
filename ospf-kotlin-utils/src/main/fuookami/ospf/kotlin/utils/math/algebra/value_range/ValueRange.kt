@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.max
 import fuookami.ospf.kotlin.utils.operator.*
@@ -775,6 +776,7 @@ operator fun ValueRange<IntX>.unaryMinus() = ValueRange(
     lowerBound = -lowerBound,
     constants = IntX
 )
+
 
 
 

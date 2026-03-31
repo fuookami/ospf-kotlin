@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.parser
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 class Parser(
@@ -181,3 +182,4 @@ fun parseSymbolExpression(input: String): Expr {
 fun parseSymbolInequality(input: String): Expr.Comparison {
     return Parser(lexSymbolExpression(input)).parseInequality()
 }
+

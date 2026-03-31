@@ -1,13 +1,14 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.operator.Minus
 import fuookami.ospf.kotlin.utils.operator.Plus
-import fuookami.ospf.kotlin.utils.operator.Times
+import kotlin.math.acos
 
 private fun normOf(vector: List<Flt64>): Flt64 {
     return (vector.sumOf { it.sqr() }).sqrt()
@@ -26,7 +27,7 @@ private fun timesBetween(lhs: List<Flt64>, rhs: List<Flt64>): Flt64 {
 open class Vector<D : Dimension>(
     val vector: List<Flt64>,
     val dim: D
-) : Plus<Vector<D>, Vector<D>>, Minus<Vector<D>, Vector<D>>, Times<Vector<D>, Flt64> {
+) : InnerProductSpace<Vector<D>, Flt64> {
     companion object {
         operator fun invoke(x: Flt64, y: Flt64): Vector2 {
             return Vector2(listOf(x, y), Dim2)
@@ -39,8 +40,8 @@ open class Vector<D : Dimension>(
 
     val size by vector::size
     val indices by vector::indices
-    val norm: Flt64 by lazy { normOf(vector) }
-    open val unit: Vector<D> by lazy { Vector(unitOf(vector), dim) }
+    override val norm: Flt64 by lazy { normOf(vector) }
+    override val unit: Vector<D> by lazy { Vector(unitOf(vector), dim) }
 
     init {
         assert(vector.size == dim.size)
@@ -52,10 +53,30 @@ open class Vector<D : Dimension>(
     }
 
     override operator fun plus(rhs: Vector<D>) = Vector(indices.map { this[it] + rhs[it] }, dim)
-    override operator fun minus(rhs: Vector<D>) = Vector(indices.map { this[it] + rhs[it] }, dim)
-    override operator fun times(rhs: Vector<D>) = timesBetween(vector, rhs.vector)
+    override operator fun minus(rhs: Vector<D>) = Vector(indices.map { this[it] - rhs[it] }, dim)
+    override fun scale(rhs: Flt64) = Vector(indices.map { this[it] * rhs }, dim)
+    override infix fun dot(rhs: Vector<D>) = timesBetween(vector, rhs.vector)
+
+    operator fun times(rhs: Vector<D>) = dot(rhs)
+    operator fun times(rhs: Flt64) = scale(rhs)
 
     operator fun plus(rhs: Point<D>) = Point(indices.map { this[it] + rhs[it] }, dim)
+
+    fun angle(rhs: Vector<D>): Flt64? {
+        if (norm eq Flt64.zero || rhs.norm eq Flt64.zero) {
+            return null
+        }
+        val cosine = ((this dot rhs) / (norm * rhs.norm)).toDouble().coerceIn(-1.0, 1.0)
+        return Flt64(acos(cosine))
+    }
+
+    fun projectionOn(rhs: Vector<D>): Vector<D>? {
+        val denominator = rhs dot rhs
+        if (denominator eq Flt64.zero) {
+            return null
+        }
+        return rhs * ((this dot rhs) / denominator)
+    }
 
     override fun toString() = vector.joinToString(",", "[", "]")
 }
@@ -86,6 +107,23 @@ val Vector3.z get() = this[2]
 fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector3 {
     return Vector3(x, y, z)
 }
+
+operator fun <D : Dimension> Flt64.times(rhs: Vector<D>): Vector<D> {
+    return rhs * this
+}
+
+infix fun Vector2.cross(rhs: Vector2): Flt64 {
+    return this.x * rhs.y - this.y * rhs.x
+}
+
+infix fun Vector3.cross(rhs: Vector3): Vector3 {
+    return vector3(
+        x = this.y * rhs.z - this.z * rhs.y,
+        y = this.z * rhs.x - this.x * rhs.z,
+        z = this.x * rhs.y - this.y * rhs.x
+    )
+}
+
 
 
 

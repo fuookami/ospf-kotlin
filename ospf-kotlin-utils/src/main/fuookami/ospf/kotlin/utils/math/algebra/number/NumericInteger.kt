@@ -3,6 +3,7 @@
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.KSerializer
@@ -16,8 +17,8 @@ import java.math.BigInteger
 
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
-    override fun inc() = this + constants.one
-    override fun dec() = this - constants.one
+    override operator fun inc() = this + constants.one
+    override operator fun dec() = this - constants.one
 
     override fun lg() = log(Flt64.ten)
     override fun lg2() = log(Flt64.two)
@@ -123,14 +124,14 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun partialEq(rhs: NInt8) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn8(Int8.one, value)
-    override fun unaryMinus() = NInt8(-value)
+    override operator fun unaryMinus() = NInt8(-value)
     override fun abs() = NInt8(value.abs())
 
-    override fun plus(rhs: NInt8) = NInt8(value + rhs.value)
-    override fun minus(rhs: NInt8) = NInt8(value - rhs.value)
-    override fun times(rhs: NInt8) = NInt8(value * rhs.value)
-    override fun div(rhs: NInt8) = Rtn8(value, rhs.value)
-    override fun rem(rhs: NInt8) = NInt8(value % rhs.value)
+    override operator fun plus(rhs: NInt8) = NInt8(value + rhs.value)
+    override operator fun minus(rhs: NInt8) = NInt8(value - rhs.value)
+    override operator fun times(rhs: NInt8) = NInt8(value * rhs.value)
+    override operator fun div(rhs: NInt8) = Rtn8(value, rhs.value)
+    override operator fun rem(rhs: NInt8) = NInt8(value % rhs.value)
     override fun intDiv(rhs: NInt8) = NInt8(value / rhs.value)
 
 
@@ -193,14 +194,14 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun partialEq(rhs: NInt16) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn16(Int16.one, value)
-    override fun unaryMinus() = NInt16(-value)
+    override operator fun unaryMinus() = NInt16(-value)
     override fun abs() = NInt16(value.abs())
 
-    override fun plus(rhs: NInt16) = NInt16(value + rhs.value)
-    override fun minus(rhs: NInt16) = NInt16(value - rhs.value)
-    override fun times(rhs: NInt16) = NInt16(value * rhs.value)
-    override fun div(rhs: NInt16) = Rtn16(value, rhs.value)
-    override fun rem(rhs: NInt16) = NInt16(value % rhs.value)
+    override operator fun plus(rhs: NInt16) = NInt16(value + rhs.value)
+    override operator fun minus(rhs: NInt16) = NInt16(value - rhs.value)
+    override operator fun times(rhs: NInt16) = NInt16(value * rhs.value)
+    override operator fun div(rhs: NInt16) = Rtn16(value, rhs.value)
+    override operator fun rem(rhs: NInt16) = NInt16(value % rhs.value)
     override fun intDiv(rhs: NInt16) = NInt16(value / rhs.value)
 
 
@@ -263,14 +264,14 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun partialEq(rhs: NInt32) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn32(Int32.one, value)
-    override fun unaryMinus() = NInt32(-value)
+    override operator fun unaryMinus() = NInt32(-value)
     override fun abs() = NInt32(value.abs())
 
-    override fun plus(rhs: NInt32) = NInt32(value + rhs.value)
-    override fun minus(rhs: NInt32) = NInt32(value - rhs.value)
-    override fun times(rhs: NInt32) = NInt32(value * rhs.value)
-    override fun div(rhs: NInt32) = Rtn32(value, rhs.value)
-    override fun rem(rhs: NInt32) = NInt32(value % rhs.value)
+    override operator fun plus(rhs: NInt32) = NInt32(value + rhs.value)
+    override operator fun minus(rhs: NInt32) = NInt32(value - rhs.value)
+    override operator fun times(rhs: NInt32) = NInt32(value * rhs.value)
+    override operator fun div(rhs: NInt32) = Rtn32(value, rhs.value)
+    override operator fun rem(rhs: NInt32) = NInt32(value % rhs.value)
     override fun intDiv(rhs: NInt32) = NInt32(value / rhs.value)
 
 
@@ -333,14 +334,14 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun partialEq(rhs: NInt64) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = Rtn64(Int64.one, value)
-    override fun unaryMinus() = NInt64(-value)
+    override operator fun unaryMinus() = NInt64(-value)
     override fun abs() = NInt64(value.abs())
 
-    override fun plus(rhs: NInt64) = NInt64(value + rhs.value)
-    override fun minus(rhs: NInt64) = NInt64(value - rhs.value)
-    override fun times(rhs: NInt64) = NInt64(value * rhs.value)
-    override fun div(rhs: NInt64) = Rtn64(value, rhs.value)
-    override fun rem(rhs: NInt64) = NInt64(value % rhs.value)
+    override operator fun plus(rhs: NInt64) = NInt64(value + rhs.value)
+    override operator fun minus(rhs: NInt64) = NInt64(value - rhs.value)
+    override operator fun times(rhs: NInt64) = NInt64(value * rhs.value)
+    override operator fun div(rhs: NInt64) = Rtn64(value, rhs.value)
+    override operator fun rem(rhs: NInt64) = NInt64(value % rhs.value)
     override fun intDiv(rhs: NInt64) = NInt64(value / rhs.value)
 
 
@@ -403,14 +404,14 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun partialEq(rhs: NIntX) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = RtnX(IntX.one, value)
-    override fun unaryMinus() = NIntX(-value)
+    override operator fun unaryMinus() = NIntX(-value)
     override fun abs() = NIntX(value.abs())
 
-    override fun plus(rhs: NIntX) = NIntX(value + rhs.value)
-    override fun minus(rhs: NIntX) = NIntX(value - rhs.value)
-    override fun times(rhs: NIntX) = NIntX(value * rhs.value)
-    override fun div(rhs: NIntX) = RtnX(value, rhs.value)
-    override fun rem(rhs: NIntX) = NIntX(value % rhs.value)
+    override operator fun plus(rhs: NIntX) = NIntX(value + rhs.value)
+    override operator fun minus(rhs: NIntX) = NIntX(value - rhs.value)
+    override operator fun times(rhs: NIntX) = NIntX(value * rhs.value)
+    override operator fun div(rhs: NIntX) = RtnX(value, rhs.value)
+    override operator fun rem(rhs: NIntX) = NIntX(value % rhs.value)
     override fun intDiv(rhs: NIntX) = NIntX(value / rhs.value)
 
     @Throws(IllegalArgumentException::class)
@@ -491,6 +492,8 @@ value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
+
+
 
 
 

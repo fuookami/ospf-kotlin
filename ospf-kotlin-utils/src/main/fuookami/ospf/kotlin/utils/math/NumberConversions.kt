@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import java.math.BigDecimal
@@ -40,6 +41,7 @@ fun String.toFlt64() = Flt64(toDouble())
 fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
 fun String.toFltX() = FltX(toBigDecimal())
 fun String.toFltXOrNull() = runCatching { FltX(BigDecimal(this)) }.getOrNull()
+
 
 
 

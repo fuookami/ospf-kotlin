@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -58,7 +59,7 @@ fun QuadraticMonomial<Flt64>.toLatex(
     return toGenericQuadraticMonomial().toLatexGeneric(flt64LatexOps, options)
 }
 
-fun CanonicalMonomial<Flt64, Int32>.toLatex(
+fun CanonicalMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toGenericCanonicalMonomial().toLatexGeneric(flt64LatexOps, options)
@@ -76,7 +77,7 @@ fun QuadraticPolynomial<Flt64>.toLatex(
     return toGenericQuadraticPolynomial().toLatexGeneric(flt64LatexOps, options)
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.toLatex(
+fun CanonicalPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toGenericCanonicalPolynomial().toLatexGeneric(flt64LatexOps, options)

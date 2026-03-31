@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
@@ -39,6 +40,8 @@ fun <T> GenericQuadraticMonomial<T>.toGenericCanonicalMonomial(
 ): GenericCanonicalMonomial<T> where T : Ring<T> {
     val powers = if (symbol2 == null) {
         mapOf(symbol1 to 1)
+    } else if (symbol1 == symbol2) {
+        mapOf(symbol1 to 2)
     } else {
         mapOf(symbol1 to 1, symbol2 to 1)
     }

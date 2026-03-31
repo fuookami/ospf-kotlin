@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Generator
@@ -90,6 +91,7 @@ data class DoublePendulumSystemGenerator(
         return x to y
     }
 }
+
 
 
 

@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.chaotic_operator
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Extractor
@@ -73,6 +74,7 @@ data class ChuaCircuitGenerator(
         return x
     }
 }
+
 
 
 

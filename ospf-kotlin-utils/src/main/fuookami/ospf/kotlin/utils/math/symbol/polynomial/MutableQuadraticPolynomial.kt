@@ -1,13 +1,18 @@
-package fuookami.ospf.kotlin.utils.math.symbol.polynomial
+﻿package fuookami.ospf.kotlin.utils.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.div
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.times
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
 /**
  * Mutable version of QuadraticPolynomial for in-place modifications.
@@ -15,12 +20,12 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
  * Use this when you need to build or modify polynomials incrementally.
  * Convert to [QuadraticPolynomial] when you need an immutable version.
  */
-class MutableQuadraticPolynomial<T>(
+class MutableQuadraticPolynomial<T : NumberField<T>>(
     monomials: List<QuadraticMonomial<T>> = emptyList(),
     constant: T
 ) {
-    private val _monomials: MutableList<QuadraticMonomial<T>> = monomials.toMutableList()
-    private var _constant: T = constant
+    internal val _monomials: MutableList<QuadraticMonomial<T>> = monomials.toMutableList()
+    internal var _constant: T = constant
 
     val monomials: List<QuadraticMonomial<T>> get() = _monomials.toList()
     val constant: T get() = _constant
@@ -32,6 +37,7 @@ class MutableQuadraticPolynomial<T>(
         val One: Flt64 = Flt64.one
 
         fun <T : NumberField<T>> zero(): MutableQuadraticPolynomial<T> {
+            @Suppress("UNCHECKED_CAST")
             return MutableQuadraticPolynomial(emptyList(), One as T)
         }
 
@@ -179,3 +185,4 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.divAssign(rhs: T
     }
     _constant = _constant / rhs
 }
+

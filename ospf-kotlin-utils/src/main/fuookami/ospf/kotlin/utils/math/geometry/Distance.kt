@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.sumOf
@@ -23,7 +24,7 @@ sealed interface Distance {
 
     class Minkowski(val p: Int) : Distance {
         override operator fun <D : Dimension> invoke(lhs: Point<D>, rhs: Point<D>): Flt64 {
-            return (lhs.indices.sumOf { (lhs[it] - rhs[it]).pow(p) }).pow(Flt64(1.0 / p.toDouble())) as Flt64
+            return (lhs.indices.sumOf { (lhs[it] - rhs[it]).abs().pow(p) }).pow(Flt64(1.0 / p.toDouble())) as Flt64
         }
     }
 
@@ -33,6 +34,7 @@ sealed interface Distance {
         }
     }
 }
+
 
 
 

@@ -79,6 +79,44 @@ class InequalityTest {
         assertEquals(Comparison.LE, Comparison.GE.reverse())
         assertEquals(Comparison.LT, Comparison.GT.reverse())
     }
+
+    @Test
+    fun linearInequalityOperatorsShouldBuildComparison() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val lhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.two, x)), Flt64.one)
+        val rhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.one, y)), Flt64.zero)
+
+        val leIneq = lhs le rhs
+        assertEquals(Comparison.LE, leIneq.comparison)
+        assertEquals(lhs, leIneq.lhs)
+        assertEquals(rhs, leIneq.rhs)
+
+        val geConst = lhs ge Flt64.one
+        assertEquals(Comparison.GE, geConst.comparison)
+        assertEquals(Flt64.one, geConst.rhs.constant)
+    }
+
+    @Test
+    fun quadraticInequalityOperatorsShouldSupportMixedOrder() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val q = QuadraticPolynomial<Flt64>(
+            listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = y)),
+            Flt64.one
+        )
+        val l = LinearPolynomial<Flt64>(
+            listOf(LinearMonomial<Flt64>(Flt64.two, x)),
+            Flt64.zero
+        )
+
+        val ltIneq = q lt l
+        assertEquals(Comparison.LT, ltIneq.comparison)
+
+        val gtConst = Flt64.zero gt q
+        assertEquals(Comparison.GT, gtConst.comparison)
+        assertEquals(Flt64.zero, gtConst.lhs.constant)
+    }
 }
 
 

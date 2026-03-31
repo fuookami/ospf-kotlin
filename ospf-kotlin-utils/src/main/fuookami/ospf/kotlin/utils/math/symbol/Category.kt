@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
@@ -51,6 +52,7 @@ fun Collection<Category>.max(): Category {
 fun Collection<Category>.maxOrNull(): Category? {
     return this.maxByOrNull { it.code }
 }
+
 
 
 

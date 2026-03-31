@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -41,6 +42,7 @@ class Triangle<P : Point<D>, D : Dimension>(
 
 typealias Triangle2 = Triangle<Point2, Dim2>
 typealias Triangle3 = Triangle<Point3, Dim3>
+
 
 
 

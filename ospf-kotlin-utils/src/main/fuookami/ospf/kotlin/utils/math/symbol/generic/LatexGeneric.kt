@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
@@ -129,15 +130,11 @@ fun <T> GenericCanonicalMonomial<T>.toLatex(
     ops: GenericLatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
-    if (factors.isEmpty()) {
+    if (powers.isEmpty()) {
         return ops.format(coefficient)
     }
-    val factorAmount = LinkedHashMap<Symbol, Int>()
-    for (symbol in factors) {
-        factorAmount[symbol] = (factorAmount[symbol] ?: 0) + 1
-    }
     val multiply = mulSymbol(options)
-    val variable = factorAmount.entries.joinToString(separator = multiply) {
+    val variable = powers.entries.joinToString(separator = multiply) {
         if (it.value == 1) {
             it.key.latexName()
         } else {
@@ -232,3 +229,4 @@ fun <T> GenericCanonicalPolynomial<T>.toLatex(
     }
     return mergeTerms(terms, options)
 }
+

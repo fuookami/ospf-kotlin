@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.serde
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -57,24 +58,6 @@ private fun powerExpr(
 ): Expr {
     return if (exponent == 1) {
         base
-    } else if (exponent == -1) {
-        // 负指数：1/x 形式
-        Expr.Binary(
-            left = Expr.NumberLiteral("1"),
-            operator = BinaryOperator.Divide,
-            right = base
-        )
-    } else if (exponent < 0) {
-        // 负指数：1/x^n 形式
-        Expr.Binary(
-            left = Expr.NumberLiteral("1"),
-            operator = BinaryOperator.Divide,
-            right = Expr.Binary(
-                left = base,
-                operator = BinaryOperator.Power,
-                right = Expr.NumberLiteral((-exponent).toString())
-            )
-        )
     } else {
         Expr.Binary(
             left = base,
@@ -126,7 +109,7 @@ private fun combineSignedTerms(terms: List<Pair<Boolean, Expr>>): Expr {
     return expression
 }
 
-private fun canonicalMonomialToExpr(monomial: CanonicalMonomial<Flt64, Int32>): Expr {
+private fun canonicalMonomialToExpr(monomial: CanonicalMonomial<Flt64>): Expr {
     if (monomial.powers.isEmpty()) {
         return numberExpr(monomial.coefficient)
     }
@@ -150,7 +133,7 @@ fun QuadraticPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = nu
     return this.toCanonicalPolynomial(symbolComparator).toExpr()
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.toExpr(symbolComparator: Comparator<Symbol>? = null): SymbolExpr {
+fun CanonicalPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): SymbolExpr {
     val source = this.combineTerms(symbolComparator)
     val terms = ArrayList<Pair<Boolean, Expr>>(source.monomials.size + 1)
     for (monomial in source.monomials) {
@@ -212,7 +195,7 @@ fun CanonicalInequality.toExpr(symbolComparator: Comparator<Symbol>? = null): Ex
 }
 
 /**
- * 合并两个 powers Map
+ * �ϲ����� powers Map
  * Merge two powers maps
  */
 private fun mergePowers(left: Map<Symbol, Int32>, right: Map<Symbol, Int32>): Map<Symbol, Int32> {
@@ -224,38 +207,38 @@ private fun mergePowers(left: Map<Symbol, Int32>, right: Map<Symbol, Int32>): Ma
 }
 
 private fun addCanonical(
-    lhs: CanonicalPolynomial<Flt64, Int32>,
-    rhs: CanonicalPolynomial<Flt64, Int32>
-): CanonicalPolynomial<Flt64, Int32> {
-    return CanonicalPolynomial<Flt64, Int32>(
+    lhs: CanonicalPolynomial<Flt64>,
+    rhs: CanonicalPolynomial<Flt64>
+): CanonicalPolynomial<Flt64> {
+    return CanonicalPolynomial<Flt64>(
         monomials = lhs.monomials + rhs.monomials,
         constant = lhs.constant + rhs.constant
     ).combineTerms()
 }
 
-private fun negateCanonical(polynomial: CanonicalPolynomial<Flt64, Int32>): CanonicalPolynomial<Flt64, Int32> {
-    return CanonicalPolynomial<Flt64, Int32>(
+private fun negateCanonical(polynomial: CanonicalPolynomial<Flt64>): CanonicalPolynomial<Flt64> {
+    return CanonicalPolynomial<Flt64>(
         monomials = polynomial.monomials.map { it.copy(coefficient = -it.coefficient) },
         constant = -polynomial.constant
     )
 }
 
 private fun subtractCanonical(
-    lhs: CanonicalPolynomial<Flt64, Int32>,
-    rhs: CanonicalPolynomial<Flt64, Int32>
-): CanonicalPolynomial<Flt64, Int32> {
+    lhs: CanonicalPolynomial<Flt64>,
+    rhs: CanonicalPolynomial<Flt64>
+): CanonicalPolynomial<Flt64> {
     return addCanonical(lhs, negateCanonical(rhs))
 }
 
 private fun multiplyCanonical(
-    lhs: CanonicalPolynomial<Flt64, Int32>,
-    rhs: CanonicalPolynomial<Flt64, Int32>
-): CanonicalPolynomial<Flt64, Int32> {
-    val monomials = ArrayList<CanonicalMonomial<Flt64, Int32>>(lhs.monomials.size * rhs.monomials.size + lhs.monomials.size + rhs.monomials.size)
+    lhs: CanonicalPolynomial<Flt64>,
+    rhs: CanonicalPolynomial<Flt64>
+): CanonicalPolynomial<Flt64> {
+    val monomials = ArrayList<CanonicalMonomial<Flt64>>(lhs.monomials.size * rhs.monomials.size + lhs.monomials.size + rhs.monomials.size)
     for (left in lhs.monomials) {
         for (right in rhs.monomials) {
             monomials.add(
-                CanonicalMonomial<Flt64, Int32>(
+                CanonicalMonomial<Flt64>(
                     coefficient = left.coefficient * right.coefficient,
                     powers = mergePowers(left.powers, right.powers)
                 )
@@ -274,18 +257,15 @@ private fun multiplyCanonical(
             )
         }
     }
-    return CanonicalPolynomial<Flt64, Int32>(
+    return CanonicalPolynomial<Flt64>(
         monomials = monomials,
         constant = lhs.constant * rhs.constant
     ).combineTerms()
 }
 
-private fun parseNonNegativeExponent(text: String): Int {
+private fun parseExponent(text: String): Int {
     val doubleValue = text.toDoubleOrNull()
         ?: throw IllegalArgumentException("Invalid exponent '$text'.")
-    require(doubleValue >= 0.0) {
-        "Exponent must be non-negative."
-    }
     val rounded = doubleValue.toInt()
     require(rounded.toDouble() == doubleValue) {
         "Exponent must be an integer."
@@ -294,10 +274,13 @@ private fun parseNonNegativeExponent(text: String): Int {
 }
 
 private fun powCanonical(
-    base: CanonicalPolynomial<Flt64, Int32>,
+    base: CanonicalPolynomial<Flt64>,
     exponent: Int
-): CanonicalPolynomial<Flt64, Int32> {
-    var result = CanonicalPolynomial<Flt64, Int32>(constant = Flt64.one)
+): CanonicalPolynomial<Flt64> {
+    require(exponent >= 0) {
+        "Negative exponent is not supported for polynomial conversion."
+    }
+    var result = CanonicalPolynomial<Flt64>(constant = Flt64.one)
     repeat(exponent) {
         result = multiplyCanonical(result, base)
     }
@@ -306,16 +289,16 @@ private fun powCanonical(
 
 fun Expr.toCanonicalPolynomial(
     symbolOf: (String) -> Symbol = ::defaultSymbolOf
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     return when (this) {
         is Expr.NumberLiteral -> {
-            CanonicalPolynomial<Flt64, Int32>(constant = Flt64(text.toDouble()))
+            CanonicalPolynomial<Flt64>(constant = Flt64(text.toDouble()))
         }
 
         is Expr.Identifier -> {
-            CanonicalPolynomial<Flt64, Int32>(
+            CanonicalPolynomial<Flt64>(
                 monomials = listOf(
-                    CanonicalMonomial<Flt64, Int32>(
+                    CanonicalMonomial<Flt64>(
                         coefficient = Flt64.one,
                         powers = mapOf(symbolOf(name) to Int32.one)
                     )
@@ -337,7 +320,7 @@ fun Expr.toCanonicalPolynomial(
                 BinaryOperator.Multiply -> multiplyCanonical(leftPolynomial, rightPolynomial)
                 BinaryOperator.Power -> {
                     val exponent = when (right) {
-                        is Expr.NumberLiteral -> parseNonNegativeExponent(right.text)
+                        is Expr.NumberLiteral -> parseExponent(right.text)
                         else -> throw IllegalArgumentException("Exponent must be number literal.")
                     }
                     powCanonical(leftPolynomial, exponent)
@@ -398,3 +381,4 @@ fun SymbolExpr.toJsonString(): String {
 fun symbolExprFromJson(json: String): SymbolExpr {
     return readFromJson(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
 }
+

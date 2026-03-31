@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.parser
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import kotlinx.serialization.Serializable
@@ -43,3 +44,4 @@ enum class ComparisonOperator {
     GreaterEqual,
     Greater
 }
+

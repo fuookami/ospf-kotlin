@@ -1,25 +1,21 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.div
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.times
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
-/**
- * 标准多项式 / Canonical polynomial
- *
- * 由多个标准单项式组成的表达式
- * Expression composed of multiple canonical monomials
- *
- * @param T 系数类型
- * @param E 指数类型，默认为 Int32
- */
-data class CanonicalPolynomial<T, E : Number>(
-    val monomials: List<CanonicalMonomial<T, E>> = emptyList(),
+data class CanonicalPolynomial<T : NumberField<T>>(
+    val monomials: List<CanonicalMonomial<T>> = emptyList(),
     val constant: T
 ) {
     val category: Category
@@ -29,3 +25,60 @@ data class CanonicalPolynomial<T, E : Number>(
             else -> Nonlinear
         }
 }
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.unaryMinus(): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials.map { -it }, -constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalMonomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials + rhs, constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalMonomial<T>.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(listOf(this) + rhs.monomials, rhs.constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalMonomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials + (-rhs), constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalMonomial<T>.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(listOf(this) + rhs.monomials.map { -it }, -rhs.constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials + rhs.monomials, constant + rhs.constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials + rhs.monomials.map { -it }, constant - rhs.constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.times(rhs: T): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials.map { it * rhs }, constant * rhs)
+}
+
+operator fun <T : NumberField<T>> T.times(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return rhs * this
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.div(rhs: T): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials.map { it / rhs }, constant / rhs)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.plus(rhs: T): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials, constant + rhs)
+}
+
+operator fun <T : NumberField<T>> T.plus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(rhs.monomials, this + rhs.constant)
+}
+
+operator fun <T : NumberField<T>> CanonicalPolynomial<T>.minus(rhs: T): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(monomials, constant - rhs)
+}
+
+operator fun <T : NumberField<T>> T.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
+    return CanonicalPolynomial(rhs.monomials.map { -it }, this - rhs.constant)
+}
+

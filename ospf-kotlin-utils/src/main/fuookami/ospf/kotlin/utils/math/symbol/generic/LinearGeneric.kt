@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -124,6 +125,7 @@ fun GenericLinearPolynomial<Flt64>.toLinearPolynomial(): LinearPolynomial<Flt64>
         constant = constant
     )
 }
+
 
 
 

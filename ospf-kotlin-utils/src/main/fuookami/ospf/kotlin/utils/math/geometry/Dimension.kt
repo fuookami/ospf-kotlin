@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.geometry
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 interface Dimension {
@@ -19,6 +20,7 @@ data object Dim2 : Dimension {
 data object Dim3 : Dimension {
     override val size = 3
 }
+
 
 
 

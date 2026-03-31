@@ -3,6 +3,7 @@
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.orderOf
 import kotlinx.serialization.KSerializer
@@ -15,7 +16,7 @@ import kotlinx.serialization.encoding.Encoder
 
 interface NumericUInteger<Self, I>
     : NumericUIntegerNumber<Self, I> where Self : NumericUInteger<Self, I>, I : UIntegerNumber<I>, I : NumberField<I> {
-    override fun inc() = this + constants.one
+    override operator fun inc() = this + constants.one
 
     override fun lg() = log(Flt64.ten)
     override fun lg2() = log(Flt64.two)
@@ -114,20 +115,20 @@ value class NUInt8(val value: UInt8) : NumericUInteger<NUInt8, UInt8>, Copyable<
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun dec(): NUInt8 = NUInt8(value - UInt8.one)
+    override operator fun dec(): NUInt8 = NUInt8(value - UInt8.one)
 
     override fun partialOrd(rhs: NUInt8) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt8) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn8(UInt8.one, value)
-    override fun unaryMinus() = NInt8(-value.toInt8())
+    override operator fun unaryMinus() = NInt8(-value.toInt8())
     override fun abs() = NUInt8(value.abs())
 
-    override fun plus(rhs: NUInt8) = NUInt8(value + rhs.value)
-    override fun minus(rhs: NUInt8) = NInt8(value.toInt8() - rhs.toInt8())
-    override fun times(rhs: NUInt8) = NUInt8(value * rhs.value)
-    override fun div(rhs: NUInt8) = URtn8(value, rhs.value)
-    override fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
+    override operator fun plus(rhs: NUInt8) = NUInt8(value + rhs.value)
+    override operator fun minus(rhs: NUInt8) = NInt8(value.toInt8() - rhs.toInt8())
+    override operator fun times(rhs: NUInt8) = NUInt8(value * rhs.value)
+    override operator fun div(rhs: NUInt8) = URtn8(value, rhs.value)
+    override operator fun rem(rhs: NUInt8) = NUInt8(value % rhs.value)
     override fun intDiv(rhs: NUInt8) = NUInt8(value / rhs.value)
 
 
@@ -201,20 +202,20 @@ value class NUInt16(val value: UInt16) : NumericUInteger<NUInt16, UInt16>, Copya
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun dec(): NUInt16 = NUInt16(value - UInt16.one)
+    override operator fun dec(): NUInt16 = NUInt16(value - UInt16.one)
 
     override fun partialOrd(rhs: NUInt16) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt16) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn16(UInt16.one, value)
-    override fun unaryMinus() = NInt16(-value.toInt16())
+    override operator fun unaryMinus() = NInt16(-value.toInt16())
     override fun abs() = NUInt16(value.abs())
 
-    override fun plus(rhs: NUInt16) = NUInt16(value + rhs.value)
-    override fun minus(rhs: NUInt16) = NInt16(value.toInt16() - rhs.toInt16())
-    override fun times(rhs: NUInt16) = NUInt16(value * rhs.value)
-    override fun div(rhs: NUInt16) = URtn16(value, rhs.value)
-    override fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
+    override operator fun plus(rhs: NUInt16) = NUInt16(value + rhs.value)
+    override operator fun minus(rhs: NUInt16) = NInt16(value.toInt16() - rhs.toInt16())
+    override operator fun times(rhs: NUInt16) = NUInt16(value * rhs.value)
+    override operator fun div(rhs: NUInt16) = URtn16(value, rhs.value)
+    override operator fun rem(rhs: NUInt16) = NUInt16(value % rhs.value)
     override fun intDiv(rhs: NUInt16) = NUInt16(value / rhs.value)
 
 
@@ -288,20 +289,20 @@ value class NUInt32(val value: UInt32) : NumericUInteger<NUInt32, UInt32>, Copya
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun dec(): NUInt32 = NUInt32(value - UInt32.one)
+    override operator fun dec(): NUInt32 = NUInt32(value - UInt32.one)
 
     override fun partialOrd(rhs: NUInt32) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt32) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn32(UInt32.one, value)
-    override fun unaryMinus() = NInt32(-value.toInt32())
+    override operator fun unaryMinus() = NInt32(-value.toInt32())
     override fun abs() = NUInt32(value.abs())
 
-    override fun plus(rhs: NUInt32) = NUInt32(value + rhs.value)
-    override fun minus(rhs: NUInt32) = NInt32(value.toInt32() - rhs.toInt32())
-    override fun times(rhs: NUInt32) = NUInt32(value * rhs.value)
-    override fun div(rhs: NUInt32) = URtn32(value, rhs.value)
-    override fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
+    override operator fun plus(rhs: NUInt32) = NUInt32(value + rhs.value)
+    override operator fun minus(rhs: NUInt32) = NInt32(value.toInt32() - rhs.toInt32())
+    override operator fun times(rhs: NUInt32) = NUInt32(value * rhs.value)
+    override operator fun div(rhs: NUInt32) = URtn32(value, rhs.value)
+    override operator fun rem(rhs: NUInt32) = NUInt32(value % rhs.value)
     override fun intDiv(rhs: NUInt32) = NUInt32(value / rhs.value)
 
 
@@ -375,20 +376,20 @@ value class NUInt64(val value: UInt64) : NumericUInteger<NUInt64, UInt64>, Copya
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun dec(): NUInt64 = NUInt64(value - UInt64.one)
+    override operator fun dec(): NUInt64 = NUInt64(value - UInt64.one)
 
     override fun partialOrd(rhs: NUInt64) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUInt64) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtn64(UInt64.one, value)
-    override fun unaryMinus() = NInt64(-value.toInt64())
+    override operator fun unaryMinus() = NInt64(-value.toInt64())
     override fun abs() = NUInt64(value.abs())
 
-    override fun plus(rhs: NUInt64) = NUInt64(value + rhs.value)
-    override fun minus(rhs: NUInt64) = NInt64(value.toInt64() - rhs.toInt64())
-    override fun times(rhs: NUInt64) = NUInt64(value * rhs.value)
-    override fun div(rhs: NUInt64) = URtn64(value, rhs.value)
-    override fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
+    override operator fun plus(rhs: NUInt64) = NUInt64(value + rhs.value)
+    override operator fun minus(rhs: NUInt64) = NInt64(value.toInt64() - rhs.toInt64())
+    override operator fun times(rhs: NUInt64) = NUInt64(value * rhs.value)
+    override operator fun div(rhs: NUInt64) = URtn64(value, rhs.value)
+    override operator fun rem(rhs: NUInt64) = NUInt64(value % rhs.value)
     override fun intDiv(rhs: NUInt64) = NUInt64(value / rhs.value)
 
 
@@ -462,20 +463,20 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun toString() = value.toString()
     fun toString(radix: Int) = value.toString(radix)
 
-    override fun dec(): NUIntX = NUIntX(value - UIntX.one)
+    override operator fun dec(): NUIntX = NUIntX(value - UIntX.one)
 
     override fun partialOrd(rhs: NUIntX) = orderOf(value.compareTo(rhs.value))
     override fun partialEq(rhs: NUIntX) = (value.compareTo(rhs.value) == 0)
 
     override fun reciprocal() = URtnX(UIntX.one, value)
-    override fun unaryMinus() = NIntX(-value.toIntX())
+    override operator fun unaryMinus() = NIntX(-value.toIntX())
     override fun abs() = NUIntX(value.abs())
 
-    override fun plus(rhs: NUIntX) = NUIntX(value + rhs.value)
-    override fun minus(rhs: NUIntX) = NIntX(value.toIntX() - rhs.toIntX())
-    override fun times(rhs: NUIntX) = NUIntX(value * rhs.value)
-    override fun div(rhs: NUIntX) = URtnX(value, rhs.value)
-    override fun rem(rhs: NUIntX) = NUIntX(value % rhs.value)
+    override operator fun plus(rhs: NUIntX) = NUIntX(value + rhs.value)
+    override operator fun minus(rhs: NUIntX) = NIntX(value.toIntX() - rhs.toIntX())
+    override operator fun times(rhs: NUIntX) = NUIntX(value * rhs.value)
+    override operator fun div(rhs: NUIntX) = URtnX(value, rhs.value)
+    override operator fun rem(rhs: NUIntX) = NUIntX(value % rhs.value)
     override fun intDiv(rhs: NUIntX) = NUIntX(value / rhs.value)
 
     override fun sqr() = pow(2)
@@ -574,6 +575,8 @@ value class NUIntX(val value: UIntX) : NumericUInteger<NUIntX, UIntX>, Copyable<
     override fun toFlt64() = value.toFlt64()
     override fun toFltX() = value.toFltX()
 }
+
+
 
 
 

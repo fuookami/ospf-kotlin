@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
@@ -193,6 +194,23 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
     }
 }
 
+fun <T> GenericCanonicalPolynomial<T>.compileEval(
+    order: List<Symbol>,
+    combineTerms: Boolean = true,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): (List<T>) -> T where T : Ring<T> {
+    return compileEval(
+        order = order,
+        combineTerms = combineTerms,
+        zero = zero,
+        isZero = isZero,
+        symbolComparator = symbolComparator,
+        one = inferOneOrThrow(zero, constant)
+    )
+}
+
 private fun <T> scaleByInt(
     value: T,
     amount: Int,
@@ -327,4 +345,16 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
         }
         gradient
     }
+}
+@Suppress("UNCHECKED_CAST")
+private fun <T : Ring<T>> inferOneOrThrow(vararg candidates: Any?): T {
+    for (candidate in candidates) {
+        if (candidate != null) {
+            val arithmetic = candidate as? Arithmetic<T>
+            if (arithmetic != null) {
+                return arithmetic.constants.one
+            }
+        }
+    }
+    throw IllegalArgumentException("Cannot infer multiplicative identity, please pass parameter one explicitly.")
 }

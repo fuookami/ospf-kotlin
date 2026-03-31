@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.parser
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 class Lexer(
@@ -170,3 +171,4 @@ class Lexer(
 fun lexSymbolExpression(input: String): List<Token> {
     return Lexer(input).lex()
 }
+

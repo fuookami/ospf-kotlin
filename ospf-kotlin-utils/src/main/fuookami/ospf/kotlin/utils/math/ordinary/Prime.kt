@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -183,6 +184,7 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
 inline fun <reified I> getPrimes(num: I): List<I> where I : Integer<I> {
     return getPrimesImpl(num, (I::class.companionObjectInstance as RealNumberConstants<I>))
 }
+
 
 
 

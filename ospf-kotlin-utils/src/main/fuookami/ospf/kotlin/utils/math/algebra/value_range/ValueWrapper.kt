@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
 import kotlinx.serialization.ExperimentalSerializationApi
@@ -511,6 +512,7 @@ operator fun ValueWrapper<IntX>.unaryMinus() = when (this) {
     is ValueWrapper.Infinity -> ValueWrapper.NegativeInfinity(constants)
     is ValueWrapper.NegativeInfinity -> ValueWrapper.Infinity(constants)
 }
+
 
 
 

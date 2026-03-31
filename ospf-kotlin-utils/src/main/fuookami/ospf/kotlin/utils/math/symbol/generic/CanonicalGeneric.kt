@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
@@ -11,20 +12,31 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 
 /**
- * 泛型标准单项式 / Generic canonical monomial
+ * ���ͱ�׼����ʽ / Generic canonical monomial
  *
- * 形式：`c * S1^n1 * S2^n2 * ...`
+ * ��ʽ��`c * S1^n1 * S2^n2 * ...`
  * Form: `c * S1^n1 * S2^n2 * ...`
  *
- * @param T 系数类型，需要实现 Ring
- * @param powers 符号到指数的映射，支持负指数
+ * @param T ϵ�����ͣ���Ҫʵ�� Ring
+ * @param powers ���ŵ�ָ����ӳ�䣬֧�ָ�ָ��
  */
 data class GenericCanonicalMonomial<T>(
     val coefficient: T,
     val powers: Map<Symbol, Int> = emptyMap()
 ) where T : Ring<T> {
+    constructor(
+        coefficient: T,
+        factors: List<Symbol>
+    ) : this(
+        coefficient = coefficient,
+        powers = factors.groupingBy { it }.eachCount()
+    )
+
+    val factors: List<Symbol>
+        get() = powers.entries.flatMap { (symbol, exp) -> List(exp) { symbol } }
+
     /**
-     * 获取总次数（所有指数之和）
+     * ��ȡ�ܴ���������ָ��֮�ͣ�
      * Get the total degree (sum of all exponents)
      * Note: For negative exponents, this may not be meaningful
      */
@@ -32,14 +44,14 @@ data class GenericCanonicalMonomial<T>(
         get() = powers.values.sum()
 
     /**
-     * 是否为常数项
+     * �Ƿ�Ϊ������
      * Check if this is a constant term
      */
     val isConstant: Boolean
         get() = powers.isEmpty()
 
     /**
-     * 获取符号数量
+     * ��ȡ��������
      * Get the number of symbols
      */
     val symbolCount: Int
@@ -47,7 +59,7 @@ data class GenericCanonicalMonomial<T>(
 
     companion object {
         /**
-         * 创建常数项
+         * ����������
          * Create a constant term
          */
         fun <T : Ring<T>> constant(coefficient: T): GenericCanonicalMonomial<T> {
@@ -55,7 +67,7 @@ data class GenericCanonicalMonomial<T>(
         }
 
         /**
-         * 从 factors 列表创建（每个符号指数为1）
+         * �� factors �б������ÿ������ָ��Ϊ1��
          * Create from factors list (each symbol has exponent 1)
          */
         fun <T : Ring<T>> fromFactors(coefficient: T, factors: List<Symbol>): GenericCanonicalMonomial<T> {
@@ -78,9 +90,9 @@ fun <T> Iterable<GenericCanonicalMonomial<T>>.combineCanonicalTerms(
     val comparator = symbolComparator ?: defaultSymbolComparator
     val coefficientOfPowers = LinkedHashMap<Map<Symbol, Int>, T>()
     for (monomial in this) {
-        // 对 powers 的 key 进行排序，确保相同符号组合可以合并
+        // �� powers �� key ��������ȷ����ͬ������Ͽ��Ժϲ�
         val normalizedPowers = monomial.powers.entries
-            .sortedWith(compareBy { comparator.compare(it.key, it.key) })
+            .sortedWith { lhs, rhs -> comparator.compare(lhs.key, rhs.key) }
             .associate { it.key to it.value }
         coefficientOfPowers[normalizedPowers] =
             (coefficientOfPowers[normalizedPowers] ?: zero) + monomial.coefficient
@@ -101,15 +113,15 @@ fun <T> GenericCanonicalPolynomial<T>.combineTerms(
 }
 
 /**
- * 计算幂次 value^power
+ * �����ݴ� value^power
  * Compute power value^power
  */
 private fun <T : Ring<T>> computePower(value: T, power: Int, one: T): T {
     if (power == 0) return one
     if (power == 1) return value
     
-    // 对于负指数，需要 T 实现 TimesGroup（有 reciprocal）
-    // 这里我们只处理正指数
+    // ���ڸ�ָ������Ҫ T ʵ�� TimesGroup���� reciprocal��
+    // ��������ֻ������ָ��
     if (power < 0) {
         throw IllegalArgumentException("Negative exponent requires TimesGroup implementation.")
     }
@@ -149,6 +161,30 @@ fun <T> GenericCanonicalPolynomial<T>.evaluate(
     return value
 }
 
+@Suppress("UNCHECKED_CAST")
+private fun <T : Ring<T>> inferOneOrThrow(vararg candidates: Any?): T {
+    for (candidate in candidates) {
+        if (candidate != null) {
+            val arithmetic = candidate as? Arithmetic<T>
+            if (arithmetic != null) {
+                return arithmetic.constants.one
+            }
+        }
+    }
+    throw IllegalArgumentException("Cannot infer multiplicative identity, please pass parameter one explicitly.")
+}
+
+fun <T> GenericCanonicalPolynomial<T>.evaluate(
+    values: Map<Symbol, T>,
+    onMissing: ((Symbol) -> T?)? = null
+): T? where T : Ring<T> {
+    return evaluate(
+        values = values,
+        onMissing = onMissing,
+        one = inferOneOrThrow(constant, values.values.firstOrNull())
+    )
+}
+
 fun <T> GenericCanonicalPolynomial<T>.evaluateOrdered(
     order: List<Symbol>,
     values: List<T>,
@@ -172,6 +208,17 @@ fun <T> GenericCanonicalPolynomial<T>.evaluateOrdered(
         value += monomialValue
     }
     return value
+}
+
+fun <T> GenericCanonicalPolynomial<T>.evaluateOrdered(
+    order: List<Symbol>,
+    values: List<T>
+): T where T : Ring<T> {
+    return evaluateOrdered(
+        order = order,
+        values = values,
+        one = inferOneOrThrow(constant, values.firstOrNull())
+    )
 }
 
 fun <T> GenericCanonicalPolynomial<T>.partialEvaluate(
@@ -211,34 +258,50 @@ fun <T> GenericCanonicalPolynomial<T>.partialEvaluate(
     ).combineTerms(zero, isZero, symbolComparator)
 }
 
+fun <T> GenericCanonicalPolynomial<T>.partialEvaluate(
+    values: Map<Symbol, T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): GenericCanonicalPolynomial<T> where T : Ring<T> {
+    return partialEvaluate(
+        values = values,
+        zero = zero,
+        isZero = isZero,
+        one = inferOneOrThrow(zero, constant, values.values.firstOrNull()),
+        symbolComparator = symbolComparator
+    )
+}
+
 // ============================================================================
-// 转换函数 / Conversion functions
+// ת������ / Conversion functions
 // ============================================================================
 
-fun CanonicalMonomial<Flt64, Int32>.toGenericCanonicalMonomial(): GenericCanonicalMonomial<Flt64> {
+fun CanonicalMonomial<Flt64>.toGenericCanonicalMonomial(): GenericCanonicalMonomial<Flt64> {
     return GenericCanonicalMonomial(
         coefficient = coefficient,
         powers = powers.mapValues { it.value.toInt() }
     )
 }
 
-fun GenericCanonicalMonomial<Flt64>.toCanonicalMonomial(): CanonicalMonomial<Flt64, Int32> {
-    return CanonicalMonomial<Flt64, Int32>(
+fun GenericCanonicalMonomial<Flt64>.toCanonicalMonomial(): CanonicalMonomial<Flt64> {
+    return CanonicalMonomial<Flt64>(
         coefficient = coefficient,
         powers = powers.mapValues { Int32(it.value) }
     )
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.toGenericCanonicalPolynomial(): GenericCanonicalPolynomial<Flt64> {
+fun CanonicalPolynomial<Flt64>.toGenericCanonicalPolynomial(): GenericCanonicalPolynomial<Flt64> {
     return GenericCanonicalPolynomial(
         monomials = monomials.map { it.toGenericCanonicalMonomial() },
         constant = constant
     )
 }
 
-fun GenericCanonicalPolynomial<Flt64>.toCanonicalPolynomial(): CanonicalPolynomial<Flt64, Int32> {
-    return CanonicalPolynomial<Flt64, Int32>(
+fun GenericCanonicalPolynomial<Flt64>.toCanonicalPolynomial(): CanonicalPolynomial<Flt64> {
+    return CanonicalPolynomial<Flt64>(
         monomials = monomials.map { it.toCanonicalMonomial() },
         constant = constant
     )
 }
+

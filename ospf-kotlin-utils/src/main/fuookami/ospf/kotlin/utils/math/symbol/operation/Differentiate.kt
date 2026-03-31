@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -91,10 +92,10 @@ fun QuadraticPolynomial<Flt64>.hessian(
     }
 }
 
-fun CanonicalMonomial<Flt64, Int32>.derivative(
+fun CanonicalMonomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     return toGenericCanonicalMonomial()
         .derivativeGeneric(
             symbol = symbol,
@@ -105,10 +106,10 @@ fun CanonicalMonomial<Flt64, Int32>.derivative(
         .toCanonicalPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.derivative(
+fun CanonicalPolynomial<Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64, Int32> {
+): CanonicalPolynomial<Flt64> {
     return toGenericCanonicalPolynomial()
         .derivativeGeneric(
             symbol = symbol,
@@ -119,10 +120,10 @@ fun CanonicalPolynomial<Flt64, Int32>.derivative(
         .toCanonicalPolynomialFromGeneric()
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.gradient(
+fun CanonicalPolynomial<Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<CanonicalPolynomial<Flt64, Int32>> {
+): List<CanonicalPolynomial<Flt64>> {
     return toGenericCanonicalPolynomial()
         .gradientGeneric(
             order = order,
@@ -133,7 +134,7 @@ fun CanonicalPolynomial<Flt64, Int32>.gradient(
         .map { it.toCanonicalPolynomialFromGeneric() }
 }
 
-fun CanonicalPolynomial<Flt64, Int32>.hessian(
+fun CanonicalPolynomial<Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

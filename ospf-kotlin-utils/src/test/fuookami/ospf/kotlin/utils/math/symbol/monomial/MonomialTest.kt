@@ -4,6 +4,8 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -37,6 +39,51 @@ class MonomialTest {
         assertTrue(quadratic.isQuadratic)
         assertEquals(Quadratic, quadratic.category)
         assertTrue(quadratic.coefficient == Flt64.two)
+    }
+
+    @Test
+    fun linearMonomialOperatorsShouldComposeToPolynomial() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val mx = LinearMonomial<Flt64>(Flt64.two, x)
+        val my = LinearMonomial<Flt64>(Flt64.one, y)
+
+        val linearSum = mx + my
+        assertEquals(2, linearSum.monomials.size)
+        assertEquals(Flt64.zero, linearSum.constant)
+
+        val linearDiff = mx - my
+        assertEquals(2, linearDiff.monomials.size)
+        assertEquals(Flt64.zero, linearDiff.constant)
+
+        val withConstant = mx + Flt64.one
+        assertEquals(1, withConstant.monomials.size)
+        assertEquals(Flt64.one, withConstant.constant)
+
+        val quad = mx * my
+        assertTrue(quad.isQuadratic)
+        assertEquals(Flt64.two, quad.coefficient)
+    }
+
+    @Test
+    fun quadraticMonomialOperatorsShouldSupportLinearAndConstant() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val q = QuadraticMonomial<Flt64>(Flt64(3.0), x, y)
+        val l = LinearMonomial<Flt64>(Flt64.two, x)
+
+        val poly1: QuadraticPolynomial<Flt64> = q + l
+        assertEquals(2, poly1.monomials.size)
+        assertEquals(Flt64.zero, poly1.constant)
+
+        val poly2: QuadraticPolynomial<Flt64> = q + Flt64.one
+        assertEquals(1, poly2.monomials.size)
+        assertEquals(Flt64.one, poly2.constant)
+
+        val lp = LinearPolynomial<Flt64>(listOf(l), Flt64.one)
+        val poly3: QuadraticPolynomial<Flt64> = q - lp
+        assertEquals(2, poly3.monomials.size)
+        assertEquals(Flt64(-1.0), poly3.constant)
     }
 }
 
