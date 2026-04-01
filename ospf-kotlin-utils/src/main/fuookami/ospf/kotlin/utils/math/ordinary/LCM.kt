@@ -32,8 +32,18 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
 }
 
 @Suppress("UNCHECKED_CAST")
+fun <I> lcmByFactorization(
+    numbers: Iterable<I>,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmImpl(numbers, constants)
+}
+
 inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmImpl(numbers, (resolveRealNumberConstants<I>("LCM")))
+    return lcmByFactorization(
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
 }
 
 inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
@@ -52,8 +62,18 @@ inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I
 }
 
 @Suppress("UNCHECKED_CAST")
+fun <I> lcm(
+    numbers: Iterable<I>,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+    return lcmImpl(numbers, constants)
+}
+
 inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
-    return lcmImpl(numbers, (resolveRealNumberConstants<I>("LCM")))
+    return lcm(
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
 }
 
 inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {

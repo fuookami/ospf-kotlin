@@ -38,9 +38,18 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
     return factors
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> factorize(
+    num: I,
+    constants: RealNumberConstants<I>
+): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+    return factorizeImpl(num, constants)
+}
+
 inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    return factorizeImpl(num, (resolveRealNumberConstants<I>("Factorization")))
+    return factorize(
+        num = num,
+        constants = resolveRealNumberConstants<I>("Factorization")
+    )
 }
 
 fun <I> defactorizeImpl(
@@ -60,13 +69,19 @@ fun <I> defactorizeImpl(
     return value
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> defactorize(
+    factors: Iterable<Pair<I, Int>>,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I> {
+    return defactorizeImpl(factors, constants)
+}
+
 inline fun <reified I> defactorize(
     factors: Iterable<Pair<I, Int>>
 ): I where I : Integer<I>, I : Pow<I> {
-    return defactorizeImpl(
+    return defactorize(
         factors = factors,
-        constants = (resolveRealNumberConstants<I>("Factorization"))
+        constants = resolveRealNumberConstants<I>("Factorization")
     )
 }
 
@@ -99,23 +114,35 @@ fun <I> divisorsImpl(
     return divisorsImpl(factorizeImpl(num, constants), constants)
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> divisors(
+    factors: List<Pair<I, Int>>,
+    constants: RealNumberConstants<I>
+): List<I> where I : Integer<I>, I : Pow<I> {
+    return divisorsImpl(factors, constants)
+}
+
 inline fun <reified I> divisors(
     factors: List<Pair<I, Int>>
 ): List<I> where I : Integer<I>, I : Pow<I> {
-    return divisorsImpl(
+    return divisors(
         factors = factors,
-        constants = (resolveRealNumberConstants<I>("Factorization"))
+        constants = resolveRealNumberConstants<I>("Factorization")
     )
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> divisors(
+    num: I,
+    constants: RealNumberConstants<I>
+): List<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
+    return divisorsImpl(num, constants)
+}
+
 inline fun <reified I> divisors(
     num: I
 ): List<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
-    return divisorsImpl(
+    return divisors(
         num = num,
-        constants = (resolveRealNumberConstants<I>("Factorization"))
+        constants = resolveRealNumberConstants<I>("Factorization")
     )
 }
 
@@ -129,11 +156,20 @@ fun <I> divisorCount(factors: Iterable<Pair<I, Int>>): Int where I : Integer<I> 
     return count
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> divisorCount(
+    num: I,
+    constants: RealNumberConstants<I>
+): Int where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+    return divisorCount(factorizeImpl(num, constants))
+}
+
 inline fun <reified I> divisorCount(
     num: I
 ): Int where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    return divisorCount(factorize(num))
+    return divisorCount(
+        num = num,
+        constants = resolveRealNumberConstants<I>("Factorization")
+    )
 }
 
 fun <I> eulerTotientImpl(
@@ -151,12 +187,18 @@ fun <I> eulerTotientImpl(
     return value
 }
 
-@Suppress("UNCHECKED_CAST")
+fun <I> eulerTotient(
+    num: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {
+    return eulerTotientImpl(num, constants)
+}
+
 inline fun <reified I> eulerTotient(
     num: I
 ): I where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {
-    return eulerTotientImpl(
+    return eulerTotient(
         num = num,
-        constants = (resolveRealNumberConstants<I>("Factorization"))
+        constants = resolveRealNumberConstants<I>("Factorization")
     )
 }

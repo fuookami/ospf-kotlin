@@ -72,11 +72,20 @@ fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     return gcdImpl(x, y)
 }
 
-@Suppress("UNCHECKED_CAST")
-inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
+fun <I> gcd(
+    numbers: Iterable<I>,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Rem<I, I> {
     return gcdImpl(
         numbers.map { it.abs() }.sortedDescending(),
-        resolveRealNumberConstants<I>("GCD")
+        constants
+    )
+}
+
+inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
+    return gcd(
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("GCD")
     )
 }
 
@@ -88,8 +97,18 @@ fun <I> gcdMod(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
     return gcdModImpl(x, y)
 }
 
+fun <I> gcdMod(
+    numbers: Iterable<I>,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Rem<I, I> {
+    return gcd(numbers, constants)
+}
+
 inline fun <reified I> gcdMod(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
-    return gcd(numbers)
+    return gcdMod(
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("GCD")
+    )
 }
 
 inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {

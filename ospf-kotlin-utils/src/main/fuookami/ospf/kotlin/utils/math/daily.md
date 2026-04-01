@@ -52,9 +52,9 @@
 - `T4（反射 fallback）`：已完成。
 
 ## T3 扩展阶段（进行中）
-- `T3.1（聚合工具显式 constants 入口扩展）`：第三批已完成。
+- `T3.1（聚合工具显式 constants 入口扩展）`：第四批已完成。
 - `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
-- `T3.3（全量迁移与专项回归矩阵）`：第二批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：第三批已完成。
 
 ## 历史进展记录
 
@@ -181,3 +181,23 @@
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=CollectionConstantPathTest" test` 通过（3 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（435 tests, 0 failures）。
+
+## 本轮进展（T3 扩展第四批已完成）
+
+实现：
+- `ordinary/Factorization.kt`
+  - 新增公共显式入口：`factorize/defactorize/divisors/divisorCount/eulerTotient`（传入 `RealNumberConstants`）。
+  - reified 包装入口改为调用对应显式入口。
+- `ordinary/GCD.kt`
+  - 新增公共显式入口：`gcd(numbers, constants)` 与 `gcdMod(numbers, constants)`。
+  - reified 包装入口改为调用对应显式入口。
+- `ordinary/LCM.kt`
+  - 新增公共显式入口：`lcmByFactorization(numbers, constants)` 与 `lcm(numbers, constants)`。
+  - reified 包装入口改为调用对应显式入口。
+- 新增专项测试：
+  - `ordinary/OrdinaryExplicitConstantsPathTest.kt`
+  - 覆盖 fallback 关闭时 ordinary 显式 constants 路径可用、reified 默认路径抛错。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=OrdinaryExplicitConstantsPathTest,FactorizationTest,GCDTest,LCMTest" test` 通过（16 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（437 tests, 0 failures）。
