@@ -49,8 +49,16 @@ class ValueRangeExplicitConstantsPathTest {
         val geq = ValueRange.geq(Flt64.one, Interval.Closed, Flt64).value!!
         assertTrue(geq.contains(Flt64.one))
 
+        val gr = ValueRange.gr(Flt64.one, Flt64).value!!
+        assertTrue(!gr.contains(Flt64.one))
+        assertTrue(gr.contains(Flt64.two))
+
         val leq = ValueRange.leq(Flt64.three, Interval.Closed, Flt64).value!!
         assertTrue(leq.contains(Flt64.two))
+
+        val ls = ValueRange.ls(Flt64.three, Flt64).value!!
+        assertTrue(!ls.contains(Flt64.three))
+        assertTrue(ls.contains(Flt64.two))
 
         val upperInfinite = ValueRange(Flt64.one, Infinity, Interval.Closed, Flt64).value!!
         assertTrue(upperInfinite.contains(Flt64.ten))
@@ -65,7 +73,9 @@ class ValueRangeExplicitConstantsPathTest {
         assertFailsWith<IllegalStateException> { ValueRange(Flt64.one) }
         assertFailsWith<IllegalStateException> { ValueRange(Flt64.one, Flt64.three) }
         assertFailsWith<IllegalStateException> { ValueRange.geq(Flt64.one) }
+        assertFailsWith<IllegalStateException> { ValueRange.gr(Flt64.one) }
         assertFailsWith<IllegalStateException> { ValueRange.leq(Flt64.three) }
+        assertFailsWith<IllegalStateException> { ValueRange.ls(Flt64.three) }
     }
 
     @Test

@@ -301,10 +301,20 @@ data class ValueRange<T>(
         inline fun <reified T> gr(
             lb: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return gr(
+                lb = lb,
+                constants = resolveRealNumberConstants<T>("ValueRange")
+            )
+        }
+
+        fun <T> gr(
+            lb: T,
+            constants: RealNumberConstants<T>
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             return geq(
                 lb = lb,
                 lbInterval = Interval.Open,
-                constants = resolveRealNumberConstants<T>("ValueRange")
+                constants = constants
             )
         }
 
@@ -351,10 +361,20 @@ data class ValueRange<T>(
         inline fun <reified T> ls(
             ub: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
+            return ls(
+                ub = ub,
+                constants = resolveRealNumberConstants<T>("ValueRange")
+            )
+        }
+
+        fun <T> ls(
+            ub: T,
+            constants: RealNumberConstants<T>
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             return leq(
                 ub = ub,
                 lbInterval = Interval.Open,
-                constants = resolveRealNumberConstants<T>("ValueRange")
+                constants = constants
             )
         }
 
@@ -548,8 +568,12 @@ data class ValueRange<T>(
     }
 
     infix operator fun contains(value: T): Boolean {
-        return if (lowerBound.value.isNegativeInfinity || upperBound.value.isInfinity) {
+        return if (lowerBound.value.isNegativeInfinity && upperBound.value.isInfinity) {
             true
+        } else if (lowerBound.value.isNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity) {
+            upperBound.interval.upperBoundOperator<T>()(upperBound.value.unwrap(), value)
+        } else if (!lowerBound.value.isInfinityOrNegativeInfinity && upperBound.value.isInfinity) {
+            lowerBound.interval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), value)
         } else if (!lowerBound.value.isInfinityOrNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity) {
             val lhs = lowerBound.interval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), value)
             val rhs = upperBound.interval.upperBoundOperator<T>()(upperBound.value.unwrap(), value)
