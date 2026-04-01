@@ -80,9 +80,9 @@ open class ValueRangeSerializer<T>(
     }
 }
 
-data object ValueRangeInt64Serializer : ValueRangeSerializer<Int64>(ValueWrapperSerializer<Int64>())
-data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapperSerializer<UInt64>())
-data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer<Flt64>())
+data object ValueRangeInt64Serializer : ValueRangeSerializer<Int64>(ValueWrapperSerializer(Int64))
+data object ValueRangeUInt64Serializer : ValueRangeSerializer<UInt64>(ValueWrapperSerializer(UInt64))
+data object ValueRangeFlt64Serializer : ValueRangeSerializer<Flt64>(ValueWrapperSerializer(Flt64))
 
 data class ValueRange<T>(
     val lowerBound: Bound<T>,

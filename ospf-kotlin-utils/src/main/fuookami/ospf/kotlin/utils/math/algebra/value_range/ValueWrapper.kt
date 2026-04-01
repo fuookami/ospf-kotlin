@@ -38,12 +38,17 @@ class ValueWrapperSerializer<T>(
     internal val constants: RealNumberConstants<T>
 ) : KSerializer<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
     companion object {
+        @OptIn(InternalSerializationApi::class)
+        inline operator fun <reified T> invoke(
+            constants: RealNumberConstants<T>
+        ): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
+            return ValueWrapperSerializer(T::class.serializer(), constants)
+        }
+
         @Suppress("UNCHECKED_CAST")
         @OptIn(InternalSerializationApi::class)
         inline operator fun <reified T> invoke(): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
-            val serializer = T::class.serializer()
-            val constants = resolveRealNumberConstants<T>("ValueWrapper")
-            return ValueWrapperSerializer(serializer, constants)
+            return invoke(resolveRealNumberConstants<T>("ValueWrapper"))
         }
     }
 

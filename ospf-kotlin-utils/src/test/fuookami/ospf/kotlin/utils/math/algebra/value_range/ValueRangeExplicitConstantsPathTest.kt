@@ -5,6 +5,8 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
@@ -64,5 +66,19 @@ class ValueRangeExplicitConstantsPathTest {
         assertFailsWith<IllegalStateException> { ValueRange(Flt64.one, Flt64.three) }
         assertFailsWith<IllegalStateException> { ValueRange.geq(Flt64.one) }
         assertFailsWith<IllegalStateException> { ValueRange.leq(Flt64.three) }
+    }
+
+    @Test
+    fun explicitSerializerPathsShouldWorkWhenFallbackDisabled() {
+        val wrapperSerializer = ValueWrapperSerializer(Flt64)
+        val wrapper = ValueWrapper(Flt64.two, Flt64).value!!
+        val wrapperJson = Json.encodeToString(wrapperSerializer, wrapper)
+        val decodedWrapper = Json.decodeFromString(wrapperSerializer, wrapperJson)
+        assertTrue(decodedWrapper eq Flt64.two)
+
+        val range = ValueRange(Flt64.one, Flt64.three, Interval.Closed, Interval.Closed, Flt64).value!!
+        val rangeJson = Json.encodeToString(ValueRangeFlt64Serializer, range)
+        val decodedRange = Json.decodeFromString(ValueRangeFlt64Serializer, rangeJson)
+        assertTrue(decodedRange.contains(Flt64.two))
     }
 }
