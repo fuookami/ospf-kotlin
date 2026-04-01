@@ -1,6 +1,5 @@
 ﻿package fuookami.ospf.kotlin.utils.parallel
 
-import kotlin.reflect.full.companionObjectInstance
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -14,11 +13,12 @@ import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Arithmetic
 import fuookami.ospf.kotlin.utils.math.algebra.concept.ArithmeticConstants
+import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.Plus
 
-@Suppress("UNCHECKED_CAST")
-suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
+suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
+    constants: ArithmeticConstants<U>,
     crossinline extractor: SuspendExtractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
     return coroutineScope {
@@ -26,7 +26,7 @@ suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
         for (element in this@sumOfParallelly) {
             promises.add(async(Dispatchers.Default) { extractor(element) })
         }
-        var sum = (U::class.companionObjectInstance as ArithmeticConstants<U>).zero
+        var sum = constants.zero
         for (promise in promises) {
             sum = sum + promise.await()
         }
@@ -34,8 +34,14 @@ suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
+suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
+    crossinline extractor: SuspendExtractor<U, T>
+): U where U : Arithmetic<U>, U : Plus<U, U> {
+    return sumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
+}
+
+suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
+    constants: ArithmeticConstants<U>,
     crossinline extractor: SuspendTryExtractor<U, T>
 ): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return coroutineScope {
@@ -43,7 +49,7 @@ suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
         for (element in this@trySumOfParallelly) {
             promises.add(async(Dispatchers.Default) { extractor(element) })
         }
-        var sum = (U::class.companionObjectInstance as ArithmeticConstants<U>).zero
+        var sum = constants.zero
         for (promise in promises) {
             when (val ret = promise.await()) {
                 is Ok -> sum = sum + ret.value
@@ -55,8 +61,14 @@ suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
+suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
+    crossinline extractor: SuspendTryExtractor<U, T>
+): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
+    return trySumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
+}
+
+suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
+    constants: ArithmeticConstants<U>,
     crossinline extractor: SuspendTryExtractor<U, T>
 ): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return coroutineScope {
@@ -65,7 +77,7 @@ suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
             promises.add(async(Dispatchers.Default) { extractor(element) })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        var sum = (U::class.companionObjectInstance as ArithmeticConstants<U>).zero
+        var sum = constants.zero
         for (promise in promises) {
             when (val ret = promise.await()) {
                 is Ok -> sum = sum + ret.value
@@ -74,6 +86,12 @@ suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
         }
         exResultOf(sum, errors)
     }
+}
+
+suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
+    crossinline extractor: SuspendTryExtractor<U, T>
+): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
+    return exTrySumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
 }
 
 suspend inline fun <T> Iterable<T>.foldParallelly(

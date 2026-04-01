@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.operator.Plus
 import kotlin.math.acos
 
 private fun normOf(vector: List<Flt64>): Flt64 {
-    return (vector.sumOf { it.sqr() }).sqrt()
+    return (vector.sumOf(Flt64) { it.sqr() }).sqrt()
 }
 
 private fun unitOf(vector: List<Flt64>): List<Flt64> {
@@ -21,7 +21,7 @@ private fun unitOf(vector: List<Flt64>): List<Flt64> {
 
 private fun timesBetween(lhs: List<Flt64>, rhs: List<Flt64>): Flt64 {
     assert(lhs.size == rhs.size)
-    return lhs.indices.sumOf { lhs[it] * rhs[it] }
+    return lhs.indices.sumOf(Flt64) { lhs[it] * rhs[it] }
 }
 
 open class Vector<D : Dimension>(

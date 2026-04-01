@@ -51,6 +51,11 @@
 - `T3（伴生对象常量接口最小落地）`：已完成。
 - `T4（反射 fallback）`：已完成。
 
+## T3 扩展阶段（进行中）
+- `T3.1（聚合工具显式 constants 入口扩展）`：第一批已完成。
+- `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：未开始。
+
 ## 历史进展记录
 
 ## 本轮进展（T1 已完成）
@@ -126,3 +131,23 @@
 - `T2（symbol round-trip 与高阶项回归补测）`：已完成。
 - `T3（伴生对象常量接口最小落地）`：已完成。
 - `T4（反射 fallback）`：已完成。
+
+## 本轮进展（T3 扩展第一批已完成）
+
+实现：
+- `functional/Collection.kt`
+  - 去除直接 `companionObjectInstance` 获取常量，统一改为受控 resolver。
+  - 新增 `Iterable.sumOf/sumOfOrNull` 的显式 `ArithmeticConstants` 参数重载，并保留 reified 包装入口。
+- `parallel/Fold.kt`
+  - 新增 `sumOfParallelly/trySumOfParallelly/exTrySumOfParallelly` 的显式 `ArithmeticConstants` 参数重载。
+  - reified 包装入口改为走受控 resolver。
+- `operator/Precision.kt`
+  - 新增 `withPrecision(constants, precision = constants.decimalPrecision)` 显式入口。
+  - reified 默认入口改为走受控 resolver。
+- 关键调用点迁移：
+  - `math/geometry/Distance.kt`、`math/geometry/Vector.kt` 改为显式传入 `Flt64` constants（不依赖 fallback）。
+  - `parallel/ExParallelTest.kt` 改为显式传入 `Int64` constants。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=GeometryPrimitiveTest,RectangleTest,TriangulationTest,VectorTest,ExParallelTest" test` 通过（58 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（432 tests, 0 failures）。

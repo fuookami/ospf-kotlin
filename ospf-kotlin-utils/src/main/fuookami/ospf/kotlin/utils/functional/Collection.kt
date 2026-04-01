@@ -1,18 +1,18 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Arithmetic
 import fuookami.ospf.kotlin.utils.math.algebra.concept.ArithmeticConstants
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWith
 import fuookami.ospf.kotlin.utils.math.ordinary.minMaxOfWithOrNull
 import fuookami.ospf.kotlin.utils.operator.Div
 import fuookami.ospf.kotlin.utils.operator.Plus
 import java.util.*
 import kotlin.random.Random
-import kotlin.reflect.full.companionObjectInstance
 import kotlin.time.Duration
 
 operator fun <K, V> List<Pair<K, V>>.get(key: K): V? {
@@ -1103,7 +1103,7 @@ fun Iterable<Duration>.sum(): Duration {
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
     }
@@ -1112,7 +1112,7 @@ inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
@@ -1122,29 +1122,42 @@ inline fun <reified T> Iterable<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
     return sum
 }
 
-@Suppress("UNCHECKED_CAST")
-inline fun <T, reified U> Iterable<T>.sumOf(
+inline fun <T, U> Iterable<T>.sumOf(
+    constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
-    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    var sum = constants.zero
     for (element in this) {
         sum += extractor(element)
     }
     return sum
 }
 
+inline fun <T, reified U> Iterable<T>.sumOf(
+    crossinline extractor: Extractor<U, T>
+): U where U : Arithmetic<U>, U : Plus<U, U> {
+    return sumOf(resolveArithmeticConstants<U>("Collection"), extractor)
+}
+
+inline fun <T, U> Iterable<T>.sumOfOrNull(
+    constants: ArithmeticConstants<U>,
+    crossinline extractor: Extractor<U?, T>
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    return this.sumOfOrNull(constants, extractor) { null }
+}
+
 inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    return this.sumOfOrNull(extractor) { null }
+    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor) { null }
 }
 
-@Suppress("UNCHECKED_CAST")
-inline fun <T, reified U> Iterable<T>.sumOfOrNull(
+inline fun <T, U> Iterable<T>.sumOfOrNull(
+    constants: ArithmeticConstants<U>,
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U?
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    var sum = constants.zero
     for (element in this) {
         val value = element?.let { extractor(it) } ?: defaultValue(element)
         if (value == null) {
@@ -1155,9 +1168,16 @@ inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     return sum
 }
 
+inline fun <T, reified U> Iterable<T>.sumOfOrNull(
+    crossinline extractor: Extractor<U?, T>,
+    crossinline defaultValue: (T) -> U?
+): U? where U : Arithmetic<U>, U : Plus<U, U> {
+    return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V, V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         sum += element.value
     }
@@ -1166,7 +1186,7 @@ inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V
 
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V : Plus<V, V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         val value = element.value ?: return null
         sum += value
@@ -1178,7 +1198,7 @@ inline fun <K, reified V> Map<K, V?>.sumOrNull(): V? where V : Arithmetic<V>, V 
 inline fun <K, V, reified T> Map<K, V>.sumOf(
     crossinline extractor: Extractor<T, Map.Entry<K, V>>
 ): T where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += extractor(element)
     }
@@ -1196,7 +1216,7 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     crossinline extractor: Extractor<T?, Map.Entry<K, V>>,
     crossinline defaultValue: (Map.Entry<K, V>) -> T?
 ): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         val value = element.value?.let { extractor(element) } ?: defaultValue(element)
         if (value == null) {
@@ -1209,7 +1229,7 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
     }
@@ -1218,7 +1238,7 @@ inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T : Plus<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
@@ -1232,7 +1252,7 @@ inline fun <reified T> Sequence<T?>.sumOrNull(): T? where T : Arithmetic<T>, T :
 inline fun <T, reified U> Sequence<T>.sumOf(
     crossinline extractor: Extractor<U, T>
 ): U where U : Arithmetic<U>, U : Plus<U, U> {
-    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    var sum = resolveArithmeticConstants<U>("Collection").zero
     for (element in this) {
         sum += extractor(element)
     }
@@ -1250,7 +1270,7 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
     crossinline extractor: Extractor<U?, T>,
     crossinline defaultValue: (T) -> U? = { null }
 ): U? where U : Arithmetic<U>, U : Plus<U, U> {
-    var sum = (U::class.companionObjectInstance!! as ArithmeticConstants<U>).zero
+    var sum = resolveArithmeticConstants<U>("Collection").zero
     for (element in this) {
         val value = element?.let { extractor(it) } ?: defaultValue(element)
         if (value == null) {
@@ -1264,13 +1284,13 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty collection.")
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1279,13 +1299,13 @@ inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty collection.")
     }
     return sum / count
@@ -1294,16 +1314,16 @@ inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         return null
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1312,16 +1332,16 @@ inline fun <reified T> Iterable<T?>.averageOrNull(): Flt64? where T : RealNumber
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         return null
     }
     return sum / count
@@ -1330,13 +1350,13 @@ inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>,
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V>.average(): Flt64 where V : RealNumber<V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
-    var count = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
+    var count = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         sum += element.value
-        count += (V::class.companionObjectInstance!! as ArithmeticConstants<V>).one
+        count += resolveArithmeticConstants<V>("Collection").one
     }
-    if (count == (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero) {
+    if (count == resolveArithmeticConstants<V>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty map.")
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1345,13 +1365,13 @@ inline fun <K, reified V> Map<K, V>.average(): Flt64 where V : RealNumber<V> {
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Div<V, V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
-    var count = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
+    var count = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         sum += element.value
-        count += (V::class.companionObjectInstance!! as ArithmeticConstants<V>).one
+        count += resolveArithmeticConstants<V>("Collection").one
     }
-    if (count == (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero) {
+    if (count == resolveArithmeticConstants<V>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty map.")
     }
     return sum / count
@@ -1360,14 +1380,14 @@ inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Di
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V?>.averageOrNull(): Flt64? where V : RealNumber<V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
-    var count = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
+    var count = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         val value = element.value ?: return null
         sum += value
-        count += (V::class.companionObjectInstance!! as ArithmeticConstants<V>).one
+        count += resolveArithmeticConstants<V>("Collection").one
     }
-    if (count == (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero) {
+    if (count == resolveArithmeticConstants<V>("Collection").zero) {
         return null
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1376,14 +1396,14 @@ inline fun <K, reified V> Map<K, V?>.averageOrNull(): Flt64? where V : RealNumbe
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>, V : Div<V, V> {
-    var sum = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
-    var count = (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero
+    var sum = resolveArithmeticConstants<V>("Collection").zero
+    var count = resolveArithmeticConstants<V>("Collection").zero
     for (element in this) {
         val value = element.value ?: return null
         sum += value
-        count += (V::class.companionObjectInstance!! as ArithmeticConstants<V>).one
+        count += resolveArithmeticConstants<V>("Collection").one
     }
-    if (count == (V::class.companionObjectInstance!! as ArithmeticConstants<V>).zero) {
+    if (count == resolveArithmeticConstants<V>("Collection").zero) {
         return null
     }
     return sum / count
@@ -1392,13 +1412,13 @@ inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T>.average(): Flt64 where T : RealNumber<T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty sequence.")
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1407,13 +1427,13 @@ inline fun <reified T> Sequence<T>.average(): Flt64 where T : RealNumber<T> {
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         throw NoSuchElementException("Cannot compute average of an empty sequence.")
     }
     return sum / count
@@ -1422,16 +1442,16 @@ inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         return null
     }
     return sum.toFlt64() / count.toFlt64()
@@ -1440,20 +1460,21 @@ inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T> Sequence<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    var sum = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
-    var count = (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero
+    var sum = resolveArithmeticConstants<T>("Collection").zero
+    var count = resolveArithmeticConstants<T>("Collection").zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += (T::class.companionObjectInstance!! as ArithmeticConstants<T>).one
+        count += resolveArithmeticConstants<T>("Collection").one
     }
-    if (count == (T::class.companionObjectInstance!! as ArithmeticConstants<T>).zero) {
+    if (count == resolveArithmeticConstants<T>("Collection").zero) {
         return null
     }
     return sum / count
 }
+
 
 
 

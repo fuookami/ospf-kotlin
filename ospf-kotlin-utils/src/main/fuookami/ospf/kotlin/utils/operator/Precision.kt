@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.utils.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
-import kotlin.reflect.full.companionObjectInstance
+import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveRealNumberConstants
 
 class Precision<T>(
     precision: T
@@ -48,7 +48,12 @@ class Precision<T>(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> withPrecision(precision: T = (T::class.companionObjectInstance!! as RealNumberConstants<T>).decimalPrecision)
-        where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
+fun <T> withPrecision(
+    constants: RealNumberConstants<T>,
+    precision: T = constants.decimalPrecision
+): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
+
+inline fun <reified T> withPrecision(
+    precision: T = resolveRealNumberConstants<T>("Precision").decimalPrecision
+): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
 
