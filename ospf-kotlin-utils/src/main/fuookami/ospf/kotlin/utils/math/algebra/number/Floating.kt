@@ -190,7 +190,7 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
 
         @JvmStatic
         override val lg2: Flt32 by lazy {
-            ln(two)!!
+            ln(two, this)!!
         }
     }
 
@@ -479,7 +479,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
 
         @JvmStatic
         override val lg2: Flt64 by lazy {
-            ln(two)!!
+            ln(two, this)!!
         }
     }
 
@@ -778,7 +778,7 @@ value class FltX(internal val value: BigDecimal) :
 
         @JvmStatic
         override val lg2: FltX by lazy {
-            ln(two)!!
+            ln(two, this)!!
         }
     }
 

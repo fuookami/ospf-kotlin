@@ -1,12 +1,14 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import org.junit.jupiter.api.AfterAll
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
+import kotlin.test.assertTrue
 
 class OrdinaryExplicitConstantsPathTest {
     companion object {
@@ -31,6 +33,11 @@ class OrdinaryExplicitConstantsPathTest {
         }
     }
 
+    private fun assertNear(actual: Flt64?, expected: Flt64, tolerance: Flt64 = Flt64(1e-8)) {
+        assertTrue(actual != null)
+        assertTrue((actual - expected).abs() <= tolerance, "actual=$actual expected=$expected tolerance=$tolerance")
+    }
+
     @Test
     fun explicitConstantsPathsShouldWorkWhenFallbackDisabled() {
         val factors = factorize(UInt64(12), UInt64)
@@ -50,6 +57,17 @@ class OrdinaryExplicitConstantsPathTest {
         val lcmNumbers = listOf(UInt64(4), UInt64(6), UInt64(8))
         assertEquals(UInt64(24), lcmByFactorization(lcmNumbers, UInt64))
         assertEquals(UInt64(24), lcm(lcmNumbers, UInt64))
+
+        assertEquals(
+            listOf(UInt64.two, UInt64.three, UInt64.five, UInt64(7), UInt64(11)),
+            getPrimes(UInt64(11), UInt64)
+        )
+
+        assertNear(ln(Flt64.e, Flt64), Flt64.one)
+        assertNear(log(Flt64.e, Flt64.e, Flt64), Flt64.one)
+        assertEquals(UInt64(1024), pow(UInt64.two, 10, UInt64))
+        assertNear(powf(Flt64(9.0), Flt64.half, Flt64), Flt64(3.0))
+        assertNear(exp(Flt64.one, Flt64), Flt64.e)
     }
 
     @Test
@@ -63,5 +81,11 @@ class OrdinaryExplicitConstantsPathTest {
         assertFailsWith<IllegalStateException> { gcdMod(listOf(UInt64(48), UInt64(18), UInt64(30))) }
         assertFailsWith<IllegalStateException> { lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))) }
         assertFailsWith<IllegalStateException> { lcm(listOf(UInt64(4), UInt64(6), UInt64(8))) }
+        assertFailsWith<IllegalStateException> { getPrimes(UInt64(11)) }
+        assertFailsWith<IllegalStateException> { ln(Flt64.e) }
+        assertFailsWith<IllegalStateException> { log(Flt64.e, Flt64.e) }
+        assertFailsWith<IllegalStateException> { pow(UInt64.two, 10) }
+        assertFailsWith<IllegalStateException> { powf(Flt64(9.0), Flt64.half) }
+        assertFailsWith<IllegalStateException> { exp(Flt64.one) }
     }
 }

@@ -176,7 +176,14 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
     return primes
 }
 
+fun <I> getPrimes(num: I, constants: RealNumberConstants<I>): List<I> where I : Integer<I> {
+    return getPrimesImpl(num, constants)
+}
+
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> getPrimes(num: I): List<I> where I : Integer<I> {
-    return getPrimesImpl(num, (resolveRealNumberConstants<I>("Prime")))
+    return getPrimes(
+        num = num,
+        constants = resolveRealNumberConstants<I>("Prime")
+    )
 }

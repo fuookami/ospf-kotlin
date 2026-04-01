@@ -54,7 +54,7 @@
 ## T3 扩展阶段（进行中）
 - `T3.1（聚合工具显式 constants 入口扩展）`：第四批已完成。
 - `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
-- `T3.3（全量迁移与专项回归矩阵）`：第四批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：第五批已完成。
 
 ## 历史进展记录
 
@@ -217,4 +217,21 @@
 
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=ValueRangeExplicitConstantsPathTest,ValueRangePropertyTest,QuantityValueRangeTest,OrdinaryExplicitConstantsPathTest" test` 通过（17 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（439 tests, 0 failures）。
+
+## 本轮进展（T3 扩展第六批已完成）
+
+实现：
+- `ordinary/Prime.kt`
+  - 新增显式入口：`getPrimes(num, constants)`。
+  - reified 包装入口改为调用显式入口。
+- `algebra/number/Floating.kt`
+  - 修复 `Flt32/Flt64/FltX` 的 `lg2` 懒加载实现，改为 `ln(two, this)` 显式 constants 路径，避免 fallback 关闭时间接触发 reified resolver。
+- `ordinary/OrdinaryExplicitConstantsPathTest.kt`
+  - 扩展覆盖：
+    - fallback 关闭时 `Prime/Log/Pow` 显式 constants 路径可用；
+    - fallback 关闭时对应 reified 默认路径抛错。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=OrdinaryExplicitConstantsPathTest,PrimeTest" test` 通过（3 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（439 tests, 0 failures）。
