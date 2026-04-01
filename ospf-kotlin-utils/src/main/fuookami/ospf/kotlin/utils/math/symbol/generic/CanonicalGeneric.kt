@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
@@ -277,10 +277,19 @@ fun <T> GenericCanonicalPolynomial<T>.partialEvaluate(
 // ת������ / Conversion functions
 // ============================================================================
 
-fun CanonicalMonomial<Flt64>.toGenericCanonicalMonomial(): GenericCanonicalMonomial<Flt64> {
+fun <T> CanonicalMonomial<T>.toGenericCanonicalMonomial(): GenericCanonicalMonomial<T>
+        where T : NumberField<T> {
     return GenericCanonicalMonomial(
         coefficient = coefficient,
         powers = powers.mapValues { it.value.toInt() }
+    )
+}
+
+fun <T> CanonicalPolynomial<T>.toGenericCanonicalPolynomial(): GenericCanonicalPolynomial<T>
+        where T : NumberField<T> {
+    return GenericCanonicalPolynomial(
+        monomials = monomials.map { it.toGenericCanonicalMonomial() },
+        constant = constant
     )
 }
 
@@ -291,17 +300,11 @@ fun GenericCanonicalMonomial<Flt64>.toCanonicalMonomial(): CanonicalMonomial<Flt
     )
 }
 
-fun CanonicalPolynomial<Flt64>.toGenericCanonicalPolynomial(): GenericCanonicalPolynomial<Flt64> {
-    return GenericCanonicalPolynomial(
-        monomials = monomials.map { it.toGenericCanonicalMonomial() },
-        constant = constant
-    )
-}
-
 fun GenericCanonicalPolynomial<Flt64>.toCanonicalPolynomial(): CanonicalPolynomial<Flt64> {
     return CanonicalPolynomial<Flt64>(
         monomials = monomials.map { it.toCanonicalMonomial() },
         constant = constant
     )
 }
+
 

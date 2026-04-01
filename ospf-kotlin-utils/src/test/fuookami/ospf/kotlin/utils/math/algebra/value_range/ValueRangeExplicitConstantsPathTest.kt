@@ -91,4 +91,35 @@ class ValueRangeExplicitConstantsPathTest {
         val decodedRange = Json.decodeFromString(ValueRangeFlt64Serializer, rangeJson)
         assertTrue(decodedRange.contains(Flt64.two))
     }
+
+    @Test
+    fun negativeInfinityCopyAndCloneShouldPreserveSign() {
+        val negInf = ValueWrapper(NegativeInfinity, Flt64)
+        assertTrue(negInf is ValueWrapper.NegativeInfinity)
+
+        val copied = negInf.copy()
+        val cloned = negInf.clone()
+        assertEquals("-inf", copied.toString())
+        assertEquals("-inf", cloned.toString())
+    }
+
+    @Test
+    fun containsRangeShouldRespectInfiniteBoundsAndIntervals() {
+        val geqOne = ValueRange.geq(Flt64.one, Interval.Closed, Flt64).value!!
+        val leftSegment = ValueRange(NegativeInfinity, Flt64.zero, Interval.Closed, Flt64).value!!
+        assertTrue(!(geqOne contains leftSegment))
+
+        val rightTail = ValueRange(Flt64.two, Infinity, Interval.Open, Flt64).value!!
+        assertTrue(geqOne.contains(rightTail))
+
+        val leqThree = ValueRange.leq(Flt64.three, Interval.Closed, Flt64).value!!
+        val beyondUpper = ValueRange(Flt64(4.0), Infinity, Interval.Open, Flt64).value!!
+        assertTrue(!(leqThree contains beyondUpper))
+
+        val openRange = ValueRange(Flt64.one, Flt64.three, Interval.Open, Interval.Open, Flt64).value!!
+        val closedLeft = ValueRange(Flt64.one, Flt64.two, Interval.Closed, Interval.Closed, Flt64).value!!
+        val openLeft = ValueRange(Flt64.one, Flt64.two, Interval.Open, Interval.Closed, Flt64).value!!
+        assertTrue(!(openRange contains closedLeft))
+        assertTrue(openRange.contains(openLeft))
+    }
 }

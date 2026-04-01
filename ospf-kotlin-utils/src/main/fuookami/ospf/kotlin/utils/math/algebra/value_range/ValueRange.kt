@@ -584,18 +584,19 @@ data class ValueRange<T>(
     }
 
     infix operator fun contains(valueRange: ValueRange<T>): Boolean {
-        return if (lowerBound.value.isNegativeInfinity || upperBound.value.isInfinity) {
-            true
-        } else if (!lowerBound.value.isInfinityOrNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity
-            && !valueRange.lowerBound.value.isInfinityOrNegativeInfinity && !valueRange.upperBound.value.isInfinityOrNegativeInfinity
-        ) {
-            val lbInterval = lowerBound.interval intersect valueRange.lowerBound.interval
-            val ubInterval = upperBound.interval intersect valueRange.upperBound.interval
-            val lhs = lbInterval.lowerBoundOperator<T>()(lowerBound.value.unwrap(), valueRange.lowerBound.value.unwrap())
-            val rhs = ubInterval.upperBoundOperator<T>()(upperBound.value.unwrap(), valueRange.upperBound.value.unwrap())
-            lhs && rhs
-        } else {
-            false
+        val lowerContains = when (lowerBound.value ord valueRange.lowerBound.value) {
+            is Order.Less -> true
+            is Order.Greater -> false
+            else -> valueRange.lowerBound.interval == Interval.Open || lowerBound.interval == Interval.Closed
+        }
+        if (!lowerContains) {
+            return false
+        }
+
+        return when (upperBound.value ord valueRange.upperBound.value) {
+            is Order.Greater -> true
+            is Order.Less -> false
+            else -> valueRange.upperBound.interval == Interval.Open || upperBound.interval == Interval.Closed
         }
     }
 

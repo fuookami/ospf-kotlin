@@ -4,6 +4,7 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
+import kotlinx.coroutines.yield
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
@@ -16,6 +17,30 @@ import fuookami.ospf.kotlin.utils.math.algebra.concept.ArithmeticConstants
 import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.operator.Plus
+
+@PublishedApi
+internal val maxSegmentValue = UInt64(Int.MAX_VALUE)
+
+@PublishedApi
+internal fun normalizeSegment(segment: UInt64): Int {
+    require(segment > UInt64.zero) { "segment must be greater than zero." }
+    return if (segment > maxSegmentValue) {
+        Int.MAX_VALUE
+    } else {
+        segment.toInt()
+    }
+}
+
+@PublishedApi
+internal suspend fun nextSegmentCounter(counter: Int, segmentSize: Int): Int {
+    val next = counter + 1
+    return if (next >= segmentSize) {
+        yield()
+        0
+    } else {
+        next
+    }
+}
 
 suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
     constants: ArithmeticConstants<U>,
@@ -106,9 +131,12 @@ suspend inline fun <T> Iterable<T>.foldParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for (element in this) {
         accumulator = operation(accumulator, element)
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return accumulator
 }
@@ -132,6 +160,8 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for (element in this) {
         when (val ret = operation(accumulator, element)) {
@@ -139,6 +169,7 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
             is Failed -> return Failed(ret.error)
             is Fatal -> return Fatal(ret.errors)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return Ok(accumulator)
 }
@@ -148,6 +179,8 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
     for (element in this) {
@@ -155,6 +188,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
             is Ok -> accumulator = ret.value
             is Failed, is Fatal -> errors.appendFrom(ret)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return exResultOf(accumulator, errors)
 }
@@ -171,9 +205,12 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for ((index, element) in withIndex()) {
         accumulator = operation(index, accumulator, element)
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return accumulator
 }
@@ -197,6 +234,8 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for ((index, element) in withIndex()) {
         when (val ret = operation(index, accumulator, element)) {
@@ -204,6 +243,7 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
             is Failed -> return Failed(ret.error)
             is Fatal -> return Fatal(ret.errors)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return Ok(accumulator)
 }
@@ -213,6 +253,8 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
     for ((index, element) in withIndex()) {
@@ -220,6 +262,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
             is Ok -> accumulator = ret.value
             is Failed, is Fatal -> errors.appendFrom(ret)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return exResultOf(accumulator, errors)
 }
@@ -236,9 +279,12 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for (element in toList().asReversed()) {
         accumulator = operation(accumulator, element)
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return accumulator
 }
@@ -262,6 +308,8 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     for (element in toList().asReversed()) {
         when (val ret = operation(accumulator, element)) {
@@ -269,6 +317,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
             is Failed -> return Failed(ret.error)
             is Fatal -> return Fatal(ret.errors)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return Ok(accumulator)
 }
@@ -278,6 +327,8 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
     for (element in toList().asReversed()) {
@@ -285,6 +336,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
             is Ok -> accumulator = ret.value
             is Failed, is Fatal -> errors.appendFrom(ret)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return exResultOf(accumulator, errors)
 }
@@ -301,10 +353,13 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val elements = toList()
     for (index in elements.indices.reversed()) {
         accumulator = operation(index, accumulator, elements[index])
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return accumulator
 }
@@ -328,6 +383,8 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val elements = toList()
     for (index in elements.indices.reversed()) {
@@ -336,6 +393,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
             is Failed -> return Failed(ret.error)
             is Fatal -> return Fatal(ret.errors)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return Ok(accumulator)
 }
@@ -345,6 +403,8 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {
+    val segmentSize = normalizeSegment(segment)
+    var segmentCounter = 0
     var accumulator = initial
     val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
     val elements = toList()
@@ -353,6 +413,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
             is Ok -> accumulator = ret.value
             is Failed, is Fatal -> errors.appendFrom(ret)
         }
+        segmentCounter = nextSegmentCounter(segmentCounter, segmentSize)
     }
     return exResultOf(accumulator, errors)
 }

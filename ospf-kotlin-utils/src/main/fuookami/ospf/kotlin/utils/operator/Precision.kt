@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.operator
+package fuookami.ospf.kotlin.utils.operator
 
 import fuookami.ospf.kotlin.utils.math.algebra.concept.PlusGroup
 import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
@@ -54,6 +54,12 @@ fun <T> withPrecision(
 ): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
 
 inline fun <reified T> withPrecision(
-    precision: T = resolveRealNumberConstants<T>("Precision").decimalPrecision
-): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> = Precision(precision)
+    precision: T? = null
+): Precision<T> where T : RealNumber<T>, T : PlusGroup<T>, T : Abs<T> {
+    if (precision != null) {
+        return Precision(precision)
+    }
+    val constants = resolveRealNumberConstants<T>("Precision")
+    return withPrecision(constants, constants.decimalPrecision)
+}
 

@@ -1,10 +1,7 @@
-﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
+package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
 import fuookami.ospf.kotlin.utils.operator.eq
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -12,32 +9,23 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ValueRangePropertyTest {
-    companion object {
-        private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
-        private var previousValue: String? = null
-
-        @JvmStatic
-        @BeforeAll
-        fun enableReflectionFallback() {
-            previousValue = System.getProperty(propertyKey)
-            System.setProperty(propertyKey, "true")
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun restoreReflectionFallback() {
-            if (previousValue == null) {
-                System.clearProperty(propertyKey)
-            } else {
-                System.setProperty(propertyKey, previousValue)
-            }
-        }
-    }
+    private fun range(
+        lb: Flt64,
+        ub: Flt64,
+        lbInterval: Interval = Interval.Closed,
+        ubInterval: Interval = Interval.Closed
+    ) = ValueRange(
+        lb = lb,
+        ub = ub,
+        lbInterval = lbInterval,
+        ubInterval = ubInterval,
+        constants = Flt64
+    )
 
     @Test
     fun openAndClosedBoundsShouldAffectContains() {
-        val openRange = ValueRange(Flt64.one, Flt64.three, Interval.Open, Interval.Open).value!!
-        val closedRange = ValueRange(Flt64.one, Flt64.three, Interval.Closed, Interval.Closed).value!!
+        val openRange = range(Flt64.one, Flt64.three, Interval.Open, Interval.Open).value!!
+        val closedRange = range(Flt64.one, Flt64.three, Interval.Closed, Interval.Closed).value!!
 
         assertTrue(!openRange.contains(Flt64.one))
         assertTrue(!openRange.contains(Flt64.three))
@@ -49,8 +37,8 @@ class ValueRangePropertyTest {
 
     @Test
     fun equalBoundsWithOpenIntervalShouldBeInvalid() {
-        val invalid = ValueRange(Flt64.one, Flt64.one, Interval.Open, Interval.Open)
-        val valid = ValueRange(Flt64.one, Flt64.one, Interval.Closed, Interval.Closed)
+        val invalid = range(Flt64.one, Flt64.one, Interval.Open, Interval.Open)
+        val valid = range(Flt64.one, Flt64.one, Interval.Closed, Interval.Closed)
 
         assertTrue(!invalid.ok)
         assertTrue(valid.ok)
@@ -58,8 +46,8 @@ class ValueRangePropertyTest {
 
     @Test
     fun intersectionAndUnionShouldBeSymmetricWhenOverlapping() {
-        val lhs = ValueRange(Flt64.one, Flt64(4.0)).value!!
-        val rhs = ValueRange(Flt64(3.0), Flt64(6.0)).value!!
+        val lhs = range(Flt64.one, Flt64(4.0)).value!!
+        val rhs = range(Flt64(3.0), Flt64(6.0)).value!!
 
         val i1 = lhs intersect rhs
         val i2 = rhs intersect lhs
@@ -82,8 +70,8 @@ class ValueRangePropertyTest {
 
     @Test
     fun disjointRangesShouldNotIntersectOrUnion() {
-        val lhs = ValueRange(Flt64.one, Flt64.two).value!!
-        val rhs = ValueRange(Flt64(3.0), Flt64(4.0)).value!!
+        val lhs = range(Flt64.one, Flt64.two).value!!
+        val rhs = range(Flt64(3.0), Flt64(4.0)).value!!
 
         assertNull(lhs intersect rhs)
         assertNull(lhs union rhs)
@@ -91,7 +79,7 @@ class ValueRangePropertyTest {
 
     @Test
     fun negativeScaleShouldFlipRangeBounds() {
-        val range = ValueRange(Flt64.one, Flt64.two).value!!
+        val range = range(Flt64.one, Flt64.two).value!!
         val scaled = range * Flt64(-2.0)
 
         assertNotNull(scaled)

@@ -56,8 +56,8 @@ fun <T : FloatingNumber<T>> ln(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
-    digits: Int = (resolveFloatingNumberConstants<T>("Log")).decimalDigits!!,
-    precision: T = (resolveFloatingNumberConstants<T>("Log")).epsilon
+    digits: Int = x.constants.decimalDigits!!,
+    precision: T = x.constants.epsilon
 ): T? {
     return ln(
         x = x,
@@ -95,8 +95,8 @@ fun <T : FloatingNumber<T>> log(
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,
-    digits: Int = (resolveFloatingNumberConstants<T>("Log")).decimalDigits!!,
-    precision: T = (resolveFloatingNumberConstants<T>("Log")).epsilon
+    digits: Int = x.constants.decimalDigits!!,
+    precision: T = x.constants.epsilon
 ): T? {
     return log(
         x = x,

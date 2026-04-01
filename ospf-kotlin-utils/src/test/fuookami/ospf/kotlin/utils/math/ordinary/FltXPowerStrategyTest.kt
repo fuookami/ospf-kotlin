@@ -1,35 +1,25 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
-import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
-import kotlin.math.E
-import kotlin.math.abs
+import kotlin.test.assertEquals
+import kotlin.test.assertFailsWith
+import kotlin.test.assertFalse
+import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class FltXPowerStrategyTest {
-    companion object {
-        private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
-        private var previousValue: String? = null
+    @Test
+    fun defaultPrecisionShouldRespectDigitsBounds() {
+        val p0 = FltXPowerStrategy.defaultPrecision(0)
+        val p1 = FltXPowerStrategy.defaultPrecision(1)
+        val p30 = FltXPowerStrategy.defaultPrecision(30)
 
-        @JvmStatic
-        @BeforeAll
-        fun enableReflectionFallback() {
-            previousValue = System.getProperty(propertyKey)
-            System.setProperty(propertyKey, "true")
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun restoreReflectionFallback() {
-            if (previousValue == null) {
-                System.clearProperty(propertyKey)
-            } else {
-                System.setProperty(propertyKey, previousValue)
-            }
-        }
+        assertEquals(p1, p0)
+        assertTrue(p0 > FltX.zero)
+        assertTrue(p0 <= FltX.epsilon)
+        assertTrue(p30 < FltX.epsilon)
     }
 
     @Test
@@ -37,11 +27,13 @@ class FltXPowerStrategyTest {
         val digits = 18
         val precision = FltXPowerStrategy.defaultPrecision(digits)
         val input = FltX("1.25")
+
         val lnValue = FltXPowerStrategy.ln(input, digits, precision)
-        assertTrue(lnValue != null)
-        val restored = FltXPowerStrategy.exp(lnValue!!, digits, precision)
+        assertNotNull(lnValue)
+
+        val restored = FltXPowerStrategy.exp(lnValue, digits, precision)
         val error = (restored - input).abs()
-        assertTrue(error <= FltX("1e-6"))
+        assertTrue(error <= FltX("1e-8"))
     }
 
     @Test
@@ -50,31 +42,41 @@ class FltXPowerStrategyTest {
         val precision = FltXPowerStrategy.defaultPrecision(digits)
 
         val intPow = FltXPowerStrategy.pow(FltX("2"), FltX("10"), digits, precision)
-        assertTrue((intPow - FltX("1024")).abs() <= FltX("1e-6"))
+        assertTrue((intPow - FltX("1024")).abs() <= FltX("1e-8"))
 
         val fractionalPow = FltXPowerStrategy.pow(FltX("9"), FltX("0.5"), digits, precision)
-        assertTrue((fractionalPow - FltX("3")).abs() <= FltX("1e-4"))
+        assertTrue((fractionalPow - FltX("3")).abs() <= FltX("1e-6"))
     }
 
     @Test
-    fun higherDigitsShouldImproveExpAccuracyAndConverge() {
-        val lowDigits = 6
-        val highDigits = 12
+    fun lnShouldReturnNullForNonPositiveValues() {
+        assertNull(FltXPowerStrategy.ln(FltX.zero, digits = 18))
+        assertNull(FltXPowerStrategy.ln(-FltX.one, digits = 18))
+    }
 
-        val low = FltXPowerStrategy.expWithStats(FltX.one, lowDigits)
-        val high = FltXPowerStrategy.expWithStats(FltX.one, highDigits)
+    @Test
+    fun expWithStatsShouldRespectMaxIterations() {
+        val stats = FltXPowerStrategy.expWithStats(
+            index = FltX.one,
+            digits = 18,
+            precision = FltX("1e-40", scale = 50),
+            maxIterations = 1
+        )
 
-        assertTrue(low.converged)
-        assertTrue(high.converged)
-        assertTrue(low.iterations < 8192)
-        assertTrue(high.iterations < 8192)
+        assertFalse(stats.converged)
+        assertEquals(1, stats.iterations)
+    }
 
-        val lowError = abs(low.value.toFlt64().toDouble() - E)
-        val highError = abs(high.value.toFlt64().toDouble() - E)
-        assertTrue(highError <= lowError)
+    @Test
+    fun powShouldThrowForFractionalExponentOnNonPositiveBase() {
+        val digits = 18
+        val precision = FltXPowerStrategy.defaultPrecision(digits)
+
+        assertFailsWith<ArithmeticException> {
+            FltXPowerStrategy.pow(FltX("-4"), FltX("0.5"), digits, precision)
+        }
+        assertFailsWith<ArithmeticException> {
+            FltXPowerStrategy.pow(FltX.zero, FltX("0.5"), digits, precision)
+        }
     }
 }
-
-
-
-

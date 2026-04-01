@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
@@ -176,11 +176,20 @@ fun <T> GenericQuadraticPolynomial<T>.partialEvaluate(
     ).combineTerms(zero, isZero, symbolComparator)
 }
 
-fun QuadraticMonomial<Flt64>.toGenericQuadraticMonomial(): GenericQuadraticMonomial<Flt64> {
+fun <T> QuadraticMonomial<T>.toGenericQuadraticMonomial(): GenericQuadraticMonomial<T>
+        where T : Ring<T> {
     return GenericQuadraticMonomial(
         coefficient = coefficient,
         symbol1 = symbol1,
         symbol2 = symbol2
+    )
+}
+
+fun <T> QuadraticPolynomial<T>.toGenericQuadraticPolynomial(): GenericQuadraticPolynomial<T>
+        where T : Ring<T> {
+    return GenericQuadraticPolynomial(
+        monomials = monomials.map { it.toGenericQuadraticMonomial() },
+        constant = constant
     )
 }
 
@@ -192,19 +201,13 @@ fun GenericQuadraticMonomial<Flt64>.toQuadraticMonomial(): QuadraticMonomial<Flt
     )
 }
 
-fun QuadraticPolynomial<Flt64>.toGenericQuadraticPolynomial(): GenericQuadraticPolynomial<Flt64> {
-    return GenericQuadraticPolynomial(
-        monomials = monomials.map { it.toGenericQuadraticMonomial() },
-        constant = constant
-    )
-}
-
 fun GenericQuadraticPolynomial<Flt64>.toQuadraticPolynomial(): QuadraticPolynomial<Flt64> {
     return QuadraticPolynomial<Flt64>(
         monomials = monomials.map { it.toQuadraticMonomial() },
         constant = constant
     )
 }
+
 
 
 

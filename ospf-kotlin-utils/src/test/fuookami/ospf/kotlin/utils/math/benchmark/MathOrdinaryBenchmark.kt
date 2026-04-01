@@ -16,17 +16,17 @@ open class MathOrdinaryBenchmark {
 
     @Benchmark
     fun gcdBaseline(): UInt64 {
-        return gcd(sampleA, sampleB, sampleC)
+        return gcd(sampleA, sampleB, sampleC, constants = UInt64)
     }
 
     @Benchmark
     fun lcmBaseline(): UInt64 {
-        return lcm(sampleA, sampleB, sampleC)
+        return lcm(sampleA, sampleB, sampleC, constants = UInt64)
     }
 
     @Benchmark
     fun factorizeBaseline(): List<Pair<UInt64, Int>> {
-        return factorize(sampleC)
+        return factorize(sampleC, UInt64)
     }
 }
 

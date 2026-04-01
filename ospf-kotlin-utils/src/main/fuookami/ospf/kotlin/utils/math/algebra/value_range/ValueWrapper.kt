@@ -374,7 +374,7 @@ sealed class ValueWrapper<T>(
 
     class NegativeInfinity<T>(constants: RealNumberConstants<T>) :
         ValueWrapper<T>(constants) where T : RealNumber<T>, T : NumberField<T> {
-        override fun copy() = Infinity(constants)
+        override fun copy() = NegativeInfinity(constants)
         public override fun clone() = copy()
 
         override fun partialEq(rhs: ValueWrapper<T>): Boolean = rhs is NegativeInfinity

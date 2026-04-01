@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.generic
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
@@ -98,10 +98,19 @@ fun <T> GenericLinearPolynomial<T>.partialEvaluate(
     ).combineTerms(zero, isZero)
 }
 
-fun LinearMonomial<Flt64>.toGenericLinearMonomial(): GenericLinearMonomial<Flt64> {
+fun <T> LinearMonomial<T>.toGenericLinearMonomial(): GenericLinearMonomial<T>
+        where T : Ring<T> {
     return GenericLinearMonomial(
         coefficient = coefficient,
         symbol = symbol
+    )
+}
+
+fun <T> LinearPolynomial<T>.toGenericLinearPolynomial(): GenericLinearPolynomial<T>
+        where T : Ring<T> {
+    return GenericLinearPolynomial(
+        monomials = monomials.map { it.toGenericLinearMonomial() },
+        constant = constant
     )
 }
 
@@ -112,19 +121,13 @@ fun GenericLinearMonomial<Flt64>.toLinearMonomial(): LinearMonomial<Flt64> {
     )
 }
 
-fun LinearPolynomial<Flt64>.toGenericLinearPolynomial(): GenericLinearPolynomial<Flt64> {
-    return GenericLinearPolynomial(
-        monomials = monomials.map { it.toGenericLinearMonomial() },
-        constant = constant
-    )
-}
-
 fun GenericLinearPolynomial<Flt64>.toLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial<Flt64>(
         monomials = monomials.map { it.toLinearMonomial() },
         constant = constant
     )
 }
+
 
 
 

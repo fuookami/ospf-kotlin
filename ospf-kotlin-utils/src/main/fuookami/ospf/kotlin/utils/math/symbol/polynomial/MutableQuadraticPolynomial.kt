@@ -55,7 +55,7 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
     }
 
     fun addConstant(value: T) {
-        _constant = _constant + value
+        _constant += value
     }
 
     fun setConstant(value: T) {
@@ -150,24 +150,24 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs:
 // Subtraction assignment: MutableQuadraticPolynomial<T> -= QuadraticPolynomial<T>
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: QuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
-    _constant = _constant - rhs.constant
+    _constant -= rhs.constant
 }
 
 // Subtraction assignment: MutableQuadraticPolynomial<T> -= MutableQuadraticPolynomial<T>
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: MutableQuadraticPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { -it })
-    _constant = _constant - rhs.constant
+    _constant -= rhs.constant
 }
 
 // Subtraction assignment: MutableQuadraticPolynomial<T> -= LinearPolynomial<T>
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: LinearPolynomial<T>) {
     _monomials.addAll(rhs.monomials.map { QuadraticMonomial.linear(-it.coefficient, it.symbol) })
-    _constant = _constant - rhs.constant
+    _constant -= rhs.constant
 }
 
 // Subtraction assignment: MutableQuadraticPolynomial<T> -= T
 operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.minusAssign(rhs: T) {
-    _constant = _constant - rhs
+    _constant -= rhs
 }
 
 // Multiplication assignment: MutableQuadraticPolynomial<T> *= T
@@ -175,7 +175,7 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.timesAssign(rhs:
     for (i in _monomials.indices) {
         _monomials[i] = _monomials[i] * rhs
     }
-    _constant = _constant * rhs
+    _constant *= rhs
 }
 
 // Division assignment: MutableQuadraticPolynomial<T> /= T

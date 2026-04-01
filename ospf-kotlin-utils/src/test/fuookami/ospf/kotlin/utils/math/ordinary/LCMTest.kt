@@ -1,52 +1,28 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
-import org.junit.jupiter.api.AfterAll
-import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
 class LCMTest {
-    companion object {
-        private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
-        private var previousValue: String? = null
-
-        @JvmStatic
-        @BeforeAll
-        fun enableReflectionFallback() {
-            previousValue = System.getProperty(propertyKey)
-            System.setProperty(propertyKey, "true")
-        }
-
-        @JvmStatic
-        @AfterAll
-        fun restoreReflectionFallback() {
-            if (previousValue == null) {
-                System.clearProperty(propertyKey)
-            } else {
-                System.setProperty(propertyKey, previousValue)
-            }
-        }
-    }
-
     @Test
     fun lcmTwo() {
-        assertEquals(UInt64(12), lcm(UInt64(4), UInt64(6)))
-        assertEquals(UInt64(18), lcm(UInt64(6), UInt64(9)))
+        assertEquals(UInt64(12), lcm(UInt64(4), UInt64(6), UInt64))
+        assertEquals(UInt64(18), lcm(UInt64(6), UInt64(9), UInt64))
     }
 
     @Test
     fun lcmSome() {
-        assertEquals(UInt64(24), lcm(listOf(UInt64(4), UInt64(6), UInt64(8))))
-        assertEquals(UInt64(36), lcm(listOf(UInt64(6), UInt64(9), UInt64(12))))
+        assertEquals(UInt64(24), lcm(listOf(UInt64(4), UInt64(6), UInt64(8)), UInt64))
+        assertEquals(UInt64(36), lcm(listOf(UInt64(6), UInt64(9), UInt64(12)), UInt64))
     }
 
     @Test
     fun lcmByFactorization() {
-        assertEquals(UInt64(24), lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))))
-        assertEquals(UInt64(36), lcmByFactorization(UInt64(6), UInt64(9), UInt64(12)))
+        assertEquals(UInt64(12), lcmByFactorization(UInt64(4), UInt64(6), UInt64))
+        assertEquals(UInt64(24), lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8)), UInt64))
+        assertEquals(UInt64(36), lcmByFactorization(UInt64(6), UInt64(9), UInt64(12), constants = UInt64))
     }
 
     @Test
@@ -61,6 +37,4 @@ class LCMTest {
         assert(lcm(listOf(FltX(0.6), FltX(0.9), FltX(1.2))) eq FltX(3.6))
     }
 }
-
-
 

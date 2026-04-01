@@ -118,8 +118,8 @@ fun <T> pow(
 inline fun <reified T> pow(
     base: T,
     index: Int,
-    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
-    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
+    digits: Int = base.constants.decimalDigits ?: 0,
+    precision: T = base.constants.epsilon
 ): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
     return pow(
         base = base,
@@ -134,8 +134,8 @@ inline fun <reified T> pow(
 inline fun <reified T> pow(
     base: T,
     index: Int,
-    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
-    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
+    digits: Int = base.constants.decimalDigits ?: 0,
+    precision: T = base.constants.epsilon
 ): T where T : TimesGroup<T>, T : RealNumber<T> {
     return pow(
         base = base,
@@ -171,8 +171,8 @@ fun <T : FloatingNumber<T>> powf(
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
-    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
-    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
+    digits: Int = base.constants.decimalDigits ?: 0,
+    precision: T = base.constants.epsilon
 ): T {
     return powf(
         base = base,
@@ -212,8 +212,8 @@ fun <T : FloatingNumber<T>> exp(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
-    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
-    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
+    digits: Int = index.constants.decimalDigits ?: 0,
+    precision: T = index.constants.epsilon
 ): T {
     return exp(
         index = index,
