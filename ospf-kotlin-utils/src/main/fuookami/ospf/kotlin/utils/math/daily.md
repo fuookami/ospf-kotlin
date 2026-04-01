@@ -54,7 +54,7 @@
 ## T3 扩展阶段（进行中）
 - `T3.1（聚合工具显式 constants 入口扩展）`：第四批已完成。
 - `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
-- `T3.3（全量迁移与专项回归矩阵）`：第六批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：第七批已完成。
 
 ## 历史进展记录
 
@@ -254,4 +254,28 @@
 
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=ValueRangeExplicitConstantsPathTest" test` 通过（3 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（440 tests, 0 failures）。
+
+## 本轮进展（T3 扩展第八批已完成）
+
+实现：
+- `ordinary/GCD.kt`
+  - 新增显式 constants 变参入口：
+    - `gcd(x, y, z, vararg numbers, constants)`
+    - `gcdMod(x, y, z, vararg numbers, constants)`
+  - 对应 reified 变参入口改为调用显式入口 + 受控 resolver。
+- `ordinary/LCM.kt`
+  - 新增显式 constants 便捷入口：
+    - `lcmByFactorization(x, y, constants)`
+    - `lcmByFactorization(x, y, z, vararg numbers, constants)`
+    - `lcm(x, y, constants)`
+    - `lcm(x, y, z, vararg numbers, constants)`
+  - 对应 reified 入口统一改为调用显式入口 + 受控 resolver。
+- `ordinary/OrdinaryExplicitConstantsPathTest.kt`
+  - 扩展覆盖到 `GCD/LCM` 变参场景：
+    - fallback 关闭时显式 constants 变参路径可用；
+    - fallback 关闭时 reified 变参路径抛错。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=OrdinaryExplicitConstantsPathTest" test` 通过（2 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（440 tests, 0 failures）。

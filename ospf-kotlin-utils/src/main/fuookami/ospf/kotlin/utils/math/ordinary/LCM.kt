@@ -46,19 +46,68 @@ inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Int
     )
 }
 
+fun <I> lcmByFactorization(
+    x: I,
+    y: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmByFactorization(
+        numbers = listOf(x, y),
+        constants = constants
+    )
+}
+
 inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmByFactorization(listOf(x, y))
+    return lcmByFactorization(
+        x = x,
+        y = y,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
+}
+
+fun <I> lcmByFactorization(
+    x: I,
+    y: I,
+    z: I,
+    vararg numbers: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
+    return lcmByFactorization(
+        numbers = listOf(x, y, z) + numbers.toList(),
+        constants = constants
+    )
 }
 
 inline fun <reified I> lcmByFactorization(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmByFactorization(listOf(x, y, z) + numbers.toList())
+    return lcmByFactorization(
+        x = x,
+        y = y,
+        z = z,
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
+}
+
+fun <I> lcm(
+    x: I,
+    y: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Rem<I, I>, I : Div<I, I> {
+    val px = x.abs()
+    val py = y.abs()
+    val thisGCD = gcd(
+        numbers = listOf(px, py),
+        constants = constants
+    )
+    return (px / thisGCD) * py
 }
 
 inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I : Minus<I, I>, I : Div<I, I> {
-    val px = x.abs()
-    val py = y.abs()
-    val thisGCD = gcd(px, py)
-    return (px / thisGCD) * py
+    return lcm(
+        x = x,
+        y = y,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -76,8 +125,27 @@ inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Po
     )
 }
 
+fun <I> lcm(
+    x: I,
+    y: I,
+    z: I,
+    vararg numbers: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
+    return lcm(
+        numbers = listOf(x, y, z) + numbers.toList(),
+        constants = constants
+    )
+}
+
 inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
-    return lcm(listOf(x, y, z) + numbers.toList())
+    return lcm(
+        x = x,
+        y = y,
+        z = z,
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("LCM")
+    )
 }
 
 fun lcm(x: FltX, y: FltX): FltX {

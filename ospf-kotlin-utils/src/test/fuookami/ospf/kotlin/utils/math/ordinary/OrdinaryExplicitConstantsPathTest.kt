@@ -53,10 +53,14 @@ class OrdinaryExplicitConstantsPathTest {
         val numbers = listOf(UInt64(48), UInt64(18), UInt64(30))
         assertEquals(UInt64(6), gcd(numbers, UInt64))
         assertEquals(UInt64(6), gcdMod(numbers, UInt64))
+        assertEquals(UInt64(6), gcd(UInt64(48), UInt64(18), UInt64(30), constants = UInt64))
+        assertEquals(UInt64(6), gcdMod(UInt64(48), UInt64(18), UInt64(30), constants = UInt64))
 
         val lcmNumbers = listOf(UInt64(4), UInt64(6), UInt64(8))
         assertEquals(UInt64(24), lcmByFactorization(lcmNumbers, UInt64))
         assertEquals(UInt64(24), lcm(lcmNumbers, UInt64))
+        assertEquals(UInt64(24), lcmByFactorization(UInt64(4), UInt64(6), UInt64(8), constants = UInt64))
+        assertEquals(UInt64(24), lcm(UInt64(4), UInt64(6), UInt64(8), constants = UInt64))
 
         assertEquals(
             listOf(UInt64.two, UInt64.three, UInt64.five, UInt64(7), UInt64(11)),
@@ -79,8 +83,12 @@ class OrdinaryExplicitConstantsPathTest {
         assertFailsWith<IllegalStateException> { eulerTotient(UInt64(12)) }
         assertFailsWith<IllegalStateException> { gcd(listOf(UInt64(48), UInt64(18), UInt64(30))) }
         assertFailsWith<IllegalStateException> { gcdMod(listOf(UInt64(48), UInt64(18), UInt64(30))) }
+        assertFailsWith<IllegalStateException> { gcd(UInt64(48), UInt64(18), UInt64(30)) }
+        assertFailsWith<IllegalStateException> { gcdMod(UInt64(48), UInt64(18), UInt64(30)) }
         assertFailsWith<IllegalStateException> { lcmByFactorization(listOf(UInt64(4), UInt64(6), UInt64(8))) }
         assertFailsWith<IllegalStateException> { lcm(listOf(UInt64(4), UInt64(6), UInt64(8))) }
+        assertFailsWith<IllegalStateException> { lcmByFactorization(UInt64(4), UInt64(6), UInt64(8)) }
+        assertFailsWith<IllegalStateException> { lcm(UInt64(4), UInt64(6), UInt64(8)) }
         assertFailsWith<IllegalStateException> { getPrimes(UInt64(11)) }
         assertFailsWith<IllegalStateException> { ln(Flt64.e) }
         assertFailsWith<IllegalStateException> { log(Flt64.e, Flt64.e) }

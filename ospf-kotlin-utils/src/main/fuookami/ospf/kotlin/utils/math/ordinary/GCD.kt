@@ -89,8 +89,27 @@ inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Re
     )
 }
 
+fun <I> gcd(
+    x: I,
+    y: I,
+    z: I,
+    vararg numbers: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Rem<I, I> {
+    return gcd(
+        numbers = listOf(x, y, z) + numbers.toList(),
+        constants = constants
+    )
+}
+
 inline fun <reified I> gcd(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
-    return gcd(listOf(x, y, z) + numbers.toList())
+    return gcd(
+        x = x,
+        y = y,
+        z = z,
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("GCD")
+    )
 }
 
 fun <I> gcdMod(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
@@ -111,8 +130,27 @@ inline fun <reified I> gcdMod(numbers: Iterable<I>): I where I : Integer<I>, I :
     )
 }
 
+fun <I> gcdMod(
+    x: I,
+    y: I,
+    z: I,
+    vararg numbers: I,
+    constants: RealNumberConstants<I>
+): I where I : Integer<I>, I : Rem<I, I> {
+    return gcdMod(
+        numbers = listOf(x, y, z) + numbers.toList(),
+        constants = constants
+    )
+}
+
 inline fun <reified I> gcdMod(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Rem<I, I> {
-    return gcd(listOf(x, y, z) + numbers.toList())
+    return gcdMod(
+        x = x,
+        y = y,
+        z = z,
+        numbers = numbers,
+        constants = resolveRealNumberConstants<I>("GCD")
+    )
 }
 
 data class ExtendedGcdResult<I>(
