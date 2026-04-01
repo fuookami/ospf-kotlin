@@ -45,132 +45,13 @@
 - `mvn -pl ospf-kotlin-utils "-Dtest=GeometryPrimitiveTest,VectorTest,RectangleTest,TriangulationTest" test` 通过（12 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（410 tests, 0 failures）。
 
-## 未完成事项
+## 当前状态
+- `T1（algebra 属性与一致性补测）`：已完成。
+- `T2（symbol round-trip 与高阶项回归补测）`：已完成。
+- `T3（伴生对象常量接口最小落地）`：已完成。
+- `T4（反射 fallback）`：已完成。
 
-### 1. 测试密度后续补齐
-- `algebra`：补 `number/concept/value_range` 的属性测试与跨类型一致性测试。
-- `symbol`：补随机表达式 round-trip 与高阶项回归集。
-
-### 2. 代数常量抽象重构（仅立项，未实现）
-背景：
-- Kotlin 无法等价 Rust 的“静态成员 trait”约束。
-- 计划采用“伴生对象实现常量接口”的方式提供 `Zero/One/...` 能力。
-
-计划接口清单：
-1. `HasZero<T>`：`val zero: T`
-2. `HasOne<T>`：`val one: T`
-3. `HasTwo<T>`：`val two: T`
-4. `HasThree<T>`：`val three: T`
-5. `HasFive<T>`：`val five: T`
-6. `HasTen<T>`：`val ten: T`
-7. `HasHalf<T>`：`val half: T`
-8. `HasBounds<T>`：`val minimum: T`、`val maximum: T`
-9. `HasFixedPrecision<T>`：`val decimalDigits: Int?`、`val decimalPrecision: T?`、`val epsilon: T?`
-10. `HasInfinity<T>`：`val infinity: T?`、`val negativeInfinity: T?`
-11. `HasNaN<T>`：`val nan: T?`
-12. `HasTranscendentals<T>`：`val pi: T`、`val e: T`、`val lg2: T`
-
-组合接口（便于泛型约束）：
-- `ArithmeticConst<T>` = `HasZero<T>` + `HasOne<T>`
-- `RealConst<T>` = `ArithmeticConst<T>` + `HasTwo<T>` + `HasThree<T>` + `HasFive<T>` + `HasTen<T>` + `HasBounds<T>` + `HasFixedPrecision<T>` + `HasInfinity<T>` + `HasNaN<T>`
-- `FloatingConst<T>` = `RealConst<T>` + `HasHalf<T>` + `HasTranscendentals<T>`
-
-使用策略（待落地）：
-- 泛型算法优先显式传入 companion provider。
-- 反射获取 companion 仅作为受控备选路径。
-
-## 下一步建议
-1. 先完成 `algebra` 补测，再做 `symbol` round-trip 回归集。
-2. 进入“伴生对象常量接口”最小可用实现（先 `HasZero/HasOne/HasTwo/HasHalf` 与组合接口）。
-
-## 执行任务清单（下一阶段）
-
-### T1（P1）algebra 属性与一致性补测
-目标：
-- 为 `number/concept/value_range` 增补属性测试与跨类型一致性测试，提升代数层回归保障。
-
-建议拆分：
-1. `number`：加法交换律、乘法交换律、分配律、单位元与逆元（适用类型）抽样测试。
-2. `concept`：对 `Arithmetic/NumberField/RealNumber` 关键行为做最小编译期与运行期约束回归。
-3. `value_range`：边界开闭区间、空区间、交并集与包含关系一致性。
-
-建议新增测试文件：
-- `src/test/fuookami/ospf/kotlin/utils/math/algebra/number/NumberPropertiesTest.kt`
-- `src/test/fuookami/ospf/kotlin/utils/math/algebra/concept/ConceptPropertyTest.kt`
-- `src/test/fuookami/ospf/kotlin/utils/math/algebra/value_range/ValueRangePropertyTest.kt`
-
-验收命令：
-- `mvn -pl ospf-kotlin-utils "-Dtest=NumberPropertiesTest,ConceptPropertyTest,ValueRangePropertyTest,LawTest,QuantityValueRangeTest" test`
-- `mvn -pl ospf-kotlin-utils test`
-
-完成标准：
-- 新增测试稳定通过。
-- 不引入已有测试回归。
-
-### T2（P1）symbol round-trip 与高阶项回归补测
-目标：
-- 覆盖随机表达式 parse -> normalize/compile -> serialize -> parse 的 round-trip 语义稳定性。
-- 增加高阶项（高次幂、多变量）在化简与求值链路的回归样例。
-
-建议拆分：
-1. 随机表达式生成（受控种子、固定样本规模）。
-2. round-trip 等价判定（语义等价优先，不强制字符串逐字一致）。
-3. 高阶项回归集（人工样例 + 随机样例混合）。
-
-建议新增测试文件：
-- `src/test/fuookami/ospf/kotlin/utils/math/symbol/roundtrip/SymbolRoundTripTest.kt`
-- `src/test/fuookami/ospf/kotlin/utils/math/symbol/operation/HighOrderRegressionTest.kt`
-
-验收命令：
-- `mvn -pl ospf-kotlin-utils "-Dtest=SymbolRoundTripTest,HighOrderRegressionTest,ParserPolynomialTest,CompileTest,EvaluateTest,SerializationTest" test`
-- `mvn -pl ospf-kotlin-utils test`
-
-完成标准：
-- round-trip 测试可重复（固定随机种子）。
-- 高阶项样例全部通过且无现有用例回退。
-
-### T3（P2）伴生对象常量接口最小落地
-目标：
-- 完成伴生对象常量接口最小可用版本，替代部分 `value -> constants` 依赖路径。
-
-第一阶段范围（最小实现）：
-- 接口：`HasZero<T>`、`HasOne<T>`、`HasTwo<T>`、`HasHalf<T>`、`ArithmeticConst<T>`、`FloatingConst<T>`（或先行子集）。
-- 类型接入：先接 `Flt64/Flt32/Int32`（最常用类型），再按回归情况扩展。
-- 算法接入：挑选 1~2 个高频泛型算法改为显式 provider 参数。
-
-建议新增/修改文件：
-- `src/main/.../algebra/concept/ConstantProviders.kt`（新建）
-- `src/main/.../algebra/number/*`（对应 companion 实现接口）
-- `src/test/.../algebra/concept/ConstantProviderTest.kt`（新建）
-
-验收命令：
-- `mvn -pl ospf-kotlin-utils "-Dtest=ConstantProviderTest,ConceptCompileTest,LawTest" test`
-- `mvn -pl ospf-kotlin-utils test`
-
-完成标准：
-- 最小接口可被 companion 实现并在泛型算法中使用。
-- 无反射路径也可完整运行核心测试。
-
-### T4（P2）反射获取 companion 的受控通道（可选）
-目标：
-- 提供可选反射 fallback，仅用于需要运行时类型驱动的场景。
-
-约束：
-- 默认关闭反射路径；优先显式 provider 传入。
-- 反射失败时给出清晰错误信息，不静默降级。
-- 为反射路径补性能与稳定性回归。
-
-验收命令：
-- `mvn -pl ospf-kotlin-utils "-Dtest=ConstantProviderTest" test`
-
-完成标准：
-- 显式 provider 与反射 fallback 行为一致。
-
-## 里程碑与顺序
-1. 先做 `T1`（代数补测）。
-2. 再做 `T2`（symbol round-trip）。
-3. 然后做 `T3`（常量接口最小落地）。
-4. 最后视需要做 `T4`（反射 fallback）。
+## 历史进展记录
 
 ## 本轮进展（T1 已完成）
 
@@ -188,11 +69,6 @@
 - `mvn -pl ospf-kotlin-utils "-Dtest=NumberPropertiesTest,ConceptPropertyTest,ValueRangePropertyTest,LawTest,QuantityValueRangeTest" test` 通过（32 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（422 tests, 0 failures）。
 
-任务状态更新：
-- `T1（algebra 属性与一致性补测）`：已完成。
-- `T2（symbol round-trip 与高阶项回归补测）`：未开始。
-- `T3（伴生对象常量接口最小落地）`：未开始。
-
 ## 本轮进展（T2 已完成）
 
 新增测试文件：
@@ -207,11 +83,6 @@
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=SymbolRoundTripTest,HighOrderRegressionTest,ParserPolynomialTest,CompileTest,EvaluateTest,SerializationTest" test` 通过（30 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（427 tests, 0 failures）。
-
-任务状态更新：
-- `T1（algebra 属性与一致性补测）`：已完成。
-- `T2（symbol round-trip 与高阶项回归补测）`：已完成。
-- `T3（伴生对象常量接口最小落地）`：未开始。
 
 ## 本轮进展（T3 最小落地已完成）
 
@@ -233,40 +104,6 @@
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=ConstantProviderTest,ConceptCompileTest,LawTest" test` 通过（17 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（430 tests, 0 failures）。
-
-任务状态更新：
-- `T1（algebra 属性与一致性补测）`：已完成。
-- `T2（symbol round-trip 与高阶项回归补测）`：已完成。
-- `T3（伴生对象常量接口最小落地）`：已完成。
-- `T4（反射 fallback）`：未开始（可选）。
-
-## 本轮进展（T4 已启动，待基线编译恢复后完成验收）
-
-新增实现：
-- 在 `algebra/concept/ConstantProviders.kt` 增加受控 companion provider resolver：
-  - 系统属性开关：`ospf.kotlin.math.enableCompanionReflectionFallback`
-  - 默认关闭反射 fallback；关闭时抛出明确异常并提示显式传入 provider 或开启开关。
-- 将以下文件中的直连 `companionObjectInstance` 替换为统一 resolver：
-  - `algebra/value_range/ValueRange.kt`
-  - `algebra/value_range/ValueWrapper.kt`
-  - `ordinary/Pow.kt`
-  - `ordinary/Log.kt`
-  - `ordinary/Factorization.kt`
-  - `ordinary/GCD.kt`
-  - `ordinary/LCM.kt`
-  - `ordinary/Prime.kt`
-
-新增测试：
-- `algebra/concept/ConstantProviderReflectionFallbackTest.kt`
-  - 验证默认关闭时 reified 调用抛出清晰错误。
-  - 验证开启开关后 reified 路径可正常工作。
-
-验证阻塞：
-- 执行 `mvn -pl ospf-kotlin-utils "-Dtest=ConstantProviderTest,ConstantProviderReflectionFallbackTest" test` 失败。
-- 失败原因：模块存在既有编译错误（如 `math/ComparisonOperator.kt`、`physics/quantity/Quantity.kt` 的类型歧义与解析失败），与本轮改造目标无关。
-
-任务状态更新：
-- `T4（反射 fallback）`：实现已落地，验收待基线编译恢复后完成。
 
 ## 本轮进展（T4 已完成）
 
