@@ -110,14 +110,18 @@ data class ValueRange<T>(
             }
         }
 
-        @Suppress("UNCHECKED_CAST")
-        inline operator fun <reified T> invoke(): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = resolveRealNumberConstants<T>("ValueRange")
+        operator fun <T> invoke(
+            constants: RealNumberConstants<T>
+        ): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
             return ValueRange(
                 Bound(ValueWrapper.NegativeInfinity(constants), Interval.Closed),
                 Bound(ValueWrapper.Infinity(constants), Interval.Closed),
                 constants
             )
+        }
+
+        inline operator fun <reified T> invoke(): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
+            return invoke(resolveRealNumberConstants<T>("ValueRange"))
         }
 
         @Suppress("UNCHECKED_CAST")
@@ -204,7 +208,20 @@ data class ValueRange<T>(
             ub: Infinity,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = resolveRealNumberConstants<T>("ValueRange")
+            return invoke(
+                lb = lb,
+                ub = ub,
+                lbInterval = lbInterval,
+                constants = resolveRealNumberConstants<T>("ValueRange")
+            )
+        }
+
+        operator fun <T> invoke(
+            lb: T,
+            ub: Infinity,
+            lbInterval: Interval,
+            constants: RealNumberConstants<T>
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             val lowerBound = when (val result = ValueWrapper(lb, constants)) {
                 is Ok -> {
                     result.value
@@ -227,13 +244,25 @@ data class ValueRange<T>(
             )
         }
 
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             lb: NegativeInfinity,
             ub: T,
             ubInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = resolveRealNumberConstants<T>("ValueRange")
+            return invoke(
+                lb = lb,
+                ub = ub,
+                ubInterval = ubInterval,
+                constants = resolveRealNumberConstants<T>("ValueRange")
+            )
+        }
+
+        operator fun <T> invoke(
+            lb: NegativeInfinity,
+            ub: T,
+            ubInterval: Interval,
+            constants: RealNumberConstants<T>
+        ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
             val upperBound = when (val result = ValueWrapper(ub, constants)) {
                 is Ok -> {
                     result.value

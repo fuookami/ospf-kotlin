@@ -54,7 +54,7 @@
 ## T3 扩展阶段（进行中）
 - `T3.1（聚合工具显式 constants 入口扩展）`：第四批已完成。
 - `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
-- `T3.3（全量迁移与专项回归矩阵）`：第三批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：第四批已完成。
 
 ## 历史进展记录
 
@@ -201,3 +201,20 @@
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=OrdinaryExplicitConstantsPathTest,FactorizationTest,GCDTest,LCMTest" test` 通过（16 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（437 tests, 0 failures）。
+
+## 本轮进展（T3 扩展第五批已完成）
+
+实现：
+- `algebra/value_range/ValueRange.kt`
+  - 新增 `ValueRange(constants)` 显式 `RealNumberConstants` 构造入口。
+  - 为无穷端点构造补齐显式入口：
+    - `ValueRange(lb: T, ub: Infinity, lbInterval, constants)`
+    - `ValueRange(lb: NegativeInfinity, ub: T, ubInterval, constants)`
+  - 对应 reified 包装入口统一改为调用显式入口 + 受控 resolver。
+- 新增专项测试：
+  - `algebra/value_range/ValueRangeExplicitConstantsPathTest.kt`
+  - 覆盖 fallback 关闭时 ValueRange 显式 constants 构造可用、reified 默认路径抛错。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=ValueRangeExplicitConstantsPathTest,ValueRangePropertyTest,QuantityValueRangeTest,OrdinaryExplicitConstantsPathTest" test` 通过（17 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（439 tests, 0 failures）。
