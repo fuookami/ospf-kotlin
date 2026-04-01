@@ -1,14 +1,10 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumber
-import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumberConstants
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import java.math.RoundingMode
-import kotlin.reflect.full.companionObjectInstance
 
 @Suppress("UNCHECKED_CAST")
 fun <T : FloatingNumber<T>> ln(
@@ -60,12 +56,12 @@ fun <T : FloatingNumber<T>> ln(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
-    digits: Int = (T::class.companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
-    precision: T = (T::class.companionObjectInstance as FloatingNumberConstants<T>).epsilon
+    digits: Int = (resolveFloatingNumberConstants<T>("Log")).decimalDigits!!,
+    precision: T = (resolveFloatingNumberConstants<T>("Log")).epsilon
 ): T? {
     return ln(
         x = x,
-        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
+        constants = resolveFloatingNumberConstants<T>("Log"),
         digits = digits,
         precision = precision
     )
@@ -99,21 +95,14 @@ fun <T : FloatingNumber<T>> log(
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,
-    digits: Int = (T::class.companionObjectInstance as FloatingNumberConstants<T>).decimalDigits!!,
-    precision: T = (T::class.companionObjectInstance as FloatingNumberConstants<T>).epsilon
+    digits: Int = (resolveFloatingNumberConstants<T>("Log")).decimalDigits!!,
+    precision: T = (resolveFloatingNumberConstants<T>("Log")).epsilon
 ): T? {
     return log(
         x = x,
         base = base,
-        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
+        constants = resolveFloatingNumberConstants<T>("Log"),
         digits = digits,
         precision = precision
     )
 }
-
-
-
-
-
-
-

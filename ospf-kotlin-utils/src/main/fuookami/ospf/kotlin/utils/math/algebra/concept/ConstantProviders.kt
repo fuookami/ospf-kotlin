@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.utils.math.algebra.concept
+package fuookami.ospf.kotlin.utils.math.algebra.concept
+
+import kotlin.reflect.full.companionObjectInstance
 
 interface HasZero<T> {
     val zero: T
@@ -68,3 +70,62 @@ interface RealConst<T> :
     HasNaN<T>
 
 interface FloatingConst<T> : RealConst<T>, HasHalf<T>, HasTranscendentals<T>
+
+data object CompanionConstantProviderResolver {
+    const val reflectionFallbackEnabledProperty = "ospf.kotlin.math.enableCompanionReflectionFallback"
+
+    val reflectionFallbackEnabled: Boolean
+        get() = parseBoolean(System.getProperty(reflectionFallbackEnabledProperty))
+
+    private fun parseBoolean(value: String?): Boolean {
+        return when (value?.trim()?.lowercase()) {
+            "1", "true", "yes", "on" -> true
+            else -> false
+        }
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+@PublishedApi
+internal inline fun <reified T, reified C : Any> resolveCompanionProvider(
+    caller: String,
+    expectedTypeName: String
+): C {
+    val typeName = T::class.qualifiedName ?: T::class.simpleName ?: "unknown type"
+    if (!CompanionConstantProviderResolver.reflectionFallbackEnabled) {
+        throw IllegalStateException(
+            "Companion reflection fallback is disabled for $typeName in $caller. " +
+                    "Pass explicit provider/constants or enable fallback by " +
+                    "-D${CompanionConstantProviderResolver.reflectionFallbackEnabledProperty}=true."
+        )
+    }
+    val companion = T::class.companionObjectInstance
+        ?: throw IllegalStateException(
+            "Type $typeName has no companion object in $caller, expected $expectedTypeName provider."
+        )
+    return companion as? C
+        ?: throw IllegalStateException(
+            "Companion object of $typeName does not implement $expectedTypeName in $caller."
+        )
+}
+
+inline fun <reified T> resolveArithmeticConstants(caller: String): ArithmeticConstants<T> where T : Arithmetic<T> {
+    return resolveCompanionProvider<T, ArithmeticConstants<T>>(
+        caller,
+        "ArithmeticConstants<${T::class.simpleName}>"
+    )
+}
+
+inline fun <reified T> resolveRealNumberConstants(caller: String): RealNumberConstants<T> where T : RealNumber<T> {
+    return resolveCompanionProvider<T, RealNumberConstants<T>>(
+        caller,
+        "RealNumberConstants<${T::class.simpleName}>"
+    )
+}
+
+inline fun <reified T> resolveFloatingNumberConstants(caller: String): FloatingNumberConstants<T> where T : FloatingNumber<T> {
+    return resolveCompanionProvider<T, FloatingNumberConstants<T>>(
+        caller,
+        "FloatingNumberConstants<${T::class.simpleName}>"
+    )
+}

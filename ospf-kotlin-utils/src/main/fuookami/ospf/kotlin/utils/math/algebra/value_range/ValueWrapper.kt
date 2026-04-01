@@ -1,14 +1,20 @@
-﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
+package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt32
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int8
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int16
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int32
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.IntX
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*
@@ -20,7 +26,9 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import kotlinx.serialization.serializer
-import kotlin.reflect.full.companionObjectInstance
+
+data object Infinity
+data object NegativeInfinity
 
 internal typealias GlobalInfinity = Infinity
 internal typealias GlobalNegativeInfinity = NegativeInfinity
@@ -34,7 +42,7 @@ class ValueWrapperSerializer<T>(
         @OptIn(InternalSerializationApi::class)
         inline operator fun <reified T> invoke(): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
             val serializer = T::class.serializer()
-            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val constants = resolveRealNumberConstants<T>("ValueWrapper")
             return ValueWrapperSerializer(serializer, constants)
         }
     }
@@ -86,7 +94,7 @@ sealed class ValueWrapper<T>(
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(value, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return invoke(value, resolveRealNumberConstants<T>("ValueWrapper"))
         }
 
         operator fun <T> invoke(
@@ -105,7 +113,7 @@ sealed class ValueWrapper<T>(
         inline operator fun <reified T> invoke(
             _inf: GlobalInfinity
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
-            return Infinity((T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return Infinity(resolveRealNumberConstants<T>("ValueWrapper"))
         }
 
         operator fun <T> invoke(
@@ -119,7 +127,7 @@ sealed class ValueWrapper<T>(
         inline operator fun <reified T> invoke(
             _negInf: GlobalNegativeInfinity
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {
-            return NegativeInfinity((T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return NegativeInfinity(resolveRealNumberConstants<T>("ValueWrapper"))
         }
 
         operator fun <T> invoke(
@@ -512,8 +520,3 @@ operator fun ValueWrapper<IntX>.unaryMinus() = when (this) {
     is ValueWrapper.Infinity -> ValueWrapper.NegativeInfinity(constants)
     is ValueWrapper.NegativeInfinity -> ValueWrapper.Infinity(constants)
 }
-
-
-
-
-

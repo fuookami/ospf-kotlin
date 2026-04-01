@@ -1,13 +1,20 @@
-﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
+package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt32
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int8
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int16
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int32
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.IntX
+import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.ordinary.max
@@ -22,7 +29,6 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.json.*
 import java.util.*
-import kotlin.reflect.full.companionObjectInstance
 
 open class ValueRangeSerializer<T>(
     private val valueSerializer: ValueWrapperSerializer<T>
@@ -106,7 +112,7 @@ data class ValueRange<T>(
 
         @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(): ValueRange<T> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val constants = resolveRealNumberConstants<T>("ValueRange")
             return ValueRange(
                 Bound(ValueWrapper.NegativeInfinity(constants), Interval.Closed),
                 Bound(ValueWrapper.Infinity(constants), Interval.Closed),
@@ -118,7 +124,7 @@ data class ValueRange<T>(
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            return invoke(value, (T::class.companionObjectInstance!! as RealNumberConstants<T>))
+            return invoke(value, resolveRealNumberConstants<T>("ValueRange"))
         }
 
         operator fun <T> invoke(
@@ -146,7 +152,7 @@ data class ValueRange<T>(
                 ub = ub,
                 lbInterval = lbInterval,
                 ubInterval = ubInterval,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -198,7 +204,7 @@ data class ValueRange<T>(
             ub: Infinity,
             lbInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val constants = resolveRealNumberConstants<T>("ValueRange")
             val lowerBound = when (val result = ValueWrapper(lb, constants)) {
                 is Ok -> {
                     result.value
@@ -227,7 +233,7 @@ data class ValueRange<T>(
             ub: T,
             ubInterval: Interval = Interval.Closed
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
-            val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+            val constants = resolveRealNumberConstants<T>("ValueRange")
             val upperBound = when (val result = ValueWrapper(ub, constants)) {
                 is Ok -> {
                     result.value
@@ -258,7 +264,7 @@ data class ValueRange<T>(
             return geq(
                 lb = lb,
                 lbInterval = lbInterval,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -269,7 +275,7 @@ data class ValueRange<T>(
             return geq(
                 lb = lb,
                 lbInterval = Interval.Open,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -308,7 +314,7 @@ data class ValueRange<T>(
             return leq(
                 ub = ub,
                 lbInterval = lbInterval,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -319,7 +325,7 @@ data class ValueRange<T>(
             return leq(
                 ub = ub,
                 lbInterval = Interval.Open,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -362,7 +368,7 @@ data class ValueRange<T>(
                 ub = ub,
                 lbInterval = lbInterval,
                 ubInterval = ubInterval,
-                constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
+                constants = resolveRealNumberConstants<T>("ValueRange")
             )
         }
 
@@ -776,8 +782,3 @@ operator fun ValueRange<IntX>.unaryMinus() = ValueRange(
     lowerBound = -lowerBound,
     constants = IntX
 )
-
-
-
-
-

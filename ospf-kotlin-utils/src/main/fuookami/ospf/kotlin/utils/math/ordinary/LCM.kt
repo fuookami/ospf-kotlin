@@ -1,6 +1,8 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.IntX
+import fuookami.ospf.kotlin.utils.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
@@ -9,7 +11,6 @@ import fuookami.ospf.kotlin.utils.operator.Div
 import fuookami.ospf.kotlin.utils.operator.Minus
 import fuookami.ospf.kotlin.utils.operator.Pow
 import fuookami.ospf.kotlin.utils.operator.Rem
-import kotlin.reflect.full.companionObjectInstance
 
 fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     val factors = numbers.map { factorizeImpl(it, constants) }
@@ -32,7 +33,7 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> lcmByFactorization(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
-    return lcmImpl(numbers, (I::class.companionObjectInstance as RealNumberConstants<I>))
+    return lcmImpl(numbers, (resolveRealNumberConstants<I>("LCM")))
 }
 
 inline fun <reified I> lcmByFactorization(x: I, y: I): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
@@ -52,7 +53,7 @@ inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> lcm(numbers: Iterable<I>): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
-    return lcmImpl(numbers, (I::class.companionObjectInstance as RealNumberConstants<I>))
+    return lcmImpl(numbers, (resolveRealNumberConstants<I>("LCM")))
 }
 
 inline fun <reified I> lcm(x: I, y: I, z: I, vararg numbers: I): I where I : Integer<I>, I : Pow<I>, I : Rem<I, I>, I : Div<I, I> {
@@ -106,7 +107,3 @@ fun lcm(numbers: Iterable<RtnX>): RtnX {
 fun lcm(x: RtnX, y: RtnX, z: RtnX, vararg numbers: RtnX): RtnX {
     return lcm(listOf(x, y, z) + numbers.toList())
 }
-
-
-
-

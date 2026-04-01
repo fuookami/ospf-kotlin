@@ -2,9 +2,15 @@
 
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.number.Flt32
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int8
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int16
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int32
+import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.math.algebra.number.IntX
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*

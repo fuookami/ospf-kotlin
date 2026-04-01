@@ -1,14 +1,10 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Integer
-import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import kotlin.reflect.full.companionObjectInstance
 
 class PrimeCache {
     private var current = UInt64.zero
@@ -182,12 +178,5 @@ fun <I> getPrimesImpl(num: I, constants: RealNumberConstants<I>): List<I> where 
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> getPrimes(num: I): List<I> where I : Integer<I> {
-    return getPrimesImpl(num, (I::class.companionObjectInstance as RealNumberConstants<I>))
+    return getPrimesImpl(num, (resolveRealNumberConstants<I>("Prime")))
 }
-
-
-
-
-
-
-

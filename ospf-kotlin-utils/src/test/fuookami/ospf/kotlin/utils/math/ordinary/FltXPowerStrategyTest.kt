@@ -1,12 +1,37 @@
 ﻿package fuookami.ospf.kotlin.utils.math.ordinary
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.math.E
 import kotlin.math.abs
 import kotlin.test.assertTrue
 
 class FltXPowerStrategyTest {
+    companion object {
+        private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
+        private var previousValue: String? = null
+
+        @JvmStatic
+        @BeforeAll
+        fun enableReflectionFallback() {
+            previousValue = System.getProperty(propertyKey)
+            System.setProperty(propertyKey, "true")
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun restoreReflectionFallback() {
+            if (previousValue == null) {
+                System.clearProperty(propertyKey)
+            } else {
+                System.setProperty(propertyKey, previousValue)
+            }
+        }
+    }
+
     @Test
     fun lnAndExpShouldRoundTrip() {
         val digits = 18

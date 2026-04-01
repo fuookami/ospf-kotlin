@@ -3,7 +3,12 @@
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.concept.*
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Arithmetic
+import fuookami.ospf.kotlin.utils.math.algebra.concept.ArithmeticConstants
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.utils.math.algebra.concept.FloatingNumberConstants
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.operator.*

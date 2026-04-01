@@ -1,16 +1,12 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Integer
-import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.utils.operator.Div
 import fuookami.ospf.kotlin.utils.operator.Minus
 import fuookami.ospf.kotlin.utils.operator.Pow
 import fuookami.ospf.kotlin.utils.operator.Rem
-import kotlin.reflect.full.companionObjectInstance
 
 fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     if (num <= constants.one) {
@@ -44,7 +40,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
 
 @Suppress("UNCHECKED_CAST")
 inline fun <reified I> factorize(num: I): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
-    return factorizeImpl(num, (I::class.companionObjectInstance as RealNumberConstants<I>))
+    return factorizeImpl(num, (resolveRealNumberConstants<I>("Factorization")))
 }
 
 fun <I> defactorizeImpl(
@@ -70,7 +66,7 @@ inline fun <reified I> defactorize(
 ): I where I : Integer<I>, I : Pow<I> {
     return defactorizeImpl(
         factors = factors,
-        constants = (I::class.companionObjectInstance as RealNumberConstants<I>)
+        constants = (resolveRealNumberConstants<I>("Factorization"))
     )
 }
 
@@ -109,7 +105,7 @@ inline fun <reified I> divisors(
 ): List<I> where I : Integer<I>, I : Pow<I> {
     return divisorsImpl(
         factors = factors,
-        constants = (I::class.companionObjectInstance as RealNumberConstants<I>)
+        constants = (resolveRealNumberConstants<I>("Factorization"))
     )
 }
 
@@ -119,7 +115,7 @@ inline fun <reified I> divisors(
 ): List<I> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Pow<I> {
     return divisorsImpl(
         num = num,
-        constants = (I::class.companionObjectInstance as RealNumberConstants<I>)
+        constants = (resolveRealNumberConstants<I>("Factorization"))
     )
 }
 
@@ -161,12 +157,6 @@ inline fun <reified I> eulerTotient(
 ): I where I : Integer<I>, I : Div<I, I>, I : Rem<I, I>, I : Minus<I, I> {
     return eulerTotientImpl(
         num = num,
-        constants = (I::class.companionObjectInstance as RealNumberConstants<I>)
+        constants = (resolveRealNumberConstants<I>("Factorization"))
     )
 }
-
-
-
-
-
-

@@ -1,12 +1,11 @@
-﻿package fuookami.ospf.kotlin.utils.math.ordinary
+package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.*
 import java.math.RoundingMode
-import kotlin.reflect.full.companionObjectInstance
 
 private tailrec fun <T : TimesSemiGroup<T>> powPosImpl(
     value: T,
@@ -119,13 +118,13 @@ fun <T> pow(
 inline fun <reified T> pow(
     base: T,
     index: Int,
-    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
+    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
 ): T where T : TimesSemiGroup<T>, T : RealNumber<T> {
     return pow(
         base = base,
         index = index,
-        constants = T::class.companionObjectInstance as RealNumberConstants<T>,
+        constants = resolveRealNumberConstants<T>("Pow"),
         digits = digits,
         precision = precision
     )
@@ -135,13 +134,13 @@ inline fun <reified T> pow(
 inline fun <reified T> pow(
     base: T,
     index: Int,
-    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
+    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
 ): T where T : TimesGroup<T>, T : RealNumber<T> {
     return pow(
         base = base,
         index = index,
-        constants = T::class.companionObjectInstance as RealNumberConstants<T>,
+        constants = resolveRealNumberConstants<T>("Pow"),
         digits = digits,
         precision = precision
     )
@@ -172,13 +171,13 @@ fun <T : FloatingNumber<T>> powf(
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
-    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
+    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
 ): T {
     return powf(
         base = base,
         index = index,
-        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
+        constants = resolveFloatingNumberConstants<T>("Pow"),
         digits = digits,
         precision = precision
     )
@@ -213,16 +212,13 @@ fun <T : FloatingNumber<T>> exp(
 @Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
-    digits: Int = (T::class.companionObjectInstance as RealNumberConstants<T>).decimalDigits ?: 0,
-    precision: T = (T::class.companionObjectInstance as RealNumberConstants<T>).epsilon
+    digits: Int = (resolveRealNumberConstants<T>("Pow")).decimalDigits ?: 0,
+    precision: T = (resolveRealNumberConstants<T>("Pow")).epsilon
 ): T {
     return exp(
         index = index,
-        constants = T::class.companionObjectInstance as FloatingNumberConstants<T>,
+        constants = resolveFloatingNumberConstants<T>("Pow"),
         digits = digits,
         precision = precision
     )
 }
-
-
-

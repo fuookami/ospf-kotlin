@@ -1,7 +1,10 @@
 ﻿package fuookami.ospf.kotlin.utils.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.math.algebra.concept.CompanionConstantProviderResolver
 import fuookami.ospf.kotlin.utils.operator.eq
+import org.junit.jupiter.api.AfterAll
+import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -9,6 +12,28 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ValueRangePropertyTest {
+    companion object {
+        private val propertyKey = CompanionConstantProviderResolver.reflectionFallbackEnabledProperty
+        private var previousValue: String? = null
+
+        @JvmStatic
+        @BeforeAll
+        fun enableReflectionFallback() {
+            previousValue = System.getProperty(propertyKey)
+            System.setProperty(propertyKey, "true")
+        }
+
+        @JvmStatic
+        @AfterAll
+        fun restoreReflectionFallback() {
+            if (previousValue == null) {
+                System.clearProperty(propertyKey)
+            } else {
+                System.setProperty(propertyKey, previousValue)
+            }
+        }
+    }
+
     @Test
     fun openAndClosedBoundsShouldAffectContains() {
         val openRange = ValueRange(Flt64.one, Flt64.three, Interval.Open, Interval.Open).value!!

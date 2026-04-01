@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.utils.math.ordinary
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
+import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
+import fuookami.ospf.kotlin.utils.math.algebra.number.IntX
+import fuookami.ospf.kotlin.utils.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
@@ -8,7 +10,6 @@ import fuookami.ospf.kotlin.utils.math.*
 import fuookami.ospf.kotlin.utils.operator.Div
 import fuookami.ospf.kotlin.utils.operator.Minus
 import fuookami.ospf.kotlin.utils.operator.Rem
-import kotlin.reflect.full.companionObjectInstance
 
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     val zero = x.constants.zero
@@ -75,7 +76,7 @@ fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
 inline fun <reified I> gcd(numbers: Iterable<I>): I where I : Integer<I>, I : Rem<I, I> {
     return gcdImpl(
         numbers.map { it.abs() }.sortedDescending(),
-        I::class.companionObjectInstance as RealNumberConstants<I>
+        resolveRealNumberConstants<I>("GCD")
     )
 }
 

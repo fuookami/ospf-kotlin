@@ -239,3 +239,53 @@
 - `T2（symbol round-trip 与高阶项回归补测）`：已完成。
 - `T3（伴生对象常量接口最小落地）`：已完成。
 - `T4（反射 fallback）`：未开始（可选）。
+
+## 本轮进展（T4 已启动，待基线编译恢复后完成验收）
+
+新增实现：
+- 在 `algebra/concept/ConstantProviders.kt` 增加受控 companion provider resolver：
+  - 系统属性开关：`ospf.kotlin.math.enableCompanionReflectionFallback`
+  - 默认关闭反射 fallback；关闭时抛出明确异常并提示显式传入 provider 或开启开关。
+- 将以下文件中的直连 `companionObjectInstance` 替换为统一 resolver：
+  - `algebra/value_range/ValueRange.kt`
+  - `algebra/value_range/ValueWrapper.kt`
+  - `ordinary/Pow.kt`
+  - `ordinary/Log.kt`
+  - `ordinary/Factorization.kt`
+  - `ordinary/GCD.kt`
+  - `ordinary/LCM.kt`
+  - `ordinary/Prime.kt`
+
+新增测试：
+- `algebra/concept/ConstantProviderReflectionFallbackTest.kt`
+  - 验证默认关闭时 reified 调用抛出清晰错误。
+  - 验证开启开关后 reified 路径可正常工作。
+
+验证阻塞：
+- 执行 `mvn -pl ospf-kotlin-utils "-Dtest=ConstantProviderTest,ConstantProviderReflectionFallbackTest" test` 失败。
+- 失败原因：模块存在既有编译错误（如 `math/ComparisonOperator.kt`、`physics/quantity/Quantity.kt` 的类型歧义与解析失败），与本轮改造目标无关。
+
+任务状态更新：
+- `T4（反射 fallback）`：实现已落地，验收待基线编译恢复后完成。
+
+## 本轮进展（T4 已完成）
+
+实现收尾：
+- 受控 companion reflection fallback 已完成并在目标数学路径接入。
+- 对依赖 legacy reified 调用的测试补充类级属性开关，避免与“默认关闭 fallback”策略冲突：
+  - `algebra/value_range/QuantityValueRangeTest.kt`
+  - `algebra/value_range/ValueRangePropertyTest.kt`
+  - `ordinary/FactorizationTest.kt`
+  - `ordinary/GCDTest.kt`
+  - `ordinary/LCMTest.kt`
+  - `ordinary/FltXPowerStrategyTest.kt`
+
+验证结果：
+- `mvn -pl ospf-kotlin-utils "-Dtest=ValueRangePropertyTest,QuantityValueRangeTest,FactorizationTest,GCDTest,LCMTest,FltXPowerStrategyTest,ConstantProviderReflectionFallbackTest,ConstantProviderTest" test` 通过（35 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（432 tests, 0 failures）。
+
+任务状态更新：
+- `T1（algebra 属性与一致性补测）`：已完成。
+- `T2（symbol round-trip 与高阶项回归补测）`：已完成。
+- `T3（伴生对象常量接口最小落地）`：已完成。
+- `T4（反射 fallback）`：已完成。
