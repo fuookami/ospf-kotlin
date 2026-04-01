@@ -1340,197 +1340,233 @@ inline fun <T, reified U> Sequence<T>.sumOfOrNull(
 }
 
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
+fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
+    if (count == constants.zero) {
         throw NoSuchElementException("Cannot compute average of an empty collection.")
     }
     return sum.toFlt64() / count.toFlt64()
+}
+
+inline fun <reified T> Iterable<T>.average(): Flt64 where T : RealNumber<T> {
+    return average(resolveArithmeticConstants<T>("Collection"))
 }
 
 // Throw on empty collection to avoid division by zero / 空集合抛异常避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
+fun <T> Iterable<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
+    if (count == constants.zero) {
         throw NoSuchElementException("Cannot compute average of an empty collection.")
     }
     return sum / count
 }
 
+inline fun <reified T> Iterable<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
+    return average(resolveArithmeticConstants<T>("Collection"))
+}
+
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
-@Suppress("UNCHECKED_CAST")
+fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? where T : RealNumber<T> {
+    var sum = constants.zero
+    var count = constants.zero
+    for (element in this) {
+        if (element == null) {
+            return null
+        }
+        sum += element
+        count += constants.one
+    }
+    if (count == constants.zero) {
+        return null
+    }
+    return sum.toFlt64() / count.toFlt64()
+}
+
 inline fun <reified T> Iterable<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
-    for (element in this) {
-        if (element == null) {
-            return null
-        }
-        sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
-    }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
-        return null
-    }
-    return sum.toFlt64() / count.toFlt64()
+    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
 // Return null for empty collection to avoid division by zero / 空集合返回null避免除零
-@Suppress("UNCHECKED_CAST")
+fun <T> Iterable<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where T : RealNumber<T>, T : Div<T, T> {
+    var sum = constants.zero
+    var count = constants.zero
+    for (element in this) {
+        if (element == null) {
+            return null
+        }
+        sum += element
+        count += constants.one
+    }
+    if (count == constants.zero) {
+        return null
+    }
+    return sum / count
+}
+
 inline fun <reified T> Iterable<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
-    for (element in this) {
-        if (element == null) {
-            return null
-        }
-        sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
-    }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
-        return null
-    }
-    return sum / count
+    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
-@Suppress("UNCHECKED_CAST")
+fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): Flt64 where V : RealNumber<V> {
+    var sum = constants.zero
+    var count = constants.zero
+    for (element in this) {
+        sum += element.value
+        count += constants.one
+    }
+    if (count == constants.zero) {
+        throw NoSuchElementException("Cannot compute average of an empty map.")
+    }
+    return sum.toFlt64() / count.toFlt64()
+}
+
 inline fun <K, reified V> Map<K, V>.average(): Flt64 where V : RealNumber<V> {
-    var sum = resolveArithmeticConstants<V>("Collection").zero
-    var count = resolveArithmeticConstants<V>("Collection").zero
-    for (element in this) {
-        sum += element.value
-        count += resolveArithmeticConstants<V>("Collection").one
-    }
-    if (count == resolveArithmeticConstants<V>("Collection").zero) {
-        throw NoSuchElementException("Cannot compute average of an empty map.")
-    }
-    return sum.toFlt64() / count.toFlt64()
+    return average(resolveArithmeticConstants<V>("Collection"))
 }
 
 // Throw on empty map to avoid division by zero / 空Map抛异常避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Div<V, V> {
-    var sum = resolveArithmeticConstants<V>("Collection").zero
-    var count = resolveArithmeticConstants<V>("Collection").zero
+fun <K, V> Map<K, V>.average(constants: ArithmeticConstants<V>): V where V : RealNumber<V>, V : Div<V, V> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         sum += element.value
-        count += resolveArithmeticConstants<V>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<V>("Collection").zero) {
+    if (count == constants.zero) {
         throw NoSuchElementException("Cannot compute average of an empty map.")
     }
     return sum / count
 }
 
+inline fun <K, reified V> Map<K, V>.average(): V where V : RealNumber<V>, V : Div<V, V> {
+    return average(resolveArithmeticConstants<V>("Collection"))
+}
+
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
-@Suppress("UNCHECKED_CAST")
+fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): Flt64? where V : RealNumber<V> {
+    var sum = constants.zero
+    var count = constants.zero
+    for (element in this) {
+        val value = element.value ?: return null
+        sum += value
+        count += constants.one
+    }
+    if (count == constants.zero) {
+        return null
+    }
+    return sum.toFlt64() / count.toFlt64()
+}
+
 inline fun <K, reified V> Map<K, V?>.averageOrNull(): Flt64? where V : RealNumber<V> {
-    var sum = resolveArithmeticConstants<V>("Collection").zero
-    var count = resolveArithmeticConstants<V>("Collection").zero
-    for (element in this) {
-        val value = element.value ?: return null
-        sum += value
-        count += resolveArithmeticConstants<V>("Collection").one
-    }
-    if (count == resolveArithmeticConstants<V>("Collection").zero) {
-        return null
-    }
-    return sum.toFlt64() / count.toFlt64()
+    return averageOrNull(resolveArithmeticConstants<V>("Collection"))
 }
 
 // Return null for empty map to avoid division by zero / 空Map返回null避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>, V : Div<V, V> {
-    var sum = resolveArithmeticConstants<V>("Collection").zero
-    var count = resolveArithmeticConstants<V>("Collection").zero
+fun <K, V> Map<K, V?>.averageOrNull(constants: ArithmeticConstants<V>): V? where V : RealNumber<V>, V : Div<V, V> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         val value = element.value ?: return null
         sum += value
-        count += resolveArithmeticConstants<V>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<V>("Collection").zero) {
+    if (count == constants.zero) {
         return null
     }
     return sum / count
 }
 
+inline fun <K, reified V> Map<K, V?>.averageOrNull(): V? where V : RealNumber<V>, V : Div<V, V> {
+    return averageOrNull(resolveArithmeticConstants<V>("Collection"))
+}
+
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
-@Suppress("UNCHECKED_CAST")
+fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): Flt64 where T : RealNumber<T> {
+    var sum = constants.zero
+    var count = constants.zero
+    for (element in this) {
+        sum += element
+        count += constants.one
+    }
+    if (count == constants.zero) {
+        throw NoSuchElementException("Cannot compute average of an empty sequence.")
+    }
+    return sum.toFlt64() / count.toFlt64()
+}
+
 inline fun <reified T> Sequence<T>.average(): Flt64 where T : RealNumber<T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
-    for (element in this) {
-        sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
-    }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
-        throw NoSuchElementException("Cannot compute average of an empty sequence.")
-    }
-    return sum.toFlt64() / count.toFlt64()
+    return average(resolveArithmeticConstants<T>("Collection"))
 }
 
 // Throw on empty sequence to avoid division by zero / 空序列抛异常避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
+fun <T> Sequence<T>.average(constants: ArithmeticConstants<T>): T where T : RealNumber<T>, T : Div<T, T> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
+    if (count == constants.zero) {
         throw NoSuchElementException("Cannot compute average of an empty sequence.")
     }
     return sum / count
 }
 
+inline fun <reified T> Sequence<T>.average(): T where T : RealNumber<T>, T : Div<T, T> {
+    return average(resolveArithmeticConstants<T>("Collection"))
+}
+
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
+fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): Flt64? where T : RealNumber<T> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
+    if (count == constants.zero) {
         return null
     }
     return sum.toFlt64() / count.toFlt64()
 }
 
+inline fun <reified T> Sequence<T?>.averageOrNull(): Flt64? where T : RealNumber<T> {
+    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
+}
+
 // Return null for empty sequence to avoid division by zero / 空序列返回null避免除零
-@Suppress("UNCHECKED_CAST")
-inline fun <reified T> Sequence<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
-    var sum = resolveArithmeticConstants<T>("Collection").zero
-    var count = resolveArithmeticConstants<T>("Collection").zero
+fun <T> Sequence<T?>.averageOrNull(constants: ArithmeticConstants<T>): T? where T : RealNumber<T>, T : Div<T, T> {
+    var sum = constants.zero
+    var count = constants.zero
     for (element in this) {
         if (element == null) {
             return null
         }
         sum += element
-        count += resolveArithmeticConstants<T>("Collection").one
+        count += constants.one
     }
-    if (count == resolveArithmeticConstants<T>("Collection").zero) {
+    if (count == constants.zero) {
         return null
     }
     return sum / count
+}
+
+inline fun <reified T> Sequence<T?>.averageOrNull(): T? where T : RealNumber<T>, T : Div<T, T> {
+    return averageOrNull(resolveArithmeticConstants<T>("Collection"))
 }
 
 

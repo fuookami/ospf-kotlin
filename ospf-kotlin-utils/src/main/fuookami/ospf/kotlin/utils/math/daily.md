@@ -52,9 +52,9 @@
 - `T4（反射 fallback）`：已完成。
 
 ## T3 扩展阶段（进行中）
-- `T3.1（聚合工具显式 constants 入口扩展）`：第二批已完成。
+- `T3.1（聚合工具显式 constants 入口扩展）`：第三批已完成。
 - `T3.2（核心调用点从 reified fallback 迁移到显式 constants）`：第一批已完成。
-- `T3.3（全量迁移与专项回归矩阵）`：第一批已完成。
+- `T3.3（全量迁移与专项回归矩阵）`：第二批已完成。
 
 ## 历史进展记录
 
@@ -164,4 +164,19 @@
 
 验证：
 - `mvn -pl ospf-kotlin-utils "-Dtest=CollectionConstantPathTest,GeometryPrimitiveTest,RectangleTest,TriangulationTest,VectorTest,ExParallelTest" test` 通过（61 tests）。
+- `mvn -pl ospf-kotlin-utils test` 通过（435 tests, 0 failures）。
+
+## 本轮进展（T3 扩展第三批已完成）
+
+实现：
+- `functional/Collection.kt`
+  - 新增 `average/averageOrNull` 显式 `ArithmeticConstants` 参数入口（`Iterable/Map/Sequence`，含 `Flt64` 返回与同类型返回两个分支）。
+  - 对应 reified 入口统一改为显式入口 + 受控 resolver 包装，减少函数体内重复 resolver 调用。
+- `functional/CollectionConstantPathTest.kt`
+  - 扩展覆盖到 `average/averageOrNull`：
+    - fallback 关闭时显式 constants 路径可用；
+    - fallback 关闭时 reified 默认路径抛错。
+
+验证：
+- `mvn -pl ospf-kotlin-utils "-Dtest=CollectionConstantPathTest" test` 通过（3 tests）。
 - `mvn -pl ospf-kotlin-utils test` 通过（435 tests, 0 failures）。
