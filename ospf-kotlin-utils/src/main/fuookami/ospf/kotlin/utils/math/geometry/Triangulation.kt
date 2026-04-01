@@ -148,7 +148,7 @@ fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
             point3(
                 it.x,
                 it.y,
-                thisLine.first
+                nextLine.first
             )
         })
         triangles.addAll(triangulate(points))

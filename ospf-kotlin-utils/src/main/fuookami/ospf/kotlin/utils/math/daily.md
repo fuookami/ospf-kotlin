@@ -79,6 +79,27 @@
   - `ValueWrapper`：finite value wrap、Infinity、NegativeInfinity、ord、unwrap、copy。
   - `Bound`：value/interval 存储、eq、partialOrd、加减乘除、copy、unaryMinus。
 
+### U8 geometry 先行修复（isolines 高度映射）
+- 修复 `Triangulation.kt` 中 `triangulate(isolines)` 对 `nextLine` 点错误使用 `thisLine.first` 的问题。
+- 在 `TriangulationTest.kt` 新增回归用例，校验结果同时包含两条 isoline 的高度值。
+- 在 `TriangulationTest.kt` 增补边界场景：重复点输入、近共线点输入，确保三角剖分主链路稳定。
+
+### U2 M1 编译期开闭区间最小落地
+- 新增 `TypedValueRange.kt`：
+  - 引入编译期开闭标记 `ClosedIntervalKind/OpenIntervalKind` 与运行时标记 `RuntimeIntervalKind`。
+  - 引入 `TypedValueRange<T, LB, UB>` 双轨模型，并提供 `toDynamic()/fromDynamic()`。
+  - 补齐 `contains/union/intersect/plus/minus/times/div` typed 路径最小实现（运算结果收敛到 dynamic typed）。
+- 新增 `TypedValueRangeTest.kt`（6 tests）：
+  - 覆盖开闭边界 contains、interval mismatch、防回归的 union/intersect、以及加减乘除语义。
+
+### U7 M1 Symbol MatrixForm 泛型化最小落地
+- 扩展 `MatrixFormGeneric.kt`：
+  - 新增 `GenericLinearMatrixForm<T>` / `GenericQuadraticMatrixForm<T>`。
+  - 新增 `toGenericMatrixForm(...)`（Linear/Quadratic）generic 路径，支持自定义二次项拆分策略。
+  - 现有 `Flt64` 快速路径 `toMatrixVector/toMatrixPair` 保留并复用 generic 实现。
+- 新增 `MatrixFormGenericTest.kt`（3 tests）：
+  - 覆盖 generic 线性矩阵化、generic 二次矩阵化、以及与 `Flt64` 快速路径一致性校验。
+
 ---
 
 ## 当前验证基线
@@ -95,6 +116,8 @@ mvn -pl ospf-kotlin-utils clean test
 | `GenericEndToEndTest.kt` | 10 | generic 路径端到端一致性 |
 | `OperatorCoreTest.kt` | 29 | operator 核心路径 |
 | `ValueRangeComponentTest.kt` | 26 | Bound/Interval/ValueWrapper |
+| `TypedValueRangeTest.kt` | 6 | 编译期开闭 typed range 最小语义 |
+| `MatrixFormGenericTest.kt` | 3 | generic matrix form 最小语义 |
 | `MathValueRangeBenchmark.kt` | - | ValueRange 性能基准 |
 
 ### 新增基准文件
@@ -107,14 +130,35 @@ mvn -pl ospf-kotlin-utils -Pbench jmh:run -Dbenchmark=MathValueRangeBenchmark
 ## 未完成事项
 
 ### U2 ValueRange 类型系统增强：编译期开闭区间语义（高优先级）
-- 现状：Rust 同时支持编译期开闭类型 + 运行时区间；Kotlin 当前以运行时 `Interval` 为主。
+- 现状：M1 已完成 typed range 最小实现，现有运算结果仍主要收敛到 dynamic typed，尚未完成全链路类型化。
 - 待办：
-  - 设计 Kotlin 侧可落地方案（保持现有 API 兼容，优先最小侵入）。
-  - 补对应属性测试与性能回归，防止语义回退。
+  - 继续推进运算结果类型化收敛（在可行场景下保留 compile-time interval 信息）。
+  - 补更多边界语义测试（Infinity/NegativeInfinity、半开半闭组合、contains(range) 复杂场景）。
+  - 增加 compile-time 路径与 runtime 路径的 JMH 对比基准，形成性能基线。
 
 ### U6 Symbol Phase 8 / Generic 收口（剩余待办）
-- **外部仓库回归**：外部仓库恢复后补跑 core 模块级回归，形成 generic bridge 的完整证据链。
+- **模块内回归补齐**：补跑并固化 symbol core 回归矩阵（`evaluate/gradient/matrixForm/compile/roundtrip`），形成 generic bridge 证据链。
 - **parser/serde 增强（低优先级）**：若需支持 Int64/BigDecimal 等类型直接解析，需设计 `NumberParser<T>` 接口，当前推荐使用 Flt64 解析后转换。
+
+### U7 Symbol MatrixForm 泛型化增强（中优先级）
+- 现状：M1 已完成 generic matrix form 数据结构与转换函数；`operation/MatrixForm.kt` 仍以 `Flt64` + `DoubleArray` 为主。
+- 待办：
+  - 设计并落地 generic matrix form 到 `operation` 层的桥接 API（避免业务调用侧重复转换）。
+  - 评估并补齐 generic 路径 round-trip 与 Hessian 一致性测试（generic + Flt64 双路径）。
+
+### U8 geometry 模块健壮性与类型约束增强（中优先级）
+- 现状：`Point/Vector` 以 `List<Flt64>` + 运行时 assert 为主；`triangulate(isolines)` 存在高度映射风险。
+- 待办：
+  - 修复 `triangulate(isolines)` 中 nextLine 点的 z 值映射问题并补回归测试。
+  - 评估并落地 `Dim2/Dim3` 的固定结构表示（在兼容 API 前提下减少运行时检查开销）。
+  - 增补 Delaunay 边界场景测试（重复点、近共线点、浮点边界）。
+
+### U9 基准矩阵扩展（低优先级）
+- 现状：`MathOrdinaryBenchmark` 与 `MathValueRangeBenchmark` 已落地。
+- 待办：
+  - 补 `symbol` 路径基准（compile/evaluate/gradient/matrixForm）。
+  - 补 `geometry` 路径基准（distance/triangulation）。
+  - 输出基准运行模板与结果留档格式，便于持续回归对比。
 
 ---
 
@@ -126,6 +170,9 @@ mvn -pl ospf-kotlin-utils -Pbench jmh:run -Dbenchmark=MathValueRangeBenchmark
 | `generic/LinearGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericLinearMonomial/toGenericLinearPolynomial` |
 | `generic/QuadraticGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericQuadraticMonomial/toGenericQuadraticPolynomial` |
 | `generic/CanonicalGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericCanonicalMonomial/toGenericCanonicalPolynomial` |
+| `geometry/Triangulation.kt` | 逻辑修复 | 修复 isolines 三角化 nextLine 高度映射 |
+| `algebra/value_range/TypedValueRange.kt` | 新增文件 | 编译期开闭 typed range 最小实现 |
+| `symbol/generic/MatrixFormGeneric.kt` | 功能扩展 | generic matrix form 最小实现与 Flt64 路径复用 |
 
 ### 新增测试
 | 文件 | 说明 |
@@ -134,12 +181,16 @@ mvn -pl ospf-kotlin-utils -Pbench jmh:run -Dbenchmark=MathValueRangeBenchmark
 | `benchmark/MathValueRangeBenchmark.kt` | ValueRange 性能基准 |
 | `operator/OperatorCoreTest.kt` | operator 核心路径测试 |
 | `algebra/value_range/ValueRangeComponentTest.kt` | ValueRange 子组件测试 |
+| `geometry/TriangulationTest.kt` | isolines + 边界场景回归测试（新增 3 cases） |
+| `algebra/value_range/TypedValueRangeTest.kt` | typed range 语义回归测试（新增 6 cases） |
+| `symbol/generic/MatrixFormGenericTest.kt` | generic matrix form 回归测试（新增 3 cases） |
 
 ---
 
 ## 下一步执行顺序
 
-1. ~~U6 Symbol Phase 8 / Generic 收口~~（核心已完成，剩余外部仓库回归）
-2. ~~U3 ValueRange 基准落地~~（已完成）
-3. ~~U4 + U5 测试矩阵增强~~（已完成）
-4. **U2 编译期开闭区间方案设计与最小实现**
+1. **U2 ValueRange 编译期开闭区间方案设计与最小实现**
+2. **U7 Symbol MatrixForm 泛型化最小落地**
+3. **U8 geometry 健壮性修复与类型约束增强**
+4. **U6 parser/serde NumberParser<T> 方案设计（先设计后落地）**
+5. **U9 benchmark 矩阵扩展与留档规范**
