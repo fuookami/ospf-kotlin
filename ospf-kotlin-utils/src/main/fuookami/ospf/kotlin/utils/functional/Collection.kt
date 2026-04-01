@@ -1101,7 +1101,7 @@ fun Iterable<Duration>.sum(): Duration {
     return this.fold(Duration.ZERO) { acc, duration -> acc + duration }
 }
 
-inline fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
         sum += element
@@ -1113,7 +1113,7 @@ inline fun <reified T> Iterable<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
     return sum(resolveArithmeticConstants<T>("Collection"))
 }
 
-inline fun <T> Iterable<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Iterable<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
         if (element == null) {
@@ -1181,7 +1181,7 @@ inline fun <T, reified U> Iterable<T>.sumOfOrNull(
     return this.sumOfOrNull(resolveArithmeticConstants<U>("Collection"), extractor, defaultValue)
 }
 
-inline fun <K, V> Map<K, V>.sum(constants: ArithmeticConstants<V>): V where V : Arithmetic<V>, V : Plus<V, V> {
+fun <K, V> Map<K, V>.sum(constants: ArithmeticConstants<V>): V where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constants.zero
     for (element in this) {
         sum += element.value
@@ -1193,7 +1193,7 @@ inline fun <K, reified V> Map<K, V>.sum(): V where V : Arithmetic<V>, V : Plus<V
     return sum(resolveArithmeticConstants<V>("Collection"))
 }
 
-inline fun <K, V> Map<K, V?>.sumOrNull(constants: ArithmeticConstants<V>): V? where V : Arithmetic<V>, V : Plus<V, V> {
+fun <K, V> Map<K, V?>.sumOrNull(constants: ArithmeticConstants<V>): V? where V : Arithmetic<V>, V : Plus<V, V> {
     var sum = constants.zero
     for (element in this) {
         val value = element.value ?: return null
@@ -1259,7 +1259,7 @@ inline fun <K, V, reified T> Map<K, V>.sumOfOrNull(
     return this.sumOfOrNull(resolveArithmeticConstants<T>("Collection"), extractor, defaultValue)
 }
 
-inline fun <T> Sequence<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Sequence<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
         sum += element
@@ -1271,7 +1271,7 @@ inline fun <reified T> Sequence<T>.sum(): T where T : Arithmetic<T>, T : Plus<T,
     return sum(resolveArithmeticConstants<T>("Collection"))
 }
 
-inline fun <T> Sequence<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
+fun <T> Sequence<T?>.sumOrNull(constants: ArithmeticConstants<T>): T? where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero
     for (element in this) {
         if (element == null) {

@@ -172,6 +172,7 @@
 - `functional/Collection.kt`
   - 新增 `average/averageOrNull` 显式 `ArithmeticConstants` 参数入口（`Iterable/Map/Sequence`，含 `Flt64` 返回与同类型返回两个分支）。
   - 对应 reified 入口统一改为显式入口 + 受控 resolver 包装，减少函数体内重复 resolver 调用。
+  - 去除 `sum/sumOrNull` 显式入口中无 lambda 的冗余 `inline` 声明，消除编译期性能提示噪声。
 - `functional/CollectionConstantPathTest.kt`
   - 扩展覆盖到 `average/averageOrNull`：
     - fallback 关闭时显式 constants 路径可用；
