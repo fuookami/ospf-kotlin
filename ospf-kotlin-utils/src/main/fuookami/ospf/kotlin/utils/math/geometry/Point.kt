@@ -62,6 +62,47 @@ data class Point<D : Dimension>(
         return true
     }
 
+    /**
+     * 使用容差判断两个点是否近似相等 / Check if two points are approximately equal using tolerance
+     *
+     * @param rhs 另一个点 / The other point
+     * @param epsilon 容差，默认使用 decimalPrecision / Tolerance, defaults to decimalPrecision
+     * @return 是否近似相等 / Whether approximately equal
+     */
+    infix fun approxEq(rhs: Point<D>): Boolean {
+        if (dim != rhs.dim) {
+            return false
+        }
+        for (i in indices) {
+            if ((this[i] - rhs[i]).abs() gr Flt64.decimalPrecision) {
+                return false
+            }
+        }
+        return true
+    }
+
+    fun approxEq(rhs: Point<D>, epsilon: Flt64): Boolean {
+        if (dim != rhs.dim) {
+            return false
+        }
+        for (i in indices) {
+            if ((this[i] - rhs[i]).abs() gr epsilon) {
+                return false
+            }
+        }
+        return true
+    }
+
+    /**
+     * 计算两点的中点 / Calculate the midpoint between two points
+     *
+     * @param rhs 另一个点 / The other point
+     * @return 中点 / The midpoint
+     */
+    infix fun midpoint(rhs: Point<D>): Point<D> {
+        return Point(indices.map { (this[it] + rhs[it]) / Flt64(2.0) }, dim)
+    }
+
     override fun toString() = position.joinToString(",", "[", "]")
 }
 

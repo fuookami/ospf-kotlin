@@ -35,11 +35,18 @@ Run benchmark command:
 
 ```bash
 mvn -pl ospf-kotlin-utils -DskipTests=true -Pbench test-compile
+
+# PowerShell
+mvn --% -pl ospf-kotlin-utils -Dexec.classpathScope=test -Dexec.mainClass=fuookami.ospf.kotlin.utils.math.benchmark.BenchmarkLauncher -Dexec.args=.*MathOrdinaryBenchmark.* org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+
+# Bash / Zsh
+mvn -pl ospf-kotlin-utils -Dexec.classpathScope=test -Dexec.mainClass=fuookami.ospf.kotlin.utils.math.benchmark.BenchmarkLauncher -Dexec.args='.*MathOrdinaryBenchmark.*' org.codehaus.mojo:exec-maven-plugin:3.5.0:java
 ```
 
-Then run `BenchmarkLauncher.main(...)` from IDE (or custom launcher).
-Optional first argument is include pattern, for example:
+`BenchmarkLauncher` first argument is include pattern.
+Second optional argument is fork count (default `0`, recommended for current Maven exec path).
+For example:
 
 ```text
-.*MathOrdinaryBenchmark.*
+.*MathTypedValueRangeBenchmark.* 0
 ```

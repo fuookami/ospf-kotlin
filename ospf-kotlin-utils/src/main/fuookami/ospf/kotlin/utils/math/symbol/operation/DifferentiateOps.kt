@@ -1,14 +1,24 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import kotlin.math.abs
 
-private fun <T> scaleByInt(
+// ============================================================================
+// Differentiation Operations (Ring-based, no Generic conversion)
+// ============================================================================
+
+private fun <T> scaleByIntWithSign(
     value: T,
     amount: Int,
     zero: T
@@ -27,7 +37,10 @@ private fun <T> scaleByInt(
     }
 }
 
-fun <T> GenericLinearMonomial<T>.derivative(
+/**
+ * Derivative of a linear monomial.
+ */
+fun <T> LinearMonomial<T>.derivativeLinear(
     symbol: Symbol,
     zero: T
 ): T where T : Ring<T> {
@@ -38,42 +51,51 @@ fun <T> GenericLinearMonomial<T>.derivative(
     }
 }
 
-fun <T> GenericLinearPolynomial<T>.derivative(
+/**
+ * Derivative of a linear polynomial.
+ */
+fun <T> LinearPolynomial<T>.derivativeLinear(
     symbol: Symbol,
     zero: T
 ): T where T : Ring<T> {
     var derivative = zero
     for (monomial in monomials) {
-        derivative += monomial.derivative(symbol, zero)
+        derivative += monomial.derivativeLinear(symbol, zero)
     }
     return derivative
 }
 
-fun <T> GenericLinearPolynomial<T>.gradient(
+/**
+ * Gradient of a linear polynomial.
+ */
+fun <T> LinearPolynomial<T>.gradientLinear(
     order: List<Symbol>,
     zero: T
 ): List<T> where T : Ring<T> {
-    return order.map { derivative(it, zero) }
+    return order.map { derivativeLinear(it, zero) }
 }
 
-fun <T> GenericQuadraticMonomial<T>.derivative(
+/**
+ * Derivative of a quadratic monomial.
+ */
+fun <T> QuadraticMonomial<T>.derivativeQuadratic(
     symbol: Symbol,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero }
-): GenericLinearPolynomial<T> where T : Ring<T> {
+): LinearPolynomial<T> where T : Ring<T> {
     if (symbol2 == null) {
         return if (symbol1 == symbol) {
-            GenericLinearPolynomial(constant = coefficient)
+            LinearPolynomial(constant = coefficient)
         } else {
-            GenericLinearPolynomial(constant = zero)
+            LinearPolynomial(constant = zero)
         }
     }
 
-    val derivativeMonomials = ArrayList<GenericLinearMonomial<T>>()
+    val derivativeMonomials = ArrayList<LinearMonomial<T>>()
     if (symbol1 == symbol) {
         derivativeMonomials.add(
-            GenericLinearMonomial(
+            LinearMonomial(
                 coefficient = coefficient,
                 symbol = symbol2
             )
@@ -81,33 +103,36 @@ fun <T> GenericQuadraticMonomial<T>.derivative(
     }
     if (symbol2 == symbol) {
         derivativeMonomials.add(
-            GenericLinearMonomial(
+            LinearMonomial(
                 coefficient = coefficient,
                 symbol = symbol1
             )
         )
     }
-    val derivative = GenericLinearPolynomial(
+    val derivative = LinearPolynomial(
         monomials = derivativeMonomials,
         constant = zero
     )
     return if (combineTerms) {
-        derivative.combineTerms(zero, isZero)
+        derivative.combineLinearTerms(zero, isZero)
     } else {
         derivative
     }
 }
 
-fun <T> GenericQuadraticPolynomial<T>.derivative(
+/**
+ * Derivative of a quadratic polynomial.
+ */
+fun <T> QuadraticPolynomial<T>.derivativeQuadratic(
     symbol: Symbol,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero }
-): GenericLinearPolynomial<T> where T : Ring<T> {
-    val derivativeMonomials = ArrayList<GenericLinearMonomial<T>>()
+): LinearPolynomial<T> where T : Ring<T> {
+    val derivativeMonomials = ArrayList<LinearMonomial<T>>()
     var derivativeConstant = zero
     for (monomial in monomials) {
-        val monomialDerivative = monomial.derivative(
+        val monomialDerivative = monomial.derivativeQuadratic(
             symbol = symbol,
             zero = zero,
             combineTerms = false,
@@ -116,49 +141,55 @@ fun <T> GenericQuadraticPolynomial<T>.derivative(
         derivativeMonomials.addAll(monomialDerivative.monomials)
         derivativeConstant += monomialDerivative.constant
     }
-    val derivative = GenericLinearPolynomial(
+    val derivative = LinearPolynomial(
         monomials = derivativeMonomials,
         constant = derivativeConstant
     )
     return if (combineTerms) {
-        derivative.combineTerms(zero, isZero)
+        derivative.combineLinearTerms(zero, isZero)
     } else {
         derivative
     }
 }
 
-fun <T> GenericQuadraticPolynomial<T>.gradient(
+/**
+ * Gradient of a quadratic polynomial.
+ */
+fun <T> QuadraticPolynomial<T>.gradientQuadratic(
     order: List<Symbol>,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero }
-): List<GenericLinearPolynomial<T>> where T : Ring<T> {
-    return order.map { derivative(it, zero, combineTerms, isZero) }
+): List<LinearPolynomial<T>> where T : Ring<T> {
+    return order.map { derivativeQuadratic(it, zero, combineTerms, isZero) }
 }
 
-fun <T> GenericCanonicalMonomial<T>.derivative(
+/**
+ * Derivative of a canonical monomial.
+ */
+fun <T> CanonicalMonomial<T>.derivativeCanonical(
     symbol: Symbol,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): GenericCanonicalPolynomial<T> where T : Ring<T> {
-    val exponent = powers[symbol] ?: 0
+): CanonicalPolynomial<T> where T : Ring<T> {
+    val exponent = powers[symbol]?.toInt() ?: 0
     if (exponent == 0) {
-        return GenericCanonicalPolynomial(constant = zero)
+        return CanonicalPolynomial(constant = zero)
     }
 
     val remainedPowers = LinkedHashMap(powers)
     if (exponent == 1) {
         remainedPowers.remove(symbol)
     } else {
-        remainedPowers[symbol] = exponent - 1
+        remainedPowers[symbol] = Int32(exponent - 1)
     }
 
-    val scaledCoefficient = scaleByInt(coefficient, exponent, zero)
-    val derivative = GenericCanonicalPolynomial(
+    val scaledCoefficient = scaleByIntWithSign(coefficient, exponent, zero)
+    val derivative = CanonicalPolynomial(
         monomials = listOf(
-            GenericCanonicalMonomial(
+            CanonicalMonomial(
                 coefficient = scaledCoefficient,
                 powers = remainedPowers
             )
@@ -166,23 +197,26 @@ fun <T> GenericCanonicalMonomial<T>.derivative(
         constant = zero
     )
     return if (combineTerms) {
-        derivative.combineTerms(zero, isZero, symbolComparator)
+        derivative.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
         derivative
     }
 }
 
-fun <T> GenericCanonicalPolynomial<T>.derivative(
+/**
+ * Derivative of a canonical polynomial.
+ */
+fun <T> CanonicalPolynomial<T>.derivativeCanonical(
     symbol: Symbol,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): GenericCanonicalPolynomial<T> where T : Ring<T> {
-    val derivativeMonomials = ArrayList<GenericCanonicalMonomial<T>>()
+): CanonicalPolynomial<T> where T : Ring<T> {
+    val derivativeMonomials = ArrayList<CanonicalMonomial<T>>()
     for (monomial in monomials) {
         derivativeMonomials.addAll(
-            monomial.derivative(
+            monomial.derivativeCanonical(
                 symbol = symbol,
                 zero = zero,
                 combineTerms = false,
@@ -191,26 +225,29 @@ fun <T> GenericCanonicalPolynomial<T>.derivative(
             ).monomials
         )
     }
-    val derivative = GenericCanonicalPolynomial(
+    val derivative = CanonicalPolynomial(
         monomials = derivativeMonomials,
         constant = zero
     )
     return if (combineTerms) {
-        derivative.combineTerms(zero, isZero, symbolComparator)
+        derivative.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
         derivative
     }
 }
 
-fun <T> GenericCanonicalPolynomial<T>.gradient(
+/**
+ * Gradient of a canonical polynomial.
+ */
+fun <T> CanonicalPolynomial<T>.gradientCanonical(
     order: List<Symbol>,
     zero: T,
     combineTerms: Boolean = true,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): List<GenericCanonicalPolynomial<T>> where T : Ring<T> {
+): List<CanonicalPolynomial<T>> where T : Ring<T> {
     return order.map {
-        derivative(
+        derivativeCanonical(
             symbol = it,
             zero = zero,
             combineTerms = combineTerms,
@@ -219,4 +256,3 @@ fun <T> GenericCanonicalPolynomial<T>.gradient(
         )
     }
 }
-

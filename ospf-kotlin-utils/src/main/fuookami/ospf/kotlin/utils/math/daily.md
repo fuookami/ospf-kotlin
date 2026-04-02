@@ -1,196 +1,264 @@
-# ospf-kotlin-utils/math 对标 ospf-rust-math 改进纪要
+# ospf-kotlin-utils/math 对标 ospf-rust-math 进度纪要（对照版）
 
-最后更新：2026-04-01
-范围：`ospf-kotlin-utils/src/main/fuookami/ospf/kotlin/utils/math`
-
----
-
-## 已完成事项（汇总）
-
-### P0 稳定基线
-- 修复 Kotlin 2.2 相关编译阻塞与签名兼容问题。
-- 修复 `Compile.kt` canonical compileEval 对 `one` 的透传。
-- 修复 `Quantity.kt` 缺失导入导致的解析问题。
-- 修复 `Vector.minus` 行为并补回归测试。
-
-### P1 API 补齐（数论 + 组合）
-- 数论：`defactorize`、`divisors`、`divisorCount`、`eulerTotient`、`gcdMod`、`extendedGcd`、`lcmByFactorization`。
-- 组合：`combineCount/combine/combineSequence`、`permuteCount/permute/permuteSequence`、`crossCount/crossSequence/cross2/cross3`。
-
-### P2 抽象升级（代数 + 几何）
-- 新增抽象：`TotallyOrdered`、`VectorSpace`、`NormedSpace`、`InnerProductSpace`。
-- `Vector` 对齐：`scale`、`dot`、`angle`、`projectionOn`、2D/3D `cross`、`Flt64 * Vector`。
-- 新增 `Quadrilateral` 实体（边/对角线/周长/重心/2D 面积/三角剖分面积/凸性）与专项测试。
-
-### P3 Symbol 体系增强
-- 新增：`SymbolId`、`OwnedSymbolLike`、`OwnedSymbol`、`Symbol.stableId()`、`Symbol.owned(...)`。
-- 兼容保留：`IdentifiedSymbol`，并统一 `identity()/defaultSymbolComparator` 到稳定 id 语义。
-- 完成 symbol round-trip 与高阶项回归补测。
-
-### P4 工程化与补测
-- 文档：中英 README 互链已完成。
-- 基准：JMH 入口与 `bench` profile 已落地。
-- 补测：`chaotic_operator`、`fractal_operator`、`geometry` 主链路已补齐。
-- 修复：`Distance.Minkowski` 对负差值奇数幂错误。
-
-### T3/T4 迁移与收敛
-- T1（algebra 属性与一致性补测）：已完成。
-- T2（symbol round-trip 与高阶项回归补测）：已完成。
-- T3（伴生对象常量接口最小落地）：已完成。
-- T4（受控 reflection fallback）：已完成。
-- T3 扩展（显式 constants 路径）：已完成。
-
-已完成的代表性收敛：
-- `Collection/Fold/Precision/Ordinary/ValueRange` 显式 constants 入口与调用点迁移。
-- fallback 关闭语义下的专项回归矩阵（显式路径可用、reified 默认路径抛错）。
-- `Log/Pow/Precision` resolver 调用语义收敛（避免不必要触发）。
-- `ValueRange.contains`、`NegativeInfinity.copy/clone` 等语义修复。
+最后更新：2026-04-02（M5 完成）
+对照基线：`E:\workspace\ospf-rust\ospf-rust-math`（含仓库根 `daily.md`）
 
 ---
 
-## 2026-04-01 新增完成事项
+## 已完成事项（与 Rust 已对齐或等效）
 
-### U6 Symbol Phase 8 / Generic 收口
-- **修复 JVM 签名冲突**：删除冗余的 Flt64-specific `toGeneric*` 扩展函数，保留泛型版本（`LinearGeneric.kt`、`QuadraticGeneric.kt`、`CanonicalGeneric.kt`）。
-- **验证泛型化架构**：`operation/Compile.kt`、`Differentiate.kt`、`Evaluate.kt`、`Latex.kt`、`MatrixForm.kt` 均已通过泛型委托实现 Flt64 支持。
-- **新增端到端回归测试**：`GenericEndToEndTest.kt`（10 tests）覆盖 `evaluate -> gradient -> matrixForm -> compile` 一致性校验（Linear/Quadratic/Canonical 三种路径）。
-- **Generic MatrixForm 评估**：当前 `MatrixFormGeneric.kt` 仅支持 Flt64，因数值计算特性保持 Flt64-focused 为合理设计。
-- **parser/serde 策略评估**：保持 Flt64-focused，通过 `toGeneric*Polynomial()` 转换函数支持 generic 使用场景，为最小落地路径。
+### 1) 模块骨架对齐
+- Rust 的 `algebra/combinatorics/geometry/ordinary/symbol` 在 Kotlin 侧均有对应实现。
+- Rust `operator` 能力在 Kotlin 侧以 `utils/operator` 独立模块提供（`Abs/Exp/Reciprocal/Tolerance` 等）。
 
-### U3 ValueRange 基准补齐
-- 新增 `MathValueRangeBenchmark.kt`：
-  - 构造基准：FiniteClosedRange、FiniteOpenRange、HalfInfiniteLower、HalfInfiniteUpper、InfiniteRange。
-  - Contains 基准：单值、边界值、范围、批量操作（1000 elements）。
-  - Copy 基准：各类型 ValueRange 的复制性能。
-- 与已有 `bench` profile 对接。
+### 2) algebra + value_range 对齐
+- `TotallyOrdered/VectorSpace/NormedSpace/InnerProductSpace`、`Bounded/Infinite/Fixed/Epsilon/Scalar` 等概念已具备。
+- `ValueRange + TypedValueRange` 支持 compile-time（open/closed）与 runtime interval 双轨模型。
+- `plus/minus/times/div` typed 路径与跨 kind typed 路径可用；Infinity、半开半闭、空区间等边界已有回归。
 
-### U4 operator 包专项测试粒度提升
-- 新增 `operator/OperatorCoreTest.kt`（29 tests）：
-  - `Abs`：Flt64/Int64 abs 函数。
-  - `Ord`：Order 类型、negation、ifEqual、orderOf、orderBetween、Flt64 ord。
-  - `Tolerance`：AbsoluteTolerance 包装。
-  - `Reciprocal`：Flt64/Int64 reciprocal。
-  - `Pow`：pow/sqr/cub 函数、边界情况（0^0、负指数、大指数）。
-  - `Log`：ln/lg2/lg/logBase 函数。
+### 3) ordinary + combinatorics 对齐
+- 数论链路 `factorize/defactorize/divisors/divisorCount/eulerTotient/gcd/lcm/isPrime/getPrimes` 已具备。
+- 组合链路 `combinations/permutations/cross` 已具备。
 
-### U5 ValueRange 子组件测试拆分
-- 新增 `ValueRangeComponentTest.kt`（26 tests）：
-  - `Interval`：signs、union、intersect、outer、lowerBoundOperator、upperBoundOperator。
-  - `ValueWrapper`：finite value wrap、Infinity、NegativeInfinity、ord、unwrap、copy。
-  - `Bound`：value/interval 存储、eq、partialOrd、加减乘除、copy、unaryMinus。
+### 4) symbol 主链路对齐
+- `SymbolId/OwnedSymbol`、`monomial/polynomial/inequality`、`convert/evaluate/differentiate/compile/latex/matrix form` 已具备。
+- parser 已具备，并新增 `NumberParser<T>`（至少 `Int64/Flt64` 路径）。
+- `SymbolExpr` JSON 读写链路可用（基于 `Expr`）。
 
-### U8 geometry 先行修复（isolines 高度映射）
-- 修复 `Triangulation.kt` 中 `triangulate(isolines)` 对 `nextLine` 点错误使用 `thisLine.first` 的问题。
-- 在 `TriangulationTest.kt` 新增回归用例，校验结果同时包含两条 isoline 的高度值。
-- 在 `TriangulationTest.kt` 增补边界场景：重复点输入、近共线点输入，确保三角剖分主链路稳定。
+### 5) 几何核心链路可用
+- `Point/Vector/Edge/Triangle/Quadrilateral/Circle/Triangulation` 与 Delaunay 主流程可运行。
+- 2D/3D 三角剖分、isolines、重复投影点拒绝等关键边界已补强。
 
-### U2 M1 编译期开闭区间最小落地
-- 新增 `TypedValueRange.kt`：
-  - 引入编译期开闭标记 `ClosedIntervalKind/OpenIntervalKind` 与运行时标记 `RuntimeIntervalKind`。
-  - 引入 `TypedValueRange<T, LB, UB>` 双轨模型，并提供 `toDynamic()/fromDynamic()`。
-  - 补齐 `contains/union/intersect/plus/minus/times/div` typed 路径最小实现（运算结果收敛到 dynamic typed）。
-- 新增 `TypedValueRangeTest.kt`（6 tests）：
-  - 覆盖开闭边界 contains、interval mismatch、防回归的 union/intersect、以及加减乘除语义。
+### 6) 验证与基准
+- 关键回归用例已存在（`ValueRange/MatrixForm/Triangulation/NumberParser`）。
+- JMH 基准已扩展到 `symbol/geometry/typed value range`（覆盖面高于 Rust 当前基准入口）。
 
-### U7 M1 Symbol MatrixForm 泛型化最小落地
-- 扩展 `MatrixFormGeneric.kt`：
-  - 新增 `GenericLinearMatrixForm<T>` / `GenericQuadraticMatrixForm<T>`。
-  - 新增 `toGenericMatrixForm(...)`（Linear/Quadratic）generic 路径，支持自定义二次项拆分策略。
-  - 现有 `Flt64` 快速路径 `toMatrixVector/toMatrixPair` 保留并复用 generic 实现。
-- 新增 `MatrixFormGenericTest.kt`（3 tests）：
-  - 覆盖 generic 线性矩阵化、generic 二次矩阵化、以及与 `Flt64` 快速路径一致性校验。
+### 7) 几何 API 深度补齐（M1-M2 完成）
+
+#### G-EDGE: Edge2 能力补齐 ✓
+- `midpoint()` / `pointAt(t)` / `lengthSquared` / `direction` / `unitDirection`
+- `containsPoint(point, epsilon)` 点包含判断
+- 2D 特有：`intersects` / `intersectionPoint` / `closestPoint` / `distanceToPoint`
+- 容差比较：`approxEq` / `approxEqUndirected`
+- 测试：`EdgeTest.kt` (29 tests)
+
+#### G-TRI: Triangle 能力补齐 ✓
+- `perimeter` / `centroid` / `isDegenerate` / `edges` / `vertices`
+- 2D 特有：`area2D()` / `containsPoint` / `circumcircle()` / `circumcenter()` / `incenter()`
+- 3D 特有：`area3D()` / `normal()`
+- 测试：`TriangleTest.kt` (25 tests)
+
+#### G-CIRCLE: Circle2/Sphere3 能力补齐 ✓
+- Circle2: `area` / `circumference` / `diameter`
+- Circle2: `containsPoint` / `containsPointStrict` / `intersects` / `containsCircle` / `intersectionPoints`
+- Sphere3: `volume` / `surfaceArea` / `containsPoint`
+- 测试：`CircleTest.kt` (24 tests)
+
+#### G-DELAUNAY: Delaunay 结果对象化 ✓
+- `DelaunayTriangulation2` 数据类：`triangles` / `points` / `edges`
+- `delaunayTriangulate(points)` 新 API 返回结构化结果
+- `isDelaunay(triangles, points)` 校验函数
+- 旧 API `triangulate(points)` 保持兼容
+- 测试：`TriangulationTest.kt` (16 tests)
+
+### 8) Symbol 序列化扩展（M3 完成）
+
+#### S-SERDE: Polynomial/Inequality 序列化 ✓
+- `LinearPolynomial.toJsonString()` / `linearPolynomialFromJson()`
+- `QuadraticPolynomial.toJsonString()` / `quadraticPolynomialFromJson()`
+- `CanonicalPolynomial.toJsonString()` / `canonicalPolynomialFromJson()`
+- `LinearInequality.toJsonString()` / `linearInequalityFromJson()`
+- `QuadraticInequality.toJsonString()` / `quadraticInequalityFromJson()`
+- `CanonicalInequality.toJsonString()` / `canonicalInequalityFromJson()`
+- 边界场景：constant-only、non-polynomial 返回 null、function call 报错
+- 测试：`SerializationTest.kt` (17 tests)
+
+### 9) Symbol DSL 快捷入口（M3 完成）
+
+#### S-DSL: DSL 到 typed 模型快捷链路 ✓
+- `linearPolynomial(symbolOf) { ... }` 快捷入口
+- `quadraticPolynomial(symbolOf, symbolComparator?) { ... }` 快捷入口
+- `canonicalPolynomial(symbolOf) { ... }` 快捷入口
+- `linearInequality(symbolOf) { ... }` 快捷入口
+- `quadraticInequality(symbolOf, symbolComparator?) { ... }` 快捷入口
+- `canonicalInequality(symbolOf) { ... }` 快捷入口
+- 所有比较操作符：`lt` / `le` / `eq` / `ne` / `ge` / `gt`
+- 错误场景：符号缺失、非法指数、函数调用转多项式
+- 测试：`DslTest.kt` (17 tests)
+
+### 10) 性能工程化（M4 完成）
+
+#### S-PERF: 性能工程化 ✓
+- 热点路径锁定：`combineTerms` 为主要热点（30 ops/ms vs 25K ops/ms for plus）
+- 基准补充：`polynomialPlus/Minus/TimesScalar/DivScalar`、`combineTermsStress`
+- 基线报告：`BENCHMARK_REPORT_2026-04-02.md`
+- 阈值告警：Warning 5%, Critical 10%
+
+### 11) 文档补齐（M4 完成）
+
+#### DOC-MATH: 子模块 README ✓
+- `geometry/README.md` + `README_ch.md`
+- `algebra/value_range/README.md` + `README_ch.md`
+- `symbol/README.md` + `README_ch.md`
+
+### 12) Generic 层合并（M5 完成）
+
+#### 架构重构：消除 Typed ↔ Generic 双层结构 ✓
+- 约束修改：`NumberField<T>` → `Ring<T>`，保持 `Int32`
+- 新增 Ring-based 操作文件（6个）：
+  - `LinearQuadraticOps.kt`：Linear/Quadratic 操作
+  - `CanonicalOps.kt`：Canonical 操作
+  - `CompileOps.kt`：编译求值
+  - `DifferentiateOps.kt`：求导
+  - `LatexOps.kt`：LaTeX 输出
+  - `ConvertOps.kt`：类型转换
+- 删除 Generic 层：18 个文件（11 源文件 + 7 测试文件）
+- 更新调用点：8 个 operation 文件 + 1 个 serde 文件
+- 收益：消除转换开销、减少 2000+ 行代码、简化维护
 
 ---
 
-## 当前验证基线
+## 待办事项
 
-### 全量测试
+### P1 性能优化（中优先级）
+
+#### S-PERF-NEXT: 进一步性能优化
+- 热点路径深度优化（`combineTerms` 仍有提升空间）
+- 内存分配优化（减少中间对象创建）
+- 并行化支持（大规模多项式运算）
+- 基准对比：建立优化前后对照基线
+
+### P2 功能扩展（低优先级）
+
+#### S-FUNC: 高级功能
+- 多项式因式分解
+- 符号积分
+- 更多数值类型支持（复数、有理数）
+- 稀疏多项式优化
+
+---
+
+## 里程碑总结
+
+| 里程碑 | 状态 | 主要内容 | 测试数 |
+|--------|------|----------|--------|
+| M1 | ✓ | 几何核心：Edge/Triangle/Circle | 78 |
+| M2 | ✓ | 结构化结果：Delaunay | 16 |
+| M3 | ✓ | 符号稳定化：Serde + DSL | 34 |
+| M4 | ✓ | 性能与文档：Benchmark + README | - |
+| M5 | ✓ | 架构重构：Generic 合并到 Typed | - |
+
+**所有里程碑（M1-M5）已完成。**
+
+---
+
+## 单元测试清单
+
+### 几何模块 ✓
+- `EdgeTest.kt`：29 tests
+- `TriangleTest.kt`：25 tests
+- `CircleTest.kt`：24 tests
+- `TriangulationTest.kt`：16 tests
+
+### Symbol 模块 ✓
+- `SerializationTest.kt`：17 tests
+- `DslTest.kt`：17 tests
+- `EvaluateTest.kt`：多项式求值
+- `CombineTermsTest.kt`：合并同类项
+- `CompileTest.kt`：编译求值
+- `DifferentiateTest.kt`：求导
+- `LatexTest.kt`：LaTeX 输出
+- `ConvertTest.kt`：类型转换
+- `MatrixFormTest.kt`：矩阵形式
+
+### 测试命令
 ```bash
-mvn -pl ospf-kotlin-utils clean test
-```
-通过。
+# 几何模块
+mvn -pl ospf-kotlin-utils -Dtest=EdgeTest,TriangleTest,CircleTest,TriangulationTest test
 
-### 新增测试文件
-| 文件 | 测试数 | 覆盖范围 |
-|------|--------|---------|
-| `GenericEndToEndTest.kt` | 10 | generic 路径端到端一致性 |
-| `OperatorCoreTest.kt` | 29 | operator 核心路径 |
-| `ValueRangeComponentTest.kt` | 26 | Bound/Interval/ValueWrapper |
-| `TypedValueRangeTest.kt` | 6 | 编译期开闭 typed range 最小语义 |
-| `MatrixFormGenericTest.kt` | 3 | generic matrix form 最小语义 |
-| `MathValueRangeBenchmark.kt` | - | ValueRange 性能基准 |
-
-### 新增基准文件
-```bash
-mvn -pl ospf-kotlin-utils -Pbench jmh:run -Dbenchmark=MathValueRangeBenchmark
+# Symbol 模块
+mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,EvaluateTest,CombineTermsTest test
 ```
 
 ---
 
-## 未完成事项
+## 架构变更记录
 
-### U2 ValueRange 类型系统增强：编译期开闭区间语义（高优先级）
-- 现状：M1 已完成 typed range 最小实现，现有运算结果仍主要收敛到 dynamic typed，尚未完成全链路类型化。
-- 待办：
-  - 继续推进运算结果类型化收敛（在可行场景下保留 compile-time interval 信息）。
-  - 补更多边界语义测试（Infinity/NegativeInfinity、半开半闭组合、contains(range) 复杂场景）。
-  - 增加 compile-time 路径与 runtime 路径的 JMH 对比基准，形成性能基线。
+### M5 重构：Generic → Typed 统一
 
-### U6 Symbol Phase 8 / Generic 收口（剩余待办）
-- **模块内回归补齐**：补跑并固化 symbol core 回归矩阵（`evaluate/gradient/matrixForm/compile/roundtrip`），形成 generic bridge 证据链。
-- **parser/serde 增强（低优先级）**：若需支持 Int64/BigDecimal 等类型直接解析，需设计 `NumberParser<T>` 接口，当前推荐使用 Flt64 解析后转换。
+**变更前**：
+```
+Typed 类型 (LinearMonomial<T>, ...)
+    ↓ toGenericXxx()
+Generic 类型 (GenericLinearMonomial<T>, ...)
+    ↓ 操作函数
+Generic 结果
+    ↓ toXxxPolynomial()
+Typed 结果
+```
 
-### U7 Symbol MatrixForm 泛型化增强（中优先级）
-- 现状：M1 已完成 generic matrix form 数据结构与转换函数；`operation/MatrixForm.kt` 仍以 `Flt64` + `DoubleArray` 为主。
-- 待办：
-  - 设计并落地 generic matrix form 到 `operation` 层的桥接 API（避免业务调用侧重复转换）。
-  - 评估并补齐 generic 路径 round-trip 与 Hessian 一致性测试（generic + Flt64 双路径）。
+**变更后**：
+```
+Typed 类型 (LinearMonomial<T>, ...)
+    ↓ 直接操作函数
+Typed 结果
+```
 
-### U8 geometry 模块健壮性与类型约束增强（中优先级）
-- 现状：`Point/Vector` 以 `List<Flt64>` + 运行时 assert 为主；`triangulate(isolines)` 存在高度映射风险。
-- 待办：
-  - 修复 `triangulate(isolines)` 中 nextLine 点的 z 值映射问题并补回归测试。
-  - 评估并落地 `Dim2/Dim3` 的固定结构表示（在兼容 API 前提下减少运行时检查开销）。
-  - 增补 Delaunay 边界场景测试（重复点、近共线点、浮点边界）。
-
-### U9 基准矩阵扩展（低优先级）
-- 现状：`MathOrdinaryBenchmark` 与 `MathValueRangeBenchmark` 已落地。
-- 待办：
-  - 补 `symbol` 路径基准（compile/evaluate/gradient/matrixForm）。
-  - 补 `geometry` 路径基准（distance/triangulation）。
-  - 输出基准运行模板与结果留档格式，便于持续回归对比。
-
----
-
-## 文件变更清单（2026-04-01）
-
-### 源码修改
-| 文件 | 变更类型 | 说明 |
-|------|---------|------|
-| `generic/LinearGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericLinearMonomial/toGenericLinearPolynomial` |
-| `generic/QuadraticGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericQuadraticMonomial/toGenericQuadraticPolynomial` |
-| `generic/CanonicalGeneric.kt` | 删除冗余代码 | 删除 Flt64-specific `toGenericCanonicalMonomial/toGenericCanonicalPolynomial` |
-| `geometry/Triangulation.kt` | 逻辑修复 | 修复 isolines 三角化 nextLine 高度映射 |
-| `algebra/value_range/TypedValueRange.kt` | 新增文件 | 编译期开闭 typed range 最小实现 |
-| `symbol/generic/MatrixFormGeneric.kt` | 功能扩展 | generic matrix form 最小实现与 Flt64 路径复用 |
-
-### 新增测试
-| 文件 | 说明 |
+**新增文件**：
+| 文件 | 功能 |
 |------|------|
-| `generic/GenericEndToEndTest.kt` | Symbol generic 端到端回归测试 |
-| `benchmark/MathValueRangeBenchmark.kt` | ValueRange 性能基准 |
-| `operator/OperatorCoreTest.kt` | operator 核心路径测试 |
-| `algebra/value_range/ValueRangeComponentTest.kt` | ValueRange 子组件测试 |
-| `geometry/TriangulationTest.kt` | isolines + 边界场景回归测试（新增 3 cases） |
-| `algebra/value_range/TypedValueRangeTest.kt` | typed range 语义回归测试（新增 6 cases） |
-| `symbol/generic/MatrixFormGenericTest.kt` | generic matrix form 回归测试（新增 3 cases） |
+| `LinearQuadraticOps.kt` | Ring-based Linear/Quadratic 操作 |
+| `CanonicalOps.kt` | Ring-based Canonical 操作 |
+| `CompileOps.kt` | 编译求值（compileEval, compileGradient） |
+| `DifferentiateOps.kt` | 求导（derivative, gradient） |
+| `LatexOps.kt` | LaTeX 输出（toLatexString） |
+| `ConvertOps.kt` | 类型转换（toQuadraticMonomial 等） |
+| `Sum.kt` | 求和扩展函数（sum, sumInt32） |
+
+**删除文件**：
+- `symbol/generic/*.kt`（11 个源文件）
+- `test/.../generic/*.kt`（7 个测试文件）
 
 ---
 
-## 下一步执行顺序
+## 新增 API 使用示例
 
-1. **U2 ValueRange 编译期开闭区间方案设计与最小实现**
-2. **U7 Symbol MatrixForm 泛型化最小落地**
-3. **U8 geometry 健壮性修复与类型约束增强**
-4. **U6 parser/serde NumberParser<T> 方案设计（先设计后落地）**
-5. **U9 benchmark 矩阵扩展与留档规范**
+```kotlin
+// Ring-based 操作（直接使用，无需转换）
+val poly = LinearPolynomial<Flt64>(
+    monomials = listOf(
+        LinearMonomial(Flt64(2.0), x),
+        LinearMonomial(Flt64(3.0), y)
+    ),
+    constant = Flt64(1.0)
+)
+
+// 合并同类项
+val combined = poly.combineLinearTerms(Flt64.zero)
+
+// 求值
+val value = poly.evaluateLinear(mapOf(x to Flt64(1.0), y to Flt64(2.0)))
+
+// 编译求值（高性能）
+val compiled = poly.compileEvalLinear(listOf(x, y), zero = Flt64.zero)
+val result = compiled(listOf(Flt64(1.0), Flt64(2.0)))
+
+// 求导
+val deriv = poly.derivativeLinear(x, zero = Flt64.zero)
+val grad = poly.gradientLinear(listOf(x, y), zero = Flt64.zero)
+
+// LaTeX 输出
+val latex = poly.toLatexString(
+    LatexNumberOps(
+        isZero = { it == Flt64.zero },
+        isOne = { it == Flt64.one },
+        isNegative = { it.toDouble() < 0.0 },
+        abs = { it.abs() },
+        format = { it.toString() }
+    )
+)
+
+// 类型转换
+val quadratic = poly.toQuadraticPolynomial()
+val canonical = poly.toCanonicalPolynomial()
+```

@@ -10,16 +10,20 @@ object BenchmarkLauncher {
         val includePattern = if (args.isNotEmpty()) {
             args[0]
         } else {
-            ".*MathOrdinaryBenchmark.*"
+            ".*Math.*Benchmark.*"
+        }
+        val forks = if (args.size >= 2) {
+            args[1].toIntOrNull() ?: 0
+        } else {
+            0
         }
         val options = OptionsBuilder()
             .include(includePattern)
             .warmupIterations(2)
             .measurementIterations(3)
-            .forks(1)
+            .forks(forks)
             .timeUnit(TimeUnit.MILLISECONDS)
             .build()
         Runner(options).run()
     }
 }
-

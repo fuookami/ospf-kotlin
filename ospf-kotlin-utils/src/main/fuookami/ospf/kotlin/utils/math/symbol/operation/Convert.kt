@@ -1,38 +1,14 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
+package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toCanonicalPolynomial as toCanonicalPolynomialFromGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.subtract as subtractGenericCanonicalPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.subtract as subtractGenericLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomialOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomialOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearMonomialOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomialOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial as toGenericCanonicalFromLinearGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial as toGenericCanonicalFromQuadraticGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomial as toGenericQuadraticMonomialFromLinearGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomial as toGenericQuadraticPolynomialFromLinearGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toLinearPolynomial as toLinearPolynomialFromGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toLinearMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toQuadraticPolynomial as toQuadraticPolynomialFromGeneric
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toQuadraticMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
@@ -44,48 +20,38 @@ import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
 
+// ============================================================================
+// Flt64-specific convenience wrappers for functions requiring zero/isZero parameters
+// ============================================================================
+
 private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearPolynomial<Flt64> {
-    return toGenericLinearPolynomial()
-        .subtractGenericLinearPolynomial(
-            rhs = rhs.toGenericLinearPolynomial(),
-            zero = Flt64.zero,
-            isZero = { it == Flt64.zero }
-        )
-        .toLinearPolynomialFromGeneric()
+    return subtractLinear(
+        rhs = rhs,
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
+    )
 }
 
-fun LinearMonomial<Flt64>.toQuadraticMonomial(): QuadraticMonomial<Flt64> {
-    return toGenericLinearMonomial()
-        .toGenericQuadraticMonomialFromLinearGeneric()
-        .toQuadraticMonomial()
+fun CanonicalPolynomial<Flt64>.toLinearPolynomialOrNull(): LinearPolynomial<Flt64>? {
+    return toLinearPolynomialOrNull(
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
+    )
 }
 
-fun LinearMonomial<Flt64>.toCanonicalMonomial(): CanonicalMonomial<Flt64> {
-    return toGenericLinearMonomial()
-        .toGenericCanonicalFromLinearGeneric()
-        .toCanonicalMonomial()
-}
-
-fun QuadraticMonomial<Flt64>.toLinearMonomialOrNull(): LinearMonomial<Flt64>? {
-    return toGenericQuadraticMonomial()
-        .toGenericLinearMonomialOrNull()
-        ?.toLinearMonomial()
-}
-
-fun QuadraticMonomial<Flt64>.toCanonicalMonomial(
+fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalMonomial<Flt64> {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    return toGenericQuadraticMonomial()
-        .toGenericCanonicalFromQuadraticGeneric(comparator)
-        .toCanonicalMonomial()
+): QuadraticPolynomial<Flt64>? {
+    return toQuadraticPolynomialOrNull(
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero },
+        symbolComparator = symbolComparator
+    )
 }
 
-fun CanonicalMonomial<Flt64>.toLinearMonomialOrNull(): LinearMonomial<Flt64>? {
-    return toGenericCanonicalMonomial()
-        .toGenericLinearMonomialOrNull()
-        ?.toLinearMonomial()
-}
+// ============================================================================
+// Ret wrappers for nullable conversion functions
+// ============================================================================
 
 fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     val linearMonomial = toLinearMonomialOrNull()
@@ -94,15 +60,6 @@ fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     } else {
         Failed(ErrorCode.IllegalArgument, "Cannot convert canonical monomial to linear monomial")
     }
-}
-
-fun CanonicalMonomial<Flt64>.toQuadraticMonomialOrNull(
-    symbolComparator: java.util.Comparator<Symbol>? = null
-): QuadraticMonomial<Flt64>? {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    return toGenericCanonicalMonomial()
-        .toGenericQuadraticMonomialOrNull(comparator)
-        ?.toQuadraticMonomial()
 }
 
 fun CanonicalMonomial<Flt64>.toQuadraticMonomialRet(
@@ -125,41 +82,6 @@ fun QuadraticMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     }
 }
 
-fun LinearPolynomial<Flt64>.toQuadraticPolynomial(): QuadraticPolynomial<Flt64> {
-    return toGenericLinearPolynomial()
-        .toGenericQuadraticPolynomialFromLinearGeneric()
-        .toQuadraticPolynomialFromGeneric()
-}
-
-fun LinearPolynomial<Flt64>.toCanonicalPolynomial(): CanonicalPolynomial<Flt64> {
-    return toGenericLinearPolynomial()
-        .toGenericCanonicalPolynomial()
-        .toCanonicalPolynomialFromGeneric()
-}
-
-fun QuadraticPolynomial<Flt64>.toLinearPolynomialOrNull(): LinearPolynomial<Flt64>? {
-    return toGenericQuadraticPolynomial()
-        .toGenericLinearPolynomialOrNull()
-        ?.toLinearPolynomialFromGeneric()
-}
-
-fun QuadraticPolynomial<Flt64>.toCanonicalPolynomial(
-    symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
-    return toGenericQuadraticPolynomial()
-        .toGenericCanonicalPolynomial(symbolComparator)
-        .toCanonicalPolynomialFromGeneric()
-}
-
-fun CanonicalPolynomial<Flt64>.toLinearPolynomialOrNull(): LinearPolynomial<Flt64>? {
-    return toGenericCanonicalPolynomial()
-        .toGenericLinearPolynomialOrNull(
-            zero = Flt64.zero,
-            isZero = { it == Flt64.zero }
-        )
-        ?.toLinearPolynomialFromGeneric()
-}
-
 fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt64>> {
     val linearPolynomial = toLinearPolynomialOrNull()
     return if (linearPolynomial != null) {
@@ -167,18 +89,6 @@ fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
     } else {
         Failed(ErrorCode.IllegalArgument, "Cannot convert canonical polynomial to linear polynomial")
     }
-}
-
-fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
-    symbolComparator: java.util.Comparator<Symbol>? = null
-): QuadraticPolynomial<Flt64>? {
-    return toGenericCanonicalPolynomial()
-        .toGenericQuadraticPolynomialOrNull(
-            zero = Flt64.zero,
-            isZero = { it == Flt64.zero },
-            symbolComparator = symbolComparator
-        )
-        ?.toQuadraticPolynomialFromGeneric()
 }
 
 fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialRet(
@@ -200,6 +110,10 @@ fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
         Failed(ErrorCode.IllegalArgument, "Cannot convert quadratic polynomial to linear polynomial")
     }
 }
+
+// ============================================================================
+// Inequality conversions
+// ============================================================================
 
 fun LinearInequality.toQuadraticInequality(): QuadraticInequality {
     return QuadraticInequality(
@@ -270,6 +184,10 @@ fun CanonicalInequality.toQuadraticInequalityOrNull(
     )
 }
 
+// ============================================================================
+// Inequality operations
+// ============================================================================
+
 fun LinearInequality.moveAllToLhs(combineTerms: Boolean = true): LinearInequality {
     val lhsToZeroRhs = lhs.minus(rhs)
     val normalizedLhs = if (combineTerms) {
@@ -304,14 +222,12 @@ fun CanonicalInequality.moveAllToLhs(
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality {
-    val movedLhs = lhs.toGenericCanonicalPolynomial()
-        .subtractGenericCanonicalPolynomial(
-            rhs = rhs.toGenericCanonicalPolynomial(),
-            zero = Flt64.zero,
-            isZero = { it == Flt64.zero },
-            symbolComparator = if (combineTerms) symbolComparator else null
-        )
-        .toCanonicalPolynomialFromGeneric()
+    val movedLhs = lhs.subtractCanonical(
+        rhs = rhs,
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero },
+        symbolComparator = if (combineTerms) symbolComparator else null
+    )
     val lhsToZeroRhs = CanonicalInequality(
         lhs = movedLhs,
         rhs = CanonicalPolynomial<Flt64>(constant = Flt64.zero),

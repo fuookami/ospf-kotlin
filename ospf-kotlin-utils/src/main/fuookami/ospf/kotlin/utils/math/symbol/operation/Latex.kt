@@ -1,18 +1,10 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.operation
+package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.symbol.generic.GenericLatexNumberOps
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericCanonicalPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toGenericQuadraticPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.generic.toLatex as toLatexGeneric
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
@@ -39,7 +31,7 @@ private fun formatNumber(value: Flt64): String {
     return BigDecimal.valueOf(doubleValue).stripTrailingZeros().toPlainString()
 }
 
-private val flt64LatexOps = GenericLatexNumberOps<Flt64>(
+private val flt64LatexOps = LatexNumberOps<Flt64>(
     isZero = { it == Flt64.zero },
     isOne = { it == Flt64.one },
     isNegative = { it.toDouble() < 0.0 },
@@ -50,37 +42,37 @@ private val flt64LatexOps = GenericLatexNumberOps<Flt64>(
 fun LinearMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericLinearMonomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 fun QuadraticMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericQuadraticMonomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 fun CanonicalMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericCanonicalMonomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 fun LinearPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericLinearPolynomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 fun QuadraticPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericQuadraticPolynomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 fun CanonicalPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
-    return toGenericCanonicalPolynomial().toLatexGeneric(flt64LatexOps, options)
+    return toLatexString(flt64LatexOps, options)
 }
 
 private fun Comparison.latexSymbol(): String {

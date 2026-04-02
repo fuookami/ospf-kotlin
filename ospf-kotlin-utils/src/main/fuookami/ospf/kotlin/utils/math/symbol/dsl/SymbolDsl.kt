@@ -4,9 +4,22 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 
+import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.CanonicalInequality
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.utils.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.utils.math.symbol.parser.BinaryOperator
 import fuookami.ospf.kotlin.utils.math.symbol.parser.ComparisonOperator
 import fuookami.ospf.kotlin.utils.math.symbol.parser.Expr
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toCanonicalInequality
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toCanonicalPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toLinearInequalityOrNull
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toLinearPolynomialOrNull
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toQuadraticInequalityOrNull
+import fuookami.ospf.kotlin.utils.math.symbol.serde.toQuadraticPolynomialOrNull
 
 class SymbolDslScope {
     fun num(value: Number): Expr.NumberLiteral {
@@ -75,5 +88,97 @@ infix fun Expr.ge(rhs: Expr): Expr.Comparison {
 
 infix fun Expr.gt(rhs: Expr): Expr.Comparison {
     return Expr.Comparison(this, ComparisonOperator.Greater, rhs)
+}
+
+// ============================================================================
+// DSL 快捷转换入口 / DSL shortcut conversion entry points
+// ============================================================================
+
+/**
+ * 从 DSL 块直接构建 LinearPolynomial
+ * Build LinearPolynomial directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @return LinearPolynomial 或 null（如果表达式不是线性的）/ LinearPolynomial or null (if expression is not linear)
+ */
+fun linearPolynomial(
+    symbolOf: (String) -> Symbol,
+    block: SymbolDslScope.() -> Expr
+): LinearPolynomial<Flt64>? {
+    return symbolExpr(block).toLinearPolynomialOrNull(symbolOf)
+}
+
+/**
+ * 从 DSL 块直接构建 QuadraticPolynomial
+ * Build QuadraticPolynomial directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @param symbolComparator 符号排序比较器（可选）/ Symbol ordering comparator (optional)
+ * @return QuadraticPolynomial 或 null（如果表达式不是二次的）/ QuadraticPolynomial or null (if expression is not quadratic)
+ */
+fun quadraticPolynomial(
+    symbolOf: (String) -> Symbol,
+    symbolComparator: Comparator<Symbol>? = null,
+    block: SymbolDslScope.() -> Expr
+): QuadraticPolynomial<Flt64>? {
+    return symbolExpr(block).toQuadraticPolynomialOrNull(symbolOf, symbolComparator)
+}
+
+/**
+ * 从 DSL 块直接构建 CanonicalPolynomial
+ * Build CanonicalPolynomial directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @return CanonicalPolynomial
+ */
+fun canonicalPolynomial(
+    symbolOf: (String) -> Symbol,
+    block: SymbolDslScope.() -> Expr
+): CanonicalPolynomial<Flt64> {
+    return symbolExpr(block).toCanonicalPolynomial(symbolOf)
+}
+
+/**
+ * 从 DSL 块直接构建 LinearInequality
+ * Build LinearInequality directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @return LinearInequality 或 null（如果表达式不是线性不等式）/ LinearInequality or null (if expression is not linear inequality)
+ */
+fun linearInequality(
+    symbolOf: (String) -> Symbol,
+    block: SymbolDslScope.() -> Expr.Comparison
+): LinearInequality? {
+    return (symbolExpr(block) as Expr.Comparison).toLinearInequalityOrNull(symbolOf)
+}
+
+/**
+ * 从 DSL 块直接构建 QuadraticInequality
+ * Build QuadraticInequality directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @param symbolComparator 符号排序比较器（可选）/ Symbol ordering comparator (optional)
+ * @return QuadraticInequality 或 null（如果表达式不是二次不等式）/ QuadraticInequality or null (if expression is not quadratic inequality)
+ */
+fun quadraticInequality(
+    symbolOf: (String) -> Symbol,
+    symbolComparator: Comparator<Symbol>? = null,
+    block: SymbolDslScope.() -> Expr.Comparison
+): QuadraticInequality? {
+    return (symbolExpr(block) as Expr.Comparison).toQuadraticInequalityOrNull(symbolOf, symbolComparator)
+}
+
+/**
+ * 从 DSL 块直接构建 CanonicalInequality
+ * Build CanonicalInequality directly from DSL block
+ *
+ * @param symbolOf 符号查找函数 / Symbol lookup function
+ * @return CanonicalInequality
+ */
+fun canonicalInequality(
+    symbolOf: (String) -> Symbol,
+    block: SymbolDslScope.() -> Expr.Comparison
+): CanonicalInequality {
+    return (symbolExpr(block) as Expr.Comparison).toCanonicalInequality(symbolOf)
 }
 

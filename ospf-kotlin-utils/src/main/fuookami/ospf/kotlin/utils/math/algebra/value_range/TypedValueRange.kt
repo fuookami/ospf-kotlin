@@ -37,6 +37,72 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     val lowerKind: LB,
     val upperKind: UB
 ) where T : RealNumber<T>, T : NumberField<T> {
+    // Typed inference rule matrix / Typed 推导规则矩阵：
+    // 1) plus/minus/times/div: compute ValueRange result first, then infer Closed/Open from result bounds.
+    //    先计算 ValueRange 运算结果，再依据结果上下界区间推导 Closed/Open typed kind。
+    // 2) Fallback-to-null only when ValueRange returns null (e.g. empty interval, divide by zero).
+    //    仅当 ValueRange 返回 null 时回退为 null（如空区间、除零）。
+    // 3) RuntimeIntervalKind is reserved for dynamic wrappers only, not for statically-inferable typed APIs.
+    //    RuntimeIntervalKind 仅用于 dynamic 包装，不用于可静态推导的 typed API 返回值。
+    private fun kindOf(interval: Interval): IntervalKind {
+        return when (interval) {
+            Interval.Closed -> ClosedIntervalKind
+            Interval.Open -> OpenIntervalKind
+        }
+    }
+
+    private fun toSameKindRange(range: ValueRange<T>): TypedValueRange<T, LB, UB> {
+        return TypedValueRange.fromDynamic(
+            range = range,
+            lowerKind = lowerKind,
+            upperKind = upperKind
+        ).value!!
+    }
+
+    private fun toMostStaticKindRange(range: ValueRange<T>): TypedValueRange<T, *, *>? {
+        val inferredLower = kindOf(range.lowerBound.interval)
+        val inferredUpper = kindOf(range.upperBound.interval)
+        return toKindRangeOrNull(
+            range = range,
+            lowerKind = inferredLower,
+            upperKind = inferredUpper
+        )
+    }
+
+    private fun <NLB : IntervalKind, NUB : IntervalKind> toKindRangeOrNull(
+        range: ValueRange<T>,
+        lowerKind: NLB,
+        upperKind: NUB
+    ): TypedValueRange<T, NLB, NUB>? {
+        return when (val result = TypedValueRange.fromDynamic(
+            range = range,
+            lowerKind = lowerKind,
+            upperKind = upperKind
+        )) {
+            is Ok -> {
+                result.value
+            }
+
+            is Failed -> {
+                null
+            }
+
+            is Fatal -> {
+                null
+            }
+        }
+    }
+
+    private fun isPositive(value: T): Boolean {
+        val zero = value - value
+        return value > zero
+    }
+
+    private fun isNegative(value: T): Boolean {
+        val zero = value - value
+        return value < zero
+    }
+
     companion object {
         private fun <T> toDynamicRange(
             range: ValueRange<T>
@@ -196,36 +262,111 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
         return (valueRange union rhs.valueRange)?.let { toDynamicRange(it) }
     }
 
+    infix fun unionTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
+        return (valueRange union rhs.valueRange)?.let { toSameKindRange(it) }
+    }
+
     infix fun intersect(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange intersect rhs.valueRange)?.let { toDynamicRange(it) }
     }
 
-    operator fun plus(rhs: T): DynamicTypedValueRange<T> {
-        return toDynamicRange(valueRange + rhs)
+    infix fun intersectTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
+        return (valueRange intersect rhs.valueRange)?.let { toSameKindRange(it) }
+    }
+
+    fun plusTyped(rhs: T): TypedValueRange<T, LB, UB> {
+        return toSameKindRange(valueRange + rhs)
+    }
+
+    operator fun plus(rhs: T): TypedValueRange<T, LB, UB> {
+        return plusTyped(rhs)
     }
 
     operator fun plus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T> {
         return toDynamicRange(valueRange + rhs.valueRange)
     }
 
-    operator fun minus(rhs: T): DynamicTypedValueRange<T> {
-        return toDynamicRange(valueRange - rhs)
+    fun plusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
+        return toKindRangeOrNull(valueRange + rhs.valueRange, lowerKind, upperKind)
+    }
+
+    fun plusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
+        return toMostStaticKindRange(valueRange + rhs.valueRange)
+    }
+
+    fun minusTyped(rhs: T): TypedValueRange<T, LB, UB> {
+        return toSameKindRange(valueRange - rhs)
+    }
+
+    operator fun minus(rhs: T): TypedValueRange<T, LB, UB> {
+        return minusTyped(rhs)
     }
 
     operator fun minus(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T> {
         return toDynamicRange(valueRange - rhs.valueRange)
     }
 
+    fun minusTyped(rhs: TypedValueRange<T, LB, UB>): TypedValueRange<T, LB, UB>? {
+        return toKindRangeOrNull(valueRange - rhs.valueRange, lowerKind, upperKind)
+    }
+
+    fun minusTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
+        return toMostStaticKindRange(valueRange - rhs.valueRange)
+    }
+
     operator fun times(rhs: T): DynamicTypedValueRange<T>? {
         return (valueRange * rhs)?.let { toDynamicRange(it) }
+    }
+
+    fun timesPositive(rhs: T): TypedValueRange<T, LB, UB>? {
+        if (!isPositive(rhs)) {
+            return null
+        }
+        return (valueRange * rhs)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
+    }
+
+    fun timesNegative(rhs: T): TypedValueRange<T, UB, LB>? {
+        if (!isNegative(rhs)) {
+            return null
+        }
+        return (valueRange * rhs)?.let { toKindRangeOrNull(it, upperKind, lowerKind) }
+    }
+
+    fun timesTyped(rhs: T): TypedValueRange<T, *, *>? {
+        val scaled = valueRange * rhs ?: return null
+        return toMostStaticKindRange(scaled)
     }
 
     operator fun times(rhs: TypedValueRange<T, *, *>): DynamicTypedValueRange<T>? {
         return (valueRange * rhs.valueRange)?.let { toDynamicRange(it) }
     }
 
+    fun timesTypedAcrossKinds(rhs: TypedValueRange<T, *, *>): TypedValueRange<T, *, *>? {
+        val scaled = valueRange * rhs.valueRange ?: return null
+        return toMostStaticKindRange(scaled)
+    }
+
     operator fun div(rhs: T): DynamicTypedValueRange<T>? {
         return (valueRange / rhs)?.let { toDynamicRange(it) }
+    }
+
+    fun divPositive(rhs: T): TypedValueRange<T, LB, UB>? {
+        if (!isPositive(rhs)) {
+            return null
+        }
+        return (valueRange / rhs)?.let { toKindRangeOrNull(it, lowerKind, upperKind) }
+    }
+
+    fun divNegative(rhs: T): TypedValueRange<T, UB, LB>? {
+        if (!isNegative(rhs)) {
+            return null
+        }
+        return (valueRange / rhs)?.let { toKindRangeOrNull(it, upperKind, lowerKind) }
+    }
+
+    fun divTyped(rhs: T): TypedValueRange<T, *, *>? {
+        val scaled = valueRange / rhs ?: return null
+        return toMostStaticKindRange(scaled)
     }
 
     override fun equals(other: Any?): Boolean {

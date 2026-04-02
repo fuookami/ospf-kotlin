@@ -29,4 +29,3 @@ open class MathOrdinaryBenchmark {
         return factorize(sampleC, UInt64)
     }
 }
-

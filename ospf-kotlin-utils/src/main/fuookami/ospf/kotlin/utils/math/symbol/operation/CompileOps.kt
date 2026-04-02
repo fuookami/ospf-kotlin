@@ -1,10 +1,21 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.operation
 
+import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
+
+// ============================================================================
+// Compiled Evaluation Operations (Ring-based, no Generic conversion)
+// ============================================================================
 
 private data class CompiledLinearMonomial<T>(
     val coefficient: T,
@@ -19,12 +30,12 @@ private data class CompiledQuadraticMonomial<T>(
 
 private data class CompiledCanonicalMonomial<T>(
     val coefficient: T,
-    val powers: List<Pair<Int, Int>>  // (symbolIndex, exponent)
+    val powers: List<Pair<Int, Int32>>  // (symbolIndex, exponent)
 ) where T : Ring<T>
 
 private data class CompiledCanonicalGradientMonomial<T>(
     val coefficient: T,
-    val factorCounts: List<Pair<Int, Int>>
+    val factorCounts: List<Pair<Int, Int32>>
 ) where T : Ring<T>
 
 private fun compileOrderIndex(order: List<Symbol>): Map<Symbol, Int> {
@@ -51,7 +62,10 @@ private fun requireSymbolIndex(
         ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
 }
 
-fun <T> GenericLinearPolynomial<T>.compileEval(
+/**
+ * Compile a linear polynomial into an evaluation function.
+ */
+fun <T> LinearPolynomial<T>.compileEvalLinear(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -59,7 +73,7 @@ fun <T> GenericLinearPolynomial<T>.compileEval(
 ): (List<T>) -> T where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(zero = zero, isZero = isZero)
+        combineLinearTerms(zero, isZero)
     } else {
         this
     }
@@ -81,7 +95,10 @@ fun <T> GenericLinearPolynomial<T>.compileEval(
     }
 }
 
-fun <T> GenericQuadraticPolynomial<T>.compileEval(
+/**
+ * Compile a quadratic polynomial into an evaluation function.
+ */
+fun <T> QuadraticPolynomial<T>.compileEvalQuadratic(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -90,11 +107,7 @@ fun <T> GenericQuadraticPolynomial<T>.compileEval(
 ): (List<T>) -> T where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(
-            zero = zero,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        )
+        combineQuadraticTerms(zero, isZero, symbolComparator)
     } else {
         this
     }
@@ -122,36 +135,10 @@ fun <T> GenericQuadraticPolynomial<T>.compileEval(
 }
 
 /**
- * 计算幂次 value^power
- * Compute power value^power
+ * Compile a canonical polynomial into an evaluation function.
+ * Requires one (multiplicative identity) for power computation.
  */
-private fun <T : Ring<T>> computePower(value: T, power: Int, one: T): T {
-    if (power == 0) return one
-    if (power == 1) return value
-    
-    // 对于负指数，需要 T 实现 TimesGroup（有 reciprocal）
-    // 这里我们只处理正指数
-    if (power < 0) {
-        throw IllegalArgumentException("Negative exponent requires TimesGroup implementation.")
-    }
-    
-    var result = one
-    var base = value
-    var exp = power
-    
-    while (exp > 0) {
-        if (exp % 2 == 1) {
-            result = result * base
-        }
-        if (exp > 1) {
-            base = base * base
-        }
-        exp /= 2
-    }
-    return result
-}
-
-fun <T> GenericCanonicalPolynomial<T>.compileEval(
+fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -161,11 +148,7 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
 ): (List<T>) -> T where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(
-            zero = zero,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        )
+        combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
         this
     }
@@ -185,7 +168,7 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
         for (monomial in monomials) {
             var monomialValue = monomial.coefficient
             for ((symbolIndex, power) in monomial.powers) {
-                monomialValue *= computePower(values[symbolIndex], power, one)
+                monomialValue *= computeRingPower(values[symbolIndex], power.toInt(), one)
             }
             result += monomialValue
         }
@@ -193,22 +176,30 @@ fun <T> GenericCanonicalPolynomial<T>.compileEval(
     }
 }
 
-fun <T> GenericCanonicalPolynomial<T>.compileEval(
+/**
+ * Compile a canonical polynomial into an evaluation function (infer one).
+ * Requires Arithmetic<T> to access constants.one.
+ */
+fun <T> CanonicalPolynomial<T>.compileEvalCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): (List<T>) -> T where T : Ring<T> {
-    return compileEval(
+): (List<T>) -> T where T : Ring<T>, T : Arithmetic<T> {
+    return compileEvalCanonical(
         order = order,
         combineTerms = combineTerms,
         zero = zero,
         isZero = isZero,
         symbolComparator = symbolComparator,
-        one = inferOneOrThrow(zero, constant)
+        one = constant.constants.one
     )
 }
+
+// ============================================================================
+// Compiled Gradient Operations (Ring-based, no Generic conversion)
+// ============================================================================
 
 private fun <T> scaleByInt(
     value: T,
@@ -223,7 +214,10 @@ private fun <T> scaleByInt(
     return result
 }
 
-fun <T> GenericLinearPolynomial<T>.compileGradient(
+/**
+ * Compile a linear polynomial's gradient.
+ */
+fun <T> LinearPolynomial<T>.compileGradientLinear(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -231,7 +225,7 @@ fun <T> GenericLinearPolynomial<T>.compileGradient(
 ): (List<T>) -> List<T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(zero = zero, isZero = isZero)
+        combineLinearTerms(zero, isZero)
     } else {
         this
     }
@@ -248,7 +242,10 @@ fun <T> GenericLinearPolynomial<T>.compileGradient(
     }
 }
 
-fun <T> GenericQuadraticPolynomial<T>.compileGradient(
+/**
+ * Compile a quadratic polynomial's gradient.
+ */
+fun <T> QuadraticPolynomial<T>.compileGradientQuadratic(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -257,11 +254,7 @@ fun <T> GenericQuadraticPolynomial<T>.compileGradient(
 ): (List<T>) -> List<T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(
-            zero = zero,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        )
+        combineQuadraticTerms(zero, isZero, symbolComparator)
     } else {
         this
     }
@@ -297,7 +290,10 @@ fun <T> GenericQuadraticPolynomial<T>.compileGradient(
     }
 }
 
-fun <T> GenericCanonicalPolynomial<T>.compileGradient(
+/**
+ * Compile a canonical polynomial's gradient.
+ */
+fun <T> CanonicalPolynomial<T>.compileGradientCanonical(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     zero: T,
@@ -306,11 +302,7 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
 ): (List<T>) -> List<T> where T : Ring<T> {
     val indexOfSymbol = compileOrderIndex(order)
     val source = if (combineTerms) {
-        combineTerms(
-            zero = zero,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        )
+        combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
     } else {
         this
     }
@@ -318,8 +310,8 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
     val monomials = source.monomials.map { monomial ->
         CompiledCanonicalGradientMonomial(
             coefficient = monomial.coefficient,
-            factorCounts = monomial.powers.entries.map { 
-                Pair(requireSymbolIndex(it.key, indexOfSymbol), it.value) 
+            factorCounts = monomial.powers.entries.map {
+                Pair(requireSymbolIndex(it.key, indexOfSymbol), it.value)
             }
         )
     }
@@ -328,12 +320,12 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
         val gradient = MutableList(expectedSize) { zero }
         for (monomial in monomials) {
             for ((targetIndex, amount) in monomial.factorCounts) {
-                var derivative = scaleByInt(monomial.coefficient, amount, zero)
+                var derivative = scaleByInt(monomial.coefficient, amount.toInt(), zero)
                 for ((index, power) in monomial.factorCounts) {
                     val repeat = if (index == targetIndex) {
-                        power - 1
+                        power.toInt() - 1
                     } else {
-                        power
+                        power.toInt()
                     }
                     repeat(repeat) {
                         derivative *= values[index]
@@ -344,16 +336,4 @@ fun <T> GenericCanonicalPolynomial<T>.compileGradient(
         }
         gradient
     }
-}
-@Suppress("UNCHECKED_CAST")
-private fun <T : Ring<T>> inferOneOrThrow(vararg candidates: Any?): T {
-    for (candidate in candidates) {
-        if (candidate != null) {
-            val arithmetic = candidate as? Arithmetic<T>
-            if (arithmetic != null) {
-                return arithmetic.constants.one
-            }
-        }
-    }
-    throw IllegalArgumentException("Cannot infer multiplicative identity, please pass parameter one explicitly.")
 }

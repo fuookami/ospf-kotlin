@@ -1,14 +1,23 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.generic
+package fuookami.ospf.kotlin.utils.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-
 import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.operation.LatexOptions
+import fuookami.ospf.kotlin.utils.math.symbol.defaultSymbolComparator
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 
-data class GenericLatexNumberOps<T>(
+// ============================================================================
+// Latex Operations (Ring-based, no Generic conversion)
+// ============================================================================
+
+data class LatexNumberOps<T>(
     val isZero: (T) -> Boolean,
     val isOne: (T) -> Boolean,
     val isNegative: (T) -> Boolean,
@@ -65,7 +74,7 @@ private fun <T> formatMonomialTerm(
     coefficient: T,
     variable: String,
     options: LatexOptions,
-    ops: GenericLatexNumberOps<T>
+    ops: LatexNumberOps<T>
 ): String {
     val absCoefficient = ops.abs(coefficient)
     val coefficientText = if (!options.showOnes && ops.isOne(absCoefficient)) {
@@ -84,8 +93,11 @@ private fun <T> formatMonomialTerm(
     }
 }
 
-fun <T> GenericLinearMonomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a linear monomial to LaTeX string.
+ */
+fun <T> LinearMonomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     return formatMonomialTerm(
@@ -96,8 +108,11 @@ fun <T> GenericLinearMonomial<T>.toLatex(
     )
 }
 
-fun <T> GenericQuadraticMonomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a quadratic monomial to LaTeX string.
+ */
+fun <T> QuadraticMonomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     if (symbol2 == null) {
@@ -126,8 +141,11 @@ fun <T> GenericQuadraticMonomial<T>.toLatex(
     )
 }
 
-fun <T> GenericCanonicalMonomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a canonical monomial to LaTeX string.
+ */
+fun <T> CanonicalMonomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     if (powers.isEmpty()) {
@@ -135,7 +153,7 @@ fun <T> GenericCanonicalMonomial<T>.toLatex(
     }
     val multiply = mulSymbol(options)
     val variable = powers.entries.joinToString(separator = multiply) {
-        if (it.value == 1) {
+        if (it.value.toInt() == 1) {
             it.key.latexName()
         } else {
             "${it.key.latexName()}^{${it.value}}"
@@ -149,8 +167,11 @@ fun <T> GenericCanonicalMonomial<T>.toLatex(
     )
 }
 
-fun <T> GenericLinearPolynomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a linear polynomial to LaTeX string.
+ */
+fun <T> LinearPolynomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     val terms = ArrayList<SignedTerm>(monomials.size + 1)
@@ -160,7 +181,7 @@ fun <T> GenericLinearPolynomial<T>.toLatex(
         }
         terms.add(
             SignedTerm(
-                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatex(ops, options),
+                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatexString(ops, options),
                 negative = ops.isNegative(monomial.coefficient)
             )
         )
@@ -176,8 +197,11 @@ fun <T> GenericLinearPolynomial<T>.toLatex(
     return mergeTerms(terms, options)
 }
 
-fun <T> GenericQuadraticPolynomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a quadratic polynomial to LaTeX string.
+ */
+fun <T> QuadraticPolynomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     val terms = ArrayList<SignedTerm>(monomials.size + 1)
@@ -187,7 +211,7 @@ fun <T> GenericQuadraticPolynomial<T>.toLatex(
         }
         terms.add(
             SignedTerm(
-                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatex(ops, options),
+                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatexString(ops, options),
                 negative = ops.isNegative(monomial.coefficient)
             )
         )
@@ -203,8 +227,11 @@ fun <T> GenericQuadraticPolynomial<T>.toLatex(
     return mergeTerms(terms, options)
 }
 
-fun <T> GenericCanonicalPolynomial<T>.toLatex(
-    ops: GenericLatexNumberOps<T>,
+/**
+ * Convert a canonical polynomial to LaTeX string.
+ */
+fun <T> CanonicalPolynomial<T>.toLatexString(
+    ops: LatexNumberOps<T>,
     options: LatexOptions = LatexOptions()
 ): String where T : Ring<T> {
     val terms = ArrayList<SignedTerm>(monomials.size + 1)
@@ -214,7 +241,7 @@ fun <T> GenericCanonicalPolynomial<T>.toLatex(
         }
         terms.add(
             SignedTerm(
-                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatex(ops, options),
+                body = monomial.copy(coefficient = ops.abs(monomial.coefficient)).toLatexString(ops, options),
                 negative = ops.isNegative(monomial.coefficient)
             )
         )
@@ -229,4 +256,3 @@ fun <T> GenericCanonicalPolynomial<T>.toLatex(
     }
     return mergeTerms(terms, options)
 }
-

@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
 import fuookami.ospf.kotlin.utils.math.symbol.Symbol
 
-data class CanonicalMonomial<T : NumberField<T>>(
+data class CanonicalMonomial<T : Ring<T>>(
     val coefficient: T,
     val powers: Map<Symbol, Int32> = emptyMap()
 ) {
@@ -28,7 +28,7 @@ data class CanonicalMonomial<T : NumberField<T>>(
             .flatMap { (symbol, exp) -> List(exp.toInt()) { symbol } }
 
     val degree: Int
-        get() = powers.values.sumOf { it.toInt() }
+        get() = powers.values.sum().toInt()
 
     val category: Category
         get() = when (degree) {
@@ -38,15 +38,15 @@ data class CanonicalMonomial<T : NumberField<T>>(
         }
 }
 
-operator fun <T : NumberField<T>> CanonicalMonomial<T>.unaryMinus(): CanonicalMonomial<T> {
+operator fun <T : Ring<T>> CanonicalMonomial<T>.unaryMinus(): CanonicalMonomial<T> {
     return copy(coefficient = -coefficient)
 }
 
-operator fun <T : NumberField<T>> CanonicalMonomial<T>.times(rhs: T): CanonicalMonomial<T> {
+operator fun <T : Ring<T>> CanonicalMonomial<T>.times(rhs: T): CanonicalMonomial<T> {
     return copy(coefficient = coefficient * rhs)
 }
 
-operator fun <T : NumberField<T>> CanonicalMonomial<T>.div(rhs: T): CanonicalMonomial<T> {
+operator fun <T : Field<T>> CanonicalMonomial<T>.div(rhs: T): CanonicalMonomial<T> {
     return copy(coefficient = coefficient / rhs)
 }
 

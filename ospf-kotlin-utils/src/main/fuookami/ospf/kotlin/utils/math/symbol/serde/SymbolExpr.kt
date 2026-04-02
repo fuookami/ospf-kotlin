@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.math.symbol.serde
+package fuookami.ospf.kotlin.utils.math.symbol.serde
 
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
@@ -14,9 +14,12 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.utils.math.symbol.parser.BinaryOperator
 import fuookami.ospf.kotlin.utils.math.symbol.parser.ComparisonOperator
 import fuookami.ospf.kotlin.utils.math.symbol.parser.Expr
+import fuookami.ospf.kotlin.utils.math.symbol.parser.Flt64NumberParser
+import fuookami.ospf.kotlin.utils.math.symbol.parser.NumberParser
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.operation.combineCanonicalPolynomialTerms
 import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.utils.math.symbol.operation.toCanonicalInequality
 import fuookami.ospf.kotlin.utils.math.symbol.operation.toCanonicalPolynomial
@@ -195,7 +198,7 @@ fun CanonicalInequality.toExpr(symbolComparator: Comparator<Symbol>? = null): Ex
 }
 
 /**
- * �ϲ����� powers Map
+ * 合并两个 powers Map
  * Merge two powers maps
  */
 private fun mergePowers(left: Map<Symbol, Int32>, right: Map<Symbol, Int32>): Map<Symbol, Int32> {
@@ -273,6 +276,214 @@ private fun parseExponent(text: String): Int {
     return rounded
 }
 
+// ============================================================================
+// Generic Typed Canonical Polynomial Operations (Ring-based)
+// ============================================================================
+
+private fun <T> addTypedCanonical(
+    lhs: CanonicalPolynomial<T>,
+    rhs: CanonicalPolynomial<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> {
+    return CanonicalPolynomial(
+        monomials = lhs.monomials + rhs.monomials,
+        constant = lhs.constant + rhs.constant
+    ).combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
+}
+
+private fun <T> negateTypedCanonical(
+    polynomial: CanonicalPolynomial<T>
+): CanonicalPolynomial<T> where T : Ring<T> {
+    return CanonicalPolynomial(
+        monomials = polynomial.monomials.map { it.copy(coefficient = -it.coefficient) },
+        constant = -polynomial.constant
+    )
+}
+
+private fun <T> subtractTypedCanonical(
+    lhs: CanonicalPolynomial<T>,
+    rhs: CanonicalPolynomial<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> {
+    return addTypedCanonical(lhs, negateTypedCanonical(rhs), zero, isZero, symbolComparator)
+}
+
+private fun <T> multiplyTypedCanonical(
+    lhs: CanonicalPolynomial<T>,
+    rhs: CanonicalPolynomial<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> {
+    val monomials = ArrayList<CanonicalMonomial<T>>(lhs.monomials.size * rhs.monomials.size + lhs.monomials.size + rhs.monomials.size)
+    for (left in lhs.monomials) {
+        for (right in rhs.monomials) {
+            monomials.add(
+                CanonicalMonomial(
+                    coefficient = left.coefficient * right.coefficient,
+                    powers = mergePowers(left.powers, right.powers)
+                )
+            )
+        }
+        if (!isZero(rhs.constant)) {
+            monomials.add(
+                left.copy(coefficient = left.coefficient * rhs.constant)
+            )
+        }
+    }
+    for (right in rhs.monomials) {
+        if (!isZero(lhs.constant)) {
+            monomials.add(
+                right.copy(coefficient = right.coefficient * lhs.constant)
+            )
+        }
+    }
+    return CanonicalPolynomial(
+        monomials = monomials,
+        constant = lhs.constant * rhs.constant
+    ).combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
+}
+
+private fun <T> powTypedCanonical(
+    base: CanonicalPolynomial<T>,
+    exponent: Int,
+    zero: T,
+    one: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> {
+    require(exponent >= 0) {
+        "Negative exponent is not supported for polynomial conversion."
+    }
+    var result = CanonicalPolynomial<T>(constant = one)
+    repeat(exponent) {
+        result = multiplyTypedCanonical(result, base, zero, isZero, symbolComparator)
+    }
+    return result
+}
+
+fun <T> Expr.toCanonicalPolynomialTyped(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> {
+    return when (this) {
+        is Expr.NumberLiteral -> {
+            val number = numberParser.parse(text)
+                ?: throw IllegalArgumentException("Invalid number literal '$text' for target type.")
+            CanonicalPolynomial<T>(constant = number)
+        }
+
+        is Expr.Identifier -> {
+            CanonicalPolynomial(
+                monomials = listOf(
+                    CanonicalMonomial(
+                        coefficient = one,
+                        powers = mapOf(symbolOf(name) to Int32.one)
+                    )
+                ),
+                constant = zero
+            )
+        }
+
+        is Expr.UnaryMinus -> {
+            negateTypedCanonical(
+                operand.toCanonicalPolynomialTyped(
+                    numberParser = numberParser,
+                    zero = zero,
+                    one = one,
+                    symbolOf = symbolOf,
+                    isZero = isZero,
+                    symbolComparator = symbolComparator
+                )
+            )
+        }
+
+        is Expr.Binary -> {
+            val leftPolynomial = left.toCanonicalPolynomialTyped(
+                numberParser = numberParser,
+                zero = zero,
+                one = one,
+                symbolOf = symbolOf,
+                isZero = isZero,
+                symbolComparator = symbolComparator
+            )
+            val rightPolynomial = right.toCanonicalPolynomialTyped(
+                numberParser = numberParser,
+                zero = zero,
+                one = one,
+                symbolOf = symbolOf,
+                isZero = isZero,
+                symbolComparator = symbolComparator
+            )
+            when (operator) {
+                BinaryOperator.Add -> addTypedCanonical(leftPolynomial, rightPolynomial, zero, isZero, symbolComparator)
+                BinaryOperator.Subtract -> subtractTypedCanonical(leftPolynomial, rightPolynomial, zero, isZero, symbolComparator)
+                BinaryOperator.Multiply -> multiplyTypedCanonical(leftPolynomial, rightPolynomial, zero, isZero, symbolComparator)
+                BinaryOperator.Power -> {
+                    val exponent = when (right) {
+                        is Expr.NumberLiteral -> parseExponent(right.text)
+                        else -> throw IllegalArgumentException("Exponent must be number literal.")
+                    }
+                    powTypedCanonical(leftPolynomial, exponent, zero, one, isZero, symbolComparator)
+                }
+            }
+        }
+
+        is Expr.FunctionCall -> {
+            throw IllegalArgumentException("Cannot convert function call '${name}' to canonical polynomial.")
+        }
+
+        is Expr.Comparison -> {
+            throw IllegalArgumentException("Cannot convert comparison expression to canonical polynomial.")
+        }
+    }.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
+}
+
+fun <T> Expr.toLinearPolynomialTypedOrNull(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
+    numberParser = numberParser,
+    zero = zero,
+    one = one,
+    symbolOf = symbolOf,
+    isZero = isZero
+).toLinearPolynomialOrNull(
+    zero = zero,
+    isZero = isZero
+)
+
+fun <T> Expr.toQuadraticPolynomialTypedOrNull(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
+    numberParser = numberParser,
+    zero = zero,
+    one = one,
+    symbolOf = symbolOf,
+    isZero = isZero,
+    symbolComparator = symbolComparator
+).toQuadraticPolynomialOrNull(
+    zero = zero,
+    isZero = isZero,
+    symbolComparator = symbolComparator
+)
+
 private fun powCanonical(
     base: CanonicalPolynomial<Flt64>,
     exponent: Int
@@ -290,52 +501,13 @@ private fun powCanonical(
 fun Expr.toCanonicalPolynomial(
     symbolOf: (String) -> Symbol = ::defaultSymbolOf
 ): CanonicalPolynomial<Flt64> {
-    return when (this) {
-        is Expr.NumberLiteral -> {
-            CanonicalPolynomial<Flt64>(constant = Flt64(text.toDouble()))
-        }
-
-        is Expr.Identifier -> {
-            CanonicalPolynomial<Flt64>(
-                monomials = listOf(
-                    CanonicalMonomial<Flt64>(
-                        coefficient = Flt64.one,
-                        powers = mapOf(symbolOf(name) to Int32.one)
-                    )
-                ),
-                constant = Flt64.zero
-            )
-        }
-
-        is Expr.UnaryMinus -> {
-            negateCanonical(operand.toCanonicalPolynomial(symbolOf))
-        }
-
-        is Expr.Binary -> {
-            val leftPolynomial = left.toCanonicalPolynomial(symbolOf)
-            val rightPolynomial = right.toCanonicalPolynomial(symbolOf)
-            when (operator) {
-                BinaryOperator.Add -> addCanonical(leftPolynomial, rightPolynomial)
-                BinaryOperator.Subtract -> subtractCanonical(leftPolynomial, rightPolynomial)
-                BinaryOperator.Multiply -> multiplyCanonical(leftPolynomial, rightPolynomial)
-                BinaryOperator.Power -> {
-                    val exponent = when (right) {
-                        is Expr.NumberLiteral -> parseExponent(right.text)
-                        else -> throw IllegalArgumentException("Exponent must be number literal.")
-                    }
-                    powCanonical(leftPolynomial, exponent)
-                }
-            }
-        }
-
-        is Expr.FunctionCall -> {
-            throw IllegalArgumentException("Cannot convert function call '${name}' to canonical polynomial.")
-        }
-
-        is Expr.Comparison -> {
-            throw IllegalArgumentException("Cannot convert comparison expression to canonical polynomial.")
-        }
-    }.combineTerms()
+    return toCanonicalPolynomialTyped(
+        numberParser = Flt64NumberParser,
+        zero = Flt64.zero,
+        one = Flt64.one,
+        symbolOf = symbolOf,
+        isZero = { it == Flt64.zero }
+    ).combineTerms()
 }
 
 fun Expr.toLinearPolynomialOrNull(
@@ -382,3 +554,121 @@ fun symbolExprFromJson(json: String): SymbolExpr {
     return readFromJson(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
 }
 
+// ============================================================================
+// Polynomial 便捷序列化方法 / Polynomial convenience serialization methods
+// ============================================================================
+
+/**
+ * 将 LinearPolynomial 序列化为 JSON 字符串
+ * Serialize LinearPolynomial to JSON string
+ */
+fun LinearPolynomial<Flt64>.toJsonString(): String {
+    return this.toExpr().toJsonString()
+}
+
+/**
+ * 将 QuadraticPolynomial 序列化为 JSON 字符串
+ * Serialize QuadraticPolynomial to JSON string
+ */
+fun QuadraticPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+    return this.toExpr(symbolComparator).toJsonString()
+}
+
+/**
+ * 将 CanonicalPolynomial 序列化为 JSON 字符串
+ * Serialize CanonicalPolynomial to JSON string
+ */
+fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+    return this.toExpr(symbolComparator).toJsonString()
+}
+
+// ============================================================================
+// Inequality 便捷序列化方法 / Inequality convenience serialization methods
+// ============================================================================
+
+/**
+ * 将 LinearInequality 序列化为 JSON 字符串
+ * Serialize LinearInequality to JSON string
+ */
+fun LinearInequality.toJsonString(): String {
+    return this.toExpr().toJsonString()
+}
+
+/**
+ * 将 QuadraticInequality 序列化为 JSON 字符串
+ * Serialize QuadraticInequality to JSON string
+ */
+fun QuadraticInequality.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+    return this.toExpr(symbolComparator).toJsonString()
+}
+
+/**
+ * 将 CanonicalInequality 序列化为 JSON 字符串
+ * Serialize CanonicalInequality to JSON string
+ */
+fun CanonicalInequality.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+    return this.toExpr(symbolComparator).toJsonString()
+}
+
+// ============================================================================
+// 从 JSON 反序列化 / Deserialize from JSON
+// ============================================================================
+
+/**
+ * 从 JSON 字符串解析为 LinearPolynomial
+ * Parse LinearPolynomial from JSON string
+ */
+fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): LinearPolynomial<Flt64>? {
+    return symbolExprFromJson(json).toLinearPolynomialOrNull(symbolOf)
+}
+
+/**
+ * 从 JSON 字符串解析为 QuadraticPolynomial
+ * Parse QuadraticPolynomial from JSON string
+ */
+fun quadraticPolynomialFromJson(
+    json: String,
+    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<Flt64>? {
+    return symbolExprFromJson(json).toQuadraticPolynomialOrNull(symbolOf, symbolComparator)
+}
+
+/**
+ * 从 JSON 字符串解析为 CanonicalPolynomial
+ * Parse CanonicalPolynomial from JSON string
+ */
+fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): CanonicalPolynomial<Flt64> {
+    return symbolExprFromJson(json).toCanonicalPolynomial(symbolOf)
+}
+
+/**
+ * 从 JSON 字符串解析为 LinearInequality
+ * Parse LinearInequality from JSON string
+ */
+fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): LinearInequality? {
+    val expr = symbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.toLinearInequalityOrNull(symbolOf)
+}
+
+/**
+ * 从 JSON 字符串解析为 QuadraticInequality
+ * Parse QuadraticInequality from JSON string
+ */
+fun quadraticInequalityFromJson(
+    json: String,
+    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticInequality? {
+    val expr = symbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.toQuadraticInequalityOrNull(symbolOf, symbolComparator)
+}
+
+/**
+ * 从 JSON 字符串解析为 CanonicalInequality
+ * Parse CanonicalInequality from JSON string
+ */
+fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): CanonicalInequality? {
+    val expr = symbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.toCanonicalInequality(symbolOf)
+}

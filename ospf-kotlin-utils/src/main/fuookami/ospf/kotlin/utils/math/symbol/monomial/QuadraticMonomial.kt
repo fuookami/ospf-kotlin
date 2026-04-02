@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.Ring
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
@@ -34,98 +34,98 @@ data class QuadraticMonomial<T>(
         get() = if (isQuadratic) Quadratic else Linear
 }
 
-private fun <T : NumberField<T>> zeroOf(value: T): T {
+private fun <T : Ring<T>> zeroOf(value: T): T {
     return value - value
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.unaryMinus(): QuadraticMonomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.unaryMinus(): QuadraticMonomial<T> {
     return copy(coefficient = -coefficient)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.times(rhs: T): QuadraticMonomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.times(rhs: T): QuadraticMonomial<T> {
     return copy(coefficient = coefficient * rhs)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.div(rhs: T): QuadraticMonomial<T> {
+operator fun <T : Field<T>> QuadraticMonomial<T>.div(rhs: T): QuadraticMonomial<T> {
     return copy(coefficient = coefficient / rhs)
 }
 
-operator fun <T : NumberField<T>> T.times(rhs: QuadraticMonomial<T>): QuadraticMonomial<T> {
+operator fun <T : Ring<T>> T.times(rhs: QuadraticMonomial<T>): QuadraticMonomial<T> {
     return rhs * this
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this, rhs), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this, -rhs), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.plus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this, QuadraticMonomial.linear(rhs.coefficient, rhs.symbol)), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> LinearMonomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> LinearMonomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(QuadraticMonomial.linear(coefficient, symbol), rhs), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.minus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: LinearMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this, QuadraticMonomial.linear(-rhs.coefficient, rhs.symbol)), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> LinearMonomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> LinearMonomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(QuadraticMonomial.linear(coefficient, symbol), -rhs), zeroOf(coefficient))
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this) + rhs.monomials, rhs.constant)
 }
 
-operator fun <T : NumberField<T>> QuadraticPolynomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticPolynomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials + rhs, constant)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: QuadraticPolynomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this) + rhs.monomials.map { -it }, -rhs.constant)
 }
 
-operator fun <T : NumberField<T>> QuadraticPolynomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticPolynomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(monomials + (-rhs), constant)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.plus(rhs: T): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this), rhs)
 }
 
-operator fun <T : NumberField<T>> T.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> T.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(rhs), this)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.minus(rhs: T): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: T): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this), -rhs)
 }
 
-operator fun <T : NumberField<T>> T.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> T.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(-rhs), this)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.plus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.plus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = rhs.monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(listOf(this) + lifted, rhs.constant)
 }
 
-operator fun <T : NumberField<T>> LinearPolynomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> LinearPolynomial<T>.plus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     val lifted = monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(lifted + rhs, constant)
 }
 
-operator fun <T : NumberField<T>> QuadraticMonomial<T>.minus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> QuadraticMonomial<T>.minus(rhs: LinearPolynomial<T>): QuadraticPolynomial<T> {
     val lifted = rhs.monomials.map { QuadraticMonomial.linear(-it.coefficient, it.symbol) }
     return QuadraticPolynomial(listOf(this) + lifted, -rhs.constant)
 }
 
-operator fun <T : NumberField<T>> LinearPolynomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
+operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: QuadraticMonomial<T>): QuadraticPolynomial<T> {
     val lifted = monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(lifted + (-rhs), constant)
 }

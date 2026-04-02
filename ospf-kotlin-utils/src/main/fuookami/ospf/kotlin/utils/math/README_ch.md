@@ -35,11 +35,17 @@
 
 ```bash
 mvn -pl ospf-kotlin-utils -DskipTests=true -Pbench test-compile
+
+# PowerShell
+mvn --% -pl ospf-kotlin-utils -Dexec.classpathScope=test -Dexec.mainClass=fuookami.ospf.kotlin.utils.math.benchmark.BenchmarkLauncher -Dexec.args=.*MathOrdinaryBenchmark.* org.codehaus.mojo:exec-maven-plugin:3.5.0:java
+
+# Bash / Zsh
+mvn -pl ospf-kotlin-utils -Dexec.classpathScope=test -Dexec.mainClass=fuookami.ospf.kotlin.utils.math.benchmark.BenchmarkLauncher -Dexec.args='.*MathOrdinaryBenchmark.*' org.codehaus.mojo:exec-maven-plugin:3.5.0:java
 ```
 
-之后可在 IDE 或自定义启动器中运行 JMH Main 并指定 benchmark pattern。
-推荐直接运行 `BenchmarkLauncher.main(...)`，可选第一个参数为 include pattern，例如：
+`BenchmarkLauncher` 第一个参数是 include pattern，第二个可选参数是 fork 数（默认 `0`，适配当前 Maven exec 路径）。
+例如：
 
 ```text
-.*MathOrdinaryBenchmark.*
+.*MathTypedValueRangeBenchmark.* 0
 ```
