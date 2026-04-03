@@ -28,8 +28,8 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.algebra.value_range.times
-import fuookami.ospf.kotlin.math.operator.Eq
-import fuookami.ospf.kotlin.math.operator.Order
+import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.utils.math.operator.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.div

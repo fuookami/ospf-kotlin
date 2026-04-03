@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.math.operator
+package fuookami.ospf.kotlin.utils.math.operator
 
 sealed interface Order : Neg<Order> {
     val value: Int

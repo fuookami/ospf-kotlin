@@ -12,9 +12,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.Bound
-import fuookami.ospf.kotlin.math.operator.Ord
-import fuookami.ospf.kotlin.math.operator.Order
-import fuookami.ospf.kotlin.math.operator.ord
+import fuookami.ospf.kotlin.utils.math.operator.Ord
+import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.math.operator.ord
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal

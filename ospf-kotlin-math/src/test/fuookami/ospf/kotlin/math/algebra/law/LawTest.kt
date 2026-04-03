@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.math.algebra.number.URtn64
 import fuookami.ospf.kotlin.math.defaultTolerancedEq
 import fuookami.ospf.kotlin.math.defaultTolerancedOrd
 import fuookami.ospf.kotlin.utils.math.operator.Order
-import fuookami.ospf.kotlin.utils.math.operator.TolerancedEq
-import fuookami.ospf.kotlin.utils.math.operator.TolerancedOrd
-import fuookami.ospf.kotlin.utils.math.operator.eq
+import fuookami.ospf.kotlin.math.operator.TolerancedEq
+import fuookami.ospf.kotlin.math.operator.TolerancedOrd
+import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith

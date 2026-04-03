@@ -3,10 +3,10 @@ package fuookami.ospf.kotlin.math.ordinary
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.utils.math.operator.Div
-import fuookami.ospf.kotlin.utils.math.operator.Minus
-import fuookami.ospf.kotlin.utils.math.operator.Pow
-import fuookami.ospf.kotlin.utils.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Pow
+import fuookami.ospf.kotlin.math.operator.Rem
 
 fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     if (num <= constants.one) {

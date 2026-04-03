@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.utils.math.operator.Abs
-import fuookami.ospf.kotlin.utils.math.operator.abs
+import fuookami.ospf.kotlin.math.operator.Abs
+import fuookami.ospf.kotlin.math.operator.abs
 
 data class LinearMonomial<T>(
     val coefficient: T,

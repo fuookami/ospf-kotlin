@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractSlackRangeFunction<V : Variable<*>>(

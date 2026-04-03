@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Dispatchers

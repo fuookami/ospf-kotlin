@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.utils.math.operator.Ord
-import fuookami.ospf.kotlin.utils.math.operator.Plus
-import fuookami.ospf.kotlin.utils.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Minus
 
 interface TotallyOrdered<in Self> : Ord<Self>
 

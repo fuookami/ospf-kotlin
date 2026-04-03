@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.math.algebra.concept.Arithmetic
 import fuookami.ospf.kotlin.math.algebra.concept.ArithmeticConstants
 import fuookami.ospf.kotlin.math.algebra.concept.resolveArithmeticConstants
-import fuookami.ospf.kotlin.utils.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Plus
 
 @PublishedApi
 internal fun MutableList<fuookami.ospf.kotlin.utils.error.Error>.appendFrom(ret: Ret<*>) {

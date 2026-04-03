@@ -13,6 +13,10 @@ import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Times
 import fuookami.ospf.kotlin.utils.math.operator.*
 
 class Bound<T>(

@@ -2,8 +2,14 @@
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-
-import fuookami.ospf.kotlin.utils.math.operator.*
+import fuookami.ospf.kotlin.math.operator.Abs
+import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.math.operator.Ord
+import fuookami.ospf.kotlin.utils.math.operator.Eq
+import fuookami.ospf.kotlin.utils.math.operator.Neg
+import fuookami.ospf.kotlin.utils.math.operator.neq
 
 data class Equal<T, U>(
     val precision: U?

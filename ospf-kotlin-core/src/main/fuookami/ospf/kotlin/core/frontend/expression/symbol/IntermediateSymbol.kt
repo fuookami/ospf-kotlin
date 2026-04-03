@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
 internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
     return if (monomials.isEmpty()) {

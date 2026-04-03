@@ -1,7 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.utils.functional.Generator
-import fuookami.ospf.kotlin.utils.functional.sum
+import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max

@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.operator.Minus
-import fuookami.ospf.kotlin.utils.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Plus
 import kotlin.math.acos
 
 private fun normOf(vector: List<Flt64>): Flt64 {

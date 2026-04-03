@@ -2,7 +2,7 @@
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.Rem
 
 @Throws(IllegalArgumentException::class)
 private fun <I> getProgressionLastElement(

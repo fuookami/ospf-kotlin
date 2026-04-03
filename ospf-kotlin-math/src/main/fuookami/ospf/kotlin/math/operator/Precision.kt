@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.concept.resolveRealNumberConstants
 import fuookami.ospf.kotlin.math.operator.Abs
-import fuookami.ospf.kotlin.math.operator.Order
+import fuookami.ospf.kotlin.utils.math.operator.Order
 
 class Precision<T>(
     precision: T

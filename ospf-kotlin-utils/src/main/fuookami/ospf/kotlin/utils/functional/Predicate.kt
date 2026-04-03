@@ -32,11 +32,11 @@ typealias Comparator<T> = (T, T) -> Boolean
 typealias PartialComparator<T> = (T, T) -> Boolean?
 typealias TryComparator<T> = (T, T) -> Ret<Boolean>
 
+typealias Generator<R> = () -> R?
+
 typealias ThreeWayComparator<T> = (T, T) -> Order
 typealias PartialThreeWayComparator<T> = (T, T) -> Order?
 typealias TryThreeWayComparator<T> = (T, T) -> Ret<Order>
-
-typealias Generator<R> = () -> R?
 
 inline infix fun <T, U : T> Predicate<T>.and(crossinline rhs: Predicate<U>) = { it: U -> this(it as T) and rhs(it) }
 inline infix fun <T, U : T> Predicate<T>.or(crossinline rhs: Predicate<U>) = { it: U -> this(it) or rhs(it) }

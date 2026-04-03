@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.Bound
+import fuookami.ospf.kotlin.utils.math.operator.*
 import fuookami.ospf.kotlin.math.operator.*
 
 sealed interface MonomialCell<Self : MonomialCell<Self>>

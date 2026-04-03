@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.resolveArithmeticConstants
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Extractor
-import fuookami.ospf.kotlin.utils.math.operator.Div
-import fuookami.ospf.kotlin.utils.math.operator.Plus
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Plus
 
 fun <T> Iterable<T>.sum(constants: ArithmeticConstants<T>): T where T : Arithmetic<T>, T : Plus<T, T> {
     var sum = constants.zero

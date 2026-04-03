@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.operator.eq
+import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 
 class QuantityValueRangeTest {

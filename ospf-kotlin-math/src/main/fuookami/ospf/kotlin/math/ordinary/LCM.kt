@@ -7,10 +7,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.math.operator.Div
-import fuookami.ospf.kotlin.utils.math.operator.Minus
-import fuookami.ospf.kotlin.utils.math.operator.Pow
-import fuookami.ospf.kotlin.utils.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Pow
+import fuookami.ospf.kotlin.math.operator.Rem
 
 fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Pow<I>, I : Div<I, I>, I : Rem<I, I> {
     val factors = numbers.map { factorizeImpl(it, constants) }

@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.math.operator.Div
-import fuookami.ospf.kotlin.utils.math.operator.Minus
-import fuookami.ospf.kotlin.utils.math.operator.Rem
+import fuookami.ospf.kotlin.math.operator.Div
+import fuookami.ospf.kotlin.math.operator.Minus
+import fuookami.ospf.kotlin.math.operator.Rem
 
 fun <I> gcdImpl(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     val zero = x.constants.zero
