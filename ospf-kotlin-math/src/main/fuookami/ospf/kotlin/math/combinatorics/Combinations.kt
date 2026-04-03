@@ -1,0 +1,136 @@
+﻿package fuookami.ospf.kotlin.math.combinatorics
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
+import kotlinx.coroutines.*
+import kotlinx.coroutines.channels.Channel
+import kotlinx.coroutines.channels.ClosedSendChannelException
+import org.apache.logging.log4j.kotlin.logger
+import kotlin.math.min
+
+fun <T> combine(
+    input: List<T>,
+    callBack: ((List<T>) -> Unit)? = null,
+    stopped: ((List<T>) -> Boolean)? = null
+): List<List<T>> {
+    val result = ArrayList<List<T>>()
+    val totalCombinations = 1 shl input.size
+    for (i in 1 until totalCombinations) {
+        val combination = ArrayList<T>()
+        for (j in input.indices) {
+            if (i and (1 shl j) != 0) {
+                combination.add(input[j])
+            }
+        }
+        result.add(combination)
+        callBack?.invoke(combination)
+        if (stopped?.invoke(combination) == true) {
+            break
+        }
+    }
+    return result
+}
+
+fun combineCount(n: Int, choose: Int): Long {
+    if (choose < 0 || choose > n) {
+        return 0L
+    }
+    if (choose == 0 || choose == n) {
+        return 1L
+    }
+    val k = min(choose, n - choose)
+    var value = 1L
+    for (i in 1..k) {
+        value = (value * (n - k + i)) / i
+    }
+    return value
+}
+
+fun <T> combineSequence(input: List<T>): Sequence<List<T>> = sequence {
+    for (k in 1..input.size) {
+        yieldAll(combineSequence(input, k))
+    }
+}
+
+fun <T> combineSequence(input: List<T>, choose: Int): Sequence<List<T>> = sequence {
+    if (choose < 0 || choose > input.size) {
+        return@sequence
+    }
+    if (choose == 0) {
+        yield(emptyList())
+        return@sequence
+    }
+    val indices = IntArray(choose) { it }
+    while (true) {
+        yield(indices.map { input[it] })
+        var i = choose - 1
+        while (i >= 0 && indices[i] == input.size - choose + i) {
+            i -= 1
+        }
+        if (i < 0) {
+            break
+        }
+        indices[i] += 1
+        for (j in i + 1 until choose) {
+            indices[j] = indices[j - 1] + 1
+        }
+    }
+}
+
+fun <T> combine(
+    input: List<T>,
+    choose: Int,
+    callBack: ((List<T>) -> Unit)? = null,
+    stopped: ((List<T>) -> Boolean)? = null
+): List<List<T>> {
+    val result = ArrayList<List<T>>()
+    for (combination in combineSequence(input, choose)) {
+        result.add(combination)
+        callBack?.invoke(combination)
+        if (stopped?.invoke(combination) == true) {
+            break
+        }
+    }
+    return result
+}
+
+@OptIn(DelicateCoroutinesApi::class)
+fun <T> combineAsync(
+    input: List<T>,
+    scope: CoroutineScope = GlobalScope,
+): ChannelGuard<List<T>> {
+    val logger = logger("Combinations")
+
+    val promise = Channel<List<T>>(Channel.UNLIMITED)
+    scope.launch(Dispatchers.Default) {
+        try {
+            val totalCombinations = 1 shl input.size
+            for (i in 1 until totalCombinations) {
+                val combination = ArrayList<T>()
+                for (j in input.indices) {
+                    if (i and (1 shl j) != 0) {
+                        combination.add(input[j])
+                    }
+                }
+                if (promise.isClosedForSend) {
+                    break
+                }
+                promise.send(combination)
+            }
+        } catch (e: ClosedSendChannelException) {
+            logger.debug { "Combination generation was stopped by controller." }
+        } catch (e: Exception) {
+            logger.debug { "Combination generation Error ${e.message}" }
+        } finally {
+            promise.close()
+        }
+    }
+    return ChannelGuard(promise)
+}
+
+
+
+

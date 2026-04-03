@@ -20,18 +20,18 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.utils.math.BalancedTrivalent
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.utils.math.Trivalent
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy
-import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
-import fuookami.ospf.kotlin.utils.physics.quantity.to
-import fuookami.ospf.kotlin.utils.physics.quantity.toFlt64
-import fuookami.ospf.kotlin.utils.physics.unit.*
+import fuookami.ospf.kotlin.math.BalancedTrivalent
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.to
+import fuookami.ospf.kotlin.quantities.quantity.toFlt64
+import fuookami.ospf.kotlin.quantities.unit.*
 
 @JvmName("calculateLinearPolynomialCells")
 private fun cells(

@@ -3,9 +3,9 @@
 import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStage
 import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStatus
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.usize
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.usize
 
 data class MechanismModelDumpingStatus(
     val readyConstraintAmount: UInt64,

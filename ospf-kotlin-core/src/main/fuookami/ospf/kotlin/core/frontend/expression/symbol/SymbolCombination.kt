@@ -3,9 +3,9 @@
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.variable.IdentifierGenerator
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 interface AbstractSymbolCombination<S : Shape> {
     val dimension: Int

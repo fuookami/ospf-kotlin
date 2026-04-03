@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 typealias DualSolution = Map<Constraint, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>

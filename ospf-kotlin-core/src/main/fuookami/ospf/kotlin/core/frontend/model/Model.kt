@@ -15,9 +15,9 @@ import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 typealias Solution = List<Flt64>
 

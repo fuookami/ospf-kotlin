@@ -1,0 +1,22 @@
+﻿package fuookami.ospf.kotlin.math.symbol.inequality
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+
+data class CanonicalInequality(
+    val lhs: CanonicalPolynomial<Flt64>,
+    val rhs: CanonicalPolynomial<Flt64>,
+    val comparison: Comparison
+) {
+    fun reverse(): CanonicalInequality {
+        return CanonicalInequality(
+            lhs = rhs,
+            rhs = lhs,
+            comparison = comparison.reverse()
+        )
+    }
+}

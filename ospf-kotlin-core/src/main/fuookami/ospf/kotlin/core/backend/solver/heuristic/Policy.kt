@@ -3,8 +3,8 @@
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 

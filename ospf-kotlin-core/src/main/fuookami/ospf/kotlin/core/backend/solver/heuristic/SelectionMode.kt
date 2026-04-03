@@ -2,11 +2,11 @@
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.ordinary.max
-import fuookami.ospf.kotlin.utils.math.ordinary.pow
-import fuookami.ospf.kotlin.utils.operator.abs
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.math.operator.abs
 
 interface SelectionMode<V> {
     operator fun <T : Individual<V>> invoke(

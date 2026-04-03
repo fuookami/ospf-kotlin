@@ -15,16 +15,16 @@ import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.core.frontend.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.symbol.Category
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
-import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.physics.unit.reciprocal
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.reciprocal
 
 internal fun Polynomial<*, *, *>.toTidyRawString(unfold: UInt64): String {
     return if (monomials.isEmpty()) {

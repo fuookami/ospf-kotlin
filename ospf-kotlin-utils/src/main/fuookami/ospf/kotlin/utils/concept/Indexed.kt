@@ -1,6 +1,5 @@
-﻿package fuookami.ospf.kotlin.utils.concept
+package fuookami.ospf.kotlin.utils.concept
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.atomic.AtomicInteger
 import kotlin.reflect.KClass
@@ -27,7 +26,7 @@ sealed class IndexedImpl {
 
 interface Indexed {
     val index: Int
-    val uindex: UInt64 get() = UInt64(index)
+    val uindex: ULong get() = index.toULong()
 
     val indexed: Boolean get() = true
 }
@@ -89,6 +88,3 @@ open class AutoIndexed internal constructor(
 fun <T : Indexed> List<T>.findOrGet(index: Int): T {
     return find { it.index == index } ?: get(index)
 }
-
-
-

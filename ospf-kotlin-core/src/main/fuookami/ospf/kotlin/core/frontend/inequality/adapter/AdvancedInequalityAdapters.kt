@@ -5,16 +5,16 @@ import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.parser.Expr
-import fuookami.ospf.kotlin.utils.math.symbol.parser.parseSymbolInequality
-import fuookami.ospf.kotlin.utils.math.symbol.serde.symbolExprFromJson
-import fuookami.ospf.kotlin.utils.math.symbol.serde.toCanonicalInequality
-import fuookami.ospf.kotlin.utils.math.symbol.serde.toExpr
-import fuookami.ospf.kotlin.utils.math.symbol.serde.toJsonString
-import fuookami.ospf.kotlin.utils.math.symbol.serde.toLinearInequalityOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.serde.toQuadraticInequalityOrNull
-import fuookami.ospf.kotlin.utils.math.symbol.operation.toLatex
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.parser.Expr
+import fuookami.ospf.kotlin.math.symbol.parser.parseSymbolInequality
+import fuookami.ospf.kotlin.math.symbol.serde.symbolExprFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.serde.toExpr
+import fuookami.ospf.kotlin.math.symbol.serde.toJsonString
+import fuookami.ospf.kotlin.math.symbol.serde.toLinearInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.toQuadraticInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.operation.toLatex
 
 fun LinearInequality.toLatex(): String {
     return toUtilsInequality().toLatex()

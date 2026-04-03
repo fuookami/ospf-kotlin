@@ -2,7 +2,7 @@
 
 import fuookami.ospf.kotlin.core.frontend.variable.Token
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 sealed interface Cell {
     fun evaluate(): Flt64?

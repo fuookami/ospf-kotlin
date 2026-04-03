@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableType
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import java.io.FileWriter
 import java.io.OutputStreamWriter
 import java.nio.file.Path

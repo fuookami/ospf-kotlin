@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.backend.solver.heuristic
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Clock
 import kotlin.time.ExperimentalTime
 import kotlin.time.Instant

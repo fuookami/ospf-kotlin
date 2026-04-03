@@ -2,12 +2,16 @@
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.Invariant
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.reflect.full.companionObjectInstance
 
 open class ExpressionRange<V>(

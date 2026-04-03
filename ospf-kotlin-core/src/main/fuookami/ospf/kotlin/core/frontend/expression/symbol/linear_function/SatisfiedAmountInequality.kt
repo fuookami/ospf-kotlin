@@ -10,15 +10,15 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanis
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.toFlt64
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.multi_array.Shape1
-import fuookami.ospf.kotlin.utils.multi_array.Shape2
-import fuookami.ospf.kotlin.utils.multi_array._a
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.toFlt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.multiarray.Shape2
+import fuookami.ospf.kotlin.multiarray._a
 import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractSatisfiedAmountInequalityFunction(

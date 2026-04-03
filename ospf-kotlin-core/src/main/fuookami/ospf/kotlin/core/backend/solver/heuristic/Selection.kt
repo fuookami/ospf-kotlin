@@ -2,10 +2,10 @@
 
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.ordinary.max
-import fuookami.ospf.kotlin.utils.math.ordinary.min
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.min
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.awaitAll

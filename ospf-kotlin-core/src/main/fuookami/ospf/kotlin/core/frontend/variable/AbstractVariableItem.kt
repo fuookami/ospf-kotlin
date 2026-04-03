@@ -4,17 +4,20 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToQuadraticPolynomial
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.Bound
-import fuookami.ospf.kotlin.utils.operator.Ord
-import fuookami.ospf.kotlin.utils.operator.Order
-import fuookami.ospf.kotlin.utils.operator.ord
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
-import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
-import fuookami.ospf.kotlin.utils.physics.unit.reciprocal
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.value_range.Bound
+import fuookami.ospf.kotlin.math.operator.Ord
+import fuookami.ospf.kotlin.math.operator.Order
+import fuookami.ospf.kotlin.math.operator.ord
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
+import fuookami.ospf.kotlin.quantities.unit.reciprocal
 
 data class VariableItemKey(
     val identifier: UInt64,

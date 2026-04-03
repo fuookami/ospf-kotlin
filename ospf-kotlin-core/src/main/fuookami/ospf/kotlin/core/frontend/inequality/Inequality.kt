@@ -5,9 +5,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
 
 abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cell>>(
     open val lhs: Polynomial<*, *, Cell>,

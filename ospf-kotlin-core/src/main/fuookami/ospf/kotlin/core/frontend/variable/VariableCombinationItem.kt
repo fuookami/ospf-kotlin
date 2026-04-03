@@ -1,11 +1,14 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.variable
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
-import fuookami.ospf.kotlin.utils.physics.unit.PhysicalUnit
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 
 interface CombinationVariableItemParent<S : Shape> {
     val dimension: Int

@@ -1,8 +1,14 @@
 ﻿package  fuookami.ospf.kotlin.core.frontend.variable
 
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
+import fuookami.ospf.kotlin.math.algebra.concept.IntegerNumber
+import fuookami.ospf.kotlin.math.algebra.concept.UIntegerNumber
+import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T> {
     val name: String

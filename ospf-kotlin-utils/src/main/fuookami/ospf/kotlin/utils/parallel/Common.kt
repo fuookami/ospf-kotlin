@@ -6,25 +6,23 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
+import kotlin.math.log2
+import kotlin.math.max
+import kotlin.math.min
 
 // Default concurrent amount for parallel operations / 并行操作的默认并发量
 // Handle empty collection to avoid log(0) = -inf / 处理空集合避免 log(0) = -inf
-val Collection<*>.defaultConcurrentAmount: UInt64
+val Collection<*>.defaultConcurrentAmount: ULong
     get() = if (this.isEmpty()) {
-        UInt64.one
+        1uL
     } else {
-        UInt64(
-            maxOf(
-                minOf(
-                    Flt64(this.size).log(Flt64.two)!!.toFlt64().floor().toUInt64().toInt(),
-                    Runtime.getRuntime().availableProcessors()
-                ),
-                1
-            )
-        )
+        maxOf(
+            minOf(
+                log2(this.size.toDouble()).toInt(),
+                Runtime.getRuntime().availableProcessors()
+            ),
+            1
+        ).toULong()
     }
 
 @PublishedApi

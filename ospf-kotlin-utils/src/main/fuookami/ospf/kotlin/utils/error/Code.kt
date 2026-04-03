@@ -1,55 +1,52 @@
-﻿package fuookami.ospf.kotlin.utils.error
+package fuookami.ospf.kotlin.utils.error
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
+enum class ErrorCode(private val code: UByte) {
+    None(0x00U),
+    AuthenticationError(0x01U),
 
-enum class ErrorCode(private val code: UInt8) {
-    None(UInt8(0x00U)),
-    AuthenticationError(UInt8(0x01U)),
+    NotAFile(0x10U),
+    NotADirectory(0x11U),
+    FileNotFound(0x12U),
+    DirectoryUnusable(0x13U),
+    FileExtensionNotMatched(0x14U),
+    DataNotFound(0x15U),
+    DataEmpty(0x16U),
+    EnumVisitorEmpty(0x17U),
+    UniqueBoxLocked(0x18U),
+    UniqueRefLocked(0x19U),
+    SerializationFailed(0x1aU),
+    DeserializationFailed(0x1bU),
 
-    NotAFile(UInt8(0x10U)),
-    NotADirectory(UInt8(0x11U)),
-    FileNotFound(UInt8(0x12U)),
-    DirectoryUnusable(UInt8(0x13U)),
-    FileExtensionNotMatched(UInt8(0x14U)),
-    DataNotFound(UInt8(0x15U)),
-    DataEmpty(UInt8(0x16U)),
-    EnumVisitorEmpty(UInt8(0x17U)),
-    UniqueBoxLocked(UInt8(0x18U)),
-    UniqueRefLocked(UInt8(0x19U)),
-    SerializationFailed(UInt8(0x1aU)),
-    DeserializationFailed(UInt8(0x1bU)),
+    TokenExisted(0x20U),
+    SymbolRepetitive(0x21U),
+    LackOfPipelines(0x22U),
+    SolverNotFound(0x23U),
+    OREngineEnvironmentLost(0x24U),
+    OREngineConnectionOvertime(0x25U),
+    OREngineModelingException(0x26U),
+    OREngineSolvingException(0x27U),
+    OREngineTerminated(0x28U),
+    ORModelInfeasible(0x29U),
+    ORModelUnbounded(0x2aU),
+    ORModelInfeasibleOrUnbounded(0x2aU),
+    ORSolutionInvalid(0x2cU),
 
-    TokenExisted(UInt8(0x20U)),
-    SymbolRepetitive(UInt8(0x21U)),
-    LackOfPipelines(UInt8(0x22U)),
-    SolverNotFound(UInt8(0x23U)),
-    OREngineEnvironmentLost(UInt8(0x24U)),
-    OREngineConnectionOvertime(UInt8(0x25U)),
-    OREngineModelingException(UInt8(0x26U)),
-    OREngineSolvingException(UInt8(0x27U)),
-    OREngineTerminated(UInt8(0x28U)),
-    ORModelInfeasible(UInt8(0x29U)),
-    ORModelUnbounded(UInt8(0x2aU)),
-    ORModelInfeasibleOrUnbounded(UInt8(0x2aU)),
-    ORSolutionInvalid(UInt8(0x2cU)),
+    ApplicationFailed(0x30U),
+    ApplicationError(0x31U),
+    ApplicationException(0x32U),
+    ApplicationStopped(0x33U),
+    IllegalArgument(0x34U),
 
-    ApplicationFailed(UInt8(0x30U)),
-    ApplicationError(UInt8(0x31U)),
-    ApplicationException(UInt8(0x32U)),
-    ApplicationStopped(UInt8(0x33U)),
-    IllegalArgument(UInt8(0x34U)),
-
-    Other(UInt8.maximum - UInt8.one),
-    Unknown(UInt8.maximum);
+    Other(0xfeU),
+    Unknown(0xffU);
 
     companion object {
-        fun from(code: UInt8) = ErrorCode.entries.first { it.code == code }
-        fun from(code: UInt64) = ErrorCode.entries.first { it.code.toUInt64() == code }
+        fun from(code: UByte) = ErrorCode.entries.first { it.code == code }
+        fun from(code: ULong) = ErrorCode.entries.first { it.code.toULong() == code }
     }
 
-    fun toUInt8() = this.code
-    fun toUInt64() = this.code.toUInt64()
+    fun toUByte() = this.code
+    fun toULong() = this.code.toULong()
 
     override fun toString(): String {
         return this.name
@@ -57,6 +54,3 @@ enum class ErrorCode(private val code: UInt8) {
 }
 
 // todo: find localize way to set default message
-
-
-

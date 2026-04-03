@@ -2,7 +2,7 @@
 
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 interface Mutation<V> {
     operator fun <T : Individual<V>> invoke(

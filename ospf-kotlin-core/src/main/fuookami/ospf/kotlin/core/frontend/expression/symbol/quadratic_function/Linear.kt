@@ -14,10 +14,10 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import org.apache.logging.log4j.kotlin.logger
 
 class LinearFunction(

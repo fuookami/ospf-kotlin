@@ -1,0 +1,627 @@
+﻿package fuookami.ospf.kotlin.math.algebra.number
+
+import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.ordinary.pow
+import fuookami.ospf.kotlin.utils.math.operator.orderOf
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
+import java.math.BigInteger
+import kotlin.math.log
+import kotlin.math.pow
+
+private fun uIntegerLogByFloatingBase(
+    floatValue: Float,
+    doubleValue: Double,
+    base: FloatingNumber<*>,
+    toFltX: () -> FltX,
+    source: String
+): FloatingNumber<*>? = when (base) {
+    is Flt32 -> Flt32(log(floatValue, base.value))
+    is Flt64 -> Flt64(log(doubleValue, base.value))
+    is FltX -> toFltX().log(base)
+    else -> throw IllegalArgumentException("Unknown argument type to $source.log: ${base.javaClass}")
+}
+
+private fun uIntegerPowByFloatingIndex(
+    floatValue: Float,
+    doubleValue: Double,
+    index: FloatingNumber<*>,
+    toFltX: () -> FltX,
+    source: String
+): FloatingNumber<*> = when (index) {
+    is Flt32 -> Flt32(floatValue.pow(index.value))
+    is Flt64 -> Flt64(doubleValue.pow(index.value))
+    is FltX -> toFltX().pow(index)
+    else -> throw IllegalArgumentException("Unknown argument type to $source.pow: ${index.javaClass}")
+}
+
+interface UIntegerNumberImpl<Self : UIntegerNumberImpl<Self>> : UIntegerNumber<Self> {
+    override fun abs() = copy()
+    override fun reciprocal() = when (this) {
+        constants.one -> constants.one.copy()
+        else -> throw ArithmeticException("Reciprocal is undefined in UInteger domain for non-unit value: $this")
+    }
+
+    override fun intDiv(rhs: Self) = this / rhs
+
+    override operator fun inc(): Self = this + constants.one
+    override operator fun dec(): Self = this - constants.one
+
+    override fun lg() = log(Flt64.ten)
+    override fun lg2() = log(Flt64.two)
+    override fun ln() = log(Flt64.e)
+
+    override fun pow(index: Int) = pow(copy(), index, constants)
+    override fun sqr() = pow(2)
+    override fun cub() = pow(3)
+
+    override fun sqrt() = pow(Flt64.two.reciprocal())
+    override fun cbrt() = pow(Flt64.three.reciprocal())
+
+    override fun exp(): FloatingNumber<*> = toFlt64().exp()
+
+    override fun sin(): FloatingNumber<*> = toFlt64().sin()
+    override fun cos(): FloatingNumber<*> = toFlt64().cos()
+    override fun sec(): FloatingNumber<*>? = toFlt64().sec()
+    override fun csc(): FloatingNumber<*>? = toFlt64().csc()
+    override fun tan(): FloatingNumber<*>? = toFlt64().tan()
+    override fun cot(): FloatingNumber<*>? = toFlt64().cot()
+
+    override fun asin(): FloatingNumber<*>? = toFlt64().asin()
+    override fun acos(): FloatingNumber<*>? = toFlt64().acos()
+    override fun asec(): FloatingNumber<*>? = toFlt64().asec()
+    override fun acsc(): FloatingNumber<*>? = toFlt64().acsc()
+    override fun atan(): FloatingNumber<*> = toFlt64().atan()
+    override fun acot(): FloatingNumber<*>? = toFlt64().acot()
+
+    override fun sinh(): FloatingNumber<*> = toFlt64().sinh()
+    override fun cosh(): FloatingNumber<*> = toFlt64().cosh()
+    override fun sech(): FloatingNumber<*> = toFlt64().sech()
+    override fun csch(): FloatingNumber<*>? = toFlt64().csch()
+    override fun tanh(): FloatingNumber<*> = toFlt64().tanh()
+    override fun coth(): FloatingNumber<*>? = toFlt64().coth()
+
+    override fun asinh(): FloatingNumber<*> = toFlt64().asinh()
+    override fun acosh(): FloatingNumber<*>? = toFlt64().acosh()
+    override fun asech(): FloatingNumber<*>? = toFlt64().asech()
+    override fun acsch(): FloatingNumber<*>? = toFlt64().acsch()
+    override fun atanh(): FloatingNumber<*>? = toFlt64().atanh()
+    override fun acoth(): FloatingNumber<*>? = toFlt64().acoth()
+
+    override fun rangeTo(rhs: Self) = IntegerRange(copy(), rhs, constants.one, constants)
+    override infix fun until(rhs: Self) = if (rhs == constants.zero) {
+        this.rangeTo(rhs)
+    } else {
+        this.rangeTo(rhs - constants.one)
+    }
+}
+
+data object UInt8Serializer : KSerializer<UInt8> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt8", PrimitiveKind.INT)
+
+    override fun serialize(encoder: Encoder, value: UInt8) {
+        encoder.encodeInt(value.value.toInt())
+    }
+
+    override fun deserialize(decoder: Decoder): UInt8 {
+        return UInt8(decoder.decodeInt().toUByte())
+    }
+}
+
+@JvmInline
+@Serializable(with = UInt8Serializer::class)
+value class UInt8(internal val value: UByte) : UIntegerNumberImpl<UInt8>, Copyable<UInt8> {
+    constructor(value: Boolean) : this(
+        if (value) {
+            1U
+        } else {
+            0U
+        }
+    )
+
+    companion object : RealNumberConstants<UInt8> {
+        @JvmStatic
+        override val zero: UInt8 get() = UInt8(0U)
+
+        @JvmStatic
+        override val one: UInt8 get() = UInt8(1U)
+
+        @JvmStatic
+        override val two: UInt8 get() = UInt8(2U)
+
+        @JvmStatic
+        override val three: UInt8 get() = UInt8(3U)
+
+        @JvmStatic
+        override val five: UInt8 get() = UInt8(5U)
+
+        @JvmStatic
+        override val ten: UInt8 get() = UInt8(10U)
+
+        @JvmStatic
+        override val minimum: UInt8 get() = UInt8(UByte.MIN_VALUE)
+
+        @JvmStatic
+        override val maximum: UInt8 get() = UInt8(UByte.MAX_VALUE)
+    }
+
+    override val constants: RealNumberConstants<UInt8> get() = Companion
+
+    override fun copy() = UInt8(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int): String = value.toString(radix)
+
+    override fun partialOrd(rhs: UInt8) = orderOf(value.compareTo(rhs.value))
+    override fun partialEq(rhs: UInt8) = (value.compareTo(rhs.value) == 0)
+
+    override operator fun unaryMinus() = maximum - this
+
+    override operator fun plus(rhs: UInt8) = UInt8((value + rhs.value).toUByte())
+    override operator fun minus(rhs: UInt8) = UInt8((value - rhs.value).toUByte())
+    override operator fun times(rhs: UInt8) = UInt8((value * rhs.value).toUByte())
+    override operator fun div(rhs: UInt8) = UInt8((value / rhs.value).toUByte())
+    override operator fun rem(rhs: UInt8) = UInt8((value % rhs.value).toUByte())
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt8")
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt8")
+
+    override fun toInt8() = Int8(value.toByte())
+    override fun toInt16() = Int16(value.toShort())
+    override fun toInt32() = Int32(value.toInt())
+    override fun toInt64() = Int64(value.toLong())
+    override fun toIntX() = IntX(value.toLong())
+
+    override fun toUInt8() = copy()
+    override fun toUInt16() = UInt16(value.toUShort())
+    override fun toUInt32() = UInt32(value.toUInt())
+    override fun toUInt64() = UInt64(value.toULong())
+    override fun toUIntX() = UIntX(value.toLong())
+
+    override fun toFlt32() = Flt32(value.toFloat())
+    override fun toFlt64() = Flt64(value.toDouble())
+    override fun toFltX() = FltX(value.toDouble())
+}
+
+data object UInt16Serializer : KSerializer<UInt16> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt16", PrimitiveKind.INT)
+
+    override fun serialize(encoder: Encoder, value: UInt16) {
+        encoder.encodeInt(value.value.toInt())
+    }
+
+    override fun deserialize(decoder: Decoder): UInt16 {
+        return UInt16(decoder.decodeInt().toUShort())
+    }
+}
+
+@JvmInline
+@Serializable(with = UInt16Serializer::class)
+value class UInt16(internal val value: UShort) : UIntegerNumberImpl<UInt16>, Copyable<UInt16> {
+    companion object : RealNumberConstants<UInt16> {
+        @JvmStatic
+        override val zero: UInt16 get() = UInt16(0U)
+
+        @JvmStatic
+        override val one: UInt16 get() = UInt16(1U)
+
+        @JvmStatic
+        override val two: UInt16 get() = UInt16(2U)
+
+        @JvmStatic
+        override val three: UInt16 get() = UInt16(3U)
+
+        @JvmStatic
+        override val five: UInt16 get() = UInt16(5U)
+
+        @JvmStatic
+        override val ten: UInt16 get() = UInt16(10U)
+
+        @JvmStatic
+        override val minimum: UInt16 get() = UInt16(UShort.MIN_VALUE)
+
+        @JvmStatic
+        override val maximum: UInt16 get() = UInt16(UShort.MAX_VALUE)
+    }
+
+    override val constants: RealNumberConstants<UInt16> get() = Companion
+
+    override fun copy() = UInt16(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: UInt16) = orderOf(value.compareTo(rhs.value))
+    override fun partialEq(rhs: UInt16) = (value.compareTo(rhs.value) == 0)
+
+    override operator fun unaryMinus() = maximum - this
+
+    override operator fun plus(rhs: UInt16) = UInt16((value + rhs.value).toUShort())
+    override operator fun minus(rhs: UInt16) = UInt16((value - rhs.value).toUShort())
+    override operator fun times(rhs: UInt16) = UInt16((value * rhs.value).toUShort())
+    override operator fun div(rhs: UInt16) = UInt16((value / rhs.value).toUShort())
+    override operator fun rem(rhs: UInt16) = UInt16((value % rhs.value).toUShort())
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt16")
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt16")
+
+    override fun toInt8() = Int8(value.toByte())
+    override fun toInt16() = Int16(value.toShort())
+    override fun toInt32() = Int32(value.toInt())
+    override fun toInt64() = Int64(value.toLong())
+    override fun toIntX() = IntX(value.toLong())
+
+    override fun toUInt8() = UInt8(value.toUByte())
+    override fun toUInt16() = copy()
+    override fun toUInt32() = UInt32(value.toUInt())
+    override fun toUInt64() = UInt64(value.toULong())
+    override fun toUIntX() = UIntX(value.toLong())
+
+    override fun toFlt32() = Flt32(value.toFloat())
+    override fun toFlt64() = Flt64(value.toDouble())
+    override fun toFltX() = FltX(value.toDouble())
+}
+
+data object UInt32Serializer : KSerializer<UInt32> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt32", PrimitiveKind.INT)
+
+    override fun serialize(encoder: Encoder, value: UInt32) {
+        encoder.encodeInt(value.value.toInt())
+    }
+
+    override fun deserialize(decoder: Decoder): UInt32 {
+        return UInt32(decoder.decodeInt().toUInt())
+    }
+}
+
+@JvmInline
+@Serializable(with = UInt32Serializer::class)
+value class UInt32(internal val value: UInt) : UIntegerNumberImpl<UInt32>, Copyable<UInt32> {
+    companion object : RealNumberConstants<UInt32> {
+        @JvmStatic
+        override val zero: UInt32 get() = UInt32(0U)
+
+        @JvmStatic
+        override val one: UInt32 get() = UInt32(1U)
+
+        @JvmStatic
+        override val two: UInt32 get() = UInt32(2U)
+
+        @JvmStatic
+        override val three: UInt32 get() = UInt32(3U)
+
+        @JvmStatic
+        override val five: UInt32 get() = UInt32(5U)
+
+        @JvmStatic
+        override val ten: UInt32 get() = UInt32(10U)
+
+        @JvmStatic
+        override val minimum: UInt32 get() = UInt32(UInt.MIN_VALUE)
+
+        @JvmStatic
+        override val maximum: UInt32 get() = UInt32(UInt.MAX_VALUE)
+    }
+
+    override val constants: RealNumberConstants<UInt32> get() = UInt32
+
+    override fun copy() = UInt32(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: UInt32) = orderOf(value.compareTo(rhs.value))
+    override fun partialEq(rhs: UInt32) = (value.compareTo(rhs.value) == 0)
+
+    override operator fun unaryMinus() = maximum - this
+
+    override operator fun plus(rhs: UInt32) = UInt32(value + rhs.value)
+    override operator fun minus(rhs: UInt32) = UInt32(value - rhs.value)
+    override operator fun times(rhs: UInt32) = UInt32(value * rhs.value)
+    override operator fun div(rhs: UInt32) = UInt32(value / rhs.value)
+    override operator fun rem(rhs: UInt32) = UInt32(value % rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt32")
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt32")
+
+    fun toInt() = value.toInt()
+    fun toLong() = value.toLong()
+
+    override fun toInt8() = Int8(value.toByte())
+    override fun toInt16() = Int16(value.toShort())
+    override fun toInt32() = Int32(value.toInt())
+    override fun toInt64() = Int64(value.toLong())
+    override fun toIntX() = IntX(value.toLong())
+
+    override fun toUInt8() = UInt8(value.toUByte())
+    override fun toUInt16() = UInt16(value.toUShort())
+    override fun toUInt32() = copy()
+    override fun toUInt64() = UInt64(value.toULong())
+    override fun toUIntX() = UIntX(value.toLong())
+
+    override fun toFlt32() = Flt32(value.toFloat())
+    override fun toFlt64() = Flt64(value.toDouble())
+    override fun toFltX() = FltX(value.toDouble())
+}
+
+data object UInt64Serializer : KSerializer<UInt64> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UInt64", PrimitiveKind.LONG)
+
+    override fun serialize(encoder: Encoder, value: UInt64) {
+        encoder.encodeLong(value.value.toLong())
+    }
+
+    override fun deserialize(decoder: Decoder): UInt64 {
+        return UInt64(decoder.decodeLong().toULong())
+    }
+}
+
+@JvmInline
+@Serializable(with = UInt64Serializer::class)
+value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copyable<UInt64> {
+    constructor(value: Int) : this(value.toULong())
+
+    companion object : RealNumberConstants<UInt64> {
+        @JvmStatic
+        override val zero: UInt64 get() = UInt64(0UL)
+
+        @JvmStatic
+        override val one: UInt64 get() = UInt64(1UL)
+
+        @JvmStatic
+        override val two: UInt64 get() = UInt64(2UL)
+
+        @JvmStatic
+        override val three: UInt64 get() = UInt64(3UL)
+
+        @JvmStatic
+        override val five: UInt64 get() = UInt64(5UL)
+
+        @JvmStatic
+        override val ten: UInt64 get() = UInt64(10UL)
+
+        @JvmStatic
+        override val minimum: UInt64 get() = UInt64(ULong.MIN_VALUE)
+
+        @JvmStatic
+        override val maximum: UInt64 get() = UInt64(ULong.MAX_VALUE)
+    }
+
+    override val constants: RealNumberConstants<UInt64> get() = UInt64
+
+    override fun copy() = UInt64(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int) = value.toString(radix)
+
+    override fun partialOrd(rhs: UInt64) = orderOf(value.compareTo(rhs.value))
+    override fun partialEq(rhs: UInt64) = (value.compareTo(rhs.value) == 0)
+
+    override operator fun unaryMinus() = maximum - this
+
+    override operator fun plus(rhs: UInt64) = UInt64(value + rhs.value)
+    override operator fun minus(rhs: UInt64) = UInt64(value - rhs.value)
+    override operator fun times(rhs: UInt64) = UInt64(value * rhs.value)
+    override operator fun div(rhs: UInt64) = UInt64(value / rhs.value)
+    override operator fun rem(rhs: UInt64) = UInt64(value % rhs.value)
+
+    @Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? =
+        uIntegerLogByFloatingBase(value.toFloat(), value.toDouble(), base, ::toFltX, "UInt64")
+
+    @Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> =
+        uIntegerPowByFloatingIndex(value.toFloat(), value.toDouble(), index, ::toFltX, "UInt64")
+
+    fun toInt() = value.toInt()
+    fun toLong() = value.toLong()
+
+    val indices get() = zero until this
+
+    override fun toInt8() = Int8(value.toByte())
+    override fun toInt16() = Int16(value.toShort())
+    override fun toInt32() = Int32(value.toInt())
+    override fun toInt64() = Int64(value.toLong())
+    override fun toIntX() = IntX(value.toString())
+
+    override fun toUInt8() = UInt8(value.toUByte())
+    override fun toUInt16() = UInt16(value.toUShort())
+    override fun toUInt32() = UInt32(value.toUInt())
+    override fun toUInt64() = copy()
+    override fun toUIntX() = UIntX(value.toString())
+
+    override fun toFlt32() = Flt32(value.toFloat())
+    override fun toFlt64() = Flt64(value.toDouble())
+    override fun toFltX() = FltX(value.toString())
+}
+
+data object UIntXSerializer : KSerializer<UIntX> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UIntX", PrimitiveKind.STRING)
+
+    override fun serialize(encoder: Encoder, value: UIntX) {
+        encoder.encodeString(value.value.toString())
+    }
+
+    override fun deserialize(decoder: Decoder): UIntX {
+        return UIntX(decoder.decodeString())
+    }
+}
+
+@JvmInline
+@Serializable(with = UIntXSerializer::class)
+value class UIntX(internal val value: BigInteger) : UIntegerNumberImpl<UIntX>, Copyable<UIntX> {
+    companion object : RealNumberConstants<UIntX> {
+        @JvmStatic
+        override val zero: UIntX get() = UIntX(0L)
+
+        @JvmStatic
+        override val one: UIntX get() = UIntX(1L)
+
+        @JvmStatic
+        override val two: UIntX get() = UIntX(2L)
+
+        @JvmStatic
+        override val three: UIntX get() = UIntX(3L)
+
+        @JvmStatic
+        override val five: UIntX get() = UIntX(5L)
+
+        @JvmStatic
+        override val ten: UIntX get() = UIntX(10L)
+
+        @JvmStatic
+        override val minimum: UIntX get() = UIntX(0L)
+
+        @JvmStatic
+        override val maximum: UIntX get() = UIntX(Double.MAX_VALUE.toString())
+    }
+
+    constructor(value: Long) : this(BigInteger.valueOf(value))
+    constructor(value: String, radix: Int = 10) : this(BigInteger(value, radix))
+
+    init {
+        if (value < BigInteger.ZERO) {
+            throw IllegalArgumentException("Illegal negative value to UIntX: $value")
+        }
+    }
+
+    override val constants: RealNumberConstants<UIntX> get() = UIntX
+    override val isBounded: Boolean get() = false
+    override val minBound: UIntX? get() = null
+    override val maxBound: UIntX? get() = null
+
+    override fun copy() = UIntX(value)
+
+    override fun toString() = value.toString()
+    fun toString(radix: Int): String = value.toString(radix)
+
+    override fun partialOrd(rhs: UIntX) = orderOf(value.compareTo(rhs.value))
+    override fun partialEq(rhs: UIntX) = (value.compareTo(rhs.value) == 0)
+
+    override operator fun unaryMinus() = maximum - this
+
+    override operator fun plus(rhs: UIntX) = UIntX(value + rhs.value)
+    override operator fun minus(rhs: UIntX) = UIntX(value - rhs.value)
+    override operator fun times(rhs: UIntX) = UIntX(value * rhs.value)
+    override operator fun div(rhs: UIntX) = UIntX(value / rhs.value)
+    override operator fun rem(rhs: UIntX) = UIntX(value % rhs.value)
+
+    @kotlin.jvm.Throws(IllegalArgumentException::class)
+    override fun log(base: FloatingNumber<*>): FloatingNumber<*>? = when (base) {
+        is Flt32 -> toFltX().log(base)
+        is Flt64 -> toFltX().log(base)
+        is FltX -> toFltX().log(base)
+        else -> throw IllegalArgumentException("Unknown argument type to UIntX.log: ${base.javaClass}")
+    }
+
+    override fun lg() = log(FltX(10.0)) as FltX
+    override fun ln() = log(FltX.e) as FltX
+
+    @kotlin.jvm.Throws(IllegalArgumentException::class)
+    override fun pow(index: FloatingNumber<*>): FloatingNumber<*> = when (index) {
+        is Flt32 -> toFltX().pow(index)
+        is Flt64 -> toFltX().pow(index)
+        is FltX -> toFltX().pow(index)
+        else -> throw IllegalArgumentException("Unknown argument type to UIntX.pow: ${index.javaClass}")
+    }
+
+    override fun sqrt() = pow(FltX(1.0 / 2.0)) as FltX
+    override fun cbrt() = pow(FltX(1.0 / 3.0)) as FltX
+    override fun exp() = toFltX().exp()
+
+    override fun sin() = toFltX().sin()
+    override fun cos() = toFltX().cos()
+    override fun sec() = toFltX().sec()
+    override fun csc() = toFltX().csc()
+    override fun tan() = toFltX().tan()
+    override fun cot() = toFltX().cot()
+
+    override fun asin() = toFltX().asin()
+    override fun acos() = toFltX().acos()
+    override fun asec() = toFltX().asec()
+    override fun acsc() = toFltX().acsc()
+    override fun atan() = toFltX().atan()
+    override fun acot() = toFltX().acot()
+
+    override fun sinh() = toFltX().sinh()
+    override fun cosh() = toFltX().cosh()
+    override fun sech() = toFltX().sech()
+    override fun csch() = toFltX().csch()
+    override fun tanh() = toFltX().tanh()
+    override fun coth() = toFltX().coth()
+
+    override fun asinh() = toFltX().asinh()
+    override fun acosh() = toFltX().acosh()
+    override fun asech() = toFltX().asech()
+    override fun acsch() = toFltX().acsch()
+    override fun atanh() = toFltX().atanh()
+    override fun acoth() = toFltX().acoth()
+
+    override fun toInt8() = Int8(value.toByte())
+    override fun toInt16() = Int16(value.toShort())
+    override fun toInt32() = Int32(value.toInt())
+    override fun toInt64() = Int64(value.toLong())
+    override fun toIntX() = IntX(value)
+
+    override fun toUInt8() = UInt8(value.toLong().toUByte())
+    override fun toUInt16() = UInt16(value.toLong().toUShort())
+    override fun toUInt32() = UInt32(value.toLong().toUInt())
+    override fun toUInt64() = UInt64(value.toLong().toULong())
+    override fun toUIntX() = copy()
+
+    override fun toFlt32() = Flt32(value.toFloat())
+    override fun toFlt64() = Flt64(value.toDouble())
+    override fun toFltX() = FltX(value.toBigDecimal())
+}
+
+fun Boolean.toUInt8() = if (this) {
+    UInt8.one
+} else {
+    UInt8.zero
+}
+
+fun Boolean.toUInt64() = if (this) {
+    UInt64.one
+} else {
+    UInt64.zero
+}
+
+fun String.toUInt8() = UInt8(toUByte())
+fun String.toUInt8OrNull() = toUByteOrNull()?.let { UInt8(it) }
+fun String.toUInt16() = UInt16(toUShort())
+fun String.toUInt16OrNull() = toUShortOrNull()?.let { UInt16(it) }
+fun String.toUInt32() = UInt32(toUInt())
+fun String.toUInt32OrNull() = toUIntOrNull()?.let { UInt32(it) }
+fun String.toUInt64() = UInt64(toULong())
+fun String.toUInt64OrNull() = toULongOrNull()?.let { UInt64(it) }
+fun String.toUIntX(radix: Int = 10) = UIntX(this, radix)
+fun String.toUIntXOrNull(radix: Int = 10) = runCatching { UIntX(this, radix) }.getOrNull()
+
+
+
+
+

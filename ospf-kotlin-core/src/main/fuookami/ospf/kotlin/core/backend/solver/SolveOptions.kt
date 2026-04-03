@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.core.backend.solver
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.backend.solver.value.SolveValueConversionPolicy
 import fuookami.ospf.kotlin.core.frontend.model.status.ModelBuildingStatusCallBack
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class SolveOptions(
     val solutionAmount: UInt64? = null,

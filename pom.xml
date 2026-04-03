@@ -9,6 +9,9 @@
         <module>ospf-kotlin-dependencies</module>
         <module>ospf-kotlin-parent</module>
         <module>ospf-kotlin-utils</module>
+        <module>ospf-kotlin-multiarray</module>
+        <module>ospf-kotlin-math</module>
+        <module>ospf-kotlin-quantities</module>
         <module>ospf-kotlin-core</module>
         <module>ospf-kotlin-framework</module>
         <module>ospf-kotlin-core-plugin</module>

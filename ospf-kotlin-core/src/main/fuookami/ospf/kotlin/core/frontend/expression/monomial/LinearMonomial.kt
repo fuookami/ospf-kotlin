@@ -1,14 +1,14 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.utils.math.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.*
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.physics.unit.*
-import fuookami.ospf.kotlin.utils.physics.quantity.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.math.operator.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
@@ -16,8 +16,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.*
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.*
-import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.*
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import kotlin.ConsistentCopyVisibility
 
 @ConsistentCopyVisibility

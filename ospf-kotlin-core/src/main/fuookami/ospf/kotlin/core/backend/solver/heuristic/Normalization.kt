@@ -2,8 +2,8 @@
 
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.sum
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.operator.Order
 
 interface ObjectiveNormalization<V> {
     operator fun invoke(

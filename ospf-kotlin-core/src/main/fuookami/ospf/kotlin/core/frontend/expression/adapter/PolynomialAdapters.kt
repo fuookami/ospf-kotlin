@@ -4,13 +4,13 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial as CoreAbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial as CoreAbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 
 fun CoreAbstractLinearPolynomial<*>.toUtilsPolynomial(): UtilsLinearPolynomial<Flt64> {
     return UtilsLinearPolynomial(

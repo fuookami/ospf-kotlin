@@ -16,14 +16,14 @@ import fuookami.ospf.kotlin.core.frontend.variable.BinVar
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.ordinary.max
-import fuookami.ospf.kotlin.utils.math.symbol.Linear
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.toFlt64
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.operator.abs
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.toFlt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.operator.abs
 import org.apache.logging.log4j.kotlin.logger
 
 class MaskingFunction(

@@ -3,8 +3,8 @@
 package fuookami.ospf.kotlin.framework
 
 import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.toLocalDateTime
@@ -53,7 +53,7 @@ data class FinnishHeartBeat(
             return FinnishHeartBeat(
                 id = id,
                 runTime = runTime,
-                code = error.code.toUInt64(),
+                code = UInt64(error.code.toULong()),
                 message = error.message
             )
         }
@@ -62,7 +62,7 @@ data class FinnishHeartBeat(
             return FinnishHeartBeat(
                 id = id,
                 runTime = Duration.ZERO,
-                code = error.code.toUInt64(),
+                code = UInt64(error.code.toULong()),
                 message = error.message
             )
         }

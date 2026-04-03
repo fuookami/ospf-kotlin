@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 sealed class SubObject(
     val category: ObjectCategory,

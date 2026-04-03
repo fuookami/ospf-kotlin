@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.core.backend.solver.output
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
 
 data class InfeasibleUnifiedFields(

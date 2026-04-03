@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial as CoreLinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialSymbol as CoreLinearMonomialSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial as CoreQuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialSymbolUnit as CoreQuadraticMonomialSymbolUnit
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 
 private fun coreLinearSymbolToCommonSymbol(
     symbol: CoreLinearMonomialSymbol

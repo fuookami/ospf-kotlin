@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.operator.Order
-import fuookami.ospf.kotlin.utils.operator.orderOf
+import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.math.operator.orderOf
 
 typealias Predicate<T> = (T) -> Boolean
 typealias TryPredicate<T> = (T) -> Ret<Boolean>

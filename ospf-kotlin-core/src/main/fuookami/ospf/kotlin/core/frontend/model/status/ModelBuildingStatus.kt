@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.frontend.model.status
 
 import fuookami.ospf.kotlin.utils.functional.Try
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class ModelBuildingStatus(
     val modelName: String,

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.inequality
 
 import fuookami.ospf.kotlin.utils.functional.Comparator
-import fuookami.ospf.kotlin.utils.operator.Ord
+import fuookami.ospf.kotlin.math.operator.Ord
 
 enum class Sign {
     Less {

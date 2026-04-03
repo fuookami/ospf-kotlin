@@ -1,6 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.functional
-
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+package fuookami.ospf.kotlin.utils.functional
 
 typealias MultiMap2<K1, K2, V> = Map<K1, Map<K2, V>>
 typealias MultiMap3<K1, K2, K3, V> = Map<K1, Map<K2, Map<K3, V>>>
@@ -28,7 +26,7 @@ operator fun <K, T> Map<K, List<T>>.get(key: K, i: Int): T? {
     return this[key]?.get(i)
 }
 
-operator fun <K, T> Map<K, List<T>>.get(key: K, i: UInt64): T? {
+operator fun <K, T> Map<K, List<T>>.get(key: K, i: ULong): T? {
     return this[key]?.get(i.toInt())
 }
 
@@ -70,7 +68,7 @@ operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: I
     return this[key1]?.get(key2)?.get(i)
 }
 
-operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: UInt64): T? {
+operator fun <K1, K2, T> MultiMap2<K1, K2, List<T>>.get(key1: K1, key2: K2, i: ULong): T? {
     return this[key1]?.get(key2)?.get(i.toInt())
 }
 
@@ -119,7 +117,7 @@ operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: 
     return this[key1]?.get(key2)?.get(key3)?.get(i)
 }
 
-operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: UInt64): T? {
+operator fun <K1, K2, K3, T> MultiMap3<K1, K2, K3, List<T>>.get(key1: K1, key2: K2, key3: K3, i: ULong): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(i.toInt())
 }
 
@@ -175,9 +173,6 @@ operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i)
 }
 
-operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: UInt64): T? {
+operator fun <K1, K2, K3, K4, T> MultiMap4<K1, K2, K3, K4, List<T>>.get(key1: K1, key2: K2, key3: K3, key4: K4, i: ULong): T? {
     return this[key1]?.get(key2)?.get(key3)?.get(key4)?.get(i.toInt())
 }
-
-
-

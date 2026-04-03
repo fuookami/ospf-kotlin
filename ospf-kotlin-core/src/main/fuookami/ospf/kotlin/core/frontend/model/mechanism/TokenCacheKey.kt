@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.symbol.Category
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.core.frontend.variable.IdentifierGenerator
 
 internal data class TokenCacheKey(

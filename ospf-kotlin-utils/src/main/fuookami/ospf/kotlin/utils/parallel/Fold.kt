@@ -5,25 +5,19 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.yield
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
-import fuookami.ospf.kotlin.utils.math.algebra.concept.Arithmetic
-import fuookami.ospf.kotlin.utils.math.algebra.concept.ArithmeticConstants
-import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.operator.Plus
 
 @PublishedApi
-internal val maxSegmentValue = UInt64(Int.MAX_VALUE)
+internal val maxSegmentValue = Int.MAX_VALUE.toLong()
 
 @PublishedApi
-internal fun normalizeSegment(segment: UInt64): Int {
-    require(segment > UInt64.zero) { "segment must be greater than zero." }
+internal fun normalizeSegment(segment: Long): Int {
+    require(segment > 0) { "segment must be greater than zero." }
     return if (segment > maxSegmentValue) {
         Int.MAX_VALUE
     } else {
@@ -42,92 +36,15 @@ internal suspend fun nextSegmentCounter(counter: Int, segmentSize: Int): Int {
     }
 }
 
-suspend inline fun <T, U> Iterable<T>.sumOfParallelly(
-    constants: ArithmeticConstants<U>,
-    crossinline extractor: SuspendExtractor<U, T>
-): U where U : Arithmetic<U>, U : Plus<U, U> {
-    return coroutineScope {
-        val promises = ArrayList<Deferred<U>>()
-        for (element in this@sumOfParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
-        }
-        var sum = constants.zero
-        for (promise in promises) {
-            sum = sum + promise.await()
-        }
-        sum
-    }
-}
-
-suspend inline fun <T, reified U> Iterable<T>.sumOfParallelly(
-    crossinline extractor: SuspendExtractor<U, T>
-): U where U : Arithmetic<U>, U : Plus<U, U> {
-    return sumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
-}
-
-suspend inline fun <T, U> Iterable<T>.trySumOfParallelly(
-    constants: ArithmeticConstants<U>,
-    crossinline extractor: SuspendTryExtractor<U, T>
-): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<U>>>()
-        for (element in this@trySumOfParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
-        }
-        var sum = constants.zero
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> sum = sum + ret.value
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(sum)
-    }
-}
-
-suspend inline fun <T, reified U> Iterable<T>.trySumOfParallelly(
-    crossinline extractor: SuspendTryExtractor<U, T>
-): Ret<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return trySumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
-}
-
-suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
-    constants: ArithmeticConstants<U>,
-    crossinline extractor: SuspendTryExtractor<U, T>
-): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<U>>>()
-        for (element in this@exTrySumOfParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        var sum = constants.zero
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> sum = sum + ret.value
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
-        }
-        exResultOf(sum, errors)
-    }
-}
-
-suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
-    crossinline extractor: SuspendTryExtractor<U, T>
-): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
-    return exTrySumOfParallelly(resolveArithmeticConstants<U>("Fold"), extractor)
-}
-
 suspend inline fun <T> Iterable<T>.foldParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
-    return foldParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return foldParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
@@ -145,18 +62,18 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return tryFoldParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return tryFoldParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
-    return exTryFoldParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return exTryFoldParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
@@ -175,7 +92,7 @@ suspend inline fun <T> Iterable<T>.tryFoldParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
@@ -197,11 +114,11 @@ suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
-    return foldIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return foldIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
@@ -219,18 +136,18 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return tryFoldIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return tryFoldIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {
-    return exTryFoldIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return exTryFoldIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
@@ -249,7 +166,7 @@ suspend inline fun <T> Iterable<T>.tryFoldIndexedParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {
@@ -271,11 +188,11 @@ suspend inline fun <T> Iterable<T>.foldRightParallelly(
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
-    return foldRightParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return foldRightParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldRightParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: suspend (acc: T, T) -> T
 ): T {
@@ -293,18 +210,18 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return tryFoldRightParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return tryFoldRightParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
-    return exTryFoldRightParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return exTryFoldRightParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): Ret<T> {
@@ -323,7 +240,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (acc: T, T) -> Ret<T>
 ): ExRet<T> {
@@ -345,11 +262,11 @@ suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
-    return foldRightIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return foldRightIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.foldRightIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> T
 ): T {
@@ -368,18 +285,18 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
-    return tryFoldRightIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return tryFoldRightIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {
-    return exTryFoldRightIndexedParallelly(segment = UInt64.ten, initial = initial, operation = operation)
+    return exTryFoldRightIndexedParallelly(segment = 10L, initial = initial, operation = operation)
 }
 
 suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): Ret<T> {
@@ -399,7 +316,7 @@ suspend inline fun <T> Iterable<T>.tryFoldRightIndexedParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
-    segment: UInt64,
+    segment: Long,
     initial: T,
     crossinline operation: (index: Int, acc: T, T) -> Ret<T>
 ): ExRet<T> {

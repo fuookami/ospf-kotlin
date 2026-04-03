@@ -4,7 +4,6 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
@@ -251,24 +250,6 @@ class ExParallelTest {
                 Ok(acc + value + index)
             } else {
                 Failed<Int>(ErrorCode.ApplicationException, "bad-$value")
-            }
-        }
-        assertEquals(3, invoked.get())
-        assertTrue(ret is Fatal)
-        ret as Fatal
-        assertEquals(2, ret.errors.size)
-    }
-
-    // Test exTrySumOfParallelly collects all errors / 测试 exTrySumOfParallelly 收集所有错误
-    @Test
-    fun exTrySumOfShouldCollectAllErrors() = runBlocking {
-        val invoked = AtomicInteger(0)
-        val ret = listOf(1, 2, 3).exTrySumOfParallelly(Int64) { value ->
-            invoked.incrementAndGet()
-            if (value == 2) {
-                Ok(Int64(value.toLong()))
-            } else {
-                Failed<Int64>(ErrorCode.ApplicationException, "bad-$value")
             }
         }
         assertEquals(3, invoked.get())

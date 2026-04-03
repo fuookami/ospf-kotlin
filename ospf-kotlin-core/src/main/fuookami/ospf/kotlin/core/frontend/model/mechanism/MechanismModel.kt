@@ -8,11 +8,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSym
 import fuookami.ospf.kotlin.core.frontend.inequality.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.usize
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.utils.operator.pow
+import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 

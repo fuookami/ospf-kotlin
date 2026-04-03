@@ -4,10 +4,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.MapValueProvider
-import fuookami.ospf.kotlin.utils.math.symbol.adapter.ValueProvider
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
+import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 
 fun Map<Symbol, Flt64>.toUtilsValueProvider(): ValueProvider {
     return MapValueProvider(this)

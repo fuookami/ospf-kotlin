@@ -17,13 +17,13 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
-import fuookami.ospf.kotlin.utils.math.BalancedTrivalent
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.utils.math.Trivalent
-import fuookami.ospf.kotlin.utils.physics.quantity.Quantity
-import fuookami.ospf.kotlin.utils.physics.quantity.to
-import fuookami.ospf.kotlin.utils.physics.quantity.toFlt64
+import fuookami.ospf.kotlin.math.BalancedTrivalent
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.quantity.to
+import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 
 interface ToLinearInequality {
     fun toLinearInequality(): LinearInequality

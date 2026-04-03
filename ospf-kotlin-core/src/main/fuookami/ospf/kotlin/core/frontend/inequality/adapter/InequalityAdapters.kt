@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality as CoreLinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality as CoreQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign as CoreSign
-import fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison as UtilsComparison
-import fuookami.ospf.kotlin.utils.math.symbol.inequality.LinearInequality as UtilsLinearInequality
-import fuookami.ospf.kotlin.utils.math.symbol.inequality.QuadraticInequality as UtilsQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison as UtilsComparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as UtilsLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as UtilsQuadraticInequality
 
 fun CoreSign.toUtilsComparison(): UtilsComparison {
     return when (this) {
