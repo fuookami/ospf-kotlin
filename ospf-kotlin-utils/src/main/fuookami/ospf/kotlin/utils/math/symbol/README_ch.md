@@ -184,18 +184,132 @@ val form = canonical.toMatrixForm(order)
 // constant = 1
 ```
 
+### MultiArray 集成
+
+符号多项式可以存储在 MultiArray 中，并使用 FastSum 操作高效求和。
+
+#### 基本用法
+
+```kotlin
+import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.utils.multi_array.FastSum
+
+val x = symbolOf("x")
+val y = symbolOf("y")
+
+// 创建线性多项式的二维数组
+val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
+    LinearPolynomial<Flt64>(
+        monomials = listOf(
+            LinearMonomial(Flt64(i + 1.0), x),
+            LinearMonomial(Flt64(i + 2.0), y)
+        ),
+        constant = Flt64(i.toDouble())
+    )
+}
+
+// 沿轴 0 求和：结果是 1D 数组（形状 [4])
+val sum0 = equations.sumAxis(0, LinearPolynomial.fromConstant(Flt64.zero))
+
+// 沿轴 1 求和：结果是 1D 数组（形状 [3])
+val sum1 = equations.sumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+
+// 全局求和：结果是单个多项式
+val total = equations.sumAll(LinearPolynomial.fromConstant(Flt64.zero))
+
+// 沿轴 1 累积求和
+val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+```
+
+#### 使用 Mutable 多项式的 FastSum 模式
+
+高性能累加时，使用 Mutable 多项式延迟合并：
+
+```kotlin
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
+
+// FastSum 模式：先累加不合并，最后一次性合并
+val result = MutableLinearPolynomial.fromConstant(Flt64.zero)
+
+for (poly in equations) {
+    result += poly  // 快速累加（不合并）
+}
+
+// 最后合并同类项
+result.combineTerms(Flt64.zero)
+
+// 转换为不可变
+val final = result.toImmutable()
+```
+
+#### Mutable 多项式数组
+
+```kotlin
+// 创建可变多项式数组用于原地修改
+val mutableEquations = MutableMultiArray.newBy(Shape2(3, 4)) { i, _ ->
+    MutableLinearPolynomial.fromConstant(Flt64.zero)
+}
+
+// 原地修改
+for (i in 0 until mutableEquations.size) {
+    mutableEquations[i] += LinearPolynomial<Flt64>(
+        monomials = listOf(LinearMonomial(Flt64(1.0), x)),
+        constant = Flt64.zero
+    )
+}
+
+// 完成后转换为不可变
+val immutableEquations = mutableEquations.toImmutable()
+```
+
+#### 二次多项式数组
+
+```kotlin
+// 二次多项式的二维数组
+val quadraticEquations = MultiArray.newBy(Shape2(2, 3)) { i, _ ->
+    QuadraticPolynomial<Flt64>(
+        monomials = listOf(
+            QuadraticMonomial(Flt64(i + 1.0), x, null),  // (i+1) * x
+            QuadraticMonomial(Flt64(i + 2.0), x, y)      // (i+2) * xy
+        ),
+        constant = Flt64.zero
+    )
+}
+
+// 沿轴 0 求和
+val sumQ = quadraticEquations.sumAxis(
+    0,
+    QuadraticPolynomial.fromConstant(Flt64.zero)
+)
+```
+
 ## 操作汇总
 
 | 操作 | 文件 | 描述 |
 |------|------|------|
-| `combineTerms` | `operation/CombineTerms.kt` | 合并同类项 |
+| `combineTerms` | `operation/CombineTerms.kt` | 合并同类项（不可变） |
+| `combineTerms` | `operation/MutableCombineOps.kt` | 合并同类项（可变，原地） |
+| `addAssignAndCombine` | `operation/MutableCombineOps.kt` | 加法 + 合并一步完成 |
+| `minusAssignAndCombine` | `operation/MutableCombineOps.kt` | 减法 + 合并一步完成 |
 | `evaluate` | `operation/Evaluate.kt` | 计算值 |
 | `compileEval` | `generic/CompileGeneric.kt` | 编译为函数 |
 | `compileGradient` | `generic/CompileGeneric.kt` | 编译梯度 |
 | `differentiate` | `operation/Differentiate.kt` | 符号求导 |
+| `integrate` | `operation/IntegrateOps.kt` | 符号积分 |
+| `factorize` | `operation/Factorization.kt` | 二次因式分解 |
 | `toMatrixForm` | `operation/MatrixForm.kt` | 二次型提取 |
 | `toLatex` | `operation/Latex.kt` | LaTeX 渲染 |
 | `convert` | `operation/Convert.kt` | 类型转换 |
+
+### MultiArray FastSum 操作
+
+| 操作 | 文件 | 描述 |
+|------|------|------|
+| `sumAll` | `multi_array/FastSum.kt` | 全局求和 |
+| `sumAxis` | `multi_array/FastSum.kt` | 沿单轴求和 |
+| `sumAxes` | `multi_array/FastSum.kt` | 沿多轴求和 |
+| `cumsumAxis` | `multi_array/FastSum.kt` | 沿轴累积求和 |
 
 ## 性能建议
 
@@ -225,11 +339,22 @@ val form = canonical.toMatrixForm(order)
 - `CompileTest.kt`：编译与调用
 - `MatrixFormTest.kt`：二次型提取
 - `CombineTermsTest.kt`：同类项合并
+- `MutableCombineTest.kt`：可变多项式合并（9 个测试）
+- `FactorizationTest.kt`：二次因式分解（17 个测试）
+- `IntegrationTest.kt`：符号积分（18 个测试）
 
 运行测试：
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest test
+mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+```
+
+### MultiArray 测试
+
+- `FastSumTest.kt`：MultiArray 求和（14 个测试）
+
+```powershell
+mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
 ```
 
 ## 相关链接
@@ -237,4 +362,5 @@ mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest test
 - [主 README](../README.md)
 - [Geometry 模块](../geometry/README.md)
 - [Value Range 模块](../algebra/value_range/README.md)
+- [MultiArray 模块](../multi_array/README.md)
 - [基准报告](../../benchmark/BENCHMARK_REPORT_TEMPLATE.md)

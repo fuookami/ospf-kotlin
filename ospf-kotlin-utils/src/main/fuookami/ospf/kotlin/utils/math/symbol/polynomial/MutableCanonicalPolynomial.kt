@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
@@ -16,7 +17,7 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
 /**
  * Mutable version of CanonicalPolynomial for in-place modifications.
- * 
+ *
  * Use this when you need to build or modify polynomials incrementally.
  * Convert to [CanonicalPolynomial] when you need an immutable version.
  */
@@ -38,13 +39,28 @@ class MutableCanonicalPolynomial<T : NumberField<T>>(
         }
 
     companion object {
-        val One: Flt64 = Flt64.one
-
-        fun <T : NumberField<T>> zero(): MutableCanonicalPolynomial<T> {
-            @Suppress("UNCHECKED_CAST")
-            return MutableCanonicalPolynomial(emptyList(), One as T)
+        /**
+         * Creates a zero polynomial (constant = 0).
+         * Requires T to have a companion object implementing ArithmeticConstants<T>.
+         */
+        inline fun <reified T> zero(): MutableCanonicalPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
+            val constants = resolveArithmeticConstants<T>("MutableCanonicalPolynomial.zero")
+            return MutableCanonicalPolynomial(emptyList(), constants.zero)
         }
 
+        /**
+         * Creates a constant polynomial with value 1.
+         * Requires T to have a companion object implementing ArithmeticConstants<T>.
+         */
+        inline fun <reified T> one(): MutableCanonicalPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
+            val constants = resolveArithmeticConstants<T>("MutableCanonicalPolynomial.one")
+            return MutableCanonicalPolynomial(emptyList(), constants.one)
+        }
+
+        /**
+         * Creates a constant polynomial with the given value.
+         * Use this when you need a specific constant or when T doesn't support reflection.
+         */
         fun <T : NumberField<T>> fromConstant(value: T): MutableCanonicalPolynomial<T> {
             return MutableCanonicalPolynomial(emptyList(), value)
         }

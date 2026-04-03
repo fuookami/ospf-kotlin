@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.utils.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.*
 import fuookami.ospf.kotlin.utils.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.utils.math.algebra.concept.resolveArithmeticConstants
 
 import fuookami.ospf.kotlin.utils.math.symbol.Category
 import fuookami.ospf.kotlin.utils.math.symbol.Linear
@@ -16,7 +17,7 @@ import fuookami.ospf.kotlin.utils.math.symbol.monomial.unaryMinus
 
 /**
  * Mutable version of QuadraticPolynomial for in-place modifications.
- * 
+ *
  * Use this when you need to build or modify polynomials incrementally.
  * Convert to [QuadraticPolynomial] when you need an immutable version.
  */
@@ -34,13 +35,28 @@ class MutableQuadraticPolynomial<T : NumberField<T>>(
         get() = if (_monomials.any { it.isQuadratic }) Quadratic else Linear
 
     companion object {
-        val One: Flt64 = Flt64.one
-
-        fun <T : NumberField<T>> zero(): MutableQuadraticPolynomial<T> {
-            @Suppress("UNCHECKED_CAST")
-            return MutableQuadraticPolynomial(emptyList(), One as T)
+        /**
+         * Creates a zero polynomial (constant = 0).
+         * Requires T to have a companion object implementing ArithmeticConstants<T>.
+         */
+        inline fun <reified T> zero(): MutableQuadraticPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
+            val constants = resolveArithmeticConstants<T>("MutableQuadraticPolynomial.zero")
+            return MutableQuadraticPolynomial(emptyList(), constants.zero)
         }
 
+        /**
+         * Creates a constant polynomial with value 1.
+         * Requires T to have a companion object implementing ArithmeticConstants<T>.
+         */
+        inline fun <reified T> one(): MutableQuadraticPolynomial<T> where T : NumberField<T>, T : Arithmetic<T> {
+            val constants = resolveArithmeticConstants<T>("MutableQuadraticPolynomial.one")
+            return MutableQuadraticPolynomial(emptyList(), constants.one)
+        }
+
+        /**
+         * Creates a constant polynomial with the given value.
+         * Use this when you need a specific constant or when T doesn't support reflection.
+         */
         fun <T : NumberField<T>> fromConstant(value: T): MutableQuadraticPolynomial<T> {
             return MutableQuadraticPolynomial(emptyList(), value)
         }

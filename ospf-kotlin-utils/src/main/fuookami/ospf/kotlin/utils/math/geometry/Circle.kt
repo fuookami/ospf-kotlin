@@ -117,6 +117,51 @@ infix fun Circle2.containsCircle(other: Circle2): Boolean {
 }
 
 /**
+ * 判断点是否在圆上
+ * Check if a point is on the circle boundary
+ *
+ * @param point 待检查的点 / The point to check
+ * @param epsilon 容差 / Tolerance
+ * @return 点是否在圆上 / Whether the point is on the boundary
+ */
+fun Circle2.pointOnBoundary(point: Point2, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
+    val dx = point.x - center.x
+    val dy = point.y - center.y
+    val dist = (dx * dx + dy * dy).sqrt()
+    return (dist - radius).abs() <= epsilon
+}
+
+/**
+ * 判断两圆是否相切
+ * Check if two circles are tangent
+ *
+ * 两圆相切有两种情况：外切（距离等于半径之和）或内切（距离等于半径之差）。
+ * Two circles are tangent when they touch at exactly one point:
+ * externally tangent (distance equals sum of radii) or internally tangent (distance equals difference of radii).
+ *
+ * @param other 另一个圆 / The other circle
+ * @param epsilon 容差 / Tolerance
+ * @return 是否相切 / Whether the circles are tangent
+ */
+fun Circle2.isTangent(other: Circle2, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
+    val dx = other.center.x - center.x
+    val dy = other.center.y - center.y
+    val dist = (dx * dx + dy * dy).sqrt()
+
+    // 同心圆不相切（要么完全重合，要么不相交）
+    // Concentric circles are not tangent (either identical or non-intersecting)
+    if (dist ls epsilon) return false
+
+    // 外切：距离等于半径之和 / External tangency: distance equals sum of radii
+    val externalTangent = (dist - (radius + other.radius)).abs() <= epsilon
+
+    // 内切：距离等于半径之差 / Internal tangency: distance equals difference of radii
+    val internalTangent = (dist - (radius - other.radius).abs()).abs() <= epsilon
+
+    return externalTangent || internalTangent
+}
+
+/**
  * 计算两圆交点
  * Calculate intersection points of two circles
  *

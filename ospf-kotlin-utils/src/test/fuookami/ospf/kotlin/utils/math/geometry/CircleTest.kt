@@ -298,4 +298,101 @@ class CircleTest {
         assertTrue(circle containsPoint point2(Flt64(1e6), Flt64.zero))
         assertFalse(circle containsPoint point2(Flt64(1e6 + 1.0), Flt64.zero))
     }
+
+    // ============================================================================
+    // 边界点测试 / Point on boundary tests
+    // ============================================================================
+
+    @Test
+    fun testCirclePointOnBoundaryTrue() {
+        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+
+        // 圆上的点 / Points on boundary
+        assertTrue(circle.pointOnBoundary(point2(Flt64(5.0), Flt64.zero)))
+        assertTrue(circle.pointOnBoundary(point2(Flt64.zero, Flt64(5.0))))
+        assertTrue(circle.pointOnBoundary(point2(Flt64(3.0), Flt64(4.0))))
+        assertTrue(circle.pointOnBoundary(point2(Flt64(-5.0), Flt64.zero)))
+    }
+
+    @Test
+    fun testCirclePointOnBoundaryFalse() {
+        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+
+        // 圆内的点 / Point inside
+        assertFalse(circle.pointOnBoundary(point2(Flt64.zero, Flt64.zero)))
+        assertFalse(circle.pointOnBoundary(point2(Flt64(3.0), Flt64(3.0))))
+
+        // 圆外的点 / Point outside
+        assertFalse(circle.pointOnBoundary(point2(Flt64(6.0), Flt64.zero)))
+    }
+
+    @Test
+    fun testCirclePointOnBoundaryWithEpsilon() {
+        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+
+        // 接近边界的点 / Point near boundary
+        val nearPoint = point2(Flt64(5.0001), Flt64.zero)
+        assertTrue(circle.pointOnBoundary(nearPoint, Flt64(0.001)))
+        assertFalse(circle.pointOnBoundary(nearPoint, Flt64(1e-10)))
+    }
+
+    // ============================================================================
+    // 相切测试 / Tangent tests
+    // ============================================================================
+
+    @Test
+    fun testCircleIsTangentExternal() {
+        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle2(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+
+        // 外切：圆心距 = 半径和 / External tangent: distance = sum of radii
+        assertTrue(c1.isTangent(c2))
+        assertTrue(c2.isTangent(c1))
+    }
+
+    @Test
+    fun testCircleIsTangentInternal() {
+        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle2(point2(Flt64(3.0), Flt64.zero), vector2(Flt64(2.0), Flt64.zero))
+
+        // 内切：圆心距 = 半径差 / Internal tangent: distance = difference of radii
+        assertTrue(c1.isTangent(c2))
+        assertTrue(c2.isTangent(c1))
+    }
+
+    @Test
+    fun testCircleIsTangentFalse() {
+        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+
+        // 相交 / Intersecting
+        val c2 = Circle2(point2(Flt64(4.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        assertFalse(c1.isTangent(c2))
+
+        // 相离 / Separate
+        val c3 = Circle2(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        assertFalse(c1.isTangent(c3))
+
+        // 包含 / Contained
+        val c4 = Circle2(point2(Flt64(1.0), Flt64.zero), vector2(Flt64(1.0), Flt64.zero))
+        assertFalse(c1.isTangent(c4))
+    }
+
+    @Test
+    fun testCircleIsTangentWithEpsilon() {
+        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+
+        // 接近外切 / Near external tangent
+        val c2 = Circle2(point2(Flt64(6.001), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        assertTrue(c1.isTangent(c2, Flt64(0.01)))
+        assertFalse(c1.isTangent(c2, Flt64(1e-10)))
+    }
+
+    @Test
+    fun testCircleIsTangentConcentric() {
+        // 同心圆不相切 / Concentric circles are not tangent
+        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+
+        assertFalse(c1.isTangent(c2))
+    }
 }

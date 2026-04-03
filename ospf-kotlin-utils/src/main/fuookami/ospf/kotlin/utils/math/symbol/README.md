@@ -184,18 +184,132 @@ val form = canonical.toMatrixForm(order)
 // constant = 1
 ```
 
+### MultiArray Integration
+
+Symbolic polynomials can be stored in MultiArray and efficiently summed using FastSum operations.
+
+#### Basic Usage
+
+```kotlin
+import fuookami.ospf.kotlin.utils.multi_array.*
+import fuookami.ospf.kotlin.utils.multi_array.FastSum
+
+val x = symbolOf("x")
+val y = symbolOf("y")
+
+// Create a 2D array of linear polynomials
+val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
+    LinearPolynomial<Flt64>(
+        monomials = listOf(
+            LinearMonomial(Flt64(i + 1.0), x),
+            LinearMonomial(Flt64(i + 2.0), y)
+        ),
+        constant = Flt64(i.toDouble())
+    )
+}
+
+// Sum along axis 0: result is a 1D array (shape [4])
+val sum0 = equations.sumAxis(0, LinearPolynomial.fromConstant(Flt64.zero))
+
+// Sum along axis 1: result is a 1D array (shape [3])
+val sum1 = equations.sumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+
+// Sum all elements: result is a single polynomial
+val total = equations.sumAll(LinearPolynomial.fromConstant(Flt64.zero))
+
+// Cumulative sum along axis 1
+val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
+```
+
+#### FastSum Pattern with Mutable Polynomials
+
+For high-performance accumulation, use Mutable polynomials with delayed combining:
+
+```kotlin
+import fuookami.ospf.kotlin.utils.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
+
+// FastSum pattern: accumulate without combining, then combine once
+val result = MutableLinearPolynomial.fromConstant(Flt64.zero)
+
+for (poly in equations) {
+    result += poly  // Fast accumulation (no combining)
+}
+
+// Combine like terms once at the end
+result.combineTerms(Flt64.zero)
+
+// Convert to immutable
+val final = result.toImmutable()
+```
+
+#### MultiArray of Mutable Polynomials
+
+```kotlin
+// Create mutable polynomial array for in-place modifications
+val mutableEquations = MutableMultiArray.newBy(Shape2(3, 4)) { i, _ ->
+    MutableLinearPolynomial.fromConstant(Flt64.zero)
+}
+
+// In-place modification
+for (i in 0 until mutableEquations.size) {
+    mutableEquations[i] += LinearPolynomial<Flt64>(
+        monomials = listOf(LinearMonomial(Flt64(1.0), x)),
+        constant = Flt64.zero
+    )
+}
+
+// Convert to immutable when done
+val immutableEquations = mutableEquations.toImmutable()
+```
+
+#### Quadratic Polynomial Arrays
+
+```kotlin
+// 2D array of quadratic polynomials
+val quadraticEquations = MultiArray.newBy(Shape2(2, 3)) { i, _ ->
+    QuadraticPolynomial<Flt64>(
+        monomials = listOf(
+            QuadraticMonomial(Flt64(i + 1.0), x, null),  // (i+1) * x
+            QuadraticMonomial(Flt64(i + 2.0), x, y)      // (i+2) * xy
+        ),
+        constant = Flt64.zero
+    )
+}
+
+// Sum along axis 0 with quadratic polynomial zero
+val sumQ = quadraticEquations.sumAxis(
+    0,
+    QuadraticPolynomial.fromConstant(Flt64.zero)
+)
+```
+
 ## Operations Summary
 
 | Operation | File | Description |
 |-----------|------|-------------|
-| `combineTerms` | `operation/CombineTerms.kt` | Merge like terms |
+| `combineTerms` | `operation/CombineTerms.kt` | Merge like terms (immutable) |
+| `combineTerms` | `operation/MutableCombineOps.kt` | Merge like terms (mutable, in-place) |
+| `addAssignAndCombine` | `operation/MutableCombineOps.kt` | Add + combine in one step |
+| `minusAssignAndCombine` | `operation/MutableCombineOps.kt` | Subtract + combine in one step |
 | `evaluate` | `operation/Evaluate.kt` | Compute value |
 | `compileEval` | `generic/CompileGeneric.kt` | Compile to function |
 | `compileGradient` | `generic/CompileGeneric.kt` | Compile gradient |
 | `differentiate` | `operation/Differentiate.kt` | Symbolic differentiation |
+| `integrate` | `operation/IntegrateOps.kt` | Symbolic integration |
+| `factorize` | `operation/Factorization.kt` | Quadratic factorization |
 | `toMatrixForm` | `operation/MatrixForm.kt` | Quadratic form extraction |
 | `toLatex` | `operation/Latex.kt` | LaTeX rendering |
 | `convert` | `operation/Convert.kt` | Type conversion |
+
+### MultiArray FastSum Operations
+
+| Operation | File | Description |
+|-----------|------|-------------|
+| `sumAll` | `multi_array/FastSum.kt` | Sum all elements |
+| `sumAxis` | `multi_array/FastSum.kt` | Sum along single axis |
+| `sumAxes` | `multi_array/FastSum.kt` | Sum along multiple axes |
+| `cumsumAxis` | `multi_array/FastSum.kt` | Cumulative sum along axis |
 
 ## Performance Notes
 
@@ -225,11 +339,22 @@ val form = canonical.toMatrixForm(order)
 - `CompileTest.kt`: Compilation and invocation
 - `MatrixFormTest.kt`: Quadratic form extraction
 - `CombineTermsTest.kt`: Like-term merging
+- `MutableCombineTest.kt`: Mutable polynomial combine (9 tests)
+- `FactorizationTest.kt`: Quadratic factorization (17 tests)
+- `IntegrationTest.kt`: Symbolic integration (18 tests)
 
 Run tests:
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest test
+mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+```
+
+### MultiArray Tests
+
+- `FastSumTest.kt`: MultiArray summation (14 tests)
+
+```powershell
+mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
 ```
 
 ## Related
@@ -237,4 +362,5 @@ mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest test
 - [Main README](../README.md)
 - [Geometry Module](../geometry/README.md)
 - [Value Range Module](../algebra/value_range/README.md)
+- [MultiArray Module](../multi_array/README.md)
 - [Benchmark Report](../../benchmark/BENCHMARK_REPORT_TEMPLATE.md)

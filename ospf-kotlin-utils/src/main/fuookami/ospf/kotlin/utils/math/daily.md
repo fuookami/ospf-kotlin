@@ -1,6 +1,6 @@
 # ospf-kotlin-utils/math 对标 ospf-rust-math 进度纪要（对照版）
 
-最后更新：2026-04-03（M6 完成）
+最后更新：2026-04-03（M11-M14 全部完成）
 对照基线：`E:\workspace\ospf-rust\ospf-rust-math`（含仓库根 `daily.md`）
 
 ---
@@ -132,17 +132,117 @@
 - 性能提升：
   - `combineTermsStress`: 61 → 94 ops/ms (**+55%**, 同环境 JDK 21)
 
+### 14) 功能对标验证（M7 完成）
+
+#### 功能对比分析 ✓
+对比 Rust `ospf-rust-math` 与 Kotlin `ospf-kotlin-utils/math` 功能覆盖：
+
+**Rust 有但 Kotlin 已有等效实现：**
+| Rust 功能 | Kotlin 对应 | 状态 |
+|-----------|-------------|------|
+| `big_decimal_pow.rs` | `FltXPowerStrategy.kt` | ✓ 已对齐 |
+| `operator/contains.rs` | `ValueRange.contains()` | ✓ 已对齐 |
+| `symbol/macros` | `symbol/dsl/SymbolDsl.kt` | ✓ 已对齐 |
+
+**Rust 有但 Kotlin 可选：**
+| Rust 功能 | 说明 | 建议 |
+|-----------|------|------|
+| `AddRef/SubRef/NegRef` | 引用运算 Traits | Kotlin 不需要（不可变模型） |
+
+**Kotlin 特有功能（Rust 无）：**
+| Kotlin 功能 | 说明 |
+|-------------|------|
+| `chaotic_operator/` | 40+ 混沌系统（Lorenz/Chen/Chua 等） |
+| `fractal_operator/` | 分形算子（MandelbrotSet） |
+| `operator/Trigonometry.kt` | 三角函数扩展 |
+| `symbol/parser/NumberParser.kt` | 类型化数值解析器 |
+
+**Geometry 模块差异：**
+- Rust 有 `point_on_boundary`/`is_tangent` - Kotlin 未实现
+- Kotlin 有 `circumcircleOf(triangle)` - Rust 未实现
+- 核心功能对齐，边界方法可按需补充
+
+**结论**：**核心功能已完全对齐**，Kotlin 在混沌/分形领域有额外扩展。
+
+### 15) Geometry 边界方法补齐（M8 完成）
+
+#### G-FUNC: Circle2 边界方法 ✓
+- `pointOnBoundary(point, epsilon)` - 判断点是否在圆上
+- `isTangent(other, epsilon)` - 判断两圆是否相切（外切/内切）
+- 测试：`CircleTest.kt` 新增 12 tests（总计 36 tests）
+
+### 16) 多项式因式分解（M9 完成）
+
+#### S-FUNC: 一元二次多项式因式分解 ✓
+- `extractUnivariateCoefficients()` - 从多项式提取系数 (a, b, c)
+- `solve()` - 求根（使用判别式 Δ = b² - 4ac）
+- `factorize()` - 因式分解为 a(x - r₁)(x - r₂) 形式
+- `QuadraticFactorization.expand()` - 因式展开回多项式
+- 支持边界情况：线性退化、重根、无实根
+- 新增文件：`symbol/operation/Factorization.kt`
+- 测试：`FactorizationTest.kt` (17 tests)
+
+### 17) 符号积分（M10 完成）
+
+#### S-INTEGRATE: 一元多项式积分 ✓
+- `integrateLinear()` - 线性多项式积分（Linear → Quadratic）
+- `integrateQuadratic()` - 二次多项式积分（Quadratic → Canonical）
+- `integrateCanonical()` - 规范多项式积分（Canonical → Canonical，支持任意次数）
+- 支持多元多项式（指定积分变量，其他视为常数）
+- 积分-微分回环测试验证正确性
+- 新增文件：`symbol/operation/IntegrateOps.kt`
+- 测试：`IntegrationTest.kt` (18 tests)
+
+### 18) Mutable 多项式 combineTerms（M11 完成）
+
+#### M11: Mutable 多项式 FastSum 支持 ✓
+- 新增文件：`symbol/operation/MutableCombineOps.kt`
+- `MutableLinearPolynomial.combineTerms(zero, isZero)` - 原地合并同类项
+- `MutableQuadraticPolynomial.combineTerms(zero, isZero, comparator)` - 原地合并同类项
+- `MutableCanonicalPolynomial.combineTerms(zero, isZero, comparator)` - 原地合并同类项
+- 可选便捷方法：`addAssignAndCombine()` / `minusAssignAndCombine()`
+- 修复 `zero()` / `one()` API：使用 `resolveArithmeticConstants<T>()` 泛型获取
+- 测试：`MutableCombineTest.kt` (9 tests)
+
+### 19) MultiArray 快速求和（M14 完成）
+
+#### M14: MultiArray FastSum 支持 ✓
+- 新增文件：`multi_array/FastSum.kt`
+- `sumAll(zero)` - 全局求和
+- `sumAxis(axis, zero)` - 沿单轴求和
+- `sumAxes(axes, zero)` - 沿多轴求和
+- `cumsumAxis(axis, zero)` - 累积求和（前缀和）
+- 支持 `Ring<T>` 约束（可用于多项式求和）
+- 异常：`AxisOutOfBoundsException`
+- 测试：`FastSumTest.kt` (14 tests)
+
 ---
 
 ## 待办事项
 
-### P2 功能扩展（低优先级）
+### P3 已完成扩展
 
-#### S-FUNC: 高级功能
-- 多项式因式分解
-- 符号积分
-- 更多数值类型支持（复数、有理数）
-- 稀疏多项式优化
+#### M12: Mutable 多项式 addAssignAndCombine 方法 ✓
+**状态**：已在 M11 中实现，无需单独追踪。
+
+#### M13: Symbol + MultiArray 文档示例 ✓
+**状态**：已在 `symbol/README.md` 和 `README_ch.md` 中添加 MultiArray 集成章节。
+
+### P4 可选扩展（未来）
+
+#### S-FUNC-NEXT: 高级功能（可选）
+- ~~多项式因式分解~~ ✓ M9 已完成
+- ~~符号积分~~ ✓ M10 已完成
+- ~~更多数值类型支持~~ 有理数已有完整实现（Rtn8/16/32/64/X），复数使用外部库 kotlinmath
+- ~~稀疏多项式优化~~ ✓ M6 已完成（PowerVectorKey 密集/稀疏双模式）
+
+#### REF-OPS: 引用运算 Traits（不需要）
+- Kotlin 不存在所有权/借用概念，无需实现 `AddRef/SubRef` 等引用运算
+- 数据类默认不可变，直接值运算即可
+
+#### SYMBOL-DYN-ID: 高维符号标识符（不需要）
+- Rust 需要 `SymbolDynId` 支持高维符号分量（向量/矩阵）
+- Kotlin 无此语法限制，可直接使用 List/Map 表示符号集合
 
 ---
 
@@ -155,9 +255,17 @@
 | M3 | ✓ | 符号稳定化：Serde + DSL | 34 |
 | M4 | ✓ | 性能与文档：Benchmark + README | - |
 | M5 | ✓ | 架构重构：Generic 合并到 Typed | - |
-| M6 | ✓ | 性能优化：PowerVectorKey (+181%) | - |
+| M6 | ✓ | 性能优化：PowerVectorKey (+55%) | - |
+| M7 | ✓ | 功能对标：Rust vs Kotlin 对比验证 | - |
+| M8 | ✓ | Geometry 补齐：pointOnBoundary/isTangent | 12 |
+| M9 | ✓ | Symbol 功能：多项式因式分解 | 17 |
+| M10 | ✓ | Symbol 功能：多项式积分 | 18 |
+| M11 | ✓ | Mutable combineTerms 原地合并 | 9 |
+| M12 | ✓ | addAssignAndCombine 便捷方法 | - |
+| M13 | ✓ | Symbol + MultiArray 文档示例 | - |
+| M14 | ✓ | MultiArray FastSum（sumAxis/sumAll） | 14 |
 
-**所有里程碑（M1-M6）已完成。**
+**M1-M14 全部完成。**
 
 ---
 
@@ -166,12 +274,15 @@
 ### 几何模块 ✓
 - `EdgeTest.kt`：29 tests
 - `TriangleTest.kt`：25 tests
-- `CircleTest.kt`：24 tests
+- `CircleTest.kt`：36 tests (+12 新增)
 - `TriangulationTest.kt`：16 tests
 
 ### Symbol 模块 ✓
 - `SerializationTest.kt`：17 tests
 - `DslTest.kt`：17 tests
+- `FactorizationTest.kt`：17 tests (+新增)
+- `IntegrationTest.kt`：18 tests (+新增)
+- `MutableCombineTest.kt`：9 tests (+新增)
 - `EvaluateTest.kt`：多项式求值
 - `CombineTermsTest.kt`：合并同类项
 - `CompileTest.kt`：编译求值
@@ -180,13 +291,19 @@
 - `ConvertTest.kt`：类型转换
 - `MatrixFormTest.kt`：矩阵形式
 
+### MultiArray 模块 ✓
+- `FastSumTest.kt`：14 tests (+新增)
+
 ### 测试命令
 ```bash
 # 几何模块
 mvn -pl ospf-kotlin-utils -Dtest=EdgeTest,TriangleTest,CircleTest,TriangulationTest test
 
 # Symbol 模块
-mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,EvaluateTest,CombineTermsTest test
+mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,FactorizationTest,IntegrationTest,EvaluateTest,CombineTermsTest,MutableCombineTest test
+
+# MultiArray 模块
+mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
 ```
 
 ---
@@ -268,6 +385,112 @@ for (monomial in this) {
 | combineTermsStress | 61 ops/ms | 94 ops/ms | **+55%** |
 
 注：同环境 JDK 21 对比，之前报告误用了 JDK 17 基线。
+
+### M11 实现：Mutable 多项式 FastSum 支持 ✓
+
+**变更后**：
+```
+MutableLinearPolynomial<T>
+    ├── plusAssign(LinearMonomial<T>)    ✓ 已有
+    ├── plusAssign(LinearPolynomial<T>)  ✓ 已有
+    ├── minusAssign(...)                 ✓ 已有
+    ├── timesAssign(T)                   ✓ 已有
+    ├── divAssign(T)                     ✓ 已有
+    └── combineTerms(zero, isZero)       ✓ 新增
+```
+
+**新增文件**：
+| 文件 | 功能 |
+|------|------|
+| `symbol/operation/MutableCombineOps.kt` | Mutable 多项式原地合并 |
+
+**实现内容**：
+```kotlin
+// 原地合并同类项
+fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero }
+)
+
+fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+)
+
+fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.combineTerms(
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+)
+
+// 可选便捷方法：累加后自动合并
+fun <T : NumberField<T>> MutableLinearPolynomial<T>.addAssignAndCombine(
+    rhs: LinearPolynomial<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero }
+)
+```
+
+**使用示例**：
+```kotlin
+// FastSum 模式：先累加，后合并
+val result = MutableLinearPolynomial.fromConstant(Flt64.zero)
+for (poly in polynomials) {
+    result += poly  // 快速累加（不合并）
+}
+result.combineTerms(Flt64.zero)  // 最后合并
+val final = result.toImmutable()
+```
+
+### M14 实现：MultiArray FastSum 支持 ✓
+
+**变更后**：
+```
+AbstractMultiArray<T, S>
+    ├── get(i) / get(vararg v)    ✓ 已有
+    ├── view(dummyVector)         ✓ 已有
+    ├── reshape(newShape)         ✓ 已有
+    ├── toStorageOrder(order)     ✓ 已有
+    └── sumAll(zero)              ✓ 新增
+    └── sumAxis(axis, zero)       ✓ 新增
+    └── sumAxes(axes, zero)       ✓ 新增
+    └── cumsumAxis(axis, zero)    ✓ 新增
+```
+
+**新增文件**：
+| 文件 | 功能 |
+|------|------|
+| `multi_array/FastSum.kt` | MultiArray 求和扩展函数 |
+
+**实现内容**：
+```kotlin
+// 全局求和
+fun <T> AbstractMultiArray<T, *>.sumAll(zero: T): T where T : Ring<T>
+
+// 沿单轴求和
+fun <T> AbstractMultiArray<T, *>.sumAxis(axis: Int, zero: T): MultiArray<T, DynShape> where T : Ring<T>
+
+// 沿多轴求和
+fun <T> AbstractMultiArray<T, *>.sumAxes(axes: IntArray, zero: T): MultiArray<T, DynShape> where T : Ring<T>
+
+// 累积求和（前缀和）
+fun <T> AbstractMultiArray<T, *>.cumsumAxis(axis: Int, zero: T): MultiArray<T, DynShape> where T : Ring<T>
+```
+
+**使用示例**：
+```kotlin
+// 符号数组求和
+val equations: MultiArray<LinearPolynomial<Flt64>, Shape2> = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
+    // 创建多项式...
+}
+
+// 沿轴 0 求和 -> 1D 数组
+val sum0 = equations.sumAxis(0, LinearPolynomial.fromConstant(Flt64.zero))
+
+// 全局求和 -> 单个多项式
+val total = equations.sumAll(LinearPolynomial.fromConstant(Flt64.zero))
+```
 
 ---
 
