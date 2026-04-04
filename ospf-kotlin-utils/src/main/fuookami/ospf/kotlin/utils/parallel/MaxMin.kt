@@ -15,6 +15,15 @@ import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 
+/**
+ * 并行最大/最小值操作
+ *
+ * Parallel max/min operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.maxByParallelly(
     crossinline selector: SuspendExtractor<R, T>
 ): T {

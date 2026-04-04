@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.ord
 import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll

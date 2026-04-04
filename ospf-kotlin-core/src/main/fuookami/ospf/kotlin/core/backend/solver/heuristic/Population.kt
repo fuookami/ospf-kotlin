@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 
 interface Individual<V> {
     val solution: Solution

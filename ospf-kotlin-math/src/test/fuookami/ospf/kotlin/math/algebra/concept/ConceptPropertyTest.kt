@@ -3,7 +3,6 @@
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.algebra.number.UInt32
-import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 

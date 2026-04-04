@@ -17,10 +17,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.multi_array.Shape1
-import fuookami.ospf.kotlin.utils.multi_array.Shape2
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.multiarray.Shape2
 
 open class BunchCompilation<
         B : AbstractTaskBunch<T, E, A>,

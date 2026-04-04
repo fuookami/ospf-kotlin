@@ -1,9 +1,6 @@
 ﻿package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.Abs
 import fuookami.ospf.kotlin.math.operator.Cross
 import fuookami.ospf.kotlin.math.operator.Dec
@@ -18,9 +15,9 @@ import fuookami.ospf.kotlin.math.operator.RangeTo
 import fuookami.ospf.kotlin.math.operator.Reciprocal
 import fuookami.ospf.kotlin.math.operator.Rem
 import fuookami.ospf.kotlin.math.operator.Trigonometry
-import fuookami.ospf.kotlin.utils.math.operator.Eq
-import fuookami.ospf.kotlin.utils.math.operator.Neg
-import fuookami.ospf.kotlin.utils.math.operator.Ord
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.math.operator.Neg
+import fuookami.ospf.kotlin.utils.functional.Ord
 
 interface NumberRing<Self> : Ring<Self>, PlusGroup<Self>, TimesSemiGroup<Self>
 

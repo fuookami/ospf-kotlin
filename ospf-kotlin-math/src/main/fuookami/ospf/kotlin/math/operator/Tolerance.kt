@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.math.operator
 
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 
 interface Tolerance<T> {
     val tolerance: T

@@ -2,12 +2,12 @@
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Predicate
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.geometry.*
-import fuookami.ospf.kotlin.utils.math.ordinary.min
-import fuookami.ospf.kotlin.utils.operator.Eq
+import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.*
+import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.utils.functional.Eq
 
 private fun merge(
     counter: MutableMap<AbstractCuboid, UInt64>,

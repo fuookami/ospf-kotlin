@@ -2,9 +2,9 @@ package fuookami.ospf.kotlin.core.frontend.model.callback
 
 import fuookami.ospf.kotlin.core.frontend.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.Order
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue

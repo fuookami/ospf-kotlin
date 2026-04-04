@@ -14,12 +14,43 @@ import fuookami.ospf.kotlin.utils.functional.SuspendIndexedExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedExtractor
 
+/**
+ * 并行映射操作
+ *
+ * Parallel mapping operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ * 当前实现一次性为所有元素创建协程，对于大集合可能导致资源问题。
+ * Current implementation creates coroutines for all elements at once, which may cause resource issues for large collections.
+ */
+
+/**
+ * 并行映射集合元素
+ *
+ * Map collection elements in parallel.
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param extractor 提取器函数 / Extractor function
+ * @return 映射后的列表 / Mapped list
+ */
 suspend inline fun <R : Any, T> Iterable<T>.mapParallelly(
     crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
     return mapToParallelly(ArrayList(), extractor)
 }
 
+/**
+ * 并行映射集合元素（带错误处理）
+ *
+ * Map collection elements in parallel with error handling.
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param extractor 提取器函数 / Extractor function
+ * @return 映射结果或错误 / Mapped result or error
+ */
 suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
@@ -32,6 +63,18 @@ suspend inline fun <R, T> Iterable<T>.exTryMapParallelly(
     return exTryMapToParallelly(ArrayList(), extractor)
 }
 
+/**
+ * 并行映射集合元素到目标集合
+ *
+ * Map collection elements in parallel to a destination collection.
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param extractor 提取器函数 / Extractor function
+ * @return 目标集合 / Destination collection
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapToParallelly(
     destination: C,
     crossinline extractor: SuspendExtractor<R, T>

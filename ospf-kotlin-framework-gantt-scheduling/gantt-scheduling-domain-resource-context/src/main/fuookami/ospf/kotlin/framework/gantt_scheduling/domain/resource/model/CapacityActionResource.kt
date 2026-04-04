@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_schedulin
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.utils.concept.AutoIndexed
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 /**
  * 支持 ProductionAction 的资源接�?

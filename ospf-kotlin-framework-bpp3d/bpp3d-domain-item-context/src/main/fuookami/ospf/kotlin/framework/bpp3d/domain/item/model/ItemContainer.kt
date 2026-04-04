@@ -2,11 +2,11 @@
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.geometry.Point3
-import fuookami.ospf.kotlin.utils.math.geometry.point3
-import fuookami.ospf.kotlin.utils.operator.Eq
-import fuookami.ospf.kotlin.utils.operator.ord
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.ord
 import kotlinx.coroutines.*
 
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, Eq<ItemContainer<S>> {

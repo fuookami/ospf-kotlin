@@ -1,7 +1,9 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.operator.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.ord
+import fuookami.ospf.kotlin.utils.functional.orderBetween
 import kotlinx.serialization.Serializable
 
 enum class OrientationCategory {

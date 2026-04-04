@@ -19,10 +19,10 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.multi_array.Shape2
-import fuookami.ospf.kotlin.utils.multi_array.Shape3
-import fuookami.ospf.kotlin.utils.multi_array._a
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.multiarray.Shape2
+import fuookami.ospf.kotlin.multiarray.Shape3
+import fuookami.ospf.kotlin.multiarray._a
 
 interface Switch {
     val switch: LinearIntermediateSymbols3

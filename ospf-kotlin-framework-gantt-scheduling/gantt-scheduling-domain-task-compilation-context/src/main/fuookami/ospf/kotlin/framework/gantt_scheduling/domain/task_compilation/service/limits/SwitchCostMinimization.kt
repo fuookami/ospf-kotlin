@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaMode
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Switch
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SwitchCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,

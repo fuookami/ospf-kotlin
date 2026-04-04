@@ -18,13 +18,13 @@ import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt8
-import fuookami.ospf.kotlin.utils.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.multi_array.Shape1
-import fuookami.ospf.kotlin.utils.multi_array.Shape2
-import fuookami.ospf.kotlin.utils.multi_array._a
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt8
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.multiarray.Shape2
+import fuookami.ospf.kotlin.multiarray._a
 
 interface Compilation {
     val taskCancelEnabled: Boolean

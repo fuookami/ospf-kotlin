@@ -1,15 +1,12 @@
 ﻿package fuookami.ospf.kotlin.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.operator.ExpP
 import fuookami.ospf.kotlin.math.operator.LogP
 import fuookami.ospf.kotlin.math.operator.PowFP
-import fuookami.ospf.kotlin.utils.math.operator.orderOf
+import fuookami.ospf.kotlin.utils.functional.orderOf
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor

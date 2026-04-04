@@ -16,14 +16,14 @@ import fuookami.ospf.kotlin.core.frontend.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
-import fuookami.ospf.kotlin.utils.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 
 class AdapterRoundTripTest {
     private data class DummySymbol(
@@ -87,7 +87,7 @@ class AdapterRoundTripTest {
             }
         }
         val originalValue = corePolynomial.evaluate(values, tokenList = null, zeroIfNone = false)
-        val utilsValue = utilsPolynomial.evaluate(values, policy = fuookami.ospf.kotlin.utils.math.symbol.adapter.MissingValuePolicy.ReturnNull)
+        val utilsValue = utilsPolynomial.evaluate(values, policy = fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy.ReturnNull)
         val convertedValue = converted.evaluate(values, tokenList = null, zeroIfNone = false)
         assertEquals(originalValue, utilsValue)
         assertEquals(originalValue, convertedValue)
@@ -106,7 +106,7 @@ class AdapterRoundTripTest {
         val utilsInequality = coreInequality.toUtilsInequality()
         val roundTrip = utilsInequality.toCoreInequalityRet()
 
-        assertEquals(fuookami.ospf.kotlin.utils.math.symbol.inequality.Comparison.GE, utilsInequality.comparison)
+        assertEquals(fuookami.ospf.kotlin.math.symbol.inequality.Comparison.GE, utilsInequality.comparison)
 
         val converted = when (roundTrip) {
             is Ok -> {

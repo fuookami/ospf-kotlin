@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.utils.math.operator.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.math.operator.Neg
 
 sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
     : Expression, Copyable<Self>, Neg<Self>,

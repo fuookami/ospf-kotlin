@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 
 interface ObjectiveNormalization<V> {
     operator fun invoke(

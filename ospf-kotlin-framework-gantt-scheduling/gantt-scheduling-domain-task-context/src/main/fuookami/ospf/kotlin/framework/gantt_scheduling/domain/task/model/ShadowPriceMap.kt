@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaMode
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 interface AbstractGanttSchedulingShadowPriceArguments<
         out E : Executor,

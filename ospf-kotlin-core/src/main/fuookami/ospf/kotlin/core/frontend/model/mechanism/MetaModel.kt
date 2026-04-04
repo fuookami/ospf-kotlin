@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuantityIntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
@@ -479,51 +480,23 @@ sealed interface MetaModel : Model, AutoCloseable {
     }
 
     private suspend fun exportOpm(writer: FileWriter, unfold: UInt64): Try {
-        when (val result = when (tokens) {
-            is MutableTokenTable -> {
-                val temp = tokens.copy() as MutableTokenTable
-                when (val result = tokens.symbols.register(temp)) {
-                    is Ok -> {
-                        Ok(temp)
-                    }
+        val temp = when (tokens) {
+            is MutableTokenTable -> tokens.copy() as MutableTokenTable
+            is ConcurrentMutableTokenTable -> tokens.copy() as ConcurrentMutableTokenTable
+            else -> throw IllegalStateException("Unknown token table type: ${tokens::class}")
+        }
 
+        for (symbol in tokens.symbols) {
+            if (symbol is FunctionSymbol) {
+                when (val result = symbol.register(temp)) {
+                    is Ok -> {}
                     is Failed -> {
-                        Failed(result.error)
+                        return Failed(result.error)
                     }
-
                     is Fatal -> {
-                        Fatal(result.errors)
+                        return Fatal(result.errors)
                     }
                 }
-            }
-
-            is ConcurrentMutableTokenTable -> {
-                coroutineScope<Ret<AbstractTokenTable>> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTable
-                    when (val result = tokens.symbols.register(temp)) {
-                        is Ok -> {
-                            Ok(temp)
-                        }
-
-                        is Failed -> {
-                            Failed(result.error)
-                        }
-
-                        is Fatal -> {
-                            Fatal(result.errors)
-                        }
-                    }
-                }
-            }
-        }) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
             }
         }
 

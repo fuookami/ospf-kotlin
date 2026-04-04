@@ -14,6 +14,15 @@ import fuookami.ospf.kotlin.utils.functional.SuspendIndexedExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedExtractor
 
+/**
+ * 并行展平映射操作
+ *
+ * Parallel flat-map operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
 suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): List<R> {

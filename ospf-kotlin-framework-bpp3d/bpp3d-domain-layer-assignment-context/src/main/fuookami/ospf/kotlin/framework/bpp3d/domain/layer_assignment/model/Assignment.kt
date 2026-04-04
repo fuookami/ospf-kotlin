@@ -16,10 +16,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.multi_array.Shape1
-import fuookami.ospf.kotlin.utils.multi_array.Shape2
-import fuookami.ospf.kotlin.utils.multi_array._a
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.multiarray.Shape2
+import fuookami.ospf.kotlin.multiarray._a
 
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,

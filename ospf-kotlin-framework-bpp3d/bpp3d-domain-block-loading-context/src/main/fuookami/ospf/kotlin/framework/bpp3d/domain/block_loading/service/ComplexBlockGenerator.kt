@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Block
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.ComplexBlock
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 class ComplexBlockGenerator(
     val config: Config

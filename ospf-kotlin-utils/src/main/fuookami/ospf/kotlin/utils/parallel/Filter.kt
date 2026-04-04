@@ -14,6 +14,24 @@ import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
+/**
+ * 并行过滤操作
+ *
+ * Parallel filtering operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
+/**
+ * 并行过滤满足条件的元素
+ *
+ * Filter elements that satisfy the predicate in parallel.
+ *
+ * @param T 元素类型 / Element type
+ * @param predicate 判断条件 / Predicate function
+ * @return 过滤后的列表 / Filtered list
+ */
 suspend inline fun <T : Any> Iterable<T>.filterParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): List<T> {

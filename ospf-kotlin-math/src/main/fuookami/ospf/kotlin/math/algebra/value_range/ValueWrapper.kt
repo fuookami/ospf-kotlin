@@ -14,14 +14,14 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.Div
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.math.operator.Times
-import fuookami.ospf.kotlin.utils.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.Ord
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.orderOf
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer

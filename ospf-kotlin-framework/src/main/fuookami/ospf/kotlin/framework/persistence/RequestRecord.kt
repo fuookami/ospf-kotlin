@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.persistence
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.serialization.LocalDateTimeSerializer
 import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJsonToStream

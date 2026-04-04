@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.backend.solver
 
 import fuookami.ospf.kotlin.core.backend.solver.value.SolveValueConversionPolicy
 import fuookami.ospf.kotlin.utils.functional.ok
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

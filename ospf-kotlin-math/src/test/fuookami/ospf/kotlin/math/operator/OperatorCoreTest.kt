@@ -2,27 +2,14 @@ package fuookami.ospf.kotlin.math.operator
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.operator.Abs
-import fuookami.ospf.kotlin.utils.math.operator.Order
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.utils.math.operator.orderOf
-import fuookami.ospf.kotlin.utils.math.operator.orderBetween
-import fuookami.ospf.kotlin.math.operator.AbsoluteTolerance
-import fuookami.ospf.kotlin.math.operator.ord
-import fuookami.ospf.kotlin.math.operator.pow
-import fuookami.ospf.kotlin.math.operator.sqr
-import fuookami.ospf.kotlin.math.operator.cub
-import fuookami.ospf.kotlin.math.operator.ln
-import fuookami.ospf.kotlin.math.operator.lg2
-import fuookami.ospf.kotlin.math.operator.lg
-import fuookami.ospf.kotlin.math.operator.log
-import fuookami.ospf.kotlin.math.operator.partialEq
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.orderOf
+import fuookami.ospf.kotlin.utils.functional.orderBetween
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 /**
  * Operator core path tests: Abs, Ord, Tolerance, Reciprocal, Pow, Log, Precision

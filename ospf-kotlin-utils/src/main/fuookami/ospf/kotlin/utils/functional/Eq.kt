@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.utils.math.operator
+package fuookami.ospf.kotlin.utils.functional
 
 interface PartialEq<in Self> {
     infix fun partialEq(rhs: Self): Boolean?
@@ -55,11 +55,7 @@ infix fun <T : Eq<T>> T.eq(rhs: T?): Boolean {
 
 @JvmName("nullableEqNotNull")
 infix fun <T : Eq<T>> T?.eq(rhs: T): Boolean {
-    return if (this == null) {
-        false
-    } else {
-        this.eq(rhs)
-    }
+    return this?.eq(rhs) ?: false
 }
 
 @JvmName("nullableEqNullable")
@@ -75,11 +71,7 @@ infix fun <T : Eq<T>> T?.eq(rhs: T?): Boolean {
 
 @JvmName("nullableNeqNotNull")
 infix fun <T : Eq<T>> T?.neq(rhs: T): Boolean {
-    return if (this == null) {
-        true
-    } else {
-        this.neq(rhs)
-    }
+    return this?.neq(rhs) ?: true
 }
 
 @JvmName("notNullNeqNullable")

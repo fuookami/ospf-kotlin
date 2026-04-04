@@ -1,7 +1,7 @@
 ﻿package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 
-import fuookami.ospf.kotlin.utils.math.algebra.number.FltX
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.serialization.Serializable
 
 enum class RenderProductionType {

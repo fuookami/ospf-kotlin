@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.quantities.quantity
 
-import fuookami.ospf.kotlin.utils.math.operator.Order
-import fuookami.ospf.kotlin.utils.math.operator.PartialOrd
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.PartialOrd
 
 fun <T : PartialOrd<T>> min(lhs: Quantity<T>, rhs: Quantity<T>): Quantity<T>? = when (lhs partialOrd rhs) {
     is Order.Less, is Order.Equal -> {

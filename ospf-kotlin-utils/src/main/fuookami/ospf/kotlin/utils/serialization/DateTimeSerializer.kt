@@ -16,6 +16,13 @@ import kotlin.time.Instant
 import kotlin.time.toJavaInstant
 import kotlin.time.toKotlinInstant
 
+/**
+ * Instant 序列化器
+ *
+ * 用于将 Instant 序列化为 "yyyy-MM-dd HH:mm:ss" 格式的字符串。
+ *
+ * Serializes Instant to "yyyy-MM-dd HH:mm:ss" format string.
+ */
 @OptIn(ExperimentalTime::class)
 data object DateTimeSerializer : KSerializer<Instant> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss")
@@ -33,6 +40,13 @@ data object DateTimeSerializer : KSerializer<Instant> {
     }
 }
 
+/**
+ * LocalDateTime 序列化器
+ *
+ * 用于将 LocalDateTime 序列化为 ISO 格式的字符串。
+ *
+ * Serializes LocalDateTime to ISO format string.
+ */
 data object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     override val descriptor: SerialDescriptor =
         PrimitiveSerialDescriptor("kotlinx.LocalDateTime", PrimitiveKind.STRING)
@@ -46,6 +60,20 @@ data object LocalDateTimeSerializer : KSerializer<LocalDateTime> {
     }
 }
 
+/**
+ * LocalMonth 序列化器
+ *
+ * 用于将 LocalDate 序列化为 "yyyy-MM" 格式的字符串（仅年月）。
+ * 反序列化时将日设置为 1。
+ *
+ * Serializes LocalDate to "yyyy-MM" format string (year-month only).
+ * Sets day to 1 during deserialization.
+ *
+ * BUG FIX: 原始代码使用 LocalDate.parse 解析 "yyyy-MM" 格式会失败。
+ * FIX: Original code using LocalDate.parse for "yyyy-MM" format would fail.
+ * 应使用 YearMonth.parse 然后设置日为 1。
+ * Should use YearMonth.parse then set day to 1.
+ */
 data object LocalMonthSerializer : KSerializer<LocalDate> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM")
 
@@ -53,7 +81,10 @@ data object LocalMonthSerializer : KSerializer<LocalDate> {
         PrimitiveSerialDescriptor("kotlinx.LocalDate", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): LocalDate {
-        return java.time.LocalDate.parse(decoder.decodeString(), formatter).toKotlinLocalDate()
+        // BUG FIX: 使用 YearMonth 解析，然后设置日为 1
+        // FIX: Use YearMonth to parse, then set day to 1
+        val yearMonth = java.time.YearMonth.parse(decoder.decodeString(), formatter)
+        return yearMonth.atDay(1).toKotlinLocalDate()
     }
 
     override fun serialize(encoder: Encoder, value: LocalDate) {
@@ -61,6 +92,13 @@ data object LocalMonthSerializer : KSerializer<LocalDate> {
     }
 }
 
+/**
+ * LocalDate 序列化器
+ *
+ * 用于将 LocalDate 序列化为 "yyyy-MM-dd" 格式的字符串。
+ *
+ * Serializes LocalDate to "yyyy-MM-dd" format string.
+ */
 data object LocalDateSerializer : KSerializer<LocalDate> {
     private val formatter: DateTimeFormatter = DateTimeFormatter.ofPattern("yyyy-MM-dd")
 
@@ -76,6 +114,13 @@ data object LocalDateSerializer : KSerializer<LocalDate> {
     }
 }
 
+/**
+ * LocalTime 序列化器
+ *
+ * 用于将 LocalTime 序列化为 "HH:mm:ss" 格式的字符串。
+ *
+ * Serializes LocalTime to "HH:mm:ss" format string.
+ */
 data object LocalTimeSerializer : KSerializer<LocalTime> {
     private val formatter = DateTimeFormatter.ofPattern("HH:mm:ss")
 

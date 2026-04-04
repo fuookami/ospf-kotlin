@@ -1,7 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gwo
 
 import fuookami.ospf.kotlin.core.backend.solver.heuristic.SolutionWithFitness
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 typealias Wolf<V> = SolutionWithFitness<V>
 

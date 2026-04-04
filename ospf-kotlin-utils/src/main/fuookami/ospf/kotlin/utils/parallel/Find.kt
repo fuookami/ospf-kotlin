@@ -17,6 +17,15 @@ import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
+/**
+ * 并行查找操作
+ *
+ * Parallel find operations (first, firstOrNull, last, lastOrNull).
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
 suspend inline fun <T> Iterable<T>.firstParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): T {

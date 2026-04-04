@@ -4,7 +4,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.ordinary.ln
 import fuookami.ospf.kotlin.math.ordinary.pow
-import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 import kotlin.test.assertFailsWith
 import kotlin.test.assertFalse

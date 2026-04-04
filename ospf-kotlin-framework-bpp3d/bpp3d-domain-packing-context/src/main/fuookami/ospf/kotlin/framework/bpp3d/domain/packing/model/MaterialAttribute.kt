@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.AbstractCargoAttri
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Package
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.PackageType
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Orientation
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class MaterialAttributeValue(
     val deformationCoefficient: Flt64?,

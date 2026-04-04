@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynom
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AutoTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.RealVar
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.symbol.Quadratic
-import fuookami.ospf.kotlin.utils.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

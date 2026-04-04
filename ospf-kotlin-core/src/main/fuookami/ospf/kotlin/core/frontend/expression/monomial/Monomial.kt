@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.Bound
-import fuookami.ospf.kotlin.utils.math.operator.*
 import fuookami.ospf.kotlin.math.operator.*
+import fuookami.ospf.kotlin.math.operator.Neg
 
 sealed interface MonomialCell<Self : MonomialCell<Self>>
     : Cloneable, Copyable<Self>, Neg<Self>, Plus<Self, Self>, Minus<Self, Self>, Times<Flt64, Self>, Div<Flt64, Self> {

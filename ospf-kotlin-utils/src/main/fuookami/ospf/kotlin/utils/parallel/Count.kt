@@ -12,6 +12,24 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
+/**
+ * 并行计数操作
+ *
+ * Parallel counting operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
+/**
+ * 并行计数满足条件的元素
+ *
+ * Count elements that satisfy the predicate in parallel.
+ *
+ * @param T 元素类型 / Element type
+ * @param predicate 判断条件 / Predicate function
+ * @return 满足条件的元素数量 / Count of elements satisfying the predicate
+ */
 suspend inline fun <T> Iterable<T>.countParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Int {

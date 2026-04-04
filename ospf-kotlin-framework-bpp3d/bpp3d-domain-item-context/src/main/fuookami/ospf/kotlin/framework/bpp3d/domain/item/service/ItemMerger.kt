@@ -3,16 +3,17 @@
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.geometry.Point3
-import fuookami.ospf.kotlin.utils.math.geometry.Vector3
-import fuookami.ospf.kotlin.utils.math.geometry.point3
-import fuookami.ospf.kotlin.utils.math.geometry.vector3
-import fuookami.ospf.kotlin.utils.math.ordinary.max
-import fuookami.ospf.kotlin.utils.math.ordinary.min
-import fuookami.ospf.kotlin.utils.operator.Order
-import fuookami.ospf.kotlin.utils.operator.abs
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Vector3
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.operator.abs
 
 data object ItemMerger {
     data class Config(

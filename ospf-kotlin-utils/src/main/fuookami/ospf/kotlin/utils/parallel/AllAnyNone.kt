@@ -13,6 +13,24 @@ import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
+/**
+ * 并行判断操作
+ *
+ * Parallel predicate operations (all, any, none).
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
+/**
+ * 并行判断是否所有元素都满足条件
+ *
+ * Check if all elements satisfy the predicate in parallel.
+ *
+ * @param T 元素类型 / Element type
+ * @param predicate 判断条件 / Predicate function
+ * @return 是否所有元素都满足条件 / Whether all elements satisfy the predicate
+ */
 suspend inline fun <T> Iterable<T>.allParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {

@@ -10,9 +10,9 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import fuookami.ospf.kotlin.utils.math.algebra.number.Int64
-import fuookami.ospf.kotlin.utils.operator.Eq
-import fuookami.ospf.kotlin.utils.operator.eq
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.eq
 import kotlinx.datetime.Instant
 import kotlin.reflect.KClass
 import kotlin.reflect.jvm.jvmName

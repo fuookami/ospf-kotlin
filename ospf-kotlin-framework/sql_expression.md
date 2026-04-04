@@ -48,7 +48,7 @@
 
 1. `sealed interface ScalarExpression<out T>`
 2. `ConstantExpression<T>(value)`
-3. `ReferenceExpression<T>(path, type?)`
+3. `ReferenceExpression<T>(path: PropertyPath, type?)`
 4. `UnaryScalarExpression<T>(operator, operand)`
 5. `BinaryScalarExpression<T>(operator, left, right)`
 6. `FunctionScalarExpression<T>(name, args)`
@@ -73,6 +73,20 @@
 2. `BooleanOperatorRegistry`
 3. `ExpressionFunctionRegistry`
 
+### 4.4 PathSymbol 桥接（新增约束）
+
+目的：
+
+1. 保持 SQL 字段引用的主语义在 `PropertyPath` / `ReferenceExpression`。
+2. 在需要复用现有 `math.symbol.Symbol` 运算能力时，提供桥接而非替代。
+
+建议：
+
+1. 新增 `PathSymbol(path: PropertyPath)`，实现 `Symbol`（必要时实现 `IdentifiedSymbol` 以提供稳定身份）。
+2. `PathSymbol.name = path.value`，`symbolId = "path:${path.value}"`。
+3. `PathSymbol` 仅作为适配器，不作为 SQL AST 主节点；SQL AST 仍以 `ReferenceExpression(path)` 为准。
+4. 提供 `PropertyPath <-> PathSymbol` 的显式转换函数，避免隐式魔法。
+
 ## 5. 需补齐的符号运算能力
 
 当前缺口是“算术 + 单比较”，缺少逻辑树。必须补齐：
@@ -93,6 +107,7 @@
 1. `poPath -> ColumnDeclaring<*>` 显式映射。
 2. 支持单表嵌套路径（MVP）。
 3. 提供类型转换钩子（复用现有 `transform` 思路）。
+4. `poPath` 推荐统一为 `PropertyPath`，避免字符串拼写漂移。
 
 ### 6.2 SortBy 能力（必须项）
 
@@ -168,7 +183,8 @@ MVP 支持：
 2. `.../expression/BooleanExpression.kt`
 3. `.../expression/ExpressionOperator.kt`
 4. `.../expression/PropertyPath.kt`
-5. `.../expression/ExpressionFactory.kt`
+5. `.../expression/PathSymbol.kt`
+6. `.../expression/ExpressionFactory.kt`
 
 验收：
 
@@ -190,6 +206,7 @@ MVP 支持：
 
 1. parse + dsl + serde round-trip 通过。
 2. normalize 与 evaluate 用例通过。
+3. 若启用文本路径解析，则支持 `a.b.c` 形式的 `PropertyPath` 词法/语法。
 
 ### Phase 3（2 天）：framework 查询适配（含 SortBy）
 
@@ -273,6 +290,7 @@ mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,K
 2. `ReferenceExpression` 与列类型不一致。
 3. `NullsFirst/NullsLast` 在不同数据库支持度不同。
 4. 更新赋值表达式的类型推断错误可能导致运行时 SQL 异常。
+5. 将 `PropertyPath` 直接当作 `Symbol.name` 参与运算时，可能出现身份歧义或冲突。
 
 控制：
 
@@ -280,6 +298,7 @@ mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,K
 2. `EntityMeta` 做类型校验，Translator 早失败。
 3. `NullsOrder` 提供方言降级与明确文档。
 4. `UpdateAssignment` 进入 translator 前做列类型兼容校验。
+5. `PathSymbol` 实现 `IdentifiedSymbol` 并固定 `symbolId = "path:${path.value}"`。
 
 ## 10. 交接执行清单
 

@@ -14,20 +14,61 @@ import kotlinx.serialization.json.encodeToStream
 import kotlinx.serialization.serializer
 import java.io.*
 
+/**
+ * JSON 命名策略
+ *
+ * 用于在序列化/反序列化时自动转换字段名的命名格式。
+ * 将前端命名系统（如 camelCase）转换为后端命名系统（如 snake_case）。
+ *
+ * A JSON naming strategy for automatic field name conversion during serialization/deserialization.
+ * Converts frontend naming system (e.g., camelCase) to backend naming system (e.g., snake_case).
+ *
+ * @property frontend 前端命名系统 / Frontend naming system
+ * @property backend 后端命名系统 / Backend naming system
+ */
 @OptIn(ExperimentalSerializationApi::class)
 class JsonNamingPolicy(
     val frontend: NamingSystem,
     val backend: NamingSystem
 ) : JsonNamingStrategy {
+    /**
+     * 名称转换器
+     *
+     * The name transfer for converting between naming systems.
+     */
     val transfer = NameTransfer(frontend, backend)
 
+    /**
+     * 获取 JSON 字段名
+     *
+     * Get the JSON field name for a given serial name.
+     * Converts the Kotlin property name (serialName) from frontend format to backend format.
+     *
+     * BUG FIX: 原始代码使用 descriptor.serialName（类名），这是错误的。
+     * FIX: Original code used descriptor.serialName (class name), which is incorrect.
+     * 应该直接转换 serialName（字段名）。
+     * Should directly convert serialName (field name).
+     *
+     * @param descriptor 序列化描述符 / Serialization descriptor
+     * @param elementIndex 元素索引 / Element index
+     * @param serialName Kotlin 属性名 / Kotlin property name
+     * @return 转换后的 JSON 字段名 / Converted JSON field name
+     */
     override fun serialNameForJson(descriptor: SerialDescriptor, elementIndex: Int, serialName: String): String {
-        return descriptor.serialName.ifBlank {
-            transfer(serialName)
-        }
+        return transfer(serialName)
     }
 }
 
+/**
+ * 从文件读取 JSON 对象
+ *
+ * Read a JSON object from a file.
+ *
+ * @param T 对象类型 / Object type
+ * @param path 文件路径 / File path
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的对象 / Parsed object
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNamingPolicy? = null): T {
     return readFromJson(
@@ -37,6 +78,16 @@ inline fun <reified T : Any> readFromJson(path: String, namingPolicy: JsonNaming
     )
 }
 
+/**
+ * 从文件读取 JSON 列表
+ *
+ * Read a JSON list from a file.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param path 文件路径 / File path
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的列表 / Parsed list
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
     return readFromJsonList(
@@ -46,6 +97,17 @@ inline fun <reified T : Any> readFromJsonList(path: String, namingPolicy: JsonNa
     )
 }
 
+/**
+ * 从文件读取 JSON 对象（使用序列化器）
+ *
+ * Read a JSON object from a file using a serializer.
+ *
+ * @param T 对象类型 / Object type
+ * @param serializer 序列化器 / Serializer
+ * @param path 文件路径 / File path
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的对象 / Parsed object
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): T {
     val file = File(path)
@@ -55,9 +117,24 @@ fun <T> readFromJson(serializer: KSerializer<T>, path: String, namingPolicy: Jso
             namingStrategy = namingPolicy
         }
     }
-    return json.decodeFromStream(serializer, FileInputStream(file))
+    // UTL-006: 应使用 use {} 确保资源关闭
+    // Should use use {} to ensure resource closure
+    return FileInputStream(file).use { stream ->
+        json.decodeFromStream(serializer, stream)
+    }
 }
 
+/**
+ * 从文件读取 JSON 列表（使用序列化器）
+ *
+ * Read a JSON list from a file using a serializer.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param serializer 元素序列化器 / Element serializer
+ * @param path 文件路径 / File path
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的列表 / Parsed list
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJsonList(serializer: KSerializer<T>, path: String, namingPolicy: JsonNamingPolicy? = null): List<T> {
     return readFromJson(
@@ -67,6 +144,16 @@ fun <T> readFromJsonList(serializer: KSerializer<T>, path: String, namingPolicy:
     )
 }
 
+/**
+ * 从流读取 JSON 对象
+ *
+ * Read a JSON object from a stream.
+ *
+ * @param T 对象类型 / Object type
+ * @param stream 输入流 / Input stream
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的对象 / Parsed object
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {
     return readFromJson(
@@ -76,6 +163,16 @@ inline fun <reified T : Any> readFromJson(stream: InputStream, namingPolicy: Jso
     )
 }
 
+/**
+ * 从流读取 JSON 列表
+ *
+ * Read a JSON list from a stream.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param stream 输入流 / Input stream
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的列表 / Parsed list
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> readFromJsonList(stream: InputStream, namingPolicy: JsonNamingPolicy? = null): List<T> {
     return readFromJsonList(
@@ -85,6 +182,17 @@ inline fun <reified T : Any> readFromJsonList(stream: InputStream, namingPolicy:
     )
 }
 
+/**
+ * 从流读取 JSON 对象（使用序列化器）
+ *
+ * Read a JSON object from a stream using a serializer.
+ *
+ * @param T 对象类型 / Object type
+ * @param serializer 序列化器 / Serializer
+ * @param stream 输入流 / Input stream
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的对象 / Parsed object
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJson(serializer: KSerializer<T>, stream: InputStream, namingPolicy: JsonNamingPolicy? = null): T {
     val json = Json {
@@ -96,6 +204,17 @@ fun <T> readFromJson(serializer: KSerializer<T>, stream: InputStream, namingPoli
     return json.decodeFromStream(serializer, stream)
 }
 
+/**
+ * 从流读取 JSON 列表（使用序列化器）
+ *
+ * Read a JSON list from a stream using a serializer.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param serializer 列表序列化器 / List serializer
+ * @param stream 输入流 / Input stream
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return 解析后的列表 / Parsed list
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> readFromJsonList(serializer: KSerializer<List<T>>, stream: InputStream, namingPolicy: JsonNamingPolicy? = null): List<T> {
     val json = Json {
@@ -107,6 +226,16 @@ fun <T> readFromJsonList(serializer: KSerializer<List<T>>, stream: InputStream, 
     return json.decodeFromStream(serializer, stream)
 }
 
+/**
+ * 将对象序列化为 JSON 字符串
+ *
+ * Serialize an object to a JSON string.
+ *
+ * @param T 对象类型 / Object type
+ * @param value 要序列化的对象 / Object to serialize
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return JSON 字符串 / JSON string
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJson(value: T, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
@@ -119,6 +248,16 @@ inline fun <reified T : Any> writeJson(value: T, namingPolicy: JsonNamingPolicy?
     return stream.toString()
 }
 
+/**
+ * 将列表序列化为 JSON 字符串
+ *
+ * Serialize a list to a JSON string.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param value 要序列化的列表 / List to serialize
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return JSON 字符串 / JSON string
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJson(value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
@@ -131,6 +270,17 @@ inline fun <reified T : Any> writeJson(value: List<T>, namingPolicy: JsonNamingP
     return stream.toString()
 }
 
+/**
+ * 将对象序列化为 JSON 字符串（使用序列化器）
+ *
+ * Serialize an object to a JSON string using a serializer.
+ *
+ * @param T 对象类型 / Object type
+ * @param serializer 序列化器 / Serializer
+ * @param value 要序列化的对象 / Object to serialize
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return JSON 字符串 / JSON string
+ */
 fun <T> writeJson(serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
     writeJsonToStream(
@@ -142,6 +292,17 @@ fun <T> writeJson(serializer: KSerializer<T>, value: T, namingPolicy: JsonNaming
     return stream.toString()
 }
 
+/**
+ * 将列表序列化为 JSON 字符串（使用序列化器）
+ *
+ * Serialize a list to a JSON string using a serializer.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param serializer 元素序列化器 / Element serializer
+ * @param value 要序列化的列表 / List to serialize
+ * @param namingPolicy 命名策略 / Naming policy
+ * @return JSON 字符串 / JSON string
+ */
 fun <T> writeJson(serializer: KSerializer<T>, value: List<T>, namingPolicy: JsonNamingPolicy? = null): String {
     val stream = ByteArrayOutputStream()
     writeJsonToStream(
@@ -153,43 +314,104 @@ fun <T> writeJson(serializer: KSerializer<T>, value: List<T>, namingPolicy: Json
     return stream.toString()
 }
 
+/**
+ * 将对象写入 JSON 文件
+ *
+ * Write an object to a JSON file.
+ *
+ * @param T 对象类型 / Object type
+ * @param path 文件路径 / File path
+ * @param value 要写入的对象 / Object to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJsonToFile(path: String, value: T, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(
-        stream = File(path).outputStream(),
-        serializer = T::class.serializer(),
-        value = value,
-        namingPolicy = namingPolicy
-    )
+    File(path).outputStream().use { stream ->
+        writeJsonToStream(
+            stream = stream,
+            serializer = T::class.serializer(),
+            value = value,
+            namingPolicy = namingPolicy
+        )
+    }
 }
 
+/**
+ * 将列表写入 JSON 文件（使用序列化器）
+ *
+ * Write a list to a JSON file using a serializer.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param serializer 元素序列化器 / Element serializer
+ * @param path 文件路径 / File path
+ * @param value 要写入的列表 / List to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 fun <T> writeJsonToFile(serializer: KSerializer<T>, path: String, value: List<T>, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(
-        stream = File(path).outputStream(),
-        serializer = ListSerializer(serializer),
-        value = value,
-        namingPolicy = namingPolicy
-    )
+    File(path).outputStream().use { stream ->
+        writeJsonToStream(
+            stream = stream,
+            serializer = ListSerializer(serializer),
+            value = value,
+            namingPolicy = namingPolicy
+        )
+    }
 }
 
+/**
+ * 将对象写入 JSON 文件（使用序列化器）
+ *
+ * Write an object to a JSON file using a serializer.
+ *
+ * @param T 对象类型 / Object type
+ * @param path 文件路径 / File path
+ * @param serializer 序列化器 / Serializer
+ * @param value 要写入的对象 / Object to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 fun <T> writeJsonToFile(path: String, serializer: KSerializer<T>, value: T, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(
-        stream = File(path).outputStream(),
-        serializer = serializer,
-        value = value,
-        namingPolicy = namingPolicy
-    )
+    File(path).outputStream().use { stream ->
+        writeJsonToStream(
+            stream = stream,
+            serializer = serializer,
+            value = value,
+            namingPolicy = namingPolicy
+        )
+    }
 }
 
+/**
+ * 将列表写入 JSON 文件
+ *
+ * Write a list to a JSON file.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param path 文件路径 / File path
+ * @param serializer 列表序列化器 / List serializer
+ * @param value 要写入的列表 / List to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 fun <T> writeJsonToFile(path: String, serializer: KSerializer<List<T>>, value: List<T>, namingPolicy: JsonNamingPolicy? = null) {
-    writeJsonToStream(
-        stream = File(path).outputStream(),
-        serializer = serializer,
-        value = value,
-        namingPolicy = namingPolicy
-    )
+    File(path).outputStream().use { stream ->
+        writeJsonToStream(
+            stream = stream,
+            serializer = serializer,
+            value = value,
+            namingPolicy = namingPolicy
+        )
+    }
 }
 
+/**
+ * 将对象写入输出流
+ *
+ * Write an object to an output stream.
+ *
+ * @param T 对象类型 / Object type
+ * @param stream 输出流 / Output stream
+ * @param value 要写入的对象 / Object to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJsonToStream(
     stream: OutputStream,
@@ -204,6 +426,16 @@ inline fun <reified T : Any> writeJsonToStream(
     )
 }
 
+/**
+ * 将列表写入输出流
+ *
+ * Write a list to an output stream.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param stream 输出流 / Output stream
+ * @param value 要写入的列表 / List to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 @OptIn(InternalSerializationApi::class)
 inline fun <reified T : Any> writeJsonToStream(
     stream: OutputStream,
@@ -218,6 +450,17 @@ inline fun <reified T : Any> writeJsonToStream(
     )
 }
 
+/**
+ * 将对象写入输出流（使用序列化器）
+ *
+ * Write an object to an output stream using a serializer.
+ *
+ * @param T 对象类型 / Object type
+ * @param stream 输出流 / Output stream
+ * @param serializer 序列化器 / Serializer
+ * @param value 要写入的对象 / Object to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> writeJsonToStream(
     stream: OutputStream,
@@ -238,6 +481,17 @@ fun <T> writeJsonToStream(
     )
 }
 
+/**
+ * 将列表写入输出流（使用序列化器）
+ *
+ * Write a list to an output stream using a serializer.
+ *
+ * @param T 列表元素类型 / List element type
+ * @param stream 输出流 / Output stream
+ * @param serializer 列表序列化器 / List serializer
+ * @param value 要写入的列表 / List to write
+ * @param namingPolicy 命名策略 / Naming policy
+ */
 @OptIn(ExperimentalSerializationApi::class)
 fun <T> writeJsonToStream(
     stream: OutputStream,

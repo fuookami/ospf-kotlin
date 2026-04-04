@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.math.algebra.concept
 
-import fuookami.ospf.kotlin.utils.math.operator.Ord
+import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.math.operator.Minus
 

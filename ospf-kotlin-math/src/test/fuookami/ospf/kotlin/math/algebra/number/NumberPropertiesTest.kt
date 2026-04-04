@@ -1,6 +1,5 @@
 ﻿package fuookami.ospf.kotlin.math.algebra.number
 
-import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
 

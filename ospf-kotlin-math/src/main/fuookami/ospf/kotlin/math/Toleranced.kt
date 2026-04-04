@@ -1,9 +1,8 @@
 ﻿package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.operator.TolerancedEq
 import fuookami.ospf.kotlin.math.operator.TolerancedOrd
 

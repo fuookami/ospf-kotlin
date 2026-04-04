@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
-import fuookami.ospf.kotlin.utils.math.operator.Order
-import fuookami.ospf.kotlin.utils.math.operator.PartialOrd
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.PartialOrd
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.PrimitiveKind

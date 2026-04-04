@@ -2,10 +2,10 @@
 
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackageCode
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.PackagePattern
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.operator.Eq
-import fuookami.ospf.kotlin.utils.operator.abs
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.math.operator.abs
 
 enum class PackageClassification {
     Outer,

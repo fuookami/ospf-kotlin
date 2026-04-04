@@ -7,10 +7,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Container3Shape
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Placement3
 import fuookami.ospf.kotlin.utils.functional.minWithThreeWayComparatorOrNull
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.functional.sumOf
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.math.combinatorics.permuteAsync
-import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel

@@ -2,7 +2,7 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.Scale
-import fuookami.ospf.kotlin.utils.math.operator.Order
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.quantities.dimension.CustomFundamentalQuantityDimension
 import fuookami.ospf.kotlin.quantities.dimension.DerivedQuantity
 import fuookami.ospf.kotlin.quantities.dimension.Mass

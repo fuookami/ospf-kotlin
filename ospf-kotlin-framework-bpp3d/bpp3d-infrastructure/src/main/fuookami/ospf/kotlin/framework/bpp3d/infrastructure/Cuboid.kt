@@ -1,9 +1,9 @@
 ﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.utils.math.geometry.point2
-import fuookami.ospf.kotlin.utils.operator.Plus
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.operator.Plus
 
 interface AbstractCuboid {
     val width: Flt64

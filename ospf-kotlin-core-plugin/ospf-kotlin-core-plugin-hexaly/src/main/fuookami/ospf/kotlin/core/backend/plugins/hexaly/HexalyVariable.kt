@@ -3,7 +3,7 @@
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxModel
 import fuookami.ospf.kotlin.core.frontend.variable.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 sealed interface HexalyVariable {
     companion object {

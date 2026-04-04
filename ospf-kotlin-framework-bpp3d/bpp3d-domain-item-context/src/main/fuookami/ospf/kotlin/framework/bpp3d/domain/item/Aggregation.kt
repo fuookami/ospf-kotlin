@@ -5,10 +5,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Scheme
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.BatchNo
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.MultiBatchNo
-import fuookami.ospf.kotlin.utils.functional.sumOf
+import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.utils.functional.toSortedMapWithThreeWayComparator
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.utils.operator.Order
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.utils.functional.Order
 
 class Aggregation(
     val schemes: Map<BatchNo, Scheme>,

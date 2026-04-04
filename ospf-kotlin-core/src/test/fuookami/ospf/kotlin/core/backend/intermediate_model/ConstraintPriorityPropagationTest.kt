@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.backend.intermediate_model
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNull

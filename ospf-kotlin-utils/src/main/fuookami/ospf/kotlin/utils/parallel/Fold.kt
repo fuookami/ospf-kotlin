@@ -12,9 +12,31 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 
+/**
+ * 并行折叠操作
+ *
+ * Parallel fold/reduce operations.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
+/**
+ * 最大分段值
+ *
+ * Maximum segment value for fold operations.
+ */
 @PublishedApi
 internal val maxSegmentValue = Int.MAX_VALUE.toLong()
 
+/**
+ * 规范化分段大小
+ *
+ * Normalize segment size to valid integer range.
+ *
+ * @param segment 分段大小 / Segment size
+ * @return 规范化后的分段大小 / Normalized segment size
+ */
 @PublishedApi
 internal fun normalizeSegment(segment: Long): Int {
     require(segment > 0) { "segment must be greater than zero." }

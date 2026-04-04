@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeli
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<T>,

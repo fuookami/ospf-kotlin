@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.core.backend.intermediate_model.toModelBuildingStatu
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MechanismModelDumpingStatus
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatus
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toModelBuildingStatus
-import fuookami.ospf.kotlin.utils.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

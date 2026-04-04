@@ -1,7 +1,6 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.*
@@ -9,7 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.concept.*
-import fuookami.ospf.kotlin.utils.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.*
@@ -87,7 +86,7 @@ data class LinearMonomialCell internal constructor(
     val pair by cell::left
     override val constant by cell::right
 
-    override fun unaryMinus(): LinearMonomialCell {
+    override operator fun unaryMinus(): LinearMonomialCell {
         return when (cell) {
             is Either.Left -> {
                 LinearMonomialCell(Either.Left(-cell.value))
@@ -828,7 +827,7 @@ data class LinearMonomial(
         return LinearMonomial(coefficient, symbol.copy())
     }
 
-    override fun unaryMinus() = LinearMonomial(-coefficient, symbol.copy())
+    override operator fun unaryMinus() = LinearMonomial(-coefficient, symbol.copy())
 
     override fun times(rhs: Flt64): LinearMonomial {
         return LinearMonomial(coefficient * rhs, symbol.copy())

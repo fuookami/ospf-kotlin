@@ -12,6 +12,15 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 
+/**
+ * 并行关联操作
+ *
+ * Parallel association operations for creating maps from iterables.
+ *
+ * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
+ * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ */
+
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {

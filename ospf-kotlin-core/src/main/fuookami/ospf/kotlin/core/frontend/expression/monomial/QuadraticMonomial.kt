@@ -28,8 +28,8 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.algebra.value_range.times
-import fuookami.ospf.kotlin.math.operator.*
-import fuookami.ospf.kotlin.utils.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.div
@@ -264,7 +264,7 @@ data class QuadraticMonomialCell internal constructor(
     val triple by cell::left
     override val constant by cell::right
 
-    override fun unaryMinus(): QuadraticMonomialCell {
+    override operator fun unaryMinus(): QuadraticMonomialCell {
         return when (cell) {
             is Either.Left -> {
                 QuadraticMonomialCell(Either.Left(-cell.value))
@@ -1764,7 +1764,7 @@ class QuadraticMonomial(
         return QuadraticMonomial(coefficient, symbol.copy())
     }
 
-    override fun unaryMinus() = QuadraticMonomial(-coefficient, symbol.copy())
+    override operator fun unaryMinus() = QuadraticMonomial(-coefficient, symbol.copy())
 
     override fun times(rhs: Flt64): QuadraticMonomial {
         return QuadraticMonomial(coefficient * rhs, symbol.copy())

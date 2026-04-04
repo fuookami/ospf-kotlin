@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.operator.eq
 import org.junit.jupiter.api.Test
 
 class QuantityValueRangeTest {
@@ -94,7 +93,7 @@ class QuantityValueRangeTest {
     fun testMultiply() {
         val range = range(Flt64.one, Flt64.two).value!!
         val zeroRange = range * Flt64.zero
-        assert(zeroRange!!.fixedValue eq Flt64.zero)
+        assert(zeroRange!!.fixedValue!! eq Flt64.zero)
         val twiceRange = range * Flt64.two
         assert(twiceRange!!.lowerBound.value.unwrap() eq Flt64.two)
         assert(twiceRange.upperBound.value.unwrap() eq Flt64(4.0))

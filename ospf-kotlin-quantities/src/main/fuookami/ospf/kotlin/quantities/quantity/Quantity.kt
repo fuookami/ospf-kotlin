@@ -2,7 +2,6 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.Arithmetic
 import fuookami.ospf.kotlin.math.algebra.concept.ArithmeticConstants
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -10,10 +9,13 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.Div
 import fuookami.ospf.kotlin.math.operator.Times
-import fuookami.ospf.kotlin.utils.math.operator.*
+import fuookami.ospf.kotlin.utils.functional.Eq
+import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.utils.functional.PartialOrd
+import fuookami.ospf.kotlin.utils.functional.Ord
+import fuookami.ospf.kotlin.math.operator.Neg
 import fuookami.ospf.kotlin.quantities.unit.*
 import java.math.BigDecimal
 import java.math.BigInteger

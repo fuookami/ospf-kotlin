@@ -2,13 +2,34 @@ package fuookami.ospf.kotlin.utils.meta_programming
 
 import java.util.*
 
+/**
+ * 判断字符是否为字母或数字
+ *
+ * Check if a character is alphanumeric.
+ */
 private val Char.isAlphaNumber: Boolean get() = isLowerCase() || isUpperCase() || isDigit()
 
+/**
+ * 命名系统枚举
+ *
+ * Enumeration of naming systems for converting between different naming conventions.
+ */
 enum class NamingSystem {
     /**
-     * e.g. play_station
+     * 蛇形命名法（snake_case）
+     *
+     * Snake case naming (e.g., play_station).
      */
     SnakeCase {
+        /**
+         * 将蛇形命名转换为单词序列
+         *
+         * Convert snake_case name to word sequence.
+         *
+         * @param name 蛇形命名的名称 / Snake case name
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return 单词序列 / Word sequence
+         */
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             if (name.isEmpty()) {
                 return emptyList()
@@ -18,13 +39,24 @@ enum class NamingSystem {
             return name.split("_").map { it.lowercase(Locale.getDefault()) }
         }
 
+        /**
+         * 将单词序列转换为蛇形命名
+         *
+         * Convert word sequence to snake_case name.
+         *
+         * @param words 单词序列 / Word sequence
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return 蛇形命名的名称 / Snake case name
+         */
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
             return words.joinToString("_") { it.lowercase(Locale.getDefault()) }
         }
     },
 
     /**
-     * e.g. PLAY_STATION
+     * 大写蛇形命名法（UPPER_SNAKE_CASE）
+     *
+     * Upper snake case naming (e.g., PLAY_STATION).
      */
     UpperSnakeCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
@@ -37,7 +69,9 @@ enum class NamingSystem {
     },
 
     /**
-     * e.g. play-station
+     * 短横线命名法（kebab-case）
+     *
+     * Kebab case naming (e.g., play-station).
      */
     KebabCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
@@ -55,7 +89,9 @@ enum class NamingSystem {
     },
 
     /**
-     * e.g. playStation
+     * 骆驼命名法（camelCase）
+     *
+     * Camel case naming (e.g., playStation).
      */
     CamelCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
@@ -144,6 +180,20 @@ enum class NamingSystem {
             return words
         }
 
+        /**
+         * 将单词序列转换为骆驼命名
+         *
+         * Convert word sequence to camelCase name.
+         *
+         * BUG FIX: 原始代码使用 joinToString() 默认逗号分隔。
+         * FIX: Original code used joinToString() with default comma separator.
+         * 应使用 joinToString("") 空字符串分隔。
+         * Should use joinToString("") with empty string separator.
+         *
+         * @param words 单词序列 / Word sequence
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return 骆驼命名的名称 / Camel case name
+         */
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
             return words.mapIndexed { index, word ->
                 if (abbreviations.contains(word) && word.length <= 3) {
@@ -159,20 +209,36 @@ enum class NamingSystem {
                 } else {
                     word
                 }
-            }.joinToString()
+            }.joinToString("")  // BUG FIX: 使用空字符串分隔
         }
     },
 
     /**
-     * e.g. PlayStation
+     * 帕斯卡命名法（PascalCase）
+     *
+     * Pascal case naming (e.g., PlayStation).
      */
     PascalCase {
         override fun frontend(name: String, abbreviations: Set<String>): List<String> {
             return CamelCase.frontend(name, abbreviations)
         }
 
+        /**
+         * 将单词序列转换为帕斯卡命名
+         *
+         * Convert word sequence to PascalCase name.
+         *
+         * BUG FIX: 原始代码使用 joinToString { } 默认逗号分隔。
+         * FIX: Original code used joinToString { } with default comma separator.
+         * 应使用 joinToString("") { } 空字符串分隔。
+         * Should use joinToString("") { } with empty string separator.
+         *
+         * @param words 单词序列 / Word sequence
+         * @param abbreviations 缩写集合 / Abbreviation set
+         * @return 帕斯卡命名的名称 / Pascal case name
+         */
         override fun backend(words: List<String>, abbreviations: Set<String>): String {
-            return words.joinToString { word ->
+            return words.joinToString("") { word ->  // BUG FIX: 使用空字符串分隔
                 if (abbreviations.contains(word) && word.length <= 3) {
                     word.uppercase(Locale.getDefault())
                 } else {
@@ -189,20 +255,24 @@ enum class NamingSystem {
     };
 
     /**
-     * split the given name to word sequence with this naming system
+     * 将给定的名称拆分为单词序列
      *
-     * @param name              the given name
-     * @param abbreviations     abbreviation set
-     * @return                  word sequence
+     * Split the given name to word sequence with this naming system.
+     *
+     * @param name 给定的名称 / The given name
+     * @param abbreviations 缩写集合 / Abbreviation set
+     * @return 单词序列 / Word sequence
      */
     abstract fun frontend(name: String, abbreviations: Set<String> = emptySet()): List<String>
 
     /**
-     * join the given word sequence to a name corresponding this naming system
+     * 将给定的单词序列合并为对应的命名格式
      *
-     * @param words             the given word sequence
-     * @param abbreviations     abbreviation set
-     * @return                  the name corresponding this naming system
+     * Join the given word sequence to a name corresponding this naming system.
+     *
+     * @param words 给定的单词序列 / The given word sequence
+     * @param abbreviations 缩写集合 / Abbreviation set
+     * @return 对应命名格式的名称 / The name corresponding this naming system
      */
     abstract fun backend(words: List<String>, abbreviations: Set<String> = emptySet()): String
 }
