@@ -15,38 +15,51 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 /**
  * 并行关联操作
  *
- * Parallel association operations for creating maps from iterables.
+ * Parallel association operations for creating maps from iterables with concurrency control.
  *
- * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
- * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
+ * Concurrency control implemented: Uses Semaphore to limit active coroutines.
  */
 
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): Map<K, V> {
-    return associateToParallelly(LinkedHashMap(), extractor)
+    return associateToParallelly(LinkedHashMap(), concurrentAmount, extractor)
 }
 
 suspend inline fun <K, V, T> Iterable<T>.tryAssociateToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<Map<K, V>> {
-    return tryAssociateToParallelly(LinkedHashMap(), extractor)
+    return tryAssociateToParallelly(LinkedHashMap(), concurrentAmount, extractor)
 }
 
 suspend inline fun <K, V, T> Iterable<T>.exTryAssociateToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): ExRet<Map<K, V>> {
-    return exTryAssociateToParallelly(LinkedHashMap(), extractor)
+    return exTryAssociateToParallelly(LinkedHashMap(), concurrentAmount, extractor)
 }
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): M {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<K, V>>>()
         for (element in this@associateToParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             val (key, value) = promise.await()
@@ -58,12 +71,22 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociateToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<K, V>>>>()
         for (element in this@tryAssociateToParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             when (val ret = promise.await()) {
@@ -82,12 +105,22 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociat
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssociateToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): ExRet<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<K, V>>>>()
         for (element in this@exTryAssociateToParallelly) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         for (promise in promises) {
@@ -105,31 +138,44 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssoci
 }
 
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendExtractor<K, T>
 ): Map<K, T> {
-    return associateByToParallelly(LinkedHashMap(), keyExtractor)
+    return associateByToParallelly(LinkedHashMap(), concurrentAmount, keyExtractor)
 }
 
 suspend inline fun <K, T> Iterable<T>.tryAssociateByToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): Ret<Map<K, T>> {
-    return tryAssociateByToParallelly(LinkedHashMap(), keyExtractor)
+    return tryAssociateByToParallelly(LinkedHashMap(), concurrentAmount, keyExtractor)
 }
 
 suspend inline fun <K, T> Iterable<T>.exTryAssociateByToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): ExRet<Map<K, T>> {
-    return exTryAssociateByToParallelly(LinkedHashMap(), keyExtractor)
+    return exTryAssociateByToParallelly(LinkedHashMap(), concurrentAmount, keyExtractor)
 }
 
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendExtractor<K, T>
 ): M {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<K, T>>>()
         for (element in this@associateByToParallelly) {
-            promises.add(async(Dispatchers.Default) { keyExtractor(element) to element })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    keyExtractor(element) to element
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             val (key, value) = promise.await()
@@ -141,16 +187,24 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
 
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateByToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): Ret<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<K, T>>>>()
         for (element in this@tryAssociateByToParallelly) {
             promises.add(async(Dispatchers.Default) {
-                when (val ret = keyExtractor(element)) {
-                    is Ok -> Ok(ret.value to element)
-                    is Failed -> Failed(ret.error)
-                    is Fatal -> Fatal(ret.errors)
+                semaphore.acquire()
+                try {
+                    when (val ret = keyExtractor(element)) {
+                        is Ok -> Ok(ret.value to element)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                } finally {
+                    semaphore.release()
                 }
             })
         }
@@ -171,16 +225,24 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateBy
 
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociateByToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): ExRet<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<K, T>>>>()
         for (element in this@exTryAssociateByToParallelly) {
             promises.add(async(Dispatchers.Default) {
-                when (val ret = keyExtractor(element)) {
-                    is Ok -> Ok(ret.value to element)
-                    is Failed -> Failed(ret.error)
-                    is Fatal -> Fatal(ret.errors)
+                semaphore.acquire()
+                try {
+                    when (val ret = keyExtractor(element)) {
+                        is Ok -> Ok(ret.value to element)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                } finally {
+                    semaphore.release()
                 }
             })
         }
@@ -200,31 +262,44 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociate
 }
 
 suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendExtractor<V, T>
 ): Map<T, V> {
-    return associateWithToParallelly(LinkedHashMap(), valueExtractor)
+    return associateWithToParallelly(LinkedHashMap(), concurrentAmount, valueExtractor)
 }
 
 suspend inline fun <V, T> Iterable<T>.tryAssociateWithToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): Ret<Map<T, V>> {
-    return tryAssociateWithToParallelly(LinkedHashMap(), valueExtractor)
+    return tryAssociateWithToParallelly(LinkedHashMap(), concurrentAmount, valueExtractor)
 }
 
 suspend inline fun <V, T> Iterable<T>.exTryAssociateWithToParallelly(
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): ExRet<Map<T, V>> {
-    return exTryAssociateWithToParallelly(LinkedHashMap(), valueExtractor)
+    return exTryAssociateWithToParallelly(LinkedHashMap(), concurrentAmount, valueExtractor)
 }
 
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendExtractor<V, T>
 ): M {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Pair<T, V>>>()
         for (element in this@associateWithToParallelly) {
-            promises.add(async(Dispatchers.Default) { element to valueExtractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    element to valueExtractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             val (key, value) = promise.await()
@@ -236,16 +311,24 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
 
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWithToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): Ret<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<T, V>>>>()
         for (element in this@tryAssociateWithToParallelly) {
             promises.add(async(Dispatchers.Default) {
-                when (val ret = valueExtractor(element)) {
-                    is Ok -> Ok(element to ret.value)
-                    is Failed -> Failed(ret.error)
-                    is Fatal -> Fatal(ret.errors)
+                semaphore.acquire()
+                try {
+                    when (val ret = valueExtractor(element)) {
+                        is Ok -> Ok(element to ret.value)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                } finally {
+                    semaphore.release()
                 }
             })
         }
@@ -266,16 +349,24 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWi
 
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.exTryAssociateWithToParallelly(
     destination: M,
+    concurrentAmount: ULong? = null,
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): ExRet<M> {
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Pair<T, V>>>>()
         for (element in this@exTryAssociateWithToParallelly) {
             promises.add(async(Dispatchers.Default) {
-                when (val ret = valueExtractor(element)) {
-                    is Ok -> Ok(element to ret.value)
-                    is Failed -> Failed(ret.error)
-                    is Fatal -> Fatal(ret.errors)
+                semaphore.acquire()
+                try {
+                    when (val ret = valueExtractor(element)) {
+                        is Ok -> Ok(element to ret.value)
+                        is Failed -> Failed(ret.error)
+                        is Fatal -> Fatal(ret.errors)
+                    }
+                } finally {
+                    semaphore.release()
                 }
             })
         }

@@ -20,23 +20,25 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 /**
  * 并行查找操作
  *
- * Parallel find operations (first, firstOrNull, last, lastOrNull).
+ * Parallel find operations (first, firstOrNull, last, lastOrNull) with concurrency control.
  *
- * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
- * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
+ * Concurrency control implemented: Uses Semaphore to limit active coroutines.
  */
 
 suspend inline fun <T> Iterable<T>.firstParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T {
-    return firstOrNullParallelly(predicate)
+    return firstOrNullParallelly(concurrentAmount, predicate)
         ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
 }
 
 suspend inline fun <T> Iterable<T>.tryFirstParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
-    return when (val result = tryFirstOrNullParallelly(predicate)) {
+    return when (val result = tryFirstOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
 
@@ -46,9 +48,10 @@ suspend inline fun <T> Iterable<T>.tryFirstParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T> {
-    return when (val result = exTryFirstOrNullParallelly(predicate)) {
+    return when (val result = exTryFirstOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
 
@@ -60,13 +63,23 @@ suspend inline fun <T> Iterable<T>.exTryFirstParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T? {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Boolean>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for ((index, promise) in promises.withIndex()) {
             if (promise.await()) {
@@ -78,13 +91,23 @@ suspend inline fun <T> Iterable<T>.firstOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Boolean>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for ((index, promise) in promises.withIndex()) {
             when (val ret = promise.await()) {
@@ -103,13 +126,23 @@ suspend inline fun <T> Iterable<T>.tryFirstOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Boolean>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         var matched: T? = null
@@ -129,16 +162,18 @@ suspend inline fun <T> Iterable<T>.exTryFirstOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.firstNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
 ): R {
-    return firstNotNullOfOrNullParallelly(extractor)
+    return firstNotNullOfOrNullParallelly(concurrentAmount, extractor)
         ?: throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
 }
 
 suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<R> {
-    return when (val result = tryFirstNotNullOfOrNullParallelly(extractor)) {
+    return when (val result = tryFirstNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(
                 Err(
@@ -153,9 +188,10 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<R> {
-    return when (val result = exTryFirstNotNullOfOrNullParallelly(extractor)) {
+    return when (val result = exTryFirstNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(
                 Err(
@@ -177,13 +213,23 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
 ): R? {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<R?>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             val value = promise.await()
@@ -196,13 +242,23 @@ suspend inline fun <R, T> Iterable<T>.firstNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<R?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R?>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (promise in promises) {
             when (val ret = promise.await()) {
@@ -222,13 +278,23 @@ suspend inline fun <R, T> Iterable<T>.tryFirstNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<R?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R?>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         var result: R? = null
@@ -248,16 +314,18 @@ suspend inline fun <R, T> Iterable<T>.exTryFirstNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.lastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T {
-    return lastOrNullParallelly(predicate)
+    return lastOrNullParallelly(concurrentAmount, predicate)
         ?: throw NoSuchElementException("Collection contains no element matching the predicate.")
 }
 
 suspend inline fun <T> Iterable<T>.tryLastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T> {
-    return when (val result = tryLastOrNullParallelly(predicate)) {
+    return when (val result = tryLastOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
 
@@ -267,9 +335,10 @@ suspend inline fun <T> Iterable<T>.tryLastParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryLastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T> {
-    return when (val result = exTryLastOrNullParallelly(predicate)) {
+    return when (val result = exTryLastOrNullParallelly(concurrentAmount, predicate)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection contains no element matching the predicate."))
 
@@ -281,13 +350,23 @@ suspend inline fun <T> Iterable<T>.exTryLastParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T? {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Boolean>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (index in promises.indices.reversed()) {
             if (promises[index].await()) {
@@ -299,13 +378,23 @@ suspend inline fun <T> Iterable<T>.lastOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Boolean>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (index in promises.indices.reversed()) {
             when (val ret = promises[index].await()) {
@@ -324,13 +413,23 @@ suspend inline fun <T> Iterable<T>.tryLastOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<Boolean>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { predicate(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    predicate(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         var matched: T? = null
@@ -350,16 +449,18 @@ suspend inline fun <T> Iterable<T>.exTryLastOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.lastNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
 ): R {
-    return lastNotNullOfOrNullParallelly(extractor)
+    return lastNotNullOfOrNullParallelly(concurrentAmount, extractor)
         ?: throw NoSuchElementException("No element of the collection was transformed to a non-null value.")
 }
 
 suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<R> {
-    return when (val result = tryLastNotNullOfOrNullParallelly(extractor)) {
+    return when (val result = tryLastNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(
                 Err(
@@ -374,9 +475,10 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<R> {
-    return when (val result = exTryLastNotNullOfOrNullParallelly(extractor)) {
+    return when (val result = exTryLastNotNullOfOrNullParallelly(concurrentAmount, extractor)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(
                 Err(
@@ -398,13 +500,23 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
 ): R? {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<R?>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (index in promises.indices.reversed()) {
             val value = promises[index].await()
@@ -417,13 +529,23 @@ suspend inline fun <R, T> Iterable<T>.lastNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<R?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R?>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         for (index in promises.indices.reversed()) {
             when (val ret = promises[index].await()) {
@@ -443,13 +565,23 @@ suspend inline fun <R, T> Iterable<T>.tryLastNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<R?> {
     val elements = toList()
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R?>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { extractor(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    extractor(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         var result: R? = null
@@ -469,37 +601,43 @@ suspend inline fun <R, T> Iterable<T>.exTryLastNotNullOfOrNullParallelly(
 }
 
 suspend inline fun <T> Iterable<T>.findParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T? {
-    return firstOrNullParallelly(predicate)
+    return firstOrNullParallelly(concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryFindParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
-    return tryFirstOrNullParallelly(predicate)
+    return tryFirstOrNullParallelly(concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFindParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T?> {
-    return exTryFirstOrNullParallelly(predicate)
+    return exTryFirstOrNullParallelly(concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.findLastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): T? {
-    return lastOrNullParallelly(predicate)
+    return lastOrNullParallelly(concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.tryFindLastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<T?> {
-    return tryLastOrNullParallelly(predicate)
+    return tryLastOrNullParallelly(concurrentAmount, predicate)
 }
 
 suspend inline fun <T> Iterable<T>.exTryFindLastParallelly(
+    concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<T?> {
-    return exTryLastOrNullParallelly(predicate)
+    return exTryLastOrNullParallelly(concurrentAmount, predicate)
 }

@@ -16,14 +16,68 @@ class ContextTest {
      * Test that remove(ContextKey) deletes the entire subtree of the target key,
      * without accidentally deleting sibling nodes.
      *
-     * 注意：由于 ContextKey 是基于栈帧自动生成的，无法手动创建父子关系。
-     * 此测试验证 remove(null) 正确删除当前上下文。
-     * Note: Since ContextKey is automatically generated based on stack frames,
-     * parent-child relationships cannot be manually created.
-     * This test verifies that remove(null) correctly deletes the current context.
+     * 通过手动构造 ContextKey 的 stackTree 来模拟父子关系：
+     * 注意：ContextKey.parent 会调用 dump() 将栈顶行号设为 -1
+     * - parentKey 的 stackTree: [A(-1), B, C] (栈顶 A 行号为 -1)
+     * - childKey1 的 stackTree: [X(-1), A, B, C] -> parent.stackTree = [A(-1), B, C]
+     * - childKey2 的 stackTree: [Y(-1), A, B, C] -> parent.stackTree = [A(-1), B, C]
+     * - siblingKey 的 stackTree: [D, E, F] (与 parentKey 无关)
      */
     @Test
-    fun testRemoveContextKeyDeletesCurrentContext() {
+    fun testRemoveContextKeyDeletesSubtree() {
+        val cv = ContextVar<Int>(0)
+        val thread = Thread.currentThread()
+
+        // 构造栈帧元素 - 栈顶行号为 -1 以匹配 dump() 的行为
+        val frameANeg1 = createStackTraceElement("ClassA", "methodA", -1)
+        val frameB = createStackTraceElement("ClassB", "methodB", 2)
+        val frameC = createStackTraceElement("ClassC", "methodC", 3)
+        val frameXNeg1 = createStackTraceElement("ClassX", "methodX", -1)
+        val frameYNeg1 = createStackTraceElement("ClassY", "methodY", -1)
+        val frameD = createStackTraceElement("ClassD", "methodD", 4)
+        val frameE = createStackTraceElement("ClassE", "methodE", 5)
+        val frameF = createStackTraceElement("ClassF", "methodF", 6)
+
+        // 构造父子关系的键
+        // parentKey: [A(-1), B, C]
+        val parentKey = ContextKey(thread, arrayOf(frameANeg1, frameB, frameC))
+        // childKey1: [X(-1), A, B, C] -> parent = ContextKey with stackTree [A(-1), B, C]
+        val childKey1 = ContextKey(thread, arrayOf(frameXNeg1, frameANeg1, frameB, frameC))
+        // childKey2: [Y(-1), A, B, C] -> parent = ContextKey with stackTree [A(-1), B, C]
+        val childKey2 = ContextKey(thread, arrayOf(frameYNeg1, frameANeg1, frameB, frameC))
+        // siblingKey: [D, E, F] -> 与 parentKey 无关
+        val siblingKey = ContextKey(thread, arrayOf(frameD, frameE, frameF))
+
+        // 验证父子关系
+        assertEquals(parentKey, childKey1.parent, "childKey1.parent should equal parentKey")
+        assertEquals(parentKey, childKey2.parent, "childKey2.parent should equal parentKey")
+
+        // 设置值
+        cv[parentKey] = 100
+        cv[childKey1] = 101
+        cv[childKey2] = 102
+        cv[siblingKey] = 200
+
+        assertEquals(4, cv.stackValues.size, "Should have 4 stack values")
+
+        // 删除 parentKey 及其子树
+        cv.remove(parentKey)
+
+        // 验证：parentKey 及其子节点被删除，siblingKey 保留
+        assertEquals(0, cv.get(parentKey), "parentKey value should be default after removal")
+        assertEquals(0, cv.get(childKey1), "childKey1 value should be default after parent removal")
+        assertEquals(0, cv.get(childKey2), "childKey2 value should be default after parent removal")
+        assertEquals(200, cv.get(siblingKey), "siblingKey should not be affected")
+        assertEquals(1, cv.stackValues.size, "Only siblingKey should remain")
+    }
+
+    /**
+     * 测试 remove(null) 正确删除当前上下文
+     *
+     * Test that remove(null) correctly deletes the current context.
+     */
+    @Test
+    fun testRemoveNullDeletesCurrentContext() {
         val parentVar = ContextVar<Int>(0)
 
         // 设置值
@@ -104,5 +158,60 @@ class ContextTest {
 
         assertEquals(1, cv1.get())
         assertEquals(2, cv2.get())
+    }
+
+    /**
+     * 测试多层嵌套子树的删除
+     *
+     * Test removal of deeply nested subtrees.
+     */
+    @Test
+    fun testRemoveDeepNestedSubtree() {
+        val cv = ContextVar<Int>(0)
+        val thread = Thread.currentThread()
+
+        // 构造多层嵌套关系 - 栈顶行号为 -1
+        // level0: [A(-1)]
+        val level0 = ContextKey(thread, arrayOf(createStackTraceElement("A", "a", -1)))
+        // level1: [B(-1), A]
+        val level1 = ContextKey(thread, arrayOf(
+            createStackTraceElement("B", "b", -1),
+            createStackTraceElement("A", "a", 1)
+        ))
+        // level2: [C(-1), B, A]
+        val level2 = ContextKey(thread, arrayOf(
+            createStackTraceElement("C", "c", -1),
+            createStackTraceElement("B", "b", 2),
+            createStackTraceElement("A", "a", 1)
+        ))
+        // level3: [D(-1), C, B, A]
+        val level3 = ContextKey(thread, arrayOf(
+            createStackTraceElement("D", "d", -1),
+            createStackTraceElement("C", "c", 3),
+            createStackTraceElement("B", "b", 2),
+            createStackTraceElement("A", "a", 1)
+        ))
+
+        // 设置值
+        cv[level0] = 0
+        cv[level1] = 1
+        cv[level2] = 2
+        cv[level3] = 3
+
+        assertEquals(4, cv.stackValues.size)
+
+        // 删除 level1 应该删除 level1, level2, level3，保留 level0
+        cv.remove(level1)
+
+        assertEquals(0, cv.get(level0), "level0 should remain")
+        assertEquals(0, cv.get(level1), "level1 should be removed")
+        assertEquals(0, cv.get(level2), "level2 should be removed")
+        assertEquals(0, cv.get(level3), "level3 should be removed")
+        assertEquals(1, cv.stackValues.size, "Only level0 should remain")
+    }
+
+    // 辅助方法：创建 StackTraceElement
+    private fun createStackTraceElement(className: String, methodName: String, lineNumber: Int = 1): StackTraceElement {
+        return StackTraceElement(className, methodName, "TestFile.kt", lineNumber)
     }
 }

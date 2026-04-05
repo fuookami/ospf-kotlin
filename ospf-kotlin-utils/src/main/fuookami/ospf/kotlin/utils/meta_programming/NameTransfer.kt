@@ -3,6 +3,38 @@ package fuookami.ospf.kotlin.utils.meta_programming
 import java.util.concurrent.ConcurrentHashMap
 
 /**
+ * 缓存键类，包含名称和缩写集合
+ *
+ * Cache key class containing name and abbreviations.
+ *
+ * RVW-008 修复：缓存键扩展为 (name, abbreviations)，避免不同缩写集混用时的缓存污染。
+ * Fix for RVW-008: Cache key extended to include (name, abbreviations) to prevent
+ * cache pollution when different abbreviation sets are mixed in the same process.
+ *
+ * @property name          名称 / Name
+ * @property abbreviations 缩写集合（排序后存储以保证一致性） / Abbreviations (stored sorted for consistency)
+ */
+private data class NameTransferCacheKey(
+    val name: String,
+    val abbreviations: List<String>  // Use sorted List for deterministic hashCode/equals
+) {
+    companion object {
+        /**
+         * 从名称和缩写集合创建缓存键
+         *
+         * Create cache key from name and abbreviation set.
+         *
+         * @param name              名称 / Name
+         * @param abbreviations     缩写集合 / Abbreviation set
+         * @return                  缓存键 / Cache key
+         */
+        fun from(name: String, abbreviations: Set<String>): NameTransferCacheKey {
+            return NameTransferCacheKey(name, abbreviations.sorted())
+        }
+    }
+}
+
+/**
  * 名称转换实现
  *
  * Implementation for name transfer.
@@ -22,8 +54,15 @@ private class NameTransferImpl(
      *
      * RVW-002 修复：使用 ConcurrentHashMap 替代 HashMap + synchronized，
      * 确保并发场景下的线程安全。
+     * Fix for RVW-002: Use ConcurrentHashMap instead of HashMap + synchronized
+     * to ensure thread safety in concurrent scenarios.
+     *
+     * RVW-008 修复：缓存键使用 NameTransferCacheKey (name + abbreviations)，
+     * 避免同进程混用不同缩写集时的缓存命中错误。
+     * Fix for RVW-008: Cache key uses NameTransferCacheKey (name + abbreviations)
+     * to prevent cache hit errors when mixing different abbreviation sets.
      */
-    val cache: ConcurrentHashMap<String, String> = ConcurrentHashMap()
+    val cache: ConcurrentHashMap<NameTransferCacheKey, String> = ConcurrentHashMap()
 
     /**
      * 将名称从前端命名系统转换为后端命名系统
@@ -35,7 +74,7 @@ private class NameTransferImpl(
      * @return                  对应后端命名系统的名称 / The name corresponding the backend naming system
      */
     operator fun invoke(name: String, abbreviations: Set<String>): String {
-        return cache.computeIfAbsent(name) {
+        return cache.computeIfAbsent(NameTransferCacheKey.from(name, abbreviations)) {
             val il = frontend.frontend(name, abbreviations)
             backend.backend(il)
         }

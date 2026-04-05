@@ -18,23 +18,25 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 /**
  * 并行最小最大值操作
  *
- * Parallel min-max operations (returns both min and max in one pass).
+ * Parallel min-max operations (returns both min and max in one pass) with concurrency control.
  *
- * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
- * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
+ * Concurrency control implemented: Uses Semaphore to limit active coroutines.
  */
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendExtractor<R, T>
 ): Pair<T, T> {
-    return minMaxByOrNullParallelly(selector)
+    return minMaxByOrNullParallelly(concurrentAmount, selector)
         ?: throw NoSuchElementException("Collection is empty.")
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>> {
-    return when (val result = tryMinMaxByOrNullParallelly(selector)) {
+    return when (val result = tryMinMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
 
@@ -44,9 +46,10 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinMaxByParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
 ): ExRet<Pair<T, T>> {
-    return when (val result = exTryMinMaxByOrNullParallelly(selector)) {
+    return when (val result = exTryMinMaxByOrNullParallelly(concurrentAmount, selector)) {
         is Ok -> result.value?.let { Ok(it) }
             ?: Failed(Err(ErrorCode.ApplicationException, "Collection is empty."))
 
@@ -58,16 +61,26 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinMaxByParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendExtractor<R, T>
 ): Pair<T, T>? {
     val elements = toList()
     if (elements.isEmpty()) {
         return null
     }
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<R>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { selector(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    selector(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         var minIndex = 0
         var maxIndex = 0
@@ -89,16 +102,26 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.minMaxByOrNullParallelly(
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
 ): Ret<Pair<T, T>?> {
     val elements = toList()
     if (elements.isEmpty()) {
         return Ok(null)
     }
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { selector(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    selector(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         var minIndex = 0
         var maxIndex = 0
@@ -127,16 +150,26 @@ suspend inline fun <T, R : Comparable<R>> Iterable<T>.tryMinMaxByOrNullParallell
 }
 
 suspend inline fun <T, R : Comparable<R>> Iterable<T>.exTryMinMaxByOrNullParallelly(
+    concurrentAmount: ULong? = null,
     crossinline selector: SuspendTryExtractor<R, T>
 ): ExRet<Pair<T, T>?> {
     val elements = toList()
     if (elements.isEmpty()) {
         return Ok(null)
     }
+    val limit = resolveConcurrentAmount(concurrentAmount, elements.defaultConcurrentAmount)
+    val semaphore = createConcurrencySemaphore(limit)
     return coroutineScope {
         val promises = ArrayList<Deferred<Ret<R>>>()
         for (element in elements) {
-            promises.add(async(Dispatchers.Default) { selector(element) })
+            promises.add(async(Dispatchers.Default) {
+                semaphore.acquire()
+                try {
+                    selector(element)
+                } finally {
+                    semaphore.release()
+                }
+            })
         }
         val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
         var minIndex = 0
