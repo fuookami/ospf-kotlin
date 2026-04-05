@@ -1,9 +1,5 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
@@ -18,8 +14,10 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
  *
  * Parallel predicate operations (all, any, none) with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
 
 /**
@@ -37,21 +35,8 @@ suspend inline fun <T> Iterable<T>.allParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Boolean>>()
-        for (element in this@allParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        promises.all { it.await() }
-    }
+    val results = executePredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return results.all { it }
 }
 
 suspend inline fun <T> Iterable<T>.tryAllParallelly(
@@ -59,32 +44,11 @@ suspend inline fun <T> Iterable<T>.tryAllParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@tryAllParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    if (!ret.value) {
-                        return@coroutineScope Ok(false)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(true)
+    val result = executeTryPredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.all { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -93,54 +57,32 @@ suspend inline fun <T> Iterable<T>.exTryAllParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<Boolean> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@exTryAllParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        var all = true
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> if (!ret.value) {
-                    all = false
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
-        }
-        exResultOf(all, errors)
+    val result = executeExTryWithWorkerPool<Boolean, T>(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.all { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> Ok(result.value.all { it })
     }
 }
 
+/**
+ * 并行判断是否存在元素满足条件
+ *
+ * Check if any element satisfies the predicate in parallel with concurrency control.
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件 / Predicate function
+ * @return 是否存在元素满足条件 / Whether any element satisfies the predicate
+ */
 suspend inline fun <T> Iterable<T>.anyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): Boolean {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Boolean>>()
-        for (element in this@anyParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        promises.any { it.await() }
-    }
+    val results = executePredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return results.any { it }
 }
 
 suspend inline fun <T> Iterable<T>.tryAnyParallelly(
@@ -148,32 +90,11 @@ suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Boolean> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@tryAnyParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    if (ret.value) {
-                        return@coroutineScope Ok(true)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(false)
+    val result = executeTryPredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.any { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -182,34 +103,25 @@ suspend inline fun <T> Iterable<T>.exTryAnyParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<Boolean> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@exTryAnyParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        var any = false
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> if (ret.value) {
-                    any = true
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
-        }
-        exResultOf(any, errors)
+    val result = executeExTryWithWorkerPool<Boolean, T>(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.any { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> Ok(result.value.any { it })
     }
 }
 
+/**
+ * 并行判断是否没有元素满足条件
+ *
+ * Check if no element satisfies the predicate in parallel with concurrency control.
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件 / Predicate function
+ * @return 是否没有元素满足条件 / Whether no element satisfies the predicate
+ */
 suspend inline fun <T> Iterable<T>.noneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
@@ -236,6 +148,6 @@ suspend inline fun <T> Iterable<T>.exTryNoneParallelly(
         is Ok -> Ok(!ret.value)
         is Failed -> Failed(ret.error)
         is Fatal -> Fatal(ret.errors)
-        is Warn -> Warn(!ret.value, ret.warnings)
+        is Warn -> Ok(!ret.value)
     }
 }

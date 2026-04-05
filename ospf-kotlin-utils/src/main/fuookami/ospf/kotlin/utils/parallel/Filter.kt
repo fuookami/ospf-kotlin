@@ -1,14 +1,11 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendIndexedPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedPredicate
@@ -19,8 +16,10 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
  *
  * Parallel filtering operations with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
 
 /**
@@ -60,27 +59,11 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterToPa
     crossinline predicate: SuspendPredicate<T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<T, Boolean>>>()
-        for (element in this@filterToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    element to predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (element, keep) = promise.await()
-            if (keep) {
-                destination.add(element)
-            }
-        }
-        destination
+    val results = executeFilterWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    for ((element, keep) in results) {
+        if (keep) destination.add(element)
     }
+    return destination
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterToParallelly(
@@ -89,37 +72,16 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterT
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@tryFilterToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    val result = executeTryFilterWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -129,39 +91,34 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@exTryFilterToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Pair<T, Boolean>, T>(this, limit) { _, element ->
+        when (val ret = predicate(element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// filterNotNull 系列
+// ============================================================================
 
 suspend inline fun <T : Any> Iterable<T?>.filterNotNullParallelly(
     concurrentAmount: ULong? = null,
@@ -189,30 +146,13 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.filterNot
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<T>
 ): C {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<T, Boolean>>>()
-        for (element in this@filterNotNullToParallelly) {
-            if (element != null) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        element to predicate(element)
-                    } finally {
-                        semaphore.release()
-                    }
-                })
-            }
-        }
-        for (promise in promises) {
-            val (element, keep) = promise.await()
-            if (keep) {
-                destination.add(element)
-            }
-        }
-        destination
+    val nonNullElements = filterNotNull()
+    val limit = resolveConcurrentAmount(concurrentAmount, nonNullElements.defaultConcurrentAmount)
+    val results = executeFilterWithWorkerPool(nonNullElements, limit) { _, element -> predicate(element) }
+    for ((element, keep) in results) {
+        if (keep) destination.add(element)
     }
+    return destination
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.tryFilterNotNullToParallelly(
@@ -220,40 +160,18 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.tryFilter
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@tryFilterNotNullToParallelly) {
-            if (element != null) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        when (val ret = predicate(element)) {
-                            is Ok -> Ok(element to ret.value)
-                            is Failed -> Failed(ret.error)
-                            is Fatal -> Fatal(ret.errors)
-                        }
-                    } finally {
-                        semaphore.release()
-                    }
-                })
+    val nonNullElements = filterNotNull()
+    val limit = resolveConcurrentAmount(concurrentAmount, nonNullElements.defaultConcurrentAmount)
+    val result = executeTryFilterWithWorkerPool(nonNullElements, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -262,42 +180,36 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T?>.exTryFilt
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<C> {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@exTryFilterNotNullToParallelly) {
-            if (element != null) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        when (val ret = predicate(element)) {
-                            is Ok -> Ok(element to ret.value)
-                            is Failed -> Failed(ret.error)
-                            is Fatal -> Fatal(ret.errors)
-                        }
-                    } finally {
-                        semaphore.release()
-                    }
-                })
-            }
+    val nonNullElements = filterNotNull()
+    val limit = resolveConcurrentAmount(concurrentAmount, nonNullElements.defaultConcurrentAmount)
+    val result = executeExTryWithWorkerPool<Pair<T, Boolean>, T>(nonNullElements, limit) { _, element ->
+        when (val ret = predicate(element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// filterNot 系列
+// ============================================================================
 
 suspend inline fun <T : Any> Iterable<T>.filterNotParallelly(
     concurrentAmount: ULong? = null,
@@ -326,27 +238,11 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterNotT
     crossinline predicate: SuspendPredicate<T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<T, Boolean>>>()
-        for (element in this@filterNotToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    element to !predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (element, keep) = promise.await()
-            if (keep) {
-                destination.add(element)
-            }
-        }
-        destination
+    val results = executeFilterWithWorkerPool(this, limit) { _, element -> !predicate(element) }
+    for ((element, keep) in results) {
+        if (keep) destination.add(element)
     }
+    return destination
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterNotToParallelly(
@@ -355,37 +251,22 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterN
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@tryFilterNotToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(element)) {
-                        is Ok -> Ok(element to !ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeTryFilterWithWorkerPool(this, limit) { _, element ->
+        when (val ret = predicate(element)) {
+            is Ok -> Ok(!ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -395,39 +276,34 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for (element in this@exTryFilterNotToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(element)) {
-                        is Ok -> Ok(element to !ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Pair<T, Boolean>, T>(this, limit) { _, element ->
+        when (val ret = predicate(element)) {
+            is Ok -> Ok(element to !ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// filterIndexed 系列
+// ============================================================================
 
 suspend inline fun <T : Any> Iterable<T>.filterIndexedParallelly(
     concurrentAmount: ULong? = null,
@@ -456,27 +332,11 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.filterInde
     crossinline predicate: SuspendIndexedPredicate<T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<T, Boolean>>>()
-        for ((index, element) in this@filterIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    element to predicate(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (element, keep) = promise.await()
-            if (keep) {
-                destination.add(element)
-            }
-        }
-        destination
+    val results = executeFilterWithWorkerPool(this, limit) { index, element -> predicate(index, element) }
+    for ((element, keep) in results) {
+        if (keep) destination.add(element)
     }
+    return destination
 }
 
 suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterIndexedToParallelly(
@@ -485,37 +345,16 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.tryFilterI
     crossinline predicate: SuspendTryIndexedPredicate<T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for ((index, element) in this@tryFilterIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(index, element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    val result = executeTryFilterWithWorkerPool(this, limit) { index, element -> predicate(index, element) }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -525,39 +364,34 @@ suspend inline fun <T : Any, C : MutableCollection<in T>> Iterable<T>.exTryFilte
     crossinline predicate: SuspendTryIndexedPredicate<T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, Boolean>>>>()
-        for ((index, element) in this@exTryFilterIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = predicate(index, element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Pair<T, Boolean>, T>(this, limit) { index, element ->
+        when (val ret = predicate(index, element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// filterIsInstance 系列
+// ============================================================================
 
 suspend inline fun <reified U : Any, T> Iterable<T>.filterIsInstanceParallelly(
     concurrentAmount: ULong? = null,
@@ -577,7 +411,7 @@ suspend inline fun <reified U : Any, T> Iterable<T>.exTryFilterIsInstanceParalle
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<U>
 ): ExRet<List<U>> {
-    return exTryFilterIsInstanceToParallelly(ArrayList(), concurrentAmount, predicate)
+    return exTryIsInstanceToParallelly(ArrayList(), concurrentAmount, predicate)
 }
 
 suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.filterIsInstanceToParallelly(
@@ -585,30 +419,13 @@ suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.fi
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendPredicate<U>
 ): C {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<U, Boolean>>>()
-        for (element in this@filterIsInstanceToParallelly) {
-            if (element is U) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        element to predicate(element)
-                    } finally {
-                        semaphore.release()
-                    }
-                })
-            }
-        }
-        for (promise in promises) {
-            val (element, keep) = promise.await()
-            if (keep) {
-                destination.add(element)
-            }
-        }
-        destination
+    val instanceElements = filterIsInstance<U>()
+    val limit = resolveConcurrentAmount(concurrentAmount, instanceElements.defaultConcurrentAmount)
+    val results = executeFilterWithWorkerPool(instanceElements, limit) { _, element -> predicate(element) }
+    for ((element, keep) in results) {
+        if (keep) destination.add(element)
     }
+    return destination
 }
 
 suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.tryFilterIsInstanceToParallelly(
@@ -616,81 +433,49 @@ suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.tr
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<U>
 ): Ret<C> {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<U, Boolean>>>>()
-        for (element in this@tryFilterIsInstanceToParallelly) {
-            if (element is U) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        when (val ret = predicate(element)) {
-                            is Ok -> Ok(element to ret.value)
-                            is Failed -> Failed(ret.error)
-                            is Fatal -> Fatal(ret.errors)
-                        }
-                    } finally {
-                        semaphore.release()
-                    }
-                })
+    val instanceElements = filterIsInstance<U>()
+    val limit = resolveConcurrentAmount(concurrentAmount, instanceElements.defaultConcurrentAmount)
+    val result = executeTryFilterWithWorkerPool(instanceElements, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
-suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.exTryFilterIsInstanceToParallelly(
+suspend inline fun <reified U : Any, T, C : MutableCollection<U>> Iterable<T>.exTryIsInstanceToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<U>
 ): ExRet<C> {
-    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<U, Boolean>>>>()
-        for (element in this@exTryFilterIsInstanceToParallelly) {
-            if (element is U) {
-                promises.add(async(Dispatchers.Default) {
-                    semaphore.acquire()
-                    try {
-                        when (val ret = predicate(element)) {
-                            is Ok -> Ok(element to ret.value)
-                            is Failed -> Failed(ret.error)
-                            is Fatal -> Fatal(ret.errors)
-                        }
-                    } finally {
-                        semaphore.release()
-                    }
-                })
-            }
+    val instanceElements = filterIsInstance<U>()
+    val limit = resolveConcurrentAmount(concurrentAmount, instanceElements.defaultConcurrentAmount)
+    val result = executeExTryWithWorkerPool<Pair<U, Boolean>, U>(instanceElements, limit) { _, element ->
+        when (val ret = predicate(element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (element, keep) = ret.value
-                    if (keep) {
-                        destination.add(element)
-                    }
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((element, keep) in result.value) {
+                if (keep) destination.add(element)
+            }
+            Ok(destination)
+        }
     }
 }

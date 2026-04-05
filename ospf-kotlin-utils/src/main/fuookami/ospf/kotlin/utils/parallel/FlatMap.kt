@@ -1,14 +1,11 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendIndexedExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
@@ -19,9 +16,15 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedExtractor
  *
  * Parallel flat-map operations with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
+
+// ============================================================================
+// flatMap 系列
+// ============================================================================
 
 suspend inline fun <R, T> Iterable<T>.flatMapParallelly(
     concurrentAmount: ULong? = null,
@@ -50,24 +53,9 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapToPara
     crossinline extractor: SuspendExtractor<Iterable<R>, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Iterable<R>>>()
-        for (element in this@flatMapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            destination.addAll(promise.await())
-        }
-        destination
-    }
+    val results = executeFlatMapWithWorkerPool(this, limit) { _, element -> extractor(element) }
+    destination.addAll(results)
+    return destination
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToParallelly(
@@ -76,27 +64,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapToP
     crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R>>>>()
-        for (element in this@tryFlatMapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeTryFlatMapWithWorkerPool(this, limit) { _, element -> extractor(element) }
+    return when (result) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value)
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -106,29 +81,24 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapT
     crossinline extractor: SuspendTryExtractor<Iterable<R>, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R>>>>()
-        for (element in this@exTryFlatMapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Iterable<R>, T>(this, limit) { _, element -> extractor(element) }
+    return when (result) {
+        is Ok -> {
+            destination.addAll(result.value.flatten())
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value)
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            destination.addAll(result.value.flatten())
+            Ok(destination)
         }
-        exResultOf(destination, errors)
     }
 }
+
+// ============================================================================
+// flatMapIndexed 系列
+// ============================================================================
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedParallelly(
     concurrentAmount: ULong? = null,
@@ -157,24 +127,9 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     crossinline extractor: SuspendIndexedExtractor<Iterable<R>, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Iterable<R>>>()
-        for ((index, element) in this@flatMapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            destination.addAll(promise.await())
-        }
-        destination
-    }
+    val results = executeFlatMapWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
+    destination.addAll(results)
+    return destination
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedToParallelly(
@@ -183,27 +138,14 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R>>>>()
-        for ((index, element) in this@tryFlatMapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeTryFlatMapWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
+    return when (result) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value)
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -213,29 +155,24 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R>, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R>>>>()
-        for ((index, element) in this@exTryFlatMapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Iterable<R>, T>(this, limit) { index, element -> extractor(index, element) }
+    return when (result) {
+        is Ok -> {
+            destination.addAll(result.value.flatten())
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value)
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            destination.addAll(result.value.flatten())
+            Ok(destination)
         }
-        exResultOf(destination, errors)
     }
 }
+
+// ============================================================================
+// flatMapIndexedNotNull 系列
+// ============================================================================
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
@@ -264,24 +201,11 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.flatMapIndexe
     crossinline extractor: SuspendIndexedExtractor<Iterable<R?>, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Iterable<R?>>>()
-        for ((index, element) in this@flatMapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            destination.addAll(promise.await().filterNotNull())
-        }
-        destination
+    val results = executeWithWorkerPool<Iterable<R?>, T>(this, limit) { index, element -> extractor(index, element) }
+    for (iterable in results) {
+        destination.addAll(iterable.filterNotNull())
     }
+    return destination
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapIndexedNotNullToParallelly(
@@ -290,27 +214,16 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryFlatMapInd
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R?>, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R?>>>>()
-        for ((index, element) in this@tryFlatMapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value.filterNotNull())
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    val result = executeTryWithWorkerPool<Iterable<R?>, T>(this, limit) { index, element -> extractor(index, element) }
+    return when (result) {
+        is Ok -> {
+            for (iterable in result.value) {
+                destination.addAll(iterable.filterNotNull())
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -320,26 +233,21 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryFlatMapI
     crossinline extractor: SuspendTryIndexedExtractor<Iterable<R?>, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Iterable<R?>>>>()
-        for ((index, element) in this@exTryFlatMapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.addAll(ret.value.filterNotNull())
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    val result = executeExTryWithWorkerPool<Iterable<R?>, T>(this, limit) { index, element -> extractor(index, element) }
+    return when (result) {
+        is Ok -> {
+            for (iterable in result.value) {
+                destination.addAll(iterable.filterNotNull())
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for (iterable in result.value) {
+                destination.addAll(iterable.filterNotNull())
+            }
+            Ok(destination)
+        }
     }
 }

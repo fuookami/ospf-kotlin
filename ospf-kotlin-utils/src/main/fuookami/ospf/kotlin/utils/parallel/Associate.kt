@@ -1,14 +1,11 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 
@@ -17,9 +14,15 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
  *
  * Parallel association operations for creating maps from iterables with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
+
+// ============================================================================
+// associate 系列
+// ============================================================================
 
 suspend inline fun <K, V, T> Iterable<T>.associateParallelly(
     concurrentAmount: ULong? = null,
@@ -48,25 +51,11 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.associateTo
     crossinline extractor: SuspendExtractor<Pair<K, V>, T>
 ): M {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<K, V>>>()
-        for (element in this@associateToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (key, value) = promise.await()
-            destination[key] = value
-        }
-        destination
+    val results = executeWithWorkerPool<Pair<K, V>, T>(this, limit) { _, element -> extractor(element) }
+    for ((key, value) in results) {
+        destination[key] = value
     }
+    return destination
 }
 
 suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociateToParallelly(
@@ -75,31 +64,16 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.tryAssociat
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): Ret<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<K, V>>>>()
-        for (element in this@tryAssociateToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    val result = executeTryWithWorkerPool<Pair<K, V>, T>(this, limit) { _, element -> extractor(element) }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -109,33 +83,28 @@ suspend inline fun <K, V, T, M : MutableMap<in K, in V>> Iterable<T>.exTryAssoci
     crossinline extractor: SuspendTryExtractor<Pair<K, V>, T>
 ): ExRet<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<K, V>>>>()
-        for (element in this@exTryAssociateToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    val result = executeExTryWithWorkerPool<Pair<K, V>, T>(this, limit) { _, element -> extractor(element) }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// associateBy 系列
+// ============================================================================
 
 suspend inline fun <K, T> Iterable<T>.associateByParallelly(
     concurrentAmount: ULong? = null,
@@ -164,25 +133,11 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.associateByToP
     crossinline keyExtractor: SuspendExtractor<K, T>
 ): M {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<K, T>>>()
-        for (element in this@associateByToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    keyExtractor(element) to element
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (key, value) = promise.await()
-            destination[key] = value
-        }
-        destination
+    val results = executeWithWorkerPool<Pair<K, T>, T>(this, limit) { _, element -> keyExtractor(element) to element }
+    for ((key, value) in results) {
+        destination[key] = value
     }
+    return destination
 }
 
 suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateByToParallelly(
@@ -191,35 +146,22 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.tryAssociateBy
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): Ret<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<K, T>>>>()
-        for (element in this@tryAssociateByToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = keyExtractor(element)) {
-                        is Ok -> Ok(ret.value to element)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeTryWithWorkerPool<Pair<K, T>, T>(this, limit) { _, element ->
+        when (val ret = keyExtractor(element)) {
+            is Ok -> Ok(ret.value to element)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -229,37 +171,34 @@ suspend inline fun <K, T, M : MutableMap<in K, in T>> Iterable<T>.exTryAssociate
     crossinline keyExtractor: SuspendTryExtractor<K, T>
 ): ExRet<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<K, T>>>>()
-        for (element in this@exTryAssociateByToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = keyExtractor(element)) {
-                        is Ok -> Ok(ret.value to element)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Pair<K, T>, T>(this, limit) { _, element ->
+        when (val ret = keyExtractor(element)) {
+            is Ok -> Ok(ret.value to element)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
+            }
+            Ok(destination)
+        }
     }
 }
+
+// ============================================================================
+// associateWith 系列
+// ============================================================================
 
 suspend inline fun <V, T> Iterable<T>.associateWithParallelly(
     concurrentAmount: ULong? = null,
@@ -288,25 +227,11 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.associateWithT
     crossinline valueExtractor: SuspendExtractor<V, T>
 ): M {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Pair<T, V>>>()
-        for (element in this@associateWithToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    element to valueExtractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            val (key, value) = promise.await()
-            destination[key] = value
-        }
-        destination
+    val results = executeWithWorkerPool<Pair<T, V>, T>(this, limit) { _, element -> element to valueExtractor(element) }
+    for ((key, value) in results) {
+        destination[key] = value
     }
+    return destination
 }
 
 suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWithToParallelly(
@@ -315,35 +240,22 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.tryAssociateWi
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): Ret<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, V>>>>()
-        for (element in this@tryAssociateWithToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = valueExtractor(element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeTryWithWorkerPool<Pair<T, V>, T>(this, limit) { _, element ->
+        when (val ret = valueExtractor(element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -353,34 +265,27 @@ suspend inline fun <V, T, M : MutableMap<in T, in V>> Iterable<T>.exTryAssociate
     crossinline valueExtractor: SuspendTryExtractor<V, T>
 ): ExRet<M> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Pair<T, V>>>>()
-        for (element in this@exTryAssociateWithToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    when (val ret = valueExtractor(element)) {
-                        is Ok -> Ok(element to ret.value)
-                        is Failed -> Failed(ret.error)
-                        is Fatal -> Fatal(ret.errors)
-                    }
-                } finally {
-                    semaphore.release()
-                }
-            })
+    val result = executeExTryWithWorkerPool<Pair<T, V>, T>(this, limit) { _, element ->
+        when (val ret = valueExtractor(element)) {
+            is Ok -> Ok(element to ret.value)
+            is Failed -> Failed(ret.error)
+            is Fatal -> Fatal(ret.errors)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> {
-                    val (key, value) = ret.value
-                    destination[key] = value
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
+    }
+    return when (result) {
+        is Ok -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
             }
+            Ok(destination)
         }
-        exResultOf(destination, errors)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            for ((key, value) in result.value) {
+                destination[key] = value
+            }
+            Ok(destination)
+        }
     }
 }

@@ -1,14 +1,11 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Warn
 import fuookami.ospf.kotlin.utils.functional.SuspendPredicate
 import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
 
@@ -17,8 +14,10 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryPredicate
  *
  * Parallel counting operations with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
 
 /**
@@ -36,21 +35,8 @@ suspend inline fun <T> Iterable<T>.countParallelly(
     crossinline predicate: SuspendPredicate<T>
 ): Int {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Boolean>>()
-        for (element in this@countParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        promises.count { it.await() }
-    }
+    val results = executePredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return results.count { it }
 }
 
 suspend inline fun <T> Iterable<T>.tryCountParallelly(
@@ -58,28 +44,11 @@ suspend inline fun <T> Iterable<T>.tryCountParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): Ret<Int> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@tryCountParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        var count = 0
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> if (ret.value) ++count
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(count)
+    val result = executeTryPredicateWithWorkerPool(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.count { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -88,30 +57,11 @@ suspend inline fun <T> Iterable<T>.exTryCountParallelly(
     crossinline predicate: SuspendTryPredicate<T>
 ): ExRet<Int> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<Boolean>>>()
-        for (element in this@exTryCountParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    predicate(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        var count = 0
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> if (ret.value) {
-                    ++count
-                }
-
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
-        }
-        exResultOf(count, errors)
+    val result = executeExTryWithWorkerPool<Boolean, T>(this, limit) { _, element -> predicate(element) }
+    return when (result) {
+        is Ok -> Ok(result.value.count { it })
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> Ok(result.value.count { it })
     }
 }

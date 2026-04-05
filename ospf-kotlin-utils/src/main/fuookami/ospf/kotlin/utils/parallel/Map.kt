@@ -1,10 +1,5 @@
 package fuookami.ospf.kotlin.utils.parallel
 
-import kotlinx.coroutines.Deferred
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-import kotlinx.coroutines.sync.Semaphore
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.ExRet
@@ -14,14 +9,17 @@ import fuookami.ospf.kotlin.utils.functional.SuspendExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendIndexedExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
 import fuookami.ospf.kotlin.utils.functional.SuspendTryIndexedExtractor
+import fuookami.ospf.kotlin.utils.functional.Warn
 
 /**
  * 并行映射操作
  *
  * Parallel mapping operations with concurrency control.
  *
- * 并发控制已实现：使用 Semaphore 限制同时活跃的协程数量。
- * Concurrency control implemented: Uses Semaphore to limit active coroutines.
+ * RVW-009 改进：使用 Worker Pool 方案实现真正的协程数量控制。
+ * Improvement for RVW-009: Uses Worker Pool to truly control coroutine count.
+ * 协程数量与 concurrentAmount 绑定，而非按输入规模预创建。
+ * Coroutine count is bound to concurrentAmount, not pre-created by input size.
  */
 
 /**
@@ -39,7 +37,8 @@ suspend inline fun <R : Any, T> Iterable<T>.mapParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R, T>
 ): List<R> {
-    return mapToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeWithWorkerPool(this, limit) { _, element -> extractor(element) }
 }
 
 /**
@@ -57,14 +56,16 @@ suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<List<R>> {
-    return tryMapToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeTryWithWorkerPool(this, limit) { _, element -> extractor(element) }
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryMapParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R, T>
 ): ExRet<List<R>> {
-    return exTryMapToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeExTryWithWorkerPool(this, limit) { _, element -> extractor(element) }
 }
 
 /**
@@ -86,24 +87,9 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapToPa
     crossinline extractor: SuspendExtractor<R, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<R>>()
-        for (element in this@mapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            destination.add(promise.await())
-        }
-        destination
-    }
+    val results = executeWithWorkerPool(this, limit) { _, element -> extractor(element) }
+    destination.addAll(results)
+    return destination
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParallelly(
@@ -112,27 +98,13 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParal
     crossinline extractor: SuspendTryExtractor<R, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R>>>()
-        for (element in this@tryMapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeTryWithWorkerPool<R, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.add(ret.value)
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -142,27 +114,17 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapToPar
     crossinline extractor: SuspendTryExtractor<R, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R>>>()
-        for (element in this@exTryMapToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeExTryWithWorkerPool<R, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.add(ret.value)
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            destination.addAll(result.value)
+            Warn(destination, result.warnings)
         }
-        exResultOf(destination, errors)
     }
 }
 
@@ -170,21 +132,44 @@ suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
 ): List<R> {
-    return mapNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    @Suppress("UNCHECKED_CAST")
+    val results = executeWithWorkerPool(this, limit) { _, element -> extractor(element) } as List<R>
+    return results.filterNotNull()
 }
 
 suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<List<R>> {
-    return tryMapNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+    }
 }
 
 suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<List<R>> {
-    return exTryMapNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+    }
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotNullToParallelly(
@@ -193,24 +178,9 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotN
     crossinline extractor: SuspendExtractor<R?, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<R?>>()
-        for (element in this@mapNotNullToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            promise.await()?.let { destination.add(it) }
-        }
-        destination
-    }
+    val results = executeWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }
+    results.filterNotNull().forEach { destination.add(it) }
+    return destination
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNullToParallelly(
@@ -219,27 +189,13 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapN
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R?>>>()
-        for (element in this@tryMapNotNullToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> ret.value?.let { destination.add(it) }
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -249,27 +205,17 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMa
     crossinline extractor: SuspendTryExtractor<R?, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R?>>>()
-        for (element in this@exTryMapNotNullToParallelly) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { _, element -> extractor(element) }) {
+        is Ok -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> ret.value?.let { destination.add(it) }
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Warn(destination, result.warnings)
         }
-        exResultOf(destination, errors)
     }
 }
 
@@ -277,21 +223,24 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<R, T>
 ): List<R> {
-    return mapIndexedToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
 suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
 ): Ret<List<R>> {
-    return tryMapIndexedToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeTryWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
 suspend inline fun <R, T> Iterable<T>.exTryMapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
 ): ExRet<List<R>> {
-    return exTryMapIndexedToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return executeExTryWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToParallelly(
@@ -300,24 +249,9 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToP
     crossinline extractor: SuspendIndexedExtractor<R, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<R>>()
-        for ((index, element) in this@mapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            destination.add(promise.await())
-        }
-        destination
-    }
+    val results = executeWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
+    destination.addAll(results)
+    return destination
 }
 
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexedToParallelly(
@@ -326,27 +260,13 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexed
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R>>>()
-        for ((index, element) in this@tryMapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeTryWithWorkerPool<R, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.add(ret.value)
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -356,27 +276,17 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndex
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R>>>()
-        for ((index, element) in this@exTryMapIndexedToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeExTryWithWorkerPool<R, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            destination.addAll(result.value)
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> destination.add(ret.value)
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            destination.addAll(result.value)
+            Warn(destination, result.warnings)
         }
-        exResultOf(destination, errors)
     }
 }
 
@@ -384,21 +294,44 @@ suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): List<R> {
-    return mapIndexedNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    @Suppress("UNCHECKED_CAST")
+    val results = executeWithWorkerPool(this, limit) { index, element -> extractor(index, element) } as List<R>
+    return results.filterNotNull()
 }
 
 suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<List<R>> {
-    return tryMapIndexedNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+    }
 }
 
 suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): ExRet<List<R>> {
-    return exTryMapIndexedNotNullToParallelly(ArrayList(), concurrentAmount, extractor)
+    val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
+    return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(result.value.filterNotNull() as List<R>)
+        }
+    }
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedNotNullToParallelly(
@@ -407,24 +340,9 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapInde
     crossinline extractor: SuspendIndexedExtractor<R?, T>
 ): C {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<R?>>()
-        for ((index, element) in this@mapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
-        }
-        for (promise in promises) {
-            promise.await()?.let { destination.add(it) }
-        }
-        destination
-    }
+    val results = executeWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }
+    results.filterNotNull().forEach { destination.add(it) }
+    return destination
 }
 
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexedNotNullToParallelly(
@@ -433,27 +351,13 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapI
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): Ret<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R?>>>()
-        for ((index, element) in this@tryMapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Ok(destination)
         }
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> ret.value?.let { destination.add(it) }
-                is Failed -> return@coroutineScope Failed(ret.error)
-                is Fatal -> return@coroutineScope Fatal(ret.errors)
-            }
-        }
-        Ok(destination)
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
     }
 }
 
@@ -463,26 +367,16 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMa
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
 ): ExRet<C> {
     val limit = resolveConcurrentAmount(concurrentAmount, this.defaultConcurrentAmount)
-    val semaphore = createConcurrencySemaphore(limit)
-    return coroutineScope {
-        val promises = ArrayList<Deferred<Ret<R?>>>()
-        for ((index, element) in this@exTryMapIndexedNotNullToParallelly.withIndex()) {
-            promises.add(async(Dispatchers.Default) {
-                semaphore.acquire()
-                try {
-                    extractor(index, element)
-                } finally {
-                    semaphore.release()
-                }
-            })
+    return when (val result = executeExTryWithWorkerPool<R?, T>(this, limit) { index, element -> extractor(index, element) }) {
+        is Ok -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Ok(destination)
         }
-        val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
-        for (promise in promises) {
-            when (val ret = promise.await()) {
-                is Ok -> ret.value?.let { destination.add(it) }
-                is Failed, is Fatal -> errors.appendFrom(ret)
-            }
+        is Failed -> Failed(result.error)
+        is Fatal -> Fatal(result.errors)
+        is Warn -> {
+            result.value.filterNotNull().forEach { destination.add(it) }
+            Warn(destination, result.warnings)
         }
-        exResultOf(destination, errors)
     }
 }

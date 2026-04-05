@@ -287,6 +287,40 @@ class ParallelConcurrencyControlTest {
         assertEquals(2, ret.errors.size)
     }
 
+    /**
+     * 测试 tryMapParallelly 在并发乱序完成时仍保持输入顺序
+     *
+     * Test that tryMapParallelly preserves input order even when tasks complete out of order.
+     */
+    @Test
+    fun tryMapParallellyShouldPreserveOrderUnderOutOfOrderCompletion() = runBlocking {
+        val ret = listOf(1, 2, 3, 4).tryMapParallelly(concurrentAmount = 2uL) { value ->
+            delay(((5 - value) * 20).toLong())
+            Ok(value * 10)
+        }
+
+        assertTrue(ret is Ok)
+        ret as Ok
+        assertEquals(listOf(10, 20, 30, 40), ret.value)
+    }
+
+    /**
+     * 测试 exTryMapParallelly 在并发乱序完成时仍保持输入顺序
+     *
+     * Test that exTryMapParallelly preserves input order even when tasks complete out of order.
+     */
+    @Test
+    fun exTryMapParallellyShouldPreserveOrderUnderOutOfOrderCompletion() = runBlocking {
+        val ret = listOf(1, 2, 3, 4).exTryMapParallelly(concurrentAmount = 2uL) { value ->
+            delay(((5 - value) * 20).toLong())
+            Ok(value * 10)
+        }
+
+        assertTrue(ret is Ok)
+        ret as Ok
+        assertEquals(listOf(10, 20, 30, 40), ret.value)
+    }
+
     // ==================== 边界情况测试 ====================
 
     /**

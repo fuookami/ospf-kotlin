@@ -17,8 +17,12 @@ import fuookami.ospf.kotlin.utils.functional.SuspendTryExtractor
  *
  * Parallel fold/reduce operations.
  *
- * UTL-005 TODO: 添加 concurrentAmount 参数控制并发上限
- * UTL-005 TODO: Add concurrentAmount parameter for concurrency control.
+ * 注意：Fold 操作本质上是顺序执行的累积操作，不适用于并行处理。
+ * Note: Fold operations are inherently sequential accumulation operations, not suitable for parallelism.
+ * segment 参数用于控制 yield 频率，防止长时间阻塞协程。
+ * The segment parameter controls yield frequency to prevent long-running coroutine blocking.
+ * 因此 Fold 系列不纳入 UTL-005 的并发控制范围。
+ * Therefore, Fold series is excluded from UTL-005 concurrency control scope.
  */
 
 /**

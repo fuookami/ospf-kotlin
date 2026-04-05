@@ -49,7 +49,30 @@ val results = listOf(1, 2, 3).mapParallelly { process(it) }
 
 // 并行过滤
 val filtered = listOf(1, 2, 3).filterParallelly { predicate(it) }
+
+// 指定并发上限
+val results = largeList.mapParallelly(concurrentAmount = 4uL) { process(it) }
 ```
+
+**并发控制策略**：
+- 使用 `concurrentAmount` 参数控制最大并发数
+- 默认值根据集合大小和可用处理器自动计算
+- Worker Pool 方案确保协程数量与 `concurrentAmount` 绑定
+- 大集合场景下避免协程爆发问题
+
+**支持并发控制的 API**：
+| API | 说明 |
+|-----|------|
+| `mapParallelly` | 并行映射 |
+| `filterParallelly` | 并行过滤 |
+| `allParallelly` | 并行判断全部满足 |
+| `anyParallelly` | 并行判断任一满足 |
+| `countParallelly` | 并行计数 |
+| `findParallelly` | 并行查找 |
+| `associateParallelly` | 并行关联 |
+| `flatMapParallelly` | 并行展平映射 |
+| `maxByParallelly` | 并行最大值 |
+| `minByParallelly` | 并行最小值 |
 
 #### 序列化 (`serialization`)
 
@@ -116,7 +139,30 @@ val results = listOf(1, 2, 3).mapParallelly { process(it) }
 
 // Parallel filter
 val filtered = listOf(1, 2, 3).filterParallelly { predicate(it) }
+
+// Specify concurrency limit
+val results = largeList.mapParallelly(concurrentAmount = 4uL) { process(it) }
 ```
+
+**Concurrency Control Strategy**:
+- Use `concurrentAmount` parameter to control maximum concurrency
+- Default value calculated from collection size and available processors
+- Worker Pool approach ensures coroutine count is bound to `concurrentAmount`
+- Avoids coroutine explosion in large collection scenarios
+
+**APIs with Concurrency Control**:
+| API | Description |
+|-----|-------------|
+| `mapParallelly` | Parallel map |
+| `filterParallelly` | Parallel filter |
+| `allParallelly` | Parallel all check |
+| `anyParallelly` | Parallel any check |
+| `countParallelly` | Parallel count |
+| `findParallelly` | Parallel find |
+| `associateParallelly` | Parallel associate |
+| `flatMapParallelly` | Parallel flatMap |
+| `maxByParallelly` | Parallel max |
+| `minByParallelly` | Parallel min |
 
 #### Serialization (`serialization`)
 
