@@ -19,6 +19,12 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     init {
         if (ctor != null) {
             init(ctor)
+        } else {
+            // ctor=null only allowed for internal use
+            // External callers must use factory methods
+            require(::list.isInitialized) {
+                "MultiArray must be initialized. Use factory methods: MultiArray.new, MultiArray.newWith, or MultiArray.newBy"
+            }
         }
     }
 
