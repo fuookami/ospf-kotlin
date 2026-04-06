@@ -1,8 +1,38 @@
 # SQL Expression 设计与实施计划（交接文档）
 
-> 状态：方案收敛完成，可直接进入编码。  
-> 日期：2026-04-04  
+> 状态：**math 侧已完成**，framework 侧待实施  
+> 更新日期：2026-04-06  
 > 目标读者：下一个执行环境（无上下文接入）。
+
+## 实施进度总览
+
+| 阶段 | 模块 | 状态 | 提交 |
+|------|------|------|------|
+| Phase 0 | math 脚手架 | ✅ 已完成 | 48cb8b17 |
+| Phase 1 | math 核心 AST | ✅ 已完成 | 48cb8b17 |
+| Phase 2 | math DSL/parser/serde/normalize/evaluate | ✅ 已完成 | 9530e622, e0bc60dd |
+| Phase 3 | framework 查询适配 (SortBy) | ⏳ 待实施 | - |
+| Phase 4 | framework 更新适配 (UpdateAssignment) | ⏳ 待实施 | - |
+| Phase 5 | 兼容迁移 | ⏳ 待实施 | - |
+
+### math 侧完成内容
+
+- [x] `PropertyPath` 路径抽象
+- [x] `PathSymbol` 路径-符号桥接
+- [x] `ScalarExpression<T>` 标量表达式 AST
+- [x] `BooleanExpression` 布尔表达式 AST
+- [x] `ExpressionOperator` 操作符定义
+- [x] DSL 构造（and/or/not/in/isNull）
+- [x] Lexer/Parser（支持 a.b.c 路径）
+- [x] JSON 序列化/反序列化
+- [x] Normalize（flatten/fold/dedup/deMorgan）
+- [x] Evaluate（三值逻辑 Trivalent）
+- [x] LegacyExprBridge 新旧桥接
+- [x] 文档更新
+
+### math 侧额外修复
+
+- `Trivalent/BalancedTrivalent` 初始化顺序 bug（改用 sealed class + lazy）
 
 ## 1. 最终结论
 
@@ -312,3 +342,39 @@ mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,K
 1. `math.symbol` 负责通用表达式语义与逻辑能力。
 2. `framework.persistence` 负责 SQL 翻译、字段映射、`SortBy`、`UpdateAssignment` 执行。
 3. 下一环境可按本文直接实施。
+
+---
+
+## 12. 实施日志
+
+### 2026-04-06：math 侧完成
+
+**提交记录：**
+- `48cb8b17` - feat(math): add expression AST for SQL-like boolean expressions (M0+M1)
+- `9530e622` - feat(math): add DSL and Parser for boolean expressions (M2)
+- `e0bc60dd` - feat(math): add serde, normalize, and evaluate for expressions (M3)
+- `cc364b01` - feat(math): add LegacyExprBridge for legacy Expr compatibility (M4)
+- `eedb31bd` - docs(math): update expression module documentation (M5)
+
+**测试覆盖：**
+- 711 tests 全部通过
+- 新增测试文件：
+  - `PropertyPathPathSymbolTest.kt` (19 tests)
+  - `ExpressionASTTest.kt` (20 tests)
+  - `BooleanParserTest.kt` (22 tests)
+  - `BooleanDslTest.kt` (24 tests)
+  - `ExpressionSerdeTest.kt` (14 tests)
+  - `NormalizeTest.kt` (17 tests)
+  - `EvaluateBooleanTest.kt` (24 tests)
+  - `LegacyExprBridgeTest.kt` (28 tests)
+
+**关键设计决策：**
+1. `Trivalent` 改用 sealed class + lazy 属性，避免 URtn8 初始化顺序问题
+2. `BooleanExpression` 使用 sealed interface，支持完整的布尔逻辑
+3. `PropertyPath` 支持点分隔路径 `a.b.c`
+4. `PathSymbol` 实现 `IdentifiedSymbol`，`symbolId = "path:${path.value}"`
+
+**下一步：framework 侧实施**
+- Phase 3：EntityMeta、SortBy、KtormBooleanTranslator
+- Phase 4：UpdateAssignment、KtormUpdateAssignmentTranslator
+- Phase 5：集成测试与文档

@@ -198,7 +198,7 @@ mvn -pl ospf-kotlin-math "-Dtest=BooleanParserTest,BooleanDslTest,ExpressionSerd
 1. 先做 Phase M0 + M1（先把 AST 与路径桥接稳定下来）。✅ 已完成 (commit: 48cb8b17)
 2. 再做 Phase M2（打通 DSL + parser 入口）。✅ 已完成 (commit: 9530e622)
 3. 接着做 Phase M3（serde/normalize/evaluate 一次闭环）。✅ 已完成 (commit: e0bc60dd)
-4. 最后做 M4 + M5（兼容迁移与文档收口）。✅ M4 已完成 (commit: cc364b01)，M5 进行中
+4. 最后做 M4 + M5（兼容迁移与文档收口）。✅ 全部完成 (M4: cc364b01, M5: eedb31bd)
 5. 每阶段结束执行一次 `mvn -pl ospf-kotlin-math test`，并把结果回写本文件。
 
 ## 7. 完成状态
@@ -210,7 +210,7 @@ mvn -pl ospf-kotlin-math "-Dtest=BooleanParserTest,BooleanDslTest,ExpressionSerd
 | M2 | ✅ 已完成 | 9530e622 | 通过 |
 | M3 | ✅ 已完成 | e0bc60dd | 通过 (711 tests) |
 | M4 | ✅ 已完成 | cc364b01 | 通过 (711 tests) |
-| M5 | 🔄 进行中 | - | - |
+| M5 | ✅ 已完成 | eedb31bd | 通过 (711 tests) |
 
 ### M3 备注
 - 修复了 Trivalent/BalancedTrivalent 初始化顺序 bug，改用 sealed class + lazy 实现
@@ -240,5 +240,25 @@ mvn -pl ospf-kotlin-math "-Dtest=BooleanParserTest,BooleanDslTest,ExpressionSerd
 **M4 Bridge:**
 - `expression/adapter/LegacyExprBridge.kt` - 新旧表达式桥接
 
+**M5 Documentation:**
+- `expression/README.md` - 更新使用示例
+- `expression/README_ch.md` - 更新使用示例
+
 **Bug Fix:**
 - `Trivalent.kt` - 改用 sealed class 避免 URtn8 初始化问题
+
+## 8. 下一步工作（framework 侧）
+
+`ospf-kotlin-math` 的 SQL Expression 能力已全部实现，下一步应在 `ospf-kotlin-framework` 实现：
+
+1. **Phase 3**：framework 查询适配
+   - `EntityMeta` / `FieldBinding` 字段映射
+   - `SortBy` 排序模型
+   - `KtormBooleanTranslator` 条件翻译
+   - `KtormOrderByTranslator` 排序翻译
+
+2. **Phase 4**：framework 更新适配
+   - `UpdateAssignment` 更新赋值模型
+   - `KtormUpdateAssignmentTranslator` 更新翻译
+
+3. **Phase 5**：兼容迁移与集成测试
