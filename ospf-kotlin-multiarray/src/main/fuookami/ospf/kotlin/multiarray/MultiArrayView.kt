@@ -1,3 +1,57 @@
+/**
+ * 多维数组视图模块
+ * Multi-dimensional Array View Module
+ *
+ * 本模块提供多维数组的视图和切片功能，支持无数据复用的数据访问模式。
+ * This module provides view and slice functionality for multi-dimensional arrays,
+ * supporting data access patterns without data duplication.
+ *
+ * 主要类型：
+ * Main types:
+ * - [MultiArrayView]: 多维数组视图，支持切片和索引
+ *   Multi-dimensional array view, supporting slicing and indexing
+ * - [MappedMultiArrayView]: 映射视图，支持维度重排和转置
+ *   Mapped view, supporting dimension reordering and transposition
+ *
+ * 视图类型：
+ * View types:
+ * - **切片视图**: 使用虚拟索引（_a、范围、单个索引）创建子数组视图
+ *   Slice view: Create sub-array views using dummy indices (_a, ranges, single indices)
+ * - **映射视图**: 使用 MapIndex 进行维度重排，如转置操作
+ *   Mapped view: Reorder dimensions using MapIndex, e.g., transpose operations
+ *
+ * 使用场景：
+ * Use cases:
+ * - 无复制的数组切片
+ *   Array slicing without copying
+ * - 维度转置和重排
+ *   Dimension transposition and reordering
+ * - 子数组访问
+ *   Sub-array access
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 创建视图（切片）
+ * // Create view (slice)
+ * val array = MultiArray.newWith(Shape3(2, 3, 4), 0)
+ * val slice = array[_a, 1, _a]  // 所有行的第 1 列的所有深度
+ *
+ * // 创建转置视图
+ * // Create transpose view
+ * val transposed = MappedMultiArrayView(array, listOf(
+ *     MapIndex.Map(2),  // 维度 2 映射到位置 0
+ *     MapIndex.Map(0),  // 维度 0 映射到位置 1
+ *     MapIndex.Map(1)   // 维度 1 映射到位置 2
+ * ))
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see MultiArray
+ * @see DummyIndex
+ * @see MapIndex
+ */
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
@@ -166,6 +220,13 @@ class MultiArrayView<out T : Any, S : Shape>(
      * Converts view indices to actual indices in the original array.
      */
     private fun actualVector(v: IntArray): IntArray {
+        if (v.size != shape.dimension) {
+            throw DimensionMismatchingException(
+                dimension = shape.dimension,
+                vectorDimension = v.size
+            )
+        }
+
         val result = IntArray(origin.dimension)
         var viewIndex = 0
 
@@ -349,6 +410,13 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
     }
 
     private fun mapVector(v: IntArray): IntArray {
+        if (v.size != shape.dimension) {
+            throw DimensionMismatchingException(
+                dimension = shape.dimension,
+                vectorDimension = v.size
+            )
+        }
+
         val result = IntArray(origin.dimension)
         var viewIndex = 0
 

@@ -1,3 +1,63 @@
+/**
+ * 形状定义模块
+ * Shape Definition Module
+ *
+ * 本模块提供多维数组的形状抽象，包括维度信息、索引计算和存储顺序管理。
+ * This module provides shape abstractions for multi-dimensional arrays,
+ * including dimension information, index calculation, and storage order management.
+ *
+ * 主要类型：
+ * Main types:
+ * - [Shape]: 形状接口
+ *   Shape interface
+ * - [Shape1]: 一维形状
+ *   1-dimensional shape
+ * - [Shape2]: 二维形状
+ *   2-dimensional shape
+ * - [Shape3]: 三维形状
+ *   3-dimensional shape
+ * - [Shape4]: 四维形状
+ *   4-dimensional shape
+ * - [DynShape]: 动态维度形状
+ *   Dynamic dimension shape
+ * - [StorageOrder]: 存储顺序枚举（行主序/列主序）
+ *   Storage order enum (RowMajor/ColumnMajor)
+ *
+ * 索引计算：
+ * Index calculation:
+ * - [index(vector)]: 将向量索引转换为线性索引
+ *   Convert vector index to linear index
+ * - [vector(index)]: 将线性索引转换为向量索引
+ *   Convert linear index to vector index
+ *
+ * 存储顺序：
+ * Storage order:
+ * - [RowMajor]: 行主序（C 风格），最后一维变化最快
+ *   Row-major (C style), last dimension varies fastest
+ * - [ColumnMajor]: 列主序（Fortran 风格），第一维变化最快
+ *   Column-major (Fortran style), first dimension varies fastest
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 创建 2x3x4 的形状
+ * // Create a 2x3x4 shape
+ * val shape = Shape3(2, 3, 4)
+ *
+ * // 向量索引转线性索引
+ * // Vector index to linear index
+ * val linearIdx = shape.index(intArrayOf(1, 2, 3))
+ *
+ * // 线性索引转向量索引
+ * // Linear index to vector index
+ * val vectorIdx = shape.vector(15)
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see MultiArray
+ * @see StorageOrder
+ */
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed

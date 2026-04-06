@@ -1,3 +1,55 @@
+/**
+ * 访问顺序和迭代器模块
+ * Access Order and Iterator Module
+ *
+ * 本模块定义多维数组的访问顺序和迭代器系统。
+ * This module defines access order and iterator system for multi-dimensional arrays.
+ *
+ * 主要组件：
+ * Main components:
+ * - [AccessOrder]: 访问顺序枚举（行主序/列主序）
+ *   Access order enum (RowMajor/ColumnMajor)
+ * - [MultiIndexIterator]: 多维索引迭代器
+ *   Multi-dimensional index iterator
+ * - [MultiIndexSequence]: 多维索引序列
+ *   Multi-dimensional index sequence
+ *
+ * 访问顺序：
+ * Access order:
+ * - [RowMajor]: 行主序（C 风格），最后一维变化最快
+ *   Row-major (C style), last dimension varies fastest
+ * - [ColumnMajor]: 列主序（Fortran 风格），第一维变化最快
+ *   Column-major (Fortran style), first dimension varies fastest
+ *
+ * 迭代器特性：
+ * Iterator features:
+ * - 返回独立快照，后续迭代不影响历史值
+ *   Returns independent snapshots, subsequent iterations don't affect historical values
+ * - 正确实现 hasNext/next 契约
+ *   Properly implements hasNext/next contract
+ * - 支持指定访问顺序的迭代
+ *   Supports iteration with specified access order
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 按行主序迭代
+ * // Iterate in row-major order
+ * for (idx in shape.indices(AccessOrder.RowMajor)) {
+ *     println(idx.toList())
+ * }
+ *
+ * // 按列主序迭代
+ * // Iterate in column-major order
+ * for (idx in shape.indices(AccessOrder.ColumnMajor)) {
+ *     println(idx.toList())
+ * }
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see Shape
+ */
 package fuookami.ospf.kotlin.multiarray
 
 /**
@@ -263,8 +315,8 @@ fun DummyVector.iterateWithOrder(
 fun <T : Any, S : Shape> MultiArrayView<T, S>.iterWithOrder(
     accessOrder: AccessOrder = AccessOrder.Default
 ): Sequence<T> = sequence {
-    for (i in 0 until shape.size) {
-        yield(this@iterWithOrder[i])
+    for (vec in shape.iterate(accessOrder)) {
+        yield(this@iterWithOrder[vec])
     }
 }
 
@@ -316,7 +368,12 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
         "List size (${list.size}) must match shape size (${shape.size})"
     }
 
-    return MultiArray(shape) { i, _ -> list[i] }
+    val array = MutableMultiArray(shape) { _, _ -> list[0] }
+    var index = 0
+    for (vec in shape.iterate(accessOrder)) {
+        array[vec] = list[index++]
+    }
+    return array.toImmutable()
 }
 
 /**
@@ -332,5 +389,10 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
         "List size (${list.size}) must match shape size (${shape.size})"
     }
 
-    return MutableMultiArray(shape) { i, _ -> list[i] }
+    val array = MutableMultiArray(shape) { _, _ -> list[0] }
+    var index = 0
+    for (vec in shape.iterate(accessOrder)) {
+        array[vec] = list[index++]
+    }
+    return array
 }

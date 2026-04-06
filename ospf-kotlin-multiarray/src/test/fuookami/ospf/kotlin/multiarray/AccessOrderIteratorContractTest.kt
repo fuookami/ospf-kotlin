@@ -73,4 +73,30 @@ class AccessOrderIteratorContractTest {
         assertTrue(intArrayOf(0, 2).contentEquals(indices[4]))
         assertTrue(intArrayOf(1, 2).contentEquals(indices[5]))
     }
+
+    @Test
+    fun `iterWithOrder on view uses requested order`() {
+        val array = MultiArray.newBy(Shape2(2, 3)) { i, _ -> i }
+        val view = array[_a, _a]
+
+        val rowMajorValues = view.iterWithOrder(AccessOrder.RowMajor).toList()
+        val columnMajorValues = view.iterWithOrder(AccessOrder.ColumnMajor).toList()
+
+        assertEquals(listOf(0, 1, 2, 3, 4, 5), rowMajorValues)
+        assertEquals(listOf(0, 3, 1, 4, 2, 5), columnMajorValues)
+    }
+
+    @Test
+    fun `fromList respects accessOrder`() {
+        val shape = Shape2(2, 3)
+        val columnMajorList = listOf(0, 3, 1, 4, 2, 5)
+
+        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+
+        assertEquals(listOf(0, 1, 2, 3, 4, 5), immutable.flatten(AccessOrder.RowMajor))
+        assertEquals(listOf(0, 1, 2, 3, 4, 5), mutable.flatten(AccessOrder.RowMajor))
+        assertEquals(listOf(0, 3, 1, 4, 2, 5), immutable.flatten(AccessOrder.ColumnMajor))
+        assertEquals(listOf(0, 3, 1, 4, 2, 5), mutable.flatten(AccessOrder.ColumnMajor))
+    }
 }

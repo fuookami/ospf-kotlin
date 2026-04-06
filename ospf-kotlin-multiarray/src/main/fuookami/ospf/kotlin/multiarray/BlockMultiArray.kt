@@ -1,9 +1,56 @@
+/**
+ * 分块多维数组模块
+ * Block Multi-dimensional Array Module
+ *
+ * 本模块提供基于分块存储的稀疏多维数组实现。
+ * This module provides sparse multi-dimensional array implementation
+ * based on block storage.
+ *
+ * 特性：
+ * Features:
+ * - 稀疏存储：仅存储非默认值元素
+ *   Sparse storage: Only stores non-default value elements
+ * - 内存效率：适用于大规模稀疏数组
+ *   Memory efficiency: Suitable for large-scale sparse arrays
+ * - 延迟初始化：支持增量添加元素
+ *   Lazy initialization: Supports incremental element addition
+ *
+ * 使用场景：
+ * Use cases:
+ * - 大规模稀疏矩阵
+ *   Large-scale sparse matrices
+ * - 仅少数元素非零的数组
+ *   Arrays where most elements are zero/default
+ * - 内存敏感的应用
+ *   Memory-sensitive applications
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 创建稀疏数组
+ * // Create sparse array
+ * val sparse = BlockMultiArray.empty<Int, Shape3>(Shape3(100, 100, 100))
+ *
+ * // 设置非零值
+ * // Set non-zero values
+ * sparse[intArrayOf(0, 0, 0)] = 1
+ * sparse[intArrayOf(50, 50, 50)] = 2
+ *
+ * // 转换为稠密数组
+ * // Convert to dense array
+ * val dense = sparse.toMultiArray(defaultValue = 0)
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see MultiArray
+ * @see Shape
+ */
 package fuookami.ospf.kotlin.multiarray
 
 /**
  * BlockMultiArray - 分块存储的多维数组
- * 
- * 使用分块列表作为底层存储，适用于稀疏或大型数组
+ * BlockMultiArray - Multi-dimensional array with block storage
  * 
  * @param T 元素类型
  * @param S 形状类型

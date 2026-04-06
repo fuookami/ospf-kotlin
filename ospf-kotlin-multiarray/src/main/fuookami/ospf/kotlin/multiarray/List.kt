@@ -1,3 +1,47 @@
+/**
+ * List 扩展操作符模块
+ * List Extension Operators Module
+ *
+ * 本模块为嵌套 List 类型提供多维数组风格的访问操作符。
+ * This module provides multi-dimensional array style access operators
+ * for nested List types.
+ *
+ * 类型定义：
+ * Type definitions:
+ * - [List2]: 二维列表类型别名
+ *   2D list type alias
+ * - [List3]: 三维列表类型别名
+ *   3D list type alias
+ *
+ * 支持的操作：
+ * Supported operations:
+ * - 使用 All 索引（_a）获取整行或整列
+ *   Get entire row or column using All index (_a)
+ * - 使用范围索引获取子集
+ *   Get subset using range index
+ * - 使用 IntRange 进行切片
+ *   Slice using IntRange
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * val matrix: List2<Int> = listOf(
+ *     listOf(1, 2, 3),
+ *     listOf(4, 5, 6)
+ * )
+ *
+ * // 获取所有行的第 1 列
+ * // Get column 1 from all rows
+ * val col = matrix[_a, 1]  // [2, 5]
+ *
+ * // 获取第 0 行的所有列
+ * // Get all columns from row 0
+ * val row = matrix[0, _a]  // [1, 2, 3]
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ */
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.functional.get

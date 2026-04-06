@@ -1,3 +1,40 @@
+/**
+ * DataFrame 模块
+ * DataFrame Module
+ *
+ * 本模块提供带命名列的二维数据结构，类似于 pandas DataFrame 或 R data.frame。
+ * This module provides 2D data structure with named columns,
+ * similar to pandas DataFrame or R data.frame.
+ *
+ * 主要组件：
+ * Main components:
+ * - [NullableValue]: 可空值包装类
+ *   Nullable value wrapper class
+ * - [DataFrame]: 带命名列的二维数据结构
+ *   2D data structure with named columns
+ *
+ * 特性：
+ * Features:
+ * - 列命名：支持通过列名访问数据
+ *   Column naming: Access data by column name
+ * - 类型安全：每列有明确的类型信息
+ *   Type safety: Each column has explicit type information
+ * - 空值支持：内置空值处理机制
+ *   Null support: Built-in null handling mechanism
+ *
+ * 使用场景：
+ * Use cases:
+ * - 表格数据处理
+ *   Tabular data processing
+ * - 数据分析和统计
+ *   Data analysis and statistics
+ * - 结构化数据存储
+ *   Structured data storage
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see MultiArray
+ */
 package fuookami.ospf.kotlin.multiarray
 
 /**

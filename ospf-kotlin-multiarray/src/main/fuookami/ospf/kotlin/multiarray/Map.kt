@@ -1,3 +1,20 @@
+/**
+ * Map 扩展操作符函数
+ * Map extension operator functions
+ *
+ * 为 Map 类型提供多维数组访问的扩展操作符。
+ * Provides extension operators for Map types to access multi-dimensional arrays.
+ *
+ * 支持的功能：
+ * Supported features:
+ * - 使用 All 索引（_a）获取所有值
+ *   Get all values using All index (_a)
+ * - 通过键和索引访问嵌套的 MultiArray 值
+ *   Access nested MultiArray values by key and index
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ */
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed

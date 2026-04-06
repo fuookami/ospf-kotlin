@@ -1,3 +1,66 @@
+/**
+ * 虚拟索引和向量模块
+ * Dummy Index and Vector Module
+ *
+ * 本模块定义多维数组索引系统的核心类型，包括虚拟索引和向量类型。
+ * This module defines core types for multi-dimensional array indexing system,
+ * including dummy indices and vector types.
+ *
+ * 主要类型：
+ * Main types:
+ * - [DummyIndex]: 虚拟索引，用于切片和视图操作
+ *   Dummy index for slice and view operations
+ * - [DummyIndexRange]: 虚拟索引范围接口
+ *   Dummy index range interface
+ * - [DummyIndexIterator]: 虚拟索引迭代器
+ *   Dummy index iterator
+ * - [DummyVector]: 虚拟向量类型别名
+ *   Dummy vector type alias
+ * - [MapIndex]: 映射索引，用于维度重排
+ *   Map index for dimension reordering
+ * - [MapVector]: 映射向量类型别名
+ *   Map vector type alias
+ * - [IteratorVector]: 迭代器向量类型别名
+ *   Iterator vector type alias
+ *
+ * 虚拟索引类型：
+ * Dummy index types:
+ * - **All**: 表示该维度的所有元素（_a）
+ *   Represents all elements in that dimension
+ * - **Single**: 表示单个索引值
+ *   Represents a single index value
+ * - **Continuous**: 表示连续范围
+ *   Represents a continuous range
+ * - **Discrete**: 表示离散索引集合
+ *   Represents discrete index set
+ *
+ * 映射索引类型：
+ * Map index types:
+ * - **Map**: 将一个维度映射到另一个位置
+ *   Maps one dimension to another position
+ * - **Dummy**: 保持为虚拟索引
+ *   Remains as dummy index
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 使用虚拟索引创建视图
+ * // Create view using dummy indices
+ * val view = array[_a, 1, 0..2]  // All rows, column 1, depth 0-2
+ *
+ * // 使用映射索引进行转置
+ * // Transpose using map indices
+ * val transposed = MappedMultiArrayView(array, listOf(
+ *     MapIndex.Map(1),
+ *     MapIndex.Map(0)
+ * ))
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see MultiArrayView
+ * @see MappedMultiArrayView
+ */
 package fuookami.ospf.kotlin.multiarray
 
 /**

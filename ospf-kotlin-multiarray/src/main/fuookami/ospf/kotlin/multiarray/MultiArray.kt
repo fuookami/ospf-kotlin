@@ -1,3 +1,46 @@
+/**
+ * 多维数组核心模块
+ * Multi-dimensional Array Core Module
+ *
+ * 本模块提供多维数组的核心实现，包括不可变和可变数组类型。
+ * This module provides core implementations of multi-dimensional arrays,
+ * including both immutable and mutable array types.
+ *
+ * 主要组件：
+ * Main components:
+ * - [AbstractMultiArray]: 多维数组抽象基类
+ *   Abstract base class for multi-dimensional arrays
+ * - [MultiArray]: 不可变多维数组
+ *   Immutable multi-dimensional array
+ * - [MutableMultiArray]: 可变多维数组
+ *   Mutable multi-dimensional array
+ *
+ * 特性：
+ * Features:
+ * - 类型安全的形状系统（Shape1-4, DynShape）
+ *   Type-safe shape system
+ * - 支持行主序和列主序存储
+ *   Support for row-major and column-major storage
+ * - 向量索引和线性索引访问
+ *   Vector index and linear index access
+ * - 视图和切片操作
+ *   View and slice operations
+ *
+ * 示例：
+ * Example:
+ * ```kotlin
+ * // 创建 2x3 数组
+ * // Create a 2x3 array
+ * val array = MultiArray.newWith(Shape2(2, 3), 0)
+ * array[0, 1] = 10
+ * println(array[0, 1])  // 输出: 10
+ * ```
+ *
+ * @author OSPF Kotlin Team
+ * @since 1.0.0
+ * @see Shape
+ * @see MultiArrayView
+ */
 package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.utils.concept.Indexed
@@ -20,10 +63,12 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
         if (ctor != null) {
             init(ctor)
         } else {
-            // ctor=null only allowed for internal use
-            // External callers must use factory methods
-            require(::list.isInitialized) {
-                "MultiArray must be initialized. Use factory methods: MultiArray.new, MultiArray.newWith, or MultiArray.newBy"
+            if (shape.size == 0) {
+                list = mutableListOf()
+            } else {
+                throw IllegalArgumentException(
+                    "MultiArray must be initialized. Use factory methods: MultiArray.new, MultiArray.newWith, or MultiArray.newBy"
+                )
             }
         }
     }
