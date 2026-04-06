@@ -95,17 +95,14 @@ class BlockMultiArray<T : Any, S : Shape>(
      * 转换为 MultiArray
      */
     fun toMultiArray(defaultValue: T): MultiArray<T, S> {
-        val array = MutableMultiArray<T, S>(shape)
+        // Initialize with default value instead of uninitialized
+        val array = MutableMultiArray.newWith(shape, defaultValue)
+
+        // Override with stored values
         for ((indices, value) in blocks) {
             array[indices.toIntArray()] = value
         }
-        // 填充默认值
-        for (i in 0 until shape.size) {
-            val vector = shape.vector(i)
-            if (!blocks.containsKey(vector.toList())) {
-                array[vector] = defaultValue
-            }
-        }
+
         return array.toImmutable()
     }
 
