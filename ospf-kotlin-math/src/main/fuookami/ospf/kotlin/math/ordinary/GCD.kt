@@ -49,22 +49,8 @@ fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
 }
 
 fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Rem<I, I> {
-    if (numbers.firstOrNull() == null) {
-        return constants.one
-    }
-
-    val restNumbers = numbers.toMutableList()
-    while (restNumbers.first() neq restNumbers.last()) {
-        for (i in 0 until restNumbers.lastIndex) {
-            if (restNumbers[i] % restNumbers[i + 1] eq constants.zero) {
-                restNumbers[i] = restNumbers[i + 1]
-            } else {
-                restNumbers[i] = restNumbers[i] % restNumbers[i + 1]
-            }
-        }
-        restNumbers.sortDescending()
-    }
-    return restNumbers.first()
+    val first = numbers.firstOrNull() ?: return constants.one
+    return numbers.drop(1).fold(first) { acc, x -> gcdModImpl(acc, x) }
 }
 
 @Suppress("UNCHECKED_CAST")
