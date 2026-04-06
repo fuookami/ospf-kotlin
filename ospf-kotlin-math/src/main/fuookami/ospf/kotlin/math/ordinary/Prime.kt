@@ -160,6 +160,11 @@ class PrimeCache {
 
 internal val cache = PrimeCache()
 
+/** Get primes up to limit directly from the cache (for UInt64). */
+fun getPrimesUpTo(limit: UInt64): List<UInt64> {
+    return cache.getPrimes(limit)
+}
+
 fun <I> isPrime(num: I): Boolean where I : Integer<I> {
     return cache.isPrime(num.toUInt64())
 }

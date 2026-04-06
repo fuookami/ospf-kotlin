@@ -2,13 +2,62 @@ package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt32
+import fuookami.ospf.kotlin.math.algebra.number.UInt16
+import fuookami.ospf.kotlin.math.algebra.number.UInt8
+import fuookami.ospf.kotlin.math.algebra.number.UIntX
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.Int32
+import fuookami.ospf.kotlin.math.algebra.number.Int16
+import fuookami.ospf.kotlin.math.algebra.number.Int8
+import fuookami.ospf.kotlin.math.algebra.number.IntX
 
 import fuookami.ospf.kotlin.math.operator.Div
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Pow
 import fuookami.ospf.kotlin.math.operator.Rem
 
-fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+/** Compute sqrt(num) for generic Integer type, returning UInt64. */
+private fun <I> computeSqrtLimit(num: I): UInt64 where I : Integer<I> {
+    return (num.toFlt64().sqrt() as Flt64).floor().toUInt64() + UInt64.one
+}
+
+/** Convert UInt64 value to generic Integer type I using reified type info. */
+@Suppress("UNCHECKED_CAST")
+private inline fun <reified I> uint64ToI(value: UInt64, constants: RealNumberConstants<I>): I where I : Integer<I> {
+    return when (I::class) {
+        UInt64::class -> value as I
+        UInt32::class -> UInt32(value.value.toUInt()) as I
+        UInt16::class -> UInt16(value.value.toUShort()) as I
+        UInt8::class -> UInt8(value.value.toUByte()) as I
+        UIntX::class -> UIntX(value.value.toLong()) as I
+        Int64::class -> Int64(value.value.toLong()) as I
+        Int32::class -> Int32(value.value.toInt()) as I
+        Int16::class -> Int16(value.value.toShort()) as I
+        Int8::class -> Int8(value.value.toByte()) as I
+        IntX::class -> IntX(value.value.toLong()) as I
+        else -> {
+            // Fallback: increment from constants.one
+            var result = constants.one
+            val target = value.value
+            var current = 1UL
+            while (current < target) {
+                result += constants.one
+                current++
+            }
+            result
+        }
+    }
+}
+
+/** Core factorization implementation using pre-computed primes. */
+private fun <I> factorizeWithPrimes(
+    num: I,
+    primes: List<I>,
+    constants: RealNumberConstants<I>
+): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
     if (num <= constants.one) {
         return emptyList()
     }
@@ -16,7 +65,7 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
     var n = num
     val factors = ArrayList<Pair<I, Int>>()
 
-    for (prime in getPrimesImpl(num, constants)) {
+    for (prime in primes) {
         if (prime * prime > num) {
             break
         }
@@ -36,6 +85,37 @@ fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, I
     }
 
     return factors
+}
+
+fun <I> factorizeImpl(num: I, constants: RealNumberConstants<I>): List<Pair<I, Int>> where I : Integer<I>, I : Div<I, I>, I : Rem<I, I> {
+    // Compute sqrt(num) + 1 as the upper bound for prime candidates
+    val sqrtULong = (num.toFlt64().sqrt() as Flt64).floor().toUInt64().value + 1UL
+
+    // Create sqrt limit as type I
+    // Since sqrt(num) is much smaller than num, this iteration is acceptable
+    var sqrtLimit = constants.one
+    var count = sqrtULong - 1UL
+    while (count > 0UL) {
+        sqrtLimit += constants.one
+        count--
+    }
+
+    // Get primes up to sqrt limit (O(sqrt(num)) iterations instead of O(num))
+    val primes = getPrimesImpl(sqrtLimit, constants)
+
+    return factorizeWithPrimes(num, primes, constants)
+}
+
+/** Optimized factorization for UInt64 using cache directly. */
+fun factorizeImpl(num: UInt64, constants: RealNumberConstants<UInt64>): List<Pair<UInt64, Int>> {
+    if (num <= UInt64.one) {
+        return emptyList()
+    }
+
+    val sqrtLimit = computeSqrtLimit(num)
+    val primes = getPrimesUpTo(sqrtLimit)
+
+    return factorizeWithPrimes(num, primes, constants)
 }
 
 fun <I> factorize(
