@@ -95,10 +95,13 @@ fun <I> lcm(
 ): I where I : Integer<I>, I : Rem<I, I>, I : Div<I, I> {
     val px = x.abs()
     val py = y.abs()
-    val thisGCD = gcd(
-        numbers = listOf(px, py),
-        constants = constants
-    )
+
+    // 短路：任一为零则返回零
+    if (px eq constants.zero || py eq constants.zero) {
+        return constants.zero
+    }
+
+    val thisGCD = gcdModImpl(px, py)
     return (px / thisGCD) * py
 }
 

@@ -36,5 +36,28 @@ class LCMTest {
         assert(lcm(listOf(FltX(0.4), FltX(0.6), FltX(0.8))) eq FltX(2.4))
         assert(lcm(listOf(FltX(0.6), FltX(0.9), FltX(1.2))) eq FltX(3.6))
     }
+
+    @Test
+    fun lcmWithZero() {
+        // lcm(0, x) == 0
+        assertEquals(UInt64(0), lcm(UInt64(0), UInt64(5), UInt64))
+        assertEquals(UInt64(0), lcm(UInt64(5), UInt64(0), UInt64))
+        assertEquals(UInt64(0), lcm(UInt64(0), UInt64(0), UInt64))
+    }
+
+    @Test
+    fun lcmEmptyAndSingle() {
+        // 空集合返回 1
+        assertEquals(UInt64.one, lcm(emptyList(), UInt64))
+        // 单元素返回自身
+        assertEquals(UInt64(5), lcm(listOf(UInt64(5)), UInt64))
+    }
+
+    @Test
+    fun lcmManyWithZero() {
+        // 多参数包含零
+        assertEquals(UInt64(0), lcm(listOf(UInt64(0), UInt64(6), UInt64(8)), UInt64))
+        assertEquals(UInt64(0), lcm(listOf(UInt64(4), UInt64(0), UInt64(8)), UInt64))
+    }
 }
 
