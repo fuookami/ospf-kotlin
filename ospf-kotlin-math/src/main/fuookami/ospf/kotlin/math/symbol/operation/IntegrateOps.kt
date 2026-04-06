@@ -1,3 +1,13 @@
+/**
+ * 积分运算
+ * Integration Operations
+ *
+ * 提供多项式积分的核心实现。
+ * 支持一元线性、二次和规范多项式的积分计算，基于 FloatingNumber 类型约束。
+ * Provides core implementation for polynomial integration.
+ * Supports univariate integration for linear, quadratic, and canonical polynomials,
+ * based on FloatingNumber type constraints.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

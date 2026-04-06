@@ -1,3 +1,18 @@
+/**
+ * 多维数组扩展
+ * MultiArray Extensions
+ *
+ * 为多维数组提供 UInt64 索引支持和形状工厂方法扩展。
+ * 这些扩展函数允许使用 UInt64 类型作为索引，并提供了便捷的形状创建方法。
+ *
+ * Provides UInt64 index support and shape factory method extensions for multi-dimensional arrays.
+ * These extension functions allow using UInt64 type as indices and provide convenient shape creation methods.
+ *
+ * 主要功能 / Main features:
+ * - UInt64 索引访问操作符 / UInt64 index access operators
+ * - UInt64 形状工厂方法 / UInt64 shape factory methods
+ * - Map 扩展支持 / Map extension support
+ */
 package fuookami.ospf.kotlin.math.multiarray
 
 import fuookami.ospf.kotlin.multiarray.*

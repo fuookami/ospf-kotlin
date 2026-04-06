@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Bogdanov 映射
+ * Bogdanov Map
+ *
+ * Bogdanov 映射是一个二维离散混沌映射，由 Bogdanov 提出。
+ * 该映射与 Bogdanov-Takens 分岔相关，是研究二维映射分岔行为的重要模型。
+ * 常用于分岔理论研究、混沌边界分析和非线性动力学研究。
+ *
+ * The Bogdanov map is a two-dimensional discrete chaotic map proposed by Bogdanov.
+ * This map is related to the Bogdanov-Takens bifurcation and serves as an important model for studying bifurcation behavior in two-dimensional maps.
+ * Commonly used for bifurcation theory research, chaos boundary analysis, and nonlinear dynamics research.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

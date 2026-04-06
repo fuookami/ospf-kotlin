@@ -1,3 +1,13 @@
+/**
+ * 编译运算
+ * Compile Operations
+ *
+ * 提供将多项式编译为高效求值函数的核心实现。
+ * 支持编译求值函数和梯度函数，使用预计算的索引映射避免运行时查找开销。
+ * Provides core implementation for compiling polynomials into efficient evaluation functions.
+ * Supports compiling evaluation and gradient functions,
+ * using pre-computed index mapping to avoid runtime lookup overhead.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Aizawa 吸引子
+ * Aizawa Attractor
+ *
+ * Aizawa 吸引子是一个三维连续时间混沌系统，由 Hiroshi Aizawa 于 1982 年提出。
+ * 该系统展现出独特的混沌行为，其轨迹在三维空间中形成优美的螺旋状吸引子结构。
+ * 常用于混沌信号生成、非线性动力学研究和混沌同步应用。
+ *
+ * The Aizawa attractor is a three-dimensional continuous-time chaotic system proposed by Hiroshi Aizawa in 1982.
+ * This system exhibits unique chaotic behavior, with trajectories forming beautiful spiral-like attractor structures in 3D space.
+ * Commonly used for chaotic signal generation, nonlinear dynamics research, and chaos synchronization applications.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

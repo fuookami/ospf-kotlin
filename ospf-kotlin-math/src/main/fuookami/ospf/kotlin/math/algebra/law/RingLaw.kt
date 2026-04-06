@@ -1,3 +1,10 @@
+/**
+ * 环定律
+ * Ring Laws
+ *
+ * 提供环代数结构定律验证类，验证加法交换律、乘法结合律、乘法单位元存在性和分配律，继承自 GroupLaw 验证群定律。
+ * Provides ring algebraic structure law validation class, verifying additive commutativity, multiplicative associativity, multiplicative identity existence, and distributivity, inheriting from GroupLaw for group law verification.
+ */
 package fuookami.ospf.kotlin.math.algebra.law
 
 class RingLaw<Self>(

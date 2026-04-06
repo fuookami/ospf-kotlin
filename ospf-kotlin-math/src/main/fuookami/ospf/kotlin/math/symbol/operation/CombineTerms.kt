@@ -1,3 +1,13 @@
+/**
+ * 合并同类项
+ * Combine Like Terms
+ *
+ * 提供针对 Flt64 类型的多项式同类项合并操作的便捷封装。
+ * 将通用运算封装为类型特定的简化接口，简化常见使用场景。
+ * Provides convenient wrappers for polynomial like-term combination operations for Flt64 type.
+ * Wraps generic operations into type-specific simplified interfaces,
+ * simplifying common use cases.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

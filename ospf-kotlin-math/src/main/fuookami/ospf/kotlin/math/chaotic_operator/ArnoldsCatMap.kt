@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Arnold 猫映射
+ * Arnold's Cat Map
+ *
+ * Arnold 猫映射是由俄罗斯数学家 Vladimir Arnold 于 1960 年提出的经典混沌映射。
+ * 该映射在单位正方形上定义，将图像进行拉伸和折叠，展现出典型的混沌特性。
+ * 是混沌理论和拓扑学研究中的经典示例，常用于图像加密和混沌研究教学。
+ *
+ * Arnold's cat map is a classic chaotic map proposed by Russian mathematician Vladimir Arnold in 1960.
+ * This map is defined on the unit square, stretching and folding images, exhibiting typical chaotic properties.
+ * A classic example in chaos theory and topology research, commonly used for image encryption and chaos research education.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

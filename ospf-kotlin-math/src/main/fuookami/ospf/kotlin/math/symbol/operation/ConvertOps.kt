@@ -1,3 +1,13 @@
+/**
+ * 转换运算
+ * Conversion Operations
+ *
+ * 提供单项式和多项式类型转换的核心实现。
+ * 包括升阶转换（线性到二次到规范）和降阶转换（规范到二次到线性）。
+ * Provides core implementation for monomial and polynomial type conversions.
+ * Includes promotion conversions (linear to quadratic to canonical)
+ * and demotion conversions (canonical to quadratic to linear).
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

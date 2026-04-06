@@ -1,3 +1,27 @@
+/**
+ * 因式分解
+ * Integer Factorization
+ *
+ * 提供整数质因数分解及相关功能。
+ * 数学定义：将正整数 n 分解为质数的乘积，n = p1^e1 * p2^e2 * ... * pk^ek，
+ * 其中 pi 为质数，ei 为对应质数的指数。
+ * 边界情况：n <= 1 返回空列表，表示无质因数分解。
+ * 因式分解使用筛法预先生成质数表，只遍历到 sqrt(n) 的质数进行试除。
+ * 反因式分解（defactorize）将质因数分解结果还原为原整数。
+ * 因数计算（divisors）返回所有能整除 n 的因数，包括 1 和 n 本身。
+ * 欧拉函数（eulerTotient）计算小于 n 的正整数中与 n 互质的个数，
+ * 公式：phi(n) = n * (1 - 1/p1) * (1 - 1/p2) * ...，其中 pi 为 n 的质因数。
+ *
+ * Provides integer prime factorization and related functionality.
+ * Mathematical definition: decomposes positive integer n into product of primes,
+ * n = p1^e1 * p2^e2 * ... * pk^ek, where pi are primes and ei are exponents.
+ * Boundary case: n <= 1 returns empty list, indicating no prime factorization.
+ * Factorization uses sieve method to pre-generate prime table, only testing primes up to sqrt(n).
+ * Defactorize converts prime factorization result back to original integer.
+ * Divisors returns all factors that divide n, including 1 and n itself.
+ * Euler's totient function (eulerTotient) counts positive integers less than n coprime to n,
+ * formula: phi(n) = n * (1 - 1/p1) * (1 - 1/p2) * ..., where pi are prime factors of n.
+ */
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*

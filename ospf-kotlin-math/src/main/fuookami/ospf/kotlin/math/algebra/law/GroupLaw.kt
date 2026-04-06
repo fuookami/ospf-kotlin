@@ -1,3 +1,10 @@
+/**
+ * 群定律
+ * Group Laws
+ *
+ * 提供群代数结构定律验证类，验证结合律、单位元存在性和逆元存在性。
+ * Provides group algebraic structure law validation class, verifying associativity, identity existence, and inverse existence.
+ */
 package fuookami.ospf.kotlin.math.algebra.law
 
 class GroupLaw<Self>(

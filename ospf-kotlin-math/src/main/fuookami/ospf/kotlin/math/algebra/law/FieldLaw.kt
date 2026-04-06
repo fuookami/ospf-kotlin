@@ -1,3 +1,10 @@
+/**
+ * 域定律
+ * Field Laws
+ *
+ * 提供域代数结构定律验证类，验证乘法交换律和乘法逆元存在性，继承自 RingLaw 验证环定律。
+ * Provides field algebraic structure law validation class, verifying multiplicative commutativity and multiplicative inverse existence, inheriting from RingLaw for ring law verification.
+ */
 package fuookami.ospf.kotlin.math.algebra.law
 
 class FieldLaw<Self>(

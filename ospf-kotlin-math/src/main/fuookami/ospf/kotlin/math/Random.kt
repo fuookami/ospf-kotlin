@@ -1,4 +1,11 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 随机数生成
+ * Random Number Generation
+ *
+ * 为 Kotlin Random 类提供扩展函数，支持生成 Int64、UInt64 和 Flt64 等类型的随机数，可指定范围或边界。
+ * Provides extension functions for Kotlin Random class, supporting generation of random numbers in Int64, UInt64, and Flt64 types, with optional range or bound specifications.
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

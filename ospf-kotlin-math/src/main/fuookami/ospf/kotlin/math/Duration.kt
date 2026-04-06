@@ -1,4 +1,11 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿/**
+ * 时间时长
+ * Time Duration
+ *
+ * 为各种数值类型提供时长转换扩展函数和运算符，支持从纳秒到天的各种时间单位。
+ * Provides duration conversion extension functions and operators for various numeric types, supporting time units from nanoseconds to days.
+ */
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.math
 

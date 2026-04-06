@@ -1,3 +1,13 @@
+/**
+ * 编译操作
+ * Compile Operations
+ *
+ * 提供将多项式编译为高效求值函数的便捷封装。
+ * 编译后的函数可直接用于数值计算，避免每次求值时的符号解析开销。
+ * Provides convenient wrappers for compiling polynomials into efficient evaluation functions.
+ * Compiled functions can be used directly for numerical computation,
+ * avoiding symbol parsing overhead during each evaluation.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

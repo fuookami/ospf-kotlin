@@ -1,4 +1,17 @@
-﻿package fuookami.ospf.kotlin.math.symbol.polynomial
+﻿/**
+ * 二次多项式
+ * Quadratic Polynomial
+ *
+ * 定义二次多项式的数据结构和运算。二次多项式是二次单项式的线性组合，
+ * 形如 Σcᵢⱼxᵢxⱼ + Σcₖxₖ + b，其中 cᵢⱼ、cₖ 为系数，xᵢ、xⱼ、xₖ 为符号变量，b 为常数项。
+ * 在二次规划和凸优化中广泛使用。
+ * Defines data structures and operations for quadratic polynomials.
+ * A quadratic polynomial is a linear combination of quadratic monomials,
+ * in the form Σcᵢⱼxᵢxⱼ + Σcₖxₖ + b, where cᵢⱼ, cₖ are coefficients,
+ * xᵢ, xⱼ, xₖ are symbol variables, and b is the constant term.
+ * Widely used in quadratic programming and convex optimization.
+ */
+package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

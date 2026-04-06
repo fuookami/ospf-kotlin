@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.symbol.parser
+﻿/**
+ * 词法分析器
+ * Lexer
+ *
+ * 将输入字符串转换为标记（Token）序列。
+ * 支持数字、标识符、运算符、括号和比较运算符的识别。
+ * 是符号表达式解析的第一阶段。
+ * Converts input strings into token sequences.
+ * Supports recognition of numbers, identifiers, operators,
+ * parentheses, and comparison operators.
+ * This is the first stage of symbolic expression parsing.
+ */
+package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

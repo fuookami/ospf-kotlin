@@ -1,3 +1,15 @@
+/**
+ * 幂向量键
+ * Power Vector Key
+ *
+ * 提供规范单项式幂向量的优化键实现，用于高效的同类项合并。
+ * 支持两种模式：稠密模式（单 IntArray）和稀疏模式（两个 IntArray），
+ * 根据稀疏度自动选择最优模式。
+ * Provides optimized key implementation for canonical monomial power vectors,
+ * used for efficient like-term combination.
+ * Supports two modes: dense mode (single IntArray) and sparse mode (two IntArrays),
+ * automatically selecting the optimal mode based on sparsity.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.symbol.Symbol

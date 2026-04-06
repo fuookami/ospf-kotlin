@@ -1,4 +1,28 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+﻿/**
+ * Triangulation（三角剖分）
+ * Triangulation
+ *
+ * 提供 Delaunay 三角剖分算法及相关功能。
+ * Provides Delaunay triangulation algorithm and related functionality.
+ *
+ * 主要功能：
+ * Main features:
+ * - Delaunay: Delaunay 三角剖分算法实现（Bowyer-Watson 算法）/ Delaunay triangulation algorithm implementation (Bowyer-Watson algorithm)
+ * - DelaunayTriangulation2: 三角剖分结果结构 / Triangulation result structure
+ * - triangulate: 便捷三角剖分函数 / Convenience triangulation functions
+ * - isDelaunay: Delaunay 条件验证 / Delaunay condition validation
+ * - 边提取（edges）/ Edge extraction
+ *
+ * Delaunay 三角剖分性质：任何三角形的外接圆内不包含其他点。
+ * Delaunay triangulation property: No other points are contained within the circumcircle of any triangle.
+ *
+ * 支持 2D 点集三角剖分和 3D 点集（投影后）三角剖分。
+ * Supports 2D point set triangulation and 3D point set (projected) triangulation.
+ *
+ * 应用场景：网格生成、地形建模、有限元分析、计算流体力学等。
+ * Applications: mesh generation, terrain modeling, finite element analysis, computational fluid dynamics, etc.
+ */
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

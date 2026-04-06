@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 蔡氏吸引子
+ * Chua's Attractor
+ *
+ * 蔡氏吸引子是由 Leon O. Chua 提出的著名混沌系统，是蔡氏电路的数学模型。
+ * 该系统通过分段线性非线性函数产生混沌行为，是最早被实验观测到的混沌系统之一。
+ * 常用于混沌电路研究、混沌加密和电子工程教学。
+ *
+ * Chua's attractor is a famous chaotic system proposed by Leon O. Chua, serving as the mathematical model for Chua's circuit.
+ * This system generates chaotic behavior through piecewise linear nonlinear functions and is one of the first chaotic systems experimentally observed.
+ * Commonly used for chaotic circuit research, chaos encryption, and electronic engineering education.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

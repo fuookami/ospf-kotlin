@@ -1,3 +1,13 @@
+/**
+ * LaTeX 输出
+ * LaTeX Output
+ *
+ * 提供将多项式和不等式转换为 LaTeX 格式字符串的便捷封装。
+ * 支持配置输出格式选项，适用于 Flt64 类型。
+ * Provides convenient wrappers for converting polynomials and inequalities
+ * to LaTeX format strings. Supports configurable output format options,
+ * suitable for Flt64 type.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

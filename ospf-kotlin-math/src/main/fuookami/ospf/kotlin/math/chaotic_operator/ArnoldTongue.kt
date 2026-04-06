@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Arnold 舌
+ * Arnold Tongue
+ *
+ * Arnold 舌是描述圆映射中锁频现象的重要数学概念，由 Vladimir Arnold 提出。
+ * 在参数空间中，Arnold 舌呈现出锁频区域的结构，是研究非线性振子同步现象的重要工具。
+ * 常用于锁相环分析、同步动力学研究和非线性动力学教学。
+ *
+ * Arnold tongue is an important mathematical concept describing frequency locking phenomena in circle maps, proposed by Vladimir Arnold.
+ * In parameter space, Arnold tongues exhibit the structure of frequency locking regions, serving as an important tool for studying synchronization phenomena in nonlinear oscillators.
+ * Commonly used for phase-locked loop analysis, synchronization dynamics research, and nonlinear dynamics education.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,26 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+﻿/**
+ * Rectangle（矩形）
+ * Rectangle
+ *
+ * 提供矩形的几何表示及相关计算。
+ * Provides geometric representation and calculations for rectangles.
+ *
+ * 主要功能：
+ * Main features:
+ * - Rectangle: 泛型矩形，由四个顶点定义 / Generic rectangle, defined by four vertices
+ * - Rectangle2/Rectangle3: 2D/3D 矩形的类型别名 / 2D/3D rectangle type aliases
+ * - 长度、宽度计算（length, width）/ Length, width calculation
+ * - 面积计算（area）/ Area calculation
+ * - 边界点获取（leftUpperPoint, rightBottomPoint）/ Boundary point access
+ * - 点包含判断（contains）/ Point containment check
+ *
+ * 支持通过左上角和右下角两点快速构造矩形。
+ * Supports quick rectangle construction via left-upper and right-bottom corner points.
+ *
+ * 应用场景：边界框表示、区域裁剪、空间索引、碰撞检测等。
+ * Applications: bounding box representation, region clipping, spatial indexing, collision detection, etc.
+ */
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

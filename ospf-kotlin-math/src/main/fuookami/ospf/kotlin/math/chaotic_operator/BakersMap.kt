@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 面包师映射
+ * Baker's Map
+ *
+ * 面包师映射是一个经典的二维混沌映射，其操作类似于面包师揉面团的过程。
+ * 该映射将单位正方形拉伸、压缩并折叠，展现出典型的混沌拉伸-折叠特性。
+ * 是混沌理论中的基础模型，常用于混沌动力学研究和教学演示。
+ *
+ * Baker's map is a classic two-dimensional chaotic map, whose operation resembles a baker kneading dough.
+ * This map stretches, compresses, and folds the unit square, exhibiting typical chaotic stretching-folding properties.
+ * A fundamental model in chaos theory, commonly used for chaos dynamics research and educational demonstrations.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 复平方映射
+ * Complex Squaring Map
+ *
+ * 复平方映射是将复数平方的简单迭代映射，是 Julia 理论研究的基础。
+ * 该映射通过不断平方复数，产生逃逸或收敛的动力学行为，形成独特的分形边界。
+ * 常用于分形几何研究、混沌可视化和复动力学分析。
+ *
+ * The complex squaring map is a simple iterative map that squares complex numbers, serving as the foundation for Julia set theory research.
+ * This map generates escaping or converging dynamical behavior through repeated squaring of complex numbers, forming unique fractal boundaries.
+ * Commonly used for fractal geometry research, chaos visualization, and complex dynamics analysis.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,15 @@
-﻿package fuookami.ospf.kotlin.math.symbol
+﻿/**
+ * 表达式类型分类
+ * Expression Category
+ *
+ * 定义符号表达式按次数的分类体系，包括线性、二次、标准和非线性。
+ * 用于在编译时和运行时区分表达式的类型，支持优化和类型检查。
+ * Defines the classification hierarchy for symbolic expressions by degree,
+ * including Linear, Quadratic, Standard, and Nonlinear.
+ * Used to distinguish expression types at compile-time and runtime,
+ * supporting optimization and type checking.
+ */
+package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order

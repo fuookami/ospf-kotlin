@@ -408,6 +408,42 @@ class EinsumTest {
         assertEquals(4, result.shape[1])
     }
 
+    @Test
+    fun testContractHighDimCorrectness() {
+        val a = MultiArray.newBy(Shape3(2, 2, 3)) { _, v ->
+            Flt64(v[0] * 100 + v[1] * 10 + v[2] + 1)
+        }
+        val b = MultiArray.newBy(Shape3(3, 2, 2)) { _, v ->
+            Flt64(v[0] * 100 + v[1] * 10 + v[2] + 1)
+        }
+
+        val result = contract(a, 2, b, 0, Flt64.zero)
+
+        assertEquals(4, result.shape.dimension)
+        assertEquals(2, result.shape[0])
+        assertEquals(2, result.shape[1])
+        assertEquals(2, result.shape[2])
+        assertEquals(2, result.shape[3])
+
+        for (i in 0 until 2) {
+            for (j in 0 until 2) {
+                for (m in 0 until 2) {
+                    for (n in 0 until 2) {
+                        var expected = Flt64.zero
+                        for (k in 0 until 3) {
+                            expected = expected + a[intArrayOf(i, j, k)] * b[intArrayOf(k, m, n)]
+                        }
+                        val actual = result[intArrayOf(i, j, m, n)]
+                        assertTrue(
+                            (actual - expected).abs() < Flt64(1e-10),
+                            "mismatch at [$i,$j,$m,$n], expected=$expected, actual=$actual"
+                        )
+                    }
+                }
+            }
+        }
+    }
+
     // ========================================================================
     // 负轴校验测试
     // Negative axis validation tests

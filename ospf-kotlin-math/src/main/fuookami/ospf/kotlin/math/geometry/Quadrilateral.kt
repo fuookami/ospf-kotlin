@@ -1,3 +1,24 @@
+/**
+ * Quadrilateral（四边形）
+ * Quadrilateral
+ *
+ * 提供四边形的几何表示及相关计算。
+ * Provides geometric representation and calculations for quadrilaterals.
+ *
+ * 主要功能：
+ * Main features:
+ * - Quadrilateral: 泛型四边形，由四个顶点定义 / Generic quadrilateral, defined by four vertices
+ * - Quadrilateral2/Quadrilateral3: 2D/3D 四边形的类型别名 / 2D/3D quadrilateral type aliases
+ * - 边和角获取（edges, diagonals）/ Edge and diagonal access
+ * - 周长计算（perimeter）/ Perimeter calculation
+ * - 重心计算（centroid）/ Centroid calculation
+ * - 面积计算（area, areaByTriangles）/ Area calculation
+ * - 凸性判断（isConvex）/ Convexity check
+ * - 非法四边形判断（illegal）/ Illegal quadrilateral check
+ *
+ * 应用场景：几何建模、区域表示、形状分析、网格剖分等。
+ * Applications: geometric modeling, region representation, shape analysis, mesh partitioning, etc.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*

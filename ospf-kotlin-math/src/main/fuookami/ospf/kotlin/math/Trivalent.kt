@@ -1,4 +1,11 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 三值逻辑
+ * Trivalent Logic
+ *
+ * 定义 Trivalent 和 BalancedTrivalent 枚举类型，用于表示三值逻辑 (True, False, Unknown)，支持与布尔值和可空布尔值的相互转换。
+ * Defines Trivalent and BalancedTrivalent enum types for representing three-valued logic (True, False, Unknown), supporting conversions with Boolean and nullable Boolean values.
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 陈氏系统
+ * Chen System
+ *
+ * 陈氏系统是由 Guanrong Chen 于 1999 年提出的三维连续时间混沌系统。
+ * 该系统与 Lorenz 系统结构相似但具有不同的混沌行为，是研究混沌控制的重要模型。
+ * 常用于混沌控制研究、混沌同步和混沌加密应用。
+ *
+ * The Chen system is a three-dimensional continuous-time chaotic system proposed by Guanrong Chen in 1999.
+ * This system has a similar structure to the Lorenz system but exhibits different chaotic behavior, serving as an important model for chaos control research.
+ * Commonly used for chaos control research, chaos synchronization, and chaos encryption applications.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 洛伦兹系统
+ * Lorenz System
+ *
+ * 洛伦兹系统是由 Edward Lorenz 于 1963 年提出的著名三维混沌系统。
+ * 该系统最初用于研究大气对流，意外发现了混沌现象，开创了混沌理论的研究。
+ * 洛伦兹吸引子（蝴蝶效应）是最著名的混沌系统之一，常用于混沌动力学研究、气象模型分析和教学演示。
+ *
+ * The Lorenz system is a famous three-dimensional chaotic system proposed by Edward Lorenz in 1963.
+ * This system was originally used for studying atmospheric convection, unexpectedly discovering chaotic phenomena, pioneering chaos theory research.
+ * The Lorenz attractor (butterfly effect) is one of the most famous chaotic systems, commonly used for chaos dynamics research, meteorological model analysis, and educational demonstrations.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

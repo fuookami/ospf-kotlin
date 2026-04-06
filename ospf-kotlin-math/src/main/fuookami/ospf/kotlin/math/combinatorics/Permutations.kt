@@ -1,4 +1,24 @@
-﻿package fuookami.ospf.kotlin.math.combinatorics
+﻿/**
+ * Permutations（排列算法）
+ * Permutations Algorithm
+ *
+ * 提供排列生成算法，用于生成元素的所有可能排列顺序。
+ * Provides permutation generation algorithms for generating all possible orderings of elements.
+ *
+ * 主要功能：
+ * Main features:
+ * - permute: 生成全排列或部分排列 / Generate full permutations or partial permutations (permutations of subsets)
+ * - permuteSequence: 惰性序列生成排列 / Lazy sequence generation of permutations
+ * - permuteCount: 计算排列数 P(n, k) / Calculate permutation count P(n, k)
+ * - permuteAsync: 异步生成排列（使用协程通道）/ Async permutation generation (using coroutine channels)
+ *
+ * 使用 QuickPerm 算法实现高效排列生成。
+ * Uses QuickPerm algorithm for efficient permutation generation.
+ *
+ * 应用场景：调度问题、排序优化、序列搜索等。
+ * Applications: scheduling problems, ordering optimization, sequence search, etc.
+ */
+package fuookami.ospf.kotlin.math.combinatorics
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

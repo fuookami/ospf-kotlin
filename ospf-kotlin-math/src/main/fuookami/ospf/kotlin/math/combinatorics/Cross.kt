@@ -1,4 +1,22 @@
-﻿package fuookami.ospf.kotlin.math.combinatorics
+﻿/**
+ * Cross（笛卡尔积）
+ * Cartesian Product (Cross Product)
+ *
+ * 提供笛卡尔积（交叉积）生成算法，用于计算多个集合的所有组合。
+ * Provides Cartesian product (cross product) generation algorithms for computing all combinations across multiple sets.
+ *
+ * 主要功能：
+ * Main features:
+ * - cross: 计算多集合的笛卡尔积 / Calculate Cartesian product of multiple sets
+ * - crossSequence: 惰性序列生成笛卡尔积 / Lazy sequence generation of Cartesian product
+ * - crossCount: 计算笛卡尔积元素总数 / Calculate total count of Cartesian product elements
+ * - cross2/cross3: 计算两个或三个集合的笛卡尔积 / Calculate Cartesian product of two or three sets
+ * - crossAsync: 异步生成笛卡尔积（使用协程通道）/ Async Cartesian product generation (using coroutine channels)
+ *
+ * 应用场景：参数空间遍历、多维决策变量组合、状态空间搜索等。
+ * Applications: parameter space traversal, multi-dimensional decision variable combinations, state space search, etc.
+ */
+package fuookami.ospf.kotlin.math.combinatorics
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

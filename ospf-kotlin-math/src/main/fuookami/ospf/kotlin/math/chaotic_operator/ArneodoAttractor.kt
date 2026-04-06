@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Arneodo 吸引子
+ * Arneodo Attractor
+ *
+ * Arneodo 吸引子是一个三维连续时间混沌系统，由 Arneodo 等人提出。
+ * 该系统具有三次非线性项，是研究低维混沌系统的重要模型。
+ * 常用于混沌动力学基础研究和教学演示。
+ *
+ * The Arneodo attractor is a three-dimensional continuous-time chaotic system proposed by Arneodo et al.
+ * This system features cubic nonlinear terms and is an important model for studying low-dimensional chaotic systems.
+ * Commonly used for fundamental chaos dynamics research and educational demonstrations.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

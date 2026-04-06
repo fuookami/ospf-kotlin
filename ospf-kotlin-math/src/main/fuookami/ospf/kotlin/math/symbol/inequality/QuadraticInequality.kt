@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.inequality
+﻿/**
+ * 二次不等式
+ * Quadratic Inequality
+ *
+ * 定义二次不等式，左右两边均为二次多项式。
+ * 二次不等式在二次规划和凸优化问题中广泛使用。
+ * Defines quadratic inequalities, where both sides are quadratic polynomials.
+ * Quadratic inequalities are widely used in quadratic programming
+ * and convex optimization problems.
+ */
+package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

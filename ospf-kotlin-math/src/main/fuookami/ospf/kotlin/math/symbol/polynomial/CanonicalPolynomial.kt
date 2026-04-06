@@ -1,4 +1,15 @@
-﻿package fuookami.ospf.kotlin.math.symbol.polynomial
+﻿/**
+ * 规范多项式
+ * Canonical Polynomial
+ *
+ * 定义规范多项式的数据结构和运算。规范多项式是规范单项式的线性组合，
+ * 支持任意次数的多项式表达式。是最通用的多项式表示形式。
+ * Defines data structures and operations for canonical polynomials.
+ * A canonical polynomial is a linear combination of canonical monomials,
+ * supporting polynomial expressions of any degree.
+ * It is the most general form of polynomial representation.
+ */
+package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

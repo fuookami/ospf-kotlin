@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.monomial
+﻿/**
+ * 线性单项式
+ * Linear Monomial
+ *
+ * 定义线性单项式的数据结构和运算。线性单项式形如 c*x，
+ * 其中 c 为系数，x 为符号变量。是构建线性多项式的基本单元。
+ * Defines data structures and operations for linear monomials.
+ * A linear monomial has the form c*x, where c is the coefficient
+ * and x is the symbol variable. It is the basic building block for linear polynomials.
+ */
+package fuookami.ospf.kotlin.math.symbol.monomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

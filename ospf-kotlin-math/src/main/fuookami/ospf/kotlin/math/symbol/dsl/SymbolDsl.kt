@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.dsl
+﻿/**
+ * 符号 DSL
+ * Symbol DSL
+ *
+ * 提供用于构建符号表达式的领域特定语言（DSL）。
+ * 支持使用中缀运算符构建线性、二次和规范多项式及不等式。
+ * Provides a domain-specific language (DSL) for building symbolic expressions.
+ * Supports building linear, quadratic, and canonical polynomials and inequalities
+ * using infix operators.
+ */
+package fuookami.ospf.kotlin.math.symbol.dsl
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

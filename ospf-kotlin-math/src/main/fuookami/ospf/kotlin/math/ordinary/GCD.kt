@@ -1,3 +1,26 @@
+/**
+ * 最大公约数
+ * Greatest Common Divisor (GCD)
+ *
+ * 提供计算整数、浮点数和有理数最大公约数的功能。
+ * 对于整数，使用欧几里得算法（辗转相除法）计算 GCD。
+ * 数学定义：gcd(a, b) 是能同时整除 a 和 b 的最大正整数。
+ * 对于 a = 0 或 b = 0，gcd(a, 0) = |a|，gcd(0, b) = |b|，gcd(0, 0) = 0。
+ * 扩展欧几里得算法同时求解 gcd(a, b) = ax + by 的整数解 x 和 y（贝祖等式）。
+ * 对于浮点数 FltX，先通过乘以 10 的幂次将小数转换为整数，再计算 GCD。
+ * 对于有理数 RtnX，gcd(a/b, c/d) = gcd(a, c) / lcm(b, d)。
+ * 边界情况：空集合返回 one，负数取绝对值后计算。
+ *
+ * Provides functionality for computing the greatest common divisor of integers,
+ * floating-point numbers, and rational numbers.
+ * For integers, uses the Euclidean algorithm (division-based method) to compute GCD.
+ * Mathematical definition: gcd(a, b) is the largest positive integer that divides both a and b.
+ * For a = 0 or b = 0: gcd(a, 0) = |a|, gcd(0, b) = |b|, gcd(0, 0) = 0.
+ * Extended Euclidean algorithm also solves the Bezout identity: gcd(a, b) = ax + by.
+ * For FltX floating-point numbers, converts decimals to integers by multiplying powers of 10.
+ * For RtnX rational numbers: gcd(a/b, c/d) = gcd(a, c) / lcm(b, d).
+ * Boundary cases: empty collection returns one; negative values are converted to absolute values.
+ */
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -49,8 +72,14 @@ fun <I> gcdModImpl(x: I, y: I): I where I : Integer<I>, I : Rem<I, I> {
 }
 
 fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I where I : Integer<I>, I : Rem<I, I> {
-    val first = numbers.firstOrNull() ?: return constants.one
-    return numbers.drop(1).fold(first) { acc, x -> gcdModImpl(acc, x) }
+    val iter = numbers.iterator()
+    if (!iter.hasNext()) return constants.one
+
+    var acc = iter.next()
+    while (iter.hasNext()) {
+        acc = gcdModImpl(acc, iter.next())
+    }
+    return acc
 }
 
 @Suppress("UNCHECKED_CAST")

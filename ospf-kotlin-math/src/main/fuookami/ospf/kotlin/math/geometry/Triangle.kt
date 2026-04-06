@@ -1,4 +1,27 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+﻿/**
+ * Triangle（三角形）
+ * Triangle
+ *
+ * 提供三角形的几何表示及相关计算。
+ * Provides geometric representation and calculations for triangles.
+ *
+ * 主要功能：
+ * Main features:
+ * - Triangle: 泛型三角形，由三个顶点定义 / Generic triangle, defined by three vertices
+ * - Triangle2/Triangle3: 2D/3D 三角形的类型别名 / 2D/3D triangle type aliases
+ * - 边获取（edges）/ Edge access
+ * - 周长计算（perimeter）/ Perimeter calculation
+ * - 重心计算（centroid）/ Centroid calculation
+ * - 面积计算（area, area2D, area3D）/ Area calculation
+ * - 退化/非法判断（isDegenerate, illegal）/ Degenerate/illegal check
+ * - 2D 点包含判断（containsPoint）/ 2D point containment check
+ * - 外接圆/外心/内心计算（circumcircle, circumcenter, incenter）/ Circumcircle/circumcenter/incenter calculation
+ * - 3D 法向量计算（normal）/ 3D normal vector calculation
+ *
+ * 应用场景：几何建模、网格剖分、形状分析、图形渲染等。
+ * Applications: geometric modeling, mesh partitioning, shape analysis, graphics rendering, etc.
+ */
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

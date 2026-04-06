@@ -1,3 +1,48 @@
+/**
+ * 三角函数
+ * Trigonometric Functions
+ *
+ * 定义三角函数和反三角函数接口，包括基本三角函数、双曲函数及其反函数。
+ * 这些函数是数学分析的基础工具，广泛应用于几何、物理和工程计算。
+ *
+ * Defines interfaces for trigonometric and inverse trigonometric functions,
+ * including basic trigonometric functions, hyperbolic functions, and their inverses.
+ * These functions are fundamental tools in mathematical analysis, widely used in
+ * geometry, physics, and engineering calculations.
+ *
+ * 数学定义 / Mathematical definitions:
+ * 基本三角函数 / Basic trigonometric functions:
+ * - sin(x): 正弦函数 / sine function
+ * - cos(x): 余弦函数 / cosine function
+ * - tan(x) = sin(x)/cos(x): 正切函数 / tangent function
+ * - sec(x) = 1/cos(x): 正割函数 / secant function
+ * - csc(x) = 1/sin(x): 余割函数 / cosecant function
+ * - cot(x) = cos(x)/sin(x): 余切函数 / cotangent function
+ *
+ * 反三角函数 / Inverse trigonometric functions:
+ * - asin(x): 反正弦函数 / arcsine function
+ * - acos(x): 反余弦函数 / arccosine function
+ * - atan(x): 反正切函数 / arctangent function
+ * - asec(x): 反正割函数 / arcsecant function
+ * - acsc(x): 反余割函数 / arccosecant function
+ * - acot(x): 反余切函数 / arccotangent function
+ *
+ * 双曲函数 / Hyperbolic functions:
+ * - sinh(x): 双曲正弦 / hyperbolic sine
+ * - cosh(x): 双曲余弦 / hyperbolic cosine
+ * - tanh(x): 双曲正切 / hyperbolic tangent
+ * - sech(x): 双曲正割 / hyperbolic secant
+ * - csch(x): 双曲余割 / hyperbolic cosecant
+ * - coth(x): 双曲余切 / hyperbolic cotangent
+ *
+ * 反双曲函数 / Inverse hyperbolic functions:
+ * - asinh(x): 反双曲正弦 / inverse hyperbolic sine
+ * - acosh(x): 反双曲余弦 / inverse hyperbolic cosine
+ * - atanh(x): 反双曲正切 / inverse hyperbolic tangent
+ * - asech(x): 反双曲正割 / inverse hyperbolic secant
+ * - acsch(x): 反双曲余割 / inverse hyperbolic cosecant
+ * - acoth(x): 反双曲余切 / inverse hyperbolic cotangent
+ */
 package fuookami.ospf.kotlin.math.operator
 
 interface Trigonometry<out Ret> {

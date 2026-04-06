@@ -1,3 +1,20 @@
+/**
+ * 快速求和
+ * Fast Summation
+ *
+ * 提供多维数组的高性能求和操作，包括全量求和、轴向求和、多轴求和和累积求和。
+ * 适用于所有实现了 Ring 接口的数值类型。
+ *
+ * Provides high-performance summation operations for multi-dimensional arrays,
+ * including sum all, sum along axis, sum along multiple axes, and cumulative sum.
+ * Applicable to all numeric types implementing the Ring interface.
+ *
+ * 数学定义 / Mathematical definitions:
+ * - sumAll: Σᵢ aᵢ (所有元素求和 / sum of all elements)
+ * - sumAxis: Σₖ a[i₁,...,iₖ,...,iₙ] (沿指定轴求和 / sum along specified axis)
+ * - sumAxes: Σₖ₌₁..m a[i₁,...,iₖ,...,iₙ] (沿多轴求和 / sum along multiple axes)
+ * - cumsumAxis: a[i₁,...,iₖ,...,iₙ] + cumsum[i₁,...,iₖ₋₁,...,iₙ] (累积求和 / cumulative sum)
+ */
 package fuookami.ospf.kotlin.math.multiarray
 
 import fuookami.ospf.kotlin.multiarray.*

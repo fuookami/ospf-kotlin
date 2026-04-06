@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 复二次多项式
+ * Complex Quadratic Polynomial
+ *
+ * 复二次多项式是复数域上的迭代映射，是 Mandelbrot 集和 Julia 集研究的基础。
+ * 通过迭代复二次多项式可以生成丰富的分形结构，展现出复杂的混沌动力学行为。
+ * 常用于分形几何研究、混沌可视化分析和复动力学理论研究。
+ *
+ * The complex quadratic polynomial is an iterative map on the complex domain, serving as the foundation for Mandelbrot set and Julia set research.
+ * Iterating complex quadratic polynomials generates rich fractal structures, exhibiting complex chaotic dynamical behavior.
+ * Commonly used for fractal geometry research, chaos visualization analysis, and complex dynamics theory research.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

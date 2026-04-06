@@ -1,3 +1,10 @@
+/**
+ * 类型化值范围
+ * Typed Value Range
+ *
+ * 定义类型安全的值范围类，使用泛型参数静态编码区间开闭性，支持闭区间、开区间、半开半闭区间等类型，并提供算术运算和类型推导。
+ * Defines type-safe value range class, using generic parameters to statically encode interval openness/closedness, supporting closed, open, and half-open interval types, with arithmetic operations and type inference.
+ */
 package fuookami.ospf.kotlin.math.algebra.value_range
 
 import fuookami.ospf.kotlin.utils.error.ErrorCode

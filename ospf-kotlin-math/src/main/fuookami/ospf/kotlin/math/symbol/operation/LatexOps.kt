@@ -1,3 +1,13 @@
+/**
+ * LaTeX 运算
+ * LaTeX Operations
+ *
+ * 提供将多项式和不等式转换为 LaTeX 格式字符串的核心实现。
+ * 支持紧凑和展开格式，控制是否显示系数 1，以及是否使用 cdot 符号。
+ * Provides core implementation for converting polynomials and inequalities
+ * to LaTeX format strings. Supports compact and expanded formats,
+ * controlling whether to show coefficient 1, and whether to use cdot symbol.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

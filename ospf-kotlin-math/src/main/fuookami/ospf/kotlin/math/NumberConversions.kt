@@ -1,4 +1,11 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 数字类型转换
+ * Number Type Conversions
+ *
+ * 提供布尔值和字符串到各种数值类型 (Int8, Int16, Int32, Int64, IntX, UInt8, UInt16, UInt32, UInt64, UIntX, Flt32, Flt64, FltX) 的转换函数。
+ * Provides conversion functions from Boolean and String to various numeric types (Int8, Int16, Int32, Int64, IntX, UInt8, UInt16, UInt32, UInt64, UIntX, Flt32, Flt64, FltX).
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 蔡氏电路
+ * Chua's Circuit
+ *
+ * 蔡氏电路是由 Leon O. Chua 于 1983 年设计的简单电子电路，是第一个被实验验证的混沌电路。
+ * 该电路包含线性电阻、电容、电感和一个非线性元件（蔡氏二极管），能产生丰富的混沌动力学行为。
+ * 常用于混沌电路实验、非线性电路设计和混沌动力学教学。
+ *
+ * Chua's circuit is a simple electronic circuit designed by Leon O. Chua in 1983, being the first experimentally verified chaotic circuit.
+ * This circuit contains linear resistors, capacitors, inductors, and a nonlinear element (Chua's diode), capable of generating rich chaotic dynamical behavior.
+ * Commonly used for chaotic circuit experiments, nonlinear circuit design, and chaos dynamics education.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

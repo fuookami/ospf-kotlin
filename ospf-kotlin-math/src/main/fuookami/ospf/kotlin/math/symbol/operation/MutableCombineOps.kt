@@ -1,3 +1,12 @@
+/**
+ * 可变合并运算
+ * Mutable Combine Operations
+ *
+ * 提供可变多项式的原地同类项合并操作。
+ * 支持快速累积模式：先使用 += 累积，最后一次性合并。
+ * Provides in-place like-term combination operations for mutable polynomials.
+ * Supports FastSum pattern: accumulate with +=, then combine once at the end.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

@@ -1,3 +1,14 @@
+/**
+ * 符号表达式序列化
+ * Symbol Expression Serialization
+ *
+ * 提供多项式和不等式与表达式 AST 之间的双向转换，以及 JSON 序列化支持。
+ * 支持将表达式解析为线性、二次或规范多项式/不等式，以及反向转换。
+ * Provides bidirectional conversion between polynomials/inequalities and expression AST,
+ * as well as JSON serialization support.
+ * Supports parsing expressions into linear, quadratic, or canonical polynomials/inequalities,
+ * and reverse conversion.
+ */
 package fuookami.ospf.kotlin.math.symbol.serde
 
 import fuookami.ospf.kotlin.math.algebra.number.*

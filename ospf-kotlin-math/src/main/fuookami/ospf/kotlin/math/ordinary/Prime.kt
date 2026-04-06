@@ -1,3 +1,25 @@
+/**
+ * 素数算法
+ * Prime Number Algorithm
+ *
+ * 提供素数判定和素数表生成功能。
+ * 素数定义：大于 1 且只能被 1 和自身整除的正整数。
+ * 边界情况：0 和 1 不是素数，2 是最小的素数。
+ * 使用埃拉托斯特尼筛法（Sieve of Eratosthenes）生成素数表，
+ * 算法复杂度 O(n log log n)，适用于批量生成素数。
+ * PrimeCache 类实现可扩展的素数缓存，支持动态扩展筛法范围，
+ * 对于超过缓存范围的大数，使用试除法结合缓存质数进行快速判定。
+ * 线程安全：通过 synchronized 锁保证多线程访问的安全性。
+ *
+ * Provides prime number detection and prime table generation functionality.
+ * Prime definition: positive integer greater than 1 divisible only by 1 and itself.
+ * Boundary cases: 0 and 1 are not primes; 2 is the smallest prime.
+ * Uses Sieve of Eratosthenes to generate prime table,
+ * algorithm complexity O(n log log n), suitable for batch prime generation.
+ * PrimeCache class implements extensible prime caching with dynamic sieve expansion,
+ * for large numbers beyond cache range, uses trial division with cached primes for fast detection.
+ * Thread-safe: uses synchronized lock to ensure safe multi-threaded access.
+ */
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*

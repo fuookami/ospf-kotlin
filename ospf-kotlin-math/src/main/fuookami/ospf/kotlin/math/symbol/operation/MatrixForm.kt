@@ -1,3 +1,15 @@
+/**
+ * 矩阵形式
+ * Matrix Form
+ *
+ * 提供多项式与矩阵形式之间的双向转换。
+ * 线性多项式可表示为 c'x + d，二次多项式可表示为 x'Qx + c'x + d。
+ * 支持泛型 Ring<T> 和 Flt64 特化版本。
+ * Provides bidirectional conversion between polynomials and matrix form.
+ * Linear polynomials can be represented as c'x + d,
+ * quadratic polynomials as x'Qx + c'x + d.
+ * Supports generic Ring<T> and Flt64 specialized versions.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

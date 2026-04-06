@@ -1,3 +1,13 @@
+/**
+ * 求值操作
+ * Evaluation Operations
+ *
+ * 提供多项式求值的便捷封装。
+ * 支持完整求值和部分求值，处理缺失值的多种策略，适用于 Flt64 类型。
+ * Provides convenient wrappers for polynomial evaluation.
+ * Supports full evaluation and partial evaluation with various missing value strategies,
+ * suitable for Flt64 type.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

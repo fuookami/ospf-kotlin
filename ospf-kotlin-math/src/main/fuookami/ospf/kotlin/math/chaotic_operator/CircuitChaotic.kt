@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 电路混沌模型
+ * Circuit Chaotic Model
+ *
+ * 电路混沌模型是描述电子电路中混沌动力学行为的简化模型。
+ * 该模型通过非线性项模拟电路中的混沌振荡，展现了电子系统中的复杂动力学现象。
+ * 常用于电子电路混沌分析、混沌电路设计和电子系统动力学研究。
+ *
+ * The circuit chaotic model is a simplified model describing chaotic dynamical behavior in electronic circuits.
+ * This model simulates chaotic oscillations in circuits through nonlinear terms, exhibiting complex dynamical phenomena in electronic systems.
+ * Commonly used for electronic circuit chaos analysis, chaotic circuit design, and electronic system dynamics research.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

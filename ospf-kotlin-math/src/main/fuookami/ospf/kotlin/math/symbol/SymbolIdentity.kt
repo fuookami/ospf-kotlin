@@ -1,3 +1,13 @@
+/**
+ * 符号标识
+ * Symbol Identity
+ *
+ * 提供符号的唯一标识机制，用于在符号计算过程中区分不同的符号实例。
+ * 即使两个符号具有相同的名称，它们也可以通过唯一标识进行区分。
+ * Provides unique identification mechanism for symbols,
+ * used to distinguish different symbol instances during symbolic computation.
+ * Even if two symbols have the same name, they can be distinguished by unique identifiers.
+ */
 package fuookami.ospf.kotlin.math.symbol
 
 import fuookami.ospf.kotlin.math.algebra.number.*

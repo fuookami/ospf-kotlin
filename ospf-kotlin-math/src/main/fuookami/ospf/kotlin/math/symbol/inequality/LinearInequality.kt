@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.inequality
+﻿/**
+ * 线性不等式
+ * Linear Inequality
+ *
+ * 定义线性不等式，左右两边均为线性多项式。
+ * 线性不等式在优化问题中广泛使用，特别是线性规划和混合整数规划。
+ * Defines linear inequalities, where both sides are linear polynomials.
+ * Linear inequalities are widely used in optimization problems,
+ * especially in linear programming and mixed-integer programming.
+ */
+package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

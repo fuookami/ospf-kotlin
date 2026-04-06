@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 高斯映射
+ * Gauss Map
+ *
+ * 高斯映射是一个简单的一维混沌映射，通过取模运算产生混沌行为。
+ * 该映射与 Gauss 递归算法相关，展现出复杂的混沌动力学特性。
+ * 常用于混沌理论研究、伪随机数生成和混沌迭代分析。
+ *
+ * The Gauss map is a simple one-dimensional chaotic map that generates chaotic behavior through modulo operations.
+ * This map is related to Gauss's recursive algorithm, exhibiting complex chaotic dynamical properties.
+ * Commonly used for chaos theory research, pseudo-random number generation, and chaotic iteration analysis.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

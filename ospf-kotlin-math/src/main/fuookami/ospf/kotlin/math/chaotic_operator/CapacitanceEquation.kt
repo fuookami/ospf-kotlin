@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 电容方程
+ * Capacitance Equation
+ *
+ * 电容方程是描述电容电路中非线性动力学行为的混沌模型。
+ * 该方程通过分段线性函数引入非线性，模拟电子电路中的混沌振荡现象。
+ * 常用于非线性电路分析、混沌电路设计和电子系统动力学研究。
+ *
+ * The capacitance equation is a chaotic model describing nonlinear dynamical behavior in capacitive circuits.
+ * This equation introduces nonlinearity through piecewise linear functions, simulating chaotic oscillation phenomena in electronic circuits.
+ * Commonly used for nonlinear circuit analysis, chaotic circuit design, and electronic system dynamics research.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

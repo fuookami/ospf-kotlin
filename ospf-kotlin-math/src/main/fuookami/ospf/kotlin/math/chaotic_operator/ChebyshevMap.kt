@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 切比雪夫映射
+ * Chebyshev Map
+ *
+ * 切比雪夫映射是基于切比雪夫多项式的一维混沌映射。
+ * 该映射利用切比雪夫多项式的性质产生混沌序列，具有良好的遍历性和随机性。
+ * 常用于混沌加密、伪随机数生成和混沌优化算法。
+ *
+ * The Chebyshev map is a one-dimensional chaotic map based on Chebyshev polynomials.
+ * This map generates chaotic sequences using properties of Chebyshev polynomials, exhibiting good ergodicity and randomness.
+ * Commonly used for chaos encryption, pseudo-random number generation, and chaotic optimization algorithms.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

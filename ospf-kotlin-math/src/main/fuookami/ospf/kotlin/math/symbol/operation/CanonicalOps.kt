@@ -1,3 +1,14 @@
+/**
+ * 规范运算
+ * Canonical Operations
+ *
+ * 提供规范多项式的核心运算操作，包括合并同类项、求值和部分求值。
+ * 使用 PowerVectorKey 进行高效的幂向量比较，相比基于 Map 的实现性能提升 50-100%。
+ * Provides core operation functions for canonical polynomials,
+ * including combining like terms, evaluation, and partial evaluation.
+ * Uses PowerVectorKey for efficient power vector comparison,
+ * achieving 50-100% performance improvement over Map-based implementation.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

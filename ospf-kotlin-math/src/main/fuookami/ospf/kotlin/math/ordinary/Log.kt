@@ -1,3 +1,23 @@
+/**
+ * 对数函数
+ * Logarithm Functions
+ *
+ * 为浮点数类型提供自然对数和任意底数对数的高精度计算。
+ * 自然对数 ln(x)：泰勒级数展开，使用变换 y = (x-1)/(x+1) 优化收敛速度，
+ * 公式：ln(x) = 2 * [y + y^3/3 + y^5/5 + ...]，当 x <= 2 时直接计算，否则通过分解处理。
+ * 对于 x > 2，使用公式 ln(x) = ln(m) + k * ln(2)，其中 m 在 [1, 2) 区间。
+ * 任意底数对数 log(x, base)：使用换底公式 log(x, base) = ln(x) / ln(base)。
+ * 边界情况：x <= 0 返回 NaN（对数未定义），base <= 0 返回 NaN。
+ * 支持通过 digits 参数控制计算精度，precision 参数控制收敛阈值。
+ *
+ * Provides high-precision computation of natural logarithm and arbitrary-base logarithm for floating-point types.
+ * Natural logarithm ln(x): Taylor series expansion using transformation y = (x-1)/(x+1) for faster convergence,
+ * formula: ln(x) = 2 * [y + y^3/3 + y^5/5 + ...], direct computation when x <= 2, decomposition for larger values.
+ * For x > 2, uses formula ln(x) = ln(m) + k * ln(2) where m is in [1, 2) interval.
+ * Arbitrary-base logarithm log(x, base): uses change-of-base formula log(x, base) = ln(x) / ln(base).
+ * Boundary cases: x <= 0 returns NaN (logarithm undefined); base <= 0 returns NaN.
+ * Supports configurable precision via digits parameter and convergence threshold via precision parameter.
+ */
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.concept.*

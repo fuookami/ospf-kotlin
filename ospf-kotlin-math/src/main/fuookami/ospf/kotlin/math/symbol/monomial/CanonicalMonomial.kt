@@ -1,4 +1,17 @@
-﻿package fuookami.ospf.kotlin.math.symbol.monomial
+﻿/**
+ * 规范单项式
+ * Canonical Monomial
+ *
+ * 定义规范单项式的数据结构和运算。规范单项式形如 c*x₁^n₁*x₂^n₂*...，
+ * 其中 c 为系数，xᵢ 为符号变量，nᵢ 为对应的幂次。
+ * 是构建规范多项式的基本单元，支持任意次数的多项式。
+ * Defines data structures and operations for canonical monomials.
+ * A canonical monomial has the form c*x₁^n₁*x₂^n₂*..., where c is the coefficient,
+ * xᵢ are symbol variables, and nᵢ are the corresponding powers.
+ * It is the basic building block for canonical polynomials,
+ * supporting polynomials of any degree.
+ */
+package fuookami.ospf.kotlin.math.symbol.monomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,3 +1,13 @@
+/**
+ * 线性二次运算
+ * Linear-Quadratic Operations
+ *
+ * 提供线性和二次多项式的核心运算操作。
+ * 包括同类项合并、求值、有序求值和部分求值，基于 Ring 类型约束。
+ * Provides core operation functions for linear and quadratic polynomials.
+ * Includes combining like terms, evaluation, ordered evaluation,
+ * and partial evaluation, based on Ring type constraints.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

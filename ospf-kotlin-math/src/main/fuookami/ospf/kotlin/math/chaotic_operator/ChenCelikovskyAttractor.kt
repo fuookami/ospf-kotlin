@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Chen-Celikovsky 吸引子
+ * Chen-Celikovsky Attractor
+ *
+ * Chen-Celikovsky 吸引子是 Chen 系统的一种变体，由 Chen 和 Celikovsky 提出。
+ * 该系统在 Lorenz 系统和 Chen 系统之间建立起桥梁，展现出独特的混沌动力学特性。
+ * 常用于混沌系统研究、控制理论和非线性动力学分析。
+ *
+ * The Chen-Celikovsky attractor is a variant of the Chen system proposed by Chen and Celikovsky.
+ * This system builds a bridge between the Lorenz system and the Chen system, exhibiting unique chaotic dynamical properties.
+ * Commonly used for chaotic system research, control theory, and nonlinear dynamics analysis.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

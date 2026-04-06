@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * 双摆系统
+ * Double Pendulum System
+ *
+ * 双摆系统是由两个相连的摆组成的经典力学系统，是展示混沌运动的典型范例。
+ * 即使初始条件有微小差异，系统轨迹也会产生截然不同的演化，展现了混沌的敏感性。
+ * 常用于混沌动力学教学、非线性力学研究和物理演示。
+ *
+ * The double pendulum system is a classical mechanical system composed of two connected pendulums, serving as a typical example demonstrating chaotic motion.
+ * Even with slight differences in initial conditions, the system trajectories evolve distinctly, demonstrating the sensitivity of chaos.
+ * Commonly used for chaos dynamics education, nonlinear mechanics research, and physics demonstrations.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

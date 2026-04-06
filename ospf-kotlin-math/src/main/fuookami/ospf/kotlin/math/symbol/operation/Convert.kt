@@ -1,3 +1,13 @@
+/**
+ * 类型转换
+ * Type Conversion
+ *
+ * 提供不同类型多项式之间的转换操作。
+ * 支持线性、二次和规范多项式之间的相互转换，以及不等式的转换。
+ * Provides conversion operations between different types of polynomials.
+ * Supports mutual conversion between linear, quadratic, and canonical polynomials,
+ * as well as inequality conversions.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

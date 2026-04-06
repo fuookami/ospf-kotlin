@@ -1,3 +1,13 @@
+/**
+ * 微分操作
+ * Differentiation Operations
+ *
+ * 提供多项式微分的便捷封装。
+ * 支持计算多项式对指定变量的导数和梯度，适用于 Flt64 类型。
+ * Provides convenient wrappers for polynomial differentiation.
+ * Supports computing derivatives and gradients with respect to specified variables,
+ * suitable for Flt64 type.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.functional.Failed

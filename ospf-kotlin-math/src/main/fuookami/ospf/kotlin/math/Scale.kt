@@ -1,4 +1,11 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 缩放操作
+ * Scale Operations
+ *
+ * 定义 Scale 数据类用于表示科学计数缩放因子，支持 SI 单位前缀 (atto, femto, pico, nano, micro, milli, centi, deci, deca, hecto, kilo, mega, giga, tera, peta, exa)，以及乘法和除法运算。
+ * Defines Scale data class for representing scientific scaling factors, supporting SI unit prefixes (atto, femto, pico, nano, micro, milli, centi, deci, deca, hecto, kilo, mega, giga, tera, peta, exa), with multiplication and division operations.
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.polynomial
+﻿/**
+ * 可变规范多项式
+ * Mutable Canonical Polynomial
+ *
+ * 提供规范多项式的可变版本，支持原地修改操作。
+ * 用于需要增量构建或修改多项式的场景，构建完成后可转换为不可变的 CanonicalPolynomial。
+ * Provides a mutable version of canonical polynomials, supporting in-place modifications.
+ * Used for scenarios requiring incremental building or modification of polynomials,
+ * and can be converted to an immutable CanonicalPolynomial after construction.
+ */
+package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

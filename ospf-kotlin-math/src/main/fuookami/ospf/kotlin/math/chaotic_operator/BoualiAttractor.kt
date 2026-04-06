@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Bouali 吸引子
+ * Bouali Attractor
+ *
+ * Bouali 吸引子是一个三维混沌系统，由 Bouali 提出。
+ * 该系统展现出复杂的混沌轨迹，具有独特的吸引子几何结构。
+ * 常用于混沌信号生成、非线性动力学研究和混沌加密应用。
+ *
+ * The Bouali attractor is a three-dimensional chaotic system proposed by Bouali.
+ * This system exhibits complex chaotic trajectories with unique attractor geometric structures.
+ * Commonly used for chaotic signal generation, nonlinear dynamics research, and chaos encryption applications.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

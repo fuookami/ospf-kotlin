@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.symbol.parser
+﻿/**
+ * 语法分析器
+ * Parser
+ *
+ * 将标记序列解析为表达式抽象语法树（AST）。
+ * 支持表达式和不等式的解析，遵循标准运算符优先级。
+ * 是符号表达式解析的第二阶段。
+ * Parses token sequences into expression abstract syntax trees (AST).
+ * Supports parsing of expressions and inequalities,
+ * following standard operator precedence.
+ * This is the second stage of symbolic expression parsing.
+ */
+package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

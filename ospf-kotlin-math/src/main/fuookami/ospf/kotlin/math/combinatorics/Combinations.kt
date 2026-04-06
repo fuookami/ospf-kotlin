@@ -1,4 +1,21 @@
-﻿package fuookami.ospf.kotlin.math.combinatorics
+﻿/**
+ * Combinations（组合算法）
+ * Combinations Algorithm
+ *
+ * 提供组合生成算法，用于从集合中选取元素的所有可能组合。
+ * Provides combination generation algorithms for selecting all possible combinations from a set.
+ *
+ * 主要功能：
+ * Main features:
+ * - combine: 生成所有组合或指定数量的组合 / Generate all combinations or combinations of specified size
+ * - combineSequence: 惰性序列生成组合 / Lazy sequence generation of combinations
+ * - combineCount: 计算组合数 C(n, k) / Calculate combination count C(n, k)
+ * - combineAsync: 异步生成组合（使用协程通道）/ Async combination generation (using coroutine channels)
+ *
+ * 应用场景：优化问题遍历、约束求解、特征选择等。
+ * Applications: optimization problem traversal, constraint solving, feature selection, etc.
+ */
+package fuookami.ospf.kotlin.math.combinatorics
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

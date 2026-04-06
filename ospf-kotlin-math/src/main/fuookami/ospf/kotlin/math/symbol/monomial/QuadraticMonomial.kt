@@ -1,4 +1,17 @@
-﻿package fuookami.ospf.kotlin.math.symbol.monomial
+﻿/**
+ * 二次单项式
+ * Quadratic Monomial
+ *
+ * 定义二次单项式的数据结构和运算。二次单项式形如 c*x*y 或 c*x²，
+ * 其中 c 为系数，x、y 为符号变量。当 y 为 null 时表示线性项 c*x，
+ * 当 x == y 时表示纯二次项 c*x²。是构建二次多项式的基本单元。
+ * Defines data structures and operations for quadratic monomials.
+ * A quadratic monomial has the form c*x*y or c*x², where c is the coefficient
+ * and x, y are symbol variables. When y is null, it represents a linear term c*x,
+ * when x == y, it represents a pure quadratic term c*x².
+ * It is the basic building block for quadratic polynomials.
+ */
+package fuookami.ospf.kotlin.math.symbol.monomial
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

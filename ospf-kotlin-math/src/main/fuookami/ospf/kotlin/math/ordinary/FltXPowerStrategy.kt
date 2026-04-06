@@ -1,4 +1,26 @@
-﻿package fuookami.ospf.kotlin.math.ordinary
+﻿/**
+ * FltX 幂策略
+ * FltX Power Strategy
+ *
+ * 为 FltX 高精度浮点数提供幂运算、指数和对数计算的高精度实现。
+ * 使用泰勒级数展开进行数值计算，支持指定精度位数和最大迭代次数。
+ * 自然对数 ln(x)：使用变换 y = (x-1)/(x+1) 收敛到泰勒级数，
+ * 公式：ln(x) = 2 * [y + y^3/3 + y^5/5 + ...]，通过预处理将 x 调整到 [1, 2) 区间优化收敛。
+ * 指数函数 exp(x)：泰勒级数展开 exp(x) = 1 + x + x^2/2! + x^3/3! + ...
+ * 幂函数 pow(base, index)：通过 ln 和 exp 实现，pow(base, index) = exp(index * ln(base))。
+ * 边界情况：ln(x <= 0) 返回 null（对数未定义），负指数幂在整数类型时会抛出异常。
+ * FltXSeriesResult 包含计算结果、迭代次数和收敛状态，便于调试和分析。
+ *
+ * Provides high-precision implementation of power, exponential, and logarithm operations for FltX.
+ * Uses Taylor series expansion for numerical computation with configurable precision and iteration limits.
+ * Natural logarithm ln(x): uses transformation y = (x-1)/(x+1) converging to Taylor series,
+ * formula: ln(x) = 2 * [y + y^3/3 + y^5/5 + ...], pre-processing adjusts x to [1, 2) for optimal convergence.
+ * Exponential function exp(x): Taylor series exp(x) = 1 + x + x^2/2! + x^3/3! + ...
+ * Power function pow(base, index): implemented via ln and exp, pow(base, index) = exp(index * ln(base)).
+ * Boundary cases: ln(x <= 0) returns null (logarithm undefined); negative integer exponent throws exception.
+ * FltXSeriesResult includes computed value, iteration count, and convergence status for debugging and analysis.
+ */
+package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

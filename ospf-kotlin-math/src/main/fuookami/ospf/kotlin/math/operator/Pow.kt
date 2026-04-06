@@ -1,3 +1,27 @@
+/**
+ * 幂运算符
+ * Power Operator
+ *
+ * 定义幂运算相关接口，支持整数幂和浮点幂运算，包括平方、立方、平方根和立方根。
+ * 幂运算是将一个数乘以自身若干次的运算。
+ *
+ * Defines interfaces related to power operations, supporting both integer and floating-point
+ * exponentiation, including square, cube, square root, and cube root.
+ * Power operation is the computation of a number multiplied by itself a given number of times.
+ *
+ * 数学定义 / Mathematical definitions:
+ * - pow(x, n) = xⁿ (幂运算 / power)
+ * - sqr(x) = x² (平方 / square)
+ * - cub(x) = x³ (立方 / cube)
+ * - sqrt(x) = x^(1/2) (平方根 / square root)
+ * - cbrt(x) = x^(1/3) (立方根 / cube root)
+ *
+ * 接口说明 / Interface descriptions:
+ * - Pow: 整数幂运算接口，指数为 Int 类型
+ * - PowF: 浮点幂运算接口，指数为泛型类型
+ * - PowP/PowFP: 带精度参数的幂运算接口
+ * - PowFun/PowFFun: 幂运算函数扩展接口
+ */
 package fuookami.ospf.kotlin.math.operator
 
 interface Pow<out Ret> {

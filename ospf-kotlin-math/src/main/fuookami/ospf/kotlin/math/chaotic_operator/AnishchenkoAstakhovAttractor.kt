@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Anishchenko-Astakhov 吸引子
+ * Anishchenko-Astakhov Attractor
+ *
+ * Anishchenko-Astakhov 吸引子是一个三维混沌系统，由 Anishchenko 和 Astakhov 提出。
+ * 该系统通过切换函数引入非线性，展现出丰富的混沌动力学特性。
+ * 常用于混沌电路模拟和切换系统的动力学研究。
+ *
+ * The Anishchenko-Astakhov attractor is a three-dimensional chaotic system proposed by Anishchenko and Astakhov.
+ * This system introduces nonlinearity through a switching function and exhibits rich chaotic dynamical properties.
+ * Commonly used for chaotic circuit simulation and dynamics research of switching systems.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

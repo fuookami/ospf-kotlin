@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.chaotic_operator
+﻿/**
+ * Coullet 吸引子
+ * Coullet Attractor
+ *
+ * Coullet 吸引子是由 Coullet 提出的三维混沌系统，具有三次非线性项。
+ * 该系统是研究低维混沌系统的重要模型，展现出典型的混沌动力学特性。
+ * 常用于混沌动力学研究、非线性系统分析和教学演示。
+ *
+ * The Coullet attractor is a three-dimensional chaotic system proposed by Coullet, featuring cubic nonlinear terms.
+ * This system serves as an important model for studying low-dimensional chaotic systems, exhibiting typical chaotic dynamical properties.
+ * Commonly used for chaos dynamics research, nonlinear systems analysis, and educational demonstrations.
+ */
+package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

@@ -1,4 +1,26 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+﻿/**
+ * Edge（边定义）
+ * Edge Definition
+ *
+ * 提供几何边（线段）的表示及相关计算。
+ * Provides geometric edge (line segment) representation and related calculations.
+ *
+ * 主要功能：
+ * Main features:
+ * - Edge: 泛型边，连接两个点的线段 / Generic edge, line segment connecting two points
+ * - Edge2/Edge3: 2D/3D 边的类型别名 / 2D/3D edge type aliases
+ * - 长度计算（length, lengthSquared）/ Length calculation (length, lengthSquared)
+ * - 方向向量计算（vector, direction, unitDirection）/ Direction vector calculation
+ * - 参数化方法（midpoint, pointAt）/ Parametric methods (midpoint, pointAt)
+ * - 点包含判断（containsPoint）/ Point containment check
+ * - 2D 边相交判断（intersects）/ 2D edge intersection detection
+ * - 交点计算（intersectionPoint）/ Intersection point calculation
+ * - 最近点计算（closestPoint）/ Closest point calculation
+ *
+ * 应用场景：几何建模、网格生成、碰撞检测、路径规划等。
+ * Applications: geometric modeling, mesh generation, collision detection, path planning, etc.
+ */
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

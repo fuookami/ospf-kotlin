@@ -1,3 +1,31 @@
+/**
+ * 并行折叠
+ * Parallel Fold Operations
+ *
+ * 提供并行计算集合总和的功能，使用 Kotlin 协程实现并发计算。
+ * 将集合按 chunkSize 分块，每个块在独立协程中计算部分和，最后合并结果。
+ * sumOfParallelly：并行计算总和，使用 suspend 提取器从元素中提取值，
+ * 要求元素类型支持 Plus 操作（加法）和 Arithmetic 常量。
+ * trySumOfParallelly：并行计算总和并处理错误，提取器返回 Ret 类型，
+ * 遇到 Failed 或 Fatal 错误时立即中止并返回错误。
+ * exTrySumOfParallelly：并行计算总和并收集所有错误，
+ * 不立即中止，而是继续计算并收集所有错误，最终返回 ExRet 类型。
+ * 边界情况：空集合返回 zero，chunkSize 默认为 100。
+ * 使用 Dispatchers.Default 作为协程调度器，适合 CPU 密集型计算。
+ * 线程安全：每个协程独立计算部分和，最终合并使用单线程串行操作。
+ *
+ * Provides parallel sum computation functionality using Kotlin coroutines for concurrent execution.
+ * Splits collection by chunkSize, each chunk computed in separate coroutine, results merged at end.
+ * sumOfParallelly: parallel sum computation using suspend extractor to extract values from elements,
+ * requires element type supporting Plus operation and Arithmetic constants.
+ * trySumOfParallelly: parallel sum with error handling, extractor returns Ret type,
+ * aborts immediately on Failed or Fatal error and returns error.
+ * exTrySumOfParallelly: parallel sum collecting all errors,
+ * continues computation collecting all errors, finally returns ExRet type.
+ * Boundary cases: empty collection returns zero; default chunkSize is 100.
+ * Uses Dispatchers.Default as coroutine dispatcher, suitable for CPU-intensive computation.
+ * Thread-safe: each coroutine computes partial sum independently, final merge uses single-thread serial operation.
+ */
 package fuookami.ospf.kotlin.math.parallel
 
 import kotlinx.coroutines.Deferred

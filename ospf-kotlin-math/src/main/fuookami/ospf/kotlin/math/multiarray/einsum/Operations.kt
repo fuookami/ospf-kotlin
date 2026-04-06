@@ -560,14 +560,14 @@ fun <T : Ring<T>> contract(
 
             // 计算输入数组的非缩并轴坐标贡献
             // Calculate non-contraction axis contributions for input arrays
-            for (i in aNonContractDims.indices.reversed()) {
+            for (i in aNonContractDims.indices) {
                 val outCoord = remaining / aOutStrides[i]
                 remaining %= aOutStrides[i]
                 val aAxisIdx = aNonContractDims[i]
                 aLinear += outCoord * aStrides[aAxisIdx]
             }
 
-            for (i in bNonContractDims.indices.reversed()) {
+            for (i in bNonContractDims.indices) {
                 val outCoord = remaining / bOutStrides[i]
                 remaining %= bOutStrides[i]
                 val bAxisIdx = bNonContractDims[i]

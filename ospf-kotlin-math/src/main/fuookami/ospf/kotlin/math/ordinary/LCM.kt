@@ -1,3 +1,29 @@
+/**
+ * 最小公倍数
+ * Least Common Multiple (LCM)
+ *
+ * 提供计算整数、浮点数和有理数最小公倍数的功能。
+ * 数学定义：lcm(a, b) 是能同时被 a 和 b 整除的最小正整数。
+ * 计算公式：lcm(a, b) = |a * b| / gcd(a, b)。
+ * 对于 a = 0 或 b = 0，lcm(a, 0) = 0，lcm(0, b) = 0。
+ * 支持两种计算方法：通过 GCD 直接计算，或通过因式分解计算。
+ * 因式分解方法适用于需要精确分解的场景，将各数的质因数取最大指数后合并。
+ * 对于浮点数 FltX，先通过乘以 10 的幂次将小数转换为整数，再计算 LCM。
+ * 对于有理数 RtnX，lcm(a/b, c/d) = lcm(a, c) / gcd(b, d)。
+ * 边界情况：空集合返回 one，任一数为零返回 zero，负数取绝对值后计算。
+ *
+ * Provides functionality for computing the least common multiple of integers,
+ * floating-point numbers, and rational numbers.
+ * Mathematical definition: lcm(a, b) is the smallest positive integer divisible by both a and b.
+ * Computation formula: lcm(a, b) = |a * b| / gcd(a, b).
+ * For a = 0 or b = 0: lcm(a, 0) = 0, lcm(0, b) = 0.
+ * Supports two computation methods: direct calculation via GCD, or via factorization.
+ * The factorization method is suitable for scenarios requiring exact decomposition,
+ * merging prime factors by taking the maximum exponent across all numbers.
+ * For FltX floating-point numbers, converts decimals to integers by multiplying powers of 10.
+ * For RtnX rational numbers: lcm(a/b, c/d) = lcm(a, c) / gcd(b, d).
+ * Boundary cases: empty collection returns one; any zero returns zero; negative values use absolute values.
+ */
 package fuookami.ospf.kotlin.math.ordinary
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX

@@ -1,3 +1,10 @@
+/**
+ * 常量提供者
+ * Constant Providers
+ *
+ * 定义数值常量提供者接口 (HasZero, HasOne, HasTwo, HasThree, HasFive, HasTen, HasHalf, HasBounds, HasFixedPrecision, HasInfinity, HasNaN, HasTranscendentals) 及组合接口 (ArithmeticConst, RealConst, FloatingConst)，并提供伴伴对象反射解析机制。
+ * Defines numeric constant provider interfaces (HasZero, HasOne, HasTwo, HasThree, HasFive, HasTen, HasHalf, HasBounds, HasFixedPrecision, HasInfinity, HasNaN, HasTranscendentals) and composite interfaces (ArithmeticConst, RealConst, FloatingConst), with companion object reflection resolution mechanism.
+ */
 package fuookami.ospf.kotlin.math.algebra.concept
 
 import kotlin.reflect.full.companionObjectInstance

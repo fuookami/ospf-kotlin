@@ -1,3 +1,27 @@
+/**
+ * 对数运算符
+ * Logarithm Operator
+ *
+ * 定义对数运算相关接口，支持任意底数、常用对数、二进制对数和自然对数。
+ * 对数是指数运算的逆运算，用于计算某数需要多少次幂才能得到另一个数。
+ *
+ * Defines logarithm operation interfaces supporting arbitrary bases, common logarithm (base 10),
+ * binary logarithm (base 2), and natural logarithm (base e).
+ * Logarithm is the inverse operation of exponentiation, used to compute the power needed
+ * to obtain one number from another.
+ *
+ * 数学定义 / Mathematical definitions:
+ * - logₐ(x): 以 a 为底的对数 / logarithm with base a
+ * - lg(x) = log₁₀(x): 常用对数 / common logarithm
+ * - lg2(x) = log₂(x): 二进制对数 / binary logarithm
+ * - ln(x) = logₑ(x): 自然对数 / natural logarithm
+ *
+ * 接口说明 / Interface descriptions:
+ * - Log: 基本对数运算接口
+ * - LogFun: 对数运算函数扩展接口
+ * - LogP: 带精度参数的对数运算接口
+ * - LogFunP: 带精度参数的对数运算函数扩展接口
+ */
 package fuookami.ospf.kotlin.math.operator
 
 interface Log<in Base, out Ret> {

@@ -1,4 +1,14 @@
-﻿package fuookami.ospf.kotlin.math.symbol.inequality
+﻿/**
+ * 规范不等式
+ * Canonical Inequality
+ *
+ * 定义规范形式的不等式，左右两边均为规范多项式。
+ * 规范不等式支持任意次数的多项式，是最通用的不等式表示形式。
+ * Defines inequalities in canonical form, where both sides are canonical polynomials.
+ * Canonical inequalities support polynomials of any degree,
+ * representing the most general form of inequalities.
+ */
+package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

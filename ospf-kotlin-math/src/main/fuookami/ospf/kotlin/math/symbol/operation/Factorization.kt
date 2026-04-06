@@ -1,3 +1,13 @@
+/**
+ * 因式分解
+ * Factorization
+ *
+ * 提供一元二次多项式的因式分解功能。
+ * 包括系数提取、求根和因式分解操作，将 ax² + bx + c 分解为 a(x - r₁)(x - r₂)。
+ * Provides factorization functionality for univariate quadratic polynomials.
+ * Includes coefficient extraction, root finding, and factorization operations,
+ * factorizing ax² + bx + c into a(x - r₁)(x - r₂).
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.concept.*

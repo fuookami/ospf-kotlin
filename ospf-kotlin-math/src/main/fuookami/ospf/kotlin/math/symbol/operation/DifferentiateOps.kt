@@ -1,3 +1,13 @@
+/**
+ * 微分运算
+ * Differentiation Operations
+ *
+ * 提供多项式微分的核心实现。
+ * 支持线性、二次和规范多项式的导数和梯度计算，基于 Ring 类型约束。
+ * Provides core implementation for polynomial differentiation.
+ * Supports derivative and gradient computation for linear, quadratic,
+ * and canonical polynomials, based on Ring type constraints.
+ */
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*

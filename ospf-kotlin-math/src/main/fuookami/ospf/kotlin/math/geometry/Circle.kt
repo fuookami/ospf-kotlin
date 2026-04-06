@@ -1,4 +1,23 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+﻿/**
+ * Circle（圆几何）
+ * Circle Geometry
+ *
+ * 提供 N 维空间中圆（2D）或球（3D+）的几何表示及相关计算。
+ * Provides geometric representation and calculations for circles (2D) or spheres (3D+) in N-dimensional space.
+ *
+ * 主要功能：
+ * Main features:
+ * - Circle/Circle2: 2D 圆的几何定义 / 2D circle geometric definition
+ * - Circle3/Sphere3: 3D 球的几何定义 / 3D sphere geometric definition
+ * - 面积、周长、体积、表面积计算 / Area, circumference, volume, surface area calculations
+ * - 点包含判断（containsPoint）/ Point containment check (containsPoint)
+ * - 圆相交判断和交点计算 / Circle intersection detection and intersection point calculation
+ * - 外接圆计算（circumcircleOf）/ Circumcircle calculation (circumcircleOf)
+ *
+ * 应用场景：碰撞检测、空间划分、几何建模、计算机图形学等。
+ * Applications: collision detection, spatial partitioning, geometric modeling, computer graphics, etc.
+ */
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
