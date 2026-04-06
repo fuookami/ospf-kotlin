@@ -61,7 +61,20 @@ class MultiIndexIterator(
     private var count = 0
 
     override fun hasNext(): Boolean {
-        return !exhausted && shape.size > 0
+        if (exhausted || shape.size == 0) {
+            return false
+        }
+
+        // If not started yet, we have at least one element
+        val current = this.current
+        if (current == null) {
+            return true
+        }
+
+        // Check if we can advance from current position
+        val temp = current.copyOf()
+        val canAdvance = advance(temp) != null
+        return canAdvance
     }
 
     override fun next(): IntArray {
@@ -71,17 +84,17 @@ class MultiIndexIterator(
 
         val current = this.current
         if (current == null) {
-            // 初始化为第一个元素
+            // Initialize as first element - return copy
             val v = IntArray(shape.dimension)
             for (i in v.indices) {
                 v[i] = 0
             }
             this.current = v
             count = 1
-            return v
+            return v.copyOf()  // Return independent snapshot
         }
 
-        // 推进到下一个元素
+        // Advance to next element
         val next = advance(current)
         if (next == null) {
             exhausted = true
@@ -90,7 +103,7 @@ class MultiIndexIterator(
 
         count++
         this.current = next
-        return next
+        return next.copyOf()  // Return independent snapshot
     }
 
     /**
