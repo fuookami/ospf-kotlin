@@ -24,6 +24,20 @@ Detailed daily records and phased plans:
 
 - [daily.md](./daily.md)
 
+## GCD/LCM Boundary Behavior
+
+### GCD
+- `gcd(empty)` → 1 (identity element)
+- `gcd([x])` → x
+- `gcd(0, n)` → n
+- `gcd(n, 0)` → n
+- `gcd(0, 0)` → 0
+
+### LCM
+- `lcm(empty)` → 1 (identity element)
+- `lcm(0, n)` → 0
+- `lcm(n, 0)` → 0
+
 ## Benchmark (JMH)
 
 A baseline JMH benchmark is provided:
