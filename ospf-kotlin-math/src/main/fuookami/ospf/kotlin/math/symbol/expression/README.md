@@ -59,9 +59,70 @@ val converted = LegacyExprBridge.toBooleanExpression(legacyExpr)
 
 | Phase | Status | Description |
 |-------|--------|-------------|
-| M0-M3 | Current | New expression system implementation |
-| M4 | Planned | Legacy bridge and compatibility layer |
-| Future | Planned | Gradual deprecation of legacy `Expr` |
+| M0 | Complete | Scaffolding and package structure |
+| M1 | Complete | Core AST (PropertyPath, ScalarExpression, BooleanExpression) |
+| M2 | Complete | DSL and Parser |
+| M3 | Complete | Serde, Normalize, Evaluate |
+| M4 | Complete | Legacy bridge and compatibility layer |
+| M5 | In Progress | Documentation |
+
+## Usage Examples
+
+### Creating Expressions with DSL
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+
+// Boolean expression: (a > 5 and b is not null)
+val expr = path("a").gt(5) and path("b").isNotNull()
+
+// With parser
+val parsed = parseBooleanExpression("a > 5 and b is not null")
+```
+
+### Expression Normalization
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+// And(A, true, And(A)) -> A (after normalize)
+val normalized = normalize(complexExpr)
+```
+
+### Local Evaluation
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+val expr = Comparison(ComparisonOperator.Gt, 
+    ScalarReference(PropertyPath.parse("age")), 
+    ScalarConstant(18))
+
+val result = expr.evaluateWith(mapOf("age" to 25))
+// result: Trivalent.True
+```
+
+### JSON Serialization
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.serde.*
+
+val json = expr.toJsonString()
+val restored = booleanExpressionFromJson(json)
+```
+
+### Legacy Bridge
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.adapter.*
+
+// Convert legacy Expr to new BooleanExpression
+val legacyExpr: Expr = Expr.Comparison(...)
+val newExpr = legacyExpr.toBooleanExpressionOrNull()
+
+// Convert new expression back to legacy
+val backToLegacy = newExpr?.toLegacyExprOrNull()
+```
 
 ## Key Differences from Legacy Expr
 

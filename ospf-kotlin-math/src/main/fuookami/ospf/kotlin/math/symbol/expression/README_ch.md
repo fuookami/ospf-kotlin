@@ -59,9 +59,70 @@ val converted = LegacyExprBridge.toBooleanExpression(legacyExpr)
 
 | 阶段 | 状态 | 描述 |
 |------|------|------|
-| M0-M3 | 当前 | 新表达式系统实现 |
-| M4 | 计划中 | 旧版桥接和兼容层 |
-| 未来 | 计划中 | 逐步弃用旧版 `Expr` |
+| M0 | 已完成 | 脚手架与包结构 |
+| M1 | 已完成 | 核心 AST（PropertyPath, ScalarExpression, BooleanExpression） |
+| M2 | 已完成 | DSL 与解析器 |
+| M3 | 已完成 | 序列化、规范化、求值 |
+| M4 | 已完成 | 旧版桥接和兼容层 |
+| M5 | 进行中 | 文档 |
+
+## 使用示例
+
+### 使用 DSL 创建表达式
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
+
+// 布尔表达式: (a > 5 and b is not null)
+val expr = path("a").gt(5) and path("b").isNotNull()
+
+// 使用解析器
+val parsed = parseBooleanExpression("a > 5 and b is not null")
+```
+
+### 表达式规范化
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+// And(A, true, And(A)) -> A (规范化后)
+val normalized = normalize(complexExpr)
+```
+
+### 本地求值
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.operation.*
+
+val expr = Comparison(ComparisonOperator.Gt, 
+    ScalarReference(PropertyPath.parse("age")), 
+    ScalarConstant(18))
+
+val result = expr.evaluateWith(mapOf("age" to 25))
+// result: Trivalent.True
+```
+
+### JSON 序列化
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.serde.*
+
+val json = expr.toJsonString()
+val restored = booleanExpressionFromJson(json)
+```
+
+### 旧版桥接
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.expression.adapter.*
+
+// 将旧版 Expr 转换为新版 BooleanExpression
+val legacyExpr: Expr = Expr.Comparison(...)
+val newExpr = legacyExpr.toBooleanExpressionOrNull()
+
+// 将新表达式转换回旧版
+val backToLegacy = newExpr?.toLegacyExprOrNull()
+```
 
 ## 与旧版 Expr 的主要差异
 
