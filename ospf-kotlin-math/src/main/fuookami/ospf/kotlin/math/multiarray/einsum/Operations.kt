@@ -517,41 +517,67 @@ fun <T : Ring<T>> contract(
     val outDynShape = DynShape(outShape.toIntArray())
     val result = MutableMultiArray.newWith(outDynShape, zero)
 
-    // 执行缩并
-    // Perform contraction
+    // 优化：预计算 strides 并使用输出驱动迭代
+    // Optimization: Pre-compute strides and use output-driven iteration
     val contractionSize = aShape[axisA]
 
-    // 简化实现：遍历所有元素并累加匹配的乘积
-    // Simplified implementation: iterate all elements and accumulate matching products
-    for (aLinear in 0 until a.size) {
-        val aCoords = linearToCoords(aLinear, aShape.toList())
+    // 预计算所有数组的 strides
+    // Pre-compute strides for all arrays
+    val aStrides = computeStrides(aShape)
+    val bStrides = computeStrides(bShape)
+    val outShapeArray = outShape.toIntArray()
+    val outStrides = computeStrides(outShapeArray)
 
-        for (bLinear in 0 until b.size) {
-            val bCoords = linearToCoords(bLinear, bShape.toList())
+    // 提取非缩并轴的维度信息，用于构建坐标映射
+    // Extract non-contraction axis dimensions for coordinate mapping
+    val aNonContractDims = aShape.indices.filter { it != axisA }.toList()
+    val bNonContractDims = bShape.indices.filter { it != axisB }.toList()
 
-            // 检查缩并轴是否匹配
-            // Check if contraction axes match
-            if (aCoords[axisA] != bCoords[axisB]) continue
+    // 输出驱动迭代：遍历输出位置，然后遍历缩并轴
+    // Output-driven iteration: iterate over output positions, then contraction axis
+    val outSize = result.size
+    val aNonContractSize = a.size / contractionSize
+    val bNonContractSize = b.size / contractionSize
 
-            // 计算输出坐标
-            // Calculate output coordinates
-            val outCoords = mutableListOf<Int>()
-            for ((i, coord) in aCoords.withIndex()) {
-                if (i != axisA) outCoords.add(coord)
+    // 预计算非缩并轴的 stride 映射
+    // Pre-compute stride mappings for non-contraction axes
+    val aOutStrides = IntArray(aNonContractDims.size) { outStrides[it] }
+    val bOutStrides = IntArray(bNonContractDims.size) { outStrides[aNonContractDims.size + it] }
+
+    // 遍历输出位置
+    // Iterate over output positions
+    for (outLinear in 0 until outSize) {
+        var sum = zero
+
+        // 遍历缩并轴
+        // Iterate over contraction axis
+        for (k in 0 until contractionSize) {
+            // 将输出索引分解为坐标
+            // Decompose output index to coordinates
+            var remaining = outLinear
+            var aLinear = k * aStrides[axisA]
+            var bLinear = k * bStrides[axisB]
+
+            // 计算输入数组的非缩并轴坐标贡献
+            // Calculate non-contraction axis contributions for input arrays
+            for (i in aNonContractDims.indices.reversed()) {
+                val outCoord = remaining / aOutStrides[i]
+                remaining %= aOutStrides[i]
+                val aAxisIdx = aNonContractDims[i]
+                aLinear += outCoord * aStrides[aAxisIdx]
             }
-            for ((i, coord) in bCoords.withIndex()) {
-                if (i != axisB) outCoords.add(coord)
+
+            for (i in bNonContractDims.indices.reversed()) {
+                val outCoord = remaining / bOutStrides[i]
+                remaining %= bOutStrides[i]
+                val bAxisIdx = bNonContractDims[i]
+                bLinear += outCoord * bStrides[bAxisIdx]
             }
 
-            // 计算乘积并累加
-            // Calculate product and accumulate
-            val product = a[aLinear] * b[bLinear]
-            val outLinear = coordsToLinear(outCoords, outShape)
-
-            if (outLinear < result.size) {
-                result[outLinear] = result[outLinear] + product
-            }
+            sum = sum + a[aLinear] * b[bLinear]
         }
+
+        result[outLinear] = sum
     }
 
     return result.toImmutable()
@@ -634,4 +660,25 @@ internal fun coordsToLinear(coords: List<Int>, shape: List<Int>): Int {
     }
 
     return linear
+}
+
+/**
+ * 预计算 stride
+ * Pre-compute strides for shape
+ *
+ * strides[i] = shape[i+1] * shape[i+2] * ... * shape[n-1]
+ * 用于快速坐标转线性索引：linear = sum(coords[i] * strides[i])
+ * Used for fast coordinate-to-linear conversion: linear = sum(coords[i] * strides[i])
+ *
+ * @param shape 形状数组
+ * @return stride 数组
+ */
+internal fun computeStrides(shape: IntArray): IntArray {
+    val strides = IntArray(shape.size)
+    var stride = 1
+    for (i in shape.indices.reversed()) {
+        strides[i] = stride
+        stride *= shape[i]
+    }
+    return strides
 }
