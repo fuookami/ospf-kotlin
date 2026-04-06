@@ -375,6 +375,11 @@ mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,K
 4. `PathSymbol` 实现 `IdentifiedSymbol`，`symbolId = "path:${path.value}"`
 
 **下一步：framework 侧实施**
-- Phase 3：EntityMeta、SortBy、KtormBooleanTranslator
-- Phase 4：UpdateAssignment、KtormUpdateAssignmentTranslator
-- Phase 5：集成测试与文档
+- Phase F0：脚手架（添加 math 依赖、创建包结构）
+- Phase F1：EntityMeta、FieldBinding、SortBy
+- Phase F2：KtormBooleanTranslator、KtormOrderByTranslator、PatternMatchPolicy
+- Phase F3：UpdateAssignment、KtormUpdateTranslator
+- Phase F4：RepositoryApi
+- Phase F5：测试与文档
+
+详细计划见：`framework/persistence/expression/daily.md`
