@@ -360,8 +360,8 @@ fun BooleanExpression.structuralKey(): String {
     return when (this) {
         is BooleanConstant -> "Const:${when(value) { Trivalent.True -> "True"; Trivalent.False -> "False"; Trivalent.Unknown -> "Unknown" }}"
         is Comparison<*> -> "Cmp:$operator:${left.structuralKey()}:${right.structuralKey()}"
-        is InExpression<*> -> "In:$negated:${value.structuralKey()}:${candidates.size}"
-        is PatternMatch<*> -> "Match:$mode:$negated:${value.structuralKey()}"
+        is InExpression<*> -> "In:$negated:${value.structuralKey()}:${candidates.joinToString(",") { it.structuralKey() }}"
+        is PatternMatch<*> -> "Match:$mode:$negated:${value.structuralKey()}:${pattern.structuralKey()}"
         is NullCheck -> "Null:$type:$path"
         is AndExpression -> "And:${operands.joinToString(",") { it.structuralKey() }}"
         is OrExpression -> "Or:${operands.joinToString(",") { it.structuralKey() }}"
@@ -380,7 +380,7 @@ fun ScalarExpression<*>.structuralKey(): String {
         is ScalarReference<*> -> "Ref:$path"
         is ScalarUnary<*> -> "Unary:$operator:${operand.structuralKey()}"
         is ScalarBinary<*> -> "Bin:$operator:${left.structuralKey()}:${right.structuralKey()}"
-        is ScalarFunction<*> -> "Func:$name:${arguments.size}"
+        is ScalarFunction<*> -> "Func:$name:${arguments.joinToString(",") { it.structuralKey() }}"
         is ScalarCustom<*> -> "Custom:$description"
     }
 }

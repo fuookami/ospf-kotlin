@@ -52,9 +52,6 @@
  * // Linear index to vector index
  * val vectorIdx = shape.vector(15)
  * ```
- *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see MultiArray
  * @see StorageOrder
  */

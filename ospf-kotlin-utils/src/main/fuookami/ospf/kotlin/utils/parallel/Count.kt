@@ -39,6 +39,17 @@ suspend inline fun <T> Iterable<T>.countParallelly(
     return results.count { it }
 }
 
+/**
+ * 并行计数满足条件的元素（带错误处理）
+ *
+ * Count elements that satisfy the predicate in parallel with error handling.
+ * 并发计数满足条件的元素，支持错误处理。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 计数结果或错误 / Count result or error
+ */
 suspend inline fun <T> Iterable<T>.tryCountParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -52,6 +63,17 @@ suspend inline fun <T> Iterable<T>.tryCountParallelly(
     }
 }
 
+/**
+ * 并行计数满足条件的元素（带错误收集）
+ *
+ * Count elements that satisfy the predicate in parallel with error collection.
+ * 并发计数满足条件的元素，收集所有错误。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 计数结果或错误集合 / Count result or error collection
+ */
 suspend inline fun <T> Iterable<T>.exTryCountParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>

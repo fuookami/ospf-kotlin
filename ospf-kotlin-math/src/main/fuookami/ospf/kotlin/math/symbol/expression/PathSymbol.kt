@@ -45,30 +45,6 @@ data class PathSymbol(
      */
     override val symbolId: String = "path:${path.value}"
 
-    /**
-     * 判断是否等于另一个路径符号
-     * Check equality with another path symbol
-     *
-     * 基于 symbolId 比较，确保身份稳定。
-     * Compares based on symbolId, ensuring stable identity.
-     */
-    override fun equals(other: Any?): Boolean {
-        return when (other) {
-            is PathSymbol -> symbolId == other.symbolId
-            is IdentifiedSymbol -> symbolId == other.symbolId
-            else -> false
-        }
-    }
-
-    /**
-     * 哈希码
-     * Hash code
-     *
-     * 基于 symbolId 计算，确保与 equals 一致。
-     * Computed from symbolId, consistent with equals.
-     */
-    override fun hashCode(): Int = symbolId.hashCode()
-
     override fun toString(): String = "PathSymbol($path)"
 
     companion object {

@@ -214,6 +214,14 @@ class LegacyExprBridgeTest {
         }
 
         @Test
+        @DisplayName("String constant cannot convert to legacy / 字符串常量不能转换到旧 Expr")
+        fun testStringConstantCannotConvert() {
+            val newExpr: ScalarExpression<String> = ScalarConstant("active")
+            val legacy = newExpr.toLegacyExprOrNull()
+            assertNull(legacy)
+        }
+
+        @Test
         @DisplayName("Reference to Identifier / 引用到标识符")
         fun testReferenceToIdentifier() {
             val newExpr: ScalarExpression<Int> = ScalarReference(PropertyPath.parse("user.age"))

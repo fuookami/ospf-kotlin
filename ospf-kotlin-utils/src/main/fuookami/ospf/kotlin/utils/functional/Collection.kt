@@ -1,3 +1,25 @@
+/**
+ * 集合扩展函数
+ *
+ * Extension functions for collection operations including filtering, mapping, sorting, and aggregation.
+ * Provides functional programming utilities for working with collections.
+ * 集合操作的扩展函数，包括过滤、映射、排序和聚合。
+ * 提供用于处理集合的函数式编程工具。
+ *
+ * Key features:
+ * - Shuffle algorithms with custom random generators
+ * - Filter operations with type-safe predicates
+ * - Min/max finding with various comparator types
+ * - Sorting with custom comparators
+ * - Association operations with null-safety
+ *
+ * 主要特性：
+ * - 使用自定义随机生成器的洗牌算法
+ * - 类型安全谓词的过滤操作
+ * - 使用各种比较器类型查找最小/最大值
+ * - 使用自定义比较器排序
+ * - 具有空值安全性的关联操作
+ */
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.utils.functional

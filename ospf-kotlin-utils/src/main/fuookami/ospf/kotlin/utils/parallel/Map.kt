@@ -60,6 +60,18 @@ suspend inline fun <R, T> Iterable<T>.tryMapParallelly(
     return executeTryWithWorkerPool(this, limit) { _, element -> extractor(element) }
 }
 
+/**
+ * 并行映射集合元素（带错误收集）
+ *
+ * Map collection elements in parallel with error collection and concurrency control.
+ * 并发映射集合元素并收集所有错误。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
+ * @return 映射结果或错误集合 / Mapped result or error collection
+ */
 suspend inline fun <R, T> Iterable<T>.exTryMapParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R, T>
@@ -92,6 +104,20 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapToPa
     return destination
 }
 
+/**
+ * 并行映射集合元素到目标集合（带错误处理）
+ *
+ * Map collection elements in parallel to a destination collection with error handling.
+ * 并发映射集合元素到目标集合，支持错误处理。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
+ * @return 目标集合或错误 / Destination collection or error
+ */
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -108,6 +134,20 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapToParal
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（带错误收集）
+ *
+ * Map collection elements in parallel to a destination collection with error collection.
+ * 并发映射集合元素到目标集合，收集所有错误。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret）/ Extractor function (returns Ret)
+ * @return 目标集合或错误集合 / Destination collection or error collection
+ */
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -128,6 +168,18 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapToPar
     }
 }
 
+/**
+ * 并行映射集合元素（过滤空值）
+ *
+ * Map collection elements in parallel, filtering out null results.
+ * 并发映射集合元素，过滤掉空值结果。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（可能返回空值）/ Extractor function (may return null)
+ * @return 过滤空值后的结果列表 / Result list with nulls filtered out
+ */
 suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendExtractor<R?, T>
@@ -138,6 +190,18 @@ suspend inline fun <R : Any, T> Iterable<T>.mapNotNullParallelly(
     return results.filterNotNull()
 }
 
+/**
+ * 并行映射集合元素（过滤空值，带错误处理）
+ *
+ * Map collection elements in parallel, filtering out null results with error handling.
+ * 并发映射集合元素，过滤掉空值结果，支持错误处理。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
+ * @return 过滤空值后的结果列表或错误 / Result list with nulls filtered out or error
+ */
 suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -153,6 +217,18 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapNotNullParallelly(
     }
 }
 
+/**
+ * 并行映射集合元素（过滤空值，带错误收集）
+ *
+ * Map collection elements in parallel, filtering out null results with error collection.
+ * 并发映射集合元素，过滤掉空值结果，收集所有错误。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
+ * @return 过滤空值后的结果列表或错误集合 / Result list with nulls filtered out or error collection
+ */
 suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryExtractor<R?, T>
@@ -172,6 +248,20 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapNotNullParallelly(
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（过滤空值）
+ *
+ * Map collection elements in parallel to a destination collection, filtering out null results.
+ * 并发映射集合元素到目标集合，过滤掉空值结果。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（可能返回空值）/ Extractor function (may return null)
+ * @return 目标集合 / Destination collection
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -183,6 +273,20 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapNotN
     return destination
 }
 
+/**
+ * 并行映射集合元素到目标集合（过滤空值，带错误处理）
+ *
+ * Map collection elements in parallel to a destination collection, filtering out null results with error handling.
+ * 并发映射集合元素到目标集合，过滤掉空值结果，支持错误处理。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
+ * @return 目标集合或错误 / Destination collection or error
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -199,6 +303,20 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapN
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（过滤空值，带错误收集）
+ *
+ * Map collection elements in parallel to a destination collection, filtering out null results with error collection.
+ * 并发映射集合元素到目标集合，过滤掉空值结果，收集所有错误。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 提取器函数（返回 Ret，可能包含空值）/ Extractor function (returns Ret, may contain null)
+ * @return 目标集合或错误集合 / Destination collection or error collection
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMapNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -219,6 +337,18 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMa
     }
 }
 
+/**
+ * 并行映射集合元素（带索引）
+ *
+ * Map collection elements in parallel with index information.
+ * 并发映射集合元素，提供元素索引信息。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数 / Indexed extractor function
+ * @return 映射后的列表 / Mapped list
+ */
 suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<R, T>
@@ -227,6 +357,18 @@ suspend inline fun <R, T> Iterable<T>.mapIndexedParallelly(
     return executeWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
+/**
+ * 并行映射集合元素（带索引，带错误处理）
+ *
+ * Map collection elements in parallel with index information and error handling.
+ * 并发映射集合元素，提供元素索引信息，支持错误处理。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret）/ Indexed extractor function (returns Ret)
+ * @return 映射结果或错误 / Mapped result or error
+ */
 suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
@@ -235,6 +377,18 @@ suspend inline fun <R, T> Iterable<T>.tryMapIndexedParallelly(
     return executeTryWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
+/**
+ * 并行映射集合元素（带索引，带错误收集）
+ *
+ * Map collection elements in parallel with index information and error collection.
+ * 并发映射集合元素，提供元素索引信息，收集所有错误。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret）/ Indexed extractor function (returns Ret)
+ * @return 映射结果或错误集合 / Mapped result or error collection
+ */
 suspend inline fun <R, T> Iterable<T>.exTryMapIndexedParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R, T>
@@ -243,6 +397,20 @@ suspend inline fun <R, T> Iterable<T>.exTryMapIndexedParallelly(
     return executeExTryWithWorkerPool(this, limit) { index, element -> extractor(index, element) }
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引）
+ *
+ * Map collection elements in parallel to a destination collection with index information.
+ * 并发映射集合元素到目标集合，提供元素索引信息。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数 / Indexed extractor function
+ * @return 目标集合 / Destination collection
+ */
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -254,6 +422,20 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedToP
     return destination
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引，带错误处理）
+ *
+ * Map collection elements in parallel to a destination collection with index information and error handling.
+ * 并发映射集合元素到目标集合，提供元素索引信息，支持错误处理。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret）/ Indexed extractor function (returns Ret)
+ * @return 目标集合或错误 / Destination collection or error
+ */
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -270,6 +452,20 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexed
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引，带错误收集）
+ *
+ * Map collection elements in parallel to a destination collection with index information and error collection.
+ * 并发映射集合元素到目标集合，提供元素索引信息，收集所有错误。
+ *
+ * @param R 结果类型 / Result type
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret）/ Indexed extractor function (returns Ret)
+ * @return 目标集合或错误集合 / Destination collection or error collection
+ */
 suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndexedToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -290,6 +486,18 @@ suspend inline fun <R, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndex
     }
 }
 
+/**
+ * 并行映射集合元素（带索引，过滤空值）
+ *
+ * Map collection elements in parallel with index information, filtering out null results.
+ * 并发映射集合元素，提供元素索引信息，过滤掉空值结果。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（可能返回空值）/ Indexed extractor function (may return null)
+ * @return 过滤空值后的结果列表 / Result list with nulls filtered out
+ */
 suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendIndexedExtractor<R?, T>
@@ -300,6 +508,18 @@ suspend inline fun <R : Any, T> Iterable<T>.mapIndexedNotNullParallelly(
     return results.filterNotNull()
 }
 
+/**
+ * 并行映射集合元素（带索引，过滤空值，带错误处理）
+ *
+ * Map collection elements in parallel with index information, filtering out null results with error handling.
+ * 并发映射集合元素，提供元素索引信息，过滤掉空值结果，支持错误处理。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret，可能包含空值）/ Indexed extractor function (returns Ret, may contain null)
+ * @return 过滤空值后的结果列表或错误 / Result list with nulls filtered out or error
+ */
 suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
@@ -315,6 +535,18 @@ suspend inline fun <R : Any, T> Iterable<T>.tryMapIndexedNotNullParallelly(
     }
 }
 
+/**
+ * 并行映射集合元素（带索引，过滤空值，带错误收集）
+ *
+ * Map collection elements in parallel with index information, filtering out null results with error collection.
+ * 并发映射集合元素，提供元素索引信息，过滤掉空值结果，收集所有错误。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret，可能包含空值）/ Indexed extractor function (returns Ret, may contain null)
+ * @return 过滤空值后的结果列表或错误集合 / Result list with nulls filtered out or error collection
+ */
 suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
     concurrentAmount: ULong? = null,
     crossinline extractor: SuspendTryIndexedExtractor<R?, T>
@@ -334,6 +566,20 @@ suspend inline fun <R : Any, T> Iterable<T>.exTryMapIndexedNotNullParallelly(
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引，过滤空值）
+ *
+ * Map collection elements in parallel to a destination collection with index information, filtering out null results.
+ * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（可能返回空值）/ Indexed extractor function (may return null)
+ * @return 目标集合 / Destination collection
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -345,6 +591,20 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.mapInde
     return destination
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引，过滤空值，带错误处理）
+ *
+ * Map collection elements in parallel to a destination collection with index information, filtering out null results with error handling.
+ * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，支持错误处理。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret，可能包含空值）/ Indexed extractor function (returns Ret, may contain null)
+ * @return 目标集合或错误 / Destination collection or error
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,
@@ -361,6 +621,20 @@ suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.tryMapI
     }
 }
 
+/**
+ * 并行映射集合元素到目标集合（带索引，过滤空值，带错误收集）
+ *
+ * Map collection elements in parallel to a destination collection with index information, filtering out null results with error collection.
+ * 并发映射集合元素到目标集合，提供元素索引信息，过滤掉空值结果，收集所有错误。
+ *
+ * @param R 结果类型（非空）/ Result type (non-null)
+ * @param T 元素类型 / Element type
+ * @param C 目标集合类型 / Destination collection type
+ * @param destination 目标集合 / Destination collection
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param extractor 带索引的提取器函数（返回 Ret，可能包含空值）/ Indexed extractor function (returns Ret, may contain null)
+ * @return 目标集合或错误集合 / Destination collection or error collection
+ */
 suspend inline fun <R : Any, T, C : MutableCollection<in R>> Iterable<T>.exTryMapIndexedNotNullToParallelly(
     destination: C,
     concurrentAmount: ULong? = null,

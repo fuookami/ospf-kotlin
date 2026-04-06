@@ -195,6 +195,46 @@ class NormalizeTest {
             assertTrue(deduped is AndExpression)
             assertEquals(2, (deduped as AndExpression).operands.size)
         }
+
+        @Test
+        @DisplayName("Do not deduplicate different In candidates / 不同 In 候选值不应被去重")
+        fun testDeduplicateDifferentInCandidates() {
+            val in1 = InExpression(
+                ScalarReference<String>(PropertyPath.parse("status")),
+                listOf(ScalarConstant("active"), ScalarConstant("pending"))
+            )
+            val in2 = InExpression(
+                ScalarReference<String>(PropertyPath.parse("status")),
+                listOf(ScalarConstant("active"), ScalarConstant("archived"))
+            )
+
+            val expr = AndExpression(listOf(in1, in2))
+            val deduped = deduplicate(expr)
+
+            assertTrue(deduped is AndExpression)
+            assertEquals(2, (deduped as AndExpression).operands.size)
+        }
+
+        @Test
+        @DisplayName("Do not deduplicate different PatternMatch pattern / 不同 PatternMatch 模式串不应被去重")
+        fun testDeduplicateDifferentPatternMatchPattern() {
+            val m1 = PatternMatch(
+                ScalarReference<String>(PropertyPath.parse("name")),
+                ScalarConstant("A%"),
+                PatternMatchMode.Like
+            )
+            val m2 = PatternMatch(
+                ScalarReference<String>(PropertyPath.parse("name")),
+                ScalarConstant("B%"),
+                PatternMatchMode.Like
+            )
+
+            val expr = OrExpression(listOf(m1, m2))
+            val deduped = deduplicate(expr)
+
+            assertTrue(deduped is OrExpression)
+            assertEquals(2, (deduped as OrExpression).operands.size)
+        }
     }
 
     @Nested

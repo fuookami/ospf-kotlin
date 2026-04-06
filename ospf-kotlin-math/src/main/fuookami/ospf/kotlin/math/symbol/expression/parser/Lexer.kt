@@ -29,12 +29,7 @@ class Lexer(private val input: String) {
         val tokens = mutableListOf<Token>()
         var token = nextToken()
         while (token.type != TokenType.EOF) {
-            if (token.type != TokenType.UNKNOWN) {
-                tokens.add(token)
-            } else {
-                // 跳过未知字符，继续分析
-                // Skip unknown characters, continue parsing
-            }
+            tokens.add(token)
             token = nextToken()
         }
         tokens.add(token) // 添加 EOF
@@ -266,6 +261,12 @@ class Lexer(private val input: String) {
             "not" -> Token(TokenType.NOT, value, startPos)
             "in" -> Token(TokenType.IN, value, startPos)
             "is" -> Token(TokenType.IS, value, startPos)
+            "like" -> Token(TokenType.LIKE, value, startPos)
+            "contains" -> Token(TokenType.CONTAINS, value, startPos)
+            "prefix" -> Token(TokenType.PREFIX, value, startPos)
+            "suffix" -> Token(TokenType.SUFFIX, value, startPos)
+            "regex", "matches" -> Token(TokenType.REGEX, value, startPos)
+            "exact" -> Token(TokenType.EXACT, value, startPos)
             "null" -> Token(TokenType.NULL, value, startPos)
             "true" -> Token(TokenType.TRUE, value, startPos)
             "false" -> Token(TokenType.FALSE, value, startPos)

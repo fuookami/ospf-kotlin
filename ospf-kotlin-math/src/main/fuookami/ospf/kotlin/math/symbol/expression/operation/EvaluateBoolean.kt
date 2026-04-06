@@ -32,7 +32,7 @@ interface EvaluationContext {
      * 检查指定路径是否存在
      * Check if specified path exists
      */
-    fun contains(path: PropertyPath): Boolean = get(path) != null
+    fun contains(path: PropertyPath): Boolean
 }
 
 /**
@@ -50,6 +50,8 @@ class MapEvaluationContext private constructor(
     }
 
     override fun get(path: PropertyPath): Any? = values[path]
+
+    override fun contains(path: PropertyPath): Boolean = values.containsKey(path)
 }
 
 /**
@@ -58,6 +60,8 @@ class MapEvaluationContext private constructor(
  */
 object EmptyEvaluationContext : EvaluationContext {
     override fun get(path: PropertyPath): Any? = null
+
+    override fun contains(path: PropertyPath): Boolean = false
 }
 
 /**
@@ -121,7 +125,7 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
     val leftValue = evaluateScalar(expr.left, context) ?: return Trivalent.Unknown
     val rightValue = evaluateScalar(expr.right, context) ?: return Trivalent.Unknown
 
-    val result = compareValues(leftValue, rightValue, expr.operator)
+    val result = compareValues(leftValue, rightValue, expr.operator) ?: return Trivalent.Unknown
     return Trivalent(result)
 }
 
@@ -170,6 +174,9 @@ private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationConte
  * Evaluate null check
  */
 private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Trivalent {
+    if (!context.contains(expr.path)) {
+        return Trivalent.Unknown
+    }
     val value = context[expr.path]
 
     val isNull = value == null
@@ -346,16 +353,16 @@ private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext
  * 比较两个值
  * Compare two values
  */
-private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator): Boolean {
-    if (left == null || right == null) return false
+private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator): Boolean? {
+    if (left == null || right == null) return null
 
     return when (operator) {
         ComparisonOperator.Eq -> valuesEqual(left, right)
         ComparisonOperator.Ne -> !valuesEqual(left, right)
-        ComparisonOperator.Lt -> compareValues(left, right) < 0
-        ComparisonOperator.Le -> compareValues(left, right) <= 0
-        ComparisonOperator.Gt -> compareValues(left, right) > 0
-        ComparisonOperator.Ge -> compareValues(left, right) >= 0
+        ComparisonOperator.Lt -> compareOrder(left, right)?.let { it < 0 }
+        ComparisonOperator.Le -> compareOrder(left, right)?.let { it <= 0 }
+        ComparisonOperator.Gt -> compareOrder(left, right)?.let { it > 0 }
+        ComparisonOperator.Ge -> compareOrder(left, right)?.let { it >= 0 }
     }
 }
 
@@ -364,7 +371,7 @@ private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator)
  * Compare magnitude of two values
  */
 @Suppress("UNCHECKED_CAST")
-private fun compareValues(left: Any, right: Any): Int {
+private fun compareOrder(left: Any, right: Any): Int? {
     return when {
         left is Comparable<*> && right::class == left::class -> {
             (left as Comparable<Any>).compareTo(right)
@@ -373,7 +380,7 @@ private fun compareValues(left: Any, right: Any): Int {
             left.toDouble().compareTo(right.toDouble())
         }
         left is String && right is String -> left.compareTo(right)
-        else -> 0
+        else -> null
     }
 }
 

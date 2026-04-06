@@ -11,6 +11,7 @@ import kotlin.reflect.KClass
 import kotlin.reflect.KProperty1
 import org.ktorm.schema.ColumnDeclaring
 import org.ktorm.schema.Table
+import org.ktorm.entity.Entity
 import fuookami.ospf.kotlin.math.symbol.expression.PropertyPath
 
 /**
@@ -158,7 +159,7 @@ class EntityMetaBuilder<E : Any>(
  * 从 Ktorm Table 自动创建 EntityMeta。
  * Automatically create EntityMeta from Ktorm Table.
  */
-fun <E : Any> Table<E>.toEntityMeta(
+fun <E : Entity<E>> Table<E>.toEntityMeta(
     entityClass: KClass<E>,
     pathMapping: Map<String, String> = emptyMap()
 ): EntityMeta<E> {

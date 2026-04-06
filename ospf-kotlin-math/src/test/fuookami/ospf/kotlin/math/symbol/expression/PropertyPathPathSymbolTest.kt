@@ -151,6 +151,17 @@ class PropertyPathPathSymbolTest {
         }
 
         @Test
+        @DisplayName("PathSymbol equality keeps symmetry / PathSymbol 相等性保持对称")
+        fun testPathSymbolEqualitySymmetry() {
+            val pathSymbol = PathSymbol(PropertyPath.parse("user.address"))
+            val foreignIdentified = object : fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol {
+                override val symbolId: String = pathSymbol.symbolId
+            }
+
+            assertNotEquals(pathSymbol, foreignIdentified)
+        }
+
+        @Test
         @DisplayName("PathSymbol inequality / 路径符号不等性")
         fun testInequality() {
             val path1 = PropertyPath.parse("user.address")

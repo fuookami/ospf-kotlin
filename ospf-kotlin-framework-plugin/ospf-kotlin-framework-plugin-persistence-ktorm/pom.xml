@@ -17,4 +17,47 @@
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
     </properties>
 
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-framework</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+
+        <!-- Ktorm -->
+        <dependency>
+            <groupId>org.ktorm</groupId>
+            <artifactId>ktorm-core</artifactId>
+            <version>${ktorm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+        <dependency>
+            <groupId>org.ktorm</groupId>
+            <artifactId>ktorm-support-sqlite</artifactId>
+            <version>${ktorm.version}</version>
+            <exclusions>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-stdlib</artifactId>
+                </exclusion>
+                <exclusion>
+                    <groupId>org.jetbrains.kotlin</groupId>
+                    <artifactId>kotlin-reflect</artifactId>
+                </exclusion>
+            </exclusions>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+    </build>
 </project>

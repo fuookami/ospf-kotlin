@@ -1,6 +1,6 @@
 # OSPF Kotlin Framework Expression 实施计划
 
-日期：2026-04-06
+日期：2026-04-07
 来源文档：`E:/workspace/ospf-kotlin/ospf-kotlin-framework/sql_expression.md`
 前置条件：ospf-kotlin-math 的 Expression 系统已完成（Phase M0-M5）
 
@@ -18,6 +18,8 @@
 
 ## 2. 包结构
 
+### 2.1 ospf-kotlin-framework (核心接口层)
+
 ```
 framework.persistence.expression/
 ├── README.md                      # 模块说明
@@ -25,12 +27,32 @@ framework.persistence.expression/
 ├── FieldBinding.kt                # 字段绑定
 ├── SortBy.kt                      # 排序模型
 ├── UpdateAssignment.kt            # 更新赋值模型
-├── translator/
-│   ├── KtormBooleanTranslator.kt  # 布尔表达式翻译器
-│   ├── KtormOrderByTranslator.kt  # 排序翻译器
-│   ├── KtormUpdateTranslator.kt   # 更新翻译器
-│   └── PatternMatchPolicy.kt      # 模式匹配方言策略
-└── RepositoryApi.kt               # 仓储查询接口
+└── RepositoryApi.kt               # 仓储查询接口 (ExpressionRepository<E>)
+```
+
+### 2.2 ospf-kotlin-framework-plugin-persistence-ktorm (Ktorm 实现)
+
+```
+framework.persistence.expression/
+├── KtormRepository.kt             # KtormRepository<E> 抽象类
+└── translator/
+    ├── KtormBooleanTranslator.kt  # 布尔表达式翻译器
+    ├── KtormOrderByTranslator.kt  # 排序翻译器
+    ├── KtormUpdateTranslator.kt   # 更新翻译器
+    ├── PatternMatchPolicy.kt      # 模式匹配方言策略
+    └── package.kt
+```
+
+### 2.3 ospf-kotlin-framework-plugin-persistence-mybatis (MyBatis-Plus 实现) - 待开发
+
+```
+framework.persistence.expression/
+├── MybatisRepository.kt           # MybatisRepository<E> 抽象类
+└── translator/
+    ├── MybatisBooleanTranslator.kt  # 布尔表达式翻译器
+    ├── MybatisOrderByTranslator.kt  # 排序翻译器
+    ├── MybatisUpdateTranslator.kt   # 更新翻译器
+    └── package.kt
 ```
 
 ## 3. 分阶段实施计划
@@ -474,8 +496,9 @@ abstract class KtormRepository<E : Any>(
 | F2 | 1.5 天 | ✅ 已完成 |
 | F3 | 1 天 | ✅ 已完成 |
 | F4 | 0.5 天 | ✅ 已完成 |
-| F5 | 0.5 天 | 🔄 进行中 |
-| **总计** | **5 天** | |
+| F5 | 0.5 天 | ✅ 已完成 |
+| F6 (迁移到插件) | 0.5 天 | ✅ 已完成 |
+| **总计** | **5.5 天** | |
 
 ## 7. 完成状态
 
@@ -486,7 +509,8 @@ abstract class KtormRepository<E : Any>(
 | F2 | ✅ 已完成 | 52268758 |
 | F3 | ✅ 已完成 | 0dc2053a |
 | F4 | ✅ 已完成 | 2eb37d95 |
-| F5 | 🔄 进行中 | - |
+| F5 | ✅ 已完成 | bf362f8d |
+| F6 | ✅ 已完成 | (待提交) |
 
 ### 新增文件清单
 
@@ -510,7 +534,12 @@ abstract class KtormRepository<E : Any>(
 - `translator/KtormUpdateTranslator.kt` - 更新翻译器
 
 **F4 Repository:**
-- `expression/RepositoryApi.kt` - 仓储接口与实现
+- `expression/RepositoryApi.kt` - 仓储接口
+
+**F6 迁移到插件模块:**
+- 将 translator/ 从 framework 迁移到 `ospf-kotlin-framework-plugin-persistence-ktorm`
+- 在 framework 中保留 `EntityMeta`, `FieldBinding`, `SortBy`, `UpdateAssignment`, `RepositoryApi` (接口)
+- 在 plugin 中实现 `KtormRepository` 和各翻译器
 
 ### 关键设计决策
 
@@ -518,3 +547,273 @@ abstract class KtormRepository<E : Any>(
 2. **PatternMatchPolicy** 策略模式处理不同数据库的 LIKE/ILIKE 差异
 3. **KtormRepository** 提供抽象基类，子类只需实现 `mapToEntity`
 4. **UpdateAssignments** 支持 `set/setNull/setExpr` 链式调用
+5. **模块分离**: framework 提供接口和模型，plugin 提供具体 ORM 实现
+
+---
+
+## 8. MyBatis-Plus 支持计划 (Phase F7)
+
+### 8.1 目标
+
+在 `ospf-kotlin-framework-plugin-persistence-mybatis` 模块实现基于 MyBatis-Plus 的 Expression 翻译和仓储。
+
+### 8.2 包结构
+
+```
+ospf-kotlin-framework-plugin-persistence-mybatis/
+├── pom.xml
+└── src/main/fuookami/ospf/kotlin/framework/persistence/expression/
+    ├── MybatisRepository.kt           # MyBatis 仓储实现
+    ├── MybatisEntityMeta.kt           # MyBatis 实体元数据扩展
+    └── translator/
+        ├── MybatisBooleanTranslator.kt  # BooleanExpression -> Wrapper
+        ├── MybatisOrderByTranslator.kt  # SortBy -> OrderByItem
+        ├── MybatisUpdateTranslator.kt   # UpdateAssignment -> SetSql
+        └── package.kt
+```
+
+### 8.3 分阶段实施
+
+#### Phase F7.1 (0.5 天): 模块初始化
+
+**实施项：**
+1. 创建 `ospf-kotlin-framework-plugin-persistence-mybatis` 模块
+2. 添加依赖：
+   - `ospf-kotlin-framework`
+   - `mybatis-plus-boot-starter`
+3. 创建基础包结构
+
+**pom.xml:**
+```xml
+<dependencies>
+    <dependency>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
+        <artifactId>ospf-kotlin-framework</artifactId>
+        <version>${project.version}</version>
+    </dependency>
+    <dependency>
+        <groupId>com.baomidou</groupId>
+        <artifactId>mybatis-plus-boot-starter</artifactId>
+        <version>${mybatis-plus.version}</version>
+    </dependency>
+</dependencies>
+```
+
+---
+
+#### Phase F7.2 (1 天): MyBatis 翻译器
+
+**新增文件：**
+1. `translator/MybatisBooleanTranslator.kt`
+2. `translator/MybatisOrderByTranslator.kt`
+3. `translator/MybatisUpdateTranslator.kt`
+
+**实施细节：**
+
+##### MybatisBooleanTranslator.kt
+```kotlin
+/**
+ * MyBatis 布尔表达式翻译器
+ * MyBatis Boolean Expression Translator
+ *
+ * 将 BooleanExpression 翻译为 MyBatis-Plus Wrapper 条件。
+ */
+class MybatisBooleanTranslator<T : Any>(
+    private val meta: EntityMeta<T>
+) {
+    /**
+     * 翻译为 QueryWrapper 条件
+     */
+    fun translate(wrapper: QueryWrapper<T>, expr: BooleanExpression): QueryWrapper<T>
+
+    /**
+     * 翻译为 LambdaQueryWrapper 条件
+     */
+    fun translate(wrapper: LambdaQueryWrapper<T>, expr: BooleanExpression): LambdaQueryWrapper<T>
+}
+
+// 翻译规则示例：
+// Comparison(Eq, ref, const) -> wrapper.eq(column, value)
+// Comparison(Ne, ref, const) -> wrapper.ne(column, value)
+// AndExpression(operands) -> operands.forEach { translate(wrapper, it) }
+// OrExpression(operands) -> wrapper.and { w -> ... }
+// NullCheck(path, IsNull) -> wrapper.isNull(column)
+```
+
+##### MybatisOrderByTranslator.kt
+```kotlin
+/**
+ * MyBatis 排序翻译器
+ */
+class MybatisOrderByTranslator<T : Any>(
+    private val meta: EntityMeta<T>
+) {
+    /**
+     * 应用排序到 Wrapper
+     */
+    fun apply(wrapper: QueryWrapper<T>, sortBy: SortBy): QueryWrapper<T>
+
+    /**
+     * 应用排序到 LambdaQueryWrapper
+     */
+    fun apply(wrapper: LambdaQueryWrapper<T>, sortBy: SortBy): LambdaQueryWrapper<T>
+}
+
+// 翻译规则：
+// SortItem(path, Asc) -> wrapper.orderByAsc(column)
+// SortItem(path, Desc) -> wrapper.orderByDesc(column)
+// nulls order -> 使用 last("NULLS FIRST/LAST") 或忽略
+```
+
+##### MybatisUpdateTranslator.kt
+```kotlin
+/**
+ * MyBatis 更新翻译器
+ */
+class MybatisUpdateTranslator<T : Any>(
+    private val meta: EntityMeta<T>
+) {
+    /**
+     * 应用更新到 UpdateWrapper
+     */
+    fun apply(wrapper: UpdateWrapper<T>, assignments: UpdateAssignments): UpdateWrapper<T>
+}
+
+// 翻译规则：
+// SetValue(path, value) -> wrapper.set(column, value)
+// SetNull(path) -> wrapper.setNull(column)
+// SetFromExpression(path, expr) -> wrapper.setSql("$column = $expr")
+```
+
+---
+
+#### Phase F7.3 (0.5 天): MyBatis 仓储实现
+
+**新增文件：**
+1. `MybatisRepository.kt`
+
+**实施细节：**
+
+```kotlin
+/**
+ * MyBatis 仓储实现
+ * MyBatis Repository Implementation
+ *
+ * 基于 MyBatis-Plus BaseMapper 的仓储实现。
+ */
+abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
+    protected val mapper: M,
+    protected val meta: EntityMeta<E>
+) : ExpressionRepository<E> {
+
+    private val booleanTranslator = MybatisBooleanTranslator(meta)
+    private val orderByTranslator = MybatisOrderByTranslator(meta)
+    private val updateTranslator = MybatisUpdateTranslator(meta)
+
+    override fun find(where: BooleanExpression): List<E> {
+        val wrapper = QueryWrapper<E>()
+        booleanTranslator.translate(wrapper, where)
+        return mapper.selectList(wrapper)
+    }
+
+    override fun find(
+        where: BooleanExpression,
+        sortBy: SortBy?,
+        limit: Int?,
+        offset: Int?
+    ): List<E> {
+        var wrapper = QueryWrapper<E>()
+        booleanTranslator.translate(wrapper, where)
+
+        if (sortBy != null && sortBy.isNotEmpty()) {
+            orderByTranslator.apply(wrapper, sortBy)
+        }
+
+        if (limit != null) {
+            wrapper.last("LIMIT $limit")
+        }
+        if (offset != null) {
+            wrapper.last("OFFSET $offset")
+        }
+
+        return mapper.selectList(wrapper)
+    }
+
+    override fun count(where: BooleanExpression): Long {
+        val wrapper = QueryWrapper<E>()
+        booleanTranslator.translate(wrapper, where)
+        return mapper.selectCount(wrapper)
+    }
+
+    override fun update(where: BooleanExpression, assignments: UpdateAssignments): Int {
+        var wrapper = UpdateWrapper<E>()
+        booleanTranslator.translate(wrapper, where)
+        updateTranslator.apply(wrapper, assignments)
+        return mapper.update(null, wrapper)
+    }
+
+    override fun delete(where: BooleanExpression): Int {
+        val wrapper = QueryWrapper<E>()
+        booleanTranslator.translate(wrapper, where)
+        return mapper.delete(wrapper)
+    }
+}
+```
+
+---
+
+#### Phase F7.4 (0.5 天): 测试与文档
+
+**测试清单：**
+- `MybatisBooleanTranslatorTest.kt`
+- `MybatisOrderByTranslatorTest.kt`
+- `MybatisUpdateTranslatorTest.kt`
+- `MybatisRepositoryIntegrationTest.kt`
+
+---
+
+### 8.4 翻译规则对比
+
+| BooleanExpression | Ktorm | MyBatis-Plus |
+|-------------------|-------|--------------|
+| `Comparison(Eq, ref, const)` | `col eq value` | `wrapper.eq(col, value)` |
+| `Comparison(Ne, ref, const)` | `col neq value` | `wrapper.ne(col, value)` |
+| `Comparison(Lt, ref, const)` | `col lt value` | `wrapper.lt(col, value)` |
+| `InExpression(value, list)` | `col inList list` | `wrapper.in(col, list)` |
+| `NullCheck(path, IsNull)` | `col.isNull()` | `wrapper.isNull(col)` |
+| `AndExpression(operands)` | `a and b` | `wrapper.and { ... }` |
+| `OrExpression(operands)` | `a or b` | `wrapper.or()` |
+
+---
+
+### 8.5 时间估算
+
+| 阶段 | 预估时间 |
+|------|----------|
+| F7.1 模块初始化 | 0.5 天 |
+| F7.2 翻译器实现 | 1 天 |
+| F7.3 仓储实现 | 0.5 天 |
+| F7.4 测试文档 | 0.5 天 |
+| **总计** | **2.5 天** |
+
+---
+
+### 8.6 风险与控制
+
+| 风险 | 控制措施 |
+|------|----------|
+| MyBatis-Plus Wrapper 类型复杂 | 使用泛型 + 扩展函数简化 |
+| 动态表名支持 | 通过 Meta 传递表名 |
+| 批量操作性能 | 提供 batch 方法扩展 |
+| 复杂嵌套条件 | 递归翻译 + 子 Wrapper |
+
+---
+
+## 9. 后续扩展方向
+
+1. **JPA/Hibernate 支持** - 类似 MyBatis 插件结构
+2. **Exposed 支持** - Kotlin 原生 SQL DSL
+3. **JOOQ 支持** - 类型安全 SQL 构建器
+4. **MongoDB 支持** - Document 查询翻译
+5. **缓存层** - 基于 Expression 的查询缓存
+6. **审计日志** - 自动记录 CRUD 操作

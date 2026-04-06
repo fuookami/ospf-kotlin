@@ -46,8 +46,6 @@
  * ))
  * ```
  *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see MultiArray
  * @see DummyIndex
  * @see MapIndex

@@ -8,6 +8,7 @@
 package fuookami.ospf.kotlin.math.symbol.expression.parser
 
 import fuookami.ospf.kotlin.math.symbol.expression.ComparisonOperator
+import fuookami.ospf.kotlin.math.symbol.expression.PatternMatchMode
 
 /**
  * 词法单元类型
@@ -39,6 +40,18 @@ enum class TokenType {
     IN,
     /** 是否 / Is */
     IS,
+    /** LIKE 模式匹配 / LIKE pattern match */
+    LIKE,
+    /** 包含匹配 / Contains match */
+    CONTAINS,
+    /** 前缀匹配 / Prefix match */
+    PREFIX,
+    /** 后缀匹配 / Suffix match */
+    SUFFIX,
+    /** 正则匹配 / Regex match */
+    REGEX,
+    /** 精确匹配 / Exact match */
+    EXACT,
 
     // 比较操作符 / Comparison Operators
     /** 等于 / Equal */
@@ -115,6 +128,14 @@ fun Token.isComparisonOperator(): Boolean = type in listOf(
 )
 
 /**
+ * 判断词法单元是否是模式匹配操作符
+ * Check if token is a pattern match operator
+ */
+fun Token.isPatternOperator(): Boolean = type in listOf(
+    TokenType.LIKE, TokenType.CONTAINS, TokenType.PREFIX, TokenType.SUFFIX, TokenType.REGEX, TokenType.EXACT
+)
+
+/**
  * 将词法单元类型转换为比较操作符
  * Convert token type to comparison operator
  */
@@ -125,5 +146,19 @@ fun TokenType.toComparisonOperator(): ComparisonOperator? = when (this) {
     TokenType.LE -> ComparisonOperator.Le
     TokenType.GT -> ComparisonOperator.Gt
     TokenType.GE -> ComparisonOperator.Ge
+    else -> null
+}
+
+/**
+ * 将词法单元类型转换为模式匹配模式
+ * Convert token type to pattern match mode
+ */
+fun TokenType.toPatternMatchMode(): PatternMatchMode? = when (this) {
+    TokenType.LIKE -> PatternMatchMode.Like
+    TokenType.CONTAINS -> PatternMatchMode.Contains
+    TokenType.PREFIX -> PatternMatchMode.Prefix
+    TokenType.SUFFIX -> PatternMatchMode.Suffix
+    TokenType.REGEX -> PatternMatchMode.Regex
+    TokenType.EXACT -> PatternMatchMode.Exact
     else -> null
 }

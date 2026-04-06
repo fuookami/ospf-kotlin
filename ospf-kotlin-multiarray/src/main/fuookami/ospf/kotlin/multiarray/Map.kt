@@ -11,9 +11,6 @@
  *   Get all values using All index (_a)
  * - 通过键和索引访问嵌套的 MultiArray 值
  *   Access nested MultiArray values by key and index
- *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  */
 package fuookami.ospf.kotlin.multiarray
 

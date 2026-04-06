@@ -64,6 +64,7 @@ internal sealed interface ScalarExpressionData {
     @Serializable
     @SerialName("Custom")
     data class Custom(
+        val payload: String?,
         val description: String?
     ) : ScalarExpressionData {
         override val typeName = "Custom"
@@ -140,7 +141,10 @@ internal sealed interface BooleanExpressionData {
 
     @Serializable
     @SerialName("Custom")
-    data class Custom(val description: String?) : BooleanExpressionData {
+    data class Custom(
+        val payload: String?,
+        val description: String?
+    ) : BooleanExpressionData {
         override val typeName = "Custom"
     }
 }
@@ -186,7 +190,7 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
         name = name,
         arguments = arguments.map { it.toData() }
     )
-    is ScalarCustom<*> -> ScalarExpressionData.Custom(description)
+    is ScalarCustom<*> -> ScalarExpressionData.Custom(value.toString(), description)
 }
 
 /**
@@ -224,7 +228,7 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
         name,
         arguments.map { it.toScalarExpression() }
     ) as ScalarExpression<Any>
-    is ScalarExpressionData.Custom -> ScalarCustom<Any>(Unit, description)
+    is ScalarExpressionData.Custom -> ScalarCustom<Any>(payload ?: Unit, description)
 }
 
 // ========== BooleanExpression 序列化 / BooleanExpression Serialization ==========
@@ -270,7 +274,7 @@ internal fun BooleanExpression.toData(): BooleanExpressionData = when (this) {
     is NotExpression -> BooleanExpressionData.Not(
         operand = operand.toData()
     )
-    is BooleanCustom -> BooleanExpressionData.Custom(description)
+    is BooleanCustom -> BooleanExpressionData.Custom(value.toString(), description)
 }
 
 /**
@@ -314,7 +318,7 @@ internal fun BooleanExpressionData.toBooleanExpression(): BooleanExpression = wh
     is BooleanExpressionData.Not -> NotExpression(
         operand.toBooleanExpression()
     )
-    is BooleanExpressionData.Custom -> BooleanCustom(Unit, description)
+    is BooleanExpressionData.Custom -> BooleanCustom(payload ?: Unit, description)
 }
 
 // ========== 公共 API / Public API ==========

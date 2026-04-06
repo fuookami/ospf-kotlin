@@ -124,7 +124,10 @@ private fun LegacyComparisonOperator.toNewComparisonOperator(): ComparisonOperat
  */
 fun ScalarExpression<*>.toLegacyExprOrNull(): Expr? = when (this) {
     is ScalarConstant<*> -> {
-        val text = value?.toString() ?: return null
+        val text = when (val v = value) {
+            is Byte, is Short, is Int, is Long, is Float, is Double -> v.toString()
+            else -> return null
+        }
         Expr.NumberLiteral(text)
     }
 
@@ -176,8 +179,8 @@ fun BooleanExpression.toLegacyExprOrNull(): Expr? = when (this) {
     is Comparison<*> -> {
         val left = left.toLegacyExprOrNull()
         val right = right.toLegacyExprOrNull()
-        val legacyOp = operator.toLegacyComparisonOperatorOrNull()
-        if (left != null && right != null && legacyOp != null) {
+        val legacyOp = operator.toLegacyComparisonOperator()
+        if (left != null && right != null) {
             Expr.Comparison(left, legacyOp, right)
         } else {
             null
@@ -205,7 +208,7 @@ private fun BinaryOperator.toLegacyBinaryOperatorOrNull(): LegacyBinaryOperator?
  * 将新 ComparisonOperator 转换为旧的 ComparisonOperator
  * Convert new ComparisonOperator to legacy ComparisonOperator
  */
-private fun ComparisonOperator.toLegacyComparisonOperatorOrNull(): LegacyComparisonOperator = when (this) {
+private fun ComparisonOperator.toLegacyComparisonOperator(): LegacyComparisonOperator = when (this) {
     ComparisonOperator.Lt -> LegacyComparisonOperator.Less
     ComparisonOperator.Le -> LegacyComparisonOperator.LessEqual
     ComparisonOperator.Eq -> LegacyComparisonOperator.Equal

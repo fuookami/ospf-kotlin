@@ -55,9 +55,6 @@
  *     MapIndex.Map(0)
  * ))
  * ```
- *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see MultiArrayView
  * @see MappedMultiArrayView
  */

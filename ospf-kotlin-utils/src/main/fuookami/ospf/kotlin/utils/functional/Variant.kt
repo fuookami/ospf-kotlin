@@ -1,15 +1,77 @@
+/**
+ * 变体类型
+ *
+ * Variant types representing a value that can be one of multiple types.
+ * Provides Variant2 through Variant10 for representing 2-10 possible types.
+ * Similar to sealed classes but with type-safe extraction and pattern matching.
+ * 变体类型，表示可以是多种类型之一的值。
+ * 提供 Variant2 到 Variant10，用于表示 2-10 种可能的类型。
+ * 类似于密封类，但提供类型安全的提取和模式匹配。
+ *
+ * Each VariantN contains:
+ * - VN data classes for each variant type
+ * - isN properties for checking the variant type
+ * - vN properties for safe value extraction (returns null if not the expected type)
+ * - ifN functions for pattern matching
+ * - VariantNMatcher classes for fluent pattern matching API
+ *
+ * 每个 VariantN 包含：
+ * - VN 数据类表示每种变体类型
+ * - isN 属性用于检查变体类型
+ * - vN 属性用于安全提取值（如果不是预期类型则返回 null）
+ * - ifN 函数用于模式匹配
+ * - VariantNMatcher 类用于流式模式匹配 API
+ */
 package fuookami.ospf.kotlin.utils.functional
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.concept.Movable
 import kotlin.reflect.KClass
 
+/**
+ * 二元变体类型
+ *
+ * Sealed class representing a value that can be either type T1 or T2.
+ * 密封类，表示可以是类型 T1 或 T2 的值。
+ *
+ * @param T1 第一种可能类型的类型 / The type of the first possible type
+ * @param T2 第二种可能类型的类型 / The type of the second possible type
+ */
 sealed class Variant2<T1, T2>() {
+    /**
+     * V1 子类 - 第一种类型的变体
+     *
+     * Represents a value of type T1.
+     * 表示类型 T1 的值。
+     *
+     * @param value 携带的 T1 类型值 / The carried value of type T1
+     */
     data class V1<T1, T2>(val value: T1) : Variant2<T1, T2>() {}
+
+    /**
+     * V2 子类 - 第二种类型的变体
+     *
+     * Represents a value of type T2.
+     * 表示类型 T2 的值。
+     *
+     * @param value 携带的 T2 类型值 / The carried value of type T2
+     */
     data class V2<T1, T2>(val value: T2) : Variant2<T1, T2>() {}
 
+    /**
+     * 是否为 V1 类型
+     *
+     * Returns true if this is a V1 value.
+     * 如果是 V1 值则返回 true。
+     */
     val is1 get() = this is V1;
 
+    /**
+     * 获取 V1 值（如果存在）
+     *
+     * Returns the T1 value if this is V1, otherwise null.
+     * 如果是 V1 则返回 T1 值，否则返回 null。
+     */
     val v1
         get() = when (this) {
             is V1 -> {
@@ -21,10 +83,32 @@ sealed class Variant2<T1, T2>() {
             }
         }
 
+    /**
+     * 如果是 V1 则创建匹配器
+     *
+     * Creates a matcher with a callback for the V1 case.
+     * 为 V1 情况创建带有回调的匹配器。
+     *
+     * @param Ret 返回值类型 / The return type
+     * @param callBack V1 值的处理函数 / The handler function for V1 value
+     * @return Variant2 匹配器 / A Variant2 matcher
+     */
     fun <Ret> if1(callBack: (T1) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if1(callBack);
 
+    /**
+     * 是否为 V2 类型
+     *
+     * Returns true if this is a V2 value.
+     * 如果是 V2 值则返回 true。
+     */
     val is2 get() = this is V2;
 
+    /**
+     * 获取 V2 值（如果存在）
+     *
+     * Returns the T2 value if this is V2, otherwise null.
+     * 如果是 V2 则返回 T2 值，否则返回 null。
+     */
     val v2
         get() = when (this) {
             is V2 -> {
@@ -36,24 +120,72 @@ sealed class Variant2<T1, T2>() {
             }
         }
 
+    /**
+     * 如果是 V2 则创建匹配器
+     *
+     * Creates a matcher with a callback for the V2 case.
+     * 为 V2 情况创建带有回调的匹配器。
+     *
+     * @param Ret 返回值类型 / The return type
+     * @param callBack V2 值的处理函数 / The handler function for V2 value
+     * @return Variant2 匹配器 / A Variant2 matcher
+     */
     fun <Ret> if2(callBack: (T2) -> Ret) = Variant2Matcher<T1, T2, Ret>(this).if2(callBack);
 
 }
 
+/**
+ * 二元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant2 values with fluent API.
+ * 用于 Variant2 值模式匹配的匹配器类，提供流式 API。
+ *
+ * @param T1 第一种可能类型的类型 / The type of the first possible type
+ * @param T2 第二种可能类型的类型 / The type of the second possible type
+ * @param Ret 返回值类型 / The return type
+ * @param value 要匹配的 Variant2 值 / The Variant2 value to match
+ */
 data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
 
+    /**
+     * 设置 V1 分支的回调
+     *
+     * Sets the callback for the V1 branch.
+     * 设置 V1 分支的回调函数。
+     *
+     * @param callBack T1 值的处理函数 / The handler function for T1 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if1(callBack: (T1) -> Ret): Variant2Matcher<T1, T2, Ret> {
         callBack1 = callBack;
         return this;
     }
 
+    /**
+     * 设置 V2 分支的回调
+     *
+     * Sets the callback for the V2 branch.
+     * 设置 V2 分支的回调函数。
+     *
+     * @param callBack T2 值的处理函数 / The handler function for T2 value
+     * @return 匹配器本身 / The matcher itself
+     */
     fun if2(callBack: (T2) -> Ret): Variant2Matcher<T1, T2, Ret> {
         callBack2 = callBack;
         return this;
     }
 
+    /**
+     * 执行匹配并返回结果
+     *
+     * Executes the matching and returns the result based on which variant is present.
+     * 执行匹配并根据存在的变体返回结果。
+     *
+     * @return 匹配结果 / The matching result
+     * @throws NullPointerException 如果未设置相应的回调 / If the corresponding callback is not set
+     */
     @Throws(NullPointerException::class)
     operator fun invoke() = when (value) {
         is Variant2.V1 -> {
@@ -66,13 +198,43 @@ data class Variant2Matcher<T1, T2, Ret>(private val value: Variant2<T1, T2>) {
     }
 }
 
+/**
+ * 三元变体类型
+ *
+ * Sealed class representing a value that can be one of three types: T1, T2, or T3.
+ * 密封类，表示可以是三种类型 T1、T2 或 T3 之一的值。
+ *
+ * @param T1 第一种可能类型的类型 / The type of the first possible type
+ * @param T2 第二种可能类型的类型 / The type of the second possible type
+ * @param T3 第三种可能类型的类型 / The type of the third possible type
+ */
 sealed class Variant3<T1, T2, T3>() {
+    /**
+     * V1 子类 - 第一种类型的变体
+     *
+     * Represents a value of type T1.
+     * 表示类型 T1 的值。
+     */
     data class V1<T1, T2, T3>(val value: T1) : Variant3<T1, T2, T3>() {}
+    /**
+     * V2 子类 - 第二种类型的变体
+     *
+     * Represents a value of type T2.
+     * 表示类型 T2 的值。
+     */
     data class V2<T1, T2, T3>(val value: T2) : Variant3<T1, T2, T3>() {}
+    /**
+     * V3 子类 - 第三种类型的变体
+     *
+     * Represents a value of type T3.
+     * 表示类型 T3 的值。
+     */
     data class V3<T1, T2, T3>(val value: T3) : Variant3<T1, T2, T3>() {}
 
+    /** 是否为 V1 类型 / Returns true if this is a V1 value */
     val is1 get() = this is V1;
 
+    /** 获取 V1 值（如果存在）/ Returns the T1 value if this is V1, otherwise null */
     val v1
         get() = when (this) {
             is V1 -> {
@@ -84,10 +246,13 @@ sealed class Variant3<T1, T2, T3>() {
             }
         }
 
+    /** 如果是 V1 则创建匹配器 / Creates a matcher for V1 case */
     fun <Ret> if1(callBack: (T1) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if1(callBack);
 
+    /** 是否为 V2 类型 / Returns true if this is a V2 value */
     val is2 get() = this is V2;
 
+    /** 获取 V2 值（如果存在）/ Returns the T2 value if this is V2, otherwise null */
     val v2
         get() = when (this) {
             is V2 -> {
@@ -99,10 +264,13 @@ sealed class Variant3<T1, T2, T3>() {
             }
         }
 
+    /** 如果是 V2 则创建匹配器 / Creates a matcher for V2 case */
     fun <Ret> if2(callBack: (T2) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if2(callBack);
 
+    /** 是否为 V3 类型 / Returns true if this is a V3 value */
     val is3 get() = this is V3;
 
+    /** 获取 V3 值（如果存在）/ Returns the T3 value if this is V3, otherwise null */
     val v3
         get() = when (this) {
             is V3 -> {
@@ -114,10 +282,17 @@ sealed class Variant3<T1, T2, T3>() {
             }
         }
 
+    /** 如果是 V3 则创建匹配器 / Creates a matcher for V3 case */
     fun <Ret> if3(callBack: (T3) -> Ret) = Variant3Matcher<T1, T2, T3, Ret>(this).if3(callBack);
 
 }
 
+/**
+ * 三元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant3 values.
+ * 用于 Variant3 值模式匹配的匹配器类。
+ */
 data class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, T3>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -154,6 +329,12 @@ data class Variant3Matcher<T1, T2, T3, Ret>(private val value: Variant3<T1, T2, 
     }
 }
 
+/**
+ * 四元变体类型
+ *
+ * Sealed class representing a value that can be one of four types.
+ * 密封类，表示可以是四种类型之一的值。
+ */
 sealed class Variant4<T1, T2, T3, T4>() {
     data class V1<T1, T2, T3, T4>(val value: T1) : Variant4<T1, T2, T3, T4>() {}
     data class V2<T1, T2, T3, T4>(val value: T2) : Variant4<T1, T2, T3, T4>() {}
@@ -222,6 +403,12 @@ sealed class Variant4<T1, T2, T3, T4>() {
 
 }
 
+/**
+ * 四元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant4 values.
+ * 用于 Variant4 值模式匹配的匹配器类。
+ */
 data class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, T2, T3, T4>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -268,6 +455,12 @@ data class Variant4Matcher<T1, T2, T3, T4, Ret>(private val value: Variant4<T1, 
     }
 }
 
+/**
+ * 五元变体类型
+ *
+ * Sealed class representing a value that can be one of five types.
+ * 密封类，表示可以是五种类型之一的值。
+ */
 sealed class Variant5<T1, T2, T3, T4, T5>() {
     data class V1<T1, T2, T3, T4, T5>(val value: T1) : Variant5<T1, T2, T3, T4, T5>() {}
     data class V2<T1, T2, T3, T4, T5>(val value: T2) : Variant5<T1, T2, T3, T4, T5>() {}
@@ -352,6 +545,12 @@ sealed class Variant5<T1, T2, T3, T4, T5>() {
 
 }
 
+/**
+ * 五元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant5 values.
+ * 用于 Variant5 值模式匹配的匹配器类。
+ */
 data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<T1, T2, T3, T4, T5>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -408,6 +607,12 @@ data class Variant5Matcher<T1, T2, T3, T4, T5, Ret>(private val value: Variant5<
     }
 }
 
+/**
+ * 六元变体类型
+ *
+ * Sealed class representing a value that can be one of six types.
+ * 密封类，表示可以是六种类型之一的值。
+ */
 sealed class Variant6<T1, T2, T3, T4, T5, T6>() {
     data class V1<T1, T2, T3, T4, T5, T6>(val value: T1) : Variant6<T1, T2, T3, T4, T5, T6>() {}
     data class V2<T1, T2, T3, T4, T5, T6>(val value: T2) : Variant6<T1, T2, T3, T4, T5, T6>() {}
@@ -508,6 +713,12 @@ sealed class Variant6<T1, T2, T3, T4, T5, T6>() {
 
 }
 
+/**
+ * 六元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant6 values.
+ * 用于 Variant6 值模式匹配的匹配器类。
+ */
 data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Variant6<T1, T2, T3, T4, T5, T6>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -574,6 +785,12 @@ data class Variant6Matcher<T1, T2, T3, T4, T5, T6, Ret>(private val value: Varia
     }
 }
 
+/**
+ * 七元变体类型
+ *
+ * Sealed class representing a value that can be one of seven types.
+ * 密封类，表示可以是七种类型之一的值。
+ */
 sealed class Variant7<T1, T2, T3, T4, T5, T6, T7>() {
     data class V1<T1, T2, T3, T4, T5, T6, T7>(val value: T1) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
     data class V2<T1, T2, T3, T4, T5, T6, T7>(val value: T2) : Variant7<T1, T2, T3, T4, T5, T6, T7>() {}
@@ -690,6 +907,12 @@ sealed class Variant7<T1, T2, T3, T4, T5, T6, T7>() {
 
 }
 
+/**
+ * 七元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant7 values.
+ * 用于 Variant7 值模式匹配的匹配器类。
+ */
 data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: Variant7<T1, T2, T3, T4, T5, T6, T7>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -766,6 +989,12 @@ data class Variant7Matcher<T1, T2, T3, T4, T5, T6, T7, Ret>(private val value: V
     }
 }
 
+/**
+ * 八元变体类型
+ *
+ * Sealed class representing a value that can be one of eight types.
+ * 密封类，表示可以是八种类型之一的值。
+ */
 sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T1) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
     data class V2<T1, T2, T3, T4, T5, T6, T7, T8>(val value: T2) : Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {}
@@ -898,6 +1127,12 @@ sealed class Variant8<T1, T2, T3, T4, T5, T6, T7, T8>() {
 
 }
 
+/**
+ * 八元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant8 values.
+ * 用于 Variant8 值模式匹配的匹配器类。
+ */
 data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val value: Variant8<T1, T2, T3, T4, T5, T6, T7, T8>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -984,6 +1219,12 @@ data class Variant8Matcher<T1, T2, T3, T4, T5, T6, T7, T8, Ret>(private val valu
     }
 }
 
+/**
+ * 九元变体类型
+ *
+ * Sealed class representing a value that can be one of nine types.
+ * 密封类，表示可以是九种类型之一的值。
+ */
 sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T1) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
     data class V2<T1, T2, T3, T4, T5, T6, T7, T8, T9>(val value: T2) : Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {}
@@ -1132,6 +1373,12 @@ sealed class Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>() {
 
 }
 
+/**
+ * 九元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant9 values.
+ * 用于 Variant9 值模式匹配的匹配器类。
+ */
 data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val value: Variant9<T1, T2, T3, T4, T5, T6, T7, T8, T9>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;
@@ -1228,6 +1475,12 @@ data class Variant9Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, Ret>(private val 
     }
 }
 
+/**
+ * 十元变体类型
+ *
+ * Sealed class representing a value that can be one of ten types.
+ * 密封类，表示可以是十种类型之一的值。
+ */
 sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {
     data class V1<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>(val value: T1) :
         Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {}
@@ -1421,6 +1674,12 @@ sealed class Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>() {
 
 }
 
+/**
+ * 十元变体匹配器
+ *
+ * Matcher class for pattern matching on Variant10 values.
+ * 用于 Variant10 值模式匹配的匹配器类。
+ */
 data class Variant10Matcher<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10, Ret>(private val value: Variant10<T1, T2, T3, T4, T5, T6, T7, T8, T9, T10>) {
     private lateinit var callBack1: (T1) -> Ret;
     private lateinit var callBack2: (T2) -> Ret;

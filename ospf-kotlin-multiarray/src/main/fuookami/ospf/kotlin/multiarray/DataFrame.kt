@@ -31,8 +31,6 @@
  * - 结构化数据存储
  *   Structured data storage
  *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see MultiArray
  */
 package fuookami.ospf.kotlin.multiarray

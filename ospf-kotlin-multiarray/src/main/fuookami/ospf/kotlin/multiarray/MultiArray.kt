@@ -35,9 +35,6 @@
  * array[0, 1] = 10
  * println(array[0, 1])  // 输出: 10
  * ```
- *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see Shape
  * @see MultiArrayView
  */

@@ -154,8 +154,20 @@ class Parser(private val tokens: List<Token>) {
         // Check if it's not in
         if (currentToken().type == TokenType.NOT) {
             advance()
-            expect(TokenType.IN, "Expected 'in' after 'not'")
-            return parseInExpression(path, negated = true)
+            if (currentToken().type == TokenType.IN) {
+                advance()
+                return parseInExpression(path, negated = true)
+            }
+            if (currentToken().isPatternOperator()) {
+                val mode = currentToken().type.toPatternMatchMode()
+                    ?: throw ParseException("Expected pattern operator after 'not'", currentToken().position)
+                advance()
+                return parsePatternMatch(path, mode, negated = true)
+            }
+            throw ParseException(
+                "Expected 'in' or pattern operator after 'not'",
+                currentToken().position
+            )
         }
 
         // 检查是否是 in
@@ -163,6 +175,15 @@ class Parser(private val tokens: List<Token>) {
         if (currentToken().type == TokenType.IN) {
             advance()
             return parseInExpression(path, negated = false)
+        }
+
+        // 检查是否是 pattern match
+        // Check if it's pattern match
+        if (currentToken().isPatternOperator()) {
+            val mode = currentToken().type.toPatternMatchMode()
+                ?: throw ParseException("Expected pattern operator", currentToken().position)
+            advance()
+            return parsePatternMatch(path, mode, negated = false)
         }
 
         // 检查是否是比较操作
@@ -205,16 +226,20 @@ class Parser(private val tokens: List<Token>) {
      * 解析集合成员判断
      * Parse set membership (in) expression
      */
-    private fun parseInExpression(path: PropertyPath, negated: Boolean): InExpression<String> {
+    private fun parseInExpression(path: PropertyPath, negated: Boolean): InExpression<Any?> {
         expect(TokenType.LPAREN, "Expected '(' after 'in'")
 
-        val candidates = mutableListOf<ScalarExpression<String>>()
+        val candidates = mutableListOf<ScalarExpression<Any?>>()
 
         // 解析候选值列表 / Parse candidate value list
-        do {
+        while (true) {
             val candidate = parseScalarValue()
-            candidates.add(candidate as ScalarExpression<String>)
-        } while (currentToken().type == TokenType.COMMA && advance() != null)
+            candidates.add(candidate)
+            if (currentToken().type != TokenType.COMMA) {
+                break
+            }
+            advance()
+        }
 
         expect(TokenType.RPAREN, "Expected ')' after 'in' list")
 
@@ -222,10 +247,23 @@ class Parser(private val tokens: List<Token>) {
     }
 
     /**
+     * 解析模式匹配表达式
+     * Parse pattern match expression
+     */
+    private fun parsePatternMatch(
+        path: PropertyPath,
+        mode: PatternMatchMode,
+        negated: Boolean
+    ): PatternMatch<Any?> {
+        val pattern = parseScalarValue()
+        return PatternMatch(ScalarReference(path), pattern, mode, negated)
+    }
+
+    /**
      * 解析比较表达式
      * Parse comparison expression
      */
-    private fun parseComparison(leftPath: PropertyPath): Comparison<*> {
+    private fun parseComparison(leftPath: PropertyPath): Comparison<Any?> {
         val operator = currentToken().type.toComparisonOperator()
             ?: throw ParseException("Expected comparison operator", currentToken().position)
 
@@ -240,7 +278,7 @@ class Parser(private val tokens: List<Token>) {
      * 解析标量值（常量或路径引用）
      * Parse scalar value (constant or path reference)
      */
-    private fun parseScalarValue(): ScalarExpression<*> {
+    private fun parseScalarValue(): ScalarExpression<Any?> {
         return when (currentToken().type) {
             TokenType.STRING -> {
                 val value = currentToken().value
@@ -266,7 +304,7 @@ class Parser(private val tokens: List<Token>) {
             }
             TokenType.IDENTIFIER -> {
                 val path = parsePath()
-                ScalarReference<Any>(path)
+                ScalarReference(path)
             }
             else -> throw ParseException(
                 "Expected scalar value, got: ${currentToken().value}",

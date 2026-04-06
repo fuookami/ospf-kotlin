@@ -41,8 +41,6 @@
  * val dense = sparse.toMultiArray(defaultValue = 0)
  * ```
  *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  * @see MultiArray
  * @see Shape
  */

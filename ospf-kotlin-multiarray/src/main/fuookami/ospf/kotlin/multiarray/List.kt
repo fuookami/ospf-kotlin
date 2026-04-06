@@ -38,9 +38,6 @@
  * // Get all columns from row 0
  * val row = matrix[0, _a]  // [1, 2, 3]
  * ```
- *
- * @author OSPF Kotlin Team
- * @since 1.0.0
  */
 package fuookami.ospf.kotlin.multiarray
 

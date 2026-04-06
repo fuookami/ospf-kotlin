@@ -39,6 +39,17 @@ suspend inline fun <T> Iterable<T>.allParallelly(
     return results.all { it }
 }
 
+/**
+ * 并行判断是否所有元素都满足条件（带错误处理）
+ *
+ * Check if all elements satisfy the predicate in parallel with error handling.
+ * 并发判断是否所有元素都满足条件，支持错误处理。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误 / Boolean result or error
+ */
 suspend inline fun <T> Iterable<T>.tryAllParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -52,6 +63,17 @@ suspend inline fun <T> Iterable<T>.tryAllParallelly(
     }
 }
 
+/**
+ * 并行判断是否所有元素都满足条件（带错误收集）
+ *
+ * Check if all elements satisfy the predicate in parallel with error collection.
+ * 并发判断是否所有元素都满足条件，收集所有错误。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误集合 / Boolean result or error collection
+ */
 suspend inline fun <T> Iterable<T>.exTryAllParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -85,6 +107,17 @@ suspend inline fun <T> Iterable<T>.anyParallelly(
     return results.any { it }
 }
 
+/**
+ * 并行判断是否存在元素满足条件（带错误处理）
+ *
+ * Check if any element satisfies the predicate in parallel with error handling.
+ * 并发判断是否存在元素满足条件，支持错误处理。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误 / Boolean result or error
+ */
 suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -98,6 +131,17 @@ suspend inline fun <T> Iterable<T>.tryAnyParallelly(
     }
 }
 
+/**
+ * 并行判断是否存在元素满足条件（带错误收集）
+ *
+ * Check if any element satisfies the predicate in parallel with error collection.
+ * 并发判断是否存在元素满足条件，收集所有错误。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误集合 / Boolean result or error collection
+ */
 suspend inline fun <T> Iterable<T>.exTryAnyParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -129,6 +173,17 @@ suspend inline fun <T> Iterable<T>.noneParallelly(
     return !anyParallelly(concurrentAmount, predicate)
 }
 
+/**
+ * 并行判断是否没有元素满足条件（带错误处理）
+ *
+ * Check if no element satisfies the predicate in parallel with error handling.
+ * 并发判断是否没有元素满足条件，支持错误处理。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误 / Boolean result or error
+ */
 suspend inline fun <T> Iterable<T>.tryNoneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>
@@ -140,6 +195,17 @@ suspend inline fun <T> Iterable<T>.tryNoneParallelly(
     }
 }
 
+/**
+ * 并行判断是否没有元素满足条件（带错误收集）
+ *
+ * Check if no element satisfies the predicate in parallel with error collection.
+ * 并发判断是否没有元素满足条件，收集所有错误。
+ *
+ * @param T 元素类型 / Element type
+ * @param concurrentAmount 并发上限，默认使用 defaultConcurrentAmount / Concurrency limit, defaults to defaultConcurrentAmount
+ * @param predicate 判断条件（返回 Ret）/ Predicate function (returns Ret)
+ * @return 判断结果或错误集合 / Boolean result or error collection
+ */
 suspend inline fun <T> Iterable<T>.exTryNoneParallelly(
     concurrentAmount: ULong? = null,
     crossinline predicate: SuspendTryPredicate<T>

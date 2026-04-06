@@ -70,6 +70,20 @@ class ExpressionSerdeTest {
             assertTrue(restored is ScalarBinary<*>)
             assertEquals(BinaryOperator.Add, (restored as ScalarBinary<*>).operator)
         }
+
+        @Test
+        @DisplayName("Custom scalar round-trip keeps payload text / 自定义标量往返保留 payload 文本")
+        fun testCustomScalarRoundTrip() {
+            val original: ScalarExpression<Any> = ScalarCustom(mapOf("k" to 1), "meta")
+
+            val json = original.toJsonString()
+            val restored = scalarExpressionFromJson(json)
+
+            assertTrue(restored is ScalarCustom<*>)
+            val custom = restored as ScalarCustom<*>
+            assertEquals("{k=1}", custom.value)
+            assertEquals("meta", custom.description)
+        }
     }
 
     @Nested
@@ -195,6 +209,20 @@ class ExpressionSerdeTest {
             assertEquals(2, or.operands.size)
             assertTrue(or.operands[0] is AndExpression)
             assertTrue(or.operands[1] is NotExpression)
+        }
+
+        @Test
+        @DisplayName("Custom boolean round-trip keeps payload text / 自定义布尔往返保留 payload 文本")
+        fun testCustomBooleanRoundTrip() {
+            val original: BooleanExpression = BooleanCustom(listOf("x", "y"), "tag")
+
+            val json = original.toJsonString()
+            val restored = booleanExpressionFromJson(json)
+
+            assertTrue(restored is BooleanCustom)
+            val custom = restored as BooleanCustom
+            assertEquals("[x, y]", custom.value)
+            assertEquals("tag", custom.description)
         }
 
         @Test

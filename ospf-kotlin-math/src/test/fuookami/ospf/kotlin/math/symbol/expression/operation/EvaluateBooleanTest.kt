@@ -60,6 +60,20 @@ class EvaluateBooleanTest {
             val expr = Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("name")), ScalarConstant("Alice"))
             assertEquals(Trivalent.Unknown, evaluateBoolean(expr, EmptyEvaluationContext))
         }
+
+        @Test
+        @DisplayName("Incomparable values return Unknown / 不可比较值返回 Unknown")
+        fun testEvaluateIncomparableValues() {
+            val expr = Comparison(
+                ComparisonOperator.Le,
+                ScalarReference<Any>(PropertyPath.parse("payload")),
+                ScalarConstant(mapOf("k" to "v"))
+            )
+            assertEquals(
+                Trivalent.Unknown,
+                expr.evaluateWith(mapOf("payload" to listOf(1, 2, 3)))
+            )
+        }
     }
 
     @Nested
@@ -139,6 +153,13 @@ class EvaluateBooleanTest {
         fun testEvaluateIsNullWithNonNull() {
             val expr = NullCheck(PropertyPath.parse("name"), NullCheckType.IsNull)
             assertEquals(Trivalent.False, expr.evaluateWith(mapOf("name" to "Alice")))
+        }
+
+        @Test
+        @DisplayName("Evaluate is null with missing path returns Unknown / 缺失路径的 is null 返回 Unknown")
+        fun testEvaluateIsNullWithMissingPath() {
+            val expr = NullCheck(PropertyPath.parse("email"), NullCheckType.IsNull)
+            assertEquals(Trivalent.Unknown, expr.evaluateWith(mapOf("name" to "Alice")))
         }
     }
 

@@ -191,6 +191,28 @@ class BooleanParserTest {
         }
 
         @Test
+        @DisplayName("Parse like expression / 解析 like 表达式")
+        fun testParseLikeExpression() {
+            val expr = parseBooleanExpression("name like 'A%'")
+
+            assertTrue(expr is PatternMatch<*>)
+            val match = expr as PatternMatch<*>
+            assertEquals(PatternMatchMode.Like, match.mode)
+            assertFalse(match.negated)
+        }
+
+        @Test
+        @DisplayName("Parse not like expression / 解析 not like 表达式")
+        fun testParseNotLikeExpression() {
+            val expr = parseBooleanExpression("name not like 'A%'")
+
+            assertTrue(expr is PatternMatch<*>)
+            val match = expr as PatternMatch<*>
+            assertEquals(PatternMatchMode.Like, match.mode)
+            assertTrue(match.negated)
+        }
+
+        @Test
         @DisplayName("Parse path with is not null / 解析带路径的 is not null")
         fun testParsePathIsNotNull() {
             val expr = parseBooleanExpression("user.email is not null")
@@ -263,6 +285,14 @@ class BooleanParserTest {
         fun testParseEmpty() {
             assertThrows(ParseException::class.java) {
                 parseBooleanExpression("")
+            }
+        }
+
+        @Test
+        @DisplayName("Unknown token should throw / 未知字符应抛出异常")
+        fun testUnknownTokenThrows() {
+            assertThrows(ParseException::class.java) {
+                parseBooleanExpression("age @ 18")
             }
         }
     }
