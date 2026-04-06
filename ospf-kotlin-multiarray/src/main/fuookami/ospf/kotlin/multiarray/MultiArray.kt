@@ -213,11 +213,23 @@ open class MultiArray<out T : Any, S : Shape>(
      * @return 具有新存储顺序的数组
      */
     fun toStorageOrder(order: StorageOrder): MultiArray<T, DynShape> {
+        if (shape.storageOrder == order) {
+            // Same order - no reordering needed
+            val dims = (0 until shape.dimension).map { shape[it] }.toIntArray()
+            val newShape = DynShape.withOrder(dims, order)
+            return MultiArray(newShape) { i, _ -> list[i] }
+        }
+
+        // Different order - need to reorder data
         val dims = (0 until shape.dimension).map { shape[it] }.toIntArray()
         val newShape = DynShape.withOrder(dims, order)
 
-        return MultiArray(newShape) { i, _ ->
-            list[i]
+        return MultiArray(newShape) { newLinearIndex, _ ->
+            // Convert new linear index to vector coordinates
+            val vector = newShape.vector(newLinearIndex)
+            // Use same vector to access original array (preserves value)
+            val oldLinearIndex = shape.index(vector)
+            list[oldLinearIndex]
         }
     }
 
