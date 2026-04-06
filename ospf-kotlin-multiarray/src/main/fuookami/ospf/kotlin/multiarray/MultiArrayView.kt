@@ -242,6 +242,26 @@ class MappedMultiArrayView<out T : Any, S : Shape>(
         require(mapVector.size == origin.dimension) {
             "Map vector size (${mapVector.size}) must match origin dimension (${origin.dimension})"
         }
+
+        // Validate map indices
+        val mapIndices = mapVector.filterIsInstance<MapIndex.Map>().map { it.index }
+
+        // Check for duplicates
+        val uniqueIndices = mapIndices.toSet()
+        require(mapIndices.size == uniqueIndices.size) {
+            "Duplicate map indices found: ${mapIndices.groupingBy { it }.eachCount().filter { it.value > 1 }}"
+        }
+
+        // Check bounds
+        require(mapIndices.all { it in origin.shape.indices }) {
+            "Out of bounds map index: ${mapIndices.find { it !in origin.shape.indices }}"
+        }
+
+        // Check contiguous coverage (0 to k-1)
+        val sortedIndices = mapIndices.sorted()
+        require(sortedIndices == (0 until mapIndices.size).toList()) {
+            "Non-contiguous map indices: expected 0..${mapIndices.size - 1}, got $sortedIndices"
+        }
     }
 
     val shape: DynShape
