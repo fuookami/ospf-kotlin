@@ -11,9 +11,9 @@
 | Phase 0 | math 脚手架 | ✅ 已完成 | 48cb8b17 |
 | Phase 1 | math 核心 AST | ✅ 已完成 | 48cb8b17 |
 | Phase 2 | math DSL/parser/serde/normalize/evaluate | ✅ 已完成 | 9530e622, e0bc60dd |
-| Phase 3 | framework 查询适配 (SortBy) | ⏳ 待实施 | - |
-| Phase 4 | framework 更新适配 (UpdateAssignment) | ⏳ 待实施 | - |
-| Phase 5 | 兼容迁移 | ⏳ 待实施 | - |
+| Phase 3 | framework 查询适配 (SortBy) | ✅ 已完成 | 923e8dbd, 52268758 |
+| Phase 4 | framework 更新适配 (UpdateAssignment) | ✅ 已完成 | 0dc2053a |
+| Phase 5 | 兼容迁移 | ✅ 已完成 | 2eb37d95 |
 
 ### math 侧完成内容
 
@@ -383,3 +383,33 @@ mvn -pl ospf-kotlin-framework -Dtest=EntityMetaTest,KtormBooleanTranslatorTest,K
 - Phase F5：测试与文档
 
 详细计划见：`framework/persistence/expression/daily.md`
+
+### 2026-04-06：framework 侧完成
+
+**提交记录：**
+- `8beaffbb` - feat(framework): add expression scaffolding and math dependency (F0)
+- `923e8dbd` - feat(framework): add EntityMeta, FieldBinding, SortBy models (F1)
+- `52268758` - feat(framework): add Ktorm translators and PatternMatchPolicy (F2)
+- `0dc2053a` - feat(framework): add UpdateAssignment model and KtormUpdateTranslator (F3)
+- `2eb37d95` - feat(framework): add RepositoryApi for expression-based queries (F4)
+
+**新增文件：**
+- `expression/EntityMeta.kt` - 实体元数据
+- `expression/FieldBinding.kt` - 字段绑定
+- `expression/SortBy.kt` - 排序模型
+- `expression/UpdateAssignment.kt` - 更新赋值模型
+- `expression/RepositoryApi.kt` - 仓储接口
+- `translator/PatternMatchPolicy.kt` - 模式匹配策略
+- `translator/KtormBooleanTranslator.kt` - 布尔翻译器
+- `translator/KtormOrderByTranslator.kt` - 排序翻译器
+- `translator/KtormUpdateTranslator.kt` - 更新翻译器
+
+**关键设计决策：**
+1. `EntityMeta` 使用 `PropertyPath` 作为字段引用主语义
+2. `PatternMatchPolicy` 策略模式处理 LIKE/ILIKE 方言差异
+3. `KtormRepository` 提供抽象基类，子类只需实现 `mapToEntity`
+4. `UpdateAssignments` 支持 set/setNull/setExpr 链式调用
+
+**项目完成状态：**
+- math 侧：✅ 完成 (711 tests)
+- framework 侧：✅ 完成

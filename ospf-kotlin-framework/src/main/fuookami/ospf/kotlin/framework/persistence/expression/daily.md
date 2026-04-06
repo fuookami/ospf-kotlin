@@ -467,23 +467,54 @@ abstract class KtormRepository<E : Any>(
 
 ## 6. 时间估算
 
-| 阶段 | 预估时间 |
-|------|----------|
-| F0 | 0.5 天 |
-| F1 | 1 天 |
-| F2 | 1.5 天 |
-| F3 | 1 天 |
-| F4 | 0.5 天 |
-| F5 | 0.5 天 |
-| **总计** | **5 天** |
+| 阶段 | 预估时间 | 状态 |
+|------|----------|------|
+| F0 | 0.5 天 | ✅ 已完成 |
+| F1 | 1 天 | ✅ 已完成 |
+| F2 | 1.5 天 | ✅ 已完成 |
+| F3 | 1 天 | ✅ 已完成 |
+| F4 | 0.5 天 | ✅ 已完成 |
+| F5 | 0.5 天 | 🔄 进行中 |
+| **总计** | **5 天** | |
 
----
+## 7. 完成状态
 
-## 7. 执行顺序
+| 阶段 | 状态 | 提交 |
+|------|------|------|
+| F0 | ✅ 已完成 | 8beaffbb |
+| F1 | ✅ 已完成 | 923e8dbd |
+| F2 | ✅ 已完成 | 52268758 |
+| F3 | ✅ 已完成 | 0dc2053a |
+| F4 | ✅ 已完成 | 2eb37d95 |
+| F5 | 🔄 进行中 | - |
 
-1. F0：脚手架（添加依赖、创建包）
-2. F1：EntityMeta + SortBy
-3. F2：KtormBooleanTranslator + KtormOrderByTranslator
-4. F3：UpdateAssignment + KtormUpdateTranslator
-5. F4：RepositoryApi
-6. F5：测试与文档
+### 新增文件清单
+
+**F0 Scaffolding:**
+- `expression/package.kt`
+- `expression/translator/package.kt`
+- `expression/README.md` / `README_ch.md`
+
+**F1 Models:**
+- `expression/FieldBinding.kt` - 字段绑定定义
+- `expression/EntityMeta.kt` - 实体元数据
+- `expression/SortBy.kt` - 排序模型
+
+**F2 Translators:**
+- `translator/PatternMatchPolicy.kt` - 模式匹配方言策略
+- `translator/KtormBooleanTranslator.kt` - 布尔表达式翻译器
+- `translator/KtormOrderByTranslator.kt` - 排序翻译器
+
+**F3 Update:**
+- `expression/UpdateAssignment.kt` - 更新赋值模型
+- `translator/KtormUpdateTranslator.kt` - 更新翻译器
+
+**F4 Repository:**
+- `expression/RepositoryApi.kt` - 仓储接口与实现
+
+### 关键设计决策
+
+1. **EntityMeta** 使用 `PropertyPath` 作为字段引用主语义
+2. **PatternMatchPolicy** 策略模式处理不同数据库的 LIKE/ILIKE 差异
+3. **KtormRepository** 提供抽象基类，子类只需实现 `mapToEntity`
+4. **UpdateAssignments** 支持 `set/setNull/setExpr` 链式调用
