@@ -183,7 +183,7 @@ fun <T> QuadraticMonomial<T>.integrateQuadratic(
     }
 
     // 情况 4: x₂ == x, x₁ ≠ x (a * y * x)
-    if (s2 == symbol && s1 != null && s1 != symbol) {
+    if (s2 == symbol && s1 != symbol) {
         // ∫(a * y * x) dx = a * y * x² / 2
         val halfCoefficient = coefficient / two
         return CanonicalPolynomial(
@@ -200,7 +200,7 @@ fun <T> QuadraticMonomial<T>.integrateQuadratic(
     // 情况 5: x₁ ≠ x, x₂ ≠ x (a * y * z，都被视为常数)
     // ∫(a * y * z) dx = a * y * z * x
     val powers = mutableMapOf<Symbol, Int32>()
-    if (s1 != null) powers[s1] = Int32(1)
+    powers[s1] = Int32(1)
     if (s2 != null) powers[s2] = Int32(1)
     powers[symbol] = Int32(1)
 
