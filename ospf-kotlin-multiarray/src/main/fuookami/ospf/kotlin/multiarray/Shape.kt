@@ -658,6 +658,7 @@ data class DynShape private constructor(
         private fun calculateTotalSize(shape: IntArray): Int {
             var ret = 1
             for (l in shape) {
+                require(l >= 0) { "Dimension cannot be negative: $l" }
                 ret *= l
             }
             return ret
@@ -685,7 +686,10 @@ data class DynShape private constructor(
             return offsets
         }
 
-        operator fun invoke(shape: IntArray): DynShape = DynShape(shape, StorageOrder.Default)
+        operator fun invoke(shape: IntArray): DynShape {
+            // Defensive copy to prevent external mutation
+            return DynShape(shape.copyOf(), StorageOrder.Default)
+        }
 
         @JvmName("constructByULongList")
         operator fun invoke(shape: Iterable<ULong>): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), StorageOrder.Default)
@@ -693,7 +697,10 @@ data class DynShape private constructor(
         @JvmName("constructByCollectionList")
         operator fun invoke(shape: Iterable<Collection<*>>): DynShape = DynShape(shape.map { it.size }.toIntArray(), StorageOrder.Default)
 
-        fun withOrder(shape: IntArray, order: StorageOrder): DynShape = DynShape(shape, order)
+        fun withOrder(shape: IntArray, order: StorageOrder): DynShape {
+            // Defensive copy
+            return DynShape(shape.copyOf(), order)
+        }
 
         @JvmName("withOrderFromULongList")
         fun withOrder(shape: Iterable<ULong>, order: StorageOrder): DynShape = DynShape(shape.map { it.toInt() }.toIntArray(), order)
