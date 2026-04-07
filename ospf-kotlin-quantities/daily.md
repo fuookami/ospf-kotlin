@@ -1,5 +1,29 @@
 # ospf-kotlin-quantities 交接记录（2026-04-07）
 
+## 0. 执行状态（更新）
+
+### Phase A 已完成 ✅
+- [x] Task A1: 修复 Area.kt 中 Are 定义（从 Decimeter² 改为 Meter * 100）
+- [x] Task A2: 修复 Volume.kt 中 CubicYard、UK/USFluidOunce、UK/USGallon 定义
+- [x] Task A3: 修复 Momentum.kt 中 KilogramMeterPerSecond 定义
+- [x] Task A4: 修复 Force.kt 中 PoundForce 定义
+- [x] Task A5: 修复 Length.kt 中 Rod 和 Parsec 定义
+- [x] Task A6: 新增 Steradian 单位定义并更新 SI.baseUnits
+- [x] Task A7: 全量测试通过（26 tests）
+
+提交记录:
+- `3a3ad55b`: fix(quantities): correct PoundForce definition
+- `149b2e42`: fix(quantities): correct Rod and Parsec definitions  
+- `92a2193f`: feat(quantities): add Steradian unit and update SI.baseUnits
+
+### 待完成
+- Phase B（P1）：语义与 API 行为修复
+- Phase C（P2）：性能与并发优化
+- Phase D（P3）：测试与回归门禁
+- Phase E-I：符号运算物理量支持
+
+---
+
 ## 1. 审阅范围
 - Kotlin 模块：`ospf-kotlin-quantities`
 - 对照实现：`E:/workspace/ospf-rust/ospf-rust-quantities`
@@ -100,3 +124,103 @@
 - 建议先完成 Phase A，再跑一轮全量测试与回归。
 - Phase B 的“整数转换策略”和“温标策略”需要先拍板行为规范，再落实现。
 - 每修完一类问题，立即补对应测试，避免再次回归。
+
+## 6. 面向“符号运算 + 物理量支持”的补充审阅意见（新增）
+
+### 6.1 结论（必须补充）
+- 仅完成 Phase A-D 后，`ospf-kotlin-quantities` 仍**不能自动让** `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol` 具备“物理量符号运算”能力。
+- 当前 A-D 主要修的是单位常数、语义、并发、测试；而“符号运算物理量支持”还缺少跨模块的适配层与量纲规则层。
+
+### 6.2 关键差距（与 Rust 对照后确认）
+1. **依赖方向限制**：Kotlin 当前是 `quantities -> math`，`math` 不能反向依赖 `quantities`，否则形成循环依赖。  
+2. **symbol 运行链路偏数值化**：大量求值/编译封装绑定 `Flt64`，且 `ValueProvider` 也是 `Symbol -> Flt64`。  
+3. **缺少量纲语义入口**：symbol 的 AST、Parser、Evaluate 没有单位/量纲校验钩子。  
+4. **缺少与 Rust E92 对齐能力**：Rust 已验证 `Quantity<Linear<...>, Meter>` 这类“符号值 + 物理单位”可编译可运算；Kotlin 侧尚未补齐对应适配层。
+
+### 6.3 建议策略（推荐）
+- 采用 **Adapter First** 路线：先在 `ospf-kotlin-quantities` 提供 `Quantity<Polynomial>` 适配，不强行重构 `math/symbol` 公共模型。
+- 先实现运行时量纲约束，再考虑类型级（编译期）量纲约束。
+
+## 7. 面向符号运算物理量的详细改进计划（交接执行顺序，新增）
+
+### Phase E（P0）：先打通 `Quantity<SymbolPolynomial>` 最小闭环
+- 目标：让 `Quantity<LinearPolynomial<Flt64>>`、`Quantity<QuadraticPolynomial<Flt64>>`、`Quantity<CanonicalPolynomial<Flt64>>` 可创建、运算、转换、求值。
+- 任务：
+1. 在 `ospf-kotlin-quantities` 新增适配文件（建议 `quantity/SymbolQuantity.kt` 与 `quantity/SymbolQuantityOps.kt`）。
+2. 新增类型别名：  
+   `QuantityLinearFlt64`、`QuantityQuadraticFlt64`、`QuantityCanonicalFlt64`。
+3. 实现单位转换：单位换算因子作用于多项式**所有系数与常数项**，保持符号结构不变。
+4. 实现数量运算：  
+   - 同量纲 `+/-`（必要时先转单位）；  
+   - `* /` 生成新单位（复用现有 `PhysicalUnit` 乘除逻辑）；  
+   - 标量乘除沿用 `symbol` 既有算子。
+5. 提供求值桥接：接入 `symbol.operation.evaluate/compileEval`，输出仍为 `Quantity<Flt64>`。
+- 验收：
+1. 可构建并运行示例：`(2x+1) m + (300 cm)`。  
+2. `to(unit)` 后多项式系数按比例变化且表达式结构不变。  
+3. 与 Rust E92a 的“符号值作为 Quantity.value”能力对齐（先覆盖 Flt64）。
+
+### Phase F（P1）：补量纲语义层（变量级）
+- 目标：约束“同类项可加、异量纲不可加”，让符号表达式具备量纲安全检查。
+- 任务：
+1. 在 `ospf-kotlin-quantities` 增加 `DimensionedSymbol`（实现 `Symbol`，携带 `DerivedQuantity` 与可选 `preferredUnit`）。
+2. 增加 `SymbolDimensionRegistry`（符号到量纲映射），用于表达式构造前/后校验。
+3. 增加校验 API：  
+   - `validateAddSubDimension(expr)`；  
+   - `inferDimension(expr)`（对 `* /` 推导结果量纲）。
+4. 明确错误策略：抛异常或返回 `Ret`（建议与现有 `Quantity` 行为保持一致）。
+- 验收：
+1. `x(m) + y(s)` 明确失败；  
+2. `x(m) * y(s)` 推导为 `L·T`；  
+3. 校验可在 DSL 构造阶段触发，而非仅运行期。
+
+### Phase G（P1/P2）：扩展 symbol 求值接口的泛型能力（减少 Flt64 绑定）
+- 目标：减少“物理量符号运算只能 Flt64”的限制，为 `FltX`/其他 Ring 值类型铺路。
+- 任务：
+1. 新增泛型值提供器（例如 `ValueProvider<T>`），保留旧接口兼容层。  
+2. 为 `evaluate/compile` 增加泛型入口（保持原有 `Flt64` 快捷 API 不破坏）。  
+3. 对 `expression/operation/EvaluateBoolean.kt` 增加可扩展的数值比较策略（避免仅 `Int/Long/Double`）。
+- 验收：
+1. 原有测试全绿；  
+2. 新增 `FltX` 场景可跑通基本求值；  
+3. 没有破坏旧调用方二进制兼容（至少源码兼容）。
+
+### Phase H（P2，可选增强）：类型级量纲约束（Rust CTUnit 思路）
+- 目标：在 Kotlin 可表达范围内提供“更强静态约束”。
+- 任务（可选）：
+1. 引入 `DimensionTag`/`TypedQuantity<V, D>` 形式的轻量类型标记。  
+2. 对常见基础量纲建立 marker 类型与运算映射（乘除得到组合 tag）。  
+3. 与运行时 `PhysicalUnit` 并存，不替换现有 API。
+- 验收：
+1. 常见误用在编译阶段即可暴露；  
+2. 不影响原始 `Quantity<V>` 用法；  
+3. 文档明确“运行时模式 vs 类型标记模式”。
+
+### Phase I（P3）：测试与回归门禁（symbol × quantities 专项）
+- 目标：确保“修完即稳”，后续可持续演进。
+- 任务：
+1. 新增专项测试并加入 CI 必跑。  
+2. 覆盖运行时量纲、单位转换、符号求值、并发缓存、错误契约。
+- 建议新增测试名：
+1. `quantitySymbol_linearFlt64_shouldCompileAndEvaluate`
+2. `quantitySymbol_unitConversion_shouldScaleAllCoefficients`
+3. `quantitySymbol_addition_shouldConvertToCommonUnitBeforeSum`
+4. `quantitySymbol_addition_dimensionMismatch_shouldFail`
+5. `quantitySymbol_mulDiv_shouldDeriveResultUnit`
+6. `quantitySymbol_compileEval_shouldMatchDirectEvaluate`
+7. `quantitySymbol_partialEvaluate_shouldPreserveUnit`
+8. `quantitySymbol_toStandardUnit_shouldKeepExpressionShape`
+9. `quantitySymbol_dimensionRegistry_shouldRejectInvalidAddSub`
+10. `quantitySymbol_concurrentRegistryAndCache_shouldBeSafe`
+
+## 8. 下个环境执行清单（可直接照做，新增）
+- [ ] 先完成原计划 Phase A-D 并回归全测。  
+- [ ] 启动 Phase E（不改 `math` 公共 API，仅在 `quantities` 增适配）。  
+- [ ] Phase E 通过后再做 Phase F（变量级量纲语义）。  
+- [ ] 评估是否进入 Phase G（泛型化）与 Phase H（类型级约束）。  
+- [ ] 完成 Phase I 并将新增专项测试纳入 CI。
+
+## 9. 交接补充说明（新增）
+- 本补充计划的核心目标是：在不破坏现有模块依赖结构的前提下，最终实现“符号值可作为物理量值类型”的能力。  
+- 与 Rust 对齐策略：先对齐运行时能力（E/F），再评估编译期类型约束（H）。  
+- 执行建议：每个 Phase 独立提交，避免一次性大改导致回归定位困难。
