@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.quantities.dimension.*
+import java.util.concurrent.ConcurrentHashMap
 
 /**
  * 单位制接口
@@ -192,8 +193,8 @@ interface UnitSystem {
 data class ConcreteUnitSystem(
     override val name: String,
     override val baseUnits: Map<FundamentalQuantityDimension, PhysicalUnit>,
-    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf(),
-    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf()
+    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap(),
+    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap()
 ) : UnitSystem
 
 /**
@@ -273,8 +274,8 @@ class UnitSystemBuilder {
         val system = ConcreteUnitSystem(
             name = name,
             baseUnits = baseUnits.toMap(),
-            standardUnits = standardUnits.toMutableMap(),
-            derivedCache = derivedUnits.toMutableMap()
+            standardUnits = ConcurrentHashMap(standardUnits),
+            derivedCache = ConcurrentHashMap(derivedUnits)
         )
         return system
     }
@@ -319,30 +320,32 @@ object SI : UnitSystem {
     }
 
     override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> by lazy {
-        mutableMapOf(
-            // 基础量纲标准单位 / Base dimension standard units
-            DerivedQuantity(L, "length", "L") to Meter,
-            DerivedQuantity(M, "mass", "m") to Kilogram,
-            DerivedQuantity(T, "time", "t") to Second,
-            DerivedQuantity(I, "current", "I") to Ampere,
-            DerivedQuantity(N, "amount of substance", "N") to Mole,
-            DerivedQuantity(rad, "plane angle", "rad") to Radian,
+        ConcurrentHashMap(
+            mapOf(
+                // 基础量纲标准单位 / Base dimension standard units
+                DerivedQuantity(L, "length", "L") to Meter,
+                DerivedQuantity(M, "mass", "m") to Kilogram,
+                DerivedQuantity(T, "time", "t") to Second,
+                DerivedQuantity(I, "current", "I") to Ampere,
+                DerivedQuantity(N, "amount of substance", "N") to Mole,
+                DerivedQuantity(rad, "plane angle", "rad") to Radian,
 
-            // 导出量纲标准单位 / Derived dimension standard units
-            Area to SquareMeter,
-            Volume to CubicMeter,
-            Frequency to Hertz,
-            Force to Newton,
-            Pressure to Pascal,
-            Energy to Joule,
-            Voltage to Volt,
-            ElectricCharge to Coulomb,
-            Capacitance to Farad,
-            Resistance to Ohm
+                // 导出量纲标准单位 / Derived dimension standard units
+                Area to SquareMeter,
+                Volume to CubicMeter,
+                Frequency to Hertz,
+                Force to Newton,
+                Pressure to Pascal,
+                Energy to Joule,
+                Voltage to Volt,
+                ElectricCharge to Coulomb,
+                Capacitance to Farad,
+                Resistance to Ohm
+            )
         )
     }
 
-    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf()
+    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap()
 
     override fun toString(): String = name
 }
@@ -369,9 +372,9 @@ object MKS : UnitSystem {
         )
     }
 
-    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf<DerivedQuantity, PhysicalUnit>()
+    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap<DerivedQuantity, PhysicalUnit>()
 
-    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf<DerivedQuantity, PhysicalUnit>()
+    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap<DerivedQuantity, PhysicalUnit>()
 
     override fun toString(): String = name
 }
@@ -398,9 +401,9 @@ object CGS : UnitSystem {
         )
     }
 
-    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf<DerivedQuantity, PhysicalUnit>()
+    override val standardUnits: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap<DerivedQuantity, PhysicalUnit>()
 
-    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = mutableMapOf<DerivedQuantity, PhysicalUnit>()
+    override val derivedCache: MutableMap<DerivedQuantity, PhysicalUnit> = ConcurrentHashMap<DerivedQuantity, PhysicalUnit>()
 
     override fun toString(): String = name
 }
