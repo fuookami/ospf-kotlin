@@ -55,4 +55,12 @@ class P0UnitConstantsTest {
         assertNotNull(inLiter)
         assertEquals(3.78541178, inLiter.value.toDouble(), 1e-6)
     }
+
+    @Test
+    fun `unitMomentum_kilogramMeterPerSecondShouldEqualNewtonSecond`() {
+        // 1 kg·m/s = 1 N·s (因为 1 N = 1 kg·m/s²)
+        val oneKgMeterPerSec = Flt64.one * KilogramMeterPerSecond
+        val oneNewtonSecond = Flt64.one * (Newton * Second)
+        assert(oneKgMeterPerSec eq oneNewtonSecond)
+    }
 }
