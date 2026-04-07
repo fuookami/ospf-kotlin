@@ -23,4 +23,36 @@ class P0UnitConstantsTest {
         assertNotNull(inCubicFoot)
         assertEquals(27.0, inCubicFoot.value.toDouble(), 1e-10)
     }
+
+    @Test
+    fun `unitVolume_ukFluidOunceShouldEqual28_4130625Milliliter`() {
+        val oneUKFluidOunce = Flt64.one * UKFluidOunce
+        val inMilliliter = oneUKFluidOunce.to(Milliliter)
+        assertNotNull(inMilliliter)
+        assertEquals(28.4130625, inMilliliter.value.toDouble(), 1e-6)
+    }
+
+    @Test
+    fun `unitVolume_usFluidOunceShouldEqual29_5735295625Milliliter`() {
+        val oneUSFluidOunce = Flt64.one * USFluidOunce
+        val inMilliliter = oneUSFluidOunce.to(Milliliter)
+        assertNotNull(inMilliliter)
+        assertEquals(29.5735295625, inMilliliter.value.toDouble(), 1e-6)
+    }
+
+    @Test
+    fun `unitVolume_ukGallonShouldEqual4_54609Liter`() {
+        val oneUKGallon = Flt64.one * UKGallon
+        val inLiter = oneUKGallon.to(Liter)
+        assertNotNull(inLiter)
+        assertEquals(4.54609, inLiter.value.toDouble(), 1e-6)
+    }
+
+    @Test
+    fun `unitVolume_usGallonShouldEqual3_78541178Liter`() {
+        val oneUSGallon = Flt64.one * USGallon
+        val inLiter = oneUSGallon.to(Liter)
+        assertNotNull(inLiter)
+        assertEquals(3.78541178, inLiter.value.toDouble(), 1e-6)
+    }
 }

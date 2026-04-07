@@ -94,28 +94,28 @@ object CubicYard : DerivedPhysicalUnit(Yard * Yard * Yard) {
     override val quantity = Volume
 }
 
-object UKFluidOunce : DerivedPhysicalUnit(Millimeter * 28.4130625) {
+object UKFluidOunce : DerivedPhysicalUnit(Milliliter * 28.4130625) {
     override val name = "uk fluid ounce"
     override val symbol = "uk.fl.oz"
 
     override val quantity = Volume
 }
 
-object USFluidOunce : DerivedPhysicalUnit(Millimeter * 29.5735295625) {
+object USFluidOunce : DerivedPhysicalUnit(Milliliter * 29.5735295625) {
     override val name = "us fluid ounce"
     override val symbol = "us.fl.oz"
 
     override val quantity = Volume
 }
 
-object UKGallon : DerivedPhysicalUnit(UKFluidOunce * 160) {
+object UKGallon : DerivedPhysicalUnit(Liter * 4.54609) {
     override val name = "uk gallon"
     override val symbol = "uk.gal"
 
     override val quantity = Volume
 }
 
-object USGallon : DerivedPhysicalUnit(USFluidOunce * 128) {
+object USGallon : DerivedPhysicalUnit(Liter * 3.78541178) {
     override val name = "us gallon"
     override val symbol = "us.gal"
 
