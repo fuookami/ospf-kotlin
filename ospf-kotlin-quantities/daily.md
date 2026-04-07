@@ -63,6 +63,22 @@
 - `SymbolQuantityOps.kt`: 运算符实现
 - `SymbolQuantityTest.kt`: 测试
 
+### Phase F 已完成 ✅
+- [x] Task F1: 定义携带量纲的符号 (DimensionedSymbol)
+- [x] Task F2: 实现符号量纲注册表 (SymbolDimensionRegistry)
+
+提交记录:
+- `20ca8a1b`: feat(quantities): add dimension semantic layer
+
+新增文件:
+- `DimensionedSymbol.kt`: 携带量纲信息的符号
+- `SymbolDimensionRegistry.kt`: 符号量纲注册表
+- `SymbolDimensionTest.kt`: 测试
+
+### 测试统计
+- 总测试数: 62
+- 覆盖: P0 单位常数、P1 符号/逻辑、P2 并发、D 整数转换/SI 基本单位、E 符号多项式物理量、F 量纲语义层
+
 ### 待完成
 - [ ] Phase B4: Temperature 温标转换策略（需要策略决策）
 - Phase C（P2）：性能与并发优化
