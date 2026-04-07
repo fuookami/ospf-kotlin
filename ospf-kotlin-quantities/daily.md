@@ -75,11 +75,30 @@
 - `SymbolDimensionRegistry.kt`: 符号量纲注册表
 - `SymbolDimensionTest.kt`: 测试
 
-### 测试统计
-- 总测试数: 62
-- 覆盖: P0 单位常数、P1 符号/逻辑、P2 并发、D 整数转换/SI 基本单位、E 符号多项式物理量、F 量纲语义层
+### Phase I 已完成 ✅
+- [x] Task I1: 补齐符号多项式物理量专项测试
+- [x] Task I2: 运行最终全量测试
 
-### 待完成
+提交记录:
+- `d73f4340`: test(quantities): add comprehensive integration tests
+
+新增文件:
+- `SymbolQuantityIntegrationTest.kt`: 8个集成测试
+
+### 最终测试统计
+- **总测试数: 70**
+- **全部通过 ✅**
+
+测试覆盖:
+- P0: 单位常数正确性 (12)
+- P1: 符号修复、逻辑修复 (6)
+- P2: 并发安全 (2)
+- D: 整数转换、SI基本单位 (17)
+- E: 符号多项式物理量 (5 + 8集成)
+- F: 量纲语义层 (6)
+- 其他: DimensionTest(1), QuantityTest(10), UnitTest(3)
+
+### 全部完成 ✅
 - [ ] Phase B4: Temperature 温标转换策略（需要策略决策）
 - Phase C（P2）：性能与并发优化
 - Phase D（P3）：测试与回归门禁
