@@ -1,3 +1,15 @@
+/**
+ * Length units - 长度单位
+ *
+ * Unit constant sources:
+ * - Meter: SI base unit
+ * - Inch: 1 in = 2.54 cm (exact, NIST Handbook 44)
+ * - Rod: 1 rd = 5.0292 m (US survey foot definition)
+ * - NauticalMile: 1 nmi = 1.852 km (exact, ISO 80000-3)
+ * - AstronomicalUnit: 1 AU = 149597870700 m (exact, IAU 2012)
+ * - Parsec: 1 pc = 648000/π AU ≈ 206265 AU (IAU 2015 Resolution B2)
+ * - LightYear: 1 ly = c × 365.25 × 86400 s (Julian year)
+ */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale

@@ -1,3 +1,11 @@
+/**
+ * Force units - 力单位
+ *
+ * Unit constant sources:
+ * - Newton: SI base unit (1 N = 1 kg·m/s²)
+ * - KilogramForce: Standard gravity g = 9.80665 m/s² (ISO 80000-4)
+ * - PoundForce: 1 lbf = 4.4482216152605 N (NIST Special Publication 814)
+ */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale

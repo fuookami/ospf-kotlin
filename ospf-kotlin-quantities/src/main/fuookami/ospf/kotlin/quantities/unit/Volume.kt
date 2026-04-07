@@ -1,3 +1,14 @@
+/**
+ * Volume units - 体积单位
+ *
+ * Unit constant sources:
+ * - Liter: 1 L = 1 dm³ (exact, 1964 CGPM)
+ * - UKFluidOunce: 1 UK fl oz = 28.4130625 mL (exact, Weights and Measures Act 1985)
+ * - USFluidOunce: 1 US fl oz = 29.5735295625 mL (exact, 1 US gallon = 128 US fl oz)
+ * - UKGallon: 1 UK gal = 4.54609 L (exact, Weights and Measures Act 1985)
+ * - USGallon: 1 US gal = 3.78541178 L (exact, NIST Handbook 44)
+ * - CubicYard: 1 yd³ = 27 ft³ (geometric)
+ */
 package fuookami.ospf.kotlin.quantities.unit
 
 import fuookami.ospf.kotlin.math.Scale
