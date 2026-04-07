@@ -9,6 +9,10 @@ import fuookami.ospf.kotlin.quantities.unit.PoundForce
 import fuookami.ospf.kotlin.quantities.unit.Rod
 import fuookami.ospf.kotlin.quantities.unit.Parsec
 import fuookami.ospf.kotlin.quantities.unit.AstronomicalUnit
+import fuookami.ospf.kotlin.quantities.unit.Steradian
+import fuookami.ospf.kotlin.quantities.unit.SI
+import fuookami.ospf.kotlin.quantities.dimension.StandardFundamentalQuantityDimension
+import fuookami.ospf.kotlin.quantities.dimension.SolidAngle
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -92,5 +96,21 @@ class P0UnitConstantsTest {
         val inAU = oneParsec.to(AstronomicalUnit)
         assertNotNull(inAU)
         assertEquals(206265.0, inAU.value.toDouble(), 1.0)  // Allow 1 AU tolerance due to approximation
+    }
+
+    @Test
+    fun `unitSystem_siShouldContainSolidAngleBaseUnit`() {
+        val baseUnit = SI.baseUnits[StandardFundamentalQuantityDimension.SolidAngle]
+        assertNotNull(baseUnit)
+        assert(baseUnit === Steradian)
+    }
+
+    @Test
+    fun `unitSystem_luminousFluxShouldBeDerivableInSI`() {
+        val unit = SI.unitForDimension(fuookami.ospf.kotlin.quantities.dimension.LuminousFlux)
+        assertNotNull(unit)
+        // Luminous flux = LuminousIntensity * SolidAngle
+        // Standard unit should be Candela * Steradian
+        assert(unit.quantity == fuookami.ospf.kotlin.quantities.dimension.LuminousFlux)
     }
 }

@@ -313,7 +313,8 @@ object SI : UnitSystem {
             StandardFundamentalQuantityDimension.SubstanceAmount to Mole,
             StandardFundamentalQuantityDimension.LuminousIntensity to Candela,
             StandardFundamentalQuantityDimension.Information to Bit,
-            StandardFundamentalQuantityDimension.PlaneAngle to Radian
+            StandardFundamentalQuantityDimension.PlaneAngle to Radian,
+            StandardFundamentalQuantityDimension.SolidAngle to Steradian
         )
     }
 
