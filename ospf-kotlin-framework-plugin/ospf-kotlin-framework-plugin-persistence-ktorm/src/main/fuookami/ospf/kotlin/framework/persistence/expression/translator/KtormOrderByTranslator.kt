@@ -17,11 +17,11 @@ import org.ktorm.dsl.*
  * 将 SortBy 模型翻译为 Ktorm 排序表达式。
  * Translates SortBy model to Ktorm order expressions.
  *
- * @property meta 实体元数据 / Entity metadata
+ * @property resolveColumn 列解析函数 / Column resolver function
  * @property nullsOrderSupport 空值排序支持检测 / Nulls order support detection
  */
 class KtormOrderByTranslator(
-    private val meta: EntityMeta<*>,
+    private val resolveColumn: KtormColumnResolver,
     private val nullsOrderSupport: NullsOrderSupport = NullsOrderSupport.Auto
 ) {
     /**
@@ -39,7 +39,7 @@ class KtormOrderByTranslator(
     }
 
     private fun applyItem(query: Query, item: SortItem): Query {
-        val column = meta.resolveColumn(item.path) ?: throw IllegalArgumentException(
+        val column = resolveColumn(item.path) ?: throw IllegalArgumentException(
             "Cannot resolve path: ${item.path}"
         )
 

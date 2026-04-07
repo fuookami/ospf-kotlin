@@ -788,13 +788,33 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
 
 ### 8.5 时间估算
 
-| 阶段 | 预估时间 |
-|------|----------|
-| F7.1 模块初始化 | 0.5 天 |
-| F7.2 翻译器实现 | 1 天 |
-| F7.3 仓储实现 | 0.5 天 |
-| F7.4 测试文档 | 0.5 天 |
-| **总计** | **2.5 天** |
+| 阶段 | 预估时间 | 状态 |
+|------|----------|------|
+| F7.1 模块初始化 | 0.5 天 | ✅ 已完成 |
+| F7.2 翻译器实现 | 1 天 | ✅ 已完成 |
+| F7.3 仓储实现 | 0.5 天 | ✅ 已完成 |
+| F7.4 测试文档 | 0.5 天 | ✅ 已完成 |
+| **总计** | **2.5 天** | |
+
+### 8.6 完成状态
+
+| 阶段 | 状态 | 提交 |
+|------|------|------|
+| F7.1 | ✅ 已完成 | (待提交) |
+| F7.2 | ✅ 已完成 | (待提交) |
+| F7.3 | ✅ 已完成 | (待提交) |
+| F7.4 | ✅ 已完成 | (待提交) |
+
+### 8.7 新增文件清单
+
+**F7 MyBatis-Plus:**
+- `ospf-kotlin-framework-plugin-persistence-mybatis/pom.xml` - 模块配置
+- `translator/package.kt` - 包定义
+- `translator/MybatisBooleanTranslator.kt` - 布尔表达式翻译器
+- `translator/MybatisOrderByTranslator.kt` - 排序翻译器
+- `translator/MybatisUpdateTranslator.kt` - 更新翻译器
+- `MybatisRepository.kt` - MyBatis 仓储实现
+- `translator/MybatisBooleanTranslatorTest.kt` - 单元测试
 
 ---
 

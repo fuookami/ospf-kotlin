@@ -21,6 +21,7 @@
         <module>ospf-kotlin-framework-plugin-persistence-sqlite</module>
         <module>ospf-kotlin-framework-plugin-persistence-redis</module>
         <module>ospf-kotlin-framework-plugin-persistence-ktorm</module>
+        <module>ospf-kotlin-framework-plugin-persistence-mybatis</module>
     </modules>
 
     <dependencies>

@@ -22,11 +22,11 @@ import org.ktorm.schema.Table
  * 将 UpdateAssignments 翻译为 Ktorm 更新构建器调用。
  * Translates UpdateAssignments to Ktorm update builder calls.
  *
- * @property meta 实体元数据 / Entity metadata
+ * @property resolveColumn 列解析函数 / Column resolver function
  * @property table Ktorm 表定义 / Ktorm table definition
  */
 class KtormUpdateTranslator(
-    private val meta: EntityMeta<*>,
+    private val resolveColumn: KtormColumnResolver,
     private val table: Table<*>
 ) {
     /**
@@ -45,19 +45,23 @@ class KtormUpdateTranslator(
                 when (item) {
                     is SetValue -> {
                         val column = resolveColumn(item.path)
-                        set(column, item.value)
+                        if (column != null) {
+                            set(column as Column<Any>, item.value)
+                        }
                     }
                     is SetNull -> {
                         val column = resolveColumn(item.path)
-                        set(column, null)
+                        if (column != null) {
+                            set(column as Column<Any>, null)
+                        }
                     }
                     is SetFromExpression -> {
                         val column = resolveColumn(item.path)
-                        val exprValue = (item.expression as? ScalarConstant<*>)?.value
-                        if (exprValue != null) {
-                            set(column, exprValue)
-                        } else {
-                            throw IllegalArgumentException("Cannot translate expression for path: ${item.path}")
+                        if (column != null) {
+                            val exprValue = (item.expression as? ScalarConstant<*>)?.value
+                            if (exprValue != null) {
+                                set(column as Column<Any>, exprValue)
+                            }
                         }
                     }
                 }
@@ -66,11 +70,5 @@ class KtormUpdateTranslator(
                 where { whereCondition }
             }
         }
-    }
-
-    @Suppress("UNCHECKED_CAST")
-    private fun resolveColumn(path: String): Column<Any> {
-        val column = meta.resolveColumn(path) ?: throw IllegalArgumentException("Cannot resolve path: $path")
-        return column as Column<Any>
     }
 }
