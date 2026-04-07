@@ -16,8 +16,24 @@
 - `149b2e42`: fix(quantities): correct Rod and Parsec definitions  
 - `92a2193f`: feat(quantities): add Steradian unit and update SI.baseUnits
 
+### Phase B 已完成 ✅
+- [x] Task B1-B3: 修复 Frequency/Pressure/Torque 符号错误（MHz/GHz/MPa，name/symbol swap）
+- [x] Task B5: 调整 Quantity.eq/neq 逻辑（neq 返回 true 当量纲不一致）
+- [ ] Task B4: Temperature 温标转换策略（待决策，暂跳过）
+
+提交记录:
+- `3fe67027`: fix(quantities): correct unit symbols for Megahertz, Gigahertz, Megapascal, and Torque
+- `8a282db6`: fix(quantities): correct neq logic to return true on dimension mismatch
+
+### Phase C 已完成 ✅
+- [x] Task C1: UnitSystem 并发安全修复（MutableMap → ConcurrentHashMap）
+- [ ] Task C2: DerivedQuantity 运算优化（暂缓）
+
+提交记录:
+- `d14ec5aa`: feat(quantities): make UnitSystem thread-safe with ConcurrentHashMap
+
 ### 待完成
-- Phase B（P1）：语义与 API 行为修复
+- [ ] Phase B4: Temperature 温标转换策略（需要策略决策）
 - Phase C（P2）：性能与并发优化
 - Phase D（P3）：测试与回归门禁
 - Phase E-I：符号运算物理量支持
