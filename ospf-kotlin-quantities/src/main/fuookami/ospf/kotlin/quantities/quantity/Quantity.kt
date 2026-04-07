@@ -231,8 +231,15 @@ fun Quantity<Int64>.to(unit: PhysicalUnit): Quantity<Int64>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
     } else {
-        this.unit.to(unit)?.value?.let {
-            Quantity(it.toInt64() * this.value, unit)
+        this.unit.to(unit)?.value?.let { factor ->
+            // Check if conversion factor is an integer
+            val factorFloor = factor.floor()
+            if (factorFloor neq factor) {
+                // Non-integer factor: return null (use Flt64 for accurate conversion)
+                null
+            } else {
+                Quantity(factor.toInt64() * this.value, unit)
+            }
         }
     }
 }
@@ -242,8 +249,15 @@ fun Quantity<UInt64>.to(unit: PhysicalUnit): Quantity<UInt64>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
     } else {
-        this.unit.to(unit)?.value?.let {
-            Quantity(it.toUInt64() * this.value, unit)
+        this.unit.to(unit)?.value?.let { factor ->
+            // Check if conversion factor is an integer
+            val factorFloor = factor.floor()
+            if (factorFloor neq factor) {
+                // Non-integer factor: return null (use Flt64 for accurate conversion)
+                null
+            } else {
+                Quantity(factor.toUInt64() * this.value, unit)
+            }
         }
     }
 }
@@ -252,8 +266,15 @@ fun Quantity<IntX>.to(unit: PhysicalUnit): Quantity<IntX>? {
     return if (this.unit == unit) {
         Quantity(this.value, unit)
     } else {
-        this.unit.to(unit)?.value?.let {
-            Quantity(it.toIntX() * this.value, unit)
+        this.unit.to(unit)?.value?.let { factor ->
+            // Check if conversion factor is an integer
+            val factorFloor = factor.floor()
+            if (factorFloor neq factor) {
+                // Non-integer factor: return null (use Flt64 for accurate conversion)
+                null
+            } else {
+                Quantity(factor.toIntX() * this.value, unit)
+            }
         }
     }
 }
