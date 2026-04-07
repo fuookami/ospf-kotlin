@@ -19,14 +19,14 @@ object Kilohertz : DerivedPhysicalUnit(Hertz * Scale.kilo) {
 
 object Megahertz : DerivedPhysicalUnit(Hertz * Scale.mega) {
     override val name = "megahertz"
-    override val symbol = "mHz"
+    override val symbol = "MHz"
 
     override val quantity = Frequency
 }
 
 object Gigahertz : DerivedPhysicalUnit(Hertz * Scale.giga) {
     override val name = "gigahertz"
-    override val symbol = "gHz"
+    override val symbol = "GHz"
 
     override val quantity = Frequency
 }

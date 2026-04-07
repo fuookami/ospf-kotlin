@@ -26,7 +26,7 @@ object Kilopascal : DerivedPhysicalUnit(Pascal * Scale.kilo) {
 
 object Megapascal : DerivedPhysicalUnit(Pascal * Scale.mega) {
     override val name = "megapascal"
-    override val symbol = "mPa"
+    override val symbol = "MPa"
 
     override val quantity = Pressure
 }
