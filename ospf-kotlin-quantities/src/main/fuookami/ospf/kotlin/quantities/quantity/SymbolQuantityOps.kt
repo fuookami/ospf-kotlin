@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.quantities.quantity
 import fuookami.ospf.kotlin.math.Scale
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
@@ -13,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.minus
 import fuookami.ospf.kotlin.math.symbol.polynomial.plus
 import fuookami.ospf.kotlin.math.symbol.polynomial.times
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.quantities.unit.*
 
 // ============================================================================
@@ -266,4 +268,22 @@ operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<Linear
         value = this.value / scalar,
         unit = this.unit
     )
+}
+
+// ============================================================================
+// 符号多项式物理量的求值
+// Evaluation for symbol polynomial quantities
+// ============================================================================
+
+/**
+ * 求值线性多项式物理量
+ * Evaluate linear polynomial quantity
+ *
+ * @param values 符号到值的映射
+ * @return 求值后的物理量，如果无法求值返回 null
+ */
+@JvmName("evaluateQuantityLinearFlt64")
+fun Quantity<LinearPolynomial<Flt64>>.evaluate(values: Map<Symbol, Flt64>): Quantity<Flt64>? {
+    val evaluated = this.value.evaluate(values) ?: return null
+    return Quantity(evaluated, this.unit)
 }

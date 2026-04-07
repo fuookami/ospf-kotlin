@@ -116,4 +116,24 @@ class SymbolQuantityTest {
         assertEquals(Flt64(5.0), divided.value.monomials[0].coefficient)
         assertEquals(Flt64(2.5), divided.value.constant)
     }
+
+    @Test
+    fun `quantitySymbol_evaluate_shouldReturnNumericQuantity`() {
+        val x = object : Symbol {
+            override val name = "x"
+            override val displayName = "x"
+        }
+
+        // (2x + 1) m with x = 3.0 -> 7.0 m
+        val poly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64(2.0), x)),
+            constant = Flt64.one
+        )
+        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+
+        val evaluated = distance.evaluate(mapOf(x to Flt64(3.0)))
+        assertNotNull(evaluated)
+        assertEquals(Meter, evaluated.unit)
+        assertEquals(Flt64(7.0), evaluated.value)
+    }
 }
