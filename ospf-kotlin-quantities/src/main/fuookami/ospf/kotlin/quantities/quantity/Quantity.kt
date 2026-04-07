@@ -131,10 +131,10 @@ infix fun <V> Quantity<V>.neq(other: Quantity<V>): Boolean where V : Eq<V> {
     return if (this.unit == other.unit) {
         this.value neq other.value
     } else if (this.unit.quantity == other.unit.quantity) {
-        val converted = other.tryConvertByValueType(this.unit) ?: return false
+        val converted = other.tryConvertByValueType(this.unit) ?: return true
         this.value neq converted.value
     } else {
-        false
+        true
     }
 }
 
