@@ -37,7 +37,7 @@ object SquareKilometer : DerivedPhysicalUnit(Kilometer * Kilometer) {
     override val quantity = Area
 }
 
-object Are : DerivedPhysicalUnit(Decimeter * Decimeter) {
+object Are : DerivedPhysicalUnit(SquareMeter * 100) {
     override val name = "are"
     override val symbol = "are"
 
