@@ -3,6 +3,9 @@ package fuookami.ospf.kotlin.quantities
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.quantities.unit.*
+import fuookami.ospf.kotlin.quantities.unit.Second
+import fuookami.ospf.kotlin.quantities.unit.Newton
+import fuookami.ospf.kotlin.quantities.unit.PoundForce
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -62,5 +65,13 @@ class P0UnitConstantsTest {
         val oneKgMeterPerSec = Flt64.one * KilogramMeterPerSecond
         val oneNewtonSecond = Flt64.one * (Newton * Second)
         assert(oneKgMeterPerSec eq oneNewtonSecond)
+    }
+
+    @Test
+    fun `unitForce_poundForceShouldEqual4_4482216152605Newton`() {
+        val onePoundForce = Flt64.one * PoundForce
+        val inNewton = onePoundForce.to(Newton)
+        assertNotNull(inNewton)
+        assertEquals(4.4482216152605, inNewton.value.toDouble(), 1e-10)
     }
 }

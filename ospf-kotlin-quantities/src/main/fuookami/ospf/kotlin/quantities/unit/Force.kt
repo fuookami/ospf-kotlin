@@ -31,7 +31,7 @@ object Dyne : DerivedPhysicalUnit(Gram * CentimeterPerSquareSecond) {
     override val quantity = Force
 }
 
-object PoundForce : DerivedPhysicalUnit(GramForce * Gram.to(Pound)!!) {
+object PoundForce : DerivedPhysicalUnit(Newton * 4.4482216152605) {
     override val name = "pound force"
     override val symbol = "lbf"
 
