@@ -43,8 +43,25 @@
 - `aaf74cad`: docs(quantities): add unit constant source documentation
 
 ### 测试统计
-- 总测试数: 51
-- 覆盖: P0 单位常数、P1 符号/逻辑、P2 并发、D 整数转换/SI 基本单位
+- 总测试数: 56
+- 覆盖: P0 单位常数、P1 符号/逻辑、P2 并发、D 整数转换/SI 基本单位、E 符号多项式物理量
+
+### Phase E 已完成 ✅
+- [x] Task E1: 定义符号多项式物理量类型别名 (QuantityLinearFlt64 等)
+- [x] Task E2: 实现符号多项式物理量的单位转换
+- [x] Task E3: 实现符号多项式物理量的加减运算
+- [x] Task E4: 实现符号多项式物理量的乘除运算
+- [x] Task E5: 实现符号多项式物理量的求值方法
+
+提交记录:
+- `d8db6d6d`: feat(quantities): add symbol polynomial quantity support (Phase E1-E3)
+- `69af8b5d`: feat(quantities): add scalar multiplication/division (Phase E4)
+- `3223681e`: feat(quantities): add evaluate method (Phase E5)
+
+新增文件:
+- `SymbolQuantity.kt`: 类型别名定义
+- `SymbolQuantityOps.kt`: 运算符实现
+- `SymbolQuantityTest.kt`: 测试
 
 ### 待完成
 - [ ] Phase B4: Temperature 温标转换策略（需要策略决策）
