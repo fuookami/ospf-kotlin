@@ -144,7 +144,7 @@ object Chain : DerivedPhysicalUnit(Yard * 22) {
     override val quantity = Length
 }
 
-object Rod : DerivedPhysicalUnit(Inch * 198.838) {
+object Rod : DerivedPhysicalUnit(Meter * 5.0292) {
     override val name = "rod"
     override val symbol = "rd"
 
@@ -200,7 +200,7 @@ object LightYear : DerivedPhysicalUnit(LightDay * 365.25) {
     override val quantity = Length
 }
 
-object Parsec : DerivedPhysicalUnit(AstronomicalUnit * 20265) {
+object Parsec : DerivedPhysicalUnit(Meter * 30856775814913673.0) {
     override val name = "parsec"
     override val symbol = "pc"
 

@@ -6,6 +6,9 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.unit.Second
 import fuookami.ospf.kotlin.quantities.unit.Newton
 import fuookami.ospf.kotlin.quantities.unit.PoundForce
+import fuookami.ospf.kotlin.quantities.unit.Rod
+import fuookami.ospf.kotlin.quantities.unit.Parsec
+import fuookami.ospf.kotlin.quantities.unit.AstronomicalUnit
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -73,5 +76,21 @@ class P0UnitConstantsTest {
         val inNewton = onePoundForce.to(Newton)
         assertNotNull(inNewton)
         assertEquals(4.4482216152605, inNewton.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitLength_rodShouldEqual5_0292Meter`() {
+        val oneRod = Flt64.one * Rod
+        val inMeter = oneRod.to(Meter)
+        assertNotNull(inMeter)
+        assertEquals(5.0292, inMeter.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitLength_parsecShouldEqual206265AstronomicalUnit`() {
+        val oneParsec = Flt64.one * Parsec
+        val inAU = oneParsec.to(AstronomicalUnit)
+        assertNotNull(inAU)
+        assertEquals(206265.0, inAU.value.toDouble(), 1.0)  // Allow 1 AU tolerance due to approximation
     }
 }
