@@ -15,4 +15,12 @@ class P0UnitConstantsTest {
         assertNotNull(inSquareMeter)
         assertEquals(100.0, inSquareMeter.value.toDouble(), 1e-10)
     }
+
+    @Test
+    fun `unitVolume_cubicYardShouldEqual27CubicFoot`() {
+        val oneCubicYard = Flt64.one * CubicYard
+        val inCubicFoot = oneCubicYard.to(CubicFoot)
+        assertNotNull(inCubicFoot)
+        assertEquals(27.0, inCubicFoot.value.toDouble(), 1e-10)
+    }
 }

@@ -87,7 +87,7 @@ object CubicFoot : DerivedPhysicalUnit(SquareFoot * Foot) {
     override val quantity = Volume
 }
 
-object CubicYard : DerivedPhysicalUnit(SquareFoot * Foot) {
+object CubicYard : DerivedPhysicalUnit(Yard * Yard * Yard) {
     override val name = "cubic yard"
     override val symbol = "cu.yd"
 
