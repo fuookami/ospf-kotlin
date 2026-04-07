@@ -32,6 +32,20 @@
 提交记录:
 - `d14ec5aa`: feat(quantities): make UnitSystem thread-safe with ConcurrentHashMap
 
+### Phase D 已完成 ✅
+- [x] Task D1: 整数值转换边界测试（非整数因子返回 null）
+- [x] Task D2: SI 基本单位完整性测试（10 个基本量纲）
+- [x] Task D3: 单位常数来源说明文档
+
+提交记录:
+- `e2c2f630`: fix(quantities): return null for non-integer conversion factors
+- `4c4e8f31`: test(quantities): add SI base unit completeness tests
+- `aaf74cad`: docs(quantities): add unit constant source documentation
+
+### 测试统计
+- 总测试数: 51
+- 覆盖: P0 单位常数、P1 符号/逻辑、P2 并发、D 整数转换/SI 基本单位
+
 ### 待完成
 - [ ] Phase B4: Temperature 温标转换策略（需要策略决策）
 - Phase C（P2）：性能与并发优化
