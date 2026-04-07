@@ -91,4 +91,29 @@ class SymbolQuantityTest {
         assertEquals(Flt64(0.03), sum.value.monomials[1].coefficient)
         assertEquals(Flt64(1.02), sum.value.constant)
     }
+
+    @Test
+    fun `quantitySymbol_scalarMulDiv_shouldScalePolynomial`() {
+        val x = object : Symbol {
+            override val name = "x"
+            override val displayName = "x"
+        }
+
+        // (2x + 1) m * 5 = (10x + 5) m
+        val poly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64(2.0), x)),
+            constant = Flt64.one
+        )
+        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+
+        val scaled = distance * Flt64(5.0)
+        assertEquals(Meter, scaled.unit)
+        assertEquals(Flt64(10.0), scaled.value.monomials[0].coefficient)
+        assertEquals(Flt64(5.0), scaled.value.constant)
+
+        // (10x + 5) m / 2 = (5x + 2.5) m
+        val divided = scaled / Flt64(2.0)
+        assertEquals(Flt64(5.0), divided.value.monomials[0].coefficient)
+        assertEquals(Flt64(2.5), divided.value.constant)
+    }
 }

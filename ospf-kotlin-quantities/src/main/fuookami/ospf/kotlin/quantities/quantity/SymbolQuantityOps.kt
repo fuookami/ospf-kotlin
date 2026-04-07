@@ -220,3 +220,50 @@ operator fun Quantity<LinearPolynomial<FltX>>.minus(
         unit = this.unit
     )
 }
+
+// ============================================================================
+// 符号多项式物理量与标量的乘除
+// Scalar multiplication/division for symbol polynomial quantities
+// ============================================================================
+
+@JvmName("timesQuantityLinearFlt64Scalar")
+operator fun Quantity<LinearPolynomial<Flt64>>.times(scalar: Flt64): Quantity<LinearPolynomial<Flt64>> {
+    return Quantity(
+        value = this.value * scalar,
+        unit = this.unit
+    )
+}
+
+@JvmName("timesScalarQuantityLinearFlt64")
+operator fun Flt64.times(quantity: Quantity<LinearPolynomial<Flt64>>): Quantity<LinearPolynomial<Flt64>> {
+    return quantity * this
+}
+
+@JvmName("divQuantityLinearFlt64Scalar")
+operator fun Quantity<LinearPolynomial<Flt64>>.div(scalar: Flt64): Quantity<LinearPolynomial<Flt64>> {
+    return Quantity(
+        value = this.value / scalar,
+        unit = this.unit
+    )
+}
+
+@JvmName("timesQuantityLinearFltXScalar")
+operator fun Quantity<LinearPolynomial<FltX>>.times(scalar: FltX): Quantity<LinearPolynomial<FltX>> {
+    return Quantity(
+        value = this.value * scalar,
+        unit = this.unit
+    )
+}
+
+@JvmName("timesScalarQuantityLinearFltX")
+operator fun FltX.times(quantity: Quantity<LinearPolynomial<FltX>>): Quantity<LinearPolynomial<FltX>> {
+    return quantity * this
+}
+
+@JvmName("divQuantityLinearFltXScalar")
+operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<LinearPolynomial<FltX>> {
+    return Quantity(
+        value = this.value / scalar,
+        unit = this.unit
+    )
+}
