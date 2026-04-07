@@ -42,8 +42,8 @@ class SymbolDimensionTest {
         // Length * Time = L·T (not Velocity, which is a named quantity)
         val lengthTime = x.multiplyWith(y)
         // Verify it has both L and T in its dimension
-        assert(lengthTime.quantities.any { it.dimension.name == "Length" })
-        assert(lengthTime.quantities.any { it.dimension.name == "Time" })
+        assert(lengthTime.quantities.any { it.dimension.dimensionName == "length" })
+        assert(lengthTime.quantities.any { it.dimension.dimensionName == "time" })
 
         // Length / Time = L/T (dimensionally equivalent to Velocity)
         val lengthDivTime = x.divideBy(y)
@@ -82,8 +82,8 @@ class SymbolDimensionTest {
         // x(m) * y(s) 应该得到 L·T
         val result = registry.inferDimension(x, y, Operation.Multiply)
         // Verify it has both L and T
-        assert(result.quantities.any { it.dimension.name == "Length" })
-        assert(result.quantities.any { it.dimension.name == "Time" })
+        assert(result.quantities.any { it.dimension.dimensionName == "length" })
+        assert(result.quantities.any { it.dimension.dimensionName == "time" })
 
         // x(m) / y(s) 应该得到 L/T (dimensionally velocity)
         val result2 = registry.inferDimension(x, y, Operation.Divide)

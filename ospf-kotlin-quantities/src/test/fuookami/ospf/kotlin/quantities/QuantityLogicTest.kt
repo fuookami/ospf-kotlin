@@ -7,7 +7,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
-class P1QuantityLogicTest {
+class QuantityLogicTest {
     @Test
     fun `quantityEqNeq_shouldBeLogicalComplementOnDimensionMismatch`() {
         // 1 meter vs 1 second - different dimensions

@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.algebra.number
+﻿/**
+ * 数值有符号整数模块
+ * Numeric Signed Integer Module
+ *
+ * 本模块定义了带有数值语义的有符号整数类型，包括 NInt8、NInt16、NInt32、NInt64 和 NIntX。
+ * 与普通有符号整数不同，这些类型的除法运算返回有理数结果而非整数结果，
+ * 从而提供更精确的数值计算。适用于需要精确数值计算的场景。
+ *
+ * This module defines signed integer types with numeric semantics, including NInt8, NInt16, NInt32, NInt64, and NIntX.
+ * Unlike regular signed integers, division operations of these types return rational number results instead of integer results,
+ * thus providing more precise numerical calculations. Suitable for scenarios requiring precise numerical calculations.
+ */
+package fuookami.ospf.kotlin.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.*
@@ -13,6 +25,23 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import java.math.BigInteger
 
+/**
+ * 数值有符号整数接口
+ * Numeric Signed Integer Interface
+ *
+ * 提供数值有符号整数类型的通用实现，包括自增自减、对数、幂运算、
+ * 三角函数等数学运算的默认实现。
+ * 注意：除法运算返回有理数结果。
+ *
+ * Provides common implementation for numeric signed integer types, including default implementations
+ * for increment/decrement, logarithm, power operations, trigonometric functions, and other mathematical operations.
+ * Note: Division operation returns rational number result.
+ *
+ * @param Self 实现此接口的具体类型
+ *             The concrete type implementing this interface
+ * @param I 底层整数类型
+ *           The underlying integer type
+ */
 interface NumericInteger<Self, I>
     : NumericIntegerNumber<Self, I> where Self : NumericInteger<Self, I>, I : IntegerNumber<I>, I : NumberField<I> {
     override operator fun inc() = this + constants.one
@@ -78,6 +107,22 @@ interface NumericInteger<Self, I>
     override infix fun until(rhs: Self) = this.rangeTo(rhs - constants.one)
 }
 
+/**
+ * 数值有符号整数常量抽象类
+ * Abstract Numeric Signed Integer Constants
+ *
+ * 提供数值有符号整数类型的常用数值常量。
+ * Provides common numeric constants for numeric signed integer types.
+ *
+ * @param Self 数值有符号整数类型
+ *             The numeric signed integer type
+ * @param I 底层整数类型
+ *           The underlying integer type
+ * @param ctor 数值有符号整数构造函数
+ *             The numeric signed integer constructor
+ * @param constants 底层整数常量对象
+ *                  The underlying integer constants object
+ */
 abstract class NumericIntegerConstants<Self, I>(
     private val ctor: (I) -> Self,
     private val constants: RealNumberConstants<I>
@@ -92,6 +137,13 @@ abstract class NumericIntegerConstants<Self, I>(
     override val maximum: Self get() = ctor(constants.maximum)
 }
 
+/**
+ * NInt8 序列化器
+ * NInt8 Serializer
+ *
+ * 用于 NInt8 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the NInt8 type in the Kotlin serialization framework.
+ */
 data object NInt8Serializer : KSerializer<NInt8> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt8", PrimitiveKind.INT)
 
@@ -104,9 +156,29 @@ data object NInt8Serializer : KSerializer<NInt8> {
     }
 }
 
+/**
+ * 基于 Int8 的数值有符号整数
+ * Numeric Signed Integer based on Int8
+ *
+ * 使用 Int8 作为底层类型的数值有符号整数。
+ * 除法运算返回 Rtn8 结果，提供精确的数值计算。
+ *
+ * A numeric signed integer using Int8 as the underlying type.
+ * Division operation returns Rtn8 result, providing precise numerical calculations.
+ *
+ * @property value 底层的 Int8 值
+ *                 The underlying Int8 value
+ */
 @JvmInline
 @Serializable(with = NInt8Serializer::class)
 value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8> {
+    /**
+     * NInt8 常量对象
+     * NInt8 Constants Object
+     *
+     * 提供常用的数值常量。
+     * Provides common numeric constants.
+     */
     companion object : NumericIntegerConstants<NInt8, Int8>(NInt8::invoke, Int8) {
         operator fun invoke(value: Int8) = NInt8(value)
     }
@@ -162,6 +234,13 @@ value class NInt8(val value: Int8) : NumericInteger<NInt8, Int8>, Copyable<NInt8
     override fun toFltX() = value.toFltX()
 }
 
+/**
+ * NInt16 序列化器
+ * NInt16 Serializer
+ *
+ * 用于 NInt16 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the NInt16 type in the Kotlin serialization framework.
+ */
 data object NInt16Serializer : KSerializer<NInt16> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt16", PrimitiveKind.INT)
 
@@ -174,9 +253,29 @@ data object NInt16Serializer : KSerializer<NInt16> {
     }
 }
 
+/**
+ * 基于 Int16 的数值有符号整数
+ * Numeric Signed Integer based on Int16
+ *
+ * 使用 Int16 作为底层类型的数值有符号整数。
+ * 除法运算返回 Rtn16 结果，提供精确的数值计算。
+ *
+ * A numeric signed integer using Int16 as the underlying type.
+ * Division operation returns Rtn16 result, providing precise numerical calculations.
+ *
+ * @property value 底层的 Int16 值
+ *                 The underlying Int16 value
+ */
 @JvmInline
 @Serializable(with = NInt16Serializer::class)
 value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<NInt16> {
+    /**
+     * NInt16 常量对象
+     * NInt16 Constants Object
+     *
+     * 提供常用的数值常量。
+     * Provides common numeric constants.
+     */
     companion object : NumericIntegerConstants<NInt16, Int16>(NInt16::invoke, Int16) {
         operator fun invoke(value: Int16) = NInt16(value)
     }
@@ -232,6 +331,13 @@ value class NInt16(val value: Int16) : NumericInteger<NInt16, Int16>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
+/**
+ * NInt32 序列化器
+ * NInt32 Serializer
+ *
+ * 用于 NInt32 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the NInt32 type in the Kotlin serialization framework.
+ */
 data object NInt32Serializer : KSerializer<NInt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt32", PrimitiveKind.INT)
 
@@ -244,9 +350,31 @@ data object NInt32Serializer : KSerializer<NInt32> {
     }
 }
 
+/**
+ * 基于 Int32 的数值有符号整数
+ * Numeric Signed Integer based on Int32
+ *
+ * 使用 Int32 作为底层类型的数值有符号整数。
+ * 除法运算返回 Rtn32 结果，提供精确的数值计算。
+ * 这是常用的数值有符号整数类型。
+ *
+ * A numeric signed integer using Int32 as the underlying type.
+ * Division operation returns Rtn32 result, providing precise numerical calculations.
+ * This is a commonly used numeric signed integer type.
+ *
+ * @property value 底层的 Int32 值
+ *                 The underlying Int32 value
+ */
 @JvmInline
 @Serializable(with = NInt32Serializer::class)
 value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<NInt32> {
+    /**
+     * NInt32 常量对象
+     * NInt32 Constants Object
+     *
+     * 提供常用的数值常量。
+     * Provides common numeric constants.
+     */
     companion object : NumericIntegerConstants<NInt32, Int32>(NInt32::invoke, Int32) {
         operator fun invoke(value: Int32) = NInt32(value)
     }
@@ -302,6 +430,13 @@ value class NInt32(val value: Int32) : NumericInteger<NInt32, Int32>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
+/**
+ * NInt64 序列化器
+ * NInt64 Serializer
+ *
+ * 用于 NInt64 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the NInt64 type in the Kotlin serialization framework.
+ */
 data object NInt64Serializer : KSerializer<NInt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NInt64", PrimitiveKind.LONG)
 
@@ -314,9 +449,31 @@ data object NInt64Serializer : KSerializer<NInt64> {
     }
 }
 
+/**
+ * 基于 Int64 的数值有符号整数
+ * Numeric Signed Integer based on Int64
+ *
+ * 使用 Int64 作为底层类型的数值有符号整数。
+ * 除法运算返回 Rtn64 结果，提供精确的数值计算。
+ * 适用于需要更大数值范围的情况。
+ *
+ * A numeric signed integer using Int64 as the underlying type.
+ * Division operation returns Rtn64 result, providing precise numerical calculations.
+ * Suitable for cases requiring larger numerical range.
+ *
+ * @property value 底层的 Int64 值
+ *                 The underlying Int64 value
+ */
 @JvmInline
 @Serializable(with = NInt64Serializer::class)
 value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<NInt64> {
+    /**
+     * NInt64 常量对象
+     * NInt64 Constants Object
+     *
+     * 提供常用的数值常量。
+     * Provides common numeric constants.
+     */
     companion object : NumericIntegerConstants<NInt64, Int64>(NInt64::invoke, Int64) {
         operator fun invoke(value: Int64) = NInt64(value)
     }
@@ -372,6 +529,16 @@ value class NInt64(val value: Int64) : NumericInteger<NInt64, Int64>, Copyable<N
     override fun toFltX() = value.toFltX()
 }
 
+/**
+ * NIntX 序列化器
+ * NIntX Serializer
+ *
+ * 用于 NIntX（任意精度数值有符号整数）类型的 Kotlin 序列化框架序列化器。
+ * 使用字符串格式进行序列化和反序列化。
+ *
+ * Serializer for the NIntX (arbitrary precision numeric signed integer) type in the Kotlin serialization framework.
+ * Uses string format for serialization and deserialization.
+ */
 data object NIntXSerializer : KSerializer<NIntX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("NIntX", PrimitiveKind.STRING)
 
@@ -384,9 +551,31 @@ data object NIntXSerializer : KSerializer<NIntX> {
     }
 }
 
+/**
+ * 任意精度数值有符号整数
+ * Arbitrary Precision Numeric Signed Integer
+ *
+ * 使用 IntX 作为底层类型的任意精度数值有符号整数。
+ * 除法运算返回 RtnX 结果，提供精确的数值计算。
+ * 适用于需要极大数值或精确计算的场景。
+ *
+ * An arbitrary precision numeric signed integer using IntX as the underlying type.
+ * Division operation returns RtnX result, providing precise numerical calculations.
+ * Suitable for scenarios requiring extremely large numbers or precise calculations.
+ *
+ * @property value 底层的 IntX 值
+ *                 The underlying IntX value
+ */
 @JvmInline
 @Serializable(NIntXSerializer::class)
 value class NIntX(val value: IntX) : NumericInteger<NIntX, IntX>, Copyable<NIntX> {
+    /**
+     * NIntX 常量对象
+     * NIntX Constants Object
+     *
+     * 提供常用的数值常量。
+     * Provides common numeric constants.
+     */
     companion object : NumericIntegerConstants<NIntX, IntX>(NIntX::invoke, IntX) {
         operator fun invoke(value: IntX) = NIntX(value)
     }

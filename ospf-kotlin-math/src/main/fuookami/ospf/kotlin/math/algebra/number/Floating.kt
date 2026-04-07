@@ -1,4 +1,16 @@
-﻿package fuookami.ospf.kotlin.math.algebra.number
+﻿/**
+ * 浮点数模块
+ * Floating-Point Number Module
+ *
+ * 本模块定义了浮点数的类型系统，包括 Flt32、Flt64 和 FltX（任意精度浮点数）。
+ * 这些类型提供了完整的算术运算、比较操作、类型转换以及各种数学函数支持，
+ * 包括三角函数、双曲函数、指数函数、对数函数等。
+ *
+ * This module defines the floating-point number type system, including Flt32, Flt64, and FltX (arbitrary precision floating-point number).
+ * These types provide full support for arithmetic operations, comparison operations, type conversions, and various mathematical functions,
+ * including trigonometric functions, hyperbolic functions, exponential functions, logarithmic functions, etc.
+ */
+package fuookami.ospf.kotlin.math.algebra.number
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -20,6 +32,24 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 import kotlin.math.*
 
+/**
+ * 将浮点数转换为有理数
+ * Convert floating-point number to rational number
+ *
+ * 将浮点数的字符串表示转换为有理数形式（分子/分母），并进行约分化简。
+ * Converts the string representation of a floating-point number to rational form (numerator/denominator) and simplifies.
+ *
+ * @param f 浮点数值
+ *          The floating-point number value
+ * @param converter1 字符串到整数类型的转换函数
+ *                   The conversion function from string to integer type
+ * @param converter2 Long 到整数类型的转换函数
+ *                   The conversion function from Long to integer type
+ * @param ctor 有理数构造函数
+ *             The rational number constructor
+ * @return 有理数值
+ *         The rational number value
+ */
 private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floatingToRational(
     f: F,
     converter1: (String) -> I,
@@ -48,6 +78,21 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     return ctor(converter2(num), converter2(den))
 }
 
+/**
+ * 银行家舍入函数
+ * Banker's rounding function
+ *
+ * 使用银行家舍入法（也称为四舍六入五成双）对浮点数进行舍入。
+ * 当小数部分正好为 0.5 时，舍入到最近的偶数。
+ *
+ * Rounds a floating-point number using banker's rounding (also known as round half to even).
+ * When the fractional part is exactly 0.5, rounds to the nearest even number.
+ *
+ * @param value 要舍入的浮点数值
+ *              The floating-point number value to round
+ * @return 舍入后的浮点数值
+ *         The rounded floating-point number value
+ */
 private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
     val fractional = value - value.floor()
 
@@ -65,6 +110,20 @@ private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
     }
 }
 
+/**
+ * 浮点数实现接口
+ * Floating-Point Number Implementation Interface
+ *
+ * 提供浮点数类型的通用实现，包括相等比较、大小比较、自增自减、
+ * 幂运算、开方、对数、有理数转换等操作的默认实现。
+ *
+ * Provides common implementation for floating-point types, including default implementations
+ * for equality comparison, magnitude comparison, increment/decrement, power operations,
+ * root extraction, logarithm, rational number conversion, and other operations.
+ *
+ * @param Self 实现此接口的具体类型
+ *             The concrete type implementing this interface
+ */
 @Suppress("UNCHECKED_CAST")
 interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
@@ -114,6 +173,13 @@ interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     fun bankerRoundTo(precision: Int = this.constants.decimalDigits!!): Self
 }
 
+/**
+ * Flt32 序列化器
+ * Flt32 Serializer
+ *
+ * 用于 Flt32 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the Flt32 type in the Kotlin serialization framework.
+ */
 data object Flt32Serializer : KSerializer<Flt32> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt32", PrimitiveKind.DOUBLE)
 
@@ -126,13 +192,49 @@ data object Flt32Serializer : KSerializer<Flt32> {
     }
 }
 
+/**
+ * Flt32 接口
+ * Flt32 Interface
+ *
+ * 定义了转换为 Float 的能力。
+ * Defines the ability to convert to Float.
+ */
 interface Flt32Interface {
+    /**
+     * 转换为 Float 值
+     * Convert to Float value
+     *
+     * @return Float 值
+     *         The Float value
+     */
     fun toFloat(): Float
 }
 
+/**
+ * 32位浮点数
+ * 32-bit Floating-Point Number
+ *
+ * 基于 Kotlin Float 类型封装的 32 位单精度浮点数，符合 IEEE 754 标准。
+ * 支持完整的算术运算、比较操作、类型转换以及各种数学函数。
+ * 精度约为 6-7 位有效数字。
+ *
+ * A 32-bit single-precision floating-point number encapsulated based on Kotlin Float type, conforming to IEEE 754 standard.
+ * Supports full arithmetic operations, comparison operations, type conversions, and various mathematical functions.
+ * Precision is approximately 6-7 significant digits.
+ *
+ * @property value 内部的 Float 值
+ *                 The internal Float value
+ */
 @JvmInline
 @Serializable(with = Flt32Serializer::class)
 value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt32>, Copyable<Flt32> {
+    /**
+     * Flt32 常量对象
+     * Flt32 Constants Object
+     *
+     * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
+     * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
+     */
     companion object : FloatingNumberConstants<Flt32> {
         @JvmStatic
         override val zero: Flt32 get() = Flt32(0.0F)
@@ -401,6 +503,13 @@ value class Flt32(internal val value: Float) : Flt32Interface, FloatingImpl<Flt3
     override fun bankerRoundTo(precision: Int) = bankerRound(Flt32(value * 10.0F.pow(precision))) / Flt32(10.0F.pow(precision))
 }
 
+/**
+ * Flt64 序列化器
+ * Flt64 Serializer
+ *
+ * 用于 Flt64 类型的 Kotlin 序列化框架序列化器。
+ * Serializer for the Flt64 type in the Kotlin serialization framework.
+ */
 data object Flt64Serializer : KSerializer<Flt64> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Flt64", PrimitiveKind.DOUBLE)
 
@@ -413,15 +522,58 @@ data object Flt64Serializer : KSerializer<Flt64> {
     }
 }
 
+/**
+ * Flt64 接口
+ * Flt64 Interface
+ *
+ * 定义了转换为 Double 的能力。
+ * Defines the ability to convert to Double.
+ */
 interface Flt64Interface {
+    /**
+     * 转换为 Double 值
+     * Convert to Double value
+     *
+     * @return Double 值
+     *         The Double value
+     */
     fun toDouble(): Double
 }
 
+/**
+ * 64位浮点数
+ * 64-bit Floating-Point Number
+ *
+ * 基于 Kotlin Double 类型封装的 64 位双精度浮点数，符合 IEEE 754 标准。
+ * 支持完整的算术运算、比较操作、类型转换以及各种数学函数。
+ * 精度约为 15-16 位有效数字。这是最常用的浮点数类型。
+ *
+ * A 64-bit double-precision floating-point number encapsulated based on Kotlin Double type, conforming to IEEE 754 standard.
+ * Supports full arithmetic operations, comparison operations, type conversions, and various mathematical functions.
+ * Precision is approximately 15-16 significant digits. This is the most commonly used floating-point type.
+ *
+ * @property value 内部的 Double 值
+ *                 The internal Double value
+ */
 @JvmInline
 @Serializable(with = Flt64Serializer::class)
 value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt64>, Copyable<Flt64> {
+    /**
+     * 从 Int 构造 Flt64 的构造函数
+     * Constructor for Flt64 from Int
+     *
+     * @param value Int 值
+     *              The Int value
+     */
     constructor(value: Int) : this(value.toDouble())
 
+    /**
+     * Flt64 常量对象
+     * Flt64 Constants Object
+     *
+     * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
+     * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
+     */
     companion object : FloatingNumberConstants<Flt64> {
         @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
@@ -690,6 +842,16 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<Flt
     override fun bankerRoundTo(precision: Int) = bankerRound(Flt64(value * 10.0.pow(precision))) / Flt64(10.0.pow(precision))
 }
 
+/**
+ * FltX 序列化器
+ * FltX Serializer
+ *
+ * 用于 FltX（任意精度浮点数）类型的 Kotlin 序列化框架序列化器。
+ * 使用字符串格式进行序列化和反序列化，以支持任意精度的浮点数。
+ *
+ * Serializer for the FltX (arbitrary precision floating-point number) type in the Kotlin serialization framework.
+ * Uses string format for serialization and deserialization to support floating-point numbers of arbitrary precision.
+ */
 data object FltXSerializer : KSerializer<FltX> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("FltX", PrimitiveKind.STRING)
 
@@ -702,6 +864,13 @@ data object FltXSerializer : KSerializer<FltX> {
     }
 }
 
+/**
+ * FltX JSON 序列化器
+ * FltX JSON Serializer
+ *
+ * 用于 FltX 类型的 JSON 格式序列化器，专门用于 JSON 序列化场景。
+ * Serializer for the FltX type in JSON format, specifically designed for JSON serialization scenarios.
+ */
 data object FltXJsonSerializer : KSerializer<FltX> {
     @OptIn(ExperimentalSerializationApi::class, InternalSerializationApi::class)
     override val descriptor: SerialDescriptor = SerialDescriptor("FltX", JsonElement::class.serializer().descriptor)
@@ -721,15 +890,51 @@ data object FltXJsonSerializer : KSerializer<FltX> {
     }
 }
 
+/**
+ * FltX 接口
+ * FltX Interface
+ *
+ * 定义了转换为 BigDecimal 的能力。
+ * Defines the ability to convert to BigDecimal.
+ */
 interface FltXInterface {
+    /**
+     * 转换为 BigDecimal 值
+     * Convert to BigDecimal value
+     *
+     * @return BigDecimal 值
+     *         The BigDecimal value
+     */
     fun toDecimal(): BigDecimal
 }
 
+/**
+ * 任意精度浮点数
+ * Arbitrary Precision Floating-Point Number
+ *
+ * 基于 Java BigDecimal 类型封装的任意精度浮点数，可以精确控制精度和舍入模式。
+ * 支持完整的算术运算、比较操作、类型转换以及各种数学函数。
+ * 默认精度为 18 位有效数字。适用于需要精确计算的场景，如金融计算。
+ *
+ * An arbitrary precision floating-point number encapsulated based on Java BigDecimal type, allowing precise control over precision and rounding mode.
+ * Supports full arithmetic operations, comparison operations, type conversions, and various mathematical functions.
+ * Default precision is 18 significant digits. Suitable for scenarios requiring precise calculations, such as financial computations.
+ *
+ * @property value 内部的 BigDecimal 值
+ *                 The internal BigDecimal value
+ */
 @JvmInline
 @Serializable(with = FltXSerializer::class)
 value class FltX(internal val value: BigDecimal) :
     FltXInterface, FloatingImpl<FltX>, Copyable<FltX>,
     LogP<FloatingNumber<*>, FloatingNumber<*>>, PowFP<FloatingNumber<*>, FloatingNumber<*>>, ExpP<FloatingNumber<*>> {
+    /**
+     * FltX 常量对象
+     * FltX Constants Object
+     *
+     * 提供常用的数值常量，包括数学常数（pi、e）等。
+     * Provides common numeric constants, including mathematical constants (pi, e), etc.
+     */
     companion object : FloatingNumberConstants<FltX> {
         @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
@@ -779,10 +984,55 @@ value class FltX(internal val value: BigDecimal) :
         }
     }
 
+    /**
+     * 从 Double 构造 FltX 的构造函数
+     * Constructor for FltX from Double
+     *
+     * @param value Double 值
+     *              The Double value
+     * @param scale 小数位数，默认为 18
+     *              The number of decimal places, defaults to 18
+     * @param roundingMode 舍入模式，默认为 HALF_UP
+     *                     The rounding mode, defaults to HALF_UP
+     */
     constructor(value: Double, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
+
+    /**
+     * 从 Long 构造 FltX 的构造函数
+     * Constructor for FltX from Long
+     *
+     * @param value Long 值
+     *              The Long value
+     * @param scale 小数位数，默认为 0
+     *              The number of decimal places, defaults to 0
+     * @param roundingMode 舍入模式，默认为 HALF_UP
+     *                     The rounding mode, defaults to HALF_UP
+     */
     constructor(value: Long, scale: Int = 0, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal.valueOf(value).setScale(scale, roundingMode))
+
+    /**
+     * 从字符串构造 FltX 的构造函数
+     * Constructor for FltX from String
+     *
+     * @param value 字符串表示的数值
+     *              The string representation of the value
+     * @param scale 小数位数，默认为 18
+     *              The number of decimal places, defaults to 18
+     * @param roundingMode 舍入模式，默认为 HALF_UP
+     *                     The rounding mode, defaults to HALF_UP
+     */
     constructor(value: String, scale: Int = decimalDigits, roundingMode: RoundingMode = RoundingMode.HALF_UP) : this(BigDecimal(value).setScale(scale, roundingMode))
 
+    /**
+     * 移除尾部零
+     * Strip trailing zeros
+     *
+     * 返回一个移除了尾部零的新 FltX 实例。
+     * Returns a new FltX instance with trailing zeros removed.
+     *
+     * @return 移除尾部零后的 FltX 值
+     *         The FltX value with trailing zeros removed
+     */
     fun stripTrailingZeros() = if (value.scale() < 0) {
         FltX(value.setScale(0, RoundingMode.HALF_UP))
     } else if (value.scale() > 0) {
@@ -791,7 +1041,34 @@ value class FltX(internal val value: BigDecimal) :
         this
     }
 
+    /**
+     * 设置小数位数
+     * Set scale
+     *
+     * 返回一个设置了指定小数位数的新 FltX 实例。
+     * Returns a new FltX instance with the specified number of decimal places.
+     *
+     * @param scale 小数位数
+     *              The number of decimal places
+     * @return 设置小数位数后的 FltX 值
+     *         The FltX value with the specified scale
+     */
     fun withScale(scale: Int) = FltX(value.setScale(scale))
+
+    /**
+     * 设置小数位数（指定舍入模式）
+     * Set scale with rounding mode
+     *
+     * 返回一个设置了指定小数位数和舍入模式的新 FltX 实例。
+     * Returns a new FltX instance with the specified number of decimal places and rounding mode.
+     *
+     * @param scale 小数位数
+     *              The number of decimal places
+     * @param roundingMode 舍入模式
+     *                     The rounding mode
+     * @return 设置小数位数后的 FltX 值
+     *         The FltX value with the specified scale
+     */
     fun withScale(scale: Int, roundingMode: RoundingMode) = FltX(value.setScale(scale, roundingMode))
 
     override val constants: FloatingNumberConstants<FltX> get() = Companion
@@ -1042,17 +1319,71 @@ value class FltX(internal val value: BigDecimal) :
     }
 }
 
+/**
+ * 将 Boolean 值转换为 Flt64
+ * Convert Boolean value to Flt64
+ *
+ * @return 如果为 true 则返回 Flt64.one，否则返回 Flt64.zero
+ *         Returns Flt64.one if true, otherwise Flt64.zero
+ */
 fun Boolean.toFlt64() = if (this) {
     Flt64.one
 } else {
     Flt64.zero
 }
 
+/**
+ * 将字符串转换为 Flt32
+ * Convert string to Flt32
+ *
+ * @return Flt32 值
+ *         The Flt32 value
+ */
 fun String.toFlt32() = Flt32(toFloat())
+
+/**
+ * 将字符串转换为 Flt32，如果转换失败则返回 null
+ * Convert string to Flt32, returns null if conversion fails
+ *
+ * @return Flt32 值或 null
+ *         The Flt32 value or null
+ */
 fun String.toFlt32OrNull() = toFloatOrNull()?.let { Flt32(it) }
+
+/**
+ * 将字符串转换为 Flt64
+ * Convert string to Flt64
+ *
+ * @return Flt64 值
+ *         The Flt64 value
+ */
 fun String.toFlt64() = Flt64(toDouble())
+
+/**
+ * 将字符串转换为 Flt64，如果转换失败则返回 null
+ * Convert string to Flt64, returns null if conversion fails
+ *
+ * @return Flt64 值或 null
+ *         The Flt64 value or null
+ */
 fun String.toFlt64OrNull() = toDoubleOrNull()?.let { Flt64(it) }
+
+/**
+ * 将字符串转换为 FltX
+ * Convert string to FltX
+ *
+ * @return FltX 值
+ *         The FltX value
+ */
 fun String.toFltX() = FltX(toBigDecimal())
+
+/**
+ * 将字符串转换为 FltX，如果转换失败则返回 null
+ * Convert string to FltX, returns null if conversion fails
+ *
+ * @return FltX 值或 null
+ *         The FltX value or null
+ */
 fun String.toFltXOrNull() = toBigDecimalOrNull()?.let { FltX(it) }
 
 

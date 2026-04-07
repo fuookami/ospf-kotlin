@@ -16,6 +16,28 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
+/**
+ * 倒数运算接口
+ * Reciprocal Operation Interface
+ *
+ * 定义倒数运算，返回当前数值的倒数（1/x）。
+ * 倒数是乘法逆元素的运算符表示，即满足 x * reciprocal(x) = 1。
+ *
+ * Defines the reciprocal operation, returning the reciprocal (1/x) of the current value.
+ * Reciprocal is the operator representation of the multiplicative inverse, satisfying x * reciprocal(x) = 1.
+ *
+ * @param Ret 倒数运算的结果类型
+ *
+ * @param Ret The result type of the reciprocal operation
+ */
 interface Reciprocal<out Ret> {
+    /**
+     * 计算倒数 1/x
+     * Calculates the reciprocal 1/x
+     *
+     * @return 当前值的倒数
+     *
+     * @return The reciprocal of the current value
+     */
     fun reciprocal(): Ret
 }

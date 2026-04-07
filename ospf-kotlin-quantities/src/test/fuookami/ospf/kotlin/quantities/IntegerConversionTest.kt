@@ -9,7 +9,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 
-class D1IntegerConversionTest {
+class IntegerConversionTest {
     @Test
     fun `quantityConvert_intShouldConvertWhenFactorIsInteger`() {
         // 1 meter = 100 centimeters - integer factor

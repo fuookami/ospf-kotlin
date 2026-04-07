@@ -1,3 +1,25 @@
+/**
+ * 集合扩展函数
+ * Collection Extension Functions
+ *
+ * 为 Iterable、Sequence 和 Map 提供求和与求平均值的扩展函数。
+ * 这些扩展函数支持所有实现了 Arithmetic 接口的数值类型，确保类型安全的数值计算。
+ *
+ * Provides sum and average extension functions for Iterable, Sequence, and Map.
+ * These extensions support all numeric types implementing the Arithmetic interface, ensuring type-safe numerical computations.
+ *
+ * 主要功能 / Main features:
+ * - sum/sumOrNull: 计算集合元素之和 / Calculate sum of collection elements
+ * - sumOf/sumOfOrNull: 通过提取器计算元素属性之和 / Calculate sum of element properties via extractor
+ * - average/averageOrNull: 计算集合元素平均值 / Calculate average of collection elements
+ *
+ * 边界情况处理 / Boundary case handling:
+ * - 空集合调用 sum() 返回 zero / Empty collection returns zero for sum()
+ * - 空集合调用 sumOrNull() 返回 null / Empty collection returns null for sumOrNull()
+ * - 空集合调用 average() 抛出 NoSuchElementException / Empty collection throws NoSuchElementException for average()
+ * - 空集合调用 averageOrNull() 返回 null / Empty collection returns null for averageOrNull()
+ * - 包含 null 元素时 sumOrNull() 和 averageOrNull() 返回 null / Returns null if contains null elements
+ */
 package fuookami.ospf.kotlin.math.functional
 
 import fuookami.ospf.kotlin.math.algebra.concept.Arithmetic

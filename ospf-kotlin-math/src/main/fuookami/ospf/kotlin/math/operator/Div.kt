@@ -21,19 +21,114 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
+/**
+ * 除法运算符接口
+ * Division Operator Interface
+ *
+ * 定义除法运算，支持 / 运算符。
+ * 除法是乘法的逆运算，将一个数除以另一个数得到商。
+ *
+ * Defines the division operation, supporting the / operator.
+ * Division is the inverse operation of multiplication, dividing one number by another to get a quotient.
+ *
+ * @param Rhs 右操作数（除数）的类型
+ * @param Ret 返回值（商）的类型
+ *
+ * @param Rhs The type of the right operand (divisor)
+ * @param Ret The type of the return value (quotient)
+ */
 interface Div<in Rhs, out Ret> {
+    /**
+     * 除法运算符，计算商
+     * Division operator, calculates the quotient
+     *
+     * @param rhs 除数
+     * @return 商
+     *
+     * @param rhs Divisor
+     * @return Quotient
+     */
     operator fun div(rhs: Rhs): Ret
 }
 
+/**
+ * 除法赋值接口
+ * Division Assignment Interface
+ *
+ * 定义除法赋值运算，支持 /= 运算符。
+ * 将左操作数除以右操作数，并将结果赋值给左操作数。
+ *
+ * Defines the division assignment operation, supporting the /= operator.
+ * Divides the left operand by the right operand and assigns the result to the left operand.
+ *
+ * @param Rhs 右操作数（除数）的类型
+ *
+ * @param Rhs The type of the right operand (divisor)
+ */
 interface DivAssign<in Rhs> {
+    /**
+     * 除法赋值运算符，将商赋值给左操作数
+     * Division assignment operator, assigns the quotient to the left operand
+     *
+     * @param rhs 除数
+     *
+     * @param rhs Divisor
+     */
     operator fun divAssign(rhs: Rhs)
 }
 
+/**
+ * 整数除法接口
+ * Integer Division Interface
+ *
+ * 定义整数除法运算，支持 intDiv 中缀函数。
+ * 整数除法返回商的整数部分，舍弃小数部分。
+ *
+ * Defines the integer division operation, supporting the intDiv infix function.
+ * Integer division returns the integer part of the quotient, discarding the fractional part.
+ *
+ * @param Rhs 右操作数（除数）的类型
+ * @param Ret 返回值（整数商）的类型
+ *
+ * @param Rhs The type of the right operand (divisor)
+ * @param Ret The type of the return value (integer quotient)
+ */
 interface IntDiv<in Rhs, out Ret> {
+    /**
+     * 整数除法运算符，计算整数商
+     * Integer division operator, calculates the integer quotient
+     *
+     * @param rhs 除数
+     * @return 整数商
+     *
+     * @param rhs Divisor
+     * @return Integer quotient
+     */
     infix fun intDiv(rhs: Rhs): Ret
 }
 
-
+/**
+ * 整数除法赋值接口
+ * Integer Division Assignment Interface
+ *
+ * 定义整数除法赋值运算，支持 intDivAssign 中缀函数。
+ * 将左操作数整数除以右操作数，并将结果赋值给左操作数。
+ *
+ * Defines the integer division assignment operation, supporting the intDivAssign infix function.
+ * Divides the left operand by the right operand using integer division and assigns the result to the left operand.
+ *
+ * @param Rhs 右操作数（除数）的类型
+ *
+ * @param Rhs The type of the right operand (divisor)
+ */
 interface IntDivAssign<in Rhs> {
+    /**
+     * 整数除法赋值运算符，将整数商赋值给左操作数
+     * Integer division assignment operator, assigns the integer quotient to the left operand
+     *
+     * @param rhs 除数
+     *
+     * @param rhs Divisor
+     */
     infix fun intDivAssign(rhs: Rhs)
 }

@@ -19,14 +19,84 @@
  */
 package fuookami.ospf.kotlin.math.operator
 
+/**
+ * 减法运算符接口
+ * Subtraction Operator Interface
+ *
+ * 定义减法运算，支持 - 运算符。
+ * 减法是加法的逆运算，将一个数减去另一个数得到差。
+ *
+ * Defines the subtraction operation, supporting the - operator.
+ * Subtraction is the inverse operation of addition, subtracting one number from another to get the difference.
+ *
+ * @param Rhs 右操作数（减数）的类型
+ * @param Ret 返回值（差）的类型
+ *
+ * @param Rhs The type of the right operand (subtrahend)
+ * @param Ret The type of the return value (difference)
+ */
 interface Minus<in Rhs, out Ret> {
+    /**
+     * 减法运算符，计算差
+     * Subtraction operator, calculates the difference
+     *
+     * @param rhs 减数
+     * @return 差
+     *
+     * @param rhs Subtrahend
+     * @return Difference
+     */
     operator fun minus(rhs: Rhs): Ret
 }
 
+/**
+ * 减法赋值接口
+ * Subtraction Assignment Interface
+ *
+ * 定义减法赋值运算，支持 -= 运算符。
+ * 将左操作数减去右操作数，并将结果赋值给左操作数。
+ *
+ * Defines the subtraction assignment operation, supporting the -= operator.
+ * Subtracts the right operand from the left operand and assigns the result to the left operand.
+ *
+ * @param Rhs 右操作数（减数）的类型
+ *
+ * @param Rhs The type of the right operand (subtrahend)
+ */
 interface MinusAssign<in Rhs> {
+    /**
+     * 减法赋值运算符，将差赋值给左操作数
+     * Subtraction assignment operator, assigns the difference to the left operand
+     *
+     * @param rhs 减数
+     *
+     * @param rhs Subtrahend
+     */
     operator fun minusAssign(rhs: Rhs)
 }
 
+/**
+ * 自减运算符接口
+ * Decrement Operator Interface
+ *
+ * 定义自减运算，支持 -- 运算符。
+ * 自减将当前值减 1，返回自减后的新实例。
+ *
+ * Defines the decrement operation, supporting the -- operator.
+ * Decrement reduces the current value by 1 and returns a new instance after decrement.
+ *
+ * @param Self 自减运算后返回的类型
+ *
+ * @param Self The type returned after decrement operation
+ */
 interface Dec<Self> {
+    /**
+     * 自减运算符，将值减 1
+     * Decrement operator, reduces the value by 1
+     *
+     * @return 自减后的新实例
+     *
+     * @return New instance after decrement
+     */
     operator fun dec(): Dec<Self>
 }

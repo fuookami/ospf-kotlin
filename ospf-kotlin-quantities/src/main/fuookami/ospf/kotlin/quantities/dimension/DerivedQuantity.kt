@@ -1,16 +1,34 @@
+/**
+ * 导出量纲类
+ * Derived Quantity Class
+ *
+ * 由基础量纲的幂次组成，如 L²·M·T⁻²。导出量纲表示由基本物理量组合而成的复合物理量纲。
+ * Composed of powers of fundamental dimensions, such as L²·M·T⁻². Derived quantities represent composite physical dimensions formed by combining fundamental physical quantities.
+ */
 package fuookami.ospf.kotlin.quantities.dimension
 
 /**
  * 导出量纲类
  * 由基础量纲的幂次组成，如 L²·M·T⁻²
+ * / Derived quantity class composed of powers of fundamental dimensions
  */
 class DerivedQuantity(
     quantities: List<FundamentalQuantity>,
+    /** 量纲名称 / Name of the quantity */
     val name: String? = null,
+    /** 量纲符号 / Symbol of the quantity */
     val symbol: String? = null
 ) {
+    /**
+     * 排序后的量纲列表
+     * Sorted list of quantities
+     */
     val quantities = quantities.sortedBy { it.dimension.symbol }
 
+    /**
+     * 从基础量纲构造导出量纲
+     * Constructs a derived quantity from a fundamental dimension
+     */
     constructor(
         dimension: FundamentalQuantityDimension,
         name: String? = null,
@@ -21,6 +39,10 @@ class DerivedQuantity(
         symbol = symbol
     )
 
+    /**
+     * 从基础量纲值构造导出量纲
+     * Constructs a derived quantity from a fundamental quantity value
+     */
     constructor(
         quantity: FundamentalQuantity,
         name: String? = null,
@@ -31,6 +53,10 @@ class DerivedQuantity(
         symbol = symbol
     )
 
+    /**
+     * 从另一个导出量纲构造新的导出量纲
+     * Constructs a new derived quantity from another derived quantity
+     */
     constructor(
         quantity: DerivedQuantity,
         name: String? = null,
@@ -43,6 +69,7 @@ class DerivedQuantity(
 
     /**
      * 取负（所有幂次取反）
+     * Negation operator (inverts all powers)
      */
     operator fun unaryMinus(): DerivedQuantity {
         return DerivedQuantity(quantities.map { -it })
@@ -50,6 +77,10 @@ class DerivedQuantity(
 
     /**
      * 获取指定量纲的幂次
+     * Gets the power of a specified dimension
+     *
+     * @param dimension 要查询的基础量纲 / The fundamental dimension to query
+     * @return 该量纲的幂次，若不存在则返回0 / The power of the dimension, returns 0 if not present
      */
     fun getPower(dimension: FundamentalQuantityDimension): Int {
         return quantities.find { it.dimension == dimension }?.index ?: 0
@@ -57,6 +88,11 @@ class DerivedQuantity(
 
     /**
      * 添加量纲幂次
+     * Adds power to a dimension
+     *
+     * @param dimension 要添加的基础量纲 / The fundamental dimension to add
+     * @param power 要添加的幂次值 / The power value to add
+     * @return 新的导出量纲 / The new derived quantity
      */
     fun addPower(dimension: FundamentalQuantityDimension, power: Int): DerivedQuantity {
         if (power == 0) return this
@@ -79,11 +115,17 @@ class DerivedQuantity(
 
     /**
      * 检查是否为无量纲
+     * Checks if this is a dimensionless quantity
+     *
+     * @return 若无量纲则返回true / Returns true if dimensionless
      */
     fun isNone(): Boolean = quantities.isEmpty()
 
     /**
      * 获取量纲符号表示
+     * Gets the dimension symbol representation
+     *
+     * @return 量纲符号字符串，如 "L²·M·T⁻²" / Dimension symbol string, e.g., "L²·M·T⁻²"
      */
     fun dimensionSymbol(): String {
         if (isNone()) return "1"
@@ -98,6 +140,10 @@ class DerivedQuantity(
 
     /**
      * 幂次运算
+     * Power operation
+     *
+     * @param index 幂次 / The exponent
+     * @return 幂运算后的导出量纲 / The derived quantity after power operation
      */
     fun pow(index: Int): DerivedQuantity {
         if (index == 0) return DerivedQuantity(emptyList(), name, "1")
@@ -107,6 +153,9 @@ class DerivedQuantity(
 
     /**
      * 倒数
+     * Reciprocal (inverse) of the quantity
+     *
+     * @return 倒数导出量纲 / The reciprocal derived quantity
      */
     fun reciprocal(): DerivedQuantity = -this
 
@@ -132,83 +181,120 @@ class DerivedQuantity(
 
 /**
  * 无量纲常量
+ * Dimensionless constant
  */
 val DimLess = DerivedQuantity(emptyList(), "Dimensionless", "1")
 
+/**
+ * 两个基础量纲值相乘
+ * Multiplies two fundamental quantities
+ */
 operator fun FundamentalQuantity.times(other: FundamentalQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     indexes[this.dimension] = indexes.getOrDefault(this.dimension, 0) + this.index
     indexes[other.dimension] = indexes.getOrDefault(other.dimension, 0) + other.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 两个基础量纲值相除
+ * Divides two fundamental quantities
+ */
 operator fun FundamentalQuantity.div(other: FundamentalQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     indexes[this.dimension] = indexes.getOrDefault(this.dimension, 0) + this.index
     indexes[other.dimension] = indexes.getOrDefault(other.dimension, 0) - other.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 基础量纲值与导出量纲相乘
+ * Multiplies a fundamental quantity by a derived quantity
+ */
 operator fun FundamentalQuantity.times(other: DerivedQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in other.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index
     }
     indexes[this.dimension] = indexes.getOrDefault(this.dimension, 0) + this.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 基础量纲值除以导出量纲
+ * Divides a fundamental quantity by a derived quantity
+ */
 operator fun FundamentalQuantity.div(other: DerivedQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in other.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) - quantity.index
     }
     indexes[this.dimension] = indexes.getOrDefault(this.dimension, 0) + this.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 导出量纲乘以整数
+ * Multiplies a derived quantity by an integer
+ */
 operator fun DerivedQuantity.times(other: Int): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index * other
     }
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 导出量纲除以整数
+ * Divides a derived quantity by an integer
+ */
 operator fun DerivedQuantity.div(other: Int): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index / other
     }
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 导出量纲乘以基础量纲值
+ * Multiplies a derived quantity by a fundamental quantity
+ */
 operator fun DerivedQuantity.times(other: FundamentalQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index
     }
     indexes[other.dimension] = indexes.getOrDefault(other.dimension, 0) + other.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 导出量纲除以基础量纲值
+ * Divides a derived quantity by a fundamental quantity
+ */
 operator fun DerivedQuantity.div(other: FundamentalQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index
     }
     indexes[other.dimension] = indexes.getOrDefault(other.dimension, 0) - other.index
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 两个导出量纲相乘
+ * Multiplies two derived quantities
+ */
 operator fun DerivedQuantity.times(other: DerivedQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
@@ -217,10 +303,14 @@ operator fun DerivedQuantity.times(other: DerivedQuantity): DerivedQuantity {
     for (quantity in other.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) + quantity.index
     }
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }
 
+/**
+ * 两个导出量纲相除
+ * Divides two derived quantities
+ */
 operator fun DerivedQuantity.div(other: DerivedQuantity): DerivedQuantity {
     val indexes = mutableMapOf<FundamentalQuantityDimension, Int>()
     for (quantity in this.quantities) {
@@ -229,6 +319,6 @@ operator fun DerivedQuantity.div(other: DerivedQuantity): DerivedQuantity {
     for (quantity in other.quantities) {
         indexes[quantity.dimension] = indexes.getOrDefault(quantity.dimension, 0) - quantity.index
     }
-    // 过滤掉幂次为0的量纲
+    // 过滤掉幂次为0的量纲 / Filter out dimensions with power 0
     return DerivedQuantity(indexes.filter { it.value != 0 }.map { FundamentalQuantity(it.key, it.value) })
 }

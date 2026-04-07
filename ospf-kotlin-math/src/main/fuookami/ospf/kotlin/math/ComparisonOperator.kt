@@ -1,4 +1,13 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 比较运算符
+ * Comparison Operators
+ *
+ * 定义带精度的比较运算符，包括 Equal、Unequal、Less、LessEqual、Greater、GreaterEqual，
+ * 用于支持浮点数等需要容差的数值类型的精确比较。
+ * Defines precision-based comparison operators, including Equal, Unequal, Less, LessEqual, Greater, GreaterEqual,
+ * for precise comparison of numeric types that require tolerance, such as floating-point numbers.
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.operator.Abs
@@ -7,6 +16,14 @@ import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.math.operator.Neg
 
+/**
+ * 相等比较
+ * Equality comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class Equal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
@@ -25,6 +42,14 @@ data class Equal<T, U>(
     }
 }
 
+/**
+ * 不等比较
+ * Inequality comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class Unequal<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U> {
@@ -43,6 +68,14 @@ data class Unequal<T, U>(
     }
 }
 
+/**
+ * 小于比较
+ * Less-than comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class Less<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
@@ -62,6 +95,14 @@ data class Less<T, U>(
     }
 }
 
+/**
+ * 小于等于比较
+ * Less-than-or-equal comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class LessEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
@@ -80,6 +121,14 @@ data class LessEqual<T, U>(
     }
 }
 
+/**
+ * 大于比较
+ * Greater-than comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class Greater<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U> {
@@ -98,6 +147,14 @@ data class Greater<T, U>(
     }
 }
 
+/**
+ * 大于等于比较
+ * Greater-than-or-equal comparison
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class GreaterEqual<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Ord<U>, U : Neg<U> {
@@ -117,6 +174,17 @@ data class GreaterEqual<T, U>(
     }
 }
 
+/**
+ * 比较运算符集合
+ * Comparison operator collection
+ *
+ * 提供统一的带精度比较运算符接口。
+ * Provides unified precision-based comparison operator interface.
+ *
+ * @param T 值类型
+ * @param U 数值类型
+ * @property precision 比较精度
+ */
 data class ComparisonOperator<T, U>(
     val precision: U?
 ) where T : Arithmetic<U>, T : Invariant<U>, T : Minus<T, T>, U : Abs<U>, U : Ord<U>, U : Neg<U> {

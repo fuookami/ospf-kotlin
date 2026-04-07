@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.quantities.unit.*
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class P1UnitSymbolTest {
+class UnitSymbolTest {
     @Test
     fun `unitSymbol_megahertzShouldBeMHz`() {
         assertEquals("MHz", Megahertz.symbol)
@@ -25,5 +25,12 @@ class P1UnitSymbolTest {
         // Verify name and symbol are not swapped
         assertEquals("newton meter", NewtonMeter.name)
         assertEquals("N·m", NewtonMeter.symbol)
+    }
+
+    @Test
+    fun `unitSymbol_accelerationLegacySymbolsShouldBeKept`() {
+        // Keep legacy symbol for compatibility
+        assertEquals("mps2", MeterPerSquareSecond.symbol)
+        assertEquals("cmps2", CentimeterPerSquareSecond.symbol)
     }
 }

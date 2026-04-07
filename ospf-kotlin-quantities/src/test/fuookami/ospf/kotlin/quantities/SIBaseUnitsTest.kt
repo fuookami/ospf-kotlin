@@ -6,7 +6,7 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertSame
 
-class D2SIBaseUnitsTest {
+class SIBaseUnitsTest {
     @Test
     fun `siBaseUnits_shouldContainAllFundamentalQuantities`() {
         // Verify all 10 fundamental quantities have base units in SI

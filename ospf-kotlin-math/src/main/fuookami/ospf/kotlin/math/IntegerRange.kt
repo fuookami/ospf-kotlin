@@ -1,9 +1,27 @@
-﻿package fuookami.ospf.kotlin.math
+﻿/**
+ * 整数区间
+ * Integer Range
+ *
+ * 为任意整数类型提供可迭代的区间实现，支持指定步长的正向和反向迭代。
+ * Provides iterable range implementation for arbitrary integer types, supporting forward and backward iteration with specified steps.
+ */
+package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.operator.Rem
 
+/**
+ * 获取区间的最后一个元素
+ * Get the last element of the progression
+ *
+ * @param start 起始值
+ * @param end 结束值
+ * @param step 步长
+ * @param constants 数值常量
+ * @return 最后一个元素
+ * @throws IllegalArgumentException 如果步长为零
+ */
 @Throws(IllegalArgumentException::class)
 private fun <I> getProgressionLastElement(
     start: I,
@@ -24,6 +42,12 @@ private fun <I> getProgressionLastElement(
     else -> throw IllegalArgumentException("Step is zero.")
 }
 
+/**
+ * 整数迭代器
+ * Integer iterator
+ *
+ * @param I 整数类型
+ */
 internal class IntegerIterator<I>(
     first: I,
     last: I,
@@ -59,6 +83,18 @@ internal class IntegerIterator<I>(
     }
 }
 
+/**
+ * 整数区间
+ * Integer range
+ *
+ * 表示一个可迭代的整数区间，支持指定步长的正向和反向遍历。
+ * Represents an iterable integer range, supporting forward and backward traversal with specified steps.
+ *
+ * @param I 整数类型
+ * @property start 起始值
+ * @property endInclusive 结束值（包含）
+ * @property step 步长
+ */
 class IntegerRange<I>(
     override val start: I,
     override val endInclusive: I,
@@ -117,6 +153,13 @@ class IntegerRange<I>(
     }
 }
 
+/**
+ * 数值整数迭代器
+ * Numeric integer iterator
+ *
+ * @param NI 数值整数类型
+ * @param I 整数类型
+ */
 internal class NumericIntegerIterator<NI, I>(
     first: I,
     last: I,
@@ -137,6 +180,18 @@ internal class NumericIntegerIterator<NI, I>(
     override fun next(): NI = ctor(impl.next())
 }
 
+/**
+ * 数值无符号整数区间
+ * Numeric unsigned integer range
+ *
+ * 表示一个可迭代的无符号整数区间，支持指定步长的正向遍历。
+ * Represents an iterable unsigned integer range, supporting forward traversal with specified steps.
+ *
+ * @param NI 数值整数类型
+ * @param I 整数类型
+ * @property start 起始值
+ * @property endInclusive 结束值（包含）
+ */
 class NumericUIntegerRange<NI, I>(
     override val start: NI,
     override val endInclusive: NI,

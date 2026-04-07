@@ -12,12 +12,12 @@ import fuookami.ospf.kotlin.quantities.unit.AstronomicalUnit
 import fuookami.ospf.kotlin.quantities.unit.Steradian
 import fuookami.ospf.kotlin.quantities.unit.SI
 import fuookami.ospf.kotlin.quantities.dimension.StandardFundamentalQuantityDimension
-import fuookami.ospf.kotlin.quantities.dimension.SolidAngle
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
+import kotlin.math.PI
 
-class P0UnitConstantsTest {
+class UnitConstantsTest {
     @Test
     fun `unitArea_areShouldEqual100SquareMeter`() {
         val oneAre = Flt64.one * Are
@@ -112,5 +112,69 @@ class P0UnitConstantsTest {
         // Luminous flux = LuminousIntensity * SolidAngle
         // Standard unit should be Candela * Steradian
         assert(unit.quantity == fuookami.ospf.kotlin.quantities.dimension.LuminousFlux)
+    }
+
+    @Test
+    fun `unitAcceleration_standardGravityShouldEqual9_80665MeterPerSquareSecond`() {
+        val oneG = Flt64.one * StandardGravity
+        val inMps2 = oneG.to(MeterPerSquareSecond)
+        assertNotNull(inMps2)
+        assertEquals(9.80665, inMps2.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitAngularVelocity_radianPerSecondShouldEqual180OverPiDegreePerSecond`() {
+        val oneRadPerSec = Flt64.one * RadianPerSecond
+        val inDegreePerSec = oneRadPerSec.to(DegreePerSecond)
+        assertNotNull(inDegreePerSec)
+        assertEquals(180.0 / PI, inDegreePerSec.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitAngularAcceleration_radianPerSecondSquaredShouldEqual180OverPiDegreePerSecondSquared`() {
+        val oneRadPerSec2 = Flt64.one * RadianPerSecondSquared
+        val inDegreePerSec2 = oneRadPerSec2.to(DegreePerSecondSquared)
+        assertNotNull(inDegreePerSec2)
+        assertEquals(180.0 / PI, inDegreePerSec2.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitCatalyticActivity_enzymeUnitShouldEqualOneOverSixtyMillionKatal`() {
+        val oneU = Flt64.one * EnzymeUnit
+        val inKatal = oneU.to(Katal)
+        assertNotNull(inKatal)
+        assertEquals(1.0 / 60000000.0, inKatal.value.toDouble(), 1e-12)
+    }
+
+    @Test
+    fun `unitCatalyticActivity_katalShouldEqualSixtyMillionEnzymeUnit`() {
+        val oneKat = Flt64.one * Katal
+        val inEnzymeUnit = oneKat.to(EnzymeUnit)
+        assertNotNull(inEnzymeUnit)
+        assertEquals(60000000.0, inEnzymeUnit.value.toDouble(), 1e-6)
+    }
+
+    @Test
+    fun `unitPower_megawattShouldEqual1000Kilowatt`() {
+        val oneMegawatt = Flt64.one * Megawatt
+        val inKilowatt = oneMegawatt.to(Kilowatt)
+        assertNotNull(inKilowatt)
+        assertEquals(1000.0, inKilowatt.value.toDouble(), 1e-10)
+    }
+
+    @Test
+    fun `unitPower_milliwattShouldEqual0_001Watt`() {
+        val oneMilliwatt = Flt64.one * Milliwatt
+        val inWatt = oneMilliwatt.to(Watt)
+        assertNotNull(inWatt)
+        assertEquals(0.001, inWatt.value.toDouble(), 1e-12)
+    }
+
+    @Test
+    fun `unitVelocity_footPerSecondShouldEqual0_3048MeterPerSecond`() {
+        val oneFootPerSecond = Flt64.one * FootPerSecond
+        val inMeterPerSecond = oneFootPerSecond.to(MeterPerSecond)
+        assertNotNull(inMeterPerSecond)
+        assertEquals(0.3048, inMeterPerSecond.value.toDouble(), 1e-10)
     }
 }

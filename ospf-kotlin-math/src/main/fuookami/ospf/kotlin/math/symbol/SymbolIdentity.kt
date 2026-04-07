@@ -14,24 +14,77 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+/**
+ * 符号标识值类
+ * Symbol Identifier Value Class
+ *
+ * 封装符号的唯一标识字符串，提供类型安全的标识符。
+ * Wraps the unique identifier string of a symbol, providing type-safe identification.
+ *
+ * @property value 符号标识的字符串值 / String value of the symbol identifier
+ */
 @JvmInline
 value class SymbolId(val value: String) {
+    /**
+     * 返回符号标识的字符串表示。
+     * Returns the string representation of the symbol identifier.
+     *
+     * @return 符号标识的字符串值 / String value of the symbol identifier
+     */
     override fun toString(): String = value
 }
 
+/**
+ * 可标识符号接口
+ * Identifiable Symbol Interface
+ *
+ * 提供符号标识能力的接口，实现此接口的符号具有唯一标识符。
+ * Interface providing symbol identification capability.
+ * Symbols implementing this interface have unique identifiers.
+ *
+ * @property symbolId 符号的唯一标识字符串 / Unique identifier string of the symbol
+ */
 interface IdentifiedSymbol {
     val symbolId: String
 }
 
+/**
+ * 拥有者符号基类接口
+ * Owned Symbol Base Interface
+ *
+ * 继承自 [Symbol] 接口，为符号添加唯一标识符属性。
+ * Extends the [Symbol] interface, adding unique identifier property to symbols.
+ *
+ * @property id 符号的唯一标识符 / Unique identifier of the symbol
+ */
 interface OwnedSymbolLike : Symbol {
     val id: SymbolId
 }
 
+/**
+ * 拥有者符号数据类
+ * Owned Symbol Data Class
+ *
+ * 具有唯一标识符的符号实现，用于在符号计算中区分相同名称的不同符号实例。
+ * Symbol implementation with unique identifier,
+ * used to distinguish different symbol instances with the same name in symbolic computation.
+ *
+ * @property id 符号的唯一标识符 / Unique identifier of the symbol
+ * @property name 符号的名称 / Name of the symbol
+ * @property displayName 符号的显示名称（可选），用于输出和展示 / Display name (optional) for output and visualization
+ */
 data class OwnedSymbol(
     override val id: SymbolId,
     override val name: String,
     override val displayName: String? = null
 ) : OwnedSymbolLike {
+    /**
+     * 从现有符号创建拥有者符号。
+     * Creates an owned symbol from an existing symbol.
+     *
+     * @param symbol 源符号 / Source symbol
+     * @param id 符号标识符，默认使用符号的稳定标识 / Symbol identifier, defaults to the symbol's stable ID
+     */
     constructor(symbol: Symbol, id: SymbolId = symbol.stableId()) : this(
         id = id,
         name = symbol.name,
@@ -39,6 +92,22 @@ data class OwnedSymbol(
     )
 }
 
+/**
+ * 获取符号的稳定标识符。
+ * Gets the stable identifier of a symbol.
+ *
+ * 根据符号类型返回其稳定标识：
+ * - [OwnedSymbolLike] 直接返回其 id
+ * - [IdentifiedSymbol] 使用 symbolId 创建标识符
+ * - 其他类型使用名称和对象哈希码组合
+ *
+ * Returns the stable identifier based on symbol type:
+ * - [OwnedSymbolLike] returns its id directly
+ * - [IdentifiedSymbol] creates identifier from symbolId
+ * - Other types use name and object hash code combination
+ *
+ * @return 符号的稳定标识符 / Stable identifier of the symbol
+ */
 fun Symbol.stableId(): SymbolId {
     return when (this) {
         is OwnedSymbolLike -> id
@@ -47,14 +116,34 @@ fun Symbol.stableId(): SymbolId {
     }
 }
 
+/**
+ * 创建符号的拥有者副本。
+ * Creates an owned copy of the symbol.
+ *
+ * @param id 符号标识符，默认使用符号的稳定标识 / Symbol identifier, defaults to the symbol's stable ID
+ * @return 拥有者符号实例 / Owned symbol instance
+ */
 fun Symbol.owned(id: SymbolId = stableId()): OwnedSymbol {
     return OwnedSymbol(this, id)
 }
 
+/**
+ * 获取符号的身份字符串。
+ * Gets the identity string of a symbol.
+ *
+ * @return 符号的唯一身份字符串 / Unique identity string of the symbol
+ */
 fun Symbol.identity(): String {
     return stableId().value
 }
 
+/**
+ * 默认符号比较器
+ * Default Symbol Comparator
+ *
+ * 用于符号排序的比较器，首先按名称比较，名称相同则按身份标识比较。
+ * Comparator for sorting symbols, first by name, then by identity if names are equal.
+ */
 val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
     val byName = lhs.name.compareTo(rhs.name)
     if (byName != 0) {

@@ -21,19 +21,51 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+/**
+ * Dimension - 维度接口
+ * Dimension - Dimension interface
+ *
+ * 定义几何空间的维度大小，用于类型安全的几何计算。
+ * Defines the dimension size of geometric space, used for type-safe geometric calculations.
+ *
+ * @property size 维度大小 / Dimension size
+ */
 interface Dimension {
+    /** 维度大小 / Dimension size */
     val size: Int
+    /** 维度索引范围 / Dimension index range */
     val indices get() = 0 until size
 }
 
+/**
+ * Dim1 - 一维空间
+ * Dim1 - 1D space
+ *
+ * 表示一维空间（直线），维度大小为 1。
+ * Represents 1D space (line), with dimension size 1.
+ */
 data object Dim1 : Dimension {
     override val size = 1
 }
 
+/**
+ * Dim2 - 二维空间
+ * Dim2 - 2D space
+ *
+ * 表示二维空间（平面），维度大小为 2。
+ * Represents 2D space (plane), with dimension size 2.
+ */
 data object Dim2 : Dimension {
     override val size = 2
 }
 
+/**
+ * Dim3 - 三维空间
+ * Dim3 - 3D space
+ *
+ * 表示三维空间（立体），维度大小为 3。
+ * Represents 3D space (solid), with dimension size 3.
+ */
 data object Dim3 : Dimension {
     override val size = 3
 }

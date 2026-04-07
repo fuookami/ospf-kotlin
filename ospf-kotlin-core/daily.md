@@ -83,3 +83,138 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `mvn -pl ospf-kotlin-core -am test`
    - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`（8 plugin 联编）
 4. 完成后回写本文件：仅记录“新增完成项 + 剩余缺口 + 回归命令结果”。
+
+---
+
+## 2026-04-07 审阅补充（正确性 / 性能 / 测试 / design 对齐）
+
+### 结论摘要
+1. 当前代码仍存在会影响求值正确性的缺陷，需先修复再继续迁移。
+2. 当前性能瓶颈主要在缓存键设计、上下文绑定方式、IIS 停止条件缺失。
+3. 测试覆盖已改善，但仍缺关键回归：系数保持、对偶/割链路、IIS 配置生效、上下文隔离。
+4. 仅完成现有 P0/P1/P2 迁移项，**不足以**声明达到 `E:\workspace\ospf-rust\ospf-rust-core\design.md` 的架构演进结果；还需补齐 context 生命周期、FunctionSymbol context integration、二次 dual/farkas/cut、solver dual 输出等能力。
+
+### 一、审阅意见（按优先级）
+
+#### A. 正确性（P0）
+1. 线性单项式 `evaluate(values, ...)` 在 `values` 命中分支丢失系数乘法：  
+   - `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/monomial/LinearMonomial.kt:298-300`
+2. 二次单项式 `evaluate(results, ...)` / `evaluate(values, ...)` 多处分支丢失系数或重复乘系数：  
+   - `.../QuadraticMonomial.kt:525,535,565-567,592,624`
+3. `QuadraticMonomialCell.equals` 类型判断错误，当前误判为 `LinearMonomialCell`：  
+   - `.../QuadraticMonomial.kt:433`
+4. 二次对偶/法卡斯/割链路未完成（功能正确性缺口而非仅性能问题）：  
+   - `backend/intermediate_model/QuadraticTetradModel.kt:901,905`  
+   - `frontend/model/mechanism/MechanismModel.kt:788,796`
+
+#### B. 性能与可伸缩性（P1）
+1. `ValueCacheContext` 直接使用 `Pair<Any, List<Flt64>?>` 和 `Pair<Any, Map<Symbol, Flt64>>` 作为 key，带来高 hash 成本和对象分配压力：  
+   - `frontend/model/mechanism/TokenCacheContext.kt:82-83,90-124`
+2. 全局 `symbol -> tokenTable` 绑定表存在跨模型污染风险，并放大并发同步成本：  
+   - `TokenCacheContext.kt:237-253`
+3. `SolveValueConversionPolicy` 采用 `ThreadLocal`，与协程/异步 (`GlobalScope.future`) 组合下语义脆弱：  
+   - `backend/solver/value/SolveValueConversionContext.kt:5-21`  
+   - `backend/solver/SolverExt.kt:647+`
+4. IIS 删除过滤循环没有消费 `IISConfig.time/threadNum/notImprovementTime`，可能出现长时间无界迭代：  
+   - `backend/solver/iis/IISConfig.kt:10-24`  
+   - `backend/solver/iis/Linear.kt:326-397`  
+   - `backend/solver/iis/Quadratic.kt:446-517`
+
+#### C. 测试缺口（P1）
+1. 缺 “系数保持” 反向回归：当前基线测试把现有错误行为当作预期（需改为正确数学语义）。
+2. 缺 `QuadraticMonomialCell.equals/hashCode` 合约测试。
+3. 缺二次 `dual/farkas/optimal-cut/feasible-cut` 端到端回归。
+4. 缺 IIS 配置生效测试（time limit、迭代上限、无改进超时）。
+5. 缺多 `TokenTable` 并存时的 context 隔离与重绑定测试。
+
+### 二、与 Rust design.md 的对齐差距
+
+对照 `design.md`（特别是 context 初始化流程与 `Design Delta 2026-03-24`）的关键差距：
+1. 缺 `ensure_flatten/value/range_context` 的模型内生命周期管理与结构变化后重绑定语义（Rust 在 `basic_model.rs` 已落地）。
+2. 缺 `register_auxiliary_tokens(...)` / `evaluate_from_tokens(...)` 统一钩子语义（当前 Kotlin 仍以 `register(...)` + `prepare(...)` 为主）。
+3. solver 输出缺统一 dual 向量通道，不利于对偶/割统一消费。
+4. 二次链路 (`dual/farkas/cut`) 未闭环。
+5. 启发式 `migration` 模块仍有多处 TODO，与 design 中“阶段 11 已完成”不一致。
+
+> 判定标准：上述 1~4 任一未完成，都不能宣称“达到 design.md 架构演进结果”。
+
+### 三、详细改进计划（交接执行版）
+
+#### Phase 0：建立可回归基线（先做）
+1. 固化命令基线：  
+   - `mvn -pl ospf-kotlin-core -am test`  
+   - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
+2. 先补“应当失败”的回归测试（覆盖当前已知 bug），再修代码。
+3. 输出基线报告：记录失败用例、失败原因、影响模块。
+
+验收：基线报告可复现，失败点与本节问题清单逐条对应。
+
+#### Phase 1：正确性热修（阻断项，必须先清零）
+1. 修复 `LinearMonomial` / `QuadraticMonomial` 求值系数问题。
+2. 修复 `QuadraticMonomialCell.equals` 类型判断。
+3. 新增/修正单测：
+   - `evaluate(values)` 与 `evaluate(results)` 的系数一致性；
+   - 二次项 `x*y` 与线性提升项系数一致性；
+   - `equals/hashCode` 对称性、传递性、一致性。
+
+验收：新增测试通过，且不会引入现有 symbol_migration 回归退化。
+
+#### Phase 2：context 架构对齐（Design Delta 核心）
+1. 在模型层引入三类 context 的显式生命周期管理（初始化、失效、重绑定）。
+2. 将结构变化（add/remove symbol/token）与 context 重绑定绑定在同一事务语义中。
+3. 逐步替换全局 `symbolTokenTableContext` 绑定方式，避免跨模型共享状态。
+4. 引入 Kotlin 等价钩子：
+   - `registerAuxiliaryTokens(...)`
+   - `evaluateFromTokens(...)`
+   并把默认求值路径改为：token-eval 优先 -> legacy prepare 回退 -> value cache 写回。
+
+验收：多模型并发场景下，缓存与上下文不串扰；新增 context 隔离测试全部通过。
+
+#### Phase 3：完成 Cell -> math.symbol 主通道迁移（承接现有 P0/P1）
+1. 删除 `toLinearMonomialCells` / `toQuadraticMonomialCells` 等兼容桥。
+2. flatten、polynomial、inequality 全链路改为 `math.symbol` 原生结构。
+3. 清理 `core` 中对旧 cell 泛型约束与重载残留。
+
+验收：`ospf-kotlin-core` 对外 API 不再以 Cell 作为核心数据通道。
+
+#### Phase 4：二次 dual/farkas/cut + solver dual 输出闭环
+1. 完成 `QuadraticTetradModel.dual()/farkasDual()`。
+2. 完成 `QuadraticMechanismModel.generateOptimalCut()/generateFeasibleCut()`。
+3. 在统一 solver 输出层补 dual（必要时区分 linear/quadratic dual）。
+4. 插件适配层（gurobi/scip/copt...）补 dual 读取并透传。
+
+验收：二次子问题可从 solver 输出直接生成可行割与最优割，并有端到端测试。
+
+#### Phase 5：性能与稳定性优化
+1. 重构 value cache key，避免直接使用大对象 `List/Map` 作为哈希键。
+2. IIS 真正消费 `time/threadNum/notImprovementTime`，并补停止条件日志。
+3. 将 `ThreadLocal` policy 改为协程上下文安全方案（或显式参数透传）。
+
+验收：  
+1) IIS 长跑不会无界；  
+2) 并发求解下 policy 不串；  
+3) 缓存命中率与耗时在基准算例上可观测改善。
+
+#### Phase 6：测试补齐与达标判定
+1. 补齐以下测试簇：
+   - correctness：系数保持、dual/cut 数学等价；
+   - architecture：context 重绑定/隔离；
+   - performance-guard：IIS 停止条件与缓存键退化保护；
+   - compatibility：8 plugin 编译回归。
+2. 更新文档：迁移说明、API 对照、已知不兼容点。
+
+验收（可宣称“达到 design.md”）：
+1. Phase 1~5 全部完成且无 P0/P1 缺陷挂起；
+2. `design delta` 两个关键钩子已落地并有测试；
+3. 二次 dual/farkas/cut 与 solver dual 输出链路闭环；
+4. 全量回归命令通过并附结果记录。
+
+### 四、执行顺序（下一环境直接照此推进）
+1. 先跑 Phase 0 建基线并提交失败报告。
+2. 再做 Phase 1（正确性热修）并立刻回归。
+3. 按 Phase 2 -> 3 做架构迁移（每个子阶段都跑核心回归）。
+4. 完成 Phase 4 后再做 Phase 5（避免性能优化掩盖功能缺陷）。
+5. 最后 Phase 6 收敛，并在本文件回写：
+   - 已完成阶段；
+   - 剩余阻断项；
+   - 回归命令与结果。

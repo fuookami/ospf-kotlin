@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.quantities
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.quantities.dimension.*
 import fuookami.ospf.kotlin.quantities.unit.*
 import org.junit.jupiter.api.Test
@@ -9,7 +8,7 @@ import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import kotlin.test.assertNotNull
 
-class P2ConcurrencyTest {
+class ConcurrencyTest {
     @Test
     fun `unitSystem_concurrentReadWriteCacheShouldBeSafe`() {
         val executor = Executors.newFixedThreadPool(10)

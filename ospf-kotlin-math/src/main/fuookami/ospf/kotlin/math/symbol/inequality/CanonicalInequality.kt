@@ -17,11 +17,38 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
+/**
+ * 规范不等式
+ * Canonical Inequality
+ *
+ * 表示规范形式的不等式，包含左侧多项式、右侧多项式和比较运算符。
+ * 规范不等式可以表示任意次数的多项式不等式，是最通用的不等式表示形式。
+ * Represents an inequality in canonical form, containing left-hand polynomial,
+ * right-hand polynomial, and comparison operator.
+ * Canonical inequalities can represent polynomial inequalities of any degree,
+ * being the most general form of inequality representation.
+ *
+ * @property lhs 左侧规范多项式 / Left-hand canonical polynomial
+ * @property rhs 右侧规范多项式 / Right-hand canonical polynomial
+ * @property comparison 比较运算符 / Comparison operator
+ */
 data class CanonicalInequality(
     val lhs: CanonicalPolynomial<Flt64>,
     val rhs: CanonicalPolynomial<Flt64>,
     val comparison: Comparison
 ) {
+    /**
+     * 反转不等式
+     * Reverses the inequality
+     *
+     * 交换左右两侧并反转比较运算符，生成等价的不等式。
+     * 例如：a < b 反转为 b > a。
+     * Swaps left and right sides and reverses the comparison operator,
+     * generating an equivalent inequality.
+     * For example: a < b reverses to b > a.
+     *
+     * @return 反转后的不等式 / The reversed inequality
+     */
     fun reverse(): CanonicalInequality {
         return CanonicalInequality(
             lhs = rhs,
