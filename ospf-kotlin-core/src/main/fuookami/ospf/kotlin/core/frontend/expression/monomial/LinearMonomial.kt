@@ -4,6 +4,7 @@ import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.unit.*
 import fuookami.ospf.kotlin.quantities.quantity.*
@@ -296,7 +297,7 @@ data class LinearMonomialCell internal constructor(
         return when (cell) {
             is Either.Left -> {
                 if (values.containsKey(cell.value.variable)) {
-                    values[cell.value.variable]!!
+                    cell.value.coefficient * values[cell.value.variable]!!
                 } else if (tokenList != null) {
                     val token = tokenList.find(cell.value.variable)
                     if (token != null) {
@@ -428,16 +429,26 @@ data class LinearMonomialSymbol(
     val variable by symbol::left
     val exprSymbol by symbol::right
 
-    val cells: List<LinearMonomialCell>
+    val flattenedMonomials: LinearFlattenData
         get() = when (symbol) {
             is Either.Left -> {
-                listOf(LinearMonomialCell(Flt64.one, symbol.value))
+                LinearFlattenData(
+                    monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol.value)),
+                    constant = Flt64.zero
+                )
             }
 
             is Either.Right -> {
-                symbol.value.cells.map { it.copy() }
+                symbol.value.flattenedMonomials
             }
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    val cells: List<LinearMonomialCell>
+        get() = flattenedMonomials.toLinearMonomialCells()
 
     val cached: Boolean
         get() = when (symbol) {
@@ -798,17 +809,28 @@ data class LinearMonomial(
             return range
         }
 
-    override val cells: List<LinearMonomialCell>
+    val flattenedMonomials: LinearFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toLinearMonomialCells()
+                return cachedFlatten
             }
-            val cells = symbol.cells.map { it * coefficient }
-            tokenTable?.cacheLinearFlatten(flattenCacheKey, cells.toLinearFlattenData())
-            return cells
+            val symbolFlatten = symbol.flattenedMonomials
+            val flattenData = LinearFlattenData(
+                monomials = symbolFlatten.monomials.map { UtilsLinearMonomial(it.coefficient * coefficient, it.symbol) },
+                constant = symbolFlatten.constant * coefficient
+            )
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<LinearMonomialCell>
+        get() = flattenedMonomials.toLinearMonomialCells()
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedLinearFlatten(flattenCacheKey) == true
 

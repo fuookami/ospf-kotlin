@@ -16,6 +16,10 @@ abstract class Inequality<Self : Inequality<Self, Cell>, Cell : MonomialCell<Cel
     var name: String = "",
     var displayName: String? = null
 ) {
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
     open val cells: List<Cell>
         get() {
             val notConstantCells = lhs.cells.filter { !it.isConstant } + rhs.cells.filter { !it.isConstant }.map { -it }

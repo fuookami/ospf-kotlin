@@ -9,6 +9,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
@@ -103,7 +109,12 @@ interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<Line
         }
     }
 
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
     val cells: List<LinearMonomialCell>
+    val flattenedMonomials: LinearFlattenData get() = cells.toLinearFlattenData()
 
     override fun toLinearPolynomial(): LinearPolynomial {
         return LinearPolynomial(this)
@@ -133,7 +144,12 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
         }
     }
 
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
     val cells: List<QuadraticMonomialCell>
+    val flattenedMonomials: QuadraticFlattenData get() = cells.toQuadraticFlattenData()
 
     override fun toQuadraticPolynomial(): QuadraticPolynomial {
         return QuadraticPolynomial(this)
@@ -647,6 +663,8 @@ class LinearExpressionSymbol(
 
     override val operationCategory: Category = Linear
     override val polynomial: AbstractLinearPolynomial<*> get() = _polynomial
+    override val flattenedMonomials by _polynomial::flattenedMonomials
+    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
     override val cells by _polynomial::cells
 
     override fun asMutable(): MutableLinearPolynomial {
@@ -946,6 +964,8 @@ class QuadraticExpressionSymbol(
 
     override val operationCategory: Category = Quadratic
     override val polynomial: AbstractQuadraticPolynomial<*> get() = _polynomial
+    override val flattenedMonomials by _polynomial::flattenedMonomials
+    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
     override val cells by _polynomial::cells
 
     override fun asMutable(): MutableQuadraticPolynomial {

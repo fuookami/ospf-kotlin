@@ -3,7 +3,13 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -284,6 +290,20 @@ internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell>
     return cells
 }
 
+internal fun LinearFlattenData.toQuadraticFlattenData(): QuadraticFlattenData {
+    val monomials = this.monomials.map {
+        UtilsQuadraticMonomial(
+            coefficient = it.coefficient,
+            symbol1 = it.symbol as AbstractVariableItem<*, *>,
+            symbol2 = null
+        )
+    }
+    return QuadraticFlattenData(
+        monomials = monomials,
+        constant = this.constant
+    )
+}
+
 internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlattenData {
     var constant = Flt64.zero
     val monomials = mapNotNull { cell ->
@@ -317,3 +337,17 @@ internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMono
     }
     return cells
 }
+
+// Extension properties for Polynomial to access flattenedMonomials
+val Polynomial<*, *, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
+    get() = (this as AbstractLinearPolynomial<*>).flattenedMonomials
+
+val Polynomial<*, *, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
+    get() = (this as AbstractQuadraticPolynomial<*>).flattenedMonomials
+
+// Extension properties for Inequality to access flattenedMonomials
+val Inequality<*, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
+    get() = (this as LinearInequality).flattenedMonomials
+
+val Inequality<*, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
+    get() = (this as QuadraticInequality).flattenedMonomials

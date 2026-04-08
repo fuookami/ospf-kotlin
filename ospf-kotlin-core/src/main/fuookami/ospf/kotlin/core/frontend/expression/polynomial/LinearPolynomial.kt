@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
@@ -27,12 +28,29 @@ import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.core.frontend.expression.flatten.mergeLinearFlattenData
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 import fuookami.ospf.kotlin.quantities.unit.*
 
+@JvmName("calculateLinearPolynomialFlattenedMonomials")
+private fun calculateFlattenedMonomials(
+    monomials: List<LinearMonomial>,
+    constant: Flt64
+): LinearFlattenData {
+    return mergeLinearFlattenData(
+        flattenDataList = monomials.map { it.flattenedMonomials },
+        initialConstant = constant
+    )
+}
+
+@Deprecated(
+    message = "Use calculateFlattenedMonomials instead. cells is transitional compatibility layer.",
+    level = DeprecationLevel.WARNING
+)
 @JvmName("calculateLinearPolynomialCells")
 private fun cells(
     monomials: List<LinearMonomial>,
@@ -125,17 +143,24 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
             }.toSet()
         }
 
-    override val cells: List<LinearMonomialCell>
+    val flattenedMonomials: LinearFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toLinearMonomialCells()
+                return cachedFlatten
             }
-            val cells = cells(monomials, constant)
-            tokenTable?.cacheLinearFlatten(flattenCacheKey, cells.toLinearFlattenData())
-            return cells
+            val flattenData = calculateFlattenedMonomials(monomials, constant)
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<LinearMonomialCell>
+        get() = flattenedMonomials.toLinearMonomialCells()
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedLinearFlatten(flattenCacheKey) == true
 

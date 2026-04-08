@@ -1,220 +1,351 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-03-30
+日期：2026-04-08
 交接目标：下一个执行环境
 Rust 对齐参考：`E:\workspace\ospf-rust`
 
-## 已完成事项（截至当前工作区）
+## 当前结论
+1. `Phase 1`（正确性热修）已完成并通过回归。
+2. `Phase 2`（Context 生命周期）已完成并接入主链路。
+3. `Phase 3` 已完成基础迁移与主路径切换，但尚未收口到”可删除 `expression(非symbol)+inequality` 目录”。
+4. **`P0`（Phase 3 正确性阻断）已完成** ✅
+5. **`M1`（统一代数内核）已完成** ✅
+6. **`M2`（表达层收口）已完成** ✅
+7. **`M3`（引入新关系类型）已完成** ✅
+8. **`M4`（机制层去旧泛型）部分完成**（M4-1 ✅，M4-2/3 待后续）
+9. 当前首要任务是 **`M5`（模型 API 迁移）**。
 
-### 1) 统一求解入口与状态/输出主链路
+---
+
+## 最近完成事项
+
+### M3: 引入新关系类型（2026-04-08）
+1. 新建 `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口及实现
+2. 添加适配器：`LinearInequality.toRelation()` / `QuadraticInequality.toRelation()`
+3. `Constraint.kt` 新增 `LinearRelation`/`QuadraticRelation` 构造器
+4. `RelationTest.kt`：8 tests
+
+### M4: 机制层去旧泛型（部分完成 2026-04-08）
+1. `SubObject.kt` 新增 `FlattenData` 构造器
+2. `SubObjectTest.kt`：4 tests
+3. M4-2 评估结论：转换函数保留到 M8
+4. M4-3 待 M5 处理
+
+---
+
+## 已完成事项（摘要）
+
+### A. 求解入口与状态/输出链路
 1. 已落地 `SolveOptions` + `SolverExt.solveWithOptions(...)` 统一入口，覆盖 LP/QP 主路径。
-2. 旧 `LinearSolver` / `QuadraticSolver` 多重载入口保留兼容，并逐步转发到统一入口。
-3. 已完成 `ModelBuildingStage` / `ModelBuildingStatus` 统一状态桥接，旧 callback 仍可用。
+2. 旧 `LinearSolver` / `QuadraticSolver` 重载入口保留兼容并转发到统一入口。
+3. 已完成 `ModelBuildingStage` / `ModelBuildingStatus` 统一状态桥接。
 4. 统一输出字段已补齐到可行与不可行分支：`iterations/nodeCount/bestBound/mipGap/solveTime`。
-5. IIS 分支已支持从最后一次 `SolvingStatus` 回填统一字段，并对 `solveTime` 提供兜底。
 
-### 2) IIS 与中间模型补完
-1. `QuadraticTetradModel.elastic()` 已从 TODO 实现为可用逻辑。
+### B. IIS 与中间模型补完
+1. `QuadraticTetradModel.elastic()` 已实现。
 2. 线性 IIS 删除过滤已实现。
-3. 二次 IIS 已实现 elastic filtering + deletion filtering + snapshot fallback 主流程。
-4. 已新增对应回归测试（含 IIS 选项转发、统一字段回填、elastic/deletion 路径）。
+3. 二次 IIS 已实现 elastic filtering + deletion filtering + snapshot fallback。
+4. 对应回归测试已补齐（含 IIS 选项转发、统一字段回填、elastic/deletion 路径）。
 
-### 3) Token 缓存上下文改造（当前阶段）
-1. 已新增并接入 `TokenCacheContexts`：
-   - `LinearFlattenContext`
-   - `QuadraticFlattenContext`
-   - `ValueCacheContext`
-   - `RangeCacheContext`
-2. `TokenTable` flatten 缓存 API 已按线性/二次拆分：
-   - `cached/cache/clearLinearFlatten`
-   - `cached/cache/clearQuadraticFlatten`
-3. flatten 缓存载荷已改为：
-   - `LinearFlattenData(monomials: List<math.symbol.monomial.LinearMonomial>, constant)`
-   - `QuadraticFlattenData(monomials: List<math.symbol.monomial.QuadraticMonomial>, constant)`
-4. `cacheKey` 已统一为 `Any`，并已引入 `TokenCacheKey/newTokenCacheKey` 供非符号对象安全缓存。
-5. 中间符号、单项式、多项式、不等式均已接入新缓存通道（当前仍保留 Cell 兼容层做过渡）。
+### C. Token 缓存上下文改造
+1. 已接入 `TokenCacheContexts`：`LinearFlattenContext` / `QuadraticFlattenContext` / `ValueCacheContext` / `RangeCacheContext`。
+2. `TokenTable` flatten 缓存 API 已按线性/二次拆分。
+3. flatten 载荷改为：
+   - `LinearFlattenData(monomials, constant)`
+   - `QuadraticFlattenData(monomials, constant)`
+4. `cacheKey` 统一为 `Any`，并引入 `TokenCacheKey/newTokenCacheKey`。
 
-### 5) `math.symbol` 符号重载补齐（本轮新增）
-1. 已补齐 `LinearMonomial`/`QuadraticMonomial` 的常用运算符重载（`+ - * / unary-`，含常量、线性/二次多项式互算）。
-2. 已补齐 `LinearPolynomial`/`QuadraticPolynomial` 的不可变运算符重载（`+ - * / unary-`，含线性与二次互转场景）。
-3. 已补齐 `LinearInequality`/`QuadraticInequality` 的比较重载（`lt/le/eq/ne/ge/gt`），支持 monomial/polynomial/constant 组合。
-4. 已新增重载回归测试：`MonomialTest`、`PolynomialTest`、`InequalityTest`。
-5. 本轮同时补回 `CanonicalMonomial` / `CanonicalPolynomial` 缺失类型，打通 `generic/operation/serde` 对 canonical 数据层的直接编译依赖。
+### D. math.symbol 运算能力补齐
+1. `LinearMonomial` / `QuadraticMonomial` 运算符重载补齐。
+2. `LinearPolynomial` / `QuadraticPolynomial` 运算符重载补齐。
+3. `LinearInequality` / `QuadraticInequality` 比较重载补齐。
+4. canonical 类型补回（`CanonicalMonomial` / `CanonicalPolynomial`）。
 
-### 6) 本轮验证记录（增量）
-1. `mvn -pl ospf-kotlin-utils -DskipTests compile` 在一次增量链路下可通过（`math.symbol` 本轮改动文件可编译）。
-2. 当前工作区存在更大范围历史断点（与本轮重载改动非同一层级），在触发更大范围重编译时会在 `utils/math/*` 与 `symbol/operation/*` 出现大量既有编译错误，导致本轮定向测试命令无法完成收敛验证。
+### E. Phase 1（正确性热修）
+1. 修复 `LinearMonomial.evaluate(values, ...)` 系数丢失。
+2. 修复 `QuadraticMonomial.evaluate(results|values, ...)` 多处分支系数问题。
+3. 修复 `QuadraticMonomialCell.equals` 类型判断错误。
+4. 新增 `MonomialCoefficientPreservationTest`（12 tests）。
 
-### 4) 现有验证记录（最近一次）
-1. `mvn -pl ospf-kotlin-core "-Dtest=TokenCacheContextsTest,PrepareCacheKeyRegressionTest" "-Dsurefire.failIfNoSpecifiedTests=false" test` 通过（8 tests）。
-2. `mvn -pl ospf-kotlin-core -am test` 通过（utils 362 / core 77）。
-3. `mvn -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-hexaly,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mosek,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile` 通过。
+### F. Phase 2（Context 架构对齐）
+1. `AbstractMutableTokenTable` 增加生命周期方法：
+   - `ensureFlattenContext()`
+   - `ensureValueCacheContext()`
+   - `ensureRangeCacheContext()`
+   - `rebindContexts()`
+   - `invalidateAllCaches()`
+   - `invalidateSolutionCaches()`
+2. `MutableTokenTable` 已实现上述方法。
+3. `add(symbol)` 自动绑定、`remove(symbol)` 自动解绑已接入。
 
----
+### G. Phase 3（已完成部分）
+1. `flattenedMonomials` 已在 monomial/polynomial/inequality/symbol 主类型接入。
+2. `Constraint` / `SubObject` / `TokenTable` 已切到 `flattenedMonomials` 主路径。
+3. `cells` 已在核心类型标注 `@Deprecated(level = WARNING)`，作为过渡兼容层。
+4. 已新增 `FlattenMigrationGuardTest`（12 tests）用于迁移守卫。
 
-## 未完成事项（已重排，按优先级）
-
-### P0（必须优先，破坏性迁移）
-目标：`ospf-kotlin-core` 的单项式/多项式/不等式逐步移除，统一迁移到 `ospf-kotlin-utils/math/symbol` 符号运算库。
-
-1. 彻底移除 `LinearMonomialCell` / `QuadraticMonomialCell` 作为核心数据通道。
-2. `FlattenContext` 最终仅保留：
-   - `LinearFlattenContext` 对应 `math.symbol.monomial.LinearMonomial`
-   - `QuadraticFlattenContext` 对应 `math.symbol.monomial.QuadraticMonomial`
-3. 删除 `TokenCacheContext` 中 Cell 与 utils monomial 间的双向转换函数（`to*MonomialCells` 等兼容层）。
-4. 将 monomial/polynomial/inequality 的 `cells` 主路径替换为 `math.symbol` 数据结构，允许破坏性 API 迁移。
-5. 把 `ValueCacheContext` / `RangeCacheContext` 的使用面统一到中间符号 + 单项式 + 多项式（当前仅中间符号语义最完整）。
-
-### P1（P0 之后）
-1. 清理 `frontend/expression/monomial|polynomial|inequality` 中对旧 cell 类型的泛型约束与重载。
-2. 将评估/运算逻辑统一收敛到 `math.symbol.operation`，`core` 仅保留薄适配。
-3. 清理旧 API 后补齐迁移测试与编译期断言，确保调用侧尽快暴露不兼容点。
-
-### P2（稳定化）
-1. 文档更新：补充“破坏性迁移说明 + 新 API 对照表 + 典型改造样例”。
-2. 对外模块（framework/plugins/starter）做一轮编译回归，确认新类型链路完整。
+### H. 最近验证结果
+1. `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test` 通过（53 tests）。
+2. `mvn -pl ospf-kotlin-core -am test` 通过（core 101 tests，Reactor 全绿）。
+3. 历史记录：8 plugin 联编曾通过；SCIP 插件存在独立 API 兼容问题（见“已知问题”）。
 
 ---
 
-## 下个环境建议执行顺序
-1. 先做 P0-1/P0-2：把 flatten 与缓存载荷里的 cell 彻底拔掉，只保留 `math.symbol.monomial`。
-2. 再做 P0-3/P0-4：替换 monomial/polynomial/inequality 的主数据模型与对外签名。
-3. 每完成一个子阶段执行：
+## 详细实施清单（按顺序执行）
+
+说明：
+1. 状态使用：`[ ]` 未开始，`[-]` 进行中，`[x]` 已完成。
+2. 提交粒度建议：每个阶段至少 1 次可回滚提交；P0 建议拆 2~3 次小提交。
+3. 硬门禁：`P0` 未通过前，禁止进入 `M1+`。
+
+### 1. P0：Phase 3 正确性阻断（不通过不得继续）✅ 已完成
+目标：修复二次拍平正确性，建立长期守卫，阻断回归。
+
+任务拆解：
+1. `[x]` 定位 `QuadraticMonomialSymbol.flattenedMonomials` 的展开路径，补全 `constant * monomial` 分支。
+   - **修复**：在 `QuadraticMonomialSymbol.flattenedMonomials` 中添加了交叉项 `m1*c2` 和 `c1*m2`。
+2. `[x]` 检查并修复二次拍平组合中符号载荷丢失点（组合、复制、合并三个路径都检查）。
+   - **确认**：组合路径已修复，复制和合并路径无问题。
+3. `[x]` 重写 `QuadraticPolynomial` 对称项归并 key，改为确定性规范化策略（禁止依赖 `hashCode` 与插入顺序）。
+   - **修复**：改用 `identifier` 进行确定性排序，确保 `x*y` 和 `y*x` 产生相同 key。
+4. `[x]` 新增守卫测试 A：`(x + 1) * (y + 1)`，断言项集合完整（`xy/x/y/1`）。
+5. `[x]` 新增守卫测试 B：`x*y` 与 `y*x` 结果完全一致（项、系数、key）。
+6. `[x]` 新增守卫测试 C：同一语义表达式多次构造后 key 序列稳定一致。
+7. `[x]` 运行阶段小回归（见”回归命令 1”）并记录结果。
+
+产出物：
+1. 修复代码 + 3 组守卫测试（`FlattenMigrationGuardTest` 现有 15 tests）。
+2. 回归命令结果：`Tests run: 56, Failures: 0, Errors: 0, Skipped: 0`
+
+完成定义（DoD）：
+1. ✅ 新增守卫测试全部通过。
+2. ✅ 原有 baseline 不退化。
+
+风险与回退：
+1. 若归并策略改动导致波及面过大，先加兼容开关，再逐步替换旧逻辑。
+
+### 2. M1：统一代数内核（去重复实现）✅ 已完成
+目标：flatten 合并与乘法展开单点收口。
+
+任务拆解：
+1. `[x]` 建立 internal utility（拆成 merge/multiply/normalize 三类函数）。
+   - 新建 `FlattenUtility.kt`：`mergeLinearMonomials`, `mergeQuadraticMonomials`, `mergeLinearFlattenData`, `mergeQuadraticFlattenData`, `multiplyLinear`, `normalizeLinear`, `normalizeQuadratic`
+2. `[x]` 迁移线性主路径到 utility。
+   - `LinearPolynomial.calculateFlattenedMonomials` 调用 `mergeLinearFlattenData`
+3. `[x]` 迁移二次主路径到 utility。
+   - `QuadraticPolynomial.calculateFlattenedMonomials` 调用 `mergeQuadraticFlattenData`
+4. `[x]` 单项式/多项式/不等式统一调用 utility，删除分散实现。
+5. `[x]` 补充 utility 级单测（线性、二次、边界输入）。
+   - `FlattenUtilityTest`：10 tests
+6. `[x]` 执行阶段小回归并记录结果。
+   - `Tests run: 114, Failures: 0, Errors: 0, Skipped: 0`
+
+产出物：
+1. `FlattenUtility.kt` - flatten 单点实现
+2. `FlattenUtilityTest.kt` - utility 级单测
+3. LinearPolynomial/QuadraticPolynomial 改用 utility
+
+完成定义（DoD）：
+1. ✅ flatten 核心算法仅保留一套实现。
+2. ✅ 现有行为与 baseline 一致。
+
+### 3. M2：表达层收口（保留兼容壳）✅ 已完成
+目标：表达层核心计算全部走 flatten，`cells` 仅保留只读兼容。
+
+任务拆解：
+1. `[x]` `Linear/QuadraticMonomial` 主路径切到 flatten。
+   - 已使用 `symbol.flattenedMonomials` 作为主计算路径
+2. `[x]` `Linear/QuadraticPolynomial` 主路径切到 flatten。
+   - 已使用 `mergeLinearFlattenData` / `mergeQuadraticFlattenData`
+3. `[x]` `Linear/QuadraticInequality` 主路径切到 flatten。
+   - 已直接使用 `lhs.flattenedMonomials` / `rhs.flattenedMonomials`
+4. `[x]` `cells` getter 降级为兼容视图，移除参与核心计算的调用点。
+   - 所有 `cells` 标记 `@Deprecated(level = WARNING)`
+   - `cells` getter 改为 `flattenedMonomials.toMonomialCells()`
+5. `[x]` 增补”flatten 与 cells 结果一致性”回归测试。
+   - `FlattenMigrationGuardTest` 新增 4 个一致性测试（共 19 tests）
+6. `[x]` 执行阶段小回归并记录结果。
+   - `Tests run: 118, Failures: 0, Errors: 0, Skipped: 0`
+
+完成定义（DoD）：
+1. ✅ 主链路无 `.cells` 计算依赖（`cells` 仅为兼容视图）。
+2. ✅ baseline 全绿。
+
+### 4. M3：引入新关系类型，替代 `frontend/inequality` ✅ 已完成
+目标：建立新关系对象，先引入后替换。
+
+任务拆解：
+1. `[x]` 定义线性/二次关系对象（含 sign、lhs、rhs 或规范化表示）。
+   - 新建 `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口
+   - `LinearRelationImpl`/`QuadraticRelationImpl` 实现
+   - 包含 `normalize()` 方法和 `toInequality()` deprecated 适配器
+2. `[x]` 提供旧 `Inequality -> 新关系对象` 适配器（单向优先）。
+   - `LinearRelationImpl.from(inequality: LinearInequality)`
+   - `QuadraticRelationImpl.from(inequality: QuadraticInequality)`
+   - 扩展函数 `LinearInequality.toRelation()` / `QuadraticInequality.toRelation()`
+3. `[x]` `Constraint` 构造新增新关系对象入口。
+   - `LinearConstraint.invoke(relation: LinearRelation, ...)` 构造器
+   - `QuadraticConstraint.invoke(relation: QuadraticRelation, ...)` 构造器
+4. `[x]` 对新增入口补单测与示例调用。
+   - `RelationTest.kt`：8 tests
+
+产出物：
+1. `Relation.kt` - 新关系类型定义
+2. `RelationTest.kt` - 关系类型测试
+3. `Constraint.kt` 新增两个构造器
+
+完成定义（DoD）：
+1. ✅ 新调用方可不依赖 `frontend/inequality`。
+2. ✅ 旧调用方经适配后继续可用。
+3. ✅ 全量回归通过：126 tests
+
+### 5. M4：机制层去旧泛型与桥接（部分完成）
+目标：mechanism 层去掉旧 cell 泛型耦合。
+
+任务拆解：
+1. `[x]` `SubObject/Constraint` 输入签名移除 `*MonomialCell` 约束。
+   - 新增 `LinearSubObject.invoke(flattenData: LinearFlattenData, ...)` 构造器
+   - 新增 `QuadraticSubObject.invoke(flattenData: QuadraticFlattenData, ...)` 构造器
+   - 新增 `SubObjectTest.kt` 测试（4 tests）
+2. `[-]` 删除 `TokenCacheContext` 中 flatten <-> cell 双向桥接。
+   - **评估结论**：转换函数用于 deprecated `cells` 属性兼容层
+   - 保留到 M8 删除旧类型时再移除
+3. `[ ]` `MetaModel._subObjects` 去 cell 类型耦合。
+   - 需要 M5 中重构 `MetaModel.SubObject` 类定义
+4. `[ ]` 修复受影响调用点并补回归。
+
+产出物：
+1. `SubObject.kt` 新增 FlattenData 构造器
+2. `SubObjectTest.kt` - 4 tests
+3. `Constraint.kt` 已在 M3 添加 LinearRelation/QuadraticRelation 构造器
+
+完成定义（DoD）：
+1. ✅ 新调用方可直接使用 FlattenData，无需依赖 frontend 多项式类型。
+
+### 6. M5：模型 API 迁移（最大工作包）
+目标：模型对外 API 切换到新关系对象与新表达签名。
+
+任务拆解：
+1. `[ ]` 迁移 `frontend/model/Model.kt`。
+2. `[ ]` 迁移 `MetaConstraint.kt`。
+3. `[ ]` 迁移 `MetaModel.kt`。
+4. `[ ]` 迁移 `MechanismModel.kt`。
+5. `[ ]` `addConstraint/partition/addObject` 改为新签名。
+6. `[ ]` 旧签名保留短期 deprecated shim，并标注移除窗口。
+7. `[ ]` 运行 `mvn -pl ospf-kotlin-core -am test` 并记录结果。
+
+完成定义（DoD）：
+1. 模型主 API 不再 import 旧 `monomial/polynomial/inequality` 包。
+
+### 7. M6：函数符号批量迁移
+目标：函数符号层脱离旧表达类型与旧 inequality。
+
+任务拆解：
+1. `[ ]` 迁移 `expression/symbol/linear_function/*` 到 flatten + 新关系对象。
+2. `[ ]` 迁移 `expression/symbol/quadratic_function/*` 到 flatten + 新关系对象。
+3. `[ ]` 清理 `override val cells get() = ...cells` 与内部 `.cells` 读取。
+4. `[ ]` 补函数符号层回归测试。
+
+完成定义（DoD）：
+1. 函数符号层不再依赖 `frontend/inequality` 与旧表达主路径。
+
+### 8. M7：删除 `expression/adapter`
+目标：完全清空并移除 adapter 目录。
+
+任务拆解：
+1. `[ ]` 盘点 `frontend/expression/adapter` 能力与引用点。
+2. `[ ]` 仍需能力迁到 `symbol` 邻域或直接改用 `math.symbol` API。
+3. `[ ]` 删除 adapter 目录与全部引用。
+4. `[ ]` 执行编译与回归验证。
+
+完成定义（DoD）：
+1. `src/main` 无 `frontend.expression.adapter` import。
+
+### 9. M8：最终目录删除
+目标：删除旧表达与 inequality 目录，完成目录级收敛。
+
+任务拆解：
+1. `[ ]` 删除：
+   - `frontend/expression/monomial`
+   - `frontend/expression/polynomial`
+   - `frontend/expression/adapter`
+   - `frontend/expression/Expression.kt`
+   - `frontend/inequality`
+2. `[ ]` 修复编译错误直到 `ospf-kotlin-core` 全绿。
+3. `[ ]` 执行 `mvn -pl ospf-kotlin-core -am test`。
+4. `[ ]` 执行插件编译检查（见“回归命令 3”）。
+
+完成定义（DoD）：
+1. `src/main` 不再出现上述路径 import。
+
+### 10. M9：封口门禁
+目标：建立 CI 防回流机制 + 文档封口。
+
+任务拆解：
+1. `[ ]` 新增“禁止旧路径 import”扫描测试（CI 必跑）。
+2. `[ ]` 更新迁移文档（新旧 API 对照、不兼容变更、替换示例）。
+3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对。
+
+完成定义（DoD）：
+1. 后续 PR 无法回引旧路径。
+
+### 11. Phase 4：功能闭环
+目标：二次子问题 dual/cut 端到端打通。
+
+任务拆解：
+1. `[ ]` 完成 `QuadraticTetradModel.dual()/farkasDual()`。
+2. `[ ]` 完成 `QuadraticMechanismModel.generateOptimalCut()/generateFeasibleCut()`。
+3. `[ ]` 统一 solver dual 输出并打通插件透传。
+4. `[ ]` 新增端到端测试：可行割与最优割。
+
+完成定义（DoD）：
+1. 二次子问题可端到端生成可行割与最优割。
+
+### 12. Phase 5：性能稳定化
+目标：缓存键、IIS 控制与并发模型收敛。
+
+任务拆解：
+1. `[ ]` 重构 value cache key（避免 `List/Map` 大对象直接做哈希键）。
+2. `[ ]` IIS 真正消费 `time/threadNum/notImprovementTime`。
+3. `[ ]` `ThreadLocal` 改协程安全方案或显式透传。
+4. `[ ]` 增加性能观察指标（耗时、命中率、终止行为）。
+
+完成定义（DoD）：
+1. IIS 可控终止、并发不串、性能可观测改善。
+
+### 13. Phase 6：达标收敛
+目标：测试簇补齐，形成可对外交付状态。
+
+任务拆解：
+1. `[ ]` 补齐 correctness 测试簇。
+2. `[ ]` 补齐 architecture guard 测试簇。
+3. `[ ]` 补齐 performance-guard 测试簇。
+4. `[ ]` 补齐 plugin-compatibility 测试簇。
+5. `[ ]` 回写最终迁移文档与发布说明。
+
+完成定义（DoD）：
+1. 无 P0/P1 挂起，可对外声明达到 design 对齐目标。
+
+---
+
+## 回归命令（固定节奏）
+1. 阶段小回归：
+   - `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
+2. 每两到三阶段：
    - `mvn -pl ospf-kotlin-core -am test`
-   - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`（8 plugin 联编）
-4. 完成后回写本文件：仅记录“新增完成项 + 剩余缺口 + 回归命令结果”。
+3. M8/M9 完成后：
+   - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
 
 ---
 
-## 2026-04-07 审阅补充（正确性 / 性能 / 测试 / design 对齐）
+## 已知问题
+1. SCIP 插件存在 `EventHandler/EventMask` API 兼容问题（当前迁移主线非阻断）。
+2. 当前代码存在大量 `cells` 相关 deprecation warning（属过渡态，M6~M9 清理）。
 
-### 结论摘要
-1. 当前代码仍存在会影响求值正确性的缺陷，需先修复再继续迁移。
-2. 当前性能瓶颈主要在缓存键设计、上下文绑定方式、IIS 停止条件缺失。
-3. 测试覆盖已改善，但仍缺关键回归：系数保持、对偶/割链路、IIS 配置生效、上下文隔离。
-4. 仅完成现有 P0/P1/P2 迁移项，**不足以**声明达到 `E:\workspace\ospf-rust\ospf-rust-core\design.md` 的架构演进结果；还需补齐 context 生命周期、FunctionSymbol context integration、二次 dual/farkas/cut、solver dual 输出等能力。
+---
 
-### 一、审阅意见（按优先级）
-
-#### A. 正确性（P0）
-1. 线性单项式 `evaluate(values, ...)` 在 `values` 命中分支丢失系数乘法：  
-   - `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/expression/monomial/LinearMonomial.kt:298-300`
-2. 二次单项式 `evaluate(results, ...)` / `evaluate(values, ...)` 多处分支丢失系数或重复乘系数：  
-   - `.../QuadraticMonomial.kt:525,535,565-567,592,624`
-3. `QuadraticMonomialCell.equals` 类型判断错误，当前误判为 `LinearMonomialCell`：  
-   - `.../QuadraticMonomial.kt:433`
-4. 二次对偶/法卡斯/割链路未完成（功能正确性缺口而非仅性能问题）：  
-   - `backend/intermediate_model/QuadraticTetradModel.kt:901,905`  
-   - `frontend/model/mechanism/MechanismModel.kt:788,796`
-
-#### B. 性能与可伸缩性（P1）
-1. `ValueCacheContext` 直接使用 `Pair<Any, List<Flt64>?>` 和 `Pair<Any, Map<Symbol, Flt64>>` 作为 key，带来高 hash 成本和对象分配压力：  
-   - `frontend/model/mechanism/TokenCacheContext.kt:82-83,90-124`
-2. 全局 `symbol -> tokenTable` 绑定表存在跨模型污染风险，并放大并发同步成本：  
-   - `TokenCacheContext.kt:237-253`
-3. `SolveValueConversionPolicy` 采用 `ThreadLocal`，与协程/异步 (`GlobalScope.future`) 组合下语义脆弱：  
-   - `backend/solver/value/SolveValueConversionContext.kt:5-21`  
-   - `backend/solver/SolverExt.kt:647+`
-4. IIS 删除过滤循环没有消费 `IISConfig.time/threadNum/notImprovementTime`，可能出现长时间无界迭代：  
-   - `backend/solver/iis/IISConfig.kt:10-24`  
-   - `backend/solver/iis/Linear.kt:326-397`  
-   - `backend/solver/iis/Quadratic.kt:446-517`
-
-#### C. 测试缺口（P1）
-1. 缺 “系数保持” 反向回归：当前基线测试把现有错误行为当作预期（需改为正确数学语义）。
-2. 缺 `QuadraticMonomialCell.equals/hashCode` 合约测试。
-3. 缺二次 `dual/farkas/optimal-cut/feasible-cut` 端到端回归。
-4. 缺 IIS 配置生效测试（time limit、迭代上限、无改进超时）。
-5. 缺多 `TokenTable` 并存时的 context 隔离与重绑定测试。
-
-### 二、与 Rust design.md 的对齐差距
-
-对照 `design.md`（特别是 context 初始化流程与 `Design Delta 2026-03-24`）的关键差距：
-1. 缺 `ensure_flatten/value/range_context` 的模型内生命周期管理与结构变化后重绑定语义（Rust 在 `basic_model.rs` 已落地）。
-2. 缺 `register_auxiliary_tokens(...)` / `evaluate_from_tokens(...)` 统一钩子语义（当前 Kotlin 仍以 `register(...)` + `prepare(...)` 为主）。
-3. solver 输出缺统一 dual 向量通道，不利于对偶/割统一消费。
-4. 二次链路 (`dual/farkas/cut`) 未闭环。
-5. 启发式 `migration` 模块仍有多处 TODO，与 design 中“阶段 11 已完成”不一致。
-
-> 判定标准：上述 1~4 任一未完成，都不能宣称“达到 design.md 架构演进结果”。
-
-### 三、详细改进计划（交接执行版）
-
-#### Phase 0：建立可回归基线（先做）
-1. 固化命令基线：  
-   - `mvn -pl ospf-kotlin-core -am test`  
-   - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
-2. 先补“应当失败”的回归测试（覆盖当前已知 bug），再修代码。
-3. 输出基线报告：记录失败用例、失败原因、影响模块。
-
-验收：基线报告可复现，失败点与本节问题清单逐条对应。
-
-#### Phase 1：正确性热修（阻断项，必须先清零）
-1. 修复 `LinearMonomial` / `QuadraticMonomial` 求值系数问题。
-2. 修复 `QuadraticMonomialCell.equals` 类型判断。
-3. 新增/修正单测：
-   - `evaluate(values)` 与 `evaluate(results)` 的系数一致性；
-   - 二次项 `x*y` 与线性提升项系数一致性；
-   - `equals/hashCode` 对称性、传递性、一致性。
-
-验收：新增测试通过，且不会引入现有 symbol_migration 回归退化。
-
-#### Phase 2：context 架构对齐（Design Delta 核心）
-1. 在模型层引入三类 context 的显式生命周期管理（初始化、失效、重绑定）。
-2. 将结构变化（add/remove symbol/token）与 context 重绑定绑定在同一事务语义中。
-3. 逐步替换全局 `symbolTokenTableContext` 绑定方式，避免跨模型共享状态。
-4. 引入 Kotlin 等价钩子：
-   - `registerAuxiliaryTokens(...)`
-   - `evaluateFromTokens(...)`
-   并把默认求值路径改为：token-eval 优先 -> legacy prepare 回退 -> value cache 写回。
-
-验收：多模型并发场景下，缓存与上下文不串扰；新增 context 隔离测试全部通过。
-
-#### Phase 3：完成 Cell -> math.symbol 主通道迁移（承接现有 P0/P1）
-1. 删除 `toLinearMonomialCells` / `toQuadraticMonomialCells` 等兼容桥。
-2. flatten、polynomial、inequality 全链路改为 `math.symbol` 原生结构。
-3. 清理 `core` 中对旧 cell 泛型约束与重载残留。
-
-验收：`ospf-kotlin-core` 对外 API 不再以 Cell 作为核心数据通道。
-
-#### Phase 4：二次 dual/farkas/cut + solver dual 输出闭环
-1. 完成 `QuadraticTetradModel.dual()/farkasDual()`。
-2. 完成 `QuadraticMechanismModel.generateOptimalCut()/generateFeasibleCut()`。
-3. 在统一 solver 输出层补 dual（必要时区分 linear/quadratic dual）。
-4. 插件适配层（gurobi/scip/copt...）补 dual 读取并透传。
-
-验收：二次子问题可从 solver 输出直接生成可行割与最优割，并有端到端测试。
-
-#### Phase 5：性能与稳定性优化
-1. 重构 value cache key，避免直接使用大对象 `List/Map` 作为哈希键。
-2. IIS 真正消费 `time/threadNum/notImprovementTime`，并补停止条件日志。
-3. 将 `ThreadLocal` policy 改为协程上下文安全方案（或显式参数透传）。
-
-验收：  
-1) IIS 长跑不会无界；  
-2) 并发求解下 policy 不串；  
-3) 缓存命中率与耗时在基准算例上可观测改善。
-
-#### Phase 6：测试补齐与达标判定
-1. 补齐以下测试簇：
-   - correctness：系数保持、dual/cut 数学等价；
-   - architecture：context 重绑定/隔离；
-   - performance-guard：IIS 停止条件与缓存键退化保护；
-   - compatibility：8 plugin 编译回归。
-2. 更新文档：迁移说明、API 对照、已知不兼容点。
-
-验收（可宣称“达到 design.md”）：
-1. Phase 1~5 全部完成且无 P0/P1 缺陷挂起；
-2. `design delta` 两个关键钩子已落地并有测试；
-3. 二次 dual/farkas/cut 与 solver dual 输出链路闭环；
-4. 全量回归命令通过并附结果记录。
-
-### 四、执行顺序（下一环境直接照此推进）
-1. 先跑 Phase 0 建基线并提交失败报告。
-2. 再做 Phase 1（正确性热修）并立刻回归。
-3. 按 Phase 2 -> 3 做架构迁移（每个子阶段都跑核心回归）。
-4. 完成 Phase 4 后再做 Phase 5（避免性能优化掩盖功能缺陷）。
-5. 最后 Phase 6 收敛，并在本文件回写：
-   - 已完成阶段；
-   - 剩余阻断项；
-   - 回归命令与结果。
+## 下个环境起手顺序（严格执行）
+1. 先做 `P0`（交叉项/归并策略修复 + 守卫测试）。
+2. 再按 `M1 -> M9` 完成目录级迁移与删除。
+3. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
+4. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果。

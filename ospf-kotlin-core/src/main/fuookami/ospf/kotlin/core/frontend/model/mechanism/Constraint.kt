@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialC
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
 import fuookami.ospf.kotlin.core.frontend.model.Solution
+import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -94,31 +95,24 @@ class LinearConstraint(
             tokens: AbstractTokenTable
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.constraint.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token = tokens.find(temp.value.variable)
-                        if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                LinearCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token = token
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.constraint.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val token = tokens.find(variable)
+                if (token != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        LinearCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token = token
+                        )
+                    )
                 }
             }
             return LinearConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.constraint.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 lazy = inequality.lazy,
                 name = inequality.constraint.name,
                 origin = inequality
@@ -131,33 +125,63 @@ class LinearConstraint(
             from: Pair<IntermediateSymbol, Boolean>? = null,
         ): LinearConstraint {
             val lhs = ArrayList<LinearCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token = tokens.find(temp.value.variable)
-                        if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                LinearCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token = token
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val token = tokens.find(variable)
+                if (token != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        LinearCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token = token
+                        )
+                    )
                 }
             }
             return LinearConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 name = inequality.name,
                 origin = null,
+                from = from
+            )
+        }
+
+        /**
+         * Create LinearConstraint from LinearRelation (new API)
+         */
+        operator fun invoke(
+            relation: LinearRelation,
+            tokens: AbstractTokenTable,
+            lazy: Boolean = false,
+            name: String = "",
+            origin: MetaConstraint<*>? = null,
+            from: Pair<IntermediateSymbol, Boolean>? = null,
+        ): LinearConstraint {
+            val lhs = ArrayList<LinearCell>()
+            val flattenData = relation.flattenData
+            for (monomial in flattenData.monomials) {
+                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val token = tokens.find(variable)
+                if (token != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        LinearCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token = token
+                        )
+                    )
+                }
+            }
+            return LinearConstraint(
+                lhs = lhs,
+                sign = Sign(relation.sign),
+                rhs = -flattenData.constant,
+                lazy = lazy,
+                name = name.ifEmpty { relation.name },
+                origin = origin,
                 from = from
             )
         }
@@ -188,31 +212,24 @@ class QuadraticConstraint(
             tokens: AbstractTokenTable
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.constraint.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token = tokens.find(temp.value.variable)
-                        if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                QuadraticCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token1 = token
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.constraint.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val token = tokens.find(variable)
+                if (token != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        QuadraticCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token1 = token
+                        )
+                    )
                 }
             }
             return QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.constraint.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 lazy = inequality.lazy,
                 name = inequality.constraint.name,
                 origin = inequality,
@@ -227,31 +244,24 @@ class QuadraticConstraint(
             from: Pair<IntermediateSymbol, Boolean>? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token = tokens.find(temp.value.variable)
-                        if (token != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                QuadraticCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token1 = token
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val token = tokens.find(variable)
+                if (token != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        QuadraticCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token1 = token
+                        )
+                    )
                 }
             }
             return QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 name = inequality.name,
                 origin = null,
                 from = from
@@ -264,37 +274,30 @@ class QuadraticConstraint(
             tokens: AbstractTokenTable
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.constraint.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token1 = tokens.find(temp.value.variable1)
-                        val token2 = if (temp.value.variable2 != null) {
-                            tokens.find(temp.value.variable2!!) ?: continue
-                        } else {
-                            null
-                        }
-                        if (token1 != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                QuadraticCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token1 = token1,
-                                    token2 = token2
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.constraint.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                val token1 = tokens.find(variable1)
+                val token2 = if (monomial.symbol2 != null) {
+                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
+                } else {
+                    null
+                }
+                if (token1 != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        QuadraticCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token1 = token1,
+                            token2 = token2
+                        )
+                    )
                 }
             }
             return QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.constraint.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 name = inequality.constraint.name,
                 origin = inequality,
                 from = null
@@ -308,39 +311,75 @@ class QuadraticConstraint(
             from: Pair<IntermediateSymbol, Boolean>? = null
         ): QuadraticConstraint {
             val lhs = ArrayList<QuadraticCell>()
-            var rhs = Flt64.zero
-            for (cell in inequality.cells) {
-                when (val temp = cell.cell) {
-                    is Either.Left -> {
-                        val token1 = tokens.find(temp.value.variable1)
-                        val token2 = if (temp.value.variable2 != null) {
-                            tokens.find(temp.value.variable2!!) ?: continue
-                        } else {
-                            null
-                        }
-                        if (token1 != null && temp.value.coefficient neq Flt64.zero) {
-                            lhs.add(
-                                QuadraticCell(
-                                    tokenTable = tokens,
-                                    coefficient = temp.value.coefficient,
-                                    token1 = token1,
-                                    token2 = token2
-                                )
-                            )
-                        }
-                    }
-
-                    is Either.Right -> {
-                        rhs += temp.value
-                    }
+            val flattenData = inequality.flattenedMonomials
+            for (monomial in flattenData.monomials) {
+                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                val token1 = tokens.find(variable1)
+                val token2 = if (monomial.symbol2 != null) {
+                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
+                } else {
+                    null
+                }
+                if (token1 != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        QuadraticCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token1 = token1,
+                            token2 = token2
+                        )
+                    )
                 }
             }
             return QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(inequality.sign),
-                rhs = -rhs,
+                rhs = -flattenData.constant,
                 name = inequality.name,
                 origin = null,
+                from = from
+            )
+        }
+
+        /**
+         * Create QuadraticConstraint from QuadraticRelation (new API)
+         */
+        operator fun invoke(
+            relation: QuadraticRelation,
+            tokens: AbstractTokenTable,
+            lazy: Boolean = false,
+            name: String = "",
+            origin: MetaConstraint<*>? = null,
+            from: Pair<IntermediateSymbol, Boolean>? = null,
+        ): QuadraticConstraint {
+            val lhs = ArrayList<QuadraticCell>()
+            val flattenData = relation.flattenData
+            for (monomial in flattenData.monomials) {
+                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                val token1 = tokens.find(variable1)
+                val token2 = if (monomial.symbol2 != null) {
+                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
+                } else {
+                    null
+                }
+                if (token1 != null && monomial.coefficient neq Flt64.zero) {
+                    lhs.add(
+                        QuadraticCell(
+                            tokenTable = tokens,
+                            coefficient = monomial.coefficient,
+                            token1 = token1,
+                            token2 = token2
+                        )
+                    )
+                }
+            }
+            return QuadraticConstraint(
+                lhs = lhs,
+                sign = Sign(relation.sign),
+                rhs = -flattenData.constant,
+                lazy = lazy,
+                name = name.ifEmpty { relation.name },
+                origin = origin,
                 from = from
             )
         }

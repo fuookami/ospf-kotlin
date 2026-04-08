@@ -602,11 +602,11 @@ private fun AbstractTokenTable.cacheSymbolContext(symbol: IntermediateSymbol) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol -> {
-            cacheLinearFlatten(symbol, symbol.cells.toLinearFlattenData())
+            cacheLinearFlatten(symbol, symbol.flattenedMonomials)
         }
 
         is QuadraticIntermediateSymbol -> {
-            cacheQuadraticFlatten(symbol, symbol.cells.toQuadraticFlattenData())
+            cacheQuadraticFlatten(symbol, symbol.flattenedMonomials)
         }
     }
     cacheRange(symbol, symbol.range)

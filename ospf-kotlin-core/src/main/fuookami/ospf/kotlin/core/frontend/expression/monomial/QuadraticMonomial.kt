@@ -9,10 +9,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.ExpressionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -430,7 +432,7 @@ data class QuadraticMonomialCell internal constructor(
     override fun hashCode(): Int = cell.hashCode()
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LinearMonomialCell) return false
+        if (other !is QuadraticMonomialCell) return false
 
         if (cell != other.cell) return false
 
@@ -522,7 +524,7 @@ data class QuadraticMonomialCell internal constructor(
                 if (cell.value.variable2 == null) {
                     val index = tokenList.indexOf(cell.value.variable1)
                     if (index != null && index != -1) {
-                        results[index]
+                        cell.value.coefficient * results[index]
                     } else {
                         logger.trace { "Unknown index for ${cell.value.variable1}." }
                         null
@@ -532,7 +534,7 @@ data class QuadraticMonomialCell internal constructor(
                     if (index != null) {
                         val index2 = tokenList.indexOf(cell.value.variable2!!)
                         if (index2 != null) {
-                            results[index] * results[index2]
+                            cell.value.coefficient * results[index] * results[index2]
                         } else {
                             logger.trace { "Unknown index for ${cell.value.variable2}." }
                             null
@@ -563,7 +565,7 @@ data class QuadraticMonomialCell internal constructor(
             is Either.Left -> {
                 if (cell.value.variable2 == null) {
                     if (values.containsKey(cell.value.variable1)) {
-                        values[cell.value.variable1]!!
+                        cell.value.coefficient * values[cell.value.variable1]!!
                     } else if (tokenList != null) {
                         val token = tokenList.find(cell.value.variable1)
                         if (token != null) {
@@ -589,7 +591,7 @@ data class QuadraticMonomialCell internal constructor(
                         if (token != null) {
                             val result = token.result
                             if (result != null) {
-                                cell.value.coefficient * result
+                                result
                             } else {
                                 logger.trace { "Unknown result for ${cell.value.variable1}" }
                                 null
@@ -621,7 +623,7 @@ data class QuadraticMonomialCell internal constructor(
                         null
                     }
                     if (value1 != null && value2 != null) {
-                        value1 * value2
+                        cell.value.coefficient * value1 * value2
                     } else {
                         null
                     }
@@ -813,26 +815,30 @@ data class QuadraticMonomialSymbol(
                 }
             }
 
-        val QuadraticMonomialSymbolUnit.cells
+        val QuadraticMonomialSymbolUnit.flattenedMonomials: QuadraticFlattenData
             get() = when (this) {
                 is Variant3.V1 -> {
-                    listOf(
-                        QuadraticMonomialCell(
-                            coefficient = Flt64.one,
-                            variable1 = this.value,
-                            variable2 = null
-                        )
+                    QuadraticFlattenData(
+                        monomials = listOf(UtilsQuadraticMonomial(Flt64.one, this.value, null)),
+                        constant = Flt64.zero
                     )
                 }
 
                 is Variant3.V2 -> {
-                    this.value.cells.map { QuadraticMonomialCell(it) }
+                    this.value.flattenedMonomials.toQuadraticFlattenData()
                 }
 
                 is Variant3.V3 -> {
-                    this.value.cells.map { it.copy() }
+                    this.value.flattenedMonomials
                 }
             }
+
+        @Deprecated(
+            message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+            level = DeprecationLevel.WARNING
+        )
+        val QuadraticMonomialSymbolUnit.cells
+            get() = flattenedMonomials.toQuadraticMonomialCells()
 
         val QuadraticMonomialSymbolUnit.cached
             get() = when (this) {
@@ -1200,22 +1206,63 @@ data class QuadraticMonomialSymbol(
         symbol1 is Variant3.V1 && symbol2 is Variant3.V1
     }
 
-    val cells: List<QuadraticMonomialCell>
+    val flattenedMonomials: QuadraticFlattenData
         get() {
             return if (symbol2 == null) {
-                symbol1.cells
+                symbol1.flattenedMonomials
             } else {
-                val cells1 = symbol1.cells
-                val cells2 = symbol2.cells
-                val cells = ArrayList<QuadraticMonomialCell>()
-                for (cell1 in cells1) {
-                    for (cell2 in cells2) {
-                        cells.add(cell1 * cell2)
+                val flatten1 = symbol1.flattenedMonomials
+                val flatten2 = symbol2.flattenedMonomials
+                val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+
+                // (m1 + c1) * (m2 + c2) = m1*m2 + m1*c2 + c1*m2 + c1*c2
+
+                // m1 * m2 terms (quadratic terms)
+                for (m1 in flatten1.monomials) {
+                    for (m2 in flatten2.monomials) {
+                        monomials.add(UtilsQuadraticMonomial(
+                            coefficient = m1.coefficient * m2.coefficient,
+                            symbol1 = m1.symbol1 as AbstractVariableItem<*, *>,
+                            symbol2 = m2.symbol1 as AbstractVariableItem<*, *>?
+                        ))
                     }
                 }
-                cells
+
+                // m1 * c2 terms (linear terms from flatten1)
+                if (flatten2.constant neq Flt64.zero) {
+                    for (m1 in flatten1.monomials) {
+                        monomials.add(UtilsQuadraticMonomial(
+                            coefficient = m1.coefficient * flatten2.constant,
+                            symbol1 = m1.symbol1 as AbstractVariableItem<*, *>,
+                            symbol2 = null
+                        ))
+                    }
+                }
+
+                // c1 * m2 terms (linear terms from flatten2)
+                if (flatten1.constant neq Flt64.zero) {
+                    for (m2 in flatten2.monomials) {
+                        monomials.add(UtilsQuadraticMonomial(
+                            coefficient = flatten1.constant * m2.coefficient,
+                            symbol1 = m2.symbol1 as AbstractVariableItem<*, *>,
+                            symbol2 = null
+                        ))
+                    }
+                }
+
+                QuadraticFlattenData(
+                    monomials = monomials,
+                    constant = flatten1.constant * flatten2.constant
+                )
             }
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    val cells: List<QuadraticMonomialCell>
+        get() = flattenedMonomials.toQuadraticMonomialCells()
 
     val cached get() = symbol1.cached || (symbol2?.cached == true)
 
@@ -1735,17 +1782,30 @@ class QuadraticMonomial(
             return range
         }
 
-    override val cells: List<QuadraticMonomialCell>
+    val flattenedMonomials: QuadraticFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toQuadraticMonomialCells()
+                return cachedFlatten
             }
-            val cells = symbol.cells.map { it * coefficient }
-            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, cells.toQuadraticFlattenData())
-            return cells
+            val symbolFlatten = symbol.flattenedMonomials
+            val flattenData = QuadraticFlattenData(
+                monomials = symbolFlatten.monomials.map {
+                    UtilsQuadraticMonomial(it.coefficient * coefficient, it.symbol1, it.symbol2)
+                },
+                constant = symbolFlatten.constant * coefficient
+            )
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<QuadraticMonomialCell>
+        get() = flattenedMonomials.toQuadraticMonomialCells()
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedQuadraticFlatten(flattenCacheKey) == true
 

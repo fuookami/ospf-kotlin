@@ -1,5 +1,6 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
+import fuookami.ospf.kotlin.core.frontend.expression.flatten.mergeQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsValueProvider
@@ -12,6 +13,7 @@ import fuookami.ospf.kotlin.core.frontend.inequality.ToQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
@@ -25,12 +27,28 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.*
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 import fuookami.ospf.kotlin.quantities.unit.*
 
+@JvmName("calculateQuadraticPolynomialFlattenedMonomials")
+private fun calculateFlattenedMonomials(
+    monomials: List<QuadraticMonomial>,
+    constant: Flt64
+): QuadraticFlattenData {
+    return mergeQuadraticFlattenData(
+        flattenDataList = monomials.map { it.flattenedMonomials },
+        initialConstant = constant
+    )
+}
+
+@Deprecated(
+    message = "Use calculateFlattenedMonomials instead. cells is transitional compatibility layer.",
+    level = DeprecationLevel.WARNING
+)
 @JvmName("calculateQuadraticPolynomialCells")
 private fun cells(
     monomials: List<QuadraticMonomial>,
@@ -145,17 +163,24 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
             }.toSet()
         }
 
-    override val cells: List<QuadraticMonomialCell>
+    val flattenedMonomials: QuadraticFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toQuadraticMonomialCells()
+                return cachedFlatten
             }
-            val cells = cells(monomials, constant)
-            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, cells.toQuadraticFlattenData())
-            return cells
+            val flattenData = calculateFlattenedMonomials(monomials, constant)
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<QuadraticMonomialCell>
+        get() = flattenedMonomials.toQuadraticMonomialCells()
     override val cached: Boolean
         get() = cacheTokenTable()?.cachedQuadraticFlatten(flattenCacheKey) == true
 

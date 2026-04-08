@@ -1,0 +1,199 @@
+package fuookami.ospf.kotlin.core.frontend.model.mechanism
+
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+
+/**
+ * LinearRelation - New relation type for linear constraints
+ *
+ * This type uses LinearFlattenData as the primary data carrier,
+ * providing a normalized representation for linear relations.
+ *
+ * Design goals:
+ * - Replace dependency on frontend/inequality types
+ * - Use FlattenData directly (no cell conversion needed)
+ * - Provide clear, normalized representation
+ */
+sealed interface LinearRelation {
+    val flattenData: LinearFlattenData
+    val sign: Sign
+    val name: String
+    val displayName: String?
+
+    /**
+     * Normalize to canonical form (<= or ==)
+     */
+    fun normalize(): LinearRelation
+
+    /**
+     * Convert to legacy LinearInequality for compatibility
+     */
+    @Deprecated(
+        message = "Use LinearRelation directly. This is for backward compatibility only.",
+        level = DeprecationLevel.WARNING
+    )
+    fun toInequality(): LinearInequality
+}
+
+/**
+ * QuadraticRelation - New relation type for quadratic constraints
+ */
+sealed interface QuadraticRelation {
+    val flattenData: QuadraticFlattenData
+    val sign: Sign
+    val name: String
+    val displayName: String?
+
+    /**
+     * Normalize to canonical form (<= or ==)
+     */
+    fun normalize(): QuadraticRelation
+
+    /**
+     * Convert to legacy QuadraticInequality for compatibility
+     */
+    @Deprecated(
+        message = "Use QuadraticRelation directly. This is for backward compatibility only.",
+        level = DeprecationLevel.WARNING
+    )
+    fun toInequality(): QuadraticInequality
+}
+
+/**
+ * Default implementation of LinearRelation
+ */
+data class LinearRelationImpl(
+    override val flattenData: LinearFlattenData,
+    override val sign: Sign,
+    override val name: String = "",
+    override val displayName: String? = null
+) : LinearRelation {
+
+    override fun normalize(): LinearRelation {
+        return when (sign) {
+            Sign.Greater -> LinearRelationImpl(
+                flattenData = LinearFlattenData(
+                    monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
+                    constant = -flattenData.constant
+                ),
+                sign = Sign.Less,
+                name = name,
+                displayName = displayName
+            )
+            Sign.GreaterEqual -> LinearRelationImpl(
+                flattenData = LinearFlattenData(
+                    monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
+                    constant = -flattenData.constant
+                ),
+                sign = Sign.LessEqual,
+                name = name,
+                displayName = displayName
+            )
+            else -> this
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun toInequality(): LinearInequality {
+        // Create cells from flattenData
+        val cells = flattenData.toLinearMonomialCells()
+        val nonConstantCells = cells.filter { !it.isConstant }
+        val constantCell = cells.find { it.isConstant }
+
+        // Build lhs and rhs from cells
+        val lhsCells = nonConstantCells + listOfNotNull(constantCell)
+        // For now, we need to reconstruct the inequality
+        // This is a compatibility bridge, real usage should avoid this
+        throw NotImplementedError("toInequality() is deprecated and should not be used. Use LinearRelation directly.")
+    }
+
+    companion object {
+        /**
+         * Create LinearRelation from LinearInequality (adapter)
+         */
+        @Suppress("DEPRECATION")
+        fun from(inequality: LinearInequality): LinearRelationImpl {
+            return LinearRelationImpl(
+                flattenData = inequality.flattenedMonomials,
+                sign = inequality.sign,
+                name = inequality.name,
+                displayName = inequality.displayName
+            )
+        }
+    }
+}
+
+/**
+ * Default implementation of QuadraticRelation
+ */
+data class QuadraticRelationImpl(
+    override val flattenData: QuadraticFlattenData,
+    override val sign: Sign,
+    override val name: String = "",
+    override val displayName: String? = null
+) : QuadraticRelation {
+
+    override fun normalize(): QuadraticRelation {
+        return when (sign) {
+            Sign.Greater -> QuadraticRelationImpl(
+                flattenData = QuadraticFlattenData(
+                    monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
+                    constant = -flattenData.constant
+                ),
+                sign = Sign.Less,
+                name = name,
+                displayName = displayName
+            )
+            Sign.GreaterEqual -> QuadraticRelationImpl(
+                flattenData = QuadraticFlattenData(
+                    monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
+                    constant = -flattenData.constant
+                ),
+                sign = Sign.LessEqual,
+                name = name,
+                displayName = displayName
+            )
+            else -> this
+        }
+    }
+
+    @Suppress("DEPRECATION")
+    override fun toInequality(): QuadraticInequality {
+        throw NotImplementedError("toInequality() is deprecated and should not be used. Use QuadraticRelation directly.")
+    }
+
+    companion object {
+        /**
+         * Create QuadraticRelation from QuadraticInequality (adapter)
+         */
+        @Suppress("DEPRECATION")
+        fun from(inequality: QuadraticInequality): QuadraticRelationImpl {
+            return QuadraticRelationImpl(
+                flattenData = inequality.flattenedMonomials,
+                sign = inequality.sign,
+                name = inequality.name,
+                displayName = inequality.displayName
+            )
+        }
+    }
+}
+
+// ========== Extension functions for conversion ==========
+
+/**
+ * Convert LinearInequality to LinearRelation
+ */
+@Suppress("DEPRECATION")
+fun LinearInequality.toRelation(): LinearRelation = LinearRelationImpl.from(this)
+
+/**
+ * Convert QuadraticInequality to QuadraticRelation
+ */
+@Suppress("DEPRECATION")
+fun QuadraticInequality.toRelation(): QuadraticRelation = QuadraticRelationImpl.from(this)

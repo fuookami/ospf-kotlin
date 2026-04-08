@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSy
 import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeLinearMonomialsByUtils
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
@@ -21,6 +22,7 @@ import fuookami.ospf.kotlin.math.BalancedTrivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
@@ -48,43 +50,46 @@ class LinearInequality(
             .firstOrNull()
     }
 
-    override val cells: List<LinearMonomialCell>
+    val flattenedMonomials: LinearFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedLinearFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toLinearMonomialCells()
+                return cachedFlatten
             }
 
-            val cells = HashMap<VariableItemKey, LinearMonomialCell>()
-            var constant = Flt64.zero
-            for (cell in lhs.cells) {
-                when (val symbol = cell.cell) {
-                    is Either.Left -> {
-                        cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it + cell } ?: cell
-                    }
+            val lhsFlatten = lhs.flattenedMonomials
+            val rhsFlatten = rhs.flattenedMonomials
 
-                    is Either.Right -> {
-                        constant += symbol.value
-                    }
+            val mergedMonomials = HashMap<VariableItemKey, UtilsLinearMonomial<Flt64>>()
+            for (monomial in lhsFlatten.monomials) {
+                val key = (monomial.symbol as AbstractVariableItem<*, *>).key
+                mergedMonomials[key] = monomial
+            }
+            for (monomial in rhsFlatten.monomials) {
+                val key = (monomial.symbol as AbstractVariableItem<*, *>).key
+                val existing = mergedMonomials[key]
+                if (existing != null) {
+                    mergedMonomials[key] = UtilsLinearMonomial(existing.coefficient - monomial.coefficient, existing.symbol)
+                } else {
+                    mergedMonomials[key] = UtilsLinearMonomial(-monomial.coefficient, monomial.symbol)
                 }
             }
-            for (cell in rhs.cells) {
-                when (val symbol = cell.cell) {
-                    is Either.Left -> {
-                        cells[symbol.value.variable.key] = cells[symbol.value.variable.key]?.let { it - cell } ?: -cell
-                    }
 
-                    is Either.Right -> {
-                        constant -= symbol.value
-                    }
-                }
-            }
-            val ret = cells.map { it.value }.toMutableList()
-            ret.add(LinearMonomialCell(constant))
-            tokenTable?.cacheLinearFlatten(flattenCacheKey, ret.toLinearFlattenData())
-            return ret
+            val flattenData = LinearFlattenData(
+                monomials = mergedMonomials.values.filter { it.coefficient neq Flt64.zero },
+                constant = lhsFlatten.constant - rhsFlatten.constant
+            )
+            tokenTable?.cacheLinearFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<LinearMonomialCell>
+        get() = flattenedMonomials.toLinearMonomialCells()
 
     override fun flush(force: Boolean) {
         super.flush(force)

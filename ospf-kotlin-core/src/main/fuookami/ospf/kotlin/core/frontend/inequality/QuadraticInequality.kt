@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediat
 import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeQuadraticMonomialsByUtils
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
@@ -24,6 +25,7 @@ import fuookami.ospf.kotlin.math.BalancedTrivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
@@ -63,45 +65,60 @@ class QuadraticInequality(
         }
     }
 
-    override val cells: List<QuadraticMonomialCell>
+    val flattenedMonomials: QuadraticFlattenData
         get() {
             val tokenTable = cacheTokenTable()
             val cachedFlatten = tokenTable?.cachedQuadraticFlattenValue(flattenCacheKey)
             if (cachedFlatten != null) {
-                return cachedFlatten.toQuadraticMonomialCells()
+                return cachedFlatten
             }
 
-            val cells = HashMap<Pair<VariableItemKey, VariableItemKey?>, QuadraticMonomialCell>()
-            var constant = Flt64.zero
-            for (cell in lhs.cells) {
-                when (val symbol = cell.cell) {
-                    is Either.Left -> {
-                        val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
-                        cells[key] = cells[key]?.let { it + cell } ?: cell
-                    }
+            val lhsFlatten = lhs.flattenedMonomials
+            val rhsFlatten = rhs.flattenedMonomials
 
-                    is Either.Right -> {
-                        constant += symbol.value
-                    }
+            val mergedMonomials = HashMap<Pair<VariableItemKey, VariableItemKey?>, UtilsQuadraticMonomial<Flt64>>()
+            for (monomial in lhsFlatten.monomials) {
+                val key = Pair(
+                    (monomial.symbol1 as AbstractVariableItem<*, *>).key,
+                    monomial.symbol2?.let { (it as AbstractVariableItem<*, *>).key }
+                )
+                mergedMonomials[key] = monomial
+            }
+            for (monomial in rhsFlatten.monomials) {
+                val key = Pair(
+                    (monomial.symbol1 as AbstractVariableItem<*, *>).key,
+                    monomial.symbol2?.let { (it as AbstractVariableItem<*, *>).key }
+                )
+                val existing = mergedMonomials[key]
+                if (existing != null) {
+                    mergedMonomials[key] = UtilsQuadraticMonomial(
+                        existing.coefficient - monomial.coefficient,
+                        existing.symbol1,
+                        existing.symbol2
+                    )
+                } else {
+                    mergedMonomials[key] = UtilsQuadraticMonomial(
+                        -monomial.coefficient,
+                        monomial.symbol1,
+                        monomial.symbol2
+                    )
                 }
             }
-            for (cell in rhs.cells) {
-                when (val symbol = cell.cell) {
-                    is Either.Left -> {
-                        val key = Pair(symbol.value.variable1.key, symbol.value.variable2?.key)
-                        cells[key] = cells[key]?.let { it - cell } ?: -cell
-                    }
 
-                    is Either.Right -> {
-                        constant -= symbol.value
-                    }
-                }
-            }
-            val ret = cells.map { it.value }.toMutableList()
-            ret.add(QuadraticMonomialCell(constant))
-            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, ret.toQuadraticFlattenData())
-            return ret
+            val flattenData = QuadraticFlattenData(
+                monomials = mergedMonomials.values.filter { it.coefficient neq Flt64.zero },
+                constant = lhsFlatten.constant - rhsFlatten.constant
+            )
+            tokenTable?.cacheQuadraticFlatten(flattenCacheKey, flattenData)
+            return flattenData
         }
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<QuadraticMonomialCell>
+        get() = flattenedMonomials.toQuadraticMonomialCells()
 
     override fun flush(force: Boolean) {
         super.flush(force)
