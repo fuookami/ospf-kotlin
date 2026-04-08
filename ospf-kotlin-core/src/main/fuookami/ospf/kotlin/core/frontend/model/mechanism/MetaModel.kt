@@ -11,6 +11,12 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelationConstraint
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelationConstraint
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenSubObject
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenSubObject
 import fuookami.ospf.kotlin.core.frontend.model.LinearModel
 import fuookami.ospf.kotlin.core.frontend.model.Model
 import fuookami.ospf.kotlin.core.frontend.model.QuadraticModel
@@ -641,6 +647,20 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try
 
+    /**
+     * Add constraint using LinearRelation (new API)
+     */
+    fun addConstraint(
+        relation: LinearRelation,
+        group: MetaConstraintGroup?,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        priority: Int? = null,
+        withRangeSet: Boolean? = false
+    ): Try
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -792,6 +812,20 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         withRangeSet: Boolean? = null
     ): Try
 
+    /**
+     * Add constraint using QuadraticRelation (new API)
+     */
+    fun addConstraint(
+        relation: QuadraticRelation,
+        group: MetaConstraintGroup?,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        priority: Int? = null,
+        withRangeSet: Boolean? = null
+    ): Try
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticMonomials")
     fun partition(
@@ -912,8 +946,17 @@ class LinearMetaModel(
 ) : AbstractMetaModel(Linear, configuration), AbstractLinearMetaModel {
     internal val _constraints: MutableList<MetaConstraint<LinearInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
+
+    // NEW: Relation-based constraints storage
+    internal val _relationConstraints: MutableList<LinearRelationConstraint> = ArrayList()
+    val relationConstraints: List<LinearRelationConstraint> by ::_relationConstraints
+
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
+
+    // NEW: FlattenData-based sub-objects storage
+    internal val _flattenSubObjects: MutableList<LinearFlattenSubObject> = ArrayList()
+    val flattenSubObjects: List<LinearFlattenSubObject> by ::_flattenSubObjects
 
     override fun addConstraint(
         constraint: LinearInequality,
@@ -972,6 +1015,48 @@ class LinearMetaModel(
         return ok
     }
 
+    /**
+     * Add objective using LinearFlattenData (new API)
+     */
+    override fun addObject(
+        category: ObjectCategory,
+        flattenData: LinearFlattenData,
+        name: String,
+        displayName: String?
+    ): Try {
+        _flattenSubObjects.add(
+            LinearFlattenSubObject(
+                category = category,
+                flattenData = flattenData,
+                name = name,
+                displayName = displayName
+            )
+        )
+        return ok
+    }
+
+    /**
+     * Add constraint using LinearRelation (new API - LinearModel interface)
+     */
+    override fun addConstraint(
+        relation: LinearRelation,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        withRangeSet: Boolean?
+    ): Try {
+        return addConstraint(
+            relation = relation,
+            group = null,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = null,
+            priority = null,
+            withRangeSet = withRangeSet
+        )
+    }
+
     override fun toString(): String {
         return name
     }
@@ -1024,6 +1109,41 @@ class LinearMetaModel(
 
         return ok
     }
+
+    /**
+     * Add constraint using LinearRelation (new API)
+     */
+    override fun addConstraint(
+        relation: LinearRelation,
+        group: MetaConstraintGroup?,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        priority: Int?,
+        withRangeSet: Boolean?
+    ): Try {
+        val namedRelation = if (name != null || displayName != null) {
+            LinearRelationImpl(
+                flattenData = relation.flattenData,
+                sign = relation.sign,
+                name = name ?: relation.name,
+                displayName = displayName ?: relation.displayName
+            )
+        } else {
+            relation
+        }
+        _relationConstraints.add(
+            LinearRelationConstraint(
+                relation = namedRelation,
+                group = group,
+                lazy = lazy,
+                args = args,
+                priority = priority
+            )
+        )
+        return ok
+    }
 }
 
 class QuadraticMetaModel(
@@ -1033,8 +1153,49 @@ class QuadraticMetaModel(
 ) : AbstractMetaModel(Quadratic, configuration), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
     internal val _constraints: MutableList<MetaConstraint<QuadraticInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
+
+    // NEW: Relation-based constraints storage
+    internal val _relationConstraints: MutableList<QuadraticRelationConstraint> = ArrayList()
+    val relationConstraints: List<QuadraticRelationConstraint> by ::_relationConstraints
+
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
+
+    // NEW: FlattenData-based sub-objects storage
+    internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject> = ArrayList()
+    val flattenSubObjects: List<QuadraticFlattenSubObject> by ::_flattenSubObjects
+
+    /**
+     * Add LinearRelation constraint - converts to QuadraticRelation internally
+     */
+    override fun addConstraint(
+        relation: LinearRelation,
+        group: MetaConstraintGroup?,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        priority: Int?,
+        withRangeSet: Boolean?
+    ): Try {
+        // Convert LinearRelation to QuadraticRelation using toQuadraticFlattenData()
+        val quadraticRelation = QuadraticRelationImpl(
+            flattenData = relation.flattenData.toQuadraticFlattenData(),
+            sign = relation.sign,
+            name = name ?: relation.name,
+            displayName = displayName ?: relation.displayName
+        )
+        return addConstraint(
+            relation = quadraticRelation,
+            group = group,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            priority = priority,
+            withRangeSet = withRangeSet
+        )
+    }
 
     override fun addConstraint(
         constraint: LinearInequality,
@@ -1097,6 +1258,72 @@ class QuadraticMetaModel(
         return ok
     }
 
+    /**
+     * Add constraint using LinearRelation (new API - LinearModel interface)
+     */
+    override fun addConstraint(
+        relation: LinearRelation,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        withRangeSet: Boolean?
+    ): Try {
+        // Convert LinearRelation to QuadraticRelation
+        val quadraticRelation = QuadraticRelationImpl(
+            flattenData = relation.flattenData.toQuadraticFlattenData(),
+            sign = relation.sign,
+            name = name ?: relation.name,
+            displayName = displayName ?: relation.displayName
+        )
+        return addConstraint(
+            relation = quadraticRelation,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    /**
+     * Add constraint using QuadraticRelation (new API - QuadraticModel interface)
+     */
+    override fun addConstraint(
+        relation: QuadraticRelation,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        withRangeSet: Boolean?
+    ): Try {
+        return addConstraint(
+            relation = relation,
+            group = null,
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            args = null,
+            priority = null,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    /**
+     * Add objective using LinearFlattenData (new API - LinearModel interface)
+     * Converts to QuadraticFlattenData internally.
+     */
+    override fun addObject(
+        category: ObjectCategory,
+        flattenData: LinearFlattenData,
+        name: String,
+        displayName: String?
+    ): Try {
+        return addObject(
+            category = category,
+            flattenData = flattenData.toQuadraticFlattenData(),
+            name = name,
+            displayName = displayName
+        )
+    }
+
     override fun addConstraint(
         constraint: QuadraticInequality,
         group: MetaConstraintGroup?,
@@ -1147,6 +1374,41 @@ class QuadraticMetaModel(
         return ok
     }
 
+    /**
+     * Add constraint using QuadraticRelation (new API)
+     */
+    override fun addConstraint(
+        relation: QuadraticRelation,
+        group: MetaConstraintGroup?,
+        lazy: Boolean,
+        name: String?,
+        displayName: String?,
+        args: Any?,
+        priority: Int?,
+        withRangeSet: Boolean?
+    ): Try {
+        val namedRelation = if (name != null || displayName != null) {
+            QuadraticRelationImpl(
+                flattenData = relation.flattenData,
+                sign = relation.sign,
+                name = name ?: relation.name,
+                displayName = displayName ?: relation.displayName
+            )
+        } else {
+            relation
+        }
+        _relationConstraints.add(
+            QuadraticRelationConstraint(
+                relation = namedRelation,
+                group = group,
+                lazy = lazy,
+                args = args,
+                priority = priority
+            )
+        )
+        return ok
+    }
+
     override fun addObject(
         category: ObjectCategory,
         polynomial: AbstractQuadraticPolynomial<*>,
@@ -1161,6 +1423,26 @@ class QuadraticMetaModel(
                 parent = this,
                 category = category,
                 polynomial = obj
+            )
+        )
+        return ok
+    }
+
+    /**
+     * Add objective using QuadraticFlattenData (new API)
+     */
+    override fun addObject(
+        category: ObjectCategory,
+        flattenData: QuadraticFlattenData,
+        name: String,
+        displayName: String?
+    ): Try {
+        _flattenSubObjects.add(
+            QuadraticFlattenSubObject(
+                category = category,
+                flattenData = flattenData,
+                name = name,
+                displayName = displayName
             )
         )
         return ok

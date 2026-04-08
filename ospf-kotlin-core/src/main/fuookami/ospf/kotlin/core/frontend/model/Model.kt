@@ -9,6 +9,10 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
@@ -240,6 +244,17 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try
 
+    /**
+     * Add constraint using LinearRelation (new API)
+     */
+    fun addConstraint(
+        relation: LinearRelation,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -362,6 +377,16 @@ interface LinearModel : Model {
         category: ObjectCategory,
         polynomial: AbstractLinearPolynomial<*>,
         name: String? = null,
+        displayName: String? = null
+    ): Try
+
+    /**
+     * Add objective using LinearFlattenData (new API)
+     */
+    fun addObject(
+        category: ObjectCategory,
+        flattenData: LinearFlattenData,
+        name: String = "",
         displayName: String? = null
     ): Try
 
@@ -517,6 +542,17 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try
 
+    /**
+     * Add constraint using QuadraticRelation (new API)
+     */
+    fun addConstraint(
+        relation: QuadraticRelation,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
+    ): Try
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticMonomials")
     fun partition(
@@ -665,6 +701,16 @@ interface QuadraticModel : LinearModel {
         category: ObjectCategory,
         polynomial: AbstractQuadraticPolynomial<*>,
         name: String? = null,
+        displayName: String? = null
+    ): Try
+
+    /**
+     * Add objective using QuadraticFlattenData (new API)
+     */
+    fun addObject(
+        category: ObjectCategory,
+        flattenData: QuadraticFlattenData,
+        name: String = "",
         displayName: String? = null
     ): Try
 

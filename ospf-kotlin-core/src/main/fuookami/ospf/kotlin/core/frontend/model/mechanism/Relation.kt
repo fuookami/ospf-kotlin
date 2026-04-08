@@ -35,8 +35,9 @@ sealed interface LinearRelation {
      * Convert to legacy LinearInequality for compatibility
      */
     @Deprecated(
-        message = "Use LinearRelation directly. This is for backward compatibility only.",
-        level = DeprecationLevel.WARNING
+        message = "Use LinearRelation directly. This is for backward compatibility only. Will be removed in M9.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("this", "fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation")
     )
     fun toInequality(): LinearInequality
 }
@@ -59,8 +60,9 @@ sealed interface QuadraticRelation {
      * Convert to legacy QuadraticInequality for compatibility
      */
     @Deprecated(
-        message = "Use QuadraticRelation directly. This is for backward compatibility only.",
-        level = DeprecationLevel.WARNING
+        message = "Use QuadraticRelation directly. This is for backward compatibility only. Will be removed in M9.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith("this", "fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation")
     )
     fun toInequality(): QuadraticInequality
 }

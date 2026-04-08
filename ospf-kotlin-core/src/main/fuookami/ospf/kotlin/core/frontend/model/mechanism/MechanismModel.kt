@@ -45,6 +45,27 @@ interface AbstractLinearMechanismModel : MechanismModel {
             from = from?.let { it to false }
         )
     }
+
+    /**
+     * Add constraint using LinearRelation (new API)
+     */
+    fun addConstraint(
+        relation: LinearRelation,
+        name: String? = null,
+        from: Pair<IntermediateSymbol, Boolean>? = null,
+    ): Try
+
+    fun addConstraint(
+        relation: LinearRelation,
+        name: String? = null,
+        from: IntermediateSymbol?,
+    ): Try {
+        return addConstraint(
+            relation = relation,
+            name = name,
+            from = from?.let { it to false }
+        )
+    }
 }
 
 interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
@@ -73,6 +94,27 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     ): Try {
         return addConstraint(
             constraint = constraint,
+            name = name,
+            from = from?.let { it to false }
+        )
+    }
+
+    /**
+     * Add constraint using QuadraticRelation (new API)
+     */
+    fun addConstraint(
+        relation: QuadraticRelation,
+        name: String? = null,
+        from: Pair<IntermediateSymbol, Boolean>? = null
+    ): Try
+
+    fun addConstraint(
+        relation: QuadraticRelation,
+        name: String? = null,
+        from: IntermediateSymbol?
+    ): Try {
+        return addConstraint(
+            relation = relation,
             name = name,
             from = from?.let { it to false }
         )
@@ -383,6 +425,23 @@ class LinearMechanismModel(
             LinearConstraint(
                 inequality = constraint,
                 tokens = tokens,
+                from = from
+            )
+        )
+        return ok
+    }
+
+    override fun addConstraint(
+        relation: LinearRelation,
+        name: String?,
+        from: Pair<IntermediateSymbol, Boolean>?
+    ): Try {
+        _constraints.add(
+            LinearConstraint(
+                relation = relation,
+                tokens = tokens,
+                lazy = false,
+                name = name ?: relation.name,
                 from = from
             )
         )
@@ -772,6 +831,43 @@ class QuadraticMechanismModel(
             QuadraticConstraint(
                 inequality = constraint,
                 tokens = tokens,
+                from = from
+            )
+        )
+        return ok
+    }
+
+    override fun addConstraint(
+        relation: LinearRelation,
+        name: String?,
+        from: Pair<IntermediateSymbol, Boolean>?
+    ): Try {
+        // Convert LinearRelation to QuadraticRelation
+        val quadraticFlattenData = relation.flattenData.toQuadraticFlattenData()
+        val quadraticRelation = QuadraticRelationImpl(
+            flattenData = quadraticFlattenData,
+            sign = relation.sign,
+            name = name ?: relation.name,
+            displayName = relation.displayName
+        )
+        return addConstraint(
+            relation = quadraticRelation,
+            name = name,
+            from = from
+        )
+    }
+
+    override fun addConstraint(
+        relation: QuadraticRelation,
+        name: String?,
+        from: Pair<IntermediateSymbol, Boolean>?
+    ): Try {
+        _constraints.add(
+            QuadraticConstraint(
+                relation = relation,
+                tokens = tokens,
+                lazy = false,
+                name = name ?: relation.name,
                 from = from
             )
         )

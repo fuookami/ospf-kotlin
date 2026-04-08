@@ -12,24 +12,41 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 5. **`M1`（统一代数内核）已完成** ✅
 6. **`M2`（表达层收口）已完成** ✅
 7. **`M3`（引入新关系类型）已完成** ✅
-8. **`M4`（机制层去旧泛型）部分完成**（M4-1 ✅，M4-2/3 待后续）
-9. 当前首要任务是 **`M5`（模型 API 迁移）**。
+8. **`M4`（机制层去旧泛型）已完成** ✅
+9. **`M5`（模型 API 迁移）已完成** ✅
+10. **`M6`（函数符号迁移）进入重拆执行版** - 按 `R0~R4` 分批落地
+11. **`M7`（删除 adapter）并入重拆流程** - 按依赖收敛顺序删除
+12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
+
+**下一步行动**：
+1. 固化 `R0` 基线扫描与阶段回归脚本，先拿稳定对比面。
+2. 先做 `R1~R4`，把函数符号从 `frontend/inequality` 与 `.cells` 主路径中剥离。
+3. 再做 `R5~R9`，删除旧目录并完成 M8 收口。
 
 ---
 
 ## 最近完成事项
+
+### M5: 模型 API 迁移（2026-04-08）
+1. `MetaConstraint.kt` 新增 `LinearRelationConstraint`/`QuadraticRelationConstraint` 类型
+2. `MetaConstraint.kt` 新增 `LinearFlattenSubObject`/`QuadraticFlattenSubObject` 类型
+3. `MetaModel.kt` 新增 `_relationConstraints` 和 `_flattenSubObjects` 存储
+4. `MetaModel.kt` 新增 `addConstraint(relation: ...)` 和 `addObject(flattenData: ...)` 方法
+5. `Model.kt` 接口新增 Relation 和 FlattenData 类型的 API
+6. `MechanismModel.kt` 新增 `addConstraint(relation: ...)` 方法
+7. 回归测试：`Tests run: 130, Failures: 0, Errors: 0, Skipped: 0`
+
+### M4: 机制层去旧泛型（已完成 2026-04-08）
+1. `SubObject.kt` 新增 `FlattenData` 构造器
+2. `SubObjectTest.kt`：4 tests
+3. M4-2 评估结论：转换函数保留到 M8
+4. M4-3 已在 M5 中处理 ✅
 
 ### M3: 引入新关系类型（2026-04-08）
 1. 新建 `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口及实现
 2. 添加适配器：`LinearInequality.toRelation()` / `QuadraticInequality.toRelation()`
 3. `Constraint.kt` 新增 `LinearRelation`/`QuadraticRelation` 构造器
 4. `RelationTest.kt`：8 tests
-
-### M4: 机制层去旧泛型（部分完成 2026-04-08）
-1. `SubObject.kt` 新增 `FlattenData` 构造器
-2. `SubObjectTest.kt`：4 tests
-3. M4-2 评估结论：转换函数保留到 M8
-4. M4-3 待 M5 处理
 
 ---
 
@@ -199,7 +216,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 2. ✅ 旧调用方经适配后继续可用。
 3. ✅ 全量回归通过：126 tests
 
-### 5. M4：机制层去旧泛型与桥接（部分完成）
+### 5. M4：机制层去旧泛型与桥接 ✅ 已完成
 目标：mechanism 层去掉旧 cell 泛型耦合。
 
 任务拆解：
@@ -207,12 +224,12 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - 新增 `LinearSubObject.invoke(flattenData: LinearFlattenData, ...)` 构造器
    - 新增 `QuadraticSubObject.invoke(flattenData: QuadraticFlattenData, ...)` 构造器
    - 新增 `SubObjectTest.kt` 测试（4 tests）
-2. `[-]` 删除 `TokenCacheContext` 中 flatten <-> cell 双向桥接。
+2. `[x]` 删除 `TokenCacheContext` 中 flatten <-> cell 双向桥接。
    - **评估结论**：转换函数用于 deprecated `cells` 属性兼容层
    - 保留到 M8 删除旧类型时再移除
-3. `[ ]` `MetaModel._subObjects` 去 cell 类型耦合。
-   - 需要 M5 中重构 `MetaModel.SubObject` 类定义
-4. `[ ]` 修复受影响调用点并补回归。
+3. `[x]` `MetaModel._subObjects` 去 cell 类型耦合。
+   - 在 M5 中新增 `_flattenSubObjects` 存储 FlattenData 类型
+4. `[x]` 修复受影响调用点并补回归。
 
 产出物：
 1. `SubObject.kt` 新增 FlattenData 构造器
@@ -222,72 +239,116 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 完成定义（DoD）：
 1. ✅ 新调用方可直接使用 FlattenData，无需依赖 frontend 多项式类型。
 
-### 6. M5：模型 API 迁移（最大工作包）
+### 6. M5：模型 API 迁移 ✅ 已完成
 目标：模型对外 API 切换到新关系对象与新表达签名。
 
 任务拆解：
-1. `[ ]` 迁移 `frontend/model/Model.kt`。
-2. `[ ]` 迁移 `MetaConstraint.kt`。
-3. `[ ]` 迁移 `MetaModel.kt`。
-4. `[ ]` 迁移 `MechanismModel.kt`。
-5. `[ ]` `addConstraint/partition/addObject` 改为新签名。
-6. `[ ]` 旧签名保留短期 deprecated shim，并标注移除窗口。
-7. `[ ]` 运行 `mvn -pl ospf-kotlin-core -am test` 并记录结果。
+1. `[x]` 迁移 `frontend/model/Model.kt`。
+   - 新增 `addConstraint(relation: LinearRelation/QuadraticRelation)` 接口方法
+   - 新增 `addObject(flattenData: LinearFlattenData/QuadraticFlattenData)` 接口方法
+2. `[x]` 迁移 `MetaConstraint.kt`。
+   - 新增 `LinearRelationConstraint`/`QuadraticRelationConstraint` 类型
+   - 新增 `LinearFlattenSubObject`/`QuadraticFlattenSubObject` 类型
+   - 新增 `toRelationConstraint()` 适配器
+3. `[x]` 迁移 `MetaModel.kt`。
+   - 新增 `_relationConstraints` 和 `_flattenSubObjects` 存储
+   - 新增 `addConstraint(relation: ...)` 实现
+   - 新增 `addObject(flattenData: ...)` 实现
+4. `[x]` 迁移 `MechanismModel.kt`。
+   - 新增 `addConstraint(relation: ...)` 方法实现
+5. `[x]` `addConstraint/partition/addObject` 改为新签名。
+6. `[x]` 旧签名保留短期 deprecated shim，并标注移除窗口。
+7. `[x]` 运行 `mvn -pl ospf-kotlin-core -am test` 并记录结果。
+   - `Tests run: 130, Failures: 0, Errors: 0, Skipped: 0`
 
 完成定义（DoD）：
-1. 模型主 API 不再 import 旧 `monomial/polynomial/inequality` 包。
+1. ✅ 模型主 API 新增 Relation 和 FlattenData 类型入口。
+2. ✅ 旧 API 保留为 deprecated 兼容层。
+3. ✅ 全量回归通过：130 tests
 
-### 7. M6：函数符号批量迁移
-目标：函数符号层脱离旧表达类型与旧 inequality。
+### 7. M6：函数符号迁移（重拆执行版，2026-04-09）
+目标：优先清理函数符号对 `frontend/inequality` 的直接依赖，再清理 `.cells` 计算读取。
+
+基线盘点（2026-04-09）：
+1. `expression/symbol` 总计 56 文件，其中 52 文件仍有旧路径 import（259 处）。
+2. 显式 `LinearInequality/QuadraticInequality` 类型依赖集中在 7 文件。
+3. `eq/leq/geq` DSL 使用 682 处（51 文件）。
+4. `.cells` 读取 140 处（48 文件）。
+
+任务拆解（R0~R4）：
+1. `[ ]` `R0` 冻结扫描基线与回归脚本，提交“仅统计无行为变更”提交。
+2. `[ ]` `R1` 在 mechanism 层补齐 relation DSL 壳（`flattenEq/flattenLeq/flattenGeq` 或等价 API），覆盖函数符号当前使用组合。
+3. `[ ]` `R2` 优先迁移 7 个显式 inequality 类型文件：
+   - `linear_function/If.kt`
+   - `linear_function/IfThen.kt`
+   - `linear_function/Inequality.kt`
+   - `linear_function/SameAs.kt`
+   - `linear_function/SatisfiedAmount.kt`
+   - `linear_function/SatisfiedAmountInequality.kt`
+   - `quadratic_function/Inequality.kt`
+4. `[ ]` `R3` 分 4 批迁移其余 operator-only 函数符号文件（逻辑类/离散化类/区间分段类/取整极值类），每批一条可回滚提交。
+5. `[ ]` `R4` 清理函数符号内 `.cells` 读取，统一改为 `flattenedMonomials` 主路径，并补充对应回归。
+
+阶段门禁（M6 完成定义）：
+1. `expression/symbol` 目录外部 `frontend.inequality` import 归零。
+2. 函数符号内 `.cells` 读取归零（保留 deprecated getter 但不参与计算）。
+3. 阶段回归绿灯：
+   - `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
+
+### 8. M7：删除 `expression/adapter`（并入重拆流程）
+目标：按依赖收敛顺序删除 adapter，不再与旧表达层耦合。
 
 任务拆解：
-1. `[ ]` 迁移 `expression/symbol/linear_function/*` 到 flatten + 新关系对象。
-2. `[ ]` 迁移 `expression/symbol/quadratic_function/*` 到 flatten + 新关系对象。
-3. `[ ]` 清理 `override val cells get() = ...cells` 与内部 `.cells` 读取。
-4. `[ ]` 补函数符号层回归测试。
+1. `[ ]` 在 `R5` 后先删除 `frontend/inequality/adapter`（确保无引用）。
+2. `[ ]` 在 `R9` 时删除 `frontend/expression/adapter`（与 monomial/polynomial 同步删除）。
+3. `[ ]` 增加守卫扫描，禁止新增 adapter import 回流。
 
 完成定义（DoD）：
-1. 函数符号层不再依赖 `frontend/inequality` 与旧表达主路径。
+1. `src/main` 不再存在 `frontend.expression.adapter` / `frontend.inequality.adapter` import。
 
-### 8. M7：删除 `expression/adapter`
-目标：完全清空并移除 adapter 目录。
+### 9. M8：最终目录删除（重拆执行版）
+目标：完成目录级收敛，删除旧表达与 inequality 实现。
 
-任务拆解：
-1. `[ ]` 盘点 `frontend/expression/adapter` 能力与引用点。
-2. `[ ]` 仍需能力迁到 `symbol` 邻域或直接改用 `math.symbol` API。
-3. `[ ]` 删除 adapter 目录与全部引用。
-4. `[ ]` 执行编译与回归验证。
+当前规模（2026-04-09 扫描）：
+1. `frontend.inequality` 外部 import：132 处（56 文件）。
+2. `frontend.expression.monomial/polynomial` 外部 import：216 处（70 文件）。
 
-完成定义（DoD）：
-1. `src/main` 无 `frontend.expression.adapter` import。
+前置条件：
+1. M6 的 `R0~R4` 全部完成并通过阶段门禁。
 
-### 9. M8：最终目录删除
-目标：删除旧表达与 inequality 目录，完成目录级收敛。
-
-任务拆解：
-1. `[ ]` 删除：
+任务拆解（R5~R9）：
+1. `[ ]` `R5` 删除 `frontend/inequality`（含适配层），修复编译到 `ospf-kotlin-core` 全绿。
+2. `[ ]` `R6` 抽离函数符号 flatten 内核（加减乘、比较、range/evaluate 所需最小能力），摆脱对 monomial/polynomial 实现类型依赖。
+3. `[ ]` `R7` 迁移 `IntermediateSymbol` / `SymbolCombination` 到 flatten 内核接口。
+4. `[ ]` `R8` 完成 `linear_function(33)` + `quadratic_function(21)` 全量迁移并回归。
+5. `[ ]` `R9` 删除：
    - `frontend/expression/monomial`
    - `frontend/expression/polynomial`
    - `frontend/expression/adapter`
    - `frontend/expression/Expression.kt`
-   - `frontend/inequality`
-2. `[ ]` 修复编译错误直到 `ospf-kotlin-core` 全绿。
-3. `[ ]` 执行 `mvn -pl ospf-kotlin-core -am test`。
-4. `[ ]` 执行插件编译检查（见“回归命令 3”）。
+6. `[ ]` 执行全量回归：
+   - `mvn -pl ospf-kotlin-core -am test`
+7. `[ ]` 执行插件编译检查（见“回归命令 3”）。
 
 完成定义（DoD）：
-1. `src/main` 不再出现上述路径 import。
+1. `src/main` 不再出现上述旧路径 import。
+2. `ospf-kotlin-core` 全量测试通过。
 
-### 10. M9：封口门禁
-目标：建立 CI 防回流机制 + 文档封口。
+### 10. M9：封口门禁（强化）
+目标：建立“删完后不可回流”的 CI 门禁与文档封口。
 
 任务拆解：
-1. `[ ]` 新增“禁止旧路径 import”扫描测试（CI 必跑）。
-2. `[ ]` 更新迁移文档（新旧 API 对照、不兼容变更、替换示例）。
-3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对。
+1. `[ ]` 新增 CI 扫描测试，禁止以下 import：
+   - `frontend.inequality`
+   - `frontend.expression.monomial`
+   - `frontend.expression.polynomial`
+   - `frontend.expression.adapter`
+2. `[ ]` 更新迁移文档（旧 DSL -> relation/flatten API 对照表）。
+3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对（旧路径 import、`.cells` 计算读取）。
 
 完成定义（DoD）：
 1. 后续 PR 无法回引旧路径。
+2. 新增功能默认按 relation/flatten API 开发。
 
 ### 11. Phase 4：功能闭环
 目标：二次子问题 dual/cut 端到端打通。
@@ -345,7 +406,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 ---
 
 ## 下个环境起手顺序（严格执行）
-1. 先做 `P0`（交叉项/归并策略修复 + 守卫测试）。
-2. 再按 `M1 -> M9` 完成目录级迁移与删除。
-3. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
-4. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果。
+1. 从 `M6/R0` 起步：先冻结扫描基线与阶段回归脚本。
+2. 按 `R1 -> R4` 完成函数符号层去 inequality/.cells 主路径依赖。
+3. 按 `R5 -> R9` 完成目录级删除与 M8 收口。
+4. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
+5. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果。

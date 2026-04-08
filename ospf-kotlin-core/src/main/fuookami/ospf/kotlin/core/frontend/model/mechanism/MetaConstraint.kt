@@ -11,8 +11,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediat
 import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
 import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.toRelation
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -329,6 +333,52 @@ interface MetaConstraintGroup {
             args = args
         )
     }
+
+    // ========== NEW Relation-based API ==========
+
+    /**
+     * Add constraint using LinearRelation (new API)
+     */
+    fun AbstractLinearMetaModel.addConstraint(
+        relation: LinearRelation,
+        lazy: Boolean? = null,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return this.addConstraint(
+            relation = relation,
+            group = this@MetaConstraintGroup,
+            lazy = lazy ?: this@MetaConstraintGroup.lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    /**
+     * Add constraint using QuadraticRelation (new API)
+     */
+    fun AbstractQuadraticMetaModel.addConstraint(
+        relation: QuadraticRelation,
+        lazy: Boolean? = null,
+        name: String? = null,
+        displayName: String? = null,
+        args: Any? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        return this.addConstraint(
+            relation = relation,
+            group = this@MetaConstraintGroup,
+            lazy = lazy ?: this@MetaConstraintGroup.lazy,
+            name = name,
+            displayName = displayName,
+            args = args,
+            withRangeSet = withRangeSet
+        )
+    }
 }
 
 data class MetaConstraint<Ineq : Inequality<*, *>>(
@@ -342,6 +392,110 @@ data class MetaConstraint<Ineq : Inequality<*, *>>(
         return constraint.toString()
     }
 }
+
+// ========== NEW Relation-based Constraint Types ==========
+
+/**
+ * LinearRelationConstraint - Constraint using LinearRelation (new API)
+ *
+ * This type uses LinearFlattenData directly, avoiding dependency on frontend/inequality.
+ */
+data class LinearRelationConstraint(
+    val relation: LinearRelation,
+    val group: MetaConstraintGroup? = null,
+    val lazy: Boolean = false,
+    val args: Any? = null,
+    val priority: Int? = null
+) {
+    val flattenData: LinearFlattenData get() = relation.flattenData
+    val sign: Sign get() = relation.sign
+    val name: String get() = relation.name
+    val displayName: String? get() = relation.displayName
+
+    override fun toString(): String {
+        return relation.toString()
+    }
+}
+
+/**
+ * QuadraticRelationConstraint - Constraint using QuadraticRelation (new API)
+ *
+ * This type uses QuadraticFlattenData directly, avoiding dependency on frontend/inequality.
+ */
+data class QuadraticRelationConstraint(
+    val relation: QuadraticRelation,
+    val group: MetaConstraintGroup? = null,
+    val lazy: Boolean = false,
+    val args: Any? = null,
+    val priority: Int? = null
+) {
+    val flattenData: QuadraticFlattenData get() = relation.flattenData
+    val sign: Sign get() = relation.sign
+    val name: String get() = relation.name
+    val displayName: String? get() = relation.displayName
+
+    override fun toString(): String {
+        return relation.toString()
+    }
+}
+
+// ========== Deprecated adapters ==========
+
+/**
+ * Convert MetaConstraint<LinearInequality> to LinearRelationConstraint
+ */
+@Suppress("DEPRECATION")
+fun MetaConstraint<LinearInequality>.toRelationConstraint(): LinearRelationConstraint {
+    return LinearRelationConstraint(
+        relation = constraint.toRelation(),
+        group = group,
+        lazy = lazy,
+        args = args,
+        priority = priority
+    )
+}
+
+/**
+ * Convert MetaConstraint<QuadraticInequality> to QuadraticRelationConstraint
+ */
+@Suppress("DEPRECATION")
+fun MetaConstraint<QuadraticInequality>.toRelationConstraint(): QuadraticRelationConstraint {
+    return QuadraticRelationConstraint(
+        relation = constraint.toRelation(),
+        group = group,
+        lazy = lazy,
+        args = args,
+        priority = priority
+    )
+}
+
+// ========== NEW FlattenData-based SubObject Types ==========
+
+/**
+ * LinearFlattenSubObject - SubObject using LinearFlattenData (new API)
+ *
+ * This type uses LinearFlattenData directly for objective functions,
+ * avoiding dependency on frontend/expression types.
+ */
+data class LinearFlattenSubObject(
+    val category: ObjectCategory,
+    val flattenData: LinearFlattenData,
+    val name: String = "",
+    val displayName: String? = null
+)
+
+/**
+ * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData (new API)
+ *
+ * This type uses QuadraticFlattenData directly for objective functions,
+ * avoiding dependency on frontend/expression types.
+ */
+data class QuadraticFlattenSubObject(
+    val category: ObjectCategory,
+    val flattenData: QuadraticFlattenData,
+    val name: String = "",
+    val displayName: String? = null
+)
 
 
 
