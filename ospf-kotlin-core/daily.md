@@ -9,8 +9,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 2. `Phase 2`（Context 生命周期）已完成并接入主链路。
 3. `Phase 3` 已完成基础迁移与主路径切换，但尚未收口到”可删除 `expression(非symbol)+inequality` 目录”。
 4. **`P0`（Phase 3 正确性阻断）已完成** ✅
-5. **`M1`（统一代数内核）已完成** ✅
-6. **`M2`（表达层收口）已完成** ✅
+5. **`M1`（统一代数内核，历史阶段名）已完成** ✅
+6. **`M2`（表达层收口，历史阶段名）已完成** ✅
 7. **`M3`（引入新关系类型）已完成** ✅
 8. **`M4`（机制层去旧泛型）已完成** ✅
 9. **`M5`（模型 API 迁移）已完成** ✅
@@ -22,6 +22,11 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 1. 固化 `R0` 基线扫描与阶段回归脚本，先拿稳定对比面。
 2. 先做 `R1~R4`，把函数符号从 `frontend/inequality` 与 `.cells` 主路径中剥离。
 3. 再做 `R5~R9`，删除旧目录并完成 M8 收口。
+
+**架构边界（2026-04-09 明确）**：
+1. 线性与二次型符号运算能力由 `math.symbol` 提供。
+2. `ospf-kotlin-core` 负责变量、中间值、模型装配与桥接，不再扩展新的符号运算实现。
+3. 原 `monomial/polynomial` 的额外能力（`cell` 直接使用 `math.symbol.monomial`、`value`、`range`）迁移到元模型上下文统一处理（`TokenCacheContexts` / `MetaModel` / `MechanismModel`）。
 
 ---
 
@@ -72,11 +77,11 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `QuadraticFlattenData(monomials, constant)`
 4. `cacheKey` 统一为 `Any`，并引入 `TokenCacheKey/newTokenCacheKey`。
 
-### D. math.symbol 运算能力补齐
-1. `LinearMonomial` / `QuadraticMonomial` 运算符重载补齐。
-2. `LinearPolynomial` / `QuadraticPolynomial` 运算符重载补齐。
-3. `LinearInequality` / `QuadraticInequality` 比较重载补齐。
-4. canonical 类型补回（`CanonicalMonomial` / `CanonicalPolynomial`）。
+### D. math.symbol 对齐与桥接能力补齐
+1. 已对齐并接入 `math.symbol` 的线性/二次符号运算能力。
+2. `TokenCache` / `flatten` 载荷完成与 `math.symbol` 表达结果的桥接。
+3. 关系层（`LinearRelation` / `QuadraticRelation`）已承接模型约束主路径。
+4. canonical 类型补回（`CanonicalMonomial` / `CanonicalPolynomial`）用于兼容历史行为。
 
 ### E. Phase 1（正确性热修）
 1. 修复 `LinearMonomial.evaluate(values, ...)` 系数丢失。
@@ -141,8 +146,11 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 风险与回退：
 1. 若归并策略改动导致波及面过大，先加兼容开关，再逐步替换旧逻辑。
 
-### 2. M1：统一代数内核（去重复实现）✅ 已完成
-目标：flatten 合并与乘法展开单点收口。
+### 2. M1：统一代数内核（去重复实现，历史阶段）✅ 已完成
+目标：历史阶段目标为 flatten 合并与乘法展开收口；后续不再在 core 扩展代数内核能力，统一以 `math.symbol` 为符号运算来源。
+
+说明：
+1. 以下条目为历史完成记录，保留用于回溯，不作为后续扩展方向。
 
 任务拆解：
 1. `[x]` 建立 internal utility（拆成 merge/multiply/normalize 三类函数）。
@@ -163,11 +171,14 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 3. LinearPolynomial/QuadraticPolynomial 改用 utility
 
 完成定义（DoD）：
-1. ✅ flatten 核心算法仅保留一套实现。
-2. ✅ 现有行为与 baseline 一致。
+1. ✅ 当时目标：flatten 核心算法收口完成。
+2. ✅ 当前约束：后续符号运算能力统一由 `math.symbol` 提供，core 仅保留桥接与装配。
 
-### 3. M2：表达层收口（保留兼容壳）✅ 已完成
-目标：表达层核心计算全部走 flatten，`cells` 仅保留只读兼容。
+### 3. M2：表达层收口（保留兼容壳，历史阶段）✅ 已完成
+目标：历史阶段目标为表达层切到 flatten 主路径；后续继续朝“`math.symbol` 运算 + core 桥接装配”收敛，`cells` 仅保留兼容。
+
+说明：
+1. 以下条目为历史完成记录，保留用于回溯，不作为后续扩展方向。
 
 任务拆解：
 1. `[x]` `Linear/QuadraticMonomial` 主路径切到 flatten。
@@ -185,8 +196,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `Tests run: 118, Failures: 0, Errors: 0, Skipped: 0`
 
 完成定义（DoD）：
-1. ✅ 主链路无 `.cells` 计算依赖（`cells` 仅为兼容视图）。
-2. ✅ baseline 全绿。
+1. ✅ 当时目标：主链路无 `.cells` 计算依赖（`cells` 仅为兼容视图）。
+2. ✅ 当前约束：后续符号运算实现继续收敛到 `math.symbol`，core 只保留桥接装配职责。
 
 ### 4. M3：引入新关系类型，替代 `frontend/inequality` ✅ 已完成
 目标：建立新关系对象，先引入后替换。
@@ -267,7 +278,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 3. ✅ 全量回归通过：130 tests
 
 ### 7. M6：函数符号迁移（重拆执行版，2026-04-09）
-目标：优先清理函数符号对 `frontend/inequality` 的直接依赖，再清理 `.cells` 计算读取。
+目标：优先清理函数符号对 `frontend/inequality` 的直接依赖，再清理 `.cells` 计算读取，并收敛到 `math.symbol + relation/flatten` 桥接路径。
 
 基线盘点（2026-04-09）：
 1. `expression/symbol` 总计 56 文件，其中 52 文件仍有旧路径 import（259 处）。
@@ -318,8 +329,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 任务拆解（R5~R9）：
 1. `[ ]` `R5` 删除 `frontend/inequality`（含适配层），修复编译到 `ospf-kotlin-core` 全绿。
-2. `[ ]` `R6` 抽离函数符号 flatten 内核（加减乘、比较、range/evaluate 所需最小能力），摆脱对 monomial/polynomial 实现类型依赖。
-3. `[ ]` `R7` 迁移 `IntermediateSymbol` / `SymbolCombination` 到 flatten 内核接口。
+2. `[ ]` `R6` 清理函数符号侧残余运算实现，统一改为调用 `math.symbol` 并输出 flatten/relation 桥接载荷；同时将 `cell -> math.symbol.monomial`、`value`、`range` 处理迁移到元模型上下文。
+3. `[ ]` `R7` 迁移 `IntermediateSymbol` / `SymbolCombination` 到 `math.symbol` 桥接接口（不再暴露 monomial/polynomial 细节），并移除表达类型内分散的 `value/range` 处理职责。
 4. `[ ]` `R8` 完成 `linear_function(33)` + `quadratic_function(21)` 全量迁移并回归。
 5. `[ ]` `R9` 删除：
    - `frontend/expression/monomial`
@@ -333,6 +344,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 完成定义（DoD）：
 1. `src/main` 不再出现上述旧路径 import。
 2. `ospf-kotlin-core` 全量测试通过。
+3. `core` 不再承载线性/二次符号运算实现。
+4. `cell`、`value`、`range` 的运行期处理集中在元模型上下文，不再散落在旧表达类型中。
 
 ### 10. M9：封口门禁（强化）
 目标：建立“删完后不可回流”的 CI 门禁与文档封口。
