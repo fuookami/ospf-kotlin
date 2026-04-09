@@ -138,38 +138,10 @@ sealed class AbstractMinFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(maxmin)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(maxmin).takeUnless { it.ok }?.let { return it }
 
         if (exact) {
-            when (val result = tokenTable.add(u)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(u).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -177,69 +149,15 @@ sealed class AbstractMinFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
-            when (val result = model.addConstraint(
-                relation = maxmin leq polynomial,
-                name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
-                from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = maxmin leq polynomial, name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
         }
 
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
-                when (val result = model.addConstraint(
-                    relation = maxmin geq (polynomial - m * (Flt64.one - u[i])),
-                    name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                model.addConstraint( relation = maxmin geq (polynomial - m * (Flt64.one - u[i])), name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
             }
 
-            when (val result = model.addConstraint(
-                relation = sum(u) eq Flt64.one,
-                name = "${name}_u",
-                from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = sum(u) eq Flt64.one, name = "${name}_u", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -270,38 +188,10 @@ sealed class AbstractMinFunction(
             null
         }
 
-        when (val result = tokenTable.add(maxmin)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(maxmin).takeUnless { it.ok }?.let { return it }
 
         if (exact) {
-            when (val result = tokenTable.add(u[i!!])) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(u[i!!]).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -317,46 +207,10 @@ sealed class AbstractMinFunction(
         val (index, minValue) = values.withIndex().minBy { it.value }
 
         for ((i, polynomial) in polynomials.withIndex()) {
-            when (val result = model.addConstraint(
-                relation = maxmin leq polynomial,
-                name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
-                from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = maxmin leq polynomial, name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
         }
 
-        when (val result = model.addConstraint(
-            relation = maxmin eq minValue,
-            name = "${name}_min",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = maxmin eq minValue, name = "${name}_min", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         model.tokens.find(maxmin)?.let { token ->
             token._result = minValue
@@ -365,69 +219,15 @@ sealed class AbstractMinFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 if (i == index) {
-                    when (val result = model.addConstraint(
-                        maxmin geq polynomial,
-                        name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
-                        from = parent ?: this
-                    )) {
-                        is Ok -> {}
+                    model.addConstraint( maxmin geq polynomial, name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-                    }
-
-                    when (val result = model.addConstraint(
-                        u[i] eq Flt64.one,
-                        name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}",
-                        from = parent ?: this
-                    )) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-                    }
+                    model.addConstraint( u[i] eq Flt64.one, name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
                     model.tokens.find(u[i])?.let { token ->
                         token._result = Flt64.one
                     }
                 } else {
-                    when (val result = model.addConstraint(
-                        maxmin geq (polynomial - m),
-                        name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
-                        from = parent ?: this
-                    )) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            return Failed(result.error)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-
-                        is Fatal -> {
-                            return Fatal(result.errors)
-                        }
-                    }
+                    model.addConstraint( maxmin geq (polynomial - m), name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
                 }
             }
         }

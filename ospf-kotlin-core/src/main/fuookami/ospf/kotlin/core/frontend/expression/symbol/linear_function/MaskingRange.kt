@@ -201,38 +201,10 @@ class MaskingRangeFunction(
 
     override fun register(tokenTable: AddableTokenCollection): Try {
         if (!externalMask) {
-            when (val result = tokenTable.add(u)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(u).takeUnless { it.ok }?.let { return it }
         }
 
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -245,44 +217,8 @@ class MaskingRangeFunction(
             )
         }
 
-        when (val result = model.addConstraint(
-            relation = y leq ub * mask,
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y geq lb * mask,
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y leq ub * mask, name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y geq lb * mask, name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -303,44 +239,8 @@ class MaskingRangeFunction(
             tokenTable = model.tokens
         ) ?: return register(model)
 
-        when (val result = model.addConstraint(
-            relation = y leq ub * mask,
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y geq lb * mask,
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y leq ub * mask, name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y geq lb * mask, name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }

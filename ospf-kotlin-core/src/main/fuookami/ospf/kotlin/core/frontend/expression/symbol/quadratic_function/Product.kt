@@ -170,21 +170,7 @@ class ProductFunction(
             return Failed(Err(ErrorCode.ApplicationFailed, "Invalid argument of QuadraticPolynomial.times: over quadratic."))
         }
 
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -192,45 +178,9 @@ class ProductFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         for (i in y.indices) {
             if (i == 0) {
-                when (val result = model.addConstraint(
-                    relation = polynomials[0] * polynomials[1] eq y[0],
-                    name = "${name}_0",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                model.addConstraint( relation = polynomials[0] * polynomials[1] eq y[0], name = "${name}_0", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
             } else {
-                when (val result = model.addConstraint(
-                    relation = y[i - 1] * polynomials[i + 1] eq y[i],
-                    name = "${name}_$i",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                model.addConstraint( relation = y[i - 1] * polynomials[i + 1] eq y[i], name = "${name}_$i", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
             }
         }
 
@@ -257,45 +207,9 @@ class ProductFunction(
             if (i == 0) {
                 yValue *= values[0] * values[1]
 
-                when (val result = model.addConstraint(
-                    relation = polynomials[0] * polynomials[1] eq y[0],
-                    name = "${name}_$0",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
+                model.addConstraint( relation = polynomials[0] * polynomials[1] eq y[0], name = "${name}_$0", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-
-                when (val result = model.addConstraint(
-                    relation = y[0] eq yValue,
-                    name = "${name}_y_0",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                model.addConstraint( relation = y[0] eq yValue, name = "${name}_y_0", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
                 model.tokens.find(y[0])?.let { token ->
                     token._result = yValue
@@ -303,45 +217,9 @@ class ProductFunction(
             } else {
                 yValue *= values[i + 1]
 
-                when (val result = model.addConstraint(
-                    relation = y[i - 1] * polynomials[i + 1] eq y[i],
-                    name = "${name}_$i",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
+                model.addConstraint( relation = y[i - 1] * polynomials[i + 1] eq y[i], name = "${name}_$i", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-
-                when (val result = model.addConstraint(
-                    relation = y[i] eq yValue,
-                    name = "${name}_y_$i",
-                    from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                model.addConstraint( relation = y[i] eq yValue, name = "${name}_y_$i", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
                 model.tokens.find(y[i])?.let { token ->
                     token._result = yValue

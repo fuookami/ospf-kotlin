@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.normalize
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -264,129 +264,21 @@ class IfInFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = lowerBoundInequality.register(
-            parentName = name,
-            k = lbk,
-            flag = lby,
-            tokenTable = tokenTable
-        )) {
-            is Ok -> {}
+        lowerBoundInequality.register( parentName = name, k = lbk, flag = lby, tokenTable = tokenTable ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        upperBoundInequality.register( parentName = name, k = ubk, flag = uby, tokenTable = tokenTable ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = upperBoundInequality.register(
-            parentName = name,
-            k = ubk,
-            flag = uby,
-            tokenTable = tokenTable
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = y.register(tokenTable)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        y.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = lowerBoundInequality.register(
-            parent = parent ?: this,
-            parentName = name,
-            k = lbk,
-            flag = lby,
-            epsilon = epsilon,
-            model = model
-        )) {
-            is Ok -> {}
+        lowerBoundInequality.register( parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        upperBoundInequality.register( parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = upperBoundInequality.register(
-            parent = parent ?: this,
-            parentName = name,
-            k = ubk,
-            flag = uby,
-            epsilon = epsilon,
-            model = model
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = y.register(model)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        y.register(model).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -402,69 +294,11 @@ class IfInFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = lowerBoundInequality.register(
-            parent = parent ?: this,
-            parentName = name,
-            k = lbk,
-            flag = lby,
-            epsilon = epsilon,
-            model = model,
-            fixedValues = fixedValues
-        )) {
-            is Ok -> {}
+        lowerBoundInequality.register( parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model, fixedValues = fixedValues ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        upperBoundInequality.register( parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model, fixedValues = fixedValues ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = upperBoundInequality.register(
-            parent = parent ?: this,
-            parentName = name,
-            k = ubk,
-            flag = uby,
-            epsilon = epsilon,
-            model = model,
-            fixedValues = fixedValues
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = y.register(model, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        y.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }

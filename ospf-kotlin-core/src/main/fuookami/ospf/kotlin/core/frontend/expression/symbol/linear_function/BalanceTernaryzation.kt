@@ -386,41 +386,13 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = piecewiseFunction.register(tokenTable)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        piecewiseFunction.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = piecewiseFunction.register(model)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        piecewiseFunction.register(model).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -429,21 +401,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>,
     ): Try {
-        when (val result = piecewiseFunction.register(tokenTable, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        piecewiseFunction.register(tokenTable, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -452,21 +410,7 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = piecewiseFunction.register(model, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        piecewiseFunction.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -586,126 +530,22 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = model.addConstraint(
-            relation = m * y[1] geq x,
-            name = "${name}_pub",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
+        model.addConstraint( relation = m * y[1] geq x, name = "${name}_pub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = -m * y[0] leq x,
-            name = "${name}_nlb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = -m * y[0] leq x, name = "${name}_nlb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         if (extract) {
-            when (val result = model.addConstraint(
-                relation = x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
-                name = "${name}_plb",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
+            model.addConstraint( relation = x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one, name = "${name}_plb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
+            model.addConstraint( relation = x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one, name = "${name}_nub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
-                name = "${name}_nub",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = sum(y) leq Flt64.one,
-                name = "${name}_y",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = sum(y) leq Flt64.one, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -743,37 +583,9 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         if (ter eq Flt64.one) {
-            when (val result = tokenTable.add(y[1])) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(y[1]).takeUnless { it.ok }?.let { return it }
         } else if (ter eq -Flt64.one) {
-            when (val result = tokenTable.add(y[0])) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(y[0]).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -793,89 +605,17 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         if (ter eq Flt64.one) {
-            when (val result = model.addConstraint(
-                relation = m * y[1] geq x,
-                name = "${name}_ub",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
+            model.addConstraint( relation = m * y[1] geq x, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = y[1] eq Flt64.one,
-                name = "${name}_y",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = y[1] eq Flt64.one, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(y[1])?.let { token ->
                 token._result = Flt64.one
             }
         } else if (ter eq -Flt64.one) {
-            when (val result = model.addConstraint(
-                relation = -m * y[0] leq x,
-                name = "${name}_lb",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
+            model.addConstraint( relation = -m * y[0] leq x, name = "${name}_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = y[0] eq Flt64.one,
-                name = "${name}_y",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = y[0] eq Flt64.one, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(y[0])?.let { token ->
                 token._result = Flt64.one
@@ -1004,181 +744,27 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(b)) {
-            is Ok -> {}
+        tokenTable.add(b).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = model.addConstraint(
-            relation = x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
-            name = "${name}_xb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
+        model.addConstraint( relation = x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1], name = "${name}_xb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        model.addConstraint( relation = y[1] geq b[1], name = "${name}_yb_pos_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+        model.addConstraint( relation = y[1] leq (Flt64.one / epsilon) * b[1], name = "${name}_yb_pos_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y[0] geq b[0], name = "${name}_yb_neg_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-        when (val result = model.addConstraint(
-            relation = y[1] geq b[1],
-            name = "${name}_yb_pos_lb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
+        model.addConstraint( relation = y[0] leq (Flt64.one / epsilon) * b[0], name = "${name}_yb_neg_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        model.addConstraint( relation = b[0] + y[1] leq Flt64.one, name = "${name}_yb_pos", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = y[1] leq (Flt64.one / epsilon) * b[1],
-            name = "${name}_yb_pos_ub",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = y[0] geq b[0],
-            name = "${name}_yb_neg_lb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = y[0] leq (Flt64.one / epsilon) * b[0],
-            name = "${name}_yb_neg_ub",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = b[0] + y[1] leq Flt64.one,
-            name = "${name}_yb_pos",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = b[1] + y[0] leq Flt64.one,
-            name = "${name}_yb_neg",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = b[1] + y[0] leq Flt64.one, name = "${name}_yb_neg", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -1209,37 +795,9 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         if (ter eq Flt64.one) {
-            when (val result = tokenTable.add(listOf(y[1], b[1]))) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(listOf(y[1], b[1])).takeUnless { it.ok }?.let { return it }
         } else if (ter eq -Flt64.one) {
-            when (val result = tokenTable.add(listOf(y[0], b[0]))) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(listOf(y[0], b[0])).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -1259,163 +817,37 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         if (ter eq Flt64.one) {
-            when (val result = model.addConstraint(
-                relation = x eq x.upperBound!!.value.unwrap() * b[1],
-                name = "${name}_xb",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
+            model.addConstraint( relation = x eq x.upperBound!!.value.unwrap() * b[1], name = "${name}_xb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = y[1] eq Flt64.one,
-                name = "${name}_y",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = y[1] eq Flt64.one, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(y[1])?.let { token ->
                 token._result = Flt64.one
             }
 
             val bValue = xValue / x.upperBound!!.value.unwrap()
-            when (val result = model.addConstraint(
-                relation = b[1] eq bValue,
-                name = "${name}_b",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = b[1] eq bValue, name = "${name}_b", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(b[1])?.let { token ->
                 token._result = bValue
             }
         } else if (ter eq -Flt64.one) {
-            when (val result = model.addConstraint(
-                relation = x eq x.lowerBound!!.value.unwrap() * b[0],
-                name = "${name}_xb",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
+            model.addConstraint( relation = x eq x.lowerBound!!.value.unwrap() * b[0], name = "${name}_xb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
-                relation = y[0] eq Flt64.one,
-                name = "${name}_y",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = y[0] eq Flt64.one, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(y[0])?.let { token ->
                 token._result = Flt64.one
             }
 
             val bValue = xValue / x.lowerBound!!.value.unwrap()
-            when (val result = model.addConstraint(
-                relation = b[0] eq bValue,
-                name = "${name}_b",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = b[0] eq bValue, name = "${name}_b", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(b[0])?.let { token ->
                 token._result = bValue
             }
         } else {
-            when (val result = model.addConstraint(
-                relation = x eq Flt64.zero,
-                name = "${name}_x",
-                from = parent ?: self
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( relation = x eq Flt64.zero, name = "${name}_x", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -1526,41 +958,13 @@ class BalanceTernaryzationFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = impl.register(tokenTable)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = impl.register(model)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(model).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -1569,21 +973,7 @@ class BalanceTernaryzationFunction(
         tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = impl.register(tokenTable, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(tokenTable, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -1592,21 +982,7 @@ class BalanceTernaryzationFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = impl.register(model, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }

@@ -131,99 +131,17 @@ class SemiFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = tokenTable.add(u)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(u).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
-        when (val result = model.addConstraint(
-            relation = y geq x,
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y leq x + m * u,
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y leq m * (Flt64.one - u),
-            name = "${name}_yu",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y geq x, name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y leq x + m * u, name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y leq m * (Flt64.one - u), name = "${name}_yu", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -243,107 +161,17 @@ class SemiFunction(
         val yValue = max(Flt64.zero, xValue)
         val bin = xValue gr Flt64.zero
 
-        when (val result = model.addConstraint(
-            relation = y geq x,
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
+        model.addConstraint( relation = y geq x, name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y leq x + m * u, name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y leq m * (Flt64.one - u), name = "${name}_yu", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y leq x + m * u,
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y leq m * (Flt64.one - u),
-            name = "${name}_yu",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            relation = y eq yValue,
-            name = "${name}_y",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y eq yValue, name = "${name}_y", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         model.tokens.find(y)?.let { token ->
             token._result = yValue
         }
 
-        when (val result = model.addConstraint(
-            relation = u eq bin,
-            name = "${name}_u",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = u eq bin, name = "${name}_u", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         model.tokens.find(u)?.let { token ->
             token._result = bin.toFlt64()

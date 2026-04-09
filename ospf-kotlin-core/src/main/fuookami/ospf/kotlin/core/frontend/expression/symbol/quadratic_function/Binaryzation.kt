@@ -362,97 +362,19 @@ class BinaryzationFunctionLinearImpl(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = linearX.register(tokenTable)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        linearX.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
-        when (val result = linearX.register(model)) {
-            is Ok -> {}
+        linearX.register(model).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y,
-            name = "${name}_ub",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            x geq epsilon * y,
-            name = "${name}_lb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( x geq epsilon * y, name = "${name}_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -461,37 +383,9 @@ class BinaryzationFunctionLinearImpl(
         tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = linearX.register(tokenTable, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        linearX.register(tokenTable, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -506,81 +400,13 @@ class BinaryzationFunctionLinearImpl(
         ) ?: return register(model)
         val bin = value gr Flt64.zero
 
-        when (val result = linearX.register(model, fixedValues)) {
-            is Ok -> {}
+        linearX.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+        model.addConstraint( x geq epsilon * y, name = "${name}_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y,
-            name = "${name}_ub",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            x geq epsilon * y,
-            name = "${name}_lb",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            y eq bin,
-            name = "${name}_y",
-            from = parent ?: self
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( y eq bin, name = "${name}_y", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         model.tokens.find(y)?.let { token ->
             token._result = bin.toFlt64()
@@ -668,41 +494,13 @@ class BinaryzationFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = impl.register(tokenTable)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
-        when (val result = impl.register(model)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(model).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -711,21 +509,7 @@ class BinaryzationFunction(
         tokenTable: AddableTokenCollection,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = impl.register(tokenTable, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(tokenTable, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -734,21 +518,7 @@ class BinaryzationFunction(
         model: AbstractQuadraticMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = impl.register(model, fixedValues)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        impl.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
         return ok
     }

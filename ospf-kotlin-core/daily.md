@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-04-09
+日期：2026-04-10
 交接目标：下一个执行环境
 Rust 对齐参考：`E:\workspace\ospf-rust`
 
@@ -32,61 +32,46 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 ---
 
-## 最新状态（2026-04-09 交接点）
+## 最新状态（2026-04-10 交接点）
 
-### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（进行中，未完成）
+### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（进行中，编译未通过）
 
-**已完成**：
-1. 新建 `MathInequalityDsl.kt`（`mechanism` 包下），提供与 `frontend.inequality` 同名的 infix 函数：
-   - `AbstractLinearPolynomial` vs `AbstractLinearPolynomial`/`Flt64`/`Int`/`Double`/`Symbol`
-   - `Symbol` vs `Flt64`/`Symbol`/`AbstractLinearPolynomial`/`Boolean`
-   - `AbstractVariableItem` vs `Flt64`/`Boolean`/`AbstractVariableItem`/`AbstractLinearPolynomial`
-   - `LinearMonomial<Flt64>` vs `AbstractLinearPolynomial`（双向）
-   - `normalize()` 扩展函数（MathLinearInequality / MathQuadraticInequality）
-   - `leq/le/geq/ge/eq/neq/ne/ls/lt/gr/gt` 别名全覆盖
-   - UInt8/UInt64 比较辅助函数
-2. 批量替换 45 个函数符号文件的 import：
-   - `import frontend.inequality.{eq,leq,geq,neq,ls,gt}` → `import mechanism.{eq,leq,geq,neq,ls,gt}`
-   - 通配符 import 已在 4 个文件中改为精确 import + `mechanism.*`
-3. `model.addConstraint(constraint = ...)` → `model.addConstraint(relation = ...)` 全局 sed 替换
-4. 修复 sed 过度替换问题：将以下文件中构造函数/超类调用错误改回的 `relation = constraint` → `constraint = constraint`：
-   - `SameAs.kt`
-   - `SatisfiedAmountInequality.kt`（AtLeastInequalityFunction, NumerableFunction）
-   - `SatisfiedAmount.kt`（AtLeastFunction 工厂）
-   - `IfThen.kt`
-   - `quadratic_function/SlackRange.kt`
-   - `quadratic_function/Slack.kt`
-   - `linear_function/Slack.kt`
-   - `linear_function/SlackRange.kt`
+**2026-04-10 完成**：
+1. 批量转换 verbose `when` 块为 `.takeUnless { it.ok }?.let { return it }` 模式：
+   - `Abs.kt` - 4 个 when 块（register 方法中的 Ok/Failed/Fatal 分支）
+   - `BivariateLinearPiecewise.kt` - 21 个 when 块（从 git 恢复后重新转换）
+   - `Semi.kt` - 7 个 when 块
+   - `Binaryzation.kt`（quadratic）- 已转换
+   - 其他文件在上一会话中已完成
+2. 统一所有符号文件的 import 从 `frontend.inequality.geq/leq` 改为 `model.mechanism.geq/leq`：
+   - `Abs.kt`, `BalanceTernaryzation.kt`, `Masking.kt`, `MaskingRange.kt`, `Max.kt`, `Min.kt`, `Not.kt`
+   - `Product.kt`, `BivariateLinearPiecewise.kt`, `Inequality.kt`（quadratic）, `Binaryzation.kt`（quadratic）, `Semi.kt`
+   - `IfIn.kt` 保持 `frontend.inequality.geq/leq`（因为它使用 `Inequality.register()` 而非 `model.addConstraint()`）
+3. 编译错误从 ~934 降至 ~208
 
-**编译仍失败（未通过）**，主要错误类别：
-1. `Abs.kt:318,338` - `m * pos` 返回类型与 DSL 不匹配（`m: Flt64 * pos: PctVar` → 需要确认返回类型并添加对应 infix）
-2. `BalanceTernaryzation.kt` 多处 - 类似 `m * y[1] geq x` 模式，`Flt64 * AbstractVariableItem` 返回类型不匹配
-3. `Binaryzation.kt` 多处 - 类似问题
-4. `IfIn.kt:156,157` - `normalize()` 返回对象是 `val` 不可变，`.name` 赋值报错（frontend 版 LinearInequality 的 `name` 是 `var`，MathLinearInequality 的 `name` 是 `val`）
-5. `IfIn.kt` 多处 - `2 type arguments expected` 用于 `Ok/Failed/Fatal`（可能是不相关的 when 分支问题或 addConstraint 返回类型不匹配）
-6. `IfIn.kt` - `.isTrue` 未解析（`lowerBoundInequality/upperBoundInequality` 是 `MathLinearInequality`，没有 `isTrue` 方法）
+**编译仍失败（~208 errors）**，主要错误类别：
+1. **quadratic_function/Binaryzation.kt:375** - `model.mechanism.geq/leq` 缺少 `AbstractQuadraticPolynomial leq LinearMonomial<Flt64>` 的 infix 重载。表达式 `(Flt64.one - y) * linearX` 产生 `QuadraticPolynomial`，RHS `x.upperBound!!.value.unwrap() * y` 产生 `LinearMonomial<Flt64>`，无匹配的 `leq` 函数
+2. **BalanceTernaryzation.kt:759,763** - 类似问题，表达式类型与 infix 函数不匹配
+3. **SatisfiedAmountInequality.kt** - `List<MathLinearInequality>` vs `List<frontend.LinearInequality>` 类型不匹配，以及 `model.addConstraint` 参数不匹配
+4. **linear_function/Binaryzation.kt:959** - 类似问题
 
-**关键问题**：
-- `MathLinearInequality`（math 模块）的 `name`/`displayName` 是 `val`，而 `frontend.inequality.LinearInequality` 的 `name`/`displayName` 是 `var`。需要 IfIn.kt 改用其他方式传递 name，或 math 模块改为 `var`
-- `MathLinearInequality` 没有 `isTrue()` 方法，需要适配或改用 `frontend.inequality.LinearInequality.isTrue()` 的等价逻辑
+**需要补充的 MathInequalityDsl infix 函数**：
+- `infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality`
+- `infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality`
+- `infix fun LinearMonomial<Flt64>.leq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality`
+- `infix fun LinearMonomial<Flt64>.geq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality`
+- 可能还需要 `AbstractLinearPolynomial` vs `LinearMonomial` 的双向组合
 
-**下一步需要**：
-1. 修复 IfIn.kt 的 `val` 赋值问题（name 不可变）和 `isTrue` 缺失问题
-2. 排查 `Flt64 * Variable` 返回的具体类型，补充对应 infix 重载
-3. 排查 `Ok/Failed/Fatal` 类型参数问题（可能是 `model.addConstraint` 返回类型变了）
-4. 编译通过后再跑测试
-
-**剩余未编译文件**：
-- `And.kt` 修复了 `Boolean` 比较，但仍有类型不匹配
-- `First.kt` - `Ok/Failed/Fatal` 类型参数问题
-- `BivariateLinearPiecewise.kt` - `Ok/Failed/Fatal` + `leq` 类型不匹配
+**关键注意事项**：
+- 不要盲目加 infix 函数 — 先查每个报错点的具体类型（receiver 和 operand 的真实类型），精准匹配
+- `SatisfiedAmountInequality.kt` 可能需要特殊处理，因为它传递 `List<LinearInequality>` 给期望 frontend 类型的 API
 
 ### 交接注意事项
-1. **不要盲目继续加 infix 函数** — 先查每个报错点的具体类型（receiver 和 operand 的真实类型），精准匹配
-2. `m * pos` 这类：`m` 是 `Flt64`，`pos` 是 `PctVar`（extends `AbstractVariableItem`），`Flt64 * PctVar` 返回 `LinearMonomial<Flt64>`，已在 DSL 中添加了 `LinearMonomial<Flt64>.geq(AbstractLinearPolynomial<*>)` 等，但可能还不够覆盖所有模式
-3. 建议先手动修复 IfIn.kt（最复杂），因为它暴露了 MathLinearInequality 与 frontend LinearInequality 的 API 差异
-4. 编译通过后执行：`mvn -pl ospf-kotlin-core -am test`
+1. **优先补充 MathInequalityDsl 缺失的 infix 函数** — 见上文"需要补充的 MathInequalityDsl infix 函数"列表
+2. 编译错误 ~208，集中在 4-5 个文件
+3. 建议先修复 Binaryzation.kt（quadratic）的 `leq`/`geq` 类型不匹配，因为它是最基础的场景
+4. SatisfiedAmountInequality.kt 需要单独分析，涉及 List 类型不匹配问题
+5. 编译通过后执行：`mvn -pl ospf-kotlin-core -am test`
 
 ---
 

@@ -209,53 +209,11 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(u)) {
-            is Ok -> {}
+        tokenTable.add(u).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
+        tokenTable.add(v).takeUnless { it.ok }?.let { return it }
 
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = tokenTable.add(v)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = tokenTable.add(w)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(w).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -265,128 +223,44 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         for (i in indices) {
             val rhs = polyU(i)
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = (u[i] - m * w[i] + m) geq rhs,
                 name = "${name}_ul_$i",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-            when (val result = model.addConstraint(
+            ).takeUnless { it.ok }?.let { return it }
+            model.addConstraint(
                 relation = (u[i] + m * w[i] - m) leq rhs,
                 name = "${name}_ur_$i",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
         }
 
         for (i in indices) {
             val rhs = polyV(i)
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = (v[i] - m * w[i] + m) geq rhs,
                 name = "${name}_vl_$i",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-            when (val result = model.addConstraint(
+            ).takeUnless { it.ok }?.let { return it }
+            model.addConstraint(
                 relation = (v[i] + m * w[i] - m) leq rhs,
                 name = "${name}_vr_$i",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
         }
 
-        when (val result = model.addConstraint(
+        model.addConstraint(
             relation = sum(w) eq Flt64.one,
             name = "${name}_w",
             from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        ).takeUnless { it.ok }?.let { return it }
 
         for (i in indices) {
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = (u[i] + v[i]) leq w[i],
                 name = "${name}_uv_$i",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -433,21 +307,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             minX leq xValue && xValue leq maxX && minY leq yValue && yValue leq maxY
         } ?: return register(tokenTable)
 
-        when (val result = tokenTable.add(listOf(u[index], v[index], w[index]))) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(listOf(u[index], v[index], w[index])).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -487,231 +347,77 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             val uPoly = polyU(i)
             val vPoly = polyV(i)
             if (i == index) {
-                when (val result = model.addConstraint(
+                model.addConstraint(
                     relation = (u[i] - m * w[i] + m) geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = (u[i] - m * w[i] - m) leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = u[i] eq uValue,
                     name = "${name}_u_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                ).takeUnless { it.ok }?.let { return it }
 
                 model.tokens.find(u[i])?.let { token ->
                     token._result = uValue
                 }
 
-                when (val result = model.addConstraint(
+                model.addConstraint(
                     relation = (v[i] - m * w[i] + m) geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = (v[i] - m * w[i] - m) leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = v[i] eq vValue,
                     name = "${name}_v_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                ).takeUnless { it.ok }?.let { return it }
 
                 model.tokens.find(v[i])?.let { token ->
                     token._result = vValue
                 }
 
-                when (val result = model.addConstraint(
+                model.addConstraint(
                     relation = w[i] eq Flt64.one,
                     name = "${name}_w_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                ).takeUnless { it.ok }?.let { return it }
 
                 model.tokens.find(w[i])?.let { token ->
                     token._result = Flt64.one
                 }
             } else {
-                when (val result = model.addConstraint(
+                model.addConstraint(
                     relation = m geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = -m leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
+                ).takeUnless { it.ok }?.let { return it }
 
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-
-                when (val result = model.addConstraint(
+                model.addConstraint(
                     relation = m geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
-                when (val result = model.addConstraint(
+                ).takeUnless { it.ok }?.let { return it }
+                model.addConstraint(
                     relation = -m leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
-                )) {
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-                }
+                ).takeUnless { it.ok }?.let { return it }
             }
         }
 

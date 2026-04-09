@@ -150,30 +150,10 @@ class AbsFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = tokenTable.add(listOf(neg, pos))) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(listOf(neg, pos)).takeUnless { it.ok }?.let { return it }
 
         if (extract) {
-            when (val result = tokenTable.add(p)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(p).takeUnless { it.ok }?.let { return it }
         }
 
         y.range.set(ValueRange(Flt64.zero, m).value!!)
@@ -182,70 +162,30 @@ class AbsFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = model.addConstraint(
+        model.addConstraint(
             relation = x eq (-m * neg + m * pos),
             name = name,
             from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        ).takeUnless { it.ok }?.let { return it }
 
         if (extract) {
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = neg + pos leq Flt64.one,
                 name = "${name}_b",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
+            ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = p geq pos,
                 name = "${name}_p",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
+            ).takeUnless { it.ok }?.let { return it }
 
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = neg leq Flt64.one - p,
                 name = "${name}_n",
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -276,29 +216,9 @@ class AbsFunction(
         }
 
         if (xValue geq Flt64.zero) {
-            when (val result = tokenTable.add(pos)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(pos).takeUnless { it.ok }?.let { return it }
         } else {
-            when (val result = tokenTable.add(neg)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(neg).takeUnless { it.ok }?.let { return it }
         }
 
         return ok
@@ -314,41 +234,21 @@ class AbsFunction(
         ) ?: return register(model)
 
         if (xValue geq Flt64.zero) {
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = x eq m * pos,
                 name = name,
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(pos)?.let { token ->
                 token._result = xValue / m
             }
         } else {
-            when (val result = model.addConstraint(
+            model.addConstraint(
                 relation = x eq -m * neg,
                 name = name,
                 from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(neg)?.let { token ->
                 token._result = -xValue / m

@@ -178,38 +178,10 @@ class MaskingFunction(
 
     override fun register(tokenTable: AddableTokenCollection): Try {
         if (!externalMask) {
-            when (val result = tokenTable.add(u)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            tokenTable.add(u).takeUnless { it.ok }?.let { return it }
         }
 
-        when (val result = tokenTable.add(y)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        tokenTable.add(y).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -222,82 +194,10 @@ class MaskingFunction(
             )
         }
 
-        when (val result = model.addConstraint(
-            relation = y leq x + m * (Flt64.one - mask),
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y geq x - m * (Flt64.one - mask),
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y leq m * mask,
-            name = "${name}_ym_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            relation = y geq -m * mask,
-            name = "${name}_ym_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( relation = y leq x + m * (Flt64.one - mask), name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y geq x - m * (Flt64.one - mask), name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y leq m * mask, name = "${name}_ym_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( relation = y geq -m * mask, name = "${name}_ym_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         return ok
     }
@@ -323,106 +223,12 @@ class MaskingFunction(
         ) ?: return register(model)
         val maskBin = maskValue gr Flt64.zero
 
-        when (val result = model.addConstraint(
-            y leq x + m * (Flt64.one - mask),
-            name = "${name}_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
+        model.addConstraint( y leq x + m * (Flt64.one - mask), name = "${name}_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( y geq x - m * (Flt64.one - mask), name = "${name}_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( y leq m * mask, name = "${name}_ym_ub", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( y geq -m * mask, name = "${name}_ym_lb", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            y geq x - m * (Flt64.one - mask),
-            name = "${name}_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            y leq m * mask,
-            name = "${name}_ym_ub",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-        when (val result = model.addConstraint(
-            y geq -m * mask,
-            name = "${name}_ym_lb",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
-
-        when (val result = model.addConstraint(
-            y eq if (maskBin) {
-                xValue
-            } else {
-                Flt64.zero
-            },
-            name = "${name}_y",
-            from = parent ?: this
-        )) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-        }
+        model.addConstraint( y eq if (maskBin) { xValue } else { Flt64.zero }, name = "${name}_y", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
         model.tokens.find(y)?.let { token ->
             token._result = if (maskBin) {
@@ -433,25 +239,7 @@ class MaskingFunction(
         }
 
         if (!externalMask) {
-            when (val result = model.addConstraint(
-                u eq maskBin,
-                name = "${name}_u",
-                from = parent ?: this
-            )) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
+            model.addConstraint( u eq maskBin, name = "${name}_u", from = parent ?: this ).takeUnless { it.ok }?.let { return it }
 
             model.tokens.find(u)?.let { token ->
                 token._result = maskBin.toFlt64()
