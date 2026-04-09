@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
@@ -245,10 +245,10 @@ interface LinearModel : Model {
     ): Try
 
     /**
-     * Add constraint using LinearRelation (new API)
+     * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -543,10 +543,10 @@ interface QuadraticModel : LinearModel {
     ): Try
 
     /**
-     * Add constraint using QuadraticRelation (new API)
+     * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,

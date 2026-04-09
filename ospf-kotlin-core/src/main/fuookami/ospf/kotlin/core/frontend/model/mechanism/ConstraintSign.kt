@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.utils.functional.Comparator
 import fuookami.ospf.kotlin.utils.functional.Ord
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 
 private typealias InequalitySign = fuookami.ospf.kotlin.core.frontend.inequality.Sign
 
@@ -9,6 +10,12 @@ class InvalidConstraintSign(
     sign: InequalitySign
 ) : Throwable() {
     override val message: String = "No matched constraint sign of inequality sign: $sign."
+}
+
+class InvalidConstraintSignFromComparison(
+    sign: Comparison
+) : Throwable() {
+    override val message: String = "No matched constraint sign for comparison: $sign."
 }
 
 enum class Sign {
@@ -36,6 +43,16 @@ enum class Sign {
             InequalitySign.Unequal -> throw InvalidConstraintSign(sign)
             InequalitySign.Greater -> GreaterEqual
             InequalitySign.GreaterEqual -> GreaterEqual
+        }
+
+        @Throws(InvalidConstraintSignFromComparison::class)
+        operator fun invoke(sign: Comparison) = when (sign) {
+            Comparison.LT -> LessEqual
+            Comparison.LE -> LessEqual
+            Comparison.EQ -> Equal
+            Comparison.NE -> throw InvalidConstraintSignFromComparison(sign)
+            Comparison.GT -> GreaterEqual
+            Comparison.GE -> GreaterEqual
         }
     }
 

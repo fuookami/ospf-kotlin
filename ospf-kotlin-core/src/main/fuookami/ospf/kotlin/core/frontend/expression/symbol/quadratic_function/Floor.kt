@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -220,9 +220,6 @@ class FloorFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-        d.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -311,7 +308,7 @@ class FloorFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = x eq (dLinear * q + r),
+            relation = x eq (dLinear * q + r),
             name = name,
             from = parent ?: this
         )) {

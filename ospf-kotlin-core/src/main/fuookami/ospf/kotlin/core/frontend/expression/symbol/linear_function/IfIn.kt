@@ -7,8 +7,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.normalize
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -225,12 +226,6 @@ class IfInFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-        lb.cells
-        ub.cells
-        lowerBoundInequality.cells
-        upperBoundInequality.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val lbBin = if (values.isNullOrEmpty()) {
                 lowerBoundInequality.isTrue(tokenTable)

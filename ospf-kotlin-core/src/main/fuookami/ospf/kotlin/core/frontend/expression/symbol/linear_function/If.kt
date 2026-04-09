@@ -5,11 +5,10 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -22,7 +21,7 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
 class IfFunction(
-    inequality: LinearInequality,
+    input: LinearConstraintInput,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
     args: Any? = parent?.args,
@@ -43,7 +42,7 @@ class IfFunction(
             displayName: String? = null
         ): IfFunction {
             return IfFunction(
-                inequality = condition.toLinearInequality(),
+                input = LinearConstraintInput.from(condition.toLinearInequality()),
                 epsilon = epsilon,
                 parent = parent,
                 args = args,
@@ -56,9 +55,7 @@ class IfFunction(
     internal val _args = args
     override val args get() = _args ?: parent?.args
 
-    private val inequality by lazy {
-        inequality.normalize()
-    }
+    private val input by lazy { input }
 
     private val k: PctVariable1 by lazy {
         PctVariable1("${name}_k", Shape1(3))
@@ -84,9 +81,13 @@ class IfFunction(
 
     override val dependencies: Set<IntermediateSymbol>
         get() {
+            // Dependencies are encoded in the flattenData monomials
             val dependencies = HashSet<IntermediateSymbol>()
-            dependencies.addAll(inequality.lhs.dependencies)
-            dependencies.addAll(inequality.rhs.dependencies)
+            for (monomial in input.flattenData.monomials) {
+                if (monomial.symbol is IntermediateSymbol) {
+                    dependencies.add(monomial.symbol as IntermediateSymbol)
+                }
+            }
             return dependencies
         }
     override val cells get() = polyY.cells
@@ -94,39 +95,40 @@ class IfFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            // inequality is normalized, so rhs is constant
-            val rhs = inequality.rhs.range.fixedValue!!
-            return when (inequality.sign) {
-                Sign.Less, Sign.LessEqual -> {
-                    if (inequality.lhs.range.upperBound?.value?.unwrap()?.let { it leq rhs } == true) {
+            val rhs = input.rhsConstant
+            return when (input.sign) {
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.LT,
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.LE -> {
+                    if (input.lhsRange.upperBound?.value?.unwrap()?.let { it leq rhs } == true) {
                         ValueRange(Flt64.one, Flt64.one).value!!
-                    } else if (inequality.lhs.range.lowerBound?.value?.unwrap()?.let { it gr rhs } == true) {
+                    } else if (input.lhsRange.lowerBound?.value?.unwrap()?.let { it gr rhs } == true) {
                         ValueRange(Flt64.zero, Flt64.zero).value!!
                     } else {
                         ValueRange(Flt64.zero, Flt64.one).value!!
                     }
                 }
 
-                Sign.Greater, Sign.GreaterEqual -> {
-                    if (inequality.lhs.range.lowerBound?.value?.unwrap()?.let { it geq rhs } == true) {
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.GT,
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.GE -> {
+                    if (input.lhsRange.lowerBound?.value?.unwrap()?.let { it geq rhs } == true) {
                         ValueRange(Flt64.one, Flt64.one).value!!
-                    } else if (inequality.lhs.range.upperBound?.value?.unwrap()?.let { it ls rhs } == true) {
+                    } else if (input.lhsRange.upperBound?.value?.unwrap()?.let { it ls rhs } == true) {
                         ValueRange(Flt64.zero, Flt64.zero).value!!
                     } else {
                         ValueRange(Flt64.zero, Flt64.one).value!!
                     }
                 }
 
-                Sign.Equal -> {
-                    if (inequality.lhs.range.fixedValue?.let { it eq rhs } == true) {
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.EQ -> {
+                    if (input.lhsRange.fixedValue?.let { it eq rhs } == true) {
                         ValueRange(Flt64.one, Flt64.one).value!!
                     } else {
                         ValueRange(Flt64.zero, Flt64.zero).value!!
                     }
                 }
 
-                Sign.Unequal -> {
-                    if (inequality.lhs.range.fixedValue?.let { it neq rhs } == true) {
+                fuookami.ospf.kotlin.math.symbol.inequality.Comparison.NE -> {
+                    if (input.lhsRange.fixedValue?.let { it neq rhs } == true) {
                         ValueRange(Flt64.one, Flt64.one).value!!
                     } else {
                         ValueRange(Flt64.zero, Flt64.zero).value!!
@@ -136,28 +138,16 @@ class IfFunction(
         }
 
     override fun flush(force: Boolean) {
-        inequality.flush(force)
-        val range = possibleRange
-        if (range.fixedValue?.let { it eq Flt64.zero } == true) {
-            y.range.eq(false)
-        } else if (range.fixedValue?.let { it eq Flt64.one } == true) {
-            y.range.eq(true)
-        } else {
-            y.range.set(ValueRange(UInt8.zero, UInt8.one).value!!)
-        }
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        inequality.lhs.cells
-        inequality.rhs.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val bin = if (values.isNullOrEmpty()) {
-                inequality.isTrue(tokenTable)
+                input.isTrue(tokenTable)
             } else {
-                inequality.isTrue(values, tokenTable)
+                input.isTrue(values, tokenTable)
             } ?: return null
 
             val yValue = if (bin) {
@@ -176,7 +166,7 @@ class IfFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = inequality.register(
+        when (val result = input.register(
             parentName = name,
             k = k,
             flag = y,
@@ -191,17 +181,13 @@ class IfFunction(
             is Fatal -> {
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
         }
 
         return ok
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = inequality.register(
+        when (val result = input.register(
             parent = parent ?: this,
             parentName = name,
             k = k,
@@ -213,10 +199,6 @@ class IfFunction(
 
             is Failed -> {
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -238,7 +220,7 @@ class IfFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        when (val result = inequality.register(
+        when (val result = input.register(
             parent = parent ?: this,
             parentName = name,
             k = k,
@@ -251,10 +233,6 @@ class IfFunction(
 
             is Failed -> {
                 return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
             }
 
             is Fatal -> {
@@ -273,7 +251,7 @@ class IfFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "if(${inequality.toRawString(unfold - UInt64.one)})"
+            "if(${name})"
         }
     }
 
@@ -281,18 +259,10 @@ class IfFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(tokenList, zeroIfNone)) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(tokenList, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 
@@ -301,22 +271,10 @@ class IfFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(
-            results = results,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        )) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(results, tokenList, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 
@@ -325,22 +283,10 @@ class IfFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(
-            values = values,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        )) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(values, tokenList, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 
@@ -348,18 +294,10 @@ class IfFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(tokenTable, zeroIfNone)) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(tokenTable, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 
@@ -368,22 +306,10 @@ class IfFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(
-            results = results,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        )) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(results, tokenTable, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 
@@ -392,22 +318,10 @@ class IfFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        return when (inequality.isTrue(
-            values = values,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        )) {
-            true -> {
-                Flt64.one
-            }
-
-            false -> {
-                Flt64.zero
-            }
-
-            null -> {
-                null
-            }
+        return when (input.isTrue(values, tokenTable, zeroIfNone)) {
+            true -> Flt64.one
+            false -> Flt64.zero
+            null -> null
         }
     }
 }

@@ -12,11 +12,12 @@ import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
 import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.toRelation
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -334,13 +335,13 @@ interface MetaConstraintGroup {
         )
     }
 
-    // ========== NEW Relation-based API ==========
+    // ========== Math Inequality-based API ==========
 
     /**
-     * Add constraint using LinearRelation (new API)
+     * Add constraint using math LinearInequality
      */
     fun AbstractLinearMetaModel.addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -359,10 +360,10 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * Add constraint using QuadraticRelation (new API)
+     * Add constraint using math QuadraticInequality
      */
     fun AbstractQuadraticMetaModel.addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -393,61 +394,83 @@ data class MetaConstraint<Ineq : Inequality<*, *>>(
     }
 }
 
-// ========== NEW Relation-based Constraint Types ==========
+// ========== Math Inequality-based Constraint Types ==========
 
 /**
- * LinearRelationConstraint - Constraint using LinearRelation (new API)
+ * LinearInequalityConstraint - Constraint using math LinearInequality
  *
  * This type uses LinearFlattenData directly, avoiding dependency on frontend/inequality.
  */
-data class LinearRelationConstraint(
-    val relation: LinearRelation,
+data class LinearInequalityConstraint(
+    val inequality: MathLinearInequality,
     val group: MetaConstraintGroup? = null,
     val lazy: Boolean = false,
     val args: Any? = null,
     val priority: Int? = null
 ) {
-    val flattenData: LinearFlattenData get() = relation.flattenData
-    val sign: Sign get() = relation.sign
-    val name: String get() = relation.name
-    val displayName: String? get() = relation.displayName
+    val flattenData: LinearFlattenData get() = inequality.flattenData
+    val sign: Comparison get() = inequality.sign
+    val name: String get() = inequality.name
+    val displayName: String? get() = inequality.displayName
 
     override fun toString(): String {
-        return relation.toString()
+        return inequality.toString()
     }
 }
 
 /**
- * QuadraticRelationConstraint - Constraint using QuadraticRelation (new API)
+ * QuadraticInequalityConstraint - Constraint using math QuadraticInequality
  *
  * This type uses QuadraticFlattenData directly, avoiding dependency on frontend/inequality.
  */
-data class QuadraticRelationConstraint(
-    val relation: QuadraticRelation,
+data class QuadraticInequalityConstraint(
+    val inequality: MathQuadraticInequality,
     val group: MetaConstraintGroup? = null,
     val lazy: Boolean = false,
     val args: Any? = null,
     val priority: Int? = null
 ) {
-    val flattenData: QuadraticFlattenData get() = relation.flattenData
-    val sign: Sign get() = relation.sign
-    val name: String get() = relation.name
-    val displayName: String? get() = relation.displayName
+    val flattenData: QuadraticFlattenData get() = inequality.flattenData
+    val sign: Comparison get() = inequality.sign
+    val name: String get() = inequality.name
+    val displayName: String? get() = inequality.displayName
 
     override fun toString(): String {
-        return relation.toString()
+        return inequality.toString()
     }
 }
 
+// Deprecated type aliases for backward compatibility
+@Deprecated("Use LinearInequalityConstraint instead", ReplaceWith("LinearInequalityConstraint"))
+typealias LinearRelationConstraint = LinearInequalityConstraint
+
+@Deprecated("Use QuadraticInequalityConstraint instead", ReplaceWith("QuadraticInequalityConstraint"))
+typealias QuadraticRelationConstraint = QuadraticInequalityConstraint
+
 // ========== Deprecated adapters ==========
 
+private fun Sign.toComparison(): Comparison = when (this) {
+    Sign.Less -> Comparison.LT
+    Sign.LessEqual -> Comparison.LE
+    Sign.Greater -> Comparison.GT
+    Sign.GreaterEqual -> Comparison.GE
+    Sign.Equal -> Comparison.EQ
+    Sign.Unequal -> Comparison.NE
+}
+
 /**
- * Convert MetaConstraint<LinearInequality> to LinearRelationConstraint
+ * Convert MetaConstraint<LinearInequality> to LinearInequalityConstraint
  */
 @Suppress("DEPRECATION")
-fun MetaConstraint<LinearInequality>.toRelationConstraint(): LinearRelationConstraint {
-    return LinearRelationConstraint(
-        relation = constraint.toRelation(),
+fun MetaConstraint<LinearInequality>.toRelationConstraint(): LinearInequalityConstraint {
+    return LinearInequalityConstraint(
+        inequality = MathLinearInequality(
+            lhs = constraint.lhs.toUtilsPolynomial(),
+            rhs = constraint.rhs.toUtilsPolynomial(),
+            comparison = constraint.sign.toComparison(),
+            name = constraint.name,
+            displayName = constraint.displayName ?: ""
+        ),
         group = group,
         lazy = lazy,
         args = args,
@@ -456,12 +479,18 @@ fun MetaConstraint<LinearInequality>.toRelationConstraint(): LinearRelationConst
 }
 
 /**
- * Convert MetaConstraint<QuadraticInequality> to QuadraticRelationConstraint
+ * Convert MetaConstraint<QuadraticInequality> to QuadraticInequalityConstraint
  */
 @Suppress("DEPRECATION")
-fun MetaConstraint<QuadraticInequality>.toRelationConstraint(): QuadraticRelationConstraint {
-    return QuadraticRelationConstraint(
-        relation = constraint.toRelation(),
+fun MetaConstraint<QuadraticInequality>.toRelationConstraint(): QuadraticInequalityConstraint {
+    return QuadraticInequalityConstraint(
+        inequality = MathQuadraticInequality(
+            lhs = constraint.lhs.toUtilsPolynomial(),
+            rhs = constraint.rhs.toUtilsPolynomial(),
+            comparison = constraint.sign.toComparison(),
+            name = constraint.name,
+            displayName = constraint.displayName ?: ""
+        ),
         group = group,
         lazy = lazy,
         args = args,

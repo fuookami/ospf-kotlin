@@ -5,9 +5,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPo
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -238,8 +238,6 @@ class BinaryzationFunctionImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -352,7 +350,6 @@ class BinaryzationFunctionPiecewiseImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
@@ -532,8 +529,6 @@ class BinaryzationFunctionDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -579,7 +574,7 @@ class BinaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = m * y geq x,
+            relation = m * y geq x,
             name = "${name}_ub",
             from = parent ?: self
         )) {
@@ -600,7 +595,7 @@ class BinaryzationFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = y leq x,
+                relation = y leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -680,7 +675,7 @@ class BinaryzationFunctionDiscreteImpl(
 
         if (bin eq Flt64.one) {
             when (val result = model.addConstraint(
-                constraint = m * y geq x,
+                relation = m * y geq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -700,7 +695,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y leq x,
+                relation = y leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -720,7 +715,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y eq bin,
+                relation = y eq bin,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -744,7 +739,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = Flt64.zero geq x,
+                relation = Flt64.zero geq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -764,7 +759,7 @@ class BinaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = Flt64.zero leq x,
+                relation = Flt64.zero leq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -871,8 +866,6 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -923,7 +916,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x eq m * b,
+            relation = x eq m * b,
             name = "${name}_xb",
             from = parent ?: self
         )) {
@@ -943,7 +936,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y geq b,
+            relation = y geq b,
             name = "${name}_lb",
             from = parent ?: self
         )) {
@@ -963,7 +956,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y leq (Flt64.one / epsilon) * b,
+            relation = y leq (Flt64.one / epsilon) * b,
             name = "${name}_ub",
             from = parent ?: self
         )) {
@@ -1043,7 +1036,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
 
         if (bin eq Flt64.zero) {
             when (val result = model.addConstraint(
-                constraint = x eq m * b,
+                relation = x eq m * b,
                 name = "${name}_xb",
                 from = parent ?: self
             )) {
@@ -1063,7 +1056,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y eq bin,
+                relation = y eq bin,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -1087,7 +1080,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = b eq pct,
+                relation = b eq pct,
                 name = "${name}_b",
                 from = parent ?: self
             )) {
@@ -1111,7 +1104,7 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = x eq Flt64.zero,
+                relation = x eq Flt64.zero,
                 name = "${name}_x",
                 from = parent ?: self
             )) {

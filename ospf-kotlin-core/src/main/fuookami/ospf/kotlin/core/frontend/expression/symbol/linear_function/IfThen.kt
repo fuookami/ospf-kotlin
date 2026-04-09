@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
@@ -7,12 +7,12 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.minus
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -26,8 +26,8 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
 class IfThenFunction(
-    p: LinearInequality,
-    q: LinearInequality,
+    pInput: LinearConstraintInput,
+    qInput: LinearConstraintInput,
     private val constraint: Boolean = true,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
@@ -50,8 +50,8 @@ class IfThenFunction(
             displayName: String? = null
         ): IfThenFunction {
             return IfThenFunction(
-                p = p.toLinearInequality(),
-                q = q.toLinearInequality(),
+                pInput = LinearConstraintInput.from(p.toLinearInequality()),
+                qInput = LinearConstraintInput.from(q.toLinearInequality()),
                 constraint = constraint,
                 epsilon = epsilon,
                 parent = parent,
@@ -65,37 +65,37 @@ class IfThenFunction(
     internal val _args = args
     override val args get() = _args ?: parent?.args
 
-    private val p by lazy { p.normalize() }
-    private val q by lazy { q.normalize() }
+    private val pInput by lazy { pInput }
+    private val qInput by lazy { qInput }
 
     private val pk: PctVariable1 by lazy {
         PctVariable1(
-            if (p.name.isEmpty()) {
+            if (pInput.name.isEmpty()) {
                 "${name}_pk"
             } else {
-                "${p.name}_k"
+                "${pInput.name}_k"
             },
             Shape1(3)
         )
     }
 
     private val pu: BinVar by lazy {
-        BinVar(p.name.ifEmpty { "${name}_pu" })
+        BinVar(pInput.name.ifEmpty { "${name}_pu" })
     }
 
     private val qk: PctVariable1 by lazy {
         PctVariable1(
-            if (q.name.isEmpty()) {
+            if (qInput.name.isEmpty()) {
                 "${name}_qk"
             } else {
-                "${q.name}_k"
+                "${qInput.name}_k"
             },
             Shape1(3)
         )
     }
 
     private val qu: BinVar by lazy {
-        BinVar(q.name.ifEmpty { "${name}_qu" })
+        BinVar(qInput.name.ifEmpty { "${name}_qu" })
     }
 
     private val u: UIntVar by lazy {
@@ -129,10 +129,11 @@ class IfThenFunction(
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
-            dependencies.addAll(p.lhs.dependencies)
-            dependencies.addAll(p.rhs.dependencies)
-            dependencies.addAll(q.lhs.dependencies)
-            dependencies.addAll(q.rhs.dependencies)
+            for (monomial in pInput.flattenData.monomials + qInput.flattenData.monomials) {
+                if (monomial.symbol is IntermediateSymbol) {
+                    dependencies.add(monomial.symbol as IntermediateSymbol)
+                }
+            }
             return dependencies
         }
     override val cells get() = polyY.cells
@@ -140,13 +141,10 @@ class IfThenFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            // todo: impl by Inequality.judge()
             return ValueRange(Flt64.zero, Flt64.one).value!!
         }
 
     override fun flush(force: Boolean) {
-        p.flush(force)
-        q.flush(force)
         if (!constraint) {
             y.flush(force)
         }
@@ -155,24 +153,20 @@ class IfThenFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        p.lhs.cells
-        p.rhs.cells
-        q.lhs.cells
-        q.rhs.cells
         y.prepareAndCache(values, tokenTable)
 
         return if (!constraint && tokenTable.cachedSolution) {
             prepareIfNotCached(values, tokenTable) {
                 val pBin = if (values.isNullOrEmpty()) {
-                    p.isTrue(tokenTable)
+                    pInput.isTrue(tokenTable)
                 } else {
-                    p.isTrue(values, tokenTable)
+                    pInput.isTrue(values, tokenTable)
                 } ?: return null
 
                 val qBin = if (values.isNullOrEmpty()) {
-                    q.isTrue(tokenTable)
+                    qInput.isTrue(tokenTable)
                 } else {
-                    q.isTrue(values, tokenTable)
+                    qInput.isTrue(values, tokenTable)
                 } ?: return null
 
                 logger.trace { "Setting IfThenFunction ${name}.pu initial solution: $pBin" }
@@ -208,79 +202,39 @@ class IfThenFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        when (val result = p.register(
+        when (val result = pInput.register(
             parentName = name,
             k = pk,
             flag = pu,
             tokenTable = tokenTable
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        when (val result = q.register(
+        when (val result = qInput.register(
             parentName = name,
             k = qk,
             flag = qu,
             tokenTable = tokenTable
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         if (!constraint) {
             when (val result = tokenTable.add(u)) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             when (val result = y.register(tokenTable)) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
@@ -288,7 +242,7 @@ class IfThenFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        when (val result = p.register(
+        when (val result = pInput.register(
             parent = parent ?: this,
             parentName = name,
             k = pk,
@@ -297,21 +251,11 @@ class IfThenFunction(
             model = model
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        when (val result = q.register(
+        when (val result = qInput.register(
             parent = parent ?: this,
             parentName = name,
             k = qk,
@@ -320,59 +264,29 @@ class IfThenFunction(
             model = model
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         if (constraint) {
             when (val result = model.addConstraint(
-                constraint = pu leq qu,
+                relation = pu leq qu,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = u eq (qu - pu + Flt64.one),
+                relation = u eq (qu - pu + Flt64.one),
                 name = "${name}_u",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
@@ -390,11 +304,11 @@ class IfThenFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val pValue = p.isTrue(fixedValues, model.tokens) ?: return register(model)
-        val qValue = q.isTrue(fixedValues, model.tokens) ?: return register(model)
+        val pValue = pInput.isTrue(fixedValues, model.tokens) ?: return register(model)
+        val qValue = qInput.isTrue(fixedValues, model.tokens) ?: return register(model)
         val bin = !pValue || qValue
 
-        when (val result = p.register(
+        when (val result = pInput.register(
             parent = parent ?: this,
             parentName = name,
             k = pk,
@@ -404,21 +318,11 @@ class IfThenFunction(
             fixedValues = fixedValues
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        when (val result = q.register(
+        when (val result = qInput.register(
             parent = parent ?: this,
             parentName = name,
             k = qk,
@@ -428,18 +332,8 @@ class IfThenFunction(
             fixedValues = fixedValues
         )) {
             is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         if (constraint) {
@@ -449,18 +343,8 @@ class IfThenFunction(
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         } else {
             when (val result = model.addConstraint(
@@ -469,18 +353,8 @@ class IfThenFunction(
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             when (val result = model.addConstraint(
@@ -489,18 +363,8 @@ class IfThenFunction(
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             model.tokens.find(u)?.let { token ->
@@ -515,7 +379,7 @@ class IfThenFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "if_then(${p.toRawString(unfold - UInt64.one)}, ${q.toRawString(unfold - UInt64.one)})"
+            "if_then(${pInput.name}, ${qInput.name})"
         }
     }
 
@@ -523,8 +387,8 @@ class IfThenFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(tokenList, zeroIfNone) ?: return null
-        val qv = q.isTrue(tokenList, zeroIfNone) ?: return null
+        val pv = pInput.isTrue(tokenList, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -537,16 +401,8 @@ class IfThenFunction(
         tokenList: AbstractTokenList,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(
-            results = results,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
-        val qv = q.isTrue(
-            results = results,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
+        val pv = pInput.isTrue(results, tokenList, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(results, tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -559,16 +415,8 @@ class IfThenFunction(
         tokenList: AbstractTokenList?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(
-            values = values,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
-        val qv = q.isTrue(
-            values = values,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
+        val pv = pInput.isTrue(values, tokenList, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(values, tokenList, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -580,8 +428,8 @@ class IfThenFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(tokenTable, zeroIfNone) ?: return null
-        val qv = q.isTrue(tokenTable, zeroIfNone) ?: return null
+        val pv = pInput.isTrue(tokenTable, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -594,16 +442,8 @@ class IfThenFunction(
         tokenTable: AbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(
-            results = results,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
-        val qv = q.isTrue(
-            results = results,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
+        val pv = pInput.isTrue(results, tokenTable, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(results, tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -616,16 +456,8 @@ class IfThenFunction(
         tokenTable: AbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
-        val pv = p.isTrue(
-            values = values,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
-        val qv = q.isTrue(
-            values = values,
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        ) ?: return null
+        val pv = pInput.isTrue(values, tokenTable, zeroIfNone) ?: return null
+        val qv = qInput.isTrue(values, tokenTable, zeroIfNone) ?: return null
         return if (UInt8(qv) geq UInt8(pv)) {
             Flt64.one
         } else {
@@ -633,8 +465,3 @@ class IfThenFunction(
         }
     }
 }
-
-
-
-
-

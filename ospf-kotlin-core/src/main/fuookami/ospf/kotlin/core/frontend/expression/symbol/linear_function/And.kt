@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -263,7 +263,6 @@ class AndFunctionOnePolynomialImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        polynomial.cells
         bin.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
@@ -426,9 +425,6 @@ private class AndFunctionMultiPolynomialImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
         maxmin.prepareAndCache(values, tokenTable)
         bin.prepareAndCache(values, tokenTable)
 
@@ -642,10 +638,6 @@ private class AndFunctionMultiPolynomialBinaryImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         return prepareIfNotCached(self, values, tokenTable) {
             val yValue = polynomials.all { polynomial ->
                 val thisValue = if (values.isNullOrEmpty()) {
@@ -692,7 +684,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         // if any polynomial is zero, y will be zero
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = y leq polynomial,
+                relation = y leq polynomial,
                 name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: self
             )) {
@@ -713,7 +705,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
         // if all polynomial are not zero, y will be not zero
         when (val result = model.addConstraint(
-            constraint = y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
+            relation = y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
             name = "${name}_lb",
             from = parent ?: self
         )) {
@@ -751,7 +743,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
 
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = y leq polynomial,
+                relation = y leq polynomial,
                 name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: self
             )) {
@@ -772,7 +764,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
+            relation = y geq (sum(polynomials) - Flt64(polynomials.lastIndex)),
             name = "${name}_lb",
             from = parent ?: self
         )) {
@@ -792,7 +784,7 @@ private class AndFunctionMultiPolynomialBinaryImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y eq bin,
+            relation = y eq bin,
             name = "${name}_y",
             from = parent ?: self
         )) {

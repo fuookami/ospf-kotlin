@@ -1,5 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.inequality
 
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
@@ -11,7 +13,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.to
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeQuadraticMonomialsByUtils
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
@@ -21,11 +22,15 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCel
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.math.BalancedTrivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
@@ -152,7 +157,7 @@ class QuadraticInequality(
     override fun normalize(): QuadraticInequality {
         return QuadraticInequality(
             lhs = QuadraticPolynomial(
-                mergeQuadraticMonomialsByUtils(
+                mergeMonomialsByUtils(
                     positiveMonomials = lhs.monomials,
                     negativeMonomials = rhs.monomials
                 )
@@ -170,7 +175,7 @@ class QuadraticInequality(
 
             Sign.Greater, Sign.GreaterEqual -> QuadraticInequality(
                 lhs = QuadraticPolynomial(
-                    mergeQuadraticMonomialsByUtils(
+                    mergeMonomialsByUtils(
                         positiveMonomials = rhs.monomials,
                         negativeMonomials = lhs.monomials
                     )
@@ -6455,6 +6460,36 @@ infix fun Quantity<AbstractQuadraticPolynomial<*>>.geq(rhs: Quantity<AbstractQua
     } else {
         TODO("not implemented yet")
     }
+}
+
+// Inlined from deleted adapter/NormalizeAdapters.kt
+private fun mergeMonomialsByUtils(
+    positiveMonomials: List<QuadraticMonomial>,
+    negativeMonomials: List<QuadraticMonomial>
+): List<QuadraticMonomial> {
+    val allMonomials = ArrayList<UtilsQuadraticMonomial<Flt64>>(positiveMonomials.size + negativeMonomials.size)
+    for (monomial in positiveMonomials) {
+        allMonomials.add(monomial.toUtilsMonomial())
+    }
+    for (monomial in negativeMonomials) {
+        val utilsMonomial = monomial.toUtilsMonomial()
+        allMonomials.add(utilsMonomial.copy(coefficient = -utilsMonomial.coefficient))
+    }
+
+    val mergedMonomials = allMonomials.combineTerms()
+    val coreMonomials = ArrayList<QuadraticMonomial>(mergedMonomials.size)
+    for (monomial in mergedMonomials) {
+        when (val result = monomial.toCoreMonomialRet()) {
+            is Ok -> coreMonomials.add(result.value)
+            is Failed -> {
+                error("Quadratic normalize adapter failed unexpectedly: ${result.error}")
+            }
+            is Fatal -> {
+                error("Quadratic normalize adapter failed unexpectedly: ${result.errors}")
+            }
+        }
+    }
+    return coreMonomials
 }
 
 

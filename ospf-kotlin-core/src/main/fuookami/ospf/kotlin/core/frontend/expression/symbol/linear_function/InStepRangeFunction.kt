@@ -103,8 +103,6 @@ class InStepRange(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        lb.cells
-        ub.cells
         q.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(values, tokenTable) {

@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -170,8 +170,6 @@ class MaskingRangeFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        mask.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val maskValue = if (values.isNullOrEmpty()) {
                 mask.evaluate(tokenTable)
@@ -248,7 +246,7 @@ class MaskingRangeFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = y leq ub * mask,
+            relation = y leq ub * mask,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -267,7 +265,7 @@ class MaskingRangeFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y geq lb * mask,
+            relation = y geq lb * mask,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -306,7 +304,7 @@ class MaskingRangeFunction(
         ) ?: return register(model)
 
         when (val result = model.addConstraint(
-            constraint = y leq ub * mask,
+            relation = y leq ub * mask,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -325,7 +323,7 @@ class MaskingRangeFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y geq lb * mask,
+            relation = y geq lb * mask,
             name = "${name}_lb",
             from = parent ?: this
         )) {

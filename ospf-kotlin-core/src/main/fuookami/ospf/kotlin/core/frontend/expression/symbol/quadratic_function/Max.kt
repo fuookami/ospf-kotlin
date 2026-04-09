@@ -2,9 +2,9 @@
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -98,10 +98,6 @@ sealed class AbstractMaxFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
             val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
@@ -185,7 +181,7 @@ sealed class AbstractMaxFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = minmax geq polynomial,
+                relation = minmax geq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -208,7 +204,7 @@ sealed class AbstractMaxFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    constraint = minmax leq (polynomial + m * (Flt64.one - u[i])),
+                    relation = minmax leq (polynomial + m * (Flt64.one - u[i])),
                     name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -229,7 +225,7 @@ sealed class AbstractMaxFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = sum(u) eq Flt64.one,
+                relation = sum(u) eq Flt64.one,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -325,7 +321,7 @@ sealed class AbstractMaxFunction(
 
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = minmax geq polynomial,
+                relation = minmax geq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -346,7 +342,7 @@ sealed class AbstractMaxFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = minmax eq maxValue,
+            relation = minmax eq maxValue,
             name = "${name}_max",
             from = parent ?: this
         )) {
@@ -373,7 +369,7 @@ sealed class AbstractMaxFunction(
             for ((i, polynomial) in polynomials.withIndex()) {
                 if (i == index) {
                     when (val result = model.addConstraint(
-                        constraint = minmax leq polynomial,
+                        relation = minmax leq polynomial,
                         name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
@@ -393,7 +389,7 @@ sealed class AbstractMaxFunction(
                     }
 
                     when (val result = model.addConstraint(
-                        constraint = u[i] eq Flt64.one,
+                        relation = u[i] eq Flt64.one,
                         name = "${name}_u_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {
@@ -417,7 +413,7 @@ sealed class AbstractMaxFunction(
                     }
                 } else {
                     when (val result = model.addConstraint(
-                        constraint = minmax leq (polynomial + m),
+                        relation = minmax leq (polynomial + m),
                         name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                         from = parent ?: this
                     )) {

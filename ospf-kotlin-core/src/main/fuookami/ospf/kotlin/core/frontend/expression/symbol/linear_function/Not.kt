@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -233,8 +233,6 @@ class NotFunctionImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -345,7 +343,6 @@ class NotFunctionPiecewiseImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
@@ -502,8 +499,6 @@ class NotFunctionDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -552,7 +547,7 @@ class NotFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
+            relation = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -573,7 +568,7 @@ class NotFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = (Flt64.one - y) leq x,
+                relation = (Flt64.one - y) leq x,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -614,7 +609,7 @@ class NotFunctionDiscreteImpl(
         val bin = xValue eq Flt64.zero
 
         when (val result = model.addConstraint(
-            constraint = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
+            relation = x.upperBound!!.value.unwrap() * (Flt64.one - y) geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -635,7 +630,7 @@ class NotFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = (Flt64.one - y) leq x,
+                relation = (Flt64.one - y) leq x,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -656,7 +651,7 @@ class NotFunctionDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y eq if (bin) Flt64.one else Flt64.zero,
+            relation = y eq if (bin) Flt64.one else Flt64.zero,
             name = "${name}_y",
             from = parent ?: this
         )) {
@@ -741,8 +736,6 @@ class NotFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)

@@ -1,5 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.inequality
 
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toCoreMonomialRet
+import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.to
@@ -8,7 +10,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.to
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.adapter.mergeLinearMonomialsByUtils
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
@@ -18,11 +19,15 @@ import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.math.BalancedTrivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
@@ -123,7 +128,7 @@ class LinearInequality(
     override fun normalize(): LinearInequality {
         return LinearInequality(
             lhs = LinearPolynomial(
-                mergeLinearMonomialsByUtils(
+                mergeMonomialsByUtils(
                     positiveMonomials = lhs.monomials,
                     negativeMonomials = rhs.monomials
                 )
@@ -141,7 +146,7 @@ class LinearInequality(
 
             Sign.Greater, Sign.GreaterEqual -> LinearInequality(
                 lhs = LinearPolynomial(
-                    mergeLinearMonomialsByUtils(
+                    mergeMonomialsByUtils(
                         positiveMonomials = rhs.monomials,
                         negativeMonomials = lhs.monomials
                     )
@@ -4685,6 +4690,36 @@ infix fun Quantity<AbstractLinearPolynomial<*>>.geq(rhs: Quantity<AbstractLinear
     } else {
         TODO("not implemented yet")
     }
+}
+
+// Inlined from deleted adapter/NormalizeAdapters.kt
+private fun mergeMonomialsByUtils(
+    positiveMonomials: List<LinearMonomial>,
+    negativeMonomials: List<LinearMonomial>
+): List<LinearMonomial> {
+    val allMonomials = ArrayList<UtilsLinearMonomial<Flt64>>(positiveMonomials.size + negativeMonomials.size)
+    for (monomial in positiveMonomials) {
+        allMonomials.add(monomial.toUtilsMonomial())
+    }
+    for (monomial in negativeMonomials) {
+        val utilsMonomial = monomial.toUtilsMonomial()
+        allMonomials.add(utilsMonomial.copy(coefficient = -utilsMonomial.coefficient))
+    }
+
+    val mergedMonomials = allMonomials.combineTerms()
+    val coreMonomials = ArrayList<LinearMonomial>(mergedMonomials.size)
+    for (monomial in mergedMonomials) {
+        when (val result = monomial.toCoreMonomialRet()) {
+            is Ok -> coreMonomials.add(result.value)
+            is Failed -> {
+                error("Linear normalize adapter failed unexpectedly: ${result.error}")
+            }
+            is Fatal -> {
+                error("Linear normalize adapter failed unexpectedly: ${result.errors}")
+            }
+        }
+    }
+    return coreMonomials
 }
 
 

@@ -3,9 +3,9 @@
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -114,8 +114,6 @@ class AbsFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -185,7 +183,7 @@ class AbsFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x eq (-m * neg + m * pos),
+            relation = x eq (-m * neg + m * pos),
             name = name,
             from = parent ?: this
         )) {
@@ -202,7 +200,7 @@ class AbsFunction(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = neg + pos leq Flt64.one,
+                relation = neg + pos leq Flt64.one,
                 name = "${name}_b",
                 from = parent ?: this
             )) {
@@ -218,7 +216,7 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = p geq pos,
+                relation = p geq pos,
                 name = "${name}_p",
                 from = parent ?: this
             )) {
@@ -234,7 +232,7 @@ class AbsFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = neg leq Flt64.one - p,
+                relation = neg leq Flt64.one - p,
                 name = "${name}_n",
                 from = parent ?: this
             )) {
@@ -317,7 +315,7 @@ class AbsFunction(
 
         if (xValue geq Flt64.zero) {
             when (val result = model.addConstraint(
-                constraint = x eq m * pos,
+                relation = x eq m * pos,
                 name = name,
                 from = parent ?: this
             )) {
@@ -337,7 +335,7 @@ class AbsFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = x eq -m * neg,
+                relation = x eq -m * neg,
                 name = name,
                 from = parent ?: this
             )) {

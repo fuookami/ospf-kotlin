@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -168,8 +168,6 @@ class RoundingFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -210,7 +208,7 @@ class RoundingFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x eq (d * q + r),
+            relation = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -248,7 +246,7 @@ class RoundingFunction(
         val rValue = xValue - qValue * d
 
         when (val result = model.addConstraint(
-            constraint = x eq (d * q + r),
+            relation = x eq (d * q + r),
             name = name,
             from = parent ?: this
         )) {
@@ -268,7 +266,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = q eq qValue,
+            relation = q eq qValue,
             name = "${name}_q",
             from = parent ?: this
         )) {
@@ -292,7 +290,7 @@ class RoundingFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = r eq rValue,
+            relation = r eq rValue,
             name = "${name}_r",
             from = parent ?: this
         )) {

@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -203,9 +203,6 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-        y.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -264,7 +261,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
             if (threshold) {
                 if (withNegative) {
                     when (val result = model.addConstraint(
-                        constraint = polyX geq y,
+                        relation = polyX geq y,
                         name = name,
                         from = (parent ?: this) to true
                     )) {
@@ -284,7 +281,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                     }
                 } else if (withPositive) {
                     when (val result = model.addConstraint(
-                        constraint = polyX leq y,
+                        relation = polyX leq y,
                         name = name,
                         from = (parent ?: this) to true
                     )) {
@@ -305,7 +302,7 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = polyX eq y,
+                    relation = polyX eq y,
                     name = name,
                     from = parent ?: this
                 )) {

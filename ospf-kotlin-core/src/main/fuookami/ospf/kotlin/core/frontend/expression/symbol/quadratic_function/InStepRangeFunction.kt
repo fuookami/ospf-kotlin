@@ -190,8 +190,6 @@ class InStepRange(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        lb.cells
-        ub.cells
         tokenTable.cache(
             listOf(stepLinear, q).mapNotNull {
                 val value = if (values.isNullOrEmpty()) {

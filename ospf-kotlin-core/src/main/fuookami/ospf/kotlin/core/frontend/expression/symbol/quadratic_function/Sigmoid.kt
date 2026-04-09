@@ -153,7 +153,6 @@ class SigmoidFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
         impl.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(values, tokenTable) {

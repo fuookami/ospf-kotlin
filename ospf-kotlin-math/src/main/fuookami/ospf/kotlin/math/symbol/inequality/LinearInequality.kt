@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
@@ -36,8 +37,20 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 data class LinearInequality(
     val lhs: LinearPolynomial<Flt64>,
     val rhs: LinearPolynomial<Flt64>,
-    val comparison: Comparison
-)
+    val comparison: Comparison,
+    val name: String = "",
+    val displayName: String = ""
+) {
+    fun reverse(): LinearInequality {
+        return LinearInequality(
+            lhs = rhs,
+            rhs = lhs,
+            comparison = comparison.reverse(),
+            name = name,
+            displayName = displayName
+        )
+    }
+}
 
 /**
  * 将线性单项式转换为线性多项式
@@ -310,4 +323,60 @@ infix fun Flt64.ge(rhs: LinearPolynomial<Flt64>): LinearInequality = asLinearPol
  * Floating-point number greater than linear polynomial
  */
 infix fun Flt64.gt(rhs: LinearPolynomial<Flt64>): LinearInequality = asLinearPolynomial() gt rhs
+
+// ========== Symbol-level DSL ==========
+// These allow any Symbol (e.g. AbstractVariableItem from core) to construct LinearInequality directly.
+
+private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
+    return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
+}
+
+infix fun Symbol.lt(rhs: Flt64): LinearInequality = asLinearPolynomial() lt rhs
+infix fun Symbol.le(rhs: Flt64): LinearInequality = asLinearPolynomial() le rhs
+infix fun Symbol.eq(rhs: Flt64): LinearInequality = asLinearPolynomial() eq rhs
+infix fun Symbol.ne(rhs: Flt64): LinearInequality = asLinearPolynomial() ne rhs
+infix fun Symbol.ge(rhs: Flt64): LinearInequality = asLinearPolynomial() ge rhs
+infix fun Symbol.gt(rhs: Flt64): LinearInequality = asLinearPolynomial() gt rhs
+
+infix fun Flt64.lt(rhs: Symbol): LinearInequality = lt(rhs.asLinearPolynomial())
+infix fun Flt64.le(rhs: Symbol): LinearInequality = le(rhs.asLinearPolynomial())
+infix fun Flt64.eq(rhs: Symbol): LinearInequality = eq(rhs.asLinearPolynomial())
+infix fun Flt64.ne(rhs: Symbol): LinearInequality = ne(rhs.asLinearPolynomial())
+infix fun Flt64.ge(rhs: Symbol): LinearInequality = ge(rhs.asLinearPolynomial())
+infix fun Flt64.gt(rhs: Symbol): LinearInequality = gt(rhs.asLinearPolynomial())
+
+infix fun Symbol.lt(rhs: Symbol): LinearInequality = asLinearPolynomial() lt rhs.asLinearPolynomial()
+infix fun Symbol.le(rhs: Symbol): LinearInequality = asLinearPolynomial() le rhs.asLinearPolynomial()
+infix fun Symbol.eq(rhs: Symbol): LinearInequality = asLinearPolynomial() eq rhs.asLinearPolynomial()
+infix fun Symbol.ne(rhs: Symbol): LinearInequality = asLinearPolynomial() ne rhs.asLinearPolynomial()
+infix fun Symbol.ge(rhs: Symbol): LinearInequality = asLinearPolynomial() ge rhs.asLinearPolynomial()
+infix fun Symbol.gt(rhs: Symbol): LinearInequality = asLinearPolynomial() gt rhs.asLinearPolynomial()
+
+// ========== Named inequality constructors ==========
+
+fun LinearPolynomial<Flt64>.lt(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.LT, name, displayName)
+fun LinearPolynomial<Flt64>.le(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.LE, name, displayName)
+fun LinearPolynomial<Flt64>.eq(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.EQ, name, displayName)
+fun LinearPolynomial<Flt64>.ne(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.NE, name, displayName)
+fun LinearPolynomial<Flt64>.ge(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.GE, name, displayName)
+fun LinearPolynomial<Flt64>.gt(rhs: LinearPolynomial<Flt64>, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs, Comparison.GT, name, displayName)
+
+fun LinearPolynomial<Flt64>.lt(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.LT, name, displayName)
+fun LinearPolynomial<Flt64>.le(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.LE, name, displayName)
+fun LinearPolynomial<Flt64>.eq(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.EQ, name, displayName)
+fun LinearPolynomial<Flt64>.ne(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.NE, name, displayName)
+fun LinearPolynomial<Flt64>.ge(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.GE, name, displayName)
+fun LinearPolynomial<Flt64>.gt(rhs: Flt64, name: String, displayName: String = ""): LinearInequality =
+    LinearInequality(this, rhs.asLinearPolynomial(), Comparison.GT, name, displayName)
 

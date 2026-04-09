@@ -1,13 +1,16 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -22,7 +25,7 @@ import fuookami.ospf.kotlin.multiarray._a
 import org.apache.logging.log4j.kotlin.logger
 
 sealed class AbstractSatisfiedAmountInequalityFunction(
-    inequalities: List<LinearInequality>,
+    inputs: List<LinearConstraintInput>,
     private val constraint: Boolean = false,
     private val epsilon: Flt64 = Flt64(1e-6),
     override val parent: IntermediateSymbol? = null,
@@ -37,16 +40,14 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     open val amount: ValueRange<UInt64>? = null
 
-    protected val inequalities by lazy {
-        inequalities.map { it.normalize() }
-    }
+    protected val inputs by lazy { inputs }
 
     private val k: PctVariable2 by lazy {
-        PctVariable2("${name}_k", Shape2(inequalities.size, 3))
+        PctVariable2("${name}_k", Shape2(inputs.size, 3))
     }
 
     private val u: BinVariable1 by lazy {
-        BinVariable1("${name}_u", Shape1(inequalities.size))
+        BinVariable1("${name}_u", Shape1(inputs.size))
     }
 
     private val y: BinVar by lazy {
@@ -80,9 +81,12 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
-            for (inequality in inequalities) {
-                dependencies.addAll(inequality.lhs.dependencies)
-                dependencies.addAll(inequality.rhs.dependencies)
+            for (input in inputs) {
+                for (monomial in input.flattenData.monomials) {
+                    if (monomial.symbol is IntermediateSymbol) {
+                        dependencies.add(monomial.symbol as IntermediateSymbol)
+                    }
+                }
             }
             return dependencies
         }
@@ -91,30 +95,21 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            // todo: impl by Inequality.judge()
             return if (amount != null) {
                 ValueRange(Flt64.zero, Flt64.one).value!!
             } else {
-                ValueRange(Flt64.zero, Flt64(inequalities.size)).value!!
+                ValueRange(Flt64.zero, Flt64(inputs.size)).value!!
             }
         }
 
     override fun flush(force: Boolean) {
-        for (inequality in inequalities) {
-            inequality.flush(force)
-        }
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (inequality in inequalities) {
-            inequality.lhs.cells
-            inequality.rhs.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
-            val count = inequalities.count {
+            val count = inputs.count {
                 if (values.isNullOrEmpty()) {
                     it.isTrue(tokenTable)
                 } else {
@@ -148,44 +143,24 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(
+        for ((i, input) in inputs.withIndex()) {
+            when (val result = input.register(
                 parentName = "${name}_i",
                 k = k[i, _a],
                 flag = u[i],
                 tokenTable = tokenTable
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
         if (amount != null && !constraint) {
             when (val result = tokenTable.add(y)) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
@@ -193,8 +168,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(
+        for ((i, input) in inputs.withIndex()) {
+            when (val result = input.register(
                 parent = parent ?: this,
                 parentName = "${name}_i",
                 k = k[i, _a],
@@ -203,101 +178,51 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 model = model
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
         if (amount != null) {
             if (!constraint) {
                 when (val result = model.addConstraint(
-                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inputs.size) * (Flt64.one - y),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inputs.size) * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = sum(u) leq amount!!.upperBound.value.unwrap(),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         }
@@ -316,13 +241,13 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        val values = inequalities.map {
+        val values = inputs.map {
             it.isTrue(fixedValues, model.tokens) ?: return register(model)
         }
         val amountValue = UInt64(values.count { it })
 
-        for ((i, inequality) in inequalities.withIndex()) {
-            when (val result = inequality.register(
+        for ((i, input) in inputs.withIndex()) {
+            when (val result = input.register(
                 parent = parent ?: this,
                 parentName = "${name}_i",
                 k = k[i, _a],
@@ -332,83 +257,43 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 fixedValues = fixedValues
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
         if (amount != null) {
             if (!constraint) {
                 when (val result = model.addConstraint(
-                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inequalities.size) * (Flt64.one - y),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap() - UInt64(inputs.size) * (Flt64.one - y),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inequalities.size) * (Flt64.one - y),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inputs.size) * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 val bin = amount!!.contains(amountValue)
 
                 when (val result = model.addConstraint(
-                    constraint = y eq bin,
+                    relation = y eq bin,
                     name = "${name}_y",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 model.tokens.find(y)?.let { token ->
@@ -416,43 +301,23 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = sum(u) leq amount!!.upperBound.value.unwrap(),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         }
@@ -469,9 +334,9 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
             displayName ?: name
         } else {
             if (amount != null) {
-                "satisfied_amount_${amount}(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+                "satisfied_amount_${amount}(${inputs.joinToString(", ") { it.name }})"
             } else {
-                "satisfied_amount(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+                "satisfied_amount(${inputs.joinToString(", ") { it.name }})"
             }
         }
     }
@@ -481,8 +346,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(tokenList, zeroIfNone) ?: return null
+        for (input in inputs) {
+            val value = input.isTrue(tokenList, zeroIfNone) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -504,8 +369,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 results = results,
                 tokenList = tokenList,
                 zeroIfNone = zeroIfNone
@@ -531,8 +396,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 values = values,
                 tokenList = tokenList,
                 zeroIfNone = zeroIfNone
@@ -557,8 +422,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(tokenTable, zeroIfNone) ?: return null
+        for (input in inputs) {
+            val value = input.isTrue(tokenTable, zeroIfNone) ?: return null
             if (value) {
                 counter += UInt64.one
             }
@@ -580,8 +445,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 results = results,
                 tokenTable = tokenTable,
                 zeroIfNone = zeroIfNone
@@ -607,8 +472,8 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var counter = UInt64.zero
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 values = values,
                 tokenTable = tokenTable,
                 zeroIfNone = zeroIfNone
@@ -637,12 +502,12 @@ open class AnyFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     parent = parent,
     args = args,
     name = name,
     displayName = displayName
-), LogicFunctionSymbol {
+) {
     companion object {
         operator fun invoke(
             inequalities: List<ToLinearInequality>,
@@ -661,13 +526,13 @@ open class AnyFunction(
         }
     }
 
-    override val amount = ValueRange(UInt64.one, UInt64(inequalities.size)).value!!
+    override val amount = ValueRange(UInt64.one, UInt64(inputs.size)).value!!
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "any(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "any(${inputs.joinToString(", ") { it.name }})"
         }
     }
 }
@@ -680,7 +545,7 @@ class InListFunction(
     name: String,
     displayName: String? = null
 ) : AnyFunction(
-    inequalities = list.map { x eq it },
+    inequalities = list.map { (x eq it).normalize() },
     parent = parent,
     args = args,
     name = name,
@@ -717,7 +582,7 @@ class NotAllFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     parent = parent,
     args = args,
     name = name,
@@ -741,13 +606,13 @@ class NotAllFunction(
         }
     }
 
-    override val amount = ValueRange(UInt64.one, UInt64(inequalities.lastIndex)).value!!
+    override val amount = ValueRange(UInt64.one, UInt64(inputs.lastIndex)).value!!
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "not_all(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "not_all(${inputs.joinToString(", ") { it.name }})"
         }
     }
 }
@@ -760,7 +625,7 @@ class AllFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     parent = parent,
     args = args,
     name = name,
@@ -784,13 +649,13 @@ class AllFunction(
         }
     }
 
-    override val amount = ValueRange(UInt64(inequalities.size), UInt64(inequalities.size)).value!!
+    override val amount = ValueRange(UInt64(inputs.size), UInt64(inputs.size)).value!!
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "for_all(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "for_all(${inputs.joinToString(", ") { it.name }})"
         }
     }
 }
@@ -802,7 +667,7 @@ class SatisfiedAmountInequalityFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     parent = parent,
     args = args,
     name = name,
@@ -837,7 +702,7 @@ class AtLeastInequalityFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
@@ -871,16 +736,16 @@ class AtLeastInequalityFunction(
 
     init {
         assert(amount != UInt64.zero)
-        assert(UInt64(inequalities.size) geq amount)
+        assert(UInt64(inputs.size) geq amount)
     }
 
-    override val amount = ValueRange(amount, UInt64(inequalities.size)).value!!
+    override val amount = ValueRange(amount, UInt64(inputs.size)).value!!
 
     override fun toRawString(unfold: UInt64): String {
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "at_least_${amount}(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "at_least_${amount}(${inputs.joinToString(", ") { it.name }})"
         }
     }
 }
@@ -895,7 +760,7 @@ class NumerableFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inequalities = inequalities,
+    inputs = inequalities.map { LinearConstraintInput.from(it) },
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
@@ -931,12 +796,7 @@ class NumerableFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "numerable_${amount}(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "numerable_${amount}(${inputs.joinToString(", ") { it.name }})"
         }
     }
 }
-
-
-
-
-

@@ -4,9 +4,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -145,9 +145,6 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-        y.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -269,7 +266,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         for (i in indices) {
             val rhs = polyU(i)
             when (val result = model.addConstraint(
-                constraint = (u[i] - m * w[i] + m) geq rhs,
+                relation = (u[i] - m * w[i] + m) geq rhs,
                 name = "${name}_ul_$i",
                 from = parent ?: this
             )) {
@@ -288,7 +285,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = (u[i] + m * w[i] - m) leq rhs,
+                relation = (u[i] + m * w[i] - m) leq rhs,
                 name = "${name}_ur_$i",
                 from = parent ?: this
             )) {
@@ -311,7 +308,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         for (i in indices) {
             val rhs = polyV(i)
             when (val result = model.addConstraint(
-                constraint = (v[i] - m * w[i] + m) geq rhs,
+                relation = (v[i] - m * w[i] + m) geq rhs,
                 name = "${name}_vl_$i",
                 from = parent ?: this
             )) {
@@ -330,7 +327,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = (v[i] + m * w[i] - m) leq rhs,
+                relation = (v[i] + m * w[i] - m) leq rhs,
                 name = "${name}_vr_$i",
                 from = parent ?: this
             )) {
@@ -351,7 +348,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = sum(w) eq Flt64.one,
+            relation = sum(w) eq Flt64.one,
             name = "${name}_w",
             from = parent ?: this
         )) {
@@ -372,7 +369,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
 
         for (i in indices) {
             when (val result = model.addConstraint(
-                constraint = (u[i] + v[i]) leq w[i],
+                relation = (u[i] + v[i]) leq w[i],
                 name = "${name}_uv_$i",
                 from = parent ?: this
             )) {
@@ -491,7 +488,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
             val vPoly = polyV(i)
             if (i == index) {
                 when (val result = model.addConstraint(
-                    constraint = (u[i] - m * w[i] + m) geq uPoly,
+                    relation = (u[i] - m * w[i] + m) geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
                 )) {
@@ -510,7 +507,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = (u[i] - m * w[i] - m) leq uPoly,
+                    relation = (u[i] - m * w[i] - m) leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
                 )) {
@@ -529,7 +526,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = u[i] eq uValue,
+                    relation = u[i] eq uValue,
                     name = "${name}_u_$i",
                     from = parent ?: this
                 )) {
@@ -553,7 +550,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = (v[i] - m * w[i] + m) geq vPoly,
+                    relation = (v[i] - m * w[i] + m) geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
                 )) {
@@ -572,7 +569,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = (v[i] - m * w[i] - m) leq vPoly,
+                    relation = (v[i] - m * w[i] - m) leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
                 )) {
@@ -591,7 +588,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = v[i] eq vValue,
+                    relation = v[i] eq vValue,
                     name = "${name}_v_$i",
                     from = parent ?: this
                 )) {
@@ -615,7 +612,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = w[i] eq Flt64.one,
+                    relation = w[i] eq Flt64.one,
                     name = "${name}_w_$i",
                     from = parent ?: this
                 )) {
@@ -639,7 +636,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = m geq uPoly,
+                    relation = m geq uPoly,
                     name = "${name}_ul_$i",
                     from = parent ?: this
                 )) {
@@ -658,7 +655,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = -m leq uPoly,
+                    relation = -m leq uPoly,
                     name = "${name}_ur_$i",
                     from = parent ?: this
                 )) {
@@ -678,7 +675,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = m geq vPoly,
+                    relation = m geq vPoly,
                     name = "${name}_vl_$i",
                     from = parent ?: this
                 )) {
@@ -697,7 +694,7 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
                     }
                 }
                 when (val result = model.addConstraint(
-                    constraint = -m leq vPoly,
+                    relation = -m leq vPoly,
                     name = "${name}_vr_$i",
                     from = parent ?: this
                 )) {

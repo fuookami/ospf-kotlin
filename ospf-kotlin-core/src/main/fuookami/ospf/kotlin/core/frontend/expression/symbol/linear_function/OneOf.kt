@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractOneOfFunction.Branch
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -126,10 +126,6 @@ sealed class AbstractOneOfFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (branch in branches) {
-            branch.polynomial.cells
-            branch.condition?.cells
-        }
         tokenTable.cache(
             masks.mapNotNull {
                 val value = if (values.isNullOrEmpty()) {
@@ -252,7 +248,7 @@ sealed class AbstractOneOfFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = sum(branches.mapIndexed { b, branch ->
+            relation = sum(branches.mapIndexed { b, branch ->
                 branch.condition ?: LinearPolynomial(u[b]!!)
             }) eq Flt64.one,
             name = "${name}_condition",
@@ -317,7 +313,7 @@ sealed class AbstractOneOfFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = sum(branches.mapIndexed { b, branch ->
+            relation = sum(branches.mapIndexed { b, branch ->
                 branch.condition ?: LinearPolynomial(u[b]!!)
             }) eq Flt64.one,
             name = "${name}_condition",
@@ -341,7 +337,7 @@ sealed class AbstractOneOfFunction(
         u.forEachIndexed { i, ui ->
             if (ui != null) {
                 when (val result = model.addConstraint(
-                    constraint = ui eq values[i].first,
+                    relation = ui eq values[i].first,
                     name = "${name}_${branches[i].name}_u",
                     from = parent ?: this
                 )) {

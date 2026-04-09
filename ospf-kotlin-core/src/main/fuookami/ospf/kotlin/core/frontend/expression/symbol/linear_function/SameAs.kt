@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
@@ -6,9 +6,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -22,7 +24,7 @@ import fuookami.ospf.kotlin.multiarray._a
 import org.apache.logging.log4j.kotlin.logger
 
 class SameAsFunction(
-    inequalities: List<LinearInequality>,
+    inputs: List<LinearConstraintInput>,
     private val constraint: Boolean = true,
     private val fixed: Boolean? = null,
     private val epsilon: Flt64 = Flt64(1e-6),
@@ -45,7 +47,7 @@ class SameAsFunction(
             displayName: String? = null
         ): SameAsFunction {
             return SameAsFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inputs = inequalities.map { LinearConstraintInput.from(it.toLinearInequality()) },
                 constraint = constraint,
                 fixed = fixed,
                 epsilon = epsilon,
@@ -60,16 +62,14 @@ class SameAsFunction(
     internal val _args = args
     override val args get() = _args ?: parent?.args
 
-    private val inequalities by lazy {
-        inequalities.map { it.normalize() }
-    }
+    private val inputs by lazy { inputs }
 
     private val k: PctVariable2 by lazy {
-        PctVariable2("${name}_k", Shape2(inequalities.size, 3))
+        PctVariable2("${name}_k", Shape2(inputs.size, 3))
     }
 
     private val u: BinVariable1 by lazy {
-        BinVariable1("${name}_u", Shape1(inequalities.size))
+        BinVariable1("${name}_u", Shape1(inputs.size))
     }
 
     private val y: BinVar by lazy {
@@ -97,9 +97,12 @@ class SameAsFunction(
     override val dependencies: Set<IntermediateSymbol>
         get() {
             val dependencies = HashSet<IntermediateSymbol>()
-            for (inequality in inequalities) {
-                dependencies.addAll(inequality.lhs.dependencies)
-                dependencies.addAll(inequality.rhs.dependencies)
+            for (input in inputs) {
+                for (monomial in input.flattenData.monomials) {
+                    if (monomial.symbol is IntermediateSymbol) {
+                        dependencies.add(monomial.symbol as IntermediateSymbol)
+                    }
+                }
             }
             return dependencies
         }
@@ -108,34 +111,25 @@ class SameAsFunction(
 
     private val possibleRange: ValueRange<Flt64>
         get() {
-            // todo: impl by Inequality.judge()
             return ValueRange(Flt64.zero, Flt64.one).value!!
         }
 
     override fun flush(force: Boolean) {
-        for (inequality in inequalities) {
-            inequality.flush(force)
-        }
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (inequality in inequalities) {
-            inequality.lhs.cells
-            inequality.rhs.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
-            val evaluatedValues = inequalities.map {
+            val evaluatedValues = inputs.map {
                 if (values.isNullOrEmpty()) {
                     it.isTrue(tokenTable)
                 } else {
                     it.isTrue(values, tokenTable)
                 } ?: return null
             }
-            if (!constraint && inequalities.size > 1) {
-                for (i in inequalities.indices) {
+            if (!constraint && inputs.size > 1) {
+                for (i in inputs.indices) {
                     logger.trace { "Setting SameAsFunction ${name}.u[$i] to ${evaluatedValues[i]}" }
                     tokenTable.find(u[i])?.let { token ->
                         token._result = if (evaluatedValues[i]) {
@@ -163,67 +157,37 @@ class SameAsFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        if (!constraint && inequalities.size > 1) {
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+        if (!constraint && inputs.size > 1) {
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parentName = "${name}_i",
                     k = k[i, _a],
                     flag = u[i],
                     tokenTable = tokenTable
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         } else {
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parentName = "${name}_i",
                     k = k[i, _a],
                     flag = null,
                     tokenTable = tokenTable
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
 
             when (val result = tokenTable.add(y)) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         }
 
@@ -231,9 +195,9 @@ class SameAsFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        if (!constraint && inequalities.size > 1) {
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+        if (!constraint && inputs.size > 1) {
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parent = parent ?: this,
                     parentName = "${name}_i",
                     k = k[i, _a],
@@ -242,63 +206,33 @@ class SameAsFunction(
                     model = model
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
 
             when (val result = model.addConstraint(
-                constraint = y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
+                relation = y geq (sum(u) - UInt64(inputs.size) + UInt64.one) / UInt64(inputs.size),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             when (val result = model.addConstraint(
-                constraint = y leq sum(u) / UInt64(inequalities.size),
+                relation = y leq sum(u) / UInt64(inputs.size),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
         } else {
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parent = parent ?: this,
                     parentName = name,
                     k = k[i, _a],
@@ -307,18 +241,8 @@ class SameAsFunction(
                     model = model
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         }
@@ -337,8 +261,8 @@ class SameAsFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        if (!constraint && inequalities.size > 1) {
-            val values = inequalities.map {
+        if (!constraint && inputs.size > 1) {
+            val values = inputs.map {
                 it.isTrue(fixedValues, model.tokens) ?: return register(model)
             }
             val bin = if (values.all { it }) {
@@ -347,8 +271,8 @@ class SameAsFunction(
                 Flt64.zero
             }
 
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parent = parent ?: this,
                     parentName = "${name}_i",
                     k = k[i, _a],
@@ -358,59 +282,29 @@ class SameAsFunction(
                     fixedValues = fixedValues
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
 
             when (val result = model.addConstraint(
-                y geq (sum(u) - UInt64(inequalities.size) + UInt64.one) / UInt64(inequalities.size),
+                y geq (sum(u) - UInt64(inputs.size) + UInt64.one) / UInt64(inputs.size),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             when (val result = model.addConstraint(
-                y leq sum(u) / UInt64(inequalities.size),
+                y leq sum(u) / UInt64(inputs.size),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             when (val result = model.addConstraint(
@@ -419,26 +313,16 @@ class SameAsFunction(
                 from = parent ?: this
             )) {
                 is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
 
             model.tokens.find(y)?.let { token ->
                 token._result = bin
             }
         } else {
-            for ((i, inequality) in inequalities.withIndex()) {
-                when (val result = inequality.register(
+            for ((i, input) in inputs.withIndex()) {
+                when (val result = input.register(
                     parent = parent ?: this,
                     parentName = name,
                     k = k[i, _a],
@@ -448,18 +332,8 @@ class SameAsFunction(
                     fixedValues = fixedValues
                 )) {
                     is Ok -> {}
-
-                    is Failed -> {
-                        return Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
-
-                    is Fatal -> {
-                        return Fatal(result.errors)
-                    }
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
             }
         }
@@ -475,7 +349,7 @@ class SameAsFunction(
         return if (unfold eq UInt64.zero) {
             displayName ?: name
         } else {
-            "sane_as(${inequalities.joinToString(", ") { it.toRawString(unfold - UInt64.one) }})"
+            "same_as(${inputs.joinToString(", ") { it.name }})"
         }
     }
 
@@ -484,8 +358,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(tokenList, zeroIfNone) ?: return null
+        for (input in inputs) {
+            val value = input.isTrue(tokenList, zeroIfNone) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {
@@ -501,8 +375,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 results = results,
                 tokenList = tokenList,
                 zeroIfNone = zeroIfNone
@@ -522,8 +396,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 values = values,
                 tokenList = tokenList,
                 zeroIfNone = zeroIfNone
@@ -542,8 +416,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(tokenTable, zeroIfNone) ?: return null
+        for (input in inputs) {
+            val value = input.isTrue(tokenTable, zeroIfNone) ?: return null
             if (lastValue == null) {
                 lastValue = value
             } else if (lastValue != value) {
@@ -559,8 +433,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 results = results,
                 tokenTable = tokenTable,
                 zeroIfNone = zeroIfNone
@@ -580,8 +454,8 @@ class SameAsFunction(
         zeroIfNone: Boolean
     ): Flt64? {
         var lastValue: Boolean? = null
-        for (inequality in inequalities) {
-            val value = inequality.isTrue(
+        for (input in inputs) {
+            val value = input.isTrue(
                 values = values,
                 tokenTable = tokenTable,
                 zeroIfNone = zeroIfNone
@@ -595,8 +469,3 @@ class SameAsFunction(
         return Flt64.one
     }
 }
-
-
-
-
-

@@ -1,13 +1,17 @@
-﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
+package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign as InequalitySign
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 
 typealias DualSolution = Map<Constraint, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>
@@ -90,6 +94,10 @@ class LinearConstraint(
     from = from
 ) {
     companion object {
+        @Deprecated(
+            message = "Use LinearConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("LinearConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+        )
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
             inequality: MetaConstraint<Ineq>,
             tokens: AbstractTokenTable
@@ -119,6 +127,10 @@ class LinearConstraint(
             )
         }
 
+        @Deprecated(
+            message = "Use LinearConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("LinearConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+        )
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
             tokens: AbstractTokenTable,
@@ -150,10 +162,10 @@ class LinearConstraint(
         }
 
         /**
-         * Create LinearConstraint from LinearRelation (new API)
+         * Create LinearConstraint from math LinearInequality (new API)
          */
         operator fun invoke(
-            relation: LinearRelation,
+            relation: MathLinearInequality,
             tokens: AbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
@@ -177,7 +189,7 @@ class LinearConstraint(
             }
             return LinearConstraint(
                 lhs = lhs,
-                sign = Sign(relation.sign),
+                sign = Sign(relation.comparison),
                 rhs = -flattenData.constant,
                 lazy = lazy,
                 name = name.ifEmpty { relation.name },
@@ -206,6 +218,10 @@ class QuadraticConstraint(
     from = from
 ) {
     companion object {
+        @Deprecated(
+            message = "Use QuadraticConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("QuadraticConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+        )
         @JvmName("constructByLinearInequality")
         operator fun <Ineq : Inequality<*, LinearMonomialCell>> invoke(
             inequality: MetaConstraint<Ineq>,
@@ -237,6 +253,10 @@ class QuadraticConstraint(
             )
         }
 
+        @Deprecated(
+            message = "Use QuadraticConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("QuadraticConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+        )
         @JvmName("constructByLinearInequality")
         operator fun invoke(
             inequality: Inequality<*, LinearMonomialCell>,
@@ -268,6 +288,10 @@ class QuadraticConstraint(
             )
         }
 
+        @Deprecated(
+            message = "Use QuadraticConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("QuadraticConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+        )
         @JvmName("constructByQuadraticInequality")
         operator fun <Ineq : Inequality<*, QuadraticMonomialCell>> invoke(
             inequality: MetaConstraint<Ineq>,
@@ -304,6 +328,10 @@ class QuadraticConstraint(
             )
         }
 
+        @Deprecated(
+            message = "Use QuadraticConstraint(inequality, tokens) instead",
+            replaceWith = ReplaceWith("QuadraticConstraint(relation, tokens)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+        )
         @JvmName("constructByQuadraticInequality")
         operator fun invoke(
             inequality: Inequality<*, QuadraticMonomialCell>,
@@ -342,10 +370,10 @@ class QuadraticConstraint(
         }
 
         /**
-         * Create QuadraticConstraint from QuadraticRelation (new API)
+         * Create QuadraticConstraint from math QuadraticInequality (new API)
          */
         operator fun invoke(
-            relation: QuadraticRelation,
+            relation: MathQuadraticInequality,
             tokens: AbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
@@ -375,7 +403,7 @@ class QuadraticConstraint(
             }
             return QuadraticConstraint(
                 lhs = lhs,
-                sign = Sign(relation.sign),
+                sign = Sign(relation.comparison),
                 rhs = -flattenData.constant,
                 lazy = lazy,
                 name = name.ifEmpty { relation.name },
@@ -385,6 +413,3 @@ class QuadraticConstraint(
         }
     }
 }
-
-
-

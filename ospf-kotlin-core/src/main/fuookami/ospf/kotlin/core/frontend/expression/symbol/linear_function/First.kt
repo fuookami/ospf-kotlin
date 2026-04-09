@@ -5,9 +5,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomi
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.minus
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -124,9 +124,6 @@ class FirstFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
         tokenTable.cache(
             bins.mapNotNull {
                 val value = if (values.isNullOrEmpty()) {
@@ -246,7 +243,7 @@ class FirstFunction(
 
         for (i in polynomials.indices) {
             when (val result = model.addConstraint(
-                constraint = y[i] leq bins[i],
+                relation = y[i] leq bins[i],
                 name = "${name}_ub1_$i",
                 from = parent ?: this
             )) {
@@ -267,7 +264,7 @@ class FirstFunction(
 
             if (i == 0) {
                 when (val result = model.addConstraint(
-                    constraint = y[i] geq bins[i],
+                    relation = y[i] geq bins[i],
                     name = "${name}_lb_0",
                     from = parent ?: this
                 )) {

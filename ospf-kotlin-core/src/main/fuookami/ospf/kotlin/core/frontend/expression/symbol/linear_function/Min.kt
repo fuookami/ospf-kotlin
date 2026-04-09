@@ -2,9 +2,9 @@
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -97,10 +97,6 @@ sealed class AbstractMinFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
             val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
@@ -182,7 +178,7 @@ sealed class AbstractMinFunction(
     override fun register(model: AbstractLinearMechanismModel): Try {
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = maxmin leq polynomial,
+                relation = maxmin leq polynomial,
                 name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -205,7 +201,7 @@ sealed class AbstractMinFunction(
         if (exact) {
             for ((i, polynomial) in polynomials.withIndex()) {
                 when (val result = model.addConstraint(
-                    constraint = maxmin geq (polynomial - m * (Flt64.one - u[i])),
+                    relation = maxmin geq (polynomial - m * (Flt64.one - u[i])),
                     name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -226,7 +222,7 @@ sealed class AbstractMinFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = sum(u) eq Flt64.one,
+                relation = sum(u) eq Flt64.one,
                 name = "${name}_u",
                 from = parent ?: this
             )) {
@@ -322,7 +318,7 @@ sealed class AbstractMinFunction(
 
         for ((i, polynomial) in polynomials.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = maxmin leq polynomial,
+                relation = maxmin leq polynomial,
                 name = "${name}_ub_${polynomial.name.ifEmpty { "$i" }}",
                 from = parent ?: this
             )) {
@@ -343,7 +339,7 @@ sealed class AbstractMinFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = maxmin eq minValue,
+            relation = maxmin eq minValue,
             name = "${name}_min",
             from = parent ?: this
         )) {

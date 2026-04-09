@@ -38,8 +38,20 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 data class QuadraticInequality(
     val lhs: QuadraticPolynomial<Flt64>,
     val rhs: QuadraticPolynomial<Flt64>,
-    val comparison: Comparison
-)
+    val comparison: Comparison,
+    val name: String = "",
+    val displayName: String = ""
+) {
+    fun reverse(): QuadraticInequality {
+        return QuadraticInequality(
+            lhs = rhs,
+            rhs = lhs,
+            comparison = comparison.reverse(),
+            name = name,
+            displayName = displayName
+        )
+    }
+}
 
 /**
  * 将二次单项式转换为二次多项式
@@ -453,4 +465,32 @@ infix fun Flt64.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = asQua
  * Floating-point number greater than quadratic polynomial
  */
 infix fun Flt64.gt(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = asQuadraticPolynomial() gt rhs
+
+// ========== Named inequality constructors ==========
+
+fun QuadraticPolynomial<Flt64>.lt(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.LT, name, displayName)
+fun QuadraticPolynomial<Flt64>.le(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.LE, name, displayName)
+fun QuadraticPolynomial<Flt64>.eq(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.EQ, name, displayName)
+fun QuadraticPolynomial<Flt64>.ne(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.NE, name, displayName)
+fun QuadraticPolynomial<Flt64>.ge(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.GE, name, displayName)
+fun QuadraticPolynomial<Flt64>.gt(rhs: QuadraticPolynomial<Flt64>, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs, Comparison.GT, name, displayName)
+
+fun QuadraticPolynomial<Flt64>.lt(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.LT, name, displayName)
+fun QuadraticPolynomial<Flt64>.le(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.LE, name, displayName)
+fun QuadraticPolynomial<Flt64>.eq(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.EQ, name, displayName)
+fun QuadraticPolynomial<Flt64>.ne(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.NE, name, displayName)
+fun QuadraticPolynomial<Flt64>.ge(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.GE, name, displayName)
+fun QuadraticPolynomial<Flt64>.gt(rhs: Flt64, name: String, displayName: String = ""): QuadraticInequality =
+    QuadraticInequality(this, rhs.asQuadraticPolynomial(), Comparison.GT, name, displayName)
 

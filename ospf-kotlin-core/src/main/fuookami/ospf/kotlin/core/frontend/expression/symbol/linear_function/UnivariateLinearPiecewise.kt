@@ -3,8 +3,8 @@
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -108,8 +108,6 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -197,7 +195,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
+            relation = x eq sum(points.mapIndexed { i, p -> p.x * k[i] }),
             name = "${name}_x",
             from = parent ?: this
         )) {
@@ -217,7 +215,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = sum(k) eq Flt64.one,
+            relation = sum(k) eq Flt64.one,
             name = "${name}_k",
             from = parent ?: this
         )) {
@@ -236,7 +234,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = sum(b) eq Flt64.one,
+            relation = sum(b) eq Flt64.one,
             name = "${name}_b",
             from = parent ?: this
         )) {
@@ -264,7 +262,7 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
                 poly += b[i]
             }
             when (val result = model.addConstraint(
-                constraint = k[i] leq poly,
+                relation = k[i] leq poly,
                 name = "${name}_kb_${i}",
                 from = parent ?: this
             )) {

@@ -2,9 +2,9 @@
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -163,10 +163,6 @@ class XorFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         if (polynomials.size > 2) {
             tokenTable.cache(
                 (listOf(maxmin, minmax) + bins).mapNotNull {
@@ -364,7 +360,7 @@ class XorFunction(
 
         for ((i, bin) in bins.withIndex()) {
             when (val result = model.addConstraint(
-                constraint = y geq bin - sum(bins.withIndex().mapNotNull {
+                relation = y geq bin - sum(bins.withIndex().mapNotNull {
                     if (it.index == i) {
                         null
                     } else {
@@ -392,7 +388,7 @@ class XorFunction(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = y leq sum(bins),
+                relation = y leq sum(bins),
                 name = "${name}_y_1",
                 from = parent ?: this
             )) {
@@ -412,7 +408,7 @@ class XorFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = y leq Flt64(bins.size) - sum(bins),
+                relation = y leq Flt64(bins.size) - sum(bins),
                 name = "${name}_y_2",
                 from = parent ?: this
             )) {

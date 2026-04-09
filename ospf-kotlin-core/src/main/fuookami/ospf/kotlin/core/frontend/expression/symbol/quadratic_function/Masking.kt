@@ -5,9 +5,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -176,9 +176,6 @@ class MaskingFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-        mask.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -256,7 +253,7 @@ class MaskingFunction(
 
         if (x.range.range?.contains(Flt64.zero) == true) {
             when (val result = model.addConstraint(
-                constraint = x leq m * mask,
+                relation = x leq m * mask,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -275,7 +272,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = x geq -m * mask,
+                relation = x geq -m * mask,
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -295,7 +292,7 @@ class MaskingFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = y leq x + m * (Flt64.one - mask),
+                relation = y leq x + m * (Flt64.one - mask),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -314,7 +311,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y geq x - m * (Flt64.one - mask),
+                relation = y geq x - m * (Flt64.one - mask),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -333,7 +330,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y leq m * mask,
+                relation = y leq m * mask,
                 name = "${name}_ym_ub",
                 from = parent ?: this
             )) {
@@ -352,7 +349,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y geq -m * mask,
+                relation = y geq -m * mask,
                 name = "${name}_ym_lb",
                 from = parent ?: this
             )) {
@@ -392,7 +389,7 @@ class MaskingFunction(
 
         if (x.range.range?.contains(Flt64.zero) == true) {
             when (val result = model.addConstraint(
-                constraint = x leq m * mask,
+                relation = x leq m * mask,
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -411,7 +408,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = x geq -m * mask,
+                relation = x geq -m * mask,
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -431,7 +428,7 @@ class MaskingFunction(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = y leq x + m * (Flt64.one - mask),
+                relation = y leq x + m * (Flt64.one - mask),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -450,7 +447,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y geq x - m * (Flt64.one - mask),
+                relation = y geq x - m * (Flt64.one - mask),
                 name = "${name}_lb",
                 from = parent ?: this
             )) {
@@ -469,7 +466,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y leq m * mask,
+                relation = y leq m * mask,
                 name = "${name}_ym_ub",
                 from = parent ?: this
             )) {
@@ -488,7 +485,7 @@ class MaskingFunction(
                 }
             }
             when (val result = model.addConstraint(
-                constraint = y geq -m * mask,
+                relation = y geq -m * mask,
                 name = "${name}_ym_lb",
                 from = parent ?: this
             )) {
@@ -508,7 +505,7 @@ class MaskingFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = y eq if (maskBin) {
+                relation = y eq if (maskBin) {
                     xValue
                 } else {
                     Flt64.zero
@@ -542,7 +539,7 @@ class MaskingFunction(
 
         if (!externalMask) {
             when (val result = model.addConstraint(
-                constraint = u eq maskBin,
+                relation = u eq maskBin,
                 name = "${name}_u",
                 from = parent ?: this
             )) {

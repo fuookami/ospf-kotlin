@@ -11,10 +11,10 @@ import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.inequality.Sign
 import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelation
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelation
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearRelationConstraint
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticRelationConstraint
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearInequalityConstraint
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticInequalityConstraint
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenSubObject
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenSubObject
 import fuookami.ospf.kotlin.core.frontend.model.LinearModel
@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -636,6 +637,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathLinearInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, group, lazy, name, displayName, args, priority, withRangeSet)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+    )
     fun addConstraint(
         constraint: LinearInequality,
         group: MetaConstraintGroup?,
@@ -648,10 +653,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     ): Try
 
     /**
-     * Add constraint using LinearRelation (new API)
+     * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -801,6 +806,10 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, group, lazy, name, displayName, args, priority, withRangeSet)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+    )
     fun addConstraint(
         constraint: QuadraticInequality,
         group: MetaConstraintGroup?,
@@ -813,10 +822,10 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     ): Try
 
     /**
-     * Add constraint using QuadraticRelation (new API)
+     * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -947,9 +956,9 @@ class LinearMetaModel(
     internal val _constraints: MutableList<MetaConstraint<LinearInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
 
-    // NEW: Relation-based constraints storage
-    internal val _relationConstraints: MutableList<LinearRelationConstraint> = ArrayList()
-    val relationConstraints: List<LinearRelationConstraint> by ::_relationConstraints
+    // NEW: Math inequality-based constraints storage
+    internal val _relationConstraints: MutableList<LinearInequalityConstraint> = ArrayList()
+    val relationConstraints: List<LinearInequalityConstraint> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
@@ -958,6 +967,7 @@ class LinearMetaModel(
     internal val _flattenSubObjects: MutableList<LinearFlattenSubObject> = ArrayList()
     val flattenSubObjects: List<LinearFlattenSubObject> by ::_flattenSubObjects
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: LinearInequality,
         lazy: Boolean,
@@ -1036,10 +1046,10 @@ class LinearMetaModel(
     }
 
     /**
-     * Add constraint using LinearRelation (new API - LinearModel interface)
+     * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1061,6 +1071,7 @@ class LinearMetaModel(
         return name
     }
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: LinearInequality,
         group: MetaConstraintGroup?,
@@ -1111,10 +1122,10 @@ class LinearMetaModel(
     }
 
     /**
-     * Add constraint using LinearRelation (new API)
+     * Add constraint using math LinearInequality (new API)
      */
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1123,19 +1134,9 @@ class LinearMetaModel(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        val namedRelation = if (name != null || displayName != null) {
-            LinearRelationImpl(
-                flattenData = relation.flattenData,
-                sign = relation.sign,
-                name = name ?: relation.name,
-                displayName = displayName ?: relation.displayName
-            )
-        } else {
-            relation
-        }
         _relationConstraints.add(
-            LinearRelationConstraint(
-                relation = namedRelation,
+            LinearInequalityConstraint(
+                inequality = relation,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1154,9 +1155,9 @@ class QuadraticMetaModel(
     internal val _constraints: MutableList<MetaConstraint<QuadraticInequality>> = ArrayList()
     override val constraints: List<MetaConstraint<*>> by ::_constraints
 
-    // NEW: Relation-based constraints storage
-    internal val _relationConstraints: MutableList<QuadraticRelationConstraint> = ArrayList()
-    val relationConstraints: List<QuadraticRelationConstraint> by ::_relationConstraints
+    // NEW: Math inequality-based constraints storage
+    internal val _relationConstraints: MutableList<QuadraticInequalityConstraint> = ArrayList()
+    val relationConstraints: List<QuadraticInequalityConstraint> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
@@ -1166,10 +1167,10 @@ class QuadraticMetaModel(
     val flattenSubObjects: List<QuadraticFlattenSubObject> by ::_flattenSubObjects
 
     /**
-     * Add LinearRelation constraint - converts to QuadraticRelation internally
+     * Add math LinearInequality constraint - converts to QuadraticInequality internally
      */
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1178,15 +1179,16 @@ class QuadraticMetaModel(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert LinearRelation to QuadraticRelation using toQuadraticFlattenData()
-        val quadraticRelation = QuadraticRelationImpl(
-            flattenData = relation.flattenData.toQuadraticFlattenData(),
-            sign = relation.sign,
+        // Convert to math QuadraticInequality
+        val quadraticInequality = MathQuadraticInequality(
+            lhs = relation.lhs.toQuadraticPolynomial(),
+            rhs = relation.rhs.toQuadraticPolynomial(),
+            comparison = relation.comparison,
             name = name ?: relation.name,
             displayName = displayName ?: relation.displayName
         )
         return addConstraint(
-            relation = quadraticRelation,
+            relation = quadraticInequality,
             group = group,
             lazy = lazy,
             name = name,
@@ -1197,6 +1199,7 @@ class QuadraticMetaModel(
         )
     }
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: LinearInequality,
         group: MetaConstraintGroup?,
@@ -1219,6 +1222,7 @@ class QuadraticMetaModel(
         )
     }
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: QuadraticInequality,
         lazy: Boolean,
@@ -1259,24 +1263,25 @@ class QuadraticMetaModel(
     }
 
     /**
-     * Add constraint using LinearRelation (new API - LinearModel interface)
+     * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert LinearRelation to QuadraticRelation
-        val quadraticRelation = QuadraticRelationImpl(
-            flattenData = relation.flattenData.toQuadraticFlattenData(),
-            sign = relation.sign,
+        // Convert to math QuadraticInequality
+        val quadraticInequality = MathQuadraticInequality(
+            lhs = relation.lhs.toQuadraticPolynomial(),
+            rhs = relation.rhs.toQuadraticPolynomial(),
+            comparison = relation.comparison,
             name = name ?: relation.name,
             displayName = displayName ?: relation.displayName
         )
         return addConstraint(
-            relation = quadraticRelation,
+            relation = quadraticInequality,
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -1285,10 +1290,10 @@ class QuadraticMetaModel(
     }
 
     /**
-     * Add constraint using QuadraticRelation (new API - QuadraticModel interface)
+     * Add constraint using math QuadraticInequality (QuadraticModel interface)
      */
     override fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1324,6 +1329,7 @@ class QuadraticMetaModel(
         )
     }
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: QuadraticInequality,
         group: MetaConstraintGroup?,
@@ -1375,10 +1381,10 @@ class QuadraticMetaModel(
     }
 
     /**
-     * Add constraint using QuadraticRelation (new API)
+     * Add constraint using math QuadraticInequality (new API)
      */
     override fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1387,19 +1393,9 @@ class QuadraticMetaModel(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        val namedRelation = if (name != null || displayName != null) {
-            QuadraticRelationImpl(
-                flattenData = relation.flattenData,
-                sign = relation.sign,
-                name = name ?: relation.name,
-                displayName = displayName ?: relation.displayName
-            )
-        } else {
-            relation
-        }
         _relationConstraints.add(
-            QuadraticRelationConstraint(
-                relation = namedRelation,
+            QuadraticInequalityConstraint(
+                inequality = relation,
                 group = group,
                 lazy = lazy,
                 args = args,

@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -87,8 +87,6 @@ class LinearFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        polynomial.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val yValue = if (values.isNullOrEmpty()) {
                 polynomial.evaluate(tokenTable)
@@ -132,7 +130,7 @@ class LinearFunction(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
-                constraint = y eq polynomial,
+                relation = y eq polynomial,
                 name = name,
                 from = parent ?: this
             )) {
@@ -170,7 +168,7 @@ class LinearFunction(
 
         if (polynomial.category != Linear) {
             when (val result = model.addConstraint(
-                constraint = y eq polynomial,
+                relation = y eq polynomial,
                 name = name,
                 from = parent ?: this
             )) {
@@ -190,7 +188,7 @@ class LinearFunction(
             }
 
             when (val result = model.addConstraint(
-                constraint = y eq xValue,
+                relation = y eq xValue,
                 name = name,
                 from = parent ?: this
             )) {

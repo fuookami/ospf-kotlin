@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -107,8 +107,6 @@ class SemiFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -170,7 +168,7 @@ class SemiFunction(
 
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = y geq x,
+            relation = y geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -189,7 +187,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y leq x + m * u,
+            relation = y leq x + m * u,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -208,7 +206,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y leq m * (Flt64.one - u),
+            relation = y leq m * (Flt64.one - u),
             name = "${name}_yu",
             from = parent ?: this
         )) {
@@ -246,7 +244,7 @@ class SemiFunction(
         val bin = xValue gr Flt64.zero
 
         when (val result = model.addConstraint(
-            constraint = y geq x,
+            relation = y geq x,
             name = "${name}_lb",
             from = parent ?: this
         )) {
@@ -265,7 +263,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y leq x + m * u,
+            relation = y leq x + m * u,
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -284,7 +282,7 @@ class SemiFunction(
             }
         }
         when (val result = model.addConstraint(
-            constraint = y leq m * (Flt64.one - u),
+            relation = y leq m * (Flt64.one - u),
             name = "${name}_yu",
             from = parent ?: this
         )) {
@@ -304,7 +302,7 @@ class SemiFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = y eq yValue,
+            relation = y eq yValue,
             name = "${name}_y",
             from = parent ?: this
         )) {
@@ -328,7 +326,7 @@ class SemiFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = u eq bin,
+            relation = u eq bin,
             name = "${name}_u",
             from = parent ?: this
         )) {

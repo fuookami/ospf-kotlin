@@ -5,12 +5,19 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
+import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.inequality.geq
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
@@ -28,12 +35,20 @@ sealed interface MechanismModel : AutoCloseable {
 }
 
 interface AbstractLinearMechanismModel : MechanismModel {
+    @Deprecated(
+        message = "Use addConstraint(relation: MathLinearInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+    )
     fun addConstraint(
         constraint: LinearInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol, Boolean>? = null,
     ): Try
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathLinearInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+    )
     fun addConstraint(
         constraint: LinearInequality,
         name: String? = null,
@@ -47,16 +62,16 @@ interface AbstractLinearMechanismModel : MechanismModel {
     }
 
     /**
-     * Add constraint using LinearRelation (new API)
+     * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol, Boolean>? = null,
     ): Try
 
     fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         name: String? = null,
         from: IntermediateSymbol?,
     ): Try {
@@ -69,6 +84,10 @@ interface AbstractLinearMechanismModel : MechanismModel {
 }
 
 interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
+    @Deprecated(
+        message = "Use addConstraint(relation: MathLinearInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
+    )
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
@@ -81,12 +100,20 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+    )
     fun addConstraint(
         constraint: QuadraticInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol, Boolean>? = null
     ): Try
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
+        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
+    )
     fun addConstraint(
         constraint: QuadraticInequality,
         name: String? = null,
@@ -100,16 +127,16 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     }
 
     /**
-     * Add constraint using QuadraticRelation (new API)
+     * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol, Boolean>? = null
     ): Try
 
     fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         name: String? = null,
         from: IntermediateSymbol?
     ): Try {
@@ -137,6 +164,7 @@ class LinearMechanismModel(
     companion object {
         private val logger = logger()
 
+        @Suppress("DEPRECATION")
         suspend operator fun invoke(
             metaModel: LinearMetaModel,
             concurrent: Boolean? = null,
@@ -244,6 +272,7 @@ class LinearMechanismModel(
             return Ok(model)
         }
 
+        @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: LinearMetaModel,
             tokens: AbstractTokenTable,
@@ -415,12 +444,12 @@ class LinearMechanismModel(
     internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: LinearInequality,
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
-        name?.let { constraint.name = it }
         _constraints.add(
             LinearConstraint(
                 inequality = constraint,
@@ -432,7 +461,7 @@ class LinearMechanismModel(
     }
 
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
@@ -448,6 +477,7 @@ class LinearMechanismModel(
         return ok
     }
 
+    @Suppress("DEPRECATION")
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -485,6 +515,7 @@ class LinearMechanismModel(
         }
     }
 
+    @Suppress("DEPRECATION")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: LinearDualSolution
@@ -542,6 +573,7 @@ class QuadraticMechanismModel(
     companion object {
         private val logger = logger()
 
+        @Suppress("DEPRECATION")
         suspend operator fun invoke(
             metaModel: QuadraticMetaModel,
             concurrent: Boolean? = null,
@@ -656,6 +688,7 @@ class QuadraticMechanismModel(
             return Ok(model)
         }
 
+        @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: QuadraticMetaModel,
             tokens: AbstractTokenTable,
@@ -821,6 +854,7 @@ class QuadraticMechanismModel(
     internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
+    @Suppress("DEPRECATION")
     override fun addConstraint(
         constraint: QuadraticInequality,
         name: String?,
@@ -838,27 +872,27 @@ class QuadraticMechanismModel(
     }
 
     override fun addConstraint(
-        relation: LinearRelation,
+        relation: MathLinearInequality,
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
-        // Convert LinearRelation to QuadraticRelation
-        val quadraticFlattenData = relation.flattenData.toQuadraticFlattenData()
-        val quadraticRelation = QuadraticRelationImpl(
-            flattenData = quadraticFlattenData,
-            sign = relation.sign,
+        // Convert MathLinearInequality to MathQuadraticInequality
+        val quadraticInequality = MathQuadraticInequality(
+            lhs = relation.lhs.toQuadraticPolynomial(),
+            rhs = relation.rhs.toQuadraticPolynomial(),
+            comparison = relation.comparison,
             name = name ?: relation.name,
             displayName = relation.displayName
         )
         return addConstraint(
-            relation = quadraticRelation,
+            relation = quadraticInequality,
             name = name,
             from = from
         )
     }
 
     override fun addConstraint(
-        relation: QuadraticRelation,
+        relation: MathQuadraticInequality,
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
@@ -874,7 +908,7 @@ class QuadraticMechanismModel(
         return ok
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("DEPRECATION", "UNUSED_PARAMETER")
     fun generateOptimalCut(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
@@ -884,7 +918,7 @@ class QuadraticMechanismModel(
         TODO("not implemented yet")
     }
 
-    @Suppress("UNUSED_PARAMETER")
+    @Suppress("DEPRECATION", "UNUSED_PARAMETER")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: QuadraticDualSolution,

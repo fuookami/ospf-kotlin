@@ -3,9 +3,9 @@
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.*
@@ -254,8 +254,6 @@ class BalanceTernaryzationFunctionImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -376,7 +374,6 @@ class BalanceTernaryzationFunctionPiecewiseImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
         piecewiseFunction.prepareAndCache(values, tokenTable)
 
         return prepareIfNotCached(self, values, tokenTable) {
@@ -560,8 +557,6 @@ class BalanceTernaryzationFunctionDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -612,7 +607,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = m * y[1] geq x,
+            relation = m * y[1] geq x,
             name = "${name}_pub",
             from = parent ?: self
         )) {
@@ -632,7 +627,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = -m * y[0] leq x,
+            relation = -m * y[0] leq x,
             name = "${name}_nlb",
             from = parent ?: self
         )) {
@@ -653,7 +648,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         if (extract) {
             when (val result = model.addConstraint(
-                constraint = x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
+                relation = x geq (-m - Flt64.one) * (Flt64.one - y[1]) + Flt64.one,
                 name = "${name}_plb",
                 from = parent ?: self
             )) {
@@ -673,7 +668,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
+                relation = x leq (m + Flt64.one) * (Flt64.one - y[0]) - Flt64.one,
                 name = "${name}_nub",
                 from = parent ?: self
             )) {
@@ -693,7 +688,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = sum(y) leq Flt64.one,
+                relation = sum(y) leq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -799,7 +794,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
 
         if (ter eq Flt64.one) {
             when (val result = model.addConstraint(
-                constraint = m * y[1] geq x,
+                relation = m * y[1] geq x,
                 name = "${name}_ub",
                 from = parent ?: self
             )) {
@@ -819,7 +814,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y[1] eq Flt64.one,
+                relation = y[1] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -843,7 +838,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
         } else if (ter eq -Flt64.one) {
             when (val result = model.addConstraint(
-                constraint = -m * y[0] leq x,
+                relation = -m * y[0] leq x,
                 name = "${name}_lb",
                 from = parent ?: self
             )) {
@@ -863,7 +858,7 @@ class BalanceTernaryzationFunctionDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y[0] eq Flt64.one,
+                relation = y[0] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -962,8 +957,6 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        x.cells
-
         return prepareIfNotCached(self, values, tokenTable) {
             val xValue = if (values.isNullOrEmpty()) {
                 x.evaluate(tokenTable)
@@ -1048,7 +1041,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
     override fun register(model: AbstractLinearMechanismModel): Try {
         when (val result = model.addConstraint(
-            constraint = x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
+            relation = x eq x.lowerBound!!.value.unwrap() * b[0] + x.upperBound!!.value.unwrap() * b[1],
             name = "${name}_xb",
             from = parent ?: self
         )) {
@@ -1068,7 +1061,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y[1] geq b[1],
+            relation = y[1] geq b[1],
             name = "${name}_yb_pos_lb",
             from = parent ?: self
         )) {
@@ -1088,7 +1081,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y[1] leq (Flt64.one / epsilon) * b[1],
+            relation = y[1] leq (Flt64.one / epsilon) * b[1],
             name = "${name}_yb_pos_ub",
             from = parent ?: self
         )) {
@@ -1108,7 +1101,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y[0] geq b[0],
+            relation = y[0] geq b[0],
             name = "${name}_yb_neg_lb",
             from = parent ?: self
         )) {
@@ -1128,7 +1121,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = y[0] leq (Flt64.one / epsilon) * b[0],
+            relation = y[0] leq (Flt64.one / epsilon) * b[0],
             name = "${name}_yb_neg_ub",
             from = parent ?: self
         )) {
@@ -1148,7 +1141,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = b[0] + y[1] leq Flt64.one,
+            relation = b[0] + y[1] leq Flt64.one,
             name = "${name}_yb_pos",
             from = parent ?: self
         )) {
@@ -1168,7 +1161,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
         }
 
         when (val result = model.addConstraint(
-            constraint = b[1] + y[0] leq Flt64.one,
+            relation = b[1] + y[0] leq Flt64.one,
             name = "${name}_yb_neg",
             from = parent ?: self
         )) {
@@ -1267,7 +1260,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
         if (ter eq Flt64.one) {
             when (val result = model.addConstraint(
-                constraint = x eq x.upperBound!!.value.unwrap() * b[1],
+                relation = x eq x.upperBound!!.value.unwrap() * b[1],
                 name = "${name}_xb",
                 from = parent ?: self
             )) {
@@ -1287,7 +1280,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y[1] eq Flt64.one,
+                relation = y[1] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -1312,7 +1305,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             val bValue = xValue / x.upperBound!!.value.unwrap()
             when (val result = model.addConstraint(
-                constraint = b[1] eq bValue,
+                relation = b[1] eq bValue,
                 name = "${name}_b",
                 from = parent ?: self
             )) {
@@ -1336,7 +1329,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else if (ter eq -Flt64.one) {
             when (val result = model.addConstraint(
-                constraint = x eq x.lowerBound!!.value.unwrap() * b[0],
+                relation = x eq x.lowerBound!!.value.unwrap() * b[0],
                 name = "${name}_xb",
                 from = parent ?: self
             )) {
@@ -1356,7 +1349,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
 
             when (val result = model.addConstraint(
-                constraint = y[0] eq Flt64.one,
+                relation = y[0] eq Flt64.one,
                 name = "${name}_y",
                 from = parent ?: self
             )) {
@@ -1381,7 +1374,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
 
             val bValue = xValue / x.lowerBound!!.value.unwrap()
             when (val result = model.addConstraint(
-                constraint = b[0] eq bValue,
+                relation = b[0] eq bValue,
                 name = "${name}_b",
                 from = parent ?: self
             )) {
@@ -1405,7 +1398,7 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
             }
         } else {
             when (val result = model.addConstraint(
-                constraint = x eq Flt64.zero,
+                relation = x eq Flt64.zero,
                 name = "${name}_x",
                 from = parent ?: self
             )) {

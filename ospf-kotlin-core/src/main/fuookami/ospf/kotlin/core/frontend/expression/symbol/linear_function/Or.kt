@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -108,10 +108,6 @@ class OrFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
             polynomials.forEach { polynomial ->
                 val value = if (values.isNullOrEmpty()) {
@@ -174,7 +170,7 @@ class OrFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
-                    constraint = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
+                    relation = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -194,7 +190,7 @@ class OrFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = y geq polynomial,
+                    relation = y geq polynomial,
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -217,7 +213,7 @@ class OrFunction(
 
         // if all polynomials are zero, y will be zero
         when (val result = model.addConstraint(
-            constraint = y leq sum(polynomials),
+            relation = y leq sum(polynomials),
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -260,7 +256,7 @@ class OrFunction(
         for ((i, polynomial) in polynomials.withIndex()) {
             if (polynomial.upperBound!!.value.unwrap() gr Flt64.one) {
                 when (val result = model.addConstraint(
-                    constraint = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
+                    relation = y geq (polynomial / polynomial.upperBound!!.value.unwrap()),
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -280,7 +276,7 @@ class OrFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = y geq polynomial,
+                    relation = y geq polynomial,
                     name = "${name}_lb_${polynomial.name.ifEmpty { "$i" }}",
                     from = parent ?: this
                 )) {
@@ -302,7 +298,7 @@ class OrFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = y leq sum(polynomials),
+            relation = y leq sum(polynomials),
             name = "${name}_ub",
             from = parent ?: this
         )) {
@@ -322,7 +318,7 @@ class OrFunction(
         }
 
         when (val result = model.addConstraint(
-            constraint = y eq bin.toFlt64(),
+            relation = y eq bin.toFlt64(),
             name = "${name}_y",
             from = parent ?: this
         )) {

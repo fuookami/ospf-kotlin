@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -142,10 +142,6 @@ class ProductFunction(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
-
         return prepareIfNotCached(values, tokenTable) {
             val evaluatedValues = polynomials.map {
                 if (values.isNullOrEmpty()) {
@@ -197,7 +193,7 @@ class ProductFunction(
         for (i in y.indices) {
             if (i == 0) {
                 when (val result = model.addConstraint(
-                    constraint = polynomials[0] * polynomials[1] eq y[0],
+                    relation = polynomials[0] * polynomials[1] eq y[0],
                     name = "${name}_0",
                     from = parent ?: this
                 )) {
@@ -217,7 +213,7 @@ class ProductFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    constraint = y[i - 1] * polynomials[i + 1] eq y[i],
+                    relation = y[i - 1] * polynomials[i + 1] eq y[i],
                     name = "${name}_$i",
                     from = parent ?: this
                 )) {
@@ -262,7 +258,7 @@ class ProductFunction(
                 yValue *= values[0] * values[1]
 
                 when (val result = model.addConstraint(
-                    constraint = polynomials[0] * polynomials[1] eq y[0],
+                    relation = polynomials[0] * polynomials[1] eq y[0],
                     name = "${name}_$0",
                     from = parent ?: this
                 )) {
@@ -282,7 +278,7 @@ class ProductFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = y[0] eq yValue,
+                    relation = y[0] eq yValue,
                     name = "${name}_y_0",
                     from = parent ?: this
                 )) {
@@ -308,7 +304,7 @@ class ProductFunction(
                 yValue *= values[i + 1]
 
                 when (val result = model.addConstraint(
-                    constraint = y[i - 1] * polynomials[i + 1] eq y[i],
+                    relation = y[i - 1] * polynomials[i + 1] eq y[i],
                     name = "${name}_$i",
                     from = parent ?: this
                 )) {
@@ -328,7 +324,7 @@ class ProductFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    constraint = y[i] eq yValue,
+                    relation = y[i] eq yValue,
                     name = "${name}_y_$i",
                     from = parent ?: this
                 )) {

@@ -5,7 +5,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.*
+import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
@@ -99,9 +101,6 @@ abstract class AbstractSatisfiedAmountPolynomialFunctionImpl(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        for (polynomial in polynomials) {
-            polynomial.cells
-        }
         return null
     }
 
@@ -784,7 +783,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
         if (amount != null) {
             when (val result = model.addConstraint(
-                constraint = y geq (sum(bins) - amount + UInt64.one) / UInt64(polynomials.size),
+                relation = y geq (sum(bins) - amount + UInt64.one) / UInt64(polynomials.size),
                 name = "${name}_ub",
                 from = parent ?: this
             )) {
@@ -805,7 +804,7 @@ private class SatisfiedAmountPolynomialFunctionSomeImpl(
 
             if (extract) {
                 when (val result = model.addConstraint(
-                    constraint = y leq sum(bins) / amount,
+                    relation = y leq sum(bins) / amount,
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
