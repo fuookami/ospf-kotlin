@@ -5,8 +5,8 @@ package fuookami.ospf.kotlin.framework.solver
 import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.model.Solution
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
@@ -55,13 +55,13 @@ interface LinearBendersDecompositionSolver {
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface LinearSubResult {
-        val cuts: List<LinearInequality>?
+        val cuts: List<MathLinearInequality>?
     }
 
     data class LinearFeasibleResult(
         val result: FeasibleSolverOutput,
         val dualSolution: LinearDualSolution,
-        override val cuts: List<LinearInequality>?
+        override val cuts: List<MathLinearInequality>?
     ) : LinearSubResult {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
@@ -72,7 +72,7 @@ interface LinearBendersDecompositionSolver {
 
     data class LinearInfeasibleResult(
         val farkasDualSolution: LinearDualSolution,
-        override val cuts: List<LinearInequality>?
+        override val cuts: List<MathLinearInequality>?
     ) : LinearSubResult
 
     suspend fun solveSub(
@@ -145,15 +145,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface QuadraticSubResult {
-        val linearCuts: List<LinearInequality>?
-        val quadraticCuts: List<QuadraticInequality>?
+        val linearCuts: List<MathLinearInequality>?
+        val quadraticCuts: List<MathQuadraticInequality>?
     }
 
     data class QuadraticFeasibleResult(
         val result: FeasibleSolverOutput,
         val dualSolution: QuadraticDualSolution,
-        override val linearCuts: List<LinearInequality>?,
-        override val quadraticCuts: List<QuadraticInequality>?,
+        override val linearCuts: List<MathLinearInequality>?,
+        override val quadraticCuts: List<MathQuadraticInequality>?,
     ) : QuadraticSubResult {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
@@ -164,8 +164,8 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     data class QuadraticInfeasibleResult(
         val farkasDualSolution: QuadraticDualSolution,
-        override val linearCuts: List<LinearInequality>?,
-        override val quadraticCuts: List<QuadraticInequality>?,
+        override val linearCuts: List<MathLinearInequality>?,
+        override val quadraticCuts: List<MathQuadraticInequality>?,
     ) : QuadraticSubResult
 
     suspend fun solveSub(

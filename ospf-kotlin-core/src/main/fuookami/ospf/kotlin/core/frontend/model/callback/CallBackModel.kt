@@ -3,7 +3,6 @@
 import fuookami.ospf.kotlin.core.frontend.expression.Expression
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
-import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
 import fuookami.ospf.kotlin.core.frontend.model.MulObj
 import fuookami.ospf.kotlin.core.frontend.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.frontend.model.Solution
@@ -125,8 +124,8 @@ class CallBackModel internal constructor(
             val tokens = model.tokens.copy()
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution -> constraint.constraint.isTrue(solution, tokens) },
-                    constraint.constraint.name
+                    { solution: Solution -> constraint.isTrue(solution, tokens) },
+                    constraint.toString()
                 )
             }.toMutableList()
             val objectiveFunction = model.subObjects.map { objective ->
@@ -229,7 +228,7 @@ class CallBackModel internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: Inequality<*, *>,
+        inequality: LinearConstraintInput,
         name: String?,
         displayName: String?
     ) {
@@ -509,7 +508,7 @@ class MultiObjectCallBackModel internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: Inequality<*, *>,
+        inequality: LinearConstraintInput,
         name: String? = null,
         displayName: String? = null
     ) {

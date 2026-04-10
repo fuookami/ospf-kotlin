@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
@@ -37,7 +36,7 @@ class SameAsFunction(
 
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             constraint: Boolean = true,
             fixed: Boolean? = null,
             epsilon: Flt64 = Flt64(1e-6),
@@ -47,7 +46,12 @@ class SameAsFunction(
             displayName: String? = null
         ): SameAsFunction {
             return SameAsFunction(
-                inputs = inequalities.map { LinearConstraintInput.from(it.toLinearInequality()) },
+                inputs = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 constraint = constraint,
                 fixed = fixed,
                 epsilon = epsilon,

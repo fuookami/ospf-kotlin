@@ -5,6 +5,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPo
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial as FrontendLinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial as FrontendQuadraticMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -87,6 +89,15 @@ infix fun Flt64.le(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
 
 infix fun Flt64.ge(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
     MathLinearInequality(fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(emptyList(), this), rhs.toUtilsPolynomial(), Comparison.GE)
+
+infix fun Flt64.lt(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
+    MathLinearInequality(fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(emptyList(), this), rhs.toUtilsPolynomial(), Comparison.LT)
+
+infix fun Flt64.gt(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
+    MathLinearInequality(fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(emptyList(), this), rhs.toUtilsPolynomial(), Comparison.GT)
+
+infix fun Flt64.ne(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
+    MathLinearInequality(fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(emptyList(), this), rhs.toUtilsPolynomial(), Comparison.NE)
 
 // Backward-compat aliases for frontend naming
 infix fun AbstractLinearPolynomial<*>.leq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this le rhs
@@ -182,7 +193,7 @@ infix fun AbstractQuadraticPolynomial<*>.ge(rhs: AbstractLinearPolynomial<*>): M
 infix fun AbstractQuadraticPolynomial<*>.ne(rhs: AbstractLinearPolynomial<*>): MathQuadraticInequality =
     MathQuadraticInequality(toUtilsPolynomial(), rhs.toUtilsPolynomial().toQuadraticPolynomial(), Comparison.NE)
 
-// Backward-compat aliases for Linear vs Quadratic
+// Backward-compat aliases for cross-type
 infix fun AbstractLinearPolynomial<*>.leq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this le rhs
 infix fun AbstractLinearPolynomial<*>.geq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this ge rhs
 infix fun AbstractLinearPolynomial<*>.neq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this ne rhs
@@ -437,6 +448,32 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): MathLinearInequality = (
 infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): MathLinearInequality = (this as Symbol) ls rhs
 infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): MathLinearInequality = (this as Symbol) gr rhs
 
+// AbstractLinearPolynomial vs Boolean
+infix fun AbstractLinearPolynomial<*>.eq(rhs: Boolean): MathLinearInequality = this eq if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.le(rhs: Boolean): MathLinearInequality = this le if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.ge(rhs: Boolean): MathLinearInequality = this ge if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.lt(rhs: Boolean): MathLinearInequality = this lt if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.gt(rhs: Boolean): MathLinearInequality = this gt if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.ne(rhs: Boolean): MathLinearInequality = this ne if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractLinearPolynomial<*>.leq(rhs: Boolean): MathLinearInequality = this le rhs
+infix fun AbstractLinearPolynomial<*>.geq(rhs: Boolean): MathLinearInequality = this ge rhs
+infix fun AbstractLinearPolynomial<*>.neq(rhs: Boolean): MathLinearInequality = this ne rhs
+infix fun AbstractLinearPolynomial<*>.ls(rhs: Boolean): MathLinearInequality = this lt rhs
+infix fun AbstractLinearPolynomial<*>.gr(rhs: Boolean): MathLinearInequality = this gt rhs
+
+// AbstractQuadraticPolynomial vs Boolean
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: Boolean): MathQuadraticInequality = this eq if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.le(rhs: Boolean): MathQuadraticInequality = this le if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.ge(rhs: Boolean): MathQuadraticInequality = this ge if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.lt(rhs: Boolean): MathQuadraticInequality = this lt if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.gt(rhs: Boolean): MathQuadraticInequality = this gt if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.ne(rhs: Boolean): MathQuadraticInequality = this ne if (rhs) Flt64.one else Flt64.zero
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: Boolean): MathQuadraticInequality = this ne rhs
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: Boolean): MathQuadraticInequality = this lt rhs
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: Boolean): MathQuadraticInequality = this gt rhs
+
 // ========== Math LinearMonomial<Flt64> vs Flt64 ==========
 private fun LinearMonomial<Flt64>.asPoly(): UtilsLinearPolynomial<Flt64> =
     UtilsLinearPolynomial(listOf(this), Flt64.zero)
@@ -459,6 +496,13 @@ infix fun LinearMonomial<Flt64>.geq(rhs: Flt64): MathLinearInequality = this ge 
 infix fun LinearMonomial<Flt64>.neq(rhs: Flt64): MathLinearInequality = this ne rhs
 infix fun LinearMonomial<Flt64>.ls(rhs: Flt64): MathLinearInequality = this lt rhs
 infix fun LinearMonomial<Flt64>.gr(rhs: Flt64): MathLinearInequality = this gt rhs
+
+// Math LinearMonomial<Flt64> vs Boolean
+infix fun LinearMonomial<Flt64>.eq(rhs: Boolean): MathLinearInequality = this eq if (rhs) Flt64.one else Flt64.zero
+infix fun LinearMonomial<Flt64>.le(rhs: Boolean): MathLinearInequality = this le if (rhs) Flt64.one else Flt64.zero
+infix fun LinearMonomial<Flt64>.ge(rhs: Boolean): MathLinearInequality = this ge if (rhs) Flt64.one else Flt64.zero
+infix fun LinearMonomial<Flt64>.leq(rhs: Boolean): MathLinearInequality = this le rhs
+infix fun LinearMonomial<Flt64>.geq(rhs: Boolean): MathLinearInequality = this ge rhs
 
 // Flt64 vs Math LinearMonomial<Flt64>
 infix fun Flt64.eq(rhs: LinearMonomial<Flt64>): MathLinearInequality =
@@ -499,6 +543,36 @@ infix fun FrontendLinearMonomial.geq(rhs: AbstractLinearPolynomial<*>): MathLine
 infix fun FrontendLinearMonomial.neq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ne rhs
 infix fun FrontendLinearMonomial.ls(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this lt rhs
 infix fun FrontendLinearMonomial.gr(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this gt rhs
+
+// Frontend LinearMonomial vs Boolean
+infix fun FrontendLinearMonomial.eq(rhs: Boolean): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsLinearPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+infix fun FrontendLinearMonomial.le(rhs: Boolean): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsLinearPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+infix fun FrontendLinearMonomial.ge(rhs: Boolean): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsLinearPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+infix fun FrontendLinearMonomial.leq(rhs: Boolean): MathLinearInequality = this le rhs
+infix fun FrontendLinearMonomial.geq(rhs: Boolean): MathLinearInequality = this ge rhs
+
+// Frontend QuadraticMonomial vs Boolean
+infix fun FrontendQuadraticMonomial.eq(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(UtilsQuadraticPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+infix fun FrontendQuadraticMonomial.le(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(UtilsQuadraticPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+infix fun FrontendQuadraticMonomial.ge(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(UtilsQuadraticPolynomial(listOf(toUtilsMonomial()), Flt64.zero), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+infix fun FrontendQuadraticMonomial.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
+infix fun FrontendQuadraticMonomial.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
+
+// QuadraticIntermediateSymbol vs Boolean
+infix fun QuadraticIntermediateSymbol.eq(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(toQuadraticPolynomial().toUtilsPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+infix fun QuadraticIntermediateSymbol.le(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(toQuadraticPolynomial().toUtilsPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+infix fun QuadraticIntermediateSymbol.ge(rhs: Boolean): MathQuadraticInequality =
+    MathQuadraticInequality(toQuadraticPolynomial().toUtilsPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+infix fun QuadraticIntermediateSymbol.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
+infix fun QuadraticIntermediateSymbol.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
 
 // AbstractLinearPolynomial vs Frontend LinearMonomial
 infix fun AbstractLinearPolynomial<*>.eq(rhs: FrontendLinearMonomial): MathLinearInequality =
@@ -559,6 +633,46 @@ infix fun FrontendLinearMonomial.geq(rhs: AbstractQuadraticPolynomial<*>): MathQ
 infix fun FrontendLinearMonomial.neq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this ne rhs
 infix fun FrontendLinearMonomial.ls(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this lt rhs
 infix fun FrontendLinearMonomial.gr(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this gt rhs
+
+// ========== Symbol vs FrontendLinearMonomial ==========
+infix fun Symbol.eq(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.EQ)
+infix fun Symbol.le(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.LE)
+infix fun Symbol.ge(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.GE)
+infix fun Symbol.lt(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.LT)
+infix fun Symbol.gt(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.GT)
+infix fun Symbol.ne(rhs: FrontendLinearMonomial): MathLinearInequality =
+    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.NE)
+
+infix fun Symbol.leq(rhs: FrontendLinearMonomial): MathLinearInequality = this le rhs
+infix fun Symbol.geq(rhs: FrontendLinearMonomial): MathLinearInequality = this ge rhs
+infix fun Symbol.neq(rhs: FrontendLinearMonomial): MathLinearInequality = this ne rhs
+infix fun Symbol.ls(rhs: FrontendLinearMonomial): MathLinearInequality = this lt rhs
+infix fun Symbol.gr(rhs: FrontendLinearMonomial): MathLinearInequality = this gt rhs
+
+// ========== FrontendLinearMonomial vs Symbol ==========
+infix fun FrontendLinearMonomial.eq(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.EQ)
+infix fun FrontendLinearMonomial.le(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.LE)
+infix fun FrontendLinearMonomial.ge(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.GE)
+infix fun FrontendLinearMonomial.lt(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.LT)
+infix fun FrontendLinearMonomial.gt(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.GT)
+infix fun FrontendLinearMonomial.ne(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(toUtilsMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.NE)
+
+infix fun FrontendLinearMonomial.leq(rhs: Symbol): MathLinearInequality = this le rhs
+infix fun FrontendLinearMonomial.geq(rhs: Symbol): MathLinearInequality = this ge rhs
+infix fun FrontendLinearMonomial.neq(rhs: Symbol): MathLinearInequality = this ne rhs
+infix fun FrontendLinearMonomial.ls(rhs: Symbol): MathLinearInequality = this lt rhs
+infix fun FrontendLinearMonomial.gr(rhs: Symbol): MathLinearInequality = this gt rhs
 
 // ========== AbstractVariableItem vs AbstractQuadraticPolynomial ==========
 infix fun AbstractVariableItem<*, *>.eq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality =
@@ -634,40 +748,6 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: LinearMonomial<Flt64>): MathLinear
 infix fun AbstractVariableItem<*, *>.ls(rhs: LinearMonomial<Flt64>): MathLinearInequality = (this as Symbol) ls rhs
 infix fun AbstractVariableItem<*, *>.gr(rhs: LinearMonomial<Flt64>): MathLinearInequality = (this as Symbol) gr rhs
 
-// ========== Symbol vs FrontendLinearMonomial ==========
-infix fun Symbol.eq(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.EQ)
-infix fun Symbol.le(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.LE)
-infix fun Symbol.ge(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.GE)
-infix fun Symbol.lt(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.LT)
-infix fun Symbol.gt(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.GT)
-infix fun Symbol.ne(rhs: FrontendLinearMonomial): MathLinearInequality =
-    MathLinearInequality(asUtilsLinearPoly(), UtilsLinearPolynomial(listOf(rhs.toUtilsMonomial()), Flt64.zero), Comparison.NE)
-
-infix fun Symbol.leq(rhs: FrontendLinearMonomial): MathLinearInequality = this le rhs
-infix fun Symbol.geq(rhs: FrontendLinearMonomial): MathLinearInequality = this ge rhs
-infix fun Symbol.neq(rhs: FrontendLinearMonomial): MathLinearInequality = this ne rhs
-infix fun Symbol.ls(rhs: FrontendLinearMonomial): MathLinearInequality = this lt rhs
-infix fun Symbol.gr(rhs: FrontendLinearMonomial): MathLinearInequality = this gt rhs
-
-// ========== AbstractVariableItem vs FrontendLinearMonomial ==========
-infix fun AbstractVariableItem<*, *>.eq(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) eq rhs
-infix fun AbstractVariableItem<*, *>.le(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) le rhs
-infix fun AbstractVariableItem<*, *>.ge(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) ge rhs
-infix fun AbstractVariableItem<*, *>.lt(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) lt rhs
-infix fun AbstractVariableItem<*, *>.gt(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) gt rhs
-infix fun AbstractVariableItem<*, *>.ne(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) ne rhs
-
-infix fun AbstractVariableItem<*, *>.leq(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) leq rhs
-infix fun AbstractVariableItem<*, *>.geq(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) geq rhs
-infix fun AbstractVariableItem<*, *>.neq(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) neq rhs
-infix fun AbstractVariableItem<*, *>.ls(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) ls rhs
-infix fun AbstractVariableItem<*, *>.gr(rhs: FrontendLinearMonomial): MathLinearInequality = (this as Symbol) gr rhs
-
 // ========== AbstractQuadraticPolynomial vs LinearMonomial<Flt64> ==========
 infix fun AbstractQuadraticPolynomial<*>.eq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality =
     MathQuadraticInequality(toUtilsPolynomial(), UtilsLinearPolynomial(listOf(rhs), Flt64.zero).toQuadraticPolynomial(), Comparison.EQ)
@@ -682,6 +762,7 @@ infix fun AbstractQuadraticPolynomial<*>.gt(rhs: LinearMonomial<Flt64>): MathQua
 infix fun AbstractQuadraticPolynomial<*>.ne(rhs: LinearMonomial<Flt64>): MathQuadraticInequality =
     MathQuadraticInequality(toUtilsPolynomial(), UtilsLinearPolynomial(listOf(rhs), Flt64.zero).toQuadraticPolynomial(), Comparison.NE)
 
+// Backward-compat aliases
 infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality = this le rhs
 infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality = this ge rhs
 infix fun AbstractQuadraticPolynomial<*>.neq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality = this ne rhs
@@ -702,8 +783,64 @@ infix fun LinearMonomial<Flt64>.gt(rhs: AbstractQuadraticPolynomial<*>): MathQua
 infix fun LinearMonomial<Flt64>.ne(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality =
     MathQuadraticInequality(UtilsLinearPolynomial(listOf(this), Flt64.zero).toQuadraticPolynomial(), rhs.toUtilsPolynomial(), Comparison.NE)
 
+// Backward-compat aliases
 infix fun LinearMonomial<Flt64>.leq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this le rhs
 infix fun LinearMonomial<Flt64>.geq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this ge rhs
 infix fun LinearMonomial<Flt64>.neq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this ne rhs
 infix fun LinearMonomial<Flt64>.ls(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this lt rhs
 infix fun LinearMonomial<Flt64>.gr(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality = this gt rhs
+
+// ========== LinearMonomial<Flt64> vs Symbol ==========
+
+infix fun LinearMonomial<Flt64>.eq(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.EQ)
+
+infix fun LinearMonomial<Flt64>.le(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.LE)
+
+infix fun LinearMonomial<Flt64>.ge(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.GE)
+
+infix fun LinearMonomial<Flt64>.lt(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.LT)
+
+infix fun LinearMonomial<Flt64>.gt(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.GT)
+
+infix fun LinearMonomial<Flt64>.ne(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(asUtilsLinearMonomial()), Flt64.zero), rhs.asUtilsLinearPoly(), Comparison.NE)
+
+// Backward-compat aliases
+infix fun LinearMonomial<Flt64>.leq(rhs: Symbol): MathLinearInequality = this le rhs
+infix fun LinearMonomial<Flt64>.geq(rhs: Symbol): MathLinearInequality = this ge rhs
+infix fun LinearMonomial<Flt64>.neq(rhs: Symbol): MathLinearInequality = this ne rhs
+infix fun LinearMonomial<Flt64>.ls(rhs: Symbol): MathLinearInequality = this lt rhs
+infix fun LinearMonomial<Flt64>.gr(rhs: Symbol): MathLinearInequality = this gt rhs
+
+// ========== UInt64/UInt8 comparisons (for SatisfiedAmountInequality) ==========
+
+infix fun AbstractLinearPolynomial<*>.eq(rhs: UInt64): MathLinearInequality = this eq rhs.toFlt64()
+infix fun AbstractLinearPolynomial<*>.le(rhs: UInt64): MathLinearInequality = this le rhs.toFlt64()
+infix fun AbstractLinearPolynomial<*>.ge(rhs: UInt64): MathLinearInequality = this ge rhs.toFlt64()
+infix fun AbstractLinearPolynomial<*>.lt(rhs: UInt64): MathLinearInequality = this lt rhs.toFlt64()
+infix fun AbstractLinearPolynomial<*>.gt(rhs: UInt64): MathLinearInequality = this gt rhs.toFlt64()
+infix fun AbstractLinearPolynomial<*>.ne(rhs: UInt64): MathLinearInequality = this ne rhs.toFlt64()
+
+infix fun AbstractLinearPolynomial<*>.leq(rhs: UInt64): MathLinearInequality = this le rhs
+infix fun AbstractLinearPolynomial<*>.geq(rhs: UInt64): MathLinearInequality = this ge rhs
+infix fun AbstractLinearPolynomial<*>.neq(rhs: UInt64): MathLinearInequality = this ne rhs
+infix fun AbstractLinearPolynomial<*>.ls(rhs: UInt64): MathLinearInequality = this lt rhs
+infix fun AbstractLinearPolynomial<*>.gr(rhs: UInt64): MathLinearInequality = this gt rhs
+
+infix fun UInt64.eq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() eq rhs
+infix fun UInt64.le(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() le rhs
+infix fun UInt64.ge(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() ge rhs
+infix fun UInt64.lt(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() lt rhs
+infix fun UInt64.gt(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() gt rhs
+infix fun UInt64.ne(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this.toFlt64() ne rhs
+
+infix fun UInt64.leq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this le rhs
+infix fun UInt64.geq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ge rhs
+infix fun UInt64.neq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ne rhs
+infix fun UInt64.ls(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this lt rhs
+infix fun UInt64.gr(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this gt rhs

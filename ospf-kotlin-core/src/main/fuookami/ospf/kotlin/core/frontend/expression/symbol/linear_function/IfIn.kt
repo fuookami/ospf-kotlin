@@ -7,8 +7,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.toTidyRawString
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.flattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.normalize
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
@@ -149,12 +152,24 @@ class IfInFunction(
     private val lb = lowerBound
     private val ub = upperBound
 
-    private val lowerBoundInequality = (x geq lb).normalize()
-    private val upperBoundInequality = (x leq ub).normalize()
+    private val lowerBoundInequality: LinearConstraintInput by lazy {
+        val ineq = (x geq lb).normalize()
+        LinearConstraintInput(
+            flattenData = ineq.flattenData,
+            sign = ineq.comparison,
+            lhsRange = x.range.valueRange!!,
+            name = "${name}_lb"
+        )
+    }
 
-    init {
-        lowerBoundInequality.name = "${name}_lb"
-        upperBoundInequality.name = "${name}_ub"
+    private val upperBoundInequality: LinearConstraintInput by lazy {
+        val ineq = (x leq ub).normalize()
+        LinearConstraintInput(
+            flattenData = ineq.flattenData,
+            sign = ineq.comparison,
+            lhsRange = x.range.valueRange!!,
+            name = "${name}_ub"
+        )
     }
 
     internal val _args = args
@@ -219,8 +234,6 @@ class IfInFunction(
         x.flush(force)
         lb.flush(force)
         ub.flush(force)
-        lowerBoundInequality.flush(force)
-        upperBoundInequality.flush(force)
         polyY.flush(force)
         polyY.range.set(possibleRange)
     }
@@ -231,7 +244,7 @@ class IfInFunction(
                 lowerBoundInequality.isTrue(tokenTable)
             } else {
                 lowerBoundInequality.isTrue(values, tokenTable)
-            } ?: return null
+            } ?: return@prepareIfNotCached null
             val lbyValue = if (lbBin) {
                 Flt64.one
             } else {
@@ -242,7 +255,7 @@ class IfInFunction(
                 upperBoundInequality.isTrue(tokenTable)
             } else {
                 upperBoundInequality.isTrue(values, tokenTable)
-            } ?: return null
+            } ?: return@prepareIfNotCached null
             val ubyValue = if (ubBin) {
                 Flt64.one
             } else {
@@ -264,9 +277,9 @@ class IfInFunction(
     }
 
     override fun register(tokenTable: AddableTokenCollection): Try {
-        lowerBoundInequality.register( parentName = name, k = lbk, flag = lby, tokenTable = tokenTable ).takeUnless { it.ok }?.let { return it }
+        lowerBoundInequality.register(parentName = name, k = lbk, flag = lby, tokenTable = tokenTable).takeUnless { it.ok }?.let { return it }
 
-        upperBoundInequality.register( parentName = name, k = ubk, flag = uby, tokenTable = tokenTable ).takeUnless { it.ok }?.let { return it }
+        upperBoundInequality.register(parentName = name, k = ubk, flag = uby, tokenTable = tokenTable).takeUnless { it.ok }?.let { return it }
 
         y.register(tokenTable).takeUnless { it.ok }?.let { return it }
 
@@ -274,9 +287,9 @@ class IfInFunction(
     }
 
     override fun register(model: AbstractLinearMechanismModel): Try {
-        lowerBoundInequality.register( parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model ).takeUnless { it.ok }?.let { return it }
+        lowerBoundInequality.register(parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model).takeUnless { it.ok }?.let { return it }
 
-        upperBoundInequality.register( parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model ).takeUnless { it.ok }?.let { return it }
+        upperBoundInequality.register(parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model).takeUnless { it.ok }?.let { return it }
 
         y.register(model).takeUnless { it.ok }?.let { return it }
 
@@ -294,9 +307,9 @@ class IfInFunction(
         model: AbstractLinearMechanismModel,
         fixedValues: Map<Symbol, Flt64>
     ): Try {
-        lowerBoundInequality.register( parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model, fixedValues = fixedValues ).takeUnless { it.ok }?.let { return it }
+        lowerBoundInequality.register(parent = parent ?: this, parentName = name, k = lbk, flag = lby, epsilon = epsilon, model = model, fixedValues = fixedValues).takeUnless { it.ok }?.let { return it }
 
-        upperBoundInequality.register( parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model, fixedValues = fixedValues ).takeUnless { it.ok }?.let { return it }
+        upperBoundInequality.register(parent = parent ?: this, parentName = name, k = ubk, flag = uby, epsilon = epsilon, model = model, fixedValues = fixedValues).takeUnless { it.ok }?.let { return it }
 
         y.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 

@@ -7,12 +7,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSy
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuantityIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.FunctionSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.Sign
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticInequalityConstraint
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenSubObject
@@ -76,7 +73,7 @@ sealed interface MetaModel : Model, AutoCloseable {
     }
 
     val name: String
-    val constraints: List<MetaConstraint<*>>
+    val constraints: List<MathConstraint>
     override val objectCategory: ObjectCategory
     val subObjects: List<SubObject<*, *, *>>
     val tokens: AbstractMutableTokenTable
@@ -400,7 +397,7 @@ sealed interface MetaModel : Model, AutoCloseable {
     fun registerConstraintGroup(group: MetaConstraintGroup)
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
-    fun constraintsOfGroup(group: MetaConstraintGroup): List<MetaConstraint<*>> {
+    fun constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint> {
         return indicesOfConstraintGroup(group)?.let { indices ->
             indices.map { constraints[it] }
         } ?: constraints.filter { it.group == group }
@@ -427,7 +424,7 @@ sealed interface MetaModel : Model, AutoCloseable {
             symbol.flush(force)
         }
         for (constraint in constraints) {
-            constraint.constraint.flush(force)
+            // Math inequality types don't have flush - they reference tokens via polynomial
         }
         for (objective in subObjects) {
             objective.polynomial.flush(force)
@@ -543,7 +540,7 @@ sealed interface MetaModel : Model, AutoCloseable {
 
             writer.append("Subject to:\n")
             for (constraint in constraints) {
-                writer.append("$constraint: ${constraint.constraint.toRawString(unfold)}\n")
+                writer.append("$constraint\n")
             }
             writer.append("\n")
 
@@ -567,7 +564,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -587,7 +584,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -607,7 +604,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -627,7 +624,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -636,21 +633,6 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
             withRangeSet = withRangeSet
         )
     }
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, group, lazy, name, displayName, args, priority, withRangeSet)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
-    )
-    fun addConstraint(
-        constraint: LinearInequality,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        priority: Int? = null,
-        withRangeSet: Boolean? = false
-    ): Try
 
     /**
      * Add constraint using math LinearInequality
@@ -735,7 +717,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq true,
+            relation =polynomial eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -756,7 +738,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -776,7 +758,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -796,7 +778,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation =constraint eq true,
             group = group,
             lazy = lazy,
             name = name,
@@ -805,21 +787,6 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
             withRangeSet = withRangeSet
         )
     }
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, group, lazy, name, displayName, args, priority, withRangeSet)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
-    )
-    fun addConstraint(
-        constraint: QuadraticInequality,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        priority: Int? = null,
-        withRangeSet: Boolean? = null
-    ): Try
 
     /**
      * Add constraint using math QuadraticInequality
@@ -884,7 +851,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq Flt64.one,
+            relation =polynomial eq Flt64.one,
             group = group,
             lazy = lazy,
             name = name,
@@ -953,11 +920,9 @@ class LinearMetaModel(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration()
 ) : AbstractMetaModel(Linear, configuration), AbstractLinearMetaModel {
-    internal val _constraints: MutableList<MetaConstraint<LinearInequality>> = ArrayList()
-    override val constraints: List<MetaConstraint<*>> by ::_constraints
-
-    // NEW: Math inequality-based constraints storage
+    // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint> = ArrayList()
+    override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<LinearInequalityConstraint> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
@@ -966,45 +931,6 @@ class LinearMetaModel(
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<LinearFlattenSubObject> = ArrayList()
     val flattenSubObjects: List<LinearFlattenSubObject> by ::_flattenSubObjects
-
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: LinearInequality,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        withRangeSet: Boolean?
-    ): Try {
-        name?.let { constraint.name = it }
-        displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(constraint, lazy = lazy))
-
-        if (withRangeSet ?: this.configuration.withRangeSet
-            && constraint.lhs.monomials.size == 1
-            && !constraint.lhs.monomials.first().pure
-            && constraint.rhs.monomials.isEmpty()
-        ) {
-            val symbol = constraint.lhs.monomials.first().symbol.exprSymbol!!
-            val constant = constraint.rhs.constant - constraint.lhs.constant
-            when (constraint.sign) {
-                Sign.Less, Sign.LessEqual -> {
-                    symbol.range.leq(constant)
-                }
-
-                Sign.Greater, Sign.GreaterEqual -> {
-                    symbol.range.geq(constant)
-                }
-
-                Sign.Equal -> {
-                    symbol.range.eq(constant)
-                }
-
-                Sign.Unequal -> {}
-            }
-        }
-
-        return ok
-    }
 
     override fun addObject(
         category: ObjectCategory,
@@ -1071,56 +997,6 @@ class LinearMetaModel(
         return name
     }
 
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: LinearInequality,
-        group: MetaConstraintGroup?,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        args: Any?,
-        priority: Int?,
-        withRangeSet: Boolean?
-    ): Try {
-        name?.let { constraint.name = it }
-        displayName?.let { constraint.name = it }
-        _constraints.add(
-            MetaConstraint(
-                constraint = constraint,
-                group = group,
-                lazy = lazy,
-                args = args,
-                priority = priority
-            )
-        )
-
-        if (withRangeSet ?: this.configuration.withRangeSet
-            && constraint.lhs.monomials.size == 1
-            && !constraint.lhs.monomials.first().pure
-            && constraint.rhs.monomials.isEmpty()
-        ) {
-            val symbol = constraint.lhs.monomials.first().symbol.exprSymbol!!
-            val constant = constraint.rhs.constant - constraint.lhs.constant
-            when (constraint.sign) {
-                Sign.Less, Sign.LessEqual -> {
-                    symbol.range.leq(constant)
-                }
-
-                Sign.Greater, Sign.GreaterEqual -> {
-                    symbol.range.geq(constant)
-                }
-
-                Sign.Equal -> {
-                    symbol.range.eq(constant)
-                }
-
-                Sign.Unequal -> {}
-            }
-        }
-
-        return ok
-    }
-
     /**
      * Add constraint using math LinearInequality (new API)
      */
@@ -1152,11 +1028,9 @@ class QuadraticMetaModel(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration()
 ) : AbstractMetaModel(Quadratic, configuration), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
-    internal val _constraints: MutableList<MetaConstraint<QuadraticInequality>> = ArrayList()
-    override val constraints: List<MetaConstraint<*>> by ::_constraints
-
-    // NEW: Math inequality-based constraints storage
+    // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<QuadraticInequalityConstraint> = ArrayList()
+    override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<QuadraticInequalityConstraint> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
@@ -1181,11 +1055,9 @@ class QuadraticMetaModel(
     ): Try {
         // Convert to math QuadraticInequality
         val quadraticInequality = MathQuadraticInequality(
-            lhs = relation.lhs.toQuadraticPolynomial(),
-            rhs = relation.rhs.toQuadraticPolynomial(),
-            comparison = relation.comparison,
-            name = name ?: relation.name,
-            displayName = displayName ?: relation.displayName
+            relation.lhs.toQuadraticPolynomial(),
+            relation.rhs.toQuadraticPolynomial(),
+            relation.comparison
         )
         return addConstraint(
             relation = quadraticInequality,
@@ -1197,69 +1069,6 @@ class QuadraticMetaModel(
             priority = priority,
             withRangeSet = withRangeSet
         )
-    }
-
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: LinearInequality,
-        group: MetaConstraintGroup?,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        args: Any?,
-        priority: Int?,
-        withRangeSet: Boolean?
-    ): Try {
-        return addConstraint(
-            constraint = QuadraticInequality(constraint),
-            group = group,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            priority = priority,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: QuadraticInequality,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        withRangeSet: Boolean?
-    ): Try {
-        name?.let { constraint.name = it }
-        displayName?.let { constraint.name = it }
-        _constraints.add(MetaConstraint(constraint, lazy = lazy))
-
-        if (withRangeSet ?: this.configuration.withRangeSet
-            && !constraint.lhs.monomials.first().pure
-            && constraint.lhs.monomials.first().symbol.symbol2 == null
-            && constraint.rhs.monomials.isEmpty()
-        ) {
-            val symbol = constraint.lhs.monomials.first().symbol.symbol1.v2
-                ?: constraint.lhs.monomials.first().symbol.symbol1.v3!!
-            val constant = constraint.rhs.constant - constraint.lhs.constant
-            when (constraint.sign) {
-                Sign.Less, Sign.LessEqual -> {
-                    symbol.range.leq(constant)
-                }
-
-                Sign.Greater, Sign.GreaterEqual -> {
-                    symbol.range.geq(constant)
-                }
-
-                Sign.Equal -> {
-                    symbol.range.eq(constant)
-                }
-
-                Sign.Unequal -> {}
-            }
-        }
-
-        return ok
     }
 
     /**
@@ -1274,11 +1083,9 @@ class QuadraticMetaModel(
     ): Try {
         // Convert to math QuadraticInequality
         val quadraticInequality = MathQuadraticInequality(
-            lhs = relation.lhs.toQuadraticPolynomial(),
-            rhs = relation.rhs.toQuadraticPolynomial(),
-            comparison = relation.comparison,
-            name = name ?: relation.name,
-            displayName = displayName ?: relation.displayName
+            relation.lhs.toQuadraticPolynomial(),
+            relation.rhs.toQuadraticPolynomial(),
+            relation.comparison
         )
         return addConstraint(
             relation = quadraticInequality,
@@ -1327,57 +1134,6 @@ class QuadraticMetaModel(
             name = name,
             displayName = displayName
         )
-    }
-
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: QuadraticInequality,
-        group: MetaConstraintGroup?,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        args: Any?,
-        priority: Int?,
-        withRangeSet: Boolean?
-    ): Try {
-        name?.let { constraint.name = it }
-        displayName?.let { constraint.name = it }
-        _constraints.add(
-            MetaConstraint(
-                constraint = constraint,
-                group = group,
-                lazy = lazy,
-                args = args,
-                priority = priority
-            )
-        )
-
-        if (withRangeSet ?: this.configuration.withRangeSet
-            && !constraint.lhs.monomials.first().pure
-            && constraint.lhs.monomials.first().symbol.symbol2 == null
-            && constraint.rhs.monomials.isEmpty()
-        ) {
-            val symbol = constraint.lhs.monomials.first().symbol.symbol1.v2
-                ?: constraint.lhs.monomials.first().symbol.symbol1.v3!!
-            val constant = constraint.rhs.constant - constraint.lhs.constant
-            when (constraint.sign) {
-                Sign.Less, Sign.LessEqual -> {
-                    symbol.range.leq(constant)
-                }
-
-                Sign.Greater, Sign.GreaterEqual -> {
-                    symbol.range.geq(constant)
-                }
-
-                Sign.Equal -> {
-                    symbol.range.eq(constant)
-                }
-
-                Sign.Unequal -> {}
-            }
-        }
-
-        return ok
     }
 
     /**

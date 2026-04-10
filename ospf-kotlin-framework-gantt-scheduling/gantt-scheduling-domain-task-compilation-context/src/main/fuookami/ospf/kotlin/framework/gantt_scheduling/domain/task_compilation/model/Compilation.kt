@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.OrFunction
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1

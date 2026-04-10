@@ -5,8 +5,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
@@ -1288,31 +1286,19 @@ data object SatisfiedAmountFunction {
 
     @JvmName("constructWithInequalities")
     operator fun invoke(
-        inequalities: List<LinearInequality>,
+        inequalities: List<AbstractLinearPolynomial<*>>,
         parent: IntermediateSymbol? = null,
         args: Any? = null,
         name: String,
         displayName: String? = null
     ): SatisfiedAmountInequalityFunction {
         return SatisfiedAmountInequalityFunction(
-            inequalities = inequalities,
-            parent = parent,
-            args = args,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @JvmName("constructWithToInequalities")
-    operator fun invoke(
-        inequalities: List<ToLinearInequality>,
-        parent: IntermediateSymbol? = null,
-        args: Any? = null,
-        name: String,
-        displayName: String? = null
-    ): SatisfiedAmountInequalityFunction {
-        return SatisfiedAmountInequalityFunction(
-            inequalities = inequalities.map { it.toLinearInequality() },
+            inequalities = inequalities.map {
+                LinearConstraintInput.from(
+                    it.toMathLinearInequality(),
+                    lhsRange = it.range.valueRange!!
+                )
+            },
             parent = parent,
             args = args,
             name = name,
@@ -1346,7 +1332,7 @@ data object AtLeastFunction {
 
     @JvmName("constructWithInequalities")
     operator fun invoke(
-        inequalities: List<LinearInequality>,
+        inequalities: List<AbstractLinearPolynomial<*>>,
         constraint: Boolean = true,
         amount: UInt64,
         parent: IntermediateSymbol? = null,
@@ -1355,28 +1341,12 @@ data object AtLeastFunction {
         displayName: String? = null
     ): AtLeastInequalityFunction {
         return AtLeastInequalityFunction(
-            inequalities = inequalities,
-            constraint = constraint,
-            amount = amount,
-            parent = parent,
-            args = args,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @JvmName("constructWithToInequalities")
-    operator fun invoke(
-        inequalities: List<ToLinearInequality>,
-        constraint: Boolean = true,
-        amount: UInt64,
-        parent: IntermediateSymbol? = null,
-        args: Any? = null,
-        name: String,
-        displayName: String? = null
-    ): AtLeastInequalityFunction {
-        return AtLeastInequalityFunction(
-            inequalities = inequalities.map { it.toLinearInequality() },
+            inequalities = inequalities.map {
+                LinearConstraintInput.from(
+                    it.toMathLinearInequality(),
+                    lhsRange = it.range.valueRange!!
+                )
+            },
             constraint = constraint,
             amount = amount,
             parent = parent,

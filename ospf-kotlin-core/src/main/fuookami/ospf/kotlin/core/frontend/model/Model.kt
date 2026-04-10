@@ -5,12 +5,11 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
@@ -180,7 +179,7 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = (constraint as fuookami.ospf.kotlin.math.symbol.Symbol).eq(true),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -196,7 +195,7 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = LinearPolynomial(constraint) eq true,
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -212,7 +211,7 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint.toMathLinearInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -228,21 +227,13 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint.toMathLinearInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
             withRangeSet = withRangeSet
         )
     }
-
-    fun addConstraint(
-        constraint: LinearInequality,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        withRangeSet: Boolean? = false
-    ): Try
 
     /**
      * Add constraint using math LinearInequality
@@ -310,7 +301,7 @@ interface LinearModel : Model {
         displayName: String? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq true,
+            relation = polynomial.toMathLinearInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName
@@ -478,7 +469,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint.toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -487,14 +478,18 @@ interface QuadraticModel : LinearModel {
     }
 
     override fun addConstraint(
-        constraint: LinearInequality,
+        relation: MathLinearInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
         withRangeSet: Boolean?
     ): Try {
         return addConstraint(
-            constraint = QuadraticInequality(constraint),
+            relation = MathQuadraticInequality(
+                lhs = relation.lhs.toQuadraticPolynomial(),
+                rhs = relation.rhs.toQuadraticPolynomial(),
+                comparison = relation.comparison
+            ),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -510,7 +505,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint.toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -526,21 +521,13 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint.toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
             withRangeSet = withRangeSet
         )
     }
-
-    fun addConstraint(
-        constraint: QuadraticInequality,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        withRangeSet: Boolean? = null
-    ): Try
 
     /**
      * Add constraint using math QuadraticInequality
@@ -592,7 +579,7 @@ interface QuadraticModel : LinearModel {
         displayName: String? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq Flt64.one,
+            relation = polynomial.toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName

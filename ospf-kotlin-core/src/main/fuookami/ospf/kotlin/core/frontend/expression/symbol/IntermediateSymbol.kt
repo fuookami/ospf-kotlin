@@ -672,7 +672,7 @@ class LinearExpressionSymbol(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        cells
+        flattenedMonomials
         return if (values.isNullOrEmpty()) {
             _polynomial.evaluate(tokenTable)
         } else {
@@ -973,7 +973,7 @@ class QuadraticExpressionSymbol(
     }
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        cells
+        flattenedMonomials
         return if (values.isNullOrEmpty()) {
             _polynomial.evaluate(tokenTable)
         } else {

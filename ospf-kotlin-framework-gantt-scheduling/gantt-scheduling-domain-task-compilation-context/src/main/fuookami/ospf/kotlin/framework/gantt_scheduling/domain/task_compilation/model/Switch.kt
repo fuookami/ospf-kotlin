@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSy
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AndFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
