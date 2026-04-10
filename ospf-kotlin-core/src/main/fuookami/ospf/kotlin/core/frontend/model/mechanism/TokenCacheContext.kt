@@ -7,9 +7,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPo
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.Polynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -344,10 +341,3 @@ val Polynomial<*, *, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
 
 val Polynomial<*, *, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
     get() = (this as AbstractQuadraticPolynomial<*>).flattenedMonomials
-
-// Extension properties for Inequality to access flattenedMonomials
-val Inequality<*, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
-    get() = (this as LinearInequality).flattenedMonomials
-
-val Inequality<*, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
-    get() = (this as QuadraticInequality).flattenedMonomials

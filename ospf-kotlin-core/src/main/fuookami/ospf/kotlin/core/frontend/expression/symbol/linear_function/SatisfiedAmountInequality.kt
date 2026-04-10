@@ -5,8 +5,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
@@ -17,6 +15,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.toFlt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
@@ -496,13 +496,13 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
 
 // todo: optimize
 open class AnyFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
     args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     parent = parent,
     args = args,
     name = name,
@@ -510,14 +510,19 @@ open class AnyFunction(
 ) {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String,
             displayName: String? = null
         ): AnyFunction {
             return AnyFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 parent = parent,
                 args = args,
                 name = name,
@@ -545,7 +550,13 @@ class InListFunction(
     name: String,
     displayName: String? = null
 ) : AnyFunction(
-    inequalities = list.map { (x eq it).normalize() },
+    inequalities = list.map {
+        LinearConstraintInput.from(
+            (x eq it).normalize(),
+            lhsRange = (x - it).range.valueRange!!,
+            rhsConstant = Flt64.zero
+        )
+    },
     parent = parent,
     args = args,
     name = name,
@@ -565,7 +576,7 @@ class InListFunction(
         ): InListFunction {
             return InListFunction(
                 x = x.toLinearPolynomial(),
-                list = list.map { it.toLinearInequality().lhs },
+                list = list.map { it.toLinearPolynomial() },
                 parent = parent,
                 args = args,
                 name = name,
@@ -576,13 +587,13 @@ class InListFunction(
 }
 
 class NotAllFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
     args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     parent = parent,
     args = args,
     name = name,
@@ -590,14 +601,19 @@ class NotAllFunction(
 ), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String,
             displayName: String? = null
         ): NotAllFunction {
             return NotAllFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 parent = parent,
                 args = args,
                 name = name,
@@ -619,13 +635,13 @@ class NotAllFunction(
 
 // todo: optimize
 class AllFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
     args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     parent = parent,
     args = args,
     name = name,
@@ -633,14 +649,19 @@ class AllFunction(
 ), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String,
             displayName: String? = null
         ): AllFunction {
             return AllFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 parent = parent,
                 args = args,
                 name = name,
@@ -661,13 +682,13 @@ class AllFunction(
 }
 
 class SatisfiedAmountInequalityFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
     args: Any? = null,
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     parent = parent,
     args = args,
     name = name,
@@ -675,14 +696,19 @@ class SatisfiedAmountInequalityFunction(
 ) {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             parent: IntermediateSymbol? = null,
             args: Any? = null,
             name: String,
             displayName: String? = null
         ): SatisfiedAmountInequalityFunction {
             return SatisfiedAmountInequalityFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 parent = parent,
                 args = args,
                 name = name,
@@ -693,7 +719,7 @@ class SatisfiedAmountInequalityFunction(
 }
 
 class AtLeastInequalityFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     constraint: Boolean = true,
     amount: UInt64,
     epsilon: Flt64 = Flt64(1e-6),
@@ -702,7 +728,7 @@ class AtLeastInequalityFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
@@ -712,7 +738,7 @@ class AtLeastInequalityFunction(
 ), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             constraint: Boolean = true,
             amount: UInt64,
             epsilon: Flt64 = Flt64(1e-6),
@@ -722,7 +748,12 @@ class AtLeastInequalityFunction(
             displayName: String? = null
         ): AtLeastInequalityFunction {
             return AtLeastInequalityFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 constraint = constraint,
                 amount = amount,
                 epsilon = epsilon,
@@ -751,7 +782,7 @@ class AtLeastInequalityFunction(
 }
 
 class NumerableFunction(
-    inequalities: List<LinearInequality>,
+    inequalities: List<LinearConstraintInput>,
     override val amount: ValueRange<UInt64>,
     constraint: Boolean = true,
     epsilon: Flt64 = Flt64(1e-6),
@@ -760,7 +791,7 @@ class NumerableFunction(
     name: String,
     displayName: String? = null
 ) : AbstractSatisfiedAmountInequalityFunction(
-    inputs = inequalities.map { LinearConstraintInput.from(it) },
+    inputs = inequalities,
     constraint = constraint,
     epsilon = epsilon,
     parent = parent,
@@ -770,7 +801,7 @@ class NumerableFunction(
 ), LogicFunctionSymbol {
     companion object {
         operator fun invoke(
-            inequalities: List<ToLinearInequality>,
+            inequalities: List<AbstractLinearPolynomial<*>>,
             amount: ValueRange<UInt64>,
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
@@ -780,7 +811,12 @@ class NumerableFunction(
             displayName: String? = null
         ): NumerableFunction {
             return NumerableFunction(
-                inequalities = inequalities.map { it.toLinearInequality() },
+                inequalities = inequalities.map {
+                    LinearConstraintInput.from(
+                        it.toMathLinearInequality(),
+                        lhsRange = it.range.valueRange!!
+                    )
+                },
                 amount = amount,
                 constraint = constraint,
                 epsilon = epsilon,

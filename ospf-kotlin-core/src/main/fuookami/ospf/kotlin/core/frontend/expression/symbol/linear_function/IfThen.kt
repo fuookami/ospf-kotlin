@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.minus
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
@@ -36,12 +35,9 @@ class IfThenFunction(
     override var displayName: String? = null
 ) : LinearFunctionSymbol() {
     companion object {
-        operator fun <
-                T1 : ToLinearInequality,
-                T2 : ToLinearInequality
-                > invoke(
-            p: T1,
-            q: T2,
+        operator fun invoke(
+            p: AbstractLinearPolynomial<*>,
+            q: AbstractLinearPolynomial<*>,
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
@@ -50,8 +46,14 @@ class IfThenFunction(
             displayName: String? = null
         ): IfThenFunction {
             return IfThenFunction(
-                pInput = LinearConstraintInput.from(p.toLinearInequality()),
-                qInput = LinearConstraintInput.from(q.toLinearInequality()),
+                pInput = LinearConstraintInput.from(
+                    p.toMathLinearInequality(),
+                    lhsRange = p.range.valueRange!!
+                ),
+                qInput = LinearConstraintInput.from(
+                    q.toMathLinearInequality(),
+                    lhsRange = q.range.valueRange!!
+                ),
                 constraint = constraint,
                 epsilon = epsilon,
                 parent = parent,

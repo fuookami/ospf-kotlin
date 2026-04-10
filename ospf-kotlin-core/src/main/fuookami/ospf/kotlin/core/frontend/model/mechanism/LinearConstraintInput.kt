@@ -1,11 +1,12 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.Sign as InequalitySign
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.AddableTokenCollection
@@ -20,17 +21,15 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 /**
  * LinearConstraintInput - Abstraction for linear constraint data used by function symbols.
  *
- * This type replaces direct dependency on `LinearInequality` in function symbol files.
  * It carries:
  * - `LinearFlattenData` for the constraint expression (monomials + constant)
- * - `Sign` for the relation type
+ * - `Comparison` for the relation type
  * - Range metadata (`lhsRange`) needed by the Big-M register formulation
  * - `name` / `displayName` for identification
  *
- * Construction paths:
- * 1. From `LinearInequality`: `LinearConstraintInput.from(inequality)`
- * 2. From `LinearRelation`: `LinearConstraintInput.from(relation, lhsRange)`
- * 3. Direct: `LinearConstraintInput(flattenData, sign, lhsRange, name, displayName)`
+ * Construction:
+ * - From `MathLinearInequality`: `LinearConstraintInput.from(relation, lhsRange)`
+ * - Direct: `LinearConstraintInput(flattenData, sign, lhsRange, name, displayName)`
  */
 data class LinearConstraintInput(
     val flattenData: LinearFlattenData,
@@ -49,37 +48,23 @@ data class LinearConstraintInput(
     val upperBound: Flt64? get() = lhsRange.upperBound?.value?.unwrap()
 
     companion object {
-        @Deprecated(
-            message = "Use LinearConstraintInput.from(relation, lhsRange) instead",
-            replaceWith = ReplaceWith("LinearConstraintInput.from(relation, lhsRange)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
-        )
-        fun from(inequality: LinearInequality): LinearConstraintInput {
-            val normalized = inequality.normalize()
-            return LinearConstraintInput(
-                flattenData = normalized.flattenedMonomials,
-                sign = normalized.sign.toComparison(),
-                lhsRange = normalized.lhs.range.valueRange!!,
-                name = normalized.name,
-                displayName = normalized.displayName,
-                rhsConstant = normalized.rhs.constant
-            )
-        }
-
         /**
          * Create LinearConstraintInput from math LinearInequality
          */
         fun from(
             relation: MathLinearInequality,
             lhsRange: ValueRange<Flt64>,
-            rhsConstant: Flt64 = Flt64.zero
+            rhsConstant: Flt64 = Flt64.zero,
+            name: String = "",
+            displayName: String? = null
         ): LinearConstraintInput {
             val flattenData = relation.flattenData
             return LinearConstraintInput(
                 flattenData = flattenData,
                 sign = relation.comparison,
                 lhsRange = lhsRange,
-                name = relation.name,
-                displayName = relation.displayName,
+                name = name,
+                displayName = displayName,
                 rhsConstant = rhsConstant
             )
         }
@@ -148,7 +133,7 @@ data class LinearConstraintInput(
 /**
  * Evaluate LinearFlattenData against a token table.
  */
-private fun evaluateFlattenData(
+internal fun evaluateFlattenData(
     data: LinearFlattenData,
     tokenTable: AbstractTokenTable,
     zeroIfNone: Boolean
@@ -252,7 +237,7 @@ private fun evaluateFlattenDataWithResultsFromTokenList(
 /**
  * Comparison helper - returns whether `value` satisfies the relation against `rhs`.
  */
-private fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this) {
+internal fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this) {
     Comparison.LT -> value ls rhs
     Comparison.LE -> value leq rhs
     Comparison.GT -> value gr rhs
@@ -262,13 +247,27 @@ private fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this) 
 }
 
 /**
- * Convert frontend.inequality.Sign to math.symbol.inequality.Comparison.
+ * Evaluate quadratic flatten data given token table and solution values.
  */
-private fun InequalitySign.toComparison(): Comparison = when (this) {
-    InequalitySign.Less -> Comparison.LT
-    InequalitySign.LessEqual -> Comparison.LE
-    InequalitySign.Greater -> Comparison.GT
-    InequalitySign.GreaterEqual -> Comparison.GE
-    InequalitySign.Equal -> Comparison.EQ
-    InequalitySign.Unequal -> Comparison.NE
+internal fun evaluateQuadraticFlattenData(
+    data: QuadraticFlattenData,
+    tokenTable: AbstractTokenTable,
+    zeroIfNone: Boolean
+): Flt64? {
+    var result = data.constant
+    for (monomial in data.monomials) {
+        val sym1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
+        val token1 = tokenTable.find(sym1) ?: continue
+        val val1 = token1.result ?: if (zeroIfNone) Flt64.zero else return null
+        val val2 = if (monomial.symbol2 != null) {
+            val sym2 = monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue
+            val token2 = tokenTable.find(sym2) ?: continue
+            token2.result ?: if (zeroIfNone) Flt64.zero else return null
+        } else {
+            val1
+        }
+        result = result + monomial.coefficient * val1 * val2
+    }
+    return result
 }
+

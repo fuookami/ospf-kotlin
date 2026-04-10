@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.Abst
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.frontend.variable.*

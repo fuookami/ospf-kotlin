@@ -9,15 +9,15 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.to
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toLinearMonomialCells
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ToMathLinearInequality
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
@@ -30,6 +30,8 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.expression.flatten.mergeLinearFlattenData
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.quantity.to
@@ -71,10 +73,10 @@ private fun cells(
     return cells.map { LinearMonomialCell(it.value, it.key) } + LinearMonomialCell(totalConstant)
 }
 
-interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> : ToLinearInequality {
+interface ToLinearPolynomial<Poly : AbstractLinearPolynomial<Poly>> : ToMathLinearInequality {
     fun toLinearPolynomial(): Poly
 
-    override fun toLinearInequality(): LinearInequality {
+    override fun toMathLinearInequality(): MathLinearInequality {
         return toLinearPolynomial() eq true
     }
 }

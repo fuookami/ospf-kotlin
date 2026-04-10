@@ -8,15 +8,9 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.qsum
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.Sign
-import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -33,7 +27,7 @@ interface MetaConstraintGroup {
         return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModel.constraintsOfGroup(): List<MetaConstraint<*>> {
+    fun MetaModel.constraintsOfGroup(): List<MathConstraint> {
         return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
             indices.map { constraints[it] }
         } ?: emptyList()
@@ -48,7 +42,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = false
     ): Try {
         return this.addConstraint(
-            constraint = constraint eq true,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -67,7 +61,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -86,7 +80,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -105,26 +99,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    fun AbstractLinearMetaModel.addConstraint(
-        constraint: LinearInequality,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = false
-    ): Try {
-        return addConstraint(
-            constraint = constraint,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -199,7 +174,7 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq true,
+            relation =polynomial eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -217,7 +192,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -235,7 +210,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -253,25 +228,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            constraint = constraint eq true,
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    fun AbstractQuadraticMetaModel.addConstraint(
-        constraint: QuadraticInequality,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = null
-    ): Try {
-        return addConstraint(
-            constraint = constraint,
+            relation = constraint eq true,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -326,7 +283,7 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return addConstraint(
-            constraint = polynomial eq Flt64.one,
+            relation =polynomial eq Flt64.one,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -382,7 +339,8 @@ interface MetaConstraintGroup {
     }
 }
 
-data class MetaConstraint<Ineq : Inequality<*, *>>(
+@Deprecated("Use MathConstraint instead", ReplaceWith("MathConstraint"))
+data class MetaConstraint<Ineq>(
     val constraint: Ineq,
     val group: MetaConstraintGroup? = null,
     val lazy: Boolean = false,
@@ -397,21 +355,42 @@ data class MetaConstraint<Ineq : Inequality<*, *>>(
 // ========== Math Inequality-based Constraint Types ==========
 
 /**
+ * Common interface for math-based constraints.
+ */
+interface MathConstraint {
+    val group: MetaConstraintGroup?
+    val lazy: Boolean
+    val args: Any?
+    val priority: Int?
+
+    /**
+     * Evaluate whether this constraint is satisfied given solution values.
+     */
+    fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Boolean?
+}
+
+/**
  * LinearInequalityConstraint - Constraint using math LinearInequality
  *
  * This type uses LinearFlattenData directly, avoiding dependency on frontend/inequality.
  */
 data class LinearInequalityConstraint(
     val inequality: MathLinearInequality,
-    val group: MetaConstraintGroup? = null,
-    val lazy: Boolean = false,
-    val args: Any? = null,
-    val priority: Int? = null
-) {
+    override val group: MetaConstraintGroup? = null,
+    override val lazy: Boolean = false,
+    override val args: Any? = null,
+    override val priority: Int? = null
+) : MathConstraint {
     val flattenData: LinearFlattenData get() = inequality.flattenData
-    val sign: Comparison get() = inequality.sign
-    val name: String get() = inequality.name
-    val displayName: String? get() = inequality.displayName
+    val sign: Comparison get() = inequality.comparison
+    val name: String = ""
+    val displayName: String? = null
+
+    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+        val lhsValue = evaluateFlattenData(flattenData, tokenTable, zeroIfNone)
+            ?: return null
+        return sign.compare(lhsValue, Flt64.zero)
+    }
 
     override fun toString(): String {
         return inequality.toString()
@@ -425,15 +404,21 @@ data class LinearInequalityConstraint(
  */
 data class QuadraticInequalityConstraint(
     val inequality: MathQuadraticInequality,
-    val group: MetaConstraintGroup? = null,
-    val lazy: Boolean = false,
-    val args: Any? = null,
-    val priority: Int? = null
-) {
+    override val group: MetaConstraintGroup? = null,
+    override val lazy: Boolean = false,
+    override val args: Any? = null,
+    override val priority: Int? = null
+) : MathConstraint {
     val flattenData: QuadraticFlattenData get() = inequality.flattenData
-    val sign: Comparison get() = inequality.sign
-    val name: String get() = inequality.name
-    val displayName: String? get() = inequality.displayName
+    val sign: Comparison get() = inequality.comparison
+    val name: String = ""
+    val displayName: String? = null
+
+    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+        val lhsValue = evaluateQuadraticFlattenData(flattenData, tokenTable, zeroIfNone)
+            ?: return null
+        return sign.compare(lhsValue, Flt64.zero)
+    }
 
     override fun toString(): String {
         return inequality.toString()
@@ -448,55 +433,8 @@ typealias LinearRelationConstraint = LinearInequalityConstraint
 typealias QuadraticRelationConstraint = QuadraticInequalityConstraint
 
 // ========== Deprecated adapters ==========
-
-private fun Sign.toComparison(): Comparison = when (this) {
-    Sign.Less -> Comparison.LT
-    Sign.LessEqual -> Comparison.LE
-    Sign.Greater -> Comparison.GT
-    Sign.GreaterEqual -> Comparison.GE
-    Sign.Equal -> Comparison.EQ
-    Sign.Unequal -> Comparison.NE
-}
-
-/**
- * Convert MetaConstraint<LinearInequality> to LinearInequalityConstraint
- */
-@Suppress("DEPRECATION")
-fun MetaConstraint<LinearInequality>.toRelationConstraint(): LinearInequalityConstraint {
-    return LinearInequalityConstraint(
-        inequality = MathLinearInequality(
-            lhs = constraint.lhs.toUtilsPolynomial(),
-            rhs = constraint.rhs.toUtilsPolynomial(),
-            comparison = constraint.sign.toComparison(),
-            name = constraint.name,
-            displayName = constraint.displayName ?: ""
-        ),
-        group = group,
-        lazy = lazy,
-        args = args,
-        priority = priority
-    )
-}
-
-/**
- * Convert MetaConstraint<QuadraticInequality> to QuadraticInequalityConstraint
- */
-@Suppress("DEPRECATION")
-fun MetaConstraint<QuadraticInequality>.toRelationConstraint(): QuadraticInequalityConstraint {
-    return QuadraticInequalityConstraint(
-        inequality = MathQuadraticInequality(
-            lhs = constraint.lhs.toUtilsPolynomial(),
-            rhs = constraint.rhs.toUtilsPolynomial(),
-            comparison = constraint.sign.toComparison(),
-            name = constraint.name,
-            displayName = constraint.displayName ?: ""
-        ),
-        group = group,
-        lazy = lazy,
-        args = args,
-        priority = priority
-    )
-}
+// Removed: toRelationConstraint() functions and Sign.toComparison() - no longer needed
+// since frontend.inequality types are being deleted.
 
 // ========== NEW FlattenData-based SubObject Types ==========
 

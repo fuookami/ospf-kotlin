@@ -372,7 +372,7 @@ class BinaryzationFunctionLinearImpl(
     override fun register(model: AbstractQuadraticMechanismModel): Try {
         linearX.register(model).takeUnless { it.ok }?.let { return it }
 
-        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap().toFlt64() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         model.addConstraint( x geq epsilon * y, name = "${name}_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
@@ -402,7 +402,7 @@ class BinaryzationFunctionLinearImpl(
 
         linearX.register(model, fixedValues).takeUnless { it.ok }?.let { return it }
 
-        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
+        model.addConstraint( (Flt64.one - y) * linearX leq x.upperBound!!.value.unwrap().toFlt64() * y, name = "${name}_ub", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 
         model.addConstraint( x geq epsilon * y, name = "${name}_lb", from = parent ?: self ).takeUnless { it.ok }?.let { return it }
 

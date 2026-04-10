@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
@@ -521,8 +521,8 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
-                                    linearCuts = cuts.filterIsInstance<LinearInequality>(),
-                                    quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                                    linearCuts = cuts.filterIsInstance<MathLinearInequality>(),
+                                    quadraticCuts = cuts.filterIsInstance<MathQuadraticInequality>()
                                 )
                             )
                         } else {

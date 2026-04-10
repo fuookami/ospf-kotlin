@@ -5,11 +5,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.Inequality
-import fuookami.ospf.kotlin.core.frontend.inequality.leq
-import fuookami.ospf.kotlin.core.frontend.inequality.geq
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
@@ -35,32 +30,6 @@ sealed interface MechanismModel : AutoCloseable {
 }
 
 interface AbstractLinearMechanismModel : MechanismModel {
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
-    )
-    fun addConstraint(
-        constraint: LinearInequality,
-        name: String? = null,
-        from: Pair<IntermediateSymbol, Boolean>? = null,
-    ): Try
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
-    )
-    fun addConstraint(
-        constraint: LinearInequality,
-        name: String? = null,
-        from: IntermediateSymbol?,
-    ): Try {
-        return addConstraint(
-            constraint = constraint,
-            name = name,
-            from = from?.let { it to false }
-        )
-    }
-
     /**
      * Add constraint using math LinearInequality
      */
@@ -84,48 +53,6 @@ interface AbstractLinearMechanismModel : MechanismModel {
 }
 
 interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality")
-    )
-    override fun addConstraint(
-        constraint: LinearInequality,
-        name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
-    ): Try {
-        return addConstraint(
-            constraint = QuadraticInequality(constraint),
-            name = name,
-            from = from
-        )
-    }
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
-    )
-    fun addConstraint(
-        constraint: QuadraticInequality,
-        name: String? = null,
-        from: Pair<IntermediateSymbol, Boolean>? = null
-    ): Try
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathQuadraticInequality) instead",
-        replaceWith = ReplaceWith("addConstraint(relation, name, from)", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality")
-    )
-    fun addConstraint(
-        constraint: QuadraticInequality,
-        name: String? = null,
-        from: IntermediateSymbol?
-    ): Try {
-        return addConstraint(
-            constraint = constraint,
-            name = name,
-            from = from?.let { it to false }
-        )
-    }
-
     /**
      * Add constraint using math QuadraticInequality
      */
@@ -219,9 +146,9 @@ class LinearMechanismModel(
                 LinearMechanismModel(
                     parent = metaModel,
                     name = metaModel.name,
-                    constraints = metaModel._constraints.map {
+                    constraints = metaModel._relationConstraints.map {
                         LinearConstraint(
-                            inequality = it,
+                            relation = it.inequality,
                             tokens = tokens
                         )
                     }.toMutableList(),
@@ -279,20 +206,20 @@ class LinearMechanismModel(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModel {
-            val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+            val factor1 = Flt64(metaModel._relationConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
             val constraints = if (factor1 >= 1) {
                 val thisCompletedConstraintAmountLock = Any()
                 var thisCompletedConstraintAmount = UInt64.zero
                 val segment = pow(UInt64.ten, factor1).toInt()
-                (0..(metaModel._constraints.size / segment)).map { i ->
+                (0..(metaModel._relationConstraints.size / segment)).map { i ->
                     scope.async(Dispatchers.Default) {
-                        val result = metaModel._constraints
+                        val result = metaModel._relationConstraints
                             .subList(
                                 (i * segment),
-                                minOf(metaModel._constraints.size, (i + 1) * segment)
+                                minOf(metaModel._relationConstraints.size, (i + 1) * segment)
                             ).map {
                                 LinearConstraint(
-                                    inequality = it,
+                                    relation = it.inequality,
                                     tokens = tokens
                                 )
                             }
@@ -314,11 +241,11 @@ class LinearMechanismModel(
                     }
                 }
             } else {
-                metaModel._constraints.map {
+                metaModel._relationConstraints.map {
                     scope.async(Dispatchers.Default) {
                         val result = listOf(
                             LinearConstraint(
-                                inequality = it,
+                                relation = it.inequality,
                                 tokens = tokens
                             )
                         )
@@ -444,22 +371,6 @@ class LinearMechanismModel(
     internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: LinearInequality,
-        name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
-    ): Try {
-        _constraints.add(
-            LinearConstraint(
-                inequality = constraint,
-                tokens = tokens,
-                from = from
-            )
-        )
-        return ok
-    }
-
     override fun addConstraint(
         relation: MathLinearInequality,
         name: String?,
@@ -470,7 +381,7 @@ class LinearMechanismModel(
                 relation = relation,
                 tokens = tokens,
                 lazy = false,
-                name = name ?: relation.name,
+                name = name.orEmpty(),
                 from = from
             )
         )
@@ -482,7 +393,7 @@ class LinearMechanismModel(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: LinearDualSolution
-    ): List<LinearInequality> {
+    ): List<MathLinearInequality> {
         val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
@@ -519,7 +430,7 @@ class LinearMechanismModel(
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: LinearDualSolution
-    ): List<LinearInequality> {
+    ): List<MathLinearInequality> {
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -628,9 +539,9 @@ class QuadraticMechanismModel(
                 QuadraticMechanismModel(
                     parent = metaModel,
                     name = metaModel.name,
-                    constraints = metaModel._constraints.map {
+                    constraints = metaModel._relationConstraints.map {
                         QuadraticConstraint(
-                            inequality = it,
+                            relation = it.inequality,
                             tokens = tokens
                         )
                     }.toMutableList(),
@@ -695,20 +606,20 @@ class QuadraticMechanismModel(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModel {
-            val factor1 = Flt64(metaModel._constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+            val factor1 = Flt64(metaModel._relationConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
             val constraints = if (factor1 >= 1) {
                 val thisCompletedConstraintAmountLock = Any()
                 var thisCompletedConstraintAmount = UInt64.zero
                 val segment = pow(UInt64.ten, factor1).toInt()
-                (0..(metaModel._constraints.size / segment)).map { i ->
+                (0..(metaModel._relationConstraints.size / segment)).map { i ->
                     scope.async(Dispatchers.Default) {
-                        val result = metaModel._constraints
+                        val result = metaModel._relationConstraints
                             .subList(
                                 (i * segment),
-                                minOf(metaModel._constraints.size, (i + 1) * segment)
+                                minOf(metaModel._relationConstraints.size, (i + 1) * segment)
                             ).map {
                                 QuadraticConstraint(
-                                    inequality = it,
+                                    relation = it.inequality,
                                     tokens = tokens
                                 )
                             }
@@ -730,11 +641,11 @@ class QuadraticMechanismModel(
                     }
                 }
             } else {
-                metaModel._constraints.map {
+                metaModel._relationConstraints.map {
                     scope.async(Dispatchers.Default) {
                         val result = listOf(
                             QuadraticConstraint(
-                                inequality = it,
+                                relation = it.inequality,
                                 tokens = tokens
                             )
                         )
@@ -854,23 +765,6 @@ class QuadraticMechanismModel(
     internal val concurrent by parent.configuration::concurrent
     override val constraints by ::_constraints
 
-    @Suppress("DEPRECATION")
-    override fun addConstraint(
-        constraint: QuadraticInequality,
-        name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
-    ): Try {
-        name?.let { constraint.name = it }
-        _constraints.add(
-            QuadraticConstraint(
-                inequality = constraint,
-                tokens = tokens,
-                from = from
-            )
-        )
-        return ok
-    }
-
     override fun addConstraint(
         relation: MathLinearInequality,
         name: String?,
@@ -878,11 +772,9 @@ class QuadraticMechanismModel(
     ): Try {
         // Convert MathLinearInequality to MathQuadraticInequality
         val quadraticInequality = MathQuadraticInequality(
-            lhs = relation.lhs.toQuadraticPolynomial(),
-            rhs = relation.rhs.toQuadraticPolynomial(),
-            comparison = relation.comparison,
-            name = name ?: relation.name,
-            displayName = relation.displayName
+            relation.lhs.toQuadraticPolynomial(),
+            relation.rhs.toQuadraticPolynomial(),
+            relation.comparison
         )
         return addConstraint(
             relation = quadraticInequality,
@@ -901,7 +793,7 @@ class QuadraticMechanismModel(
                 relation = relation,
                 tokens = tokens,
                 lazy = false,
-                name = name ?: relation.name,
+                name = name.orEmpty(),
                 from = from
             )
         )
@@ -914,15 +806,15 @@ class QuadraticMechanismModel(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: QuadraticDualSolution,
-    ): Ret<List<Inequality<*, *>>> {
+    ): Ret<List<MathLinearInequality>> {
         TODO("not implemented yet")
     }
 
-    @Suppress("DEPRECATION", "UNUSED_PARAMETER")
+    @Suppress("UNUSED_PARAMETER")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: QuadraticDualSolution,
-    ): Ret<List<Inequality<*, *>>> {
+    ): Ret<List<MathLinearInequality>> {
         TODO("not implemented yet")
     }
 

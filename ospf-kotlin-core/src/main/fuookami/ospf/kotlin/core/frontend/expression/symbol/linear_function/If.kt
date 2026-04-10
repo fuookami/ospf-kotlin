@@ -5,7 +5,6 @@ import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearLogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
-import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
@@ -31,10 +30,8 @@ class IfFunction(
     private val logger = logger()
 
     companion object {
-        operator fun <
-                T : ToLinearInequality
-                > invoke(
-            condition: T,
+        operator fun invoke(
+            condition: AbstractLinearPolynomial<*>,
             epsilon: Flt64 = Flt64(1e-6),
             parent: IntermediateSymbol? = null,
             args: Any? = null,
@@ -42,7 +39,10 @@ class IfFunction(
             displayName: String? = null
         ): IfFunction {
             return IfFunction(
-                input = LinearConstraintInput.from(condition.toLinearInequality()),
+                input = LinearConstraintInput.from(
+                    condition.toMathLinearInequality(),
+                    lhsRange = condition.range.valueRange!!
+                ),
                 epsilon = epsilon,
                 parent = parent,
                 args = args,

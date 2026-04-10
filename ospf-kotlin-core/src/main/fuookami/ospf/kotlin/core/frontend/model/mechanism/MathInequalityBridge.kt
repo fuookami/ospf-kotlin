@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
+import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -8,6 +10,24 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinea
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+
+// ========== Conversion interfaces (replacing frontend.inequality.ToLinearInequality etc.) ==========
+
+/**
+ * Interface for types that can be converted to a MathLinearInequality.
+ * Replaces the old frontend.inequality.ToLinearInequality interface.
+ */
+interface ToMathLinearInequality {
+    fun toMathLinearInequality(): MathLinearInequality
+}
+
+/**
+ * Interface for types that can be converted to a MathQuadraticInequality.
+ * Replaces the old frontend.inequality.ToQuadraticInequality interface.
+ */
+interface ToMathQuadraticInequality {
+    fun toMathQuadraticInequality(): MathQuadraticInequality
+}
 
 // ========== Extension properties on math inequality types ==========
 
@@ -127,6 +147,16 @@ fun fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<Flt64>.toFla
                 symbol2 = it.symbol2
             )
         },
+        constant = constant
+    )
+}
+
+// ========== Conversion from math types to frontend types ==========
+
+/** Convert math LinearPolynomial to frontend LinearPolynomial */
+fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64>.toFrontendPolynomial(): LinearPolynomial {
+    return LinearPolynomial(
+        monomials = monomials.map { LinearMonomial(it.coefficient, it.symbol as AbstractVariableItem<*, *>) },
         constant = constant
     )
 }

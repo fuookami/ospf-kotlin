@@ -8,15 +8,15 @@ import fuookami.ospf.kotlin.core.frontend.expression.monomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.inequality.QuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.ToQuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.inequality.eq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.boundTokenTableContext
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.newTokenCacheKey
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.toQuadraticMonomialCells
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.ToMathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Variant3
@@ -76,10 +76,10 @@ private fun cells(
     } + QuadraticMonomialCell(totalConstant)
 }
 
-interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> : ToQuadraticInequality {
+interface ToQuadraticPolynomial<Poly : AbstractQuadraticPolynomial<Poly>> : ToMathQuadraticInequality {
     fun toQuadraticPolynomial(): Poly
 
-    override fun toQuadraticInequality(): QuadraticInequality {
+    override fun toMathQuadraticInequality(): MathQuadraticInequality {
         return this.toQuadraticPolynomial() eq true
     }
 }
