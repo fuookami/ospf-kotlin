@@ -6,11 +6,13 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LogicFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.prepareIfNotCached
 import fuookami.ospf.kotlin.core.frontend.inequality.LinearInequality
+import fuookami.ospf.kotlin.core.frontend.inequality.Sign as InequalitySign
 import fuookami.ospf.kotlin.core.frontend.inequality.ToLinearInequality
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractTokenTable
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.core.frontend.variable.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -196,7 +198,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    relation = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inputs.size) * (Flt64.one - y),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap().toFlt64() + UInt64(inputs.size).toFlt64() * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -206,7 +208,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    relation = sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -216,7 +218,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    relation = sum(u) leq amount!!.upperBound.value.unwrap(),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -275,7 +277,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    relation = sum(u) leq amount!!.upperBound.value.unwrap() + UInt64(inputs.size) * (Flt64.one - y),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap().toFlt64() + UInt64(inputs.size).toFlt64() * (Flt64.one - y),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -301,7 +303,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
             } else {
                 when (val result = model.addConstraint(
-                    relation = sum(u) geq amount!!.lowerBound.value.unwrap(),
+                    relation = sum(u) geq amount!!.lowerBound.value.unwrap().toFlt64(),
                     name = "${name}_lb",
                     from = parent ?: this
                 )) {
@@ -311,7 +313,7 @@ sealed class AbstractSatisfiedAmountInequalityFunction(
                 }
 
                 when (val result = model.addConstraint(
-                    relation = sum(u) leq amount!!.upperBound.value.unwrap(),
+                    relation = sum(u) leq amount!!.upperBound.value.unwrap().toFlt64(),
                     name = "${name}_ub",
                     from = parent ?: this
                 )) {
@@ -545,7 +547,7 @@ class InListFunction(
     name: String,
     displayName: String? = null
 ) : AnyFunction(
-    inequalities = list.map { (x eq it).normalize() },
+    inequalities = list.map { LinearInequality(x.copy(), it.copy(), InequalitySign.Equal) },
     parent = parent,
     args = args,
     name = name,

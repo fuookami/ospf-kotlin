@@ -14,14 +14,14 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 7. **`M3`（引入新关系类型）已完成** ✅
 8. **`M4`（机制层去旧泛型）已完成** ✅
 9. **`M5`（模型 API 迁移）已完成** ✅
-10. **`M6`（函数符号迁移）R0-R4 已完成** ✅ - 按 `R0~R4` 分批落地
+10. **`M6`（函数符号迁移）R0-R5 已完成** ✅ - 按 `R0~R5` 分批落地
 11. **`M7`（删除 adapter）并入重拆流程** - 按依赖收敛顺序删除
 12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
 
 **下一步行动**：
-1. ~~进入 `M6/R3`，迁移函数符号 off `eq/leq/geq` DSL~~ → **M6/R3 进行中，编译未通过**
-2. 优先修复 M6/R3 编译错误（见"最新状态"中的问题列表）
-3. 完成 M6/R3 后继续 `R5-continue`：删除 `frontend/inequality` 主目录。
+1. ~~进入 `M6/R3`，迁移函数符号 off `eq/leq/geq` DSL~~ → **M6/R3 已完成** ✅
+2. ~~优先修复 M6/R3 编译错误~~
+3. ~~完成 M6/R3 后继续 `R5-continue`~~ → **M6/R5 已完成** ✅，下一步执行 `R5-continue`：删除 `frontend/inequality` 主目录。
 4. 按 `R6 -> R9` 完成目录级删除与 M8 收口。
 5. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
 
@@ -34,7 +34,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 ## 最新状态（2026-04-10 交接点）
 
-### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（进行中，编译未通过）
+### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（已完成）✅
 
 **2026-04-10 完成**：
 1. 批量转换 verbose `when` 块为 `.takeUnless { it.ok }?.let { return it }` 模式：
@@ -47,30 +47,18 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `Abs.kt`, `BalanceTernaryzation.kt`, `Masking.kt`, `MaskingRange.kt`, `Max.kt`, `Min.kt`, `Not.kt`
    - `Product.kt`, `BivariateLinearPiecewise.kt`, `Inequality.kt`（quadratic）, `Binaryzation.kt`（quadratic）, `Semi.kt`
    - `IfIn.kt` 保持 `frontend.inequality.geq/leq`（因为它使用 `Inequality.register()` 而非 `model.addConstraint()`）
-3. 编译错误从 ~934 降至 ~208
+3. **编译已通过** ✅ - 0 errors
 
-**编译仍失败（~208 errors）**，主要错误类别：
-1. **quadratic_function/Binaryzation.kt:375** - `model.mechanism.geq/leq` 缺少 `AbstractQuadraticPolynomial leq LinearMonomial<Flt64>` 的 infix 重载。表达式 `(Flt64.one - y) * linearX` 产生 `QuadraticPolynomial`，RHS `x.upperBound!!.value.unwrap() * y` 产生 `LinearMonomial<Flt64>`，无匹配的 `leq` 函数
-2. **BalanceTernaryzation.kt:759,763** - 类似问题，表达式类型与 infix 函数不匹配
-3. **SatisfiedAmountInequality.kt** - `List<MathLinearInequality>` vs `List<frontend.LinearInequality>` 类型不匹配，以及 `model.addConstraint` 参数不匹配
-4. **linear_function/Binaryzation.kt:959** - 类似问题
-
-**需要补充的 MathInequalityDsl infix 函数**：
-- `infix fun AbstractQuadraticPolynomial<*>.leq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality`
-- `infix fun AbstractQuadraticPolynomial<*>.geq(rhs: LinearMonomial<Flt64>): MathQuadraticInequality`
-- `infix fun LinearMonomial<Flt64>.leq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality`
-- `infix fun LinearMonomial<Flt64>.geq(rhs: AbstractQuadraticPolynomial<*>): MathQuadraticInequality`
-- 可能还需要 `AbstractLinearPolynomial` vs `LinearMonomial` 的双向组合
-
-**关键注意事项**：
-- 不要盲目加 infix 函数 — 先查每个报错点的具体类型（receiver 和 operand 的真实类型），精准匹配
-- `SatisfiedAmountInequality.kt` 可能需要特殊处理，因为它传递 `List<LinearInequality>` 给期望 frontend 类型的 API
+**MathInequalityDsl.kt 补充的 infix 函数**：
+- `AbstractQuadraticPolynomial<*>` vs `FrontendLinearMonomial`：eq/le/ge/lt/gt/ne + leq/geq/neq/ls/gr
+- `FrontendLinearMonomial` vs `AbstractQuadraticPolynomial<*>`：eq/le/ge/lt/gt/ne + leq/geq/neq/ls/gr
+- 覆盖 Binaryzation.kt 中 `(Flt64.one - y) * linearX leq ...` 和 `x geq epsilon * y` 等表达式
 
 ### 交接注意事项
-1. **优先补充 MathInequalityDsl 缺失的 infix 函数** — 见上文"需要补充的 MathInequalityDsl infix 函数"列表
-2. 编译错误 ~208，集中在 4-5 个文件
-3. 建议先修复 Binaryzation.kt（quadratic）的 `leq`/`geq` 类型不匹配，因为它是最基础的场景
-4. SatisfiedAmountInequality.kt 需要单独分析，涉及 List 类型不匹配问题
+1. ~~**优先补充 MathInequalityDsl 缺失的 infix 函数**~~ → 已完成
+2. ~~编译错误 ~208~~ → 编译已通过 ✅
+3. ~~建议先修复 Binaryzation.kt（quadratic）的 `leq`/`geq` 类型不匹配~~ → 已完成
+4. ~~SatisfiedAmountInequality.kt 需要单独分析~~ → 已在之前会话修复
 5. 编译通过后执行：`mvn -pl ospf-kotlin-core -am test`
 
 ---
