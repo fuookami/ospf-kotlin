@@ -724,9 +724,114 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - gantt-scheduling `Switch.kt`/`TaskTime.kt` 修复 `IfFunction` 调用方式
 2. **全量编译通过**：`mvn compile -DskipTests` BUILD SUCCESS ✅
 3. **全量回归通过**：`mvn -pl ospf-kotlin-core -am test` 91 tests, BUILD SUCCESS ✅
-4. **M8 重新定义**：不再以"目录删除"为目标，改为：
-   - 标记 `frontend.expression.monomial/polynomial` 为前端 DSL 规范位置
-   - 清理未使用的导入和 deprecated 层
-   - ~~修复 gantt-scheduling / bpp3d 的独立编译错误~~ → **已完成 ✅**
+4. **M8（monomial/polynomial 目录删除）进入全量迁移** — 推翻 R7 结论，按 Phase 0~6 实施
 5. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛
 6. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果
+
+---
+
+## M8: monomial/polynomial 目录删除（全量迁移版，2026-04-11）
+
+### 架构决策变更
+
+**R7 结论推翻（2026-04-11）**：
+- ~~`frontend.expression.monomial/polynomial` 不能被 `math.symbol` 替代~~ → **推翻**
+- `AbstractVariableItem` 已实现 `math.symbol.Symbol` 接口，可直接作为 math 类型的 symbol 参数
+- Token 集成由 MetaModel 上下文负责（`TokenCacheContexts`）
+- DSL 操作符 math.symbol 已经提供（infix le/ge/eq、plus/minus/times/div）
+- Quantity 系统 `quantities` 已经提供（`Quantity<LinearPolynomial<Flt64>>` 等）
+
+### 深度 Gap 分析
+
+| Gap | 解决方案 |
+|-----|----------|
+| math.symbol 缺少 combineTerms() | 已确认存在：`operation/CombineTerms.kt` 和 `operation/LinearQuadraticOps.kt` |
+| math.symbol 类型为泛型 `<T>` | bridge 层使用显式 `<Flt64>` |
+| math.symbol 无 name/displayName/range | 改为 bridge 扩展属性，从 IntermediateSymbol/TokenTable 读取 |
+| math.symbol 无 cells 属性 | 用 combineTerms() 替代 |
+| MutableLinearPolynomial 缺少操作符 | bridge 层复制 plusAssign/minusAssign 等重载 |
+| Quantity 操作符冲突 | bridge 层提供独立 @JvmName 函数 |
+| MonomialCell 系统 | 删除，不再需要 |
+| MonomialSymbol 包装器 | 删除，`AbstractVariableItem` 已实现 `Symbol` |
+
+### 迁移规模
+
+- `frontend.expression.monomial`：126 文件引用，227 处
+- `frontend.expression.polynomial`：93 文件引用，132 处
+- 其中 ospf-kotlin-core 内部 ~60 文件，framework 模块 ~65 文件
+
+### 分阶段计划
+
+#### Phase 0：math.symbol 基础补充 ✅ 已完成
+1. `LinearMonomial<T>.toLinearPolynomial()` 泛型扩展（已添加到 LinearPolynomial.kt）
+2. `LinearPolynomial<T>.toMutable()` 已确认存在（MutableLinearPolynomial.kt:192）
+3. 验证 combineTerms()、evaluate() 功能完整 — 均已确认存在
+4. `zeroOf()` 从 private 改为 internal，供扩展函数复用
+5. `mvn -pl ospf-kotlin-math test`: **722 tests, BUILD SUCCESS** ✅
+
+#### Phase 1：创建 bridge 层 ✅ 已完成
+新建 `frontend.expression.bridge` 包，提供 operator 重载、Quantity 操作符、sum 函数：
+- `VariableOperators.kt` — AbstractVariableItem 操作符重载（~50 函数）
+- `SymbolOperators.kt` — LinearIntermediateSymbol 操作符重载（~25 函数）
+- `MonomialOperators.kt` — LinearMonomial<Flt64> 操作符重载（~20 函数）
+- `PolynomialOperators.kt` — LinearPolynomial<Flt64> 操作符重载（~15 函数）
+- `MutablePolynomialOperators.kt` — MutableLinearPolynomial<Flt64> 赋值操作符（~15 函数）
+- `QuantityOperators.kt` — Quantity 包装操作符（~50 @JvmName 函数）
+- `SumFunctions.kt` — sum/flatSum/qtySum/flatQtySum（~10 函数）
+- `PolynomialExtensions.kt` — flattenedMonomials/dependencies/range/cached/flush 扩展
+
+**关键修复**：
+1. `LinearPolynomial` 构造函数需要 `monomials` + `constant` 两个参数，所有调用点补充 `Flt64.zero`
+2. `this.unit * rhs.unit` 中 PhysicalUnit 的 `times`/`div` 是 top-level 扩展函数，需要从 `quantities.unit` 显式导入（不能 alias）
+3. `Quantity.to(PhysicalUnit)` 与 stdlib `to` infix 冲突，需要显式 `import ...quantity.to`
+4. `MutableLinearPolynomial<Flt64>` 替换错误的 typealias shadowing
+5. `zeroOf()` 为 math 模块 internal 函数，不能从 core 模块导入
+6. `.reciprocal()` 在 Flt64 上不可用，替换为 `Flt64.one / value`
+7. `this.value * rhs.value` 类型推断失败（泛型 T vs Flt64），改为显式 `.toFlt64()` 转换后构造 LinearMonomial
+
+**验证**：
+- `mvn compile -pl ospf-kotlin-core -am`: BUILD SUCCESS ✅
+- `mvn -pl ospf-kotlin-core -am test`: **Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+
+#### Phase 1：创建 bridge 层
+新建 `frontend.expression.bridge` 包：
+- `VariableOperators.kt` — AbstractVariableItem 操作符重载（~30 函数）
+- `SymbolOperators.kt` — LinearIntermediateSymbol 操作符重载（~25 函数）
+- `MonomialOperators.kt` — LinearMonomial<Flt64> 操作符重载（~20 函数）
+- `PolynomialOperators.kt` — LinearPolynomial<Flt64> 操作符重载（~15 函数）
+- `MutablePolynomialOperators.kt` — MutableLinearPolynomial<Flt64> 赋值操作符（~15 函数）
+- `QuantityOperators.kt` — Quantity 包装操作符（~50 @JvmName 函数）
+- `SumFunctions.kt` — sum/flatSum/qtySum/flatQtySum（~10 函数）
+- `PolynomialExtensions.kt` — flattenedMonomials/dependencies/range/cached/flush 扩展
+
+#### Phase 2：核心基础设施迁移
+1. 接口瘦身（Polynomial.kt, Monomial.kt 移除 Cell 泛型）
+2. Adapter 层简化（MonomialAdapters.kt, PolynomialAdapters.kt）
+3. TokenCacheContext 迁移到 math 类型
+4. MetaModel / MechanismModel / MathInequalityDsl 迁移
+5. Model / CallBackModel 迁移
+
+#### Phase 3：函数符号迁移（~60 文件）
+1. IntermediateSymbol.kt + SymbolCombination.kt（基础）
+2. linear_function 目录（~30 文件）
+3. quadratic_function 目录（~15 文件）
+
+#### Phase 4：删除旧类型目录
+1. 删除 `frontend.expression.monomial/` 目录
+2. 删除 `frontend.expression.polynomial/` 目录
+3. 清理死代码 Adapter 函数
+
+#### Phase 5：framework 模块迁移
+1. gantt-scheduling（~50 文件）
+2. bpp3d（~8 文件）
+
+#### Phase 6：清理收尾
+1. 全量回归测试
+2. 零引用验证
+3. 更新迁移文档
+
+### 门禁标准
+- `mvn -pl ospf-kotlin-core -am test`: BUILD SUCCESS, 91+ tests
+- `mvn compile -DskipTests`: 全模块 BUILD SUCCESS
+- 零 `frontend.expression.monomial` 引用
+- 零 `frontend.expression.polynomial` 引用

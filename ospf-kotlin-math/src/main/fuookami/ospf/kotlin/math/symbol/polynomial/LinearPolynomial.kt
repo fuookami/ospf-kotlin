@@ -285,5 +285,16 @@ fun <T : Ring<T>, E> flatSum(
     return sum(elements.flatMap(selector))
 }
 
-private fun <T : Ring<T>> zeroOf(value: T): T = value - value
+internal fun <T : Ring<T>> zeroOf(value: T): T = value - value
+
+/**
+ * 将线性单项式转换为仅包含该单项式的线性多项式
+ * Converts a linear monomial to a linear polynomial containing only that monomial
+ *
+ * @receiver 线性单项式 / Linear monomial
+ * @return 仅包含该单项式的线性多项式 / Linear polynomial containing only this monomial
+ */
+fun <T : Ring<T>> LinearMonomial<T>.toLinearPolynomial(): LinearPolynomial<T> {
+    return LinearPolynomial(listOf(this), zeroOf(coefficient))
+}
 
