@@ -342,11 +342,17 @@ interface MetaConstraintGroup {
 @Deprecated("Use MathConstraint instead", ReplaceWith("MathConstraint"))
 data class MetaConstraint<Ineq>(
     val constraint: Ineq,
-    val group: MetaConstraintGroup? = null,
-    val lazy: Boolean = false,
-    val args: Any? = null,
-    val priority: Int? = null
-) {
+    override val group: MetaConstraintGroup? = null,
+    override val lazy: Boolean = false,
+    override val args: Any? = null,
+    override val priority: Int? = null
+) : MathConstraint {
+    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+        @Suppress("UNCHECKED_CAST")
+        val c = constraint as? MathConstraint ?: return null
+        return c.isTrue(solution, tokenTable, zeroIfNone)
+    }
+
     override fun toString(): String {
         return constraint.toString()
     }

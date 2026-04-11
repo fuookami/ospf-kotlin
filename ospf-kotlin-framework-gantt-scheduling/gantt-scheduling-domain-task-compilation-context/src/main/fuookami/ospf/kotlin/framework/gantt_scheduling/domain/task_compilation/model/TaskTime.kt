@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.Abst
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
@@ -601,7 +602,10 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    inequality = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
+                                    input = LinearConstraintInput.from(
+                                        relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
+                                        lhsRange = estimateEndTime[task].range.range!!
+                                    ),
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -643,7 +647,10 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    inequality = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
+                                    input = LinearConstraintInput.from(
+                                        relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
+                                        lhsRange = estimateEndTime[task].range.range!!
+                                    ),
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -719,7 +726,10 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    inequality = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
+                                    input = LinearConstraintInput.from(
+                                        relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
+                                        lhsRange = estimateEndTime[task].range.range!!
+                                    ),
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -761,7 +771,10 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    inequality = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
+                                    input = LinearConstraintInput.from(
+                                        relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
+                                        lhsRange = estimateEndTime[task].range.range!!
+                                    ),
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }

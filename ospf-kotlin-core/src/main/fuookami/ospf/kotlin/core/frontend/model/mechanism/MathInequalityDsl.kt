@@ -842,5 +842,14 @@ infix fun UInt64.ne(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = th
 infix fun UInt64.leq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this le rhs
 infix fun UInt64.geq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ge rhs
 infix fun UInt64.neq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ne rhs
+
+// ========== Symbol / LinearIntermediateSymbol vs UInt64 ==========
+
+infix fun Symbol.leq(rhs: UInt64): MathLinearInequality = this leq rhs.toFlt64()
+infix fun Symbol.geq(rhs: UInt64): MathLinearInequality = this geq rhs.toFlt64()
+infix fun Symbol.eq(rhs: UInt64): MathLinearInequality = this eq rhs.toFlt64()
+infix fun UInt64.eq(rhs: Symbol): MathLinearInequality = this.toFlt64() eq rhs
+infix fun UInt64.leq(rhs: Symbol): MathLinearInequality = this.toFlt64() leq rhs
+infix fun UInt64.geq(rhs: Symbol): MathLinearInequality = this.toFlt64() geq rhs
 infix fun UInt64.ls(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this lt rhs
 infix fun UInt64.gr(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this gt rhs

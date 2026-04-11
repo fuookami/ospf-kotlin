@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSy
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AndFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -62,7 +63,10 @@ class TaskSchedulingSwitch<
                         )
                     } else {
                         IfFunction(
-                            inequality = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
+                            input = LinearConstraintInput.from(
+                                relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
+                                lhsRange = taskTime.estimateStartTime[task1].range.range!!
+                            ),
                             name = "front_of_${task1}_$task2"
                         )
                     }

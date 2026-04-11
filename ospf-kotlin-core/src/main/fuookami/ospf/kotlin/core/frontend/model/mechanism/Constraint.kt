@@ -15,7 +15,7 @@ typealias LinearDualSolution = Map<LinearConstraint, Flt64>
 typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
 
 data class MetaDualSolution(
-    val constraints: Map<MetaConstraint<*>, Flt64>,
+    val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol, List<Pair<Constraint, Flt64>>>
 )
 

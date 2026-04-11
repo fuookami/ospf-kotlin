@@ -491,8 +491,8 @@ class CplexQuadraticBendersDecompositionSolver(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
-                                linearCuts = cuts.filterIsInstance<LinearInequality>(),
-                                quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                                linearCuts = cuts.filterIsInstance<MathLinearInequality>(),
+                                quadraticCuts = cuts.filterIsInstance<MathQuadraticInequality>()
                             )
                         )
                     }

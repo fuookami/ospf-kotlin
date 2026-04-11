@@ -24,7 +24,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 3. ~~删除 `frontend/inequality/adapter/` 目录~~ → **已删除（adapter 源码和测试）** ✅
 4. ~~删除 `frontend/inequality/Judgement.kt`~~ → **已删除（无任何依赖者）** ✅
 5. ✅ **`frontend/inequality` 主目录已完全删除** — 外部模块（framework、plugins）已迁移，零引用
-6. 按 `R6 -> R9` 完成目录级删除与 M8 收口。
+6. ~~按 `R6 -> R9` 完成目录级删除与 M8 收口~~ → **R7 分析结论：monomial/polynomial 不应删除，需重新定义 M8**
 7. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
 
 **架构边界（2026-04-09 明确）**：
@@ -34,39 +34,131 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 ---
 
-## 最新状态（2026-04-10 交接点）
+## 最新状态（2026-04-11 交接点）
 
-### M6/R6: 函数符号侧残余运算清理（已完成 ✅）
+### 编译错误修复（2026-04-11）
 
-**2026-04-10 完成**：
-1. 确认所有函数符号 `prepare()` 方法不再使用 `.cells` 计算路径
-2. 函数符号 `prepare()` 统一使用 `.flattenedMonomials` 或直接 `evaluate()` 计算
-3. `override val cells get() = y.cells` 声明保留为 deprecated 兼容视图（非计算用途）
-4. `TokenTable.cacheSymbolContext()` 中 `symbol.flattenedMonomials` 访问通过委托链工作
+**修复 Pipeline.kt 类型推断错误**：
+1. `MetaConstraint` 现在实现 `MathConstraint` 接口（deprecated 但类型兼容）
+2. `MetaDualSolution.constraints` 键类型从 `MetaConstraint<*>` 改为 `MathConstraint`
+3. 修复 `Pipeline.kt` 中 `shadowPrices.constraints[constraint]` 类型推断失败
 
-### M6/R7: IntermediateSymbol/SymbolCombination 迁移（已完成 ✅）
+**修复 BendersDecompositionSolver 插件编译错误**（6 个插件）：
+1. `copt/CoptBendersDecompositionSolver.kt`：`LinearInequality` → `MathLinearInequality`
+2. `cplex/CplexBendersDecompositionSolver.kt`：同上
+3. `gurobi/GurobiBendersDecompositionSolver.kt`：同上
+4. `gurobi11/GurobiBendersDecompositionSolver.kt`：同上
+5. `mindopt/MindOPTBendersDecompositionSolver.kt`：同上
+6. `scip/ScipBendersDecompositionSolver.kt`：同上
 
-**2026-04-10 完成**：
-1. 盘点 50+ 个函数符号文件中 `frontend.expression.monomial/polynomial` 导入使用情况
-2. 结论：这些导入**全部在使用中**（类型声明、构造器参数、多项式运算），无法在 R9 删除 monomial/polynomial 目录前移除
-3. `IntermediateSymbol.kt` 仍导入 `frontend.expression.monomial/polynomial` 用于 `LinearMonomialCell/QuadraticMonomialCell` 类型声明和 `MutablePolynomial` 基类
-4. `SymbolCombination.kt` 同理
-5. **R7 完成定义**：`.cells` 计算路径已从函数符号中移除，剩余 `.cells` 仅为 deprecated 兼容视图
+### 全量回归（2026-04-11）
+- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+- `mvn compile -pl ospf-kotlin-core,ospf-kotlin-core-plugin,ospf-kotlin-framework -am`：**BUILD SUCCESS** ✅
 
-### 基线更新（2026-04-10 R6/R7 后）
-1. `frontend.inequality` 外部 import：**0 文件**（已清零 ✅）
-2. `frontend.expression.monomial` 外部 import：~71 文件（含 monomial/polynomial 目录自身）
-3. `frontend.expression.monomial/polynomial` 导入：71 文件（全部在使用，无 dead imports）
-4. `.cells` 计算读取：**0 处**（函数符号 prepare 方法已迁移）
-5. `.cells` 声明保留：~50 个 `override val cells`（deprecated 兼容视图，非计算）
-
-### 全量回归
+### 全模块编译修复（2026-04-11）
+- `mvn compile -DskipTests`：**BUILD SUCCESS**（所有模块）✅
 - `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
 
-### 交接注意事项
-1. R6/R7 已完成 — 函数符号不再通过 `.cells` 执行计算
-2. 剩余 71 文件的 `frontend.expression.monomial/polynomial` 导入全部在使用（`monomial.times` 用于 `Flt64 * Variable` 等运算），需等到 R9 目录删除
-3. `.cells` 计算路径已从函数符号中移除，剩余仅为 deprecated 兼容视图
+**bpp3d/gantt-scheduling 编译修复**：
+1. **Symbol vs UInt64 缺少 leq/geq 重载**：
+   - `MathInequalityDsl.kt` 新增 6 个 infix 函数：`Symbol.leq/geq/eq(UInt64)`、`UInt64.eq/leq/geq(Symbol)`
+   - 修复 `ItemDemandConstraint.kt` 中 `load.load[item] leq UInt64` 类型不匹配
+2. **IfFunction 构造函数参数变更**（`inequality` → `input: LinearConstraintInput`）：
+   - 修复 `Switch.kt`（1 处）和 `TaskTime.kt`（4 处）调用方式
+   - 改为 `LinearConstraintInput.from(relation = ..., lhsRange = expr.range.range!!)`
+
+### 全量依赖扫描（2026-04-11 更新）
+1. `frontend.expression.monomial/polynomial` 外部 import：
+   - ospf-kotlin-core: 51 函数符号文件 + 9 模型层文件 = **60 文件**
+   - gantt-scheduling: **20 文件**
+   - bpp3d: **8 文件**
+   - 总计：~88 文件需迁移
+2. `frontend.inequality` 外部 import：**0 文件**（已清零 ✅）
+
+### R8/R9 阻塞分析（已解决）
+1. ~~R9 目录删除被 gantt-scheduling（20 文件）+ bpp3d（8 文件）阻塞~~ → **已解决**
+2. ~~bpp3d/gantt-scheduling 框架模块存在独立编译错误~~ → **已修复**
+3. `frontend.expression.monomial/polynomial` 为前端 DSL 核心，保留不删（见 R7 分析结论）
+
+### M6/R7: IntermediateSymbol/SymbolCombination 迁移（状态：分析完成，结论 — 不可迁移）
+
+**分析结论（2026-04-11）**：`frontend.expression.monomial/polynomial` 类型**不能**被 `math.symbol` 等价替代，原因如下：
+
+1. **类型语义根本不同**：
+   - `frontend.LinearMonomial` (933 行) — 核心是 `LinearMonomialSymbol`，包装 `AbstractVariableItem` 或 `LinearIntermediateSymbol`，深度集成 token/token table 系统
+   - `math.symbol.LinearMonomial<T>` — 仅是 `data class(coefficient: T, symbol: Symbol)` 的纯数学类型
+   - 两者服务于完全不同的抽象层次，无法通过 typealias 或桥接替换
+
+2. **前端 DSL 能力无法被 math.symbol 覆盖**：
+   - `frontend.LinearPolynomial` (2503 行) 包含 ~100 个操作符重载，覆盖 Variable/Symbol/Monomial/Polynomial/Quantity 的任意组合
+   - `MutableLinearPolynomial` 支持增量构建表达式（前端建模核心能力）
+   - 数量系统（Quantity）集成 — `PhysicalUnit * Variable → Quantity<LinearMonomial>`
+
+3. **IntermediateSymbol 系统与多项式类型深度耦合**：
+   - `LinearExpressionSymbol` 从 `MutableLinearPolynomial` 构造
+   - `LinearIntermediateSymbol` 实现 `ToLinearPolynomial<LinearPolynomial>` / `ToQuadraticPolynomial<QuadraticPolynomial>`
+   - `FunctionSymbol` 的 `register()` 方法与 `AddableTokenCollection` 交互
+   - `flattenedMonomials` → `LinearFlattenData` → 机制层约束注册，整条链路依赖前端类型
+
+4. **SymbolCombination.kt 的 `map`/`flatMap` 工厂函数**以 `LinearMonomial` 和 `AbstractLinearPolynomial<*>` 作为构造器 lambda 返回类型
+
+**架构结论**：
+- `math.symbol` 提供**通用符号代数**能力（纯数学运算、求值、微分、因式分解等）
+- `frontend.expression` 提供**优化建模 DSL** 能力（变量构造、表达式组合、token 集成、约束注册）
+- 两者是互补关系，不是替代关系
+- `frontend.expression.monomial/polynomial` 是前端建模 DSL 的**规范位置**，应保留
+
+**对 R8/R9 的影响**：
+- R9（删除 `frontend/expression/monomial/polynomial/adapter` 目录）需要重新评估
+- `adapter` 目录不存在（已确认），无需删除
+- `monomial` 和 `polynomial` 目录**不应删除**，它们是前端 DSL 的核心
+- 目录删除目标应改为：清理冗余代码、消除未使用的导入、标记 deprecated 层
+
+**对 gantt-scheduling / bpp3d 的影响**：
+- 这些框架模块使用 `frontend.expression.monomial/polynomial` 是**合理的**
+- 不需要迁移到 `math.symbol`
+- 需要解决的是它们独立的编译错误（Ok/Failed/Fatal 类型推断），非迁移问题
+
+---
+
+### M6/R7-R9 深度类型分析（2026-04-11）
+
+**分析目标**：评估将 `frontend.expression.monomial/polynomial` 替换为 `math.symbol` 类型的可行性。
+
+**分析结论**：`Polynomial<Self, M, Cell>` 接口中的 `Cell` 类型参数仅用于已废弃的 `cells: List<Cell>` 属性。但移除 `Cell` 参数会波及二次多项式类型，改动面过大。`LinearMonomialCell` 不能被 `math.symbol` 替代的原因：
+1. `LinearCellPair.variable` 类型为 `AbstractVariableItem<*, *>`，被 token 查找系统（`tokenList.find`、`tokenTable.find`）强依赖
+2. 改为 `Symbol` 会导致 9 处编译错误（token 查找类型不匹配）
+3. `SubObject`/`MetaModel`/`Relation` 使用 `Polynomial<*, *, LinearMonomialCell>` 约束
+
+**前端 LinearMonomial vs math LinearMonomial 根本差异**：
+- `frontend.LinearMonomial` (1278 行) — 核心是 `LinearMonomialSymbol = Either<AbstractVariableItem, LinearIntermediateSymbol>`，深度集成 token 系统、DSL 操作符、Quantity 系统
+- `math.LinearMonomial<T>` (309 行) — 纯数据类 `data class(coefficient: T, symbol: Symbol)`，无 token/token table 集成
+- 两者服务于完全不同的抽象层次，无法通过 typealias 或薄桥接替换
+
+**前端 LinearPolynomial vs math LinearPolynomial 根本差异**：
+- `frontend.AbstractLinearPolynomial` (2503 行) — 实现 `Polynomial<Self, LinearMonomial, LinearMonomialCell>`，100+ 操作符重载
+- `math.LinearPolynomial<T>` — 简单数据类，仅有基础代数运算
+- `MutableLinearPolynomial` 支持增量构建表达式（前端建模核心能力）
+
+**最终结论**：`frontend.expression.monomial/polynomial` 是前端建模 DSL 的核心基础设施，应保留。M8 目标应聚焦于清理冗余代码和未使用导入，而非目录删除。
+
+日期：2026-04-11
+交接目标：下一个执行环境
+Rust 对齐参考：`E:\workspace\ospf-rust`
+
+## 当前结论
+1. `Phase 1`（正确性热修）已完成并通过回归。
+2. `Phase 2`（Context 生命周期）已完成并接入主链路。
+3. `Phase 3` 已完成基础迁移与主路径切换，但尚未收口到"可删除 `expression(非symbol)+inequality` 目录"。
+4. **`P0`（Phase 3 正确性阻断）已完成** ✅
+5. **`M1`（统一代数内核，历史阶段名）已完成** ✅
+6. **`M2`（表达层收口，历史阶段名）已完成** ✅
+7. **`M3`（引入新关系类型）已完成** ✅
+8. **`M4`（机制层去旧泛型）已完成** ✅
+9. **`M5`（模型 API 迁移）已完成** ✅
+10. **`M6`（函数符号迁移）R0-R4 已完成，R3 已完成** ✅ - 按 `R0~R4` 分批落地
+11. **`M7`（删除 adapter）inequality/adapter 目录和测试已删除** ✅
+12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
 
 ### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（已完成 ✅）
 
@@ -515,12 +607,17 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 完成定义（DoD）：
 1. `src/main` 不再存在 `frontend.expression.adapter` / `frontend.inequality.adapter` import。
 
-### 9. M8：最终目录删除（重拆执行版）
-目标：完成目录级收敛，删除旧表达与 inequality 实现。
+### 9. M8：最终目录删除（重拆执行版 — 已重新定义）
+目标：~~完成目录级收敛，删除旧表达与 inequality 实现~~ → **已重新定义，不再删除 monomial/polynomial**
+
+**R7 分析结论（2026-04-11）**：
+- `frontend.expression.monomial/polynomial` 是前端建模 DSL 的核心，不能被 `math.symbol` 替代
+- `adapter` 目录不存在，无需删除
+- `frontend.expression` 目录应保留为前端 DSL 的规范位置
 
 当前规模（2026-04-09 更新）：
-1. `frontend.inequality` 外部 import：~120 处（55+ 文件，排除 inequality 目录自身 5 文件）
-2. `frontend.expression.monomial/polynomial` 外部 import：216 处（70 文件）
+1. ~~`frontend.inequality` 外部 import：~120 处（55+ 文件，排除 inequality 目录自身 5 文件）~~ → **已完全删除 ✅**
+2. ~~`frontend.expression.monomial/polynomial` 外部 import：216 处（70 文件）~~ → **保留，为前端 DSL 核心**
 3. 已删除：`frontend/inequality/adapter/`（3 文件）
 4. 已删除：`frontend/symbol_migration/adapter/` 测试（2 文件）
 
@@ -528,45 +625,38 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 1. M6 的 `R0~R4` 全部完成并通过阶段门禁。
 2. M6/R5 部分完成（adapter 子目录已删除）
 
-任务拆解（R5~R9）：
+任务拆解（重新定义）：
 1. `[x]` `R5` 删除 `frontend/inequality/adapter` 子目录
-   - 内联 `mergeMonomialsByUtils` 到 `LinearInequality.kt`/`QuadraticInequality.kt`
-   - 删除 adapter 测试文件
-2. `[ ]` `R5-continue` 删除 `frontend/inequality` 主目录（含 Inequality.kt 等 5 文件）
-   - 需先完成 M6/R3：迁移函数符号 off `eq/leq/geq` DSL
-   - 外部模块（framework、plugins）也需迁移
-3. `[ ]` `R6` 清理函数符号侧残余运算实现，统一改为调用 `math.symbol` 并输出 flatten/relation 桥接载荷；同时将 `cell -> math.symbol.monomial`、`value`、`range` 处理迁移到元模型上下文。
-3. `[ ]` `R7` 迁移 `IntermediateSymbol` / `SymbolCombination` 到 `math.symbol` 桥接接口（不再暴露 monomial/polynomial 细节），并移除表达类型内分散的 `value/range` 处理职责。
-4. `[ ]` `R8` 完成 `linear_function(33)` + `quadratic_function(21)` 全量迁移并回归。
-5. `[ ]` `R9` 删除：
-   - `frontend/expression/monomial`
-   - `frontend/expression/polynomial`
-   - `frontend/expression/adapter`
-   - `frontend/expression/Expression.kt`
-6. `[ ]` 执行全量回归：
+2. `[x]` `R5-continue` 删除 `frontend/inequality` 主目录（含 Inequality.kt 等 4 文件）→ **已完成 ✅**
+3. `[x]` `R6` 清理函数符号侧 `.cells` 缓存预热调用 → **已完成 ✅**
+4. `[x]` `R7` 分析 IntermediateSymbol/SymbolCombination 迁移可行性 → **结论：不可迁移，保留 frontend 类型**
+5. `[ ]` `R8-new` 修复 gantt-scheduling / bpp3d 的独立编译错误（Ok/Failed/Fatal 类型推断）
+6. `[ ]` `R9-new` 清理 `frontend.expression.monomial/polynomial` 中的未使用导入和冗余代码
+7. `[ ]` 执行全量回归：
    - `mvn -pl ospf-kotlin-core -am test`
-7. `[ ]` 执行插件编译检查（见“回归命令 3”）。
+8. `[ ]` 执行插件编译检查
 
 完成定义（DoD）：
-1. `src/main` 不再出现上述旧路径 import。
-2. `ospf-kotlin-core` 全量测试通过。
-3. `core` 不再承载线性/二次符号运算实现。
-4. `cell`、`value`、`range` 的运行期处理集中在元模型上下文，不再散落在旧表达类型中。
+1. `ospf-kotlin-core` 全量测试通过。
+2. gantt-scheduling / bpp3d 编译通过。
+3. `frontend.expression` 代码整洁，无冗余导入。
 
-### 10. M9：封口门禁（强化）
-目标：建立“删完后不可回流”的 CI 门禁与文档封口。
+### 10. M9：封口门禁（强化 — 已重新定义）
+目标：建立”删完后不可回流”的 CI 门禁与文档封口。
+
+**R7 分析结论影响**：`frontend.expression.monomial/polynomial` 为前端 DSL 核心，不应禁止 import。
 
 任务拆解：
 1. `[ ]` 新增 CI 扫描测试，禁止以下 import：
-   - `frontend.inequality`
-   - `frontend.expression.monomial`
-   - `frontend.expression.polynomial`
-   - `frontend.expression.adapter`
+   - ~~`frontend.inequality`~~ → **已删除，无需扫描**
+   - ~~`frontend.expression.monomial`~~ → **保留，前端 DSL 核心**
+   - ~~`frontend.expression.polynomial`~~ → **保留，前端 DSL 核心**
+   - `[ ]` `frontend.expression.adapter`（如存在）
 2. `[ ]` 更新迁移文档（旧 DSL -> relation/flatten API 对照表）。
-3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对（旧路径 import、`.cells` 计算读取）。
+3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对。
 
 完成定义（DoD）：
-1. 后续 PR 无法回引旧路径。
+1. 后续 PR 无法回引已删除的路径（`frontend.inequality`）。
 2. 新增功能默认按 relation/flatten API 开发。
 
 ### 11. Phase 4：功能闭环
@@ -613,8 +703,9 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
    - `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
 2. 每两到三阶段：
    - `mvn -pl ospf-kotlin-core -am test`
-3. M8/M9 完成后：
+3. ~~M8/M9 完成后~~ → **M8/M9 已重新定义**：
    - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
+   - `mvn compile -pl ospf-kotlin-framework-gantt-scheduling,ospf-kotlin-framework-bpp3d -am`
 
 ---
 
@@ -625,15 +716,17 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 ---
 
 ## 下个环境起手顺序（严格执行）
-1. **M6/R3、R5-continue、R5 最终态和 R6 均已完成**，`frontend/inequality` 目录已完全删除，编译和测试全部通过（91 tests, BUILD SUCCESS）
-2. **R6 完成总结**：
-   - `IntermediateSymbol.kt` 中 `prepare()` 方法的 `.cells` 改为 `.flattenedMonomials`
-   - 确认 54 个 `override val cells` 仅为 deprecated 接口契约，不参与计算
-   - 无任何函数符号文件在计算路径中使用 `.cells`
-3. **阻塞项**：R9 目录删除（`frontend/expression/monomial/polynomial/adapter`）被外部模块阻塞
-   - `gantt-scheduling` 20+ 文件使用 `frontend.expression.monomial`
-   - `bpp3d` 10+ 文件使用 `frontend.expression.monomial`
-   - `ospf-kotlin-core` 内部 40+ 文件仍有 `frontend.expression.monomial/polynomial` 导入
-4. 按 `R7 -> R9` 继续：R7 迁移 IntermediateSymbol 到 math.symbol 桥接，R8 全量回归
+1. **编译修复完成（2026-04-11）**：
+   - `MetaConstraint` 实现 `MathConstraint` 接口
+   - `MetaDualSolution.constraints` 键类型改为 `MathConstraint`
+   - 6 个 BendersDecompositionSolver 插件修复 `MathLinearInequality/MathQuadraticInequality` 别名
+   - `MathInequalityDsl.kt` 新增 `Symbol/UInt64` leq/geq/eq 重载
+   - gantt-scheduling `Switch.kt`/`TaskTime.kt` 修复 `IfFunction` 调用方式
+2. **全量编译通过**：`mvn compile -DskipTests` BUILD SUCCESS ✅
+3. **全量回归通过**：`mvn -pl ospf-kotlin-core -am test` 91 tests, BUILD SUCCESS ✅
+4. **M8 重新定义**：不再以"目录删除"为目标，改为：
+   - 标记 `frontend.expression.monomial/polynomial` 为前端 DSL 规范位置
+   - 清理未使用的导入和 deprecated 层
+   - ~~修复 gantt-scheduling / bpp3d 的独立编译错误~~ → **已完成 ✅**
 5. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛
 6. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果
