@@ -34,7 +34,19 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 ---
 
-## 最新状态（2026-04-11 交接点）
+## 最新状态（2026-04-12 交接点）
+
+### M8/Phase 2 进展（2026-04-12）
+
+**MechanismModel.kt 迁移到 math 类型**：
+1. `generateOptimalCut` / `generateFeasibleCut` 方法从 `frontend.LinearMonomial` / `frontend.LinearPolynomial` 改为 `math.symbol.LinearMonomial<Flt64>` / `math.symbol.LinearPolynomial<Flt64>`
+2. 相应不等式构造改为 `MathLinearInequality` 直接构造
+3. 新增 `Symbol` vs `UtilsLinearPolynomial<Flt64>` 的 `leq`/`geq` DSL 函数到 `MathInequalityDsl.kt`（4 个 infix 函数）
+4. `MathInequalityDsl.kt` 新增 `mathLe`/`mathGe` 导入
+
+**验证**：
+- `mvn compile -DskipTests`：BUILD SUCCESS（所有模块）✅
+- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
 
 ### 编译错误修复（2026-04-11）
 

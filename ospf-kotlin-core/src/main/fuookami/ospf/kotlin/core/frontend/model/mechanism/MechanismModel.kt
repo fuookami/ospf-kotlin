@@ -1,12 +1,14 @@
 ﻿package fuookami.ospf.kotlin.core.frontend.model.mechanism
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.le
+import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -414,14 +416,17 @@ class LinearMechanismModel(
                 }
             }
         }
-        val rhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
+        val rhs = MathLinearPolynomial(
+            monomials = polynomials.map { MathLinearMonomial(it.value, it.key) },
+            constant = constants
+        )
         return when (this.objectFunction.category) {
             ObjectCategory.Maximum -> {
-                listOf((objectVariable leq rhs).normalize())
+                listOf((MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, objectVariable)), Flt64.zero) le rhs).normalize())
             }
 
             ObjectCategory.Minimum -> {
-                listOf((objectVariable geq rhs).normalize())
+                listOf((MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, objectVariable)), Flt64.zero) ge rhs).normalize())
             }
         }
     }
@@ -458,8 +463,11 @@ class LinearMechanismModel(
             constants *= -Flt64.one
             polynomials.replaceAll { _, v -> -v }
         }
-        val lhs = LinearPolynomial(polynomials.map { LinearMonomial(it.value, it.key) }, constants)
-        return listOf((lhs leq Flt64.zero).normalize())
+        val lhs = MathLinearPolynomial(
+            monomials = polynomials.map { MathLinearMonomial(it.value, it.key) },
+            constant = constants
+        )
+        return listOf((lhs le Flt64.zero).normalize())
     }
 
     override fun close() {

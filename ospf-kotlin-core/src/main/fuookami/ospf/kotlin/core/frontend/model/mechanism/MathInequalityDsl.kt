@@ -20,6 +20,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQ
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.le as mathLe
+import fuookami.ospf.kotlin.math.symbol.inequality.ge as mathGe
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 
@@ -98,6 +100,16 @@ infix fun Flt64.gt(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
 
 infix fun Flt64.ne(rhs: AbstractLinearPolynomial<*>): MathLinearInequality =
     MathLinearInequality(fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(emptyList(), this), rhs.toUtilsPolynomial(), Comparison.NE)
+
+// Symbol vs math LinearPolynomial
+infix fun Symbol.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, this)), Flt64.zero), rhs, Comparison.LE)
+infix fun Symbol.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+    MathLinearInequality(UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, this)), Flt64.zero), rhs, Comparison.GE)
+infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(this, UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, rhs)), Flt64.zero), Comparison.LE)
+infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: Symbol): MathLinearInequality =
+    MathLinearInequality(this, UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, rhs)), Flt64.zero), Comparison.GE)
 
 // Backward-compat aliases for frontend naming
 infix fun AbstractLinearPolynomial<*>.leq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this le rhs
