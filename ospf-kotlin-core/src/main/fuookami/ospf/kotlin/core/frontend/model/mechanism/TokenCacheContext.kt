@@ -255,6 +255,15 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol): AbstractTokenTa
     return symbolTokenTableContext[symbol]
 }
 
+/**
+ * 将旧 Cell 列表转换为 LinearFlattenData。
+ * 已废弃：调用方应直接使用 FlattenData 主路径，而非通过 Cell 中转。
+ */
+@Deprecated(
+    message = "Use LinearFlattenData directly. Cell-based conversion will be removed in M9.",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData")
+)
 internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
     var constant = Flt64.zero
     val monomials = mapNotNull { cell ->
@@ -274,6 +283,14 @@ internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
     )
 }
 
+/**
+ * 将 LinearFlattenData 转换为旧 Cell 列表。
+ * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
+ */
+@Deprecated(
+    message = "Only for deprecated cells property compatibility. Will be removed in M9.",
+    level = DeprecationLevel.WARNING
+)
 internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell> {
     val cells = monomials.map {
         LinearMonomialCell(
@@ -287,6 +304,10 @@ internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell>
     return cells
 }
 
+/**
+ * 将 LinearFlattenData 转换为 QuadraticFlattenData。
+ * 用于 Linear → Quadratic 升级场景。
+ */
 internal fun LinearFlattenData.toQuadraticFlattenData(): QuadraticFlattenData {
     val monomials = this.monomials.map {
         UtilsQuadraticMonomial(
@@ -301,6 +322,15 @@ internal fun LinearFlattenData.toQuadraticFlattenData(): QuadraticFlattenData {
     )
 }
 
+/**
+ * 将旧 QuadraticMonomialCell 列表转换为 QuadraticFlattenData。
+ * 已废弃：调用方应直接使用 FlattenData 主路径。
+ */
+@Deprecated(
+    message = "Use QuadraticFlattenData directly. Cell-based conversion will be removed in M9.",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData")
+)
 internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlattenData {
     var constant = Flt64.zero
     val monomials = mapNotNull { cell ->
@@ -321,6 +351,14 @@ internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlat
     )
 }
 
+/**
+ * 将 QuadraticFlattenData 转换为旧 Cell 列表。
+ * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
+ */
+@Deprecated(
+    message = "Only for deprecated cells property compatibility. Will be removed in M9.",
+    level = DeprecationLevel.WARNING
+)
 internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMonomialCell> {
     val cells = monomials.map {
         QuadraticMonomialCell(
@@ -335,9 +373,30 @@ internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMono
     return cells
 }
 
-// Extension properties for Polynomial to access flattenedMonomials
+/**
+ * 从 Polynomial 提取 LinearFlattenData（通过 Cell 类型参数）。
+ * 已废弃：使用 `AbstractLinearPolynomial.flattenedMonomials` 直接访问。
+ */
+@Deprecated(
+    message = "Use AbstractLinearPolynomial.flattenedMonomials directly. Will be removed in M9.",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial")
+)
+@Suppress("INAPPLICABLE_JVM_NAME")
+@get:JvmName("getFlattenedMonomialsViaCell")
 val Polynomial<*, *, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
     get() = (this as AbstractLinearPolynomial<*>).flattenedMonomials
 
+/**
+ * 从 Polynomial 提取 QuadraticFlattenData（通过 Cell 类型参数）。
+ * 已废弃：使用 `AbstractQuadraticPolynomial.flattenedMonomials` 直接访问。
+ */
+@Deprecated(
+    message = "Use AbstractQuadraticPolynomial.flattenedMonomials directly. Will be removed in M9.",
+    level = DeprecationLevel.WARNING,
+    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial")
+)
+@Suppress("INAPPLICABLE_JVM_NAME")
+@get:JvmName("getFlattenedMonomialsViaCellQuad")
 val Polynomial<*, *, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
     get() = (this as AbstractQuadraticPolynomial<*>).flattenedMonomials

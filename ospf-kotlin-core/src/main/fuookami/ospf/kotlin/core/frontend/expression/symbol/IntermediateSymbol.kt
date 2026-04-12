@@ -114,6 +114,7 @@ interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<Line
         level = DeprecationLevel.WARNING
     )
     val cells: List<LinearMonomialCell>
+    @Suppress("DEPRECATION")
     val flattenedMonomials: LinearFlattenData get() = cells.toLinearFlattenData()
 
     override fun toLinearPolynomial(): LinearPolynomial {
@@ -149,6 +150,7 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
         level = DeprecationLevel.WARNING
     )
     val cells: List<QuadraticMonomialCell>
+    @Suppress("DEPRECATION")
     val flattenedMonomials: QuadraticFlattenData get() = cells.toQuadraticFlattenData()
 
     override fun toQuadraticPolynomial(): QuadraticPolynomial {

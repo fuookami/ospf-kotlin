@@ -38,6 +38,19 @@ class LinearSubObject(
     name: String = ""
 ) : SubObject(category, name) {
     companion object {
+        /**
+         * Create LinearSubObject from Polynomial (legacy API).
+         * Prefer the FlattenData-based constructor for new code.
+         */
+        @Deprecated(
+            message = "Use LinearSubObject(category, flattenData, tokens, name) instead. Will be removed in M9.",
+            level = DeprecationLevel.WARNING,
+            replaceWith = ReplaceWith(
+                "LinearSubObject(category, poly.flattenedMonomials, tokens, name)",
+                "fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData"
+            )
+        )
+        @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
             poly: Polynomial<*, *, LinearMonomialCell>,
@@ -95,6 +108,19 @@ class QuadraticSubObject(
     name: String = ""
 ) : SubObject(category, name) {
     companion object {
+        /**
+         * Create QuadraticSubObject from Polynomial (legacy API).
+         * Prefer the FlattenData-based constructor for new code.
+         */
+        @Deprecated(
+            message = "Use QuadraticSubObject(category, flattenData, tokens, name) instead. Will be removed in M9.",
+            level = DeprecationLevel.WARNING,
+            replaceWith = ReplaceWith(
+                "QuadraticSubObject(category, poly.flattenedMonomials, tokens, name)",
+                "fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData"
+            )
+        )
+        @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
             poly: Polynomial<*, *, QuadraticMonomialCell>,
