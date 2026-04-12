@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.minus

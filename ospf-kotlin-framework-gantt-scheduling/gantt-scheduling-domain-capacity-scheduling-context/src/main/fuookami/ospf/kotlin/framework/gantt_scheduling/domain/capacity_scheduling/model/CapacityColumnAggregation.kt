@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

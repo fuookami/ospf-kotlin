@@ -1,14 +1,21 @@
-﻿package fuookami.ospf.kotlin.core.frontend.model
+package fuookami.ospf.kotlin.core.frontend.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.frontend.expression.polynomial.qsum
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.QuadraticFlattenData
@@ -455,6 +462,60 @@ interface LinearModel : Model {
             category = ObjectCategory.Maximum,
             polynomial = polynomial,
             name = name,
+            displayName = displayName
+        )
+    }
+
+    // ========== math.symbol type overloads ==========
+
+    fun minimize(
+        polynomial: MathLinearPolynomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        polynomial: MathLinearPolynomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun minimize(
+        monomial: MathLinearMonomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = LinearFlattenData(listOf(monomial), Flt64.zero),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        monomial: MathLinearMonomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = LinearFlattenData(listOf(monomial), Flt64.zero),
+            name = name ?: "",
             displayName = displayName
         )
     }

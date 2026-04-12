@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.*
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol

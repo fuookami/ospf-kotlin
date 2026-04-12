@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.functional.sumOf

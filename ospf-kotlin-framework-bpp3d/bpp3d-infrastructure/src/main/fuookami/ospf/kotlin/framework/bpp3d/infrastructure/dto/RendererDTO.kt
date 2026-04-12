@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure.dto
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

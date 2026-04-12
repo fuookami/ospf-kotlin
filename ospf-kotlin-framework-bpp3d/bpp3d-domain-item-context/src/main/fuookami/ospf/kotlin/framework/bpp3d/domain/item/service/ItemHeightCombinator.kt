@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item.service
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.Extractor

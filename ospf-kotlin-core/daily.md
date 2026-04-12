@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-04-10
+日期：2026-04-13
 交接目标：下一个执行环境
 Rust 对齐参考：`E:\workspace\ospf-rust`
 
@@ -17,8 +17,15 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 10. **`M6`（函数符号迁移）R0-R4 已完成，R3 已完成** ✅ - 按 `R0~R4` 分批落地
 11. **`M7`（删除 adapter）inequality/adapter 目录和测试已删除** ✅
 12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
+13. **`M8/Phase3`（math.symbol 函数符号层）进行中** - SlackFunction 编译通过
 
 **下一步行动**：
+1. 继续创建剩余 math 函数符号：Masking.kt, If.kt, And.kt, Or.kt, Max.kt, MinMax.kt, Binaryzation.kt
+2. 创建 MathSymbolContainers.kt（math 版 LinearExpressionSymbols1/2, LinearIntermediateSymbols1/2）
+3. 框架代码迁移（import 替换，64 文件）
+4. 验证：mvn compile + mvn test
+
+**历史行动（已完成）**：
 1. ~~进入 `M6/R3`，迁移函数符号 off `eq/leq/geq` DSL~~ → ~~**M6/R3 进行中，编译未通过**~~ → **M6/R3 已完成** ✅
 2. ~~优先修复 M6/R3 编译错误~~
 3. ~~删除 `frontend/inequality/adapter/` 目录~~ → **已删除（adapter 源码和测试）** ✅
@@ -32,9 +39,107 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 2. `ospf-kotlin-core` 负责变量、中间值、模型装配与桥接，不再扩展新的符号运算实现。
 3. 原 `monomial/polynomial` 的额外能力（`cell` 直接使用 `math.symbol.monomial`、`value`、`range`）迁移到元模型上下文统一处理（`TokenCacheContexts` / `MetaModel` / `MechanismModel`）。
 
+### M8/Phase 3 详情（2026-04-13）
+
+**新建文件**：
+- `core/function/FunctionSymbol.kt` — `MathFunctionSymbol` 接口 + `evaluate()` 扩展
+- `core/function/Slack.kt` — math 版 SlackFunction（编译通过 ✅）
+
+**SlackFunction 设计**：
+- 分解：`x - y = neg - pos`，创建 helper 变量 negVar/posVar
+- `polyX` = `x + negVar - posVar`，约束 `polyX eq y`
+- threshold mode：`x + negVar >= y` 或 `x - posVar <= y`
+- 暴露 `neg`/`pos` 属性为 `LinearPolynomial<Flt64>?`，供框架引用
+- 支持类型：UContinuous（URealVar）/ UInteger（UIntVar）
+
+**验证**：
+- `mvn compile -pl ospf-kotlin-core`：BUILD SUCCESS ✅
+
+**剩余工作**：
+- 6 个函数符号文件待创建
+- MathSymbolContainers.kt 待创建
+- 框架代码 import 迁移（64 文件）
+
 ---
 
 ## 最新状态（2026-04-12 交接点）
+
+### M8/Phase 3：Deprecated 标记与框架 Suppress（2026-04-12）
+
+**核心模块 deprecated 标记**：
+1. `LinearPolynomial.kt`：~153 个 standalone extension 函数标记 `@Deprecated`
+   - 保留：sum/sumVars/sumSymbols/flatSum/qtySum/flatQtySum 聚合工具函数（无 bridge 等价物）
+   - 添加 `@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")`
+2. `QuadraticPolynomial.kt`：~281 个 standalone extension 函数标记 `@Deprecated`
+   - 保留：qsum 系列聚合函数
+3. `LinearMonomial.kt`：~68 个 standalone extension 函数标记 `@Deprecated`
+4. `QuadraticMonomial.kt`：~59 个 standalone extension 函数标记 `@Deprecated`
+5. 44 个 core symbol 函数文件添加 `@file:Suppress("DEPRECATION")`
+
+**框架模块 suppress 注解**：
+- 185 个框架文件（gantt-scheduling + bpp3d）添加 `@file:Suppress("DEPRECATION")`
+- 覆盖所有使用 deprecated monomial/polynomial operator 的文件
+
+**验证**：
+- `mvn compile -DskipTests`：BUILD SUCCESS（全模块）✅
+- `mvn -pl ospf-kotlin-core -am test`：BUILD SUCCESS ✅
+
+### M8/Phase 4 分析结论：框架文件不可迁移（2026-04-12）
+
+**结论**：框架文件（gantt-scheduling + bpp3d）当前**无法迁移**到 bridge layer math.types，`@file:Suppress("DEPRECATION")` 是正确最终状态。
+
+**原因**：
+1. **Model API 仍接受前端类型**：
+   - `model.minimize(polynomial: AbstractLinearPolynomial<*>)`
+   - `model.add(symbol: IntermediateSymbol)`
+   - bridge 层产生的 `math.symbol.LinearPolynomial<Flt64>` 无法传入这些 API
+2. **类型层次不兼容**：`math.symbol.polynomial.LinearPolynomial<Flt64>` 不继承 `frontend.expression.polynomial.AbstractLinearPolynomial<*>`
+3. **符号容器无对应物**：`LinearIntermediateSymbols1/2`、`SlackFunction`、`MaskingFunction` 等在 math.symbol 中无等价类型
+4. **Symbol 容器工厂 lambda** 返回前端类型，需要逐文件改造
+
+**架构确认**：
+- `math.symbol` 提供**通用符号代数**能力（纯数学运算、求值、微分等）
+- `frontend.expression` 提供**优化建模 DSL** 能力（变量构造、表达式组合、token 集成、约束注册）
+- 两者是互补关系，不是替代关系
+- 框架文件使用 `frontend.expression.monomial/polynomial` 是**合理的**
+
+**影响**：
+- M8 Phase 4 框架迁移任务**终止**
+- `frontend.expression.monomial/polynomial` 目录**永久保留**
+- 框架文件的 `@file:Suppress("DEPRECATION")` 为长期解决方案
+- 未来如需迁移，需要先将 Model API 改为接受 math.symbol 类型
+
+### M8/Phase 2 进展（2026-04-12 第一轮）
+
+**MechanismModel.kt 迁移到 math 类型**：
+1. `generateOptimalCut` / `generateFeasibleCut` 方法从 `frontend.LinearMonomial` / `frontend.LinearPolynomial` 改为 `math.symbol.LinearMonomial<Flt64>` / `math.symbol.LinearPolynomial<Flt64>`
+2. 相应不等式构造改为 `MathLinearInequality` 直接构造
+3. 新增 `Symbol` vs `UtilsLinearPolynomial<Flt64>` 的 `leq`/`geq` DSL 函数到 `MathInequalityDsl.kt`（4 个 infix 函数）
+
+提交：`a71e8e2a` feat(core): M8/Phase2 migrate MechanismModel to math.symbol types
+
+**TokenCacheContext.kt 废弃 Cell 转换函数**：
+1. `toLinearFlattenData()` — 标记 `@Deprecated(level = WARNING)`，ReplaceWith 指引使用 `polynomial.flattenedMonomials`
+2. `toLinearMonomialCells()` — 标记废弃，仅用于 deprecated `cells` 属性兼容
+3. `toQuadraticFlattenData()`（Linear→Quadratic 升级）— 保留不废弃
+4. `toQuadraticFlattenData()`（Cell→FlattenData）— 标记废弃
+5. `toQuadraticMonomialCells()` — 标记废弃
+6. `Polynomial<*, *, Cell>.flattenedMonomials` extension properties — 标记废弃 + `@JvmName` 区分签名
+7. `IntermediateSymbol.kt` 的 `flattenedMonomials` 调用废弃函数处加 `@Suppress("DEPRECATION")`
+
+**SubObject.kt 废弃 Polynomial 构造函数**：
+1. `LinearSubObject.invoke(category, poly, tokens, name)` — 标记废弃，ReplaceWith 指引 `LinearSubObject(category, poly.flattenedMonomials, tokens, name)`
+2. `QuadraticSubObject.invoke(category, poly, tokens, name)` — 同上
+
+**Model.kt / CallBackModel.kt 审查**：
+- `Model.kt` 接口已有 `addObject(flattenData)` 和 `addConstraint(relation: MathLinearInequality)` 新 API
+- `CallBackModel.kt` 基于 `Expression` 回调，不涉及 Cell 类型，无需修改
+
+**验证**：
+- `mvn compile -DskipTests`：BUILD SUCCESS（所有模块）✅
+- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+
+提交：`19106e96` feat(core): M8/Phase2 deprecate Cell conversion functions and Polynomial constructors
 
 ### M8/Phase 2 进展（2026-04-12）
 

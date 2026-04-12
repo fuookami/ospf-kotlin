@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq

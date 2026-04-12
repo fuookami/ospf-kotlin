@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial

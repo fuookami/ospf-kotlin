@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
+package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.frontend.expression.adapter.toUtilsMonomial
@@ -2720,17 +2722,20 @@ operator fun AbstractVariableItem<*, *>.times(rhs: QuadraticMonomial): Quadratic
 
 // quantity monomial and variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesVariable")
 operator fun Quantity<LinearMonomial>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("variableTimesQuantityLinearMonomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("variableTimesQuantityQuadraticMonomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -2741,6 +2746,7 @@ operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<QuadraticMonomial>):
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesVariable")
 operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -2752,17 +2758,20 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractVariableItem<*, *>):
 
 // monomial and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityVariable")
 operator fun LinearMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesLinearMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityVariable")
 operator fun QuadraticMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
@@ -2772,6 +2781,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<AbstractVariableItem<*, *>>):
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuadraticMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
@@ -2783,17 +2793,20 @@ operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: QuadraticMonomial):
 
 // quantity monomial and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityVariable")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuantityLinearMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityVariable")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -2804,6 +2817,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractVariableIte
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuantityQuadraticMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -2815,6 +2829,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<QuadraticM
 
 // monomial and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     return when (val symbol = rhs.symbol.symbol) {
         is Either.Left -> {
@@ -2835,6 +2850,7 @@ operator fun LinearIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMonom
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
     return when (val symbol = this.symbol.symbol) {
         is Either.Left -> {
@@ -2856,6 +2872,7 @@ operator fun LinearMonomial.times(rhs: LinearIntermediateSymbol): QuadraticMonom
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearMonomial.times: over quadratic.")
@@ -2881,6 +2898,7 @@ operator fun LinearMonomial.times(rhs: QuadraticIntermediateSymbol): QuadraticMo
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMonomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2906,6 +2924,7 @@ operator fun QuadraticIntermediateSymbol.times(rhs: LinearMonomial): QuadraticMo
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2940,6 +2959,7 @@ operator fun LinearIntermediateSymbol.times(rhs: QuadraticMonomial): QuadraticMo
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -2975,17 +2995,20 @@ operator fun QuadraticIntermediateSymbol.times(rhs: QuadraticMonomial): Quadrati
 
 // quantity monomial and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesLinearSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearSymbolTimesQuantityLinearMonomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
@@ -2996,6 +3019,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: QuadraticIntermediateSymbol): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticSymbolTimesQuantityLinearMonomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
@@ -3006,6 +3030,7 @@ operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<LinearMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -3016,6 +3041,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: LinearIntermediateSymbol): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearSymbolTimesQuantityQuadraticMonomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -3026,6 +3052,7 @@ operator fun LinearIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
@@ -3036,6 +3063,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticIntermediateSymbol)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticSymbolTimesQuantityQuadraticMonomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
@@ -3047,17 +3075,20 @@ operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<QuadraticMonomial>)
 
 // monomial and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityLinearSymbol")
 operator fun LinearMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesLinearMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityLinearSymbol")
 operator fun QuadraticMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
@@ -3068,6 +3099,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<LinearIntermediateSymbol>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
@@ -3078,6 +3110,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: QuadraticMonomial): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityQuadraticSymbol")
 operator fun LinearMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
@@ -3088,6 +3121,7 @@ operator fun LinearMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
@@ -3098,6 +3132,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: LinearMonomial): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityQuadraticSymbol")
 operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
@@ -3108,6 +3143,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticIntermediateSymbol>)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
@@ -3119,17 +3155,20 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: QuadraticMonomial)
 
 // quantity monomial and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityLinearSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesQuantityLinearMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -3140,6 +3179,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticIntermediateS
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuantityLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -3150,6 +3190,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<LinearMon
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -3160,6 +3201,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearIntermediateS
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("QuantityLinearSymbolTimesQuantityQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -3170,6 +3212,7 @@ operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<QuadraticMon
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
@@ -3180,6 +3223,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticIntermedia
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {
@@ -3191,6 +3235,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<Quadratic
 
 // monomial and monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: LinearMonomial): QuadraticMonomial {
     return when (val symbol1 = this.symbol.symbol) {
         is Either.Left -> {
@@ -3236,6 +3281,7 @@ operator fun LinearMonomial.times(rhs: LinearMonomial): QuadraticMonomial {
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: QuadraticMonomial): QuadraticMonomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -3303,17 +3349,20 @@ operator fun LinearMonomial.times(rhs: QuadraticMonomial): QuadraticMonomial {
 
 // quantity monomial and monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesLinearMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityLinearMonomial")
 operator fun LinearMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(rhs.value * this, rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (rhs.category == Quadratic) {
@@ -3324,6 +3373,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: QuadraticMonomial): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityLinearMonomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic) {
@@ -3334,6 +3384,7 @@ operator fun QuadraticMonomial.times(rhs: Quantity<LinearMonomial>): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: LinearMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -3344,6 +3395,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: LinearMonomial): Quantity<Qu
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityQuadraticMonomial")
 operator fun LinearMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -3355,6 +3407,7 @@ operator fun LinearMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<Qu
 
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticMonomial): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.category == Quadratic) {
@@ -3365,6 +3418,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: QuadraticMonomial): Quantity
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityQuadraticMonomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.category == Quadratic || rhs.value.category == Quadratic) {
@@ -3376,12 +3430,14 @@ operator fun QuadraticMonomial.times(rhs: Quantity<QuadraticMonomial>): Quantity
 
 // quantity monomial and quantity monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityLinearMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic) {
@@ -3392,6 +3448,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<QuadraticMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticMonomial> {
     if (rhs.value.category == Quadratic) {
@@ -3402,6 +3459,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<LinearMonomial>): Q
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticMonomial> {
     if (this.value.category == Quadratic || rhs.value.category == Quadratic) {

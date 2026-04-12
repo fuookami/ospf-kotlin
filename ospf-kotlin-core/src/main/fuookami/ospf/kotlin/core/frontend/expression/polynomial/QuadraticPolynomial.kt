@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.polynomial
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
+package fuookami.ospf.kotlin.core.frontend.expression.polynomial
 
 import fuookami.ospf.kotlin.core.frontend.expression.flatten.mergeQuadraticFlattenData
 import fuookami.ospf.kotlin.core.frontend.expression.ExpressionRange
@@ -1609,6 +1611,7 @@ class MutableQuadraticPolynomial(
 
 // quantity polynomial conversion
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 fun Quantity<AbstractQuadraticPolynomial<*>>.to(targetUnit: PhysicalUnit): Quantity<QuadraticPolynomial>? {
     return unit.to(targetUnit)?.let {
         Quantity(it.value * this.value, targetUnit)
@@ -1617,17 +1620,20 @@ fun Quantity<AbstractQuadraticPolynomial<*>>.to(targetUnit: PhysicalUnit): Quant
 
 // unary minus quantity polynomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.unaryMinus(): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(-this.value), this.unit)
 }
 
 // quantity polynomial plus/minus/times/div assign
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantityVariable")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<AbstractVariableItem<*, *>>) {
     value.plusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantityVariables")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<AbstractVariableItem<*, *>>>) {
     for (item in rhs) {
@@ -1635,11 +1641,13 @@ fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<Abstr
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantitySymbol")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<LinearIntermediateSymbol>) {
     value.plusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantitySymbols")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<LinearIntermediateSymbol>>) {
     for (item in rhs) {
@@ -1647,26 +1655,31 @@ fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Iterable<Quantity<Linea
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantityMonomial")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<LinearMonomial>) {
     value.plusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantityPolynomial")
 fun Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<AbstractLinearPolynomial<*>>) {
     value.plusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusAssignQuantity")
 fun <V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.plusAssign(rhs: Quantity<V>) {
     value.plusAssign(rhs.toFlt64().to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantityVariable")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<AbstractVariableItem<*, *>>) {
     value.minusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantityVariables")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<AbstractVariableItem<*, *>>>) {
     for (item in rhs) {
@@ -1674,11 +1687,13 @@ fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<Abst
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantitySymbol")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<LinearIntermediateSymbol>) {
     value.minusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantitySymbols")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<LinearIntermediateSymbol>>) {
     for (item in rhs) {
@@ -1686,26 +1701,31 @@ fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Iterable<Quantity<Line
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantityMonomial")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<LinearMonomial>) {
     value.minusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantityPolynomial")
 fun Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<AbstractLinearPolynomial<*>>) {
     value.minusAssign(rhs.to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusAssignQuantity")
 fun <V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.minusAssign(rhs: Quantity<V>) {
     value.minusAssign(rhs.toFlt64().to(this.unit)!!.value)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialTimesAssign")
 fun <V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.timesAssign(rhs: V) {
     value.timesAssign(rhs.toFlt64())
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialDivAssign")
 fun <V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.divAssign(rhs: V) {
     value.divAssign(rhs.toFlt64())
@@ -1713,14 +1733,17 @@ fun <V : RealNumber<V>> Quantity<MutableQuadraticPolynomial>.divAssign(rhs: V) {
 
 // symbol and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: Int): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: Double): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.plus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
@@ -1728,14 +1751,17 @@ operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.plus(rhs: T): Quadr
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: Int): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: Double): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.minus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this)),
@@ -1743,14 +1769,17 @@ operator fun <T : RealNumber<T>> QuadraticIntermediateSymbol.minus(rhs: T): Quad
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(rhs)),
@@ -1758,14 +1787,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticIntermediateSymbol): Quadr
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(-Flt64.one, rhs)),
@@ -1775,6 +1807,7 @@ operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticIntermediateSymbol): Quad
 
 // quantity symbol and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1790,6 +1823,7 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.plus(rhs:
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolMinusQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1805,6 +1839,7 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticIntermediateSymbol>.minus(rhs
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPlusQuantitySymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1820,6 +1855,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticInterme
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMinusQuantitySymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1837,14 +1873,17 @@ operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticInterm
 
 // monomial and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: Int): QuadraticPolynomial {
     return this.plus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: Double): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> QuadraticMonomial.plus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy()),
@@ -1852,14 +1891,17 @@ operator fun <T : RealNumber<T>> QuadraticMonomial.plus(rhs: T): QuadraticPolyno
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: Int): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: Double): QuadraticPolynomial {
     return this.minus(Flt64(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> QuadraticMonomial.minus(rhs: T): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy()),
@@ -1867,14 +1909,17 @@ operator fun <T : RealNumber<T>> QuadraticMonomial.minus(rhs: T): QuadraticPolyn
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(rhs.copy()),
@@ -1882,14 +1927,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: QuadraticMonomial): QuadraticPolyno
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(-rhs),
@@ -1899,6 +1947,7 @@ operator fun <T : RealNumber<T>> T.minus(rhs: QuadraticMonomial): QuadraticPolyn
 
 // quantity monomial and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1914,6 +1963,7 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.plus(rhs: Quantity<
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialMinusQuantity")
 operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1929,6 +1979,7 @@ operator fun <T : RealNumber<T>> Quantity<QuadraticMonomial>.minus(rhs: Quantity
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPlusQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1944,6 +1995,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<QuadraticMonomia
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMinusQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -1961,14 +2013,17 @@ operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<QuadraticMonomi
 
 // polynomial and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).plus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = rhs.monomials.map { it.copy() },
@@ -1976,14 +2031,17 @@ operator fun <T : RealNumber<T>> T.plus(rhs: AbstractQuadraticPolynomial<*>): Qu
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).minus(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = rhs.monomials.map { -it },
@@ -1991,14 +2049,17 @@ operator fun <T : RealNumber<T>> T.minus(rhs: AbstractQuadraticPolynomial<*>): Q
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).times(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return Flt64(this).times(rhs)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = rhs.monomials.map { this * it },
@@ -2008,46 +2069,55 @@ operator fun <T : RealNumber<T>> T.times(rhs: AbstractQuadraticPolynomial<*>): Q
 
 // quantity polynomial and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialTimesInt")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Int): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * Flt64(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialTimesDouble")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Double): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * Flt64(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialTimesRealNumber")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: T): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("intTimesQuantityPolynomial")
 operator fun Int.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(Flt64(this) * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("doubleTimesQuantityPolynomial")
 operator fun Double.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(Flt64(this) * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("realNumberTimesQuantityPolynomial")
 operator fun <T : RealNumber<T>> T.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialDivInt")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Int): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value / Flt64(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialDivDouble")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Double): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value / Flt64(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialDivRealNumber")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: T): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value / rhs), this.unit)
@@ -2055,16 +2125,19 @@ operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rh
 
 // polynomial and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("polynomialTimesQuantity")
 operator fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.times(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesPolynomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("polynomialDivQuantity")
 operator fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.div(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this / rhs.value), rhs.unit.reciprocal())
@@ -2072,6 +2145,7 @@ operator fun <T : RealNumber<T>> AbstractQuadraticPolynomial<*>.div(rhs: Quantit
 
 // quantity polynomial and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialPlusQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2087,6 +2161,7 @@ operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.plus(r
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialMinusQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2102,6 +2177,7 @@ operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.minus(
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPlusQuantityPolynomial")
 operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2117,6 +2193,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.plus(rhs: Quantity<AbstractQuadrati
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMinusQuantityPolynomial")
 operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2132,6 +2209,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.minus(rhs: Quantity<AbstractQuadrat
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2147,6 +2225,7 @@ operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.times(
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesQuantityPolynomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2162,6 +2241,7 @@ operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractQuadrat
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityPolynomialDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rhs: Quantity<T>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2179,24 +2259,29 @@ operator fun <T : RealNumber<T>> Quantity<AbstractQuadraticPolynomial<*>>.div(rh
 
 // symbol and variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
 // quantity symbol and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolPlusQuantityVariable")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2212,6 +2297,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractVa
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolMinusQuantityVariable")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2227,6 +2313,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractV
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariablePlusQuantitySymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2242,6 +2329,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticIn
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableMinusQuantitySymbol")
 operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2259,24 +2347,29 @@ operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticI
 
 // monomial and variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
 // quantity monomial and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialPlusQuantityVariable")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2292,6 +2385,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractVariableItem
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialMinusQuantityVariable")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2307,6 +2401,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractVariableIte
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariablePlusQuantityMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2322,6 +2417,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<QuadraticMo
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableMinusQuantityMonomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2339,6 +2435,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<QuadraticM
 
 // polynomial and variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { it.copy() }.toMutableList()
     newMonomials.add(QuadraticMonomial(this))
@@ -2348,6 +2445,7 @@ operator fun AbstractVariableItem<*, *>.plus(rhs: AbstractQuadraticPolynomial<*>
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -2357,12 +2455,14 @@ operator fun AbstractVariableItem<*, *>.minus(rhs: AbstractQuadraticPolynomial<*
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
     val newMonomials = this.monomials.map { it * rhs }.toMutableList()
     newMonomials.add(QuadraticMonomial(this.constant, rhs))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
@@ -2370,6 +2470,7 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractLinearPolynomial<*>):
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
@@ -2382,21 +2483,25 @@ operator fun AbstractVariableItem<*, *>.times(rhs: AbstractQuadraticPolynomial<*
 
 // quantity polynomial and variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesVariable")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesVariable")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractVariableItem<*, *>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("variableTimesQuantityLinearPolynomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("variableTimesQuantityQuadraticPolynomial")
 operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
@@ -2404,21 +2509,25 @@ operator fun AbstractVariableItem<*, *>.times(rhs: Quantity<AbstractQuadraticPol
 
 // polynomial and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityVariable")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityVariable")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesLinearPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuadraticPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
@@ -2426,6 +2535,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: AbstractQuadraticPo
 
 // quantity polynomial and quantity variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialPlusQuantityVariable")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2441,6 +2551,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<Abstrac
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialMinusQuantityVariable")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2456,6 +2567,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<Abstra
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariablePlusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2471,6 +2583,7 @@ operator fun Quantity<AbstractVariableItem<*, *>>.plus(rhs: Quantity<AbstractQua
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableMinusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2486,21 +2599,25 @@ operator fun Quantity<AbstractVariableItem<*, *>>.minus(rhs: Quantity<AbstractQu
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityVariable")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuantityVariable")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesLinearPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuadraticPolynomial")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
@@ -2508,32 +2625,39 @@ operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<AbstractQu
 
 // symbol and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
 // quantity symbol and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityLinearSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2549,6 +2673,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearInte
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityLinearSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2564,6 +2689,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearInt
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolPlusQuantityQuadraticSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2579,6 +2705,7 @@ operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticInte
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolMinusQuantityQuadraticSymbol")
 operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2594,6 +2721,7 @@ operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticInt
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2609,6 +2737,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticI
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2626,56 +2755,69 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<Quadratic
 
 // monomial and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), QuadraticMonomial(-rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(this.copy(), QuadraticMonomial(-Flt64.one, rhs)))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), rhs.copy()))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(monomials = listOf(QuadraticMonomial(this), -rhs))
 }
 
 // quantity monomial and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialPlusQuantityQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2691,6 +2833,7 @@ operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticIntermediateSy
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialMinusQuantityQuadraticSymbol")
 operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2706,6 +2849,7 @@ operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticIntermediateS
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2721,6 +2865,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<LinearMono
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityLinearMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2736,6 +2881,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<LinearMon
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2751,6 +2897,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearIntermediateSy
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityLinearSymbol")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2766,6 +2913,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearIntermediateS
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolPlusQuantityQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2781,6 +2929,7 @@ operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<QuadraticMono
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolMinusQuantityQuadraticMonomial")
 operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2796,6 +2945,7 @@ operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<QuadraticMon
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2811,6 +2961,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticIntermediat
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityQuadraticSymbol")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2826,6 +2977,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticIntermedia
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2841,6 +2993,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<QuadraticM
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -2858,18 +3011,21 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<Quadratic
 
 // polynomial and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant, this))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: LinearIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { it * rhs }.toMutableList()
     newMonomials.add(QuadraticMonomial(this.constant, rhs))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs))
@@ -2879,6 +3035,7 @@ operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticIntermediateSymbol):
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(QuadraticMonomial(-Flt64.one, rhs))
@@ -2889,6 +3046,7 @@ operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticIntermediateSymbol)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticIntermediateSymbol): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticPolynomial.times: over quadratic.")
@@ -2899,6 +3057,7 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticIntermediateSymbol)
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
@@ -2908,6 +3067,7 @@ operator fun LinearIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>):
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -2918,6 +3078,7 @@ operator fun LinearIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearSymbol.times: over quadratic.")
@@ -2928,6 +3089,7 @@ operator fun LinearIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>)
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(it) })
@@ -2937,6 +3099,7 @@ operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractLinearPolynomial<*>):
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(-it) })
@@ -2947,6 +3110,7 @@ operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractLinearPolynomial<*>)
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
@@ -2957,6 +3121,7 @@ operator fun QuadraticIntermediateSymbol.times(rhs: AbstractLinearPolynomial<*>)
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
@@ -2966,6 +3131,7 @@ operator fun QuadraticIntermediateSymbol.plus(rhs: AbstractQuadraticPolynomial<*
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -2976,6 +3142,7 @@ operator fun QuadraticIntermediateSymbol.minus(rhs: AbstractQuadraticPolynomial<
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticSymbol.times: over quadratic.")
@@ -2988,41 +3155,49 @@ operator fun QuadraticIntermediateSymbol.times(rhs: AbstractQuadraticPolynomial<
 
 // quantity polynomial and symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearSymbolTimesQuantityLinearPolynomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesLinearSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticSymbolTimesQuantityLinearPolynomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuadraticSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearSymbolTimesQuantityQuadraticPolynomial")
 operator fun LinearIntermediateSymbol.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesLinearSymbol")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: LinearIntermediateSymbol): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticSymbolTimesQuantityQuadraticPolynomial")
 operator fun QuadraticIntermediateSymbol.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuadraticSymbol")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticIntermediateSymbol): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
@@ -3030,41 +3205,49 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticInterm
 
 // polynomial and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesLinearPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityLinearSymbol")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesLinearPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityQuadraticSymbol")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesQuadraticPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityLinearSymbol")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuadraticPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityQuadraticSymbol")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
@@ -3072,21 +3255,25 @@ operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticInterme
 
 // quantity polynomial and quantity symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolTimesQuantityLinearPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityLinearSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuantityLinearPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityLinearPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3102,6 +3289,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractLi
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityLinearPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3117,11 +3305,13 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractL
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityQuadraticSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialPlusQuantityQuadraticSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3137,6 +3327,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticI
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialMinusQuantityQuadraticSymbol")
 operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<QuadraticIntermediateSymbol>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3152,11 +3343,13 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<Quadratic
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("QuantityLinearSymbolTimesQuantityQuadraticPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolPlusQuantityQuadraticPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3172,6 +3365,7 @@ operator fun Quantity<LinearIntermediateSymbol>.plus(rhs: Quantity<AbstractQuadr
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearSymbolMinusQuantityQuadraticPolynomial")
 operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3187,11 +3381,13 @@ operator fun Quantity<LinearIntermediateSymbol>.minus(rhs: Quantity<AbstractQuad
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolTimesQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolPlusQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3207,6 +3403,7 @@ operator fun Quantity<QuadraticIntermediateSymbol>.plus(rhs: Quantity<AbstractQu
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticSymbolMinusQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3224,36 +3421,42 @@ operator fun Quantity<QuadraticIntermediateSymbol>.minus(rhs: Quantity<AbstractQ
 
 // monomial and monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this), rhs.copy())
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(QuadraticMonomial(this), -rhs)
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy(), QuadraticMonomial(rhs))
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: LinearMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy(), QuadraticMonomial(-rhs))
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy(), rhs.copy())
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     return QuadraticPolynomial(
         monomials = listOf(this.copy(), -rhs)
@@ -3262,6 +3465,7 @@ operator fun QuadraticMonomial.minus(rhs: QuadraticMonomial): QuadraticPolynomia
 
 // quantity monomial and quantity monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialPlusQuantityQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3277,6 +3481,7 @@ operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<QuadraticMonomial>): Qu
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialMinusQuantityQuadraticMonomial")
 operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3292,6 +3497,7 @@ operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<QuadraticMonomial>): Q
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3307,6 +3513,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<LinearMonomial>): Qu
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityLinearMonomial")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3322,6 +3529,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<LinearMonomial>): Q
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3337,6 +3545,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<QuadraticMonomial>):
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityQuadraticMonomial")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3354,18 +3563,21 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<QuadraticMonomial>)
 
 // polynomial and monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = rhs.monomials.map { this * it }.toMutableList()
     newMonomials.add(QuadraticMonomial(rhs.constant * this))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: LinearMonomial): QuadraticPolynomial {
     val newMonomials = this.monomials.map { it * rhs }.toMutableList()
     newMonomials.add(QuadraticMonomial(this.constant * rhs))
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { it.copy() })
@@ -3375,6 +3587,7 @@ operator fun LinearMonomial.plus(rhs: AbstractQuadraticPolynomial<*>): Quadratic
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(QuadraticMonomial(this))
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -3385,6 +3598,7 @@ operator fun LinearMonomial.minus(rhs: AbstractQuadraticPolynomial<*>): Quadrati
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearMonomial.times: over quadratic.")
@@ -3395,6 +3609,7 @@ operator fun LinearMonomial.times(rhs: AbstractQuadraticPolynomial<*>): Quadrati
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticMonomial): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(rhs.copy())
@@ -3404,6 +3619,7 @@ operator fun AbstractLinearPolynomial<*>.plus(rhs: QuadraticMonomial): Quadratic
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticMonomial): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.add(-rhs)
@@ -3414,6 +3630,7 @@ operator fun AbstractLinearPolynomial<*>.minus(rhs: QuadraticMonomial): Quadrati
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticMonomial): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of LinearPolynomial.times: over quadratic.")
@@ -3424,6 +3641,7 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: QuadraticMonomial): Quadrati
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(it) })
@@ -3433,6 +3651,7 @@ operator fun QuadraticMonomial.plus(rhs: AbstractLinearPolynomial<*>): Quadratic
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(-it) })
@@ -3443,6 +3662,7 @@ operator fun QuadraticMonomial.minus(rhs: AbstractLinearPolynomial<*>): Quadrati
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -3453,6 +3673,7 @@ operator fun QuadraticMonomial.times(rhs: AbstractLinearPolynomial<*>): Quadrati
     return QuadraticPolynomial(monomials = newMonomials)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { it.copy() })
@@ -3462,6 +3683,7 @@ operator fun QuadraticMonomial.plus(rhs: AbstractQuadraticPolynomial<*>): Quadra
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = mutableListOf(this.copy())
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -3472,6 +3694,7 @@ operator fun QuadraticMonomial.minus(rhs: AbstractQuadraticPolynomial<*>): Quadr
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun QuadraticMonomial.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (this.category == Quadratic || rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -3484,41 +3707,49 @@ operator fun QuadraticMonomial.times(rhs: AbstractQuadraticPolynomial<*>): Quadr
 
 // quantity polynomial and monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityLinearPolynomial")
 operator fun LinearMonomial.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesLinearMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: LinearMonomial): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearMonomialTimesQuantityQuadraticPolynomial")
 operator fun LinearMonomial.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesLinearMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: LinearMonomial): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialPlusQuantityLinearPolynomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialPlusQuadraticMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: QuadraticMonomial): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticMonomialTimesQuantityQuadraticPolynomial")
 operator fun QuadraticMonomial.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuadraticMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticMonomial): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
@@ -3526,41 +3757,49 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: QuadraticMonomi
 
 // polynomial and quantity monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesLinearPolynomial")
 operator fun Quantity<LinearMonomial>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityLinearMonomial")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuadraticPolynomial")
 operator fun Quantity<LinearMonomial>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityLinearMonomial")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesLinearPolynomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityQuadraticMonomial")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuadraticPolynomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityQuadraticMonomial")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
@@ -3568,6 +3807,7 @@ operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<QuadraticMonomia
 
 // quantity polynomial and quantity monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityLinearPolynomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3583,6 +3823,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractLinearPolynomi
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityLinearMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3598,6 +3839,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<LinearMon
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialPlusQuantityQuadraticPolynomial")
 operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3613,6 +3855,7 @@ operator fun Quantity<LinearMonomial>.plus(rhs: Quantity<AbstractQuadraticPolyno
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialMinusQuantityQuadraticPolynomial")
 operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3628,6 +3871,7 @@ operator fun Quantity<LinearMonomial>.minus(rhs: Quantity<AbstractQuadraticPolyn
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearMonomialTimesQuantityQuadraticPolynomial")
 operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3643,6 +3887,7 @@ operator fun Quantity<LinearMonomial>.times(rhs: Quantity<AbstractQuadraticPolyn
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialPlusQuantityLinearMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3658,6 +3903,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<LinearM
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialMinusQuantityLinearMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3673,6 +3919,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<Linear
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuantityLinearMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<LinearMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3688,6 +3935,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<Linear
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityLinearPolynomial")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3703,6 +3951,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractLinearPolyno
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityLinearPolynomial")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3718,6 +3967,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractLinearPolyn
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityLinearPolynomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3733,6 +3983,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractLinearPolyn
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialPlusQuantityQuadraticMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3748,6 +3999,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<QuadraticM
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialMinusQuantityQuadraticMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3763,6 +4015,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<Quadratic
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3778,6 +4031,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<Quadratic
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialPlusQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3793,6 +4047,7 @@ operator fun Quantity<QuadraticMonomial>.plus(rhs: Quantity<AbstractQuadraticPol
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialMinusQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3808,6 +4063,7 @@ operator fun Quantity<QuadraticMonomial>.minus(rhs: Quantity<AbstractQuadraticPo
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticMonomialTimesQuantityQuadraticPolynomial")
 operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3823,6 +4079,7 @@ operator fun Quantity<QuadraticMonomial>.times(rhs: Quantity<AbstractQuadraticPo
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialPlusQuantityQuadraticMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3838,6 +4095,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<Quadrat
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialMinusQuantityQuadraticMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3853,6 +4111,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<Quadra
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuantityQuadraticMonomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<QuadraticMonomial>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3870,6 +4129,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<Quadra
 
 // polynomial and polynomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractLinearPolynomial<*>): QuadraticPolynomial {
     val newMonomials = this.monomials.flatMap { monomial1 -> rhs.monomials.map { monomial2 -> monomial1 * monomial2 } }.toMutableList()
     newMonomials.addAll(rhs.monomials.map { QuadraticMonomial(this.constant * it) })
@@ -3880,6 +4140,7 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractLinearPolynomial<*>)
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.plus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.addAll(rhs.monomials.map { it.copy() })
@@ -3889,6 +4150,7 @@ operator fun AbstractLinearPolynomial<*>.plus(rhs: AbstractQuadraticPolynomial<*
     )
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.minus(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     val newMonomials = this.monomials.map { QuadraticMonomial(it) }.toMutableList()
     newMonomials.addAll(rhs.monomials.map { -it })
@@ -3899,6 +4161,7 @@ operator fun AbstractLinearPolynomial<*>.minus(rhs: AbstractQuadraticPolynomial<
 }
 
 @Throws(IllegalArgumentException::class)
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractQuadraticPolynomial<*>): QuadraticPolynomial {
     if (rhs.category == Quadratic) {
         throw IllegalArgumentException("Invalid argument of QuadraticMonomial.times: over quadratic.")
@@ -3915,41 +4178,49 @@ operator fun AbstractLinearPolynomial<*>.times(rhs: AbstractQuadraticPolynomial<
 
 // quantity polynomial and polynomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesLinearPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityLinearPolynomial")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuadraticPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityLinearPolynomial")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("linearPolynomialTimesQuantityQuadraticPolynomial")
 operator fun AbstractLinearPolynomial<*>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesLinearPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractLinearPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quadraticPolynomialTimesQuantityQuadraticPolynomial")
 operator fun AbstractQuadraticPolynomial<*>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this * rhs.value), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuadraticPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractQuadraticPolynomial<*>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs), this.unit)
@@ -3957,11 +4228,13 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: AbstractQuadrat
 
 // quantity polynomial and quantity polynomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityLinearPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialPlusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3977,6 +4250,7 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.plus(rhs: Quantity<AbstractQu
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialMinusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -3992,11 +4266,13 @@ operator fun Quantity<AbstractLinearPolynomial<*>>.minus(rhs: Quantity<AbstractQ
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityLinearPolynomialTimesQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractLinearPolynomial<*>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialPlusQuantityLinearPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -4012,6 +4288,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<Abstrac
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialMinusQuantityLinearPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -4027,11 +4304,13 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<Abstra
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuantityLinearPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractLinearPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialPlusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -4047,6 +4326,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.plus(rhs: Quantity<Abstrac
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialMinusQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return if (this.unit == rhs.unit) {
@@ -4062,6 +4342,7 @@ operator fun Quantity<AbstractQuadraticPolynomial<*>>.minus(rhs: Quantity<Abstra
     }
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityQuadraticPolynomialTimesQuantityQuadraticPolynomial")
 operator fun Quantity<AbstractQuadraticPolynomial<*>>.times(rhs: Quantity<AbstractQuadraticPolynomial<*>>): Quantity<QuadraticPolynomial> {
     return Quantity(QuadraticPolynomial(this.value * rhs.value), this.unit * rhs.unit)

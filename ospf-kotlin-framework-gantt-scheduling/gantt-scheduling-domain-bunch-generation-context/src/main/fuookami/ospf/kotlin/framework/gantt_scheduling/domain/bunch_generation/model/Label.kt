@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.model
 
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

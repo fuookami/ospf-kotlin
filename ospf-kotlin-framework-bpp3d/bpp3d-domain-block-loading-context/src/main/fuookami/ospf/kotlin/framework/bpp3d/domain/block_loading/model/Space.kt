@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.domain.block_loading.model
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.*
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*

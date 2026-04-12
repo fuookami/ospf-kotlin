@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol
+package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
 import fuookami.ospf.kotlin.core.frontend.expression.Expression
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.LinearMonomial

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
+package fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
 import fuookami.ospf.kotlin.core.frontend.expression.polynomial.AbstractQuadraticPolynomial

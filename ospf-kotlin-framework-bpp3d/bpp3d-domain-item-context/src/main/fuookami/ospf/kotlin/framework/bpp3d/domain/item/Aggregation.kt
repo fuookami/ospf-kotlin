@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.item
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.domain.item
 
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinType
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item

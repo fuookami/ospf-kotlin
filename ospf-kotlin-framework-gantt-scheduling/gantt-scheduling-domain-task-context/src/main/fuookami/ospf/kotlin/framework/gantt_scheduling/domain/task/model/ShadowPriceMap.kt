@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap

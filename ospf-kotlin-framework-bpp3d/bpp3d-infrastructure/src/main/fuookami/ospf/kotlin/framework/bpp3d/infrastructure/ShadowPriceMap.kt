@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.bpp3d.infrastructure
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel

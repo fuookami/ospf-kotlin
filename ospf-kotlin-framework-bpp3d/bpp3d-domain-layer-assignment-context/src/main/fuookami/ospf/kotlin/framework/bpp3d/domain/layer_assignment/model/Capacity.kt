@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times

@@ -111,6 +111,14 @@ infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: Symbol): MathLinearInequality =
 infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: Symbol): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, rhs)), Flt64.zero), Comparison.GE)
 
+// math LinearPolynomial vs math LinearPolynomial
+infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+    MathLinearInequality(this, rhs, Comparison.LE)
+infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+    MathLinearInequality(this, rhs, Comparison.GE)
+infix fun UtilsLinearPolynomial<Flt64>.eq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+    MathLinearInequality(this, rhs, Comparison.EQ)
+
 // Backward-compat aliases for frontend naming
 infix fun AbstractLinearPolynomial<*>.leq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this le rhs
 infix fun AbstractLinearPolynomial<*>.geq(rhs: AbstractLinearPolynomial<*>): MathLinearInequality = this ge rhs

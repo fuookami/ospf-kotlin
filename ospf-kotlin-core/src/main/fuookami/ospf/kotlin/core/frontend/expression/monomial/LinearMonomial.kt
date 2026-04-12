@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.core.frontend.expression.monomial
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
+package fuookami.ospf.kotlin.core.frontend.expression.monomial
 
 import org.apache.logging.log4j.kotlin.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -934,6 +936,7 @@ data class LinearMonomial(
 
 // quantity variable conversion
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableConversion")
 fun Quantity<AbstractVariableItem<*, *>>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
@@ -943,6 +946,7 @@ fun Quantity<AbstractVariableItem<*, *>>.to(targetUnit: PhysicalUnit): Quantity<
 
 // quantity symbol conversion
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolConversion")
 fun Quantity<LinearIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
@@ -952,6 +956,7 @@ fun Quantity<LinearIntermediateSymbol>.to(targetUnit: PhysicalUnit): Quantity<Li
 
 // quantity monomial conversion
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialConversion")
 fun Quantity<LinearMonomial>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomial>? {
     return unit.to(targetUnit)?.let {
@@ -961,10 +966,12 @@ fun Quantity<LinearMonomial>.to(targetUnit: PhysicalUnit): Quantity<LinearMonomi
 
 // unary minus variable
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.unaryMinus(): LinearMonomial {
     return -Flt64.one * this
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("unaryMinusQuantityVariable")
 operator fun Quantity<AbstractVariableItem<*, *>>.unaryMinus(): Quantity<LinearMonomial> {
     return Quantity(-this.value, this.unit)
@@ -972,10 +979,12 @@ operator fun Quantity<AbstractVariableItem<*, *>>.unaryMinus(): Quantity<LinearM
 
 // unary minus symbol
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.unaryMinus(): LinearMonomial {
     return -Flt64.one * this
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("unaryMinusQuantitySymbol")
 operator fun Quantity<LinearIntermediateSymbol>.unaryMinus(): Quantity<LinearMonomial> {
     return Quantity(-this.value, this.unit)
@@ -983,6 +992,7 @@ operator fun Quantity<LinearIntermediateSymbol>.unaryMinus(): Quantity<LinearMon
 
 // unary minus monomial
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("unaryMinusQuantityMonomial")
 operator fun Quantity<LinearMonomial>.unaryMinus(): Quantity<LinearMonomial> {
     return Quantity(-this.value, this.unit)
@@ -990,98 +1000,119 @@ operator fun Quantity<LinearMonomial>.unaryMinus(): Quantity<LinearMonomial> {
 
 // variable and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.times(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.times(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.times(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.times(rhs: AbstractVariableItem<*, *>): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.times(rhs: AbstractVariableItem<*, *>): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.times(rhs: AbstractVariableItem<*, *>): LinearMonomial {
     return LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.div(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun AbstractVariableItem<*, *>.div(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 
 // variable and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: AbstractVariableItem<*, *>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> AbstractVariableItem<*, *>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this)), rhs.unit.reciprocal())
 }
 
 // quantity variable and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesInt")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Int): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesDouble")
 operator fun Quantity<AbstractVariableItem<*, *>>.times(rhs: Double): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesRealNumber")
 operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.times(rhs: T): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("intTimesQuantityVariable")
 operator fun Int.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("doubleTimesQuantityVariable")
 operator fun Double.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("realNumberTimesQuantityVariable")
 operator fun <T : RealNumber<T>> T.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableDivInt")
 operator fun Quantity<AbstractVariableItem<*, *>>.div(rhs: Int): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableDivDouble")
 operator fun Quantity<AbstractVariableItem<*, *>>.div(rhs: Double): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableDivRealNumber")
 operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: T): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
@@ -1089,16 +1120,19 @@ operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: T
 
 // quantity variable and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this.value)), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesQuantityVariable")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<AbstractVariableItem<*, *>>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs.value)), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityVariableDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit / rhs.unit)
@@ -1106,98 +1140,119 @@ operator fun <T : RealNumber<T>> Quantity<AbstractVariableItem<*, *>>.div(rhs: Q
 
 // symbol and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.times(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> LinearIntermediateSymbol.times(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.times(rhs: LinearIntermediateSymbol): LinearMonomial {
     return LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.div(rhs: Int): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearIntermediateSymbol.div(rhs: Double): LinearMonomial {
     return LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this))
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> LinearIntermediateSymbol.div(rhs: T): LinearMonomial {
     return LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this))
 }
 
 // symbol and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> LinearIntermediateSymbol.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: LinearIntermediateSymbol): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> LinearIntermediateSymbol.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this)), rhs.unit.reciprocal())
 }
 
 // quantity symbol and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolTimesInt")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Int): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolTimesDouble")
 operator fun Quantity<LinearIntermediateSymbol>.times(rhs: Double): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolTimesRealNumber")
 operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.times(rhs: T): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.toFlt64(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("intTimesQuantitySymbol")
 operator fun Int.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("doubleTimesQuantitySymbol")
 operator fun Double.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(this), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("realNumberTimesQuantitySymbol")
 operator fun <T : RealNumber<T>> T.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.toFlt64(), LinearMonomialSymbol(rhs.value)), rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolDivInt")
 operator fun Quantity<LinearIntermediateSymbol>.div(rhs: Int): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolDivDouble")
 operator fun Quantity<LinearIntermediateSymbol>.div(rhs: Double): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(Flt64(rhs).reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolDivRealNumber")
 operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.div(rhs: T): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit)
@@ -1205,16 +1260,19 @@ operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.div(rhs: T):
 
 // quantity symbol and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64(), LinearMonomialSymbol(this.value)), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesQuantitySymbol")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<LinearIntermediateSymbol>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(this.value.toFlt64(), LinearMonomialSymbol(rhs.value)), this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantitySymbolDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(LinearMonomial(rhs.value.toFlt64().reciprocal(), LinearMonomialSymbol(this.value)), this.unit / rhs.unit)
@@ -1222,36 +1280,43 @@ operator fun <T : RealNumber<T>> Quantity<LinearIntermediateSymbol>.div(rhs: Qua
 
 // monomial and constant
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Int.times(rhs: LinearMonomial): LinearMonomial {
     return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun Double.times(rhs: LinearMonomial): LinearMonomial {
     return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun <T : RealNumber<T>> T.times(rhs: LinearMonomial): LinearMonomial {
     return LinearMonomial(this.toFlt64() * rhs.coefficient, rhs.symbol)
 }
 
 // monomial and unit
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 operator fun LinearMonomial.times(rhs: PhysicalUnit): Quantity<LinearMonomial> {
     return Quantity(this, rhs)
 }
 
 // monomial and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: LinearMonomial): Quantity<LinearMonomial> {
     return Quantity(this.value * rhs, this.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("monomialTimesQuantity")
 operator fun <T : RealNumber<T>> LinearMonomial.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this * rhs.value, rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("monomialDivQuantity")
 operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this / rhs.value, rhs.unit.reciprocal())
@@ -1259,16 +1324,19 @@ operator fun <T : RealNumber<T>> LinearMonomial.div(rhs: Quantity<T>): Quantity<
 
 // quantity monomial and quantity
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityTimesQuantityMonomial")
 operator fun <T : RealNumber<T>> Quantity<T>.times(rhs: Quantity<LinearMonomial>): Quantity<LinearMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialTimesQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.times(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this.value * rhs.value, this.unit * rhs.unit)
 }
 
+@Deprecated("Use bridge layer operators with math.symbol types instead")
 @JvmName("quantityMonomialDivQuantity")
 operator fun <T : RealNumber<T>> Quantity<LinearMonomial>.div(rhs: Quantity<T>): Quantity<LinearMonomial> {
     return Quantity(this.value / rhs.value, this.unit / rhs.unit)

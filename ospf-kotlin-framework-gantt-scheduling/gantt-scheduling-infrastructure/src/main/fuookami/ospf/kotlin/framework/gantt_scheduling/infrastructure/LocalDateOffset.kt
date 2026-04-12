@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlinx.datetime.*

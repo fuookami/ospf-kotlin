@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel

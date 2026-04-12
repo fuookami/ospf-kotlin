@@ -1,4 +1,6 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
+@file:Suppress("DEPRECATION")
+
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq

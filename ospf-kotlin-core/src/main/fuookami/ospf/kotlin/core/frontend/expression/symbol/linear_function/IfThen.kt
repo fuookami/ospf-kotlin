@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
 package fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function
 
 import fuookami.ospf.kotlin.core.frontend.expression.monomial.times

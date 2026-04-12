@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
