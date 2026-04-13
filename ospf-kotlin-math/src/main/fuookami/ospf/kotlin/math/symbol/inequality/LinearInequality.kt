@@ -138,12 +138,12 @@ infix fun Symbol.ne(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLine
 infix fun Symbol.ge(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
 infix fun Symbol.gt(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
-infix fun Flt64.lt(rhs: Symbol): Flt64LinearInequality = asLinearPolynomial() lt rhs.asLinearPolynomial()
-infix fun Flt64.le(rhs: Symbol): Flt64LinearInequality = asLinearPolynomial() le rhs.asLinearPolynomial()
+infix fun Flt64.lt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Flt64.le(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
 infix fun Flt64.eq(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
 infix fun Flt64.ne(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
-infix fun Flt64.ge(rhs: Symbol): Flt64LinearInequality = asLinearPolynomial() ge rhs.asLinearPolynomial()
-infix fun Flt64.gt(rhs: Symbol): Flt64LinearInequality = asLinearPolynomial() gt rhs.asLinearPolynomial()
+infix fun Flt64.ge(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Flt64.gt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 infix fun Symbol.lt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
 infix fun Symbol.le(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)

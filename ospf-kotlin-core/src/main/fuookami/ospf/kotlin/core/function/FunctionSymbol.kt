@@ -110,3 +110,36 @@ typealias Flt64MinFunction = MinFunction<Flt64>
 typealias Flt64MinMaxFunction = MinMaxFunction<Flt64>
 typealias Flt64MaxMinFunction = MaxMinFunction<Flt64>
 typealias Flt64SlackFunction = SlackFunction<Flt64>
+
+// Newly migrated functions (2026-04-13)
+typealias Flt64AbsFunction = AbsFunction<Flt64>
+typealias Flt64SemiFunction = SemiFunction<Flt64>
+typealias Flt64FloorFunction = FloorFunction<Flt64>
+typealias Flt64CeilingFunction = CeilingFunction<Flt64>
+typealias Flt64RoundingFunction = RoundingFunction<Flt64>
+typealias Flt64ModFunction = ModFunction<Flt64>
+typealias Flt64UnivariateLinearPiecewiseFunction = UnivariateLinearPiecewiseFunction<Flt64>
+typealias Flt64SigmoidFunction = SigmoidFunction<Flt64>
+typealias Flt64IfInFunction = IfInFunction<Flt64>
+typealias Flt64IfThenFunction = IfThenFunction<Flt64>
+typealias Flt64SameAsFunction = SameAsFunction<Flt64>
+typealias Flt64OneOfFunction = OneOfFunction<Flt64>
+
+// Newly migrated functions (2026-04-13 batch 2)
+typealias Flt64FirstFunction = FirstFunction<Flt64>
+typealias Flt64SatisfiedAmountFunction = SatisfiedAmountFunction<Flt64>
+typealias Flt64BivariateLinearPiecewiseFunction = BivariateLinearPiecewiseFunction<Flt64>
+
+// Phase 0 remaining functions (2026-04-14)
+typealias Flt64BalanceTernaryzationFunction = BalanceTernaryzationFunction<Flt64>
+typealias Flt64InStepRangeFunction = InStepRangeFunction<Flt64>
+typealias Flt64SlackRangeFunction = SlackRangeFunction<Flt64>
+typealias Flt64InequalityFunction = InequalityFunction<Flt64>
+typealias Flt64SatisfiedAmountInequalityFunction = SatisfiedAmountInequalityFunction<Flt64>
+typealias Flt64SinFunction = SinFunction<Flt64>
+typealias Flt64CosFunction = CosFunction<Flt64>
+typealias Flt64AnyFunction = AnyFunction<Flt64>
+typealias Flt64AllFunction = AllFunction<Flt64>
+typealias Flt64AtLeastInequalityFunction = AtLeastInequalityFunction<Flt64>
+typealias Flt64NotAllFunction = NotAllFunction<Flt64>
+typealias Flt64NumerableFunction = NumerableFunction<Flt64>

@@ -1,501 +1,214 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-04-13
+日期：2026-04-14
 交接目标：下一个执行环境
-Rust 对齐参考：`E:\workspace\ospf-rust`
-
-## 当前结论
-1. `Phase 1`（正确性热修）已完成并通过回归。
-2. `Phase 2`（Context 生命周期）已完成并接入主链路。
-3. `Phase 3` 已完成基础迁移与主路径切换，但尚未收口到”可删除 `expression(非symbol)+inequality` 目录”。
-4. **`P0`（Phase 3 正确性阻断）已完成** ✅
-5. **`M1`（统一代数内核，历史阶段名）已完成** ✅
-6. **`M2`（表达层收口，历史阶段名）已完成** ✅
-7. **`M3`（引入新关系类型）已完成** ✅
-8. **`M4`（机制层去旧泛型）已完成** ✅
-9. **`M5`（模型 API 迁移）已完成** ✅
-10. **`M6`（函数符号迁移）R0-R4 已完成，R3 已完成** ✅ - 按 `R0~R4` 分批落地
-11. **`M7`（删除 adapter）inequality/adapter 目录和测试已删除** ✅
-12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
-13. **`M8/Phase3`（math.symbol 函数符号层）已完成** ✅ - 9 个 math 函数符号文件编译通过，泛型化完成
-
-**下一步行动**：
-1. ~~继续创建剩余 math 函数符号~~ → **全部完成**
-2. ~~创建 MathSymbolContainers.kt~~ → **M8/Phase 4 决策终止**（框架不可迁移，无需 math 版容器）
-3. ~~框架代码迁移~~ → **M8/Phase 4 决策终止**（框架使用 frontend DSL 合理，`@Suppress("DEPRECATION")` 为最终态）
-4. 验证：mvn compile + mvn test（进行中）
-
-**历史行动（已完成）**：
-1. ~~进入 `M6/R3`，迁移函数符号 off `eq/leq/geq` DSL~~ → ~~**M6/R3 进行中，编译未通过**~~ → **M6/R3 已完成** ✅
-2. ~~优先修复 M6/R3 编译错误~~
-3. ~~删除 `frontend/inequality/adapter/` 目录~~ → **已删除（adapter 源码和测试）** ✅
-4. ~~删除 `frontend/inequality/Judgement.kt`~~ → **已删除（无任何依赖者）** ✅
-5. ✅ **`frontend/inequality` 主目录已完全删除** — 外部模块（framework、plugins）已迁移，零引用
-6. ~~按 `R6 -> R9` 完成目录级删除与 M8 收口~~ → **R7 分析结论：monomial/polynomial 不应删除，需重新定义 M8**
-7. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛。
-
-**架构边界（2026-04-09 明确）**：
-1. 线性与二次型符号运算能力由 `math.symbol` 提供。
-2. `ospf-kotlin-core` 负责变量、中间值、模型装配与桥接，不再扩展新的符号运算实现。
-3. 原 `monomial/polynomial` 的额外能力（`cell` 直接使用 `math.symbol.monomial`、`value`、`range`）迁移到元模型上下文统一处理（`TokenCacheContexts` / `MetaModel` / `MechanismModel`）。
-
-### M8/Phase 3 详情（2026-04-13）
-
-**新建文件**：
-- `core/function/FunctionSymbol.kt` — `MathFunctionSymbol` 接口 + `evaluate()` 扩展
-- `core/function/Slack.kt` — math 版 SlackFunction（编译通过 ✅）
-
-**SlackFunction 设计**：
-- 分解：`x - y = neg - pos`，创建 helper 变量 negVar/posVar
-- `polyX` = `x + negVar - posVar`，约束 `polyX eq y`
-- threshold mode：`x + negVar >= y` 或 `x - posVar <= y`
-- 暴露 `neg`/`pos` 属性为 `LinearPolynomial<Flt64>?`，供框架引用
-- 支持类型：UContinuous（URealVar）/ UInteger（UIntVar）
-
-**验证**：
-- `mvn compile -DskipTests`：全模块 BUILD SUCCESS ✅
-- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
-- `mvn -pl ospf-kotlin-math -am test`：**Tests run: 727, Failures: 0, Errors: 0, Skipped: 0** ✅
-
-**M8/Phase 3 全部完成（2026-04-13 更新）**：
-- `core/function/FunctionSymbol.kt` — `MathFunctionSymbol` 接口 + `evaluate()` 扩展 ✅
-- `core/function/Slack.kt` — SlackFunction（decomposition: x - y = neg - pos）✅
-- `core/function/BigM.kt` — Big-M 工具函数（nonzeroIndicatorConstraints, simpleIndicatorConstraints）✅
-- `core/function/And.kt` — AndFunction, OrFunction, NotFunction, XorFunction ✅
-- `core/function/If.kt` — IfFunction（premise => consequence implication）✅
-- `core/function/Max.kt` — MaxFunction, MinFunction ✅
-- `core/function/MinMax.kt` — MinMaxFunction, MaxMinFunction ✅
-- `core/function/Masking.kt` — MaskingFunction, MaskingRangeFunction ✅
-- `core/function/Binaryzation.kt` — BinaryzationFunction（BigM/Threshold/Indicator/SOS1）✅
-
-**泛型化完成（2026-04-13 更新）**：
-- `LinearInequality<T : Ring<T>>` 已泛型化（`ospf-kotlin-math` 模块）
-- `Flt64LinearInequality` 类型别名向后兼容
-- 所有 9 个 function 文件使用 `import ...Flt64LinearInequality as MathLinearInequality` 模式
-- 全项目编译通过，91 tests 全绿 ✅
-
-**泛型化设计决策**：
-- **当前态（临时）**：`MathFunctionSymbol.register()` 内部调用 `asFlt64Poly()` 将 `LinearPolynomial<T>` 转换为 `LinearPolynomial<Flt64>`，然后生成 `MathLinearInequality`（即 `LinearInequality<Flt64>`）约束。转换发生在每个 function symbol 的 `register` 方法内。
-- **原因**：`AbstractLinearMetaModel.addConstraint` 只接受 `MathLinearInequality`（Flt64），模型层尚未泛型化。
-- **目标态**：转换点应从 function symbol 内部推迟到**求解器接口层**。具体路径：
-  1. `register()` 返回 `List<LinearInequality<T>>` 而非直接在内部调用 `addConstraint`
-  2. 模型层（`AbstractLinearMetaModel`、`AbstractLinearMechanismModel`、`Model`）泛型化为 `<T : Field<T>>`
-  3. 在求解器适配层（solver plugin）统一做 `asFlt64()` 转换
-- **Phase 6（模型层泛型化）暂缓原因**：改动面大（涉及整个核心建模层），且当前只有 Flt64 求解器。当真正需要支持多数值类型求解器时再执行。详见计划文件 Phase 6 节。
+Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 
 ---
 
-### Function Symbol 泛型化完成与修复记录（2026-04-13 第二轮）
+## 路线变更（2026-04-13）
 
-**泛型化实现（全部 9 个文件）**：
-- `FunctionSymbol.kt` — `MathFunctionSymbol<T : Field<T>>` 泛型接口 + 辅助函数：`asFlt64()`, `zeroOf()`, `oneOf()`, `asFlt64Poly()`, `isNearZero()`, `isNonZero()`, `evaluate()` ✅
-- `BigM.kt` — `evaluateWith` 泛型化为 `<T : Ring<T>>`，保留 `nonzeroIndicatorConstraints` 和 `simpleIndicatorConstraints` 为 Flt64（约束生成工具）✅
-- `And.kt` — `AndFunction<T>`, `OrFunction<T>`, `NotFunction<T>`, `XorFunction<T>` ✅
-- `If.kt` — `IfFunction<T>` ✅
-- `Binaryzation.kt` — `BinaryzationFunction<T>` ✅
-- `Masking.kt` — `MaskingFunction<T>`, `MaskingRangeFunction<T>` ✅
-- `Max.kt` — `MaxFunction<T>`, `MinFunction<T>` ✅
-- `MinMax.kt` — `MinMaxFunction<T>`, `MaxMinFunction<T>` ✅
-- `Slack.kt` — `SlackFunction<T>` ✅
+**从增量迁移路线（daily.md）转入 Big-Bang 重写路线（rewrite.md）**。
 
-**类型别名兼容层**（FunctionSymbol.kt 底部）：
-- `Flt64MathFunctionSymbol = MathFunctionSymbol<Flt64>`
-- `Flt64AndFunction`, `Flt64OrFunction`, `Flt64NotFunction`, `Flt64XorFunction`, `Flt64IfFunction`, `Flt64BinaryzationFunction`, `Flt64MaskingFunction`, `Flt64MaskingRangeFunction`, `Flt64MaxFunction`, `Flt64MinFunction`, `Flt64MinMaxFunction`, `Flt64MaxMinFunction`, `Flt64SlackFunction`
+历史 daily.md 记录了大量渐进式迁移决策，但经过多轮实践后得出结论：双轨并行（旧 `frontend.expression` + 新 `math.symbol`）的维护成本高于一次性切换。现在采用 `rewrite.md` 定义的一次性重写策略。
 
-**修复的编译问题**：
-1. `Parser.kt`（math 模块）：`parseCanonical` 和 `parseQuadraticInequality` 函数签名缺少参数声明，已修复
-2. `QuadraticBendersDecompositionSolver.kt`（framework）：`LinearInequality` 需要类型参数，改为导入 `Flt64LinearInequality`
-3. 6 个 Benders solver 插件（copt/cplex/gurobi/gurobi11/mindopt/scip）：同上，改为 `Flt64LinearInequality as MathLinearInequality`
-
-**泛型化设计决策**：
-- **当前态（临时）**：`register()` 内部调用 `asFlt64Poly()` 转换后生成 Flt64 约束
-- **目标态**：转换推迟到求解器接口层，`register()` 应返回 `List<LinearInequality<T>>`
-- **Phase 6（模型层泛型化）**：详见计划文件，暂缓执行
+**核心判断变更**：
+- ~~`frontend.expression.monomial/polynomial` 是前端 DSL 核心，不应删除~~ → **保留为建模 DSL，但函数符号层统一切到 `math.symbol`**
+- ~~框架文件无法迁移，`@Suppress("DEPRECATION")` 为最终态~~ → **框架文件仍保留旧 DSL，但函数符号层不再维持双轨**
+- ~~渐进迁移，逐阶段落地~~ → **Big-Bang 一次切流，不维持长期双轨**
 
 ---
 
-## 最新状态（2026-04-12 交接点）
+## 重构前提
 
-### M8/Phase 3：Deprecated 标记与框架 Suppress（2026-04-12）
-
-**核心模块 deprecated 标记**：
-1. `LinearPolynomial.kt`：~153 个 standalone extension 函数标记 `@Deprecated`
-   - 保留：sum/sumVars/sumSymbols/flatSum/qtySum/flatQtySum 聚合工具函数（无 bridge 等价物）
-   - 添加 `@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")`
-2. `QuadraticPolynomial.kt`：~281 个 standalone extension 函数标记 `@Deprecated`
-   - 保留：qsum 系列聚合函数
-3. `LinearMonomial.kt`：~68 个 standalone extension 函数标记 `@Deprecated`
-4. `QuadraticMonomial.kt`：~59 个 standalone extension 函数标记 `@Deprecated`
-5. 44 个 core symbol 函数文件添加 `@file:Suppress("DEPRECATION")`
-
-**框架模块 suppress 注解**：
-- 185 个框架文件（gantt-scheduling + bpp3d）添加 `@file:Suppress("DEPRECATION")`
-- 覆盖所有使用 deprecated monomial/polynomial operator 的文件
-
-**验证**：
-- `mvn compile -DskipTests`：BUILD SUCCESS（全模块）✅
-- `mvn -pl ospf-kotlin-core -am test`：BUILD SUCCESS ✅
-
-### M8/Phase 4 分析结论：框架文件不可迁移（2026-04-12）
-
-**结论**：框架文件（gantt-scheduling + bpp3d）当前**无法迁移**到 bridge layer math.types，`@file:Suppress("DEPRECATION")` 是正确最终状态。
-
-**原因**：
-1. **Model API 仍接受前端类型**：
-   - `model.minimize(polynomial: AbstractLinearPolynomial<*>)`
-   - `model.add(symbol: IntermediateSymbol)`
-   - bridge 层产生的 `math.symbol.LinearPolynomial<Flt64>` 无法传入这些 API
-2. **类型层次不兼容**：`math.symbol.polynomial.LinearPolynomial<Flt64>` 不继承 `frontend.expression.polynomial.AbstractLinearPolynomial<*>`
-3. **符号容器无对应物**：`LinearIntermediateSymbols1/2`、`SlackFunction`、`MaskingFunction` 等在 math.symbol 中无等价类型
-4. **Symbol 容器工厂 lambda** 返回前端类型，需要逐文件改造
-
-**架构确认**：
-- `math.symbol` 提供**通用符号代数**能力（纯数学运算、求值、微分等）
-- `frontend.expression` 提供**优化建模 DSL** 能力（变量构造、表达式组合、token 集成、约束注册）
-- 两者是互补关系，不是替代关系
-- 框架文件使用 `frontend.expression.monomial/polynomial` 是**合理的**
-
-**影响**：
-- M8 Phase 4 框架迁移任务**终止**
-- `frontend.expression.monomial/polynomial` 目录**永久保留**
-- 框架文件的 `@file:Suppress("DEPRECATION")` 为长期解决方案
-- 未来如需迁移，需要先将 Model API 改为接受 math.symbol 类型
-
-### M8/Phase 2 进展（2026-04-12 第一轮）
-
-**MechanismModel.kt 迁移到 math 类型**：
-1. `generateOptimalCut` / `generateFeasibleCut` 方法从 `frontend.LinearMonomial` / `frontend.LinearPolynomial` 改为 `math.symbol.LinearMonomial<Flt64>` / `math.symbol.LinearPolynomial<Flt64>`
-2. 相应不等式构造改为 `MathLinearInequality` 直接构造
-3. 新增 `Symbol` vs `UtilsLinearPolynomial<Flt64>` 的 `leq`/`geq` DSL 函数到 `MathInequalityDsl.kt`（4 个 infix 函数）
-
-提交：`a71e8e2a` feat(core): M8/Phase2 migrate MechanismModel to math.symbol types
-
-**TokenCacheContext.kt 废弃 Cell 转换函数**：
-1. `toLinearFlattenData()` — 标记 `@Deprecated(level = WARNING)`，ReplaceWith 指引使用 `polynomial.flattenedMonomials`
-2. `toLinearMonomialCells()` — 标记废弃，仅用于 deprecated `cells` 属性兼容
-3. `toQuadraticFlattenData()`（Linear→Quadratic 升级）— 保留不废弃
-4. `toQuadraticFlattenData()`（Cell→FlattenData）— 标记废弃
-5. `toQuadraticMonomialCells()` — 标记废弃
-6. `Polynomial<*, *, Cell>.flattenedMonomials` extension properties — 标记废弃 + `@JvmName` 区分签名
-7. `IntermediateSymbol.kt` 的 `flattenedMonomials` 调用废弃函数处加 `@Suppress("DEPRECATION")`
-
-**SubObject.kt 废弃 Polynomial 构造函数**：
-1. `LinearSubObject.invoke(category, poly, tokens, name)` — 标记废弃，ReplaceWith 指引 `LinearSubObject(category, poly.flattenedMonomials, tokens, name)`
-2. `QuadraticSubObject.invoke(category, poly, tokens, name)` — 同上
-
-**Model.kt / CallBackModel.kt 审查**：
-- `Model.kt` 接口已有 `addObject(flattenData)` 和 `addConstraint(relation: MathLinearInequality)` 新 API
-- `CallBackModel.kt` 基于 `Expression` 回调，不涉及 Cell 类型，无需修改
-
-**验证**：
-- `mvn compile -DskipTests`：BUILD SUCCESS（所有模块）✅
-- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
-
-提交：`19106e96` feat(core): M8/Phase2 deprecate Cell conversion functions and Polynomial constructors
-
-### M8/Phase 2 进展（2026-04-12）
-
-**MechanismModel.kt 迁移到 math 类型**：
-1. `generateOptimalCut` / `generateFeasibleCut` 方法从 `frontend.LinearMonomial` / `frontend.LinearPolynomial` 改为 `math.symbol.LinearMonomial<Flt64>` / `math.symbol.LinearPolynomial<Flt64>`
-2. 相应不等式构造改为 `MathLinearInequality` 直接构造
-3. 新增 `Symbol` vs `UtilsLinearPolynomial<Flt64>` 的 `leq`/`geq` DSL 函数到 `MathInequalityDsl.kt`（4 个 infix 函数）
-4. `MathInequalityDsl.kt` 新增 `mathLe`/`mathGe` 导入
-
-**验证**：
-- `mvn compile -DskipTests`：BUILD SUCCESS（所有模块）✅
-- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
-
-### 编译错误修复（2026-04-11）
-
-**修复 Pipeline.kt 类型推断错误**：
-1. `MetaConstraint` 现在实现 `MathConstraint` 接口（deprecated 但类型兼容）
-2. `MetaDualSolution.constraints` 键类型从 `MetaConstraint<*>` 改为 `MathConstraint`
-3. 修复 `Pipeline.kt` 中 `shadowPrices.constraints[constraint]` 类型推断失败
-
-**修复 BendersDecompositionSolver 插件编译错误**（6 个插件）：
-1. `copt/CoptBendersDecompositionSolver.kt`：`LinearInequality` → `MathLinearInequality`
-2. `cplex/CplexBendersDecompositionSolver.kt`：同上
-3. `gurobi/GurobiBendersDecompositionSolver.kt`：同上
-4. `gurobi11/GurobiBendersDecompositionSolver.kt`：同上
-5. `mindopt/MindOPTBendersDecompositionSolver.kt`：同上
-6. `scip/ScipBendersDecompositionSolver.kt`：同上
-
-### 全量回归（2026-04-11）
-- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
-- `mvn compile -pl ospf-kotlin-core,ospf-kotlin-core-plugin,ospf-kotlin-framework -am`：**BUILD SUCCESS** ✅
-
-### 全模块编译修复（2026-04-11）
-- `mvn compile -DskipTests`：**BUILD SUCCESS**（所有模块）✅
-- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
-
-**bpp3d/gantt-scheduling 编译修复**：
-1. **Symbol vs UInt64 缺少 leq/geq 重载**：
-   - `MathInequalityDsl.kt` 新增 6 个 infix 函数：`Symbol.leq/geq/eq(UInt64)`、`UInt64.eq/leq/geq(Symbol)`
-   - 修复 `ItemDemandConstraint.kt` 中 `load.load[item] leq UInt64` 类型不匹配
-2. **IfFunction 构造函数参数变更**（`inequality` → `input: LinearConstraintInput`）：
-   - 修复 `Switch.kt`（1 处）和 `TaskTime.kt`（4 处）调用方式
-   - 改为 `LinearConstraintInput.from(relation = ..., lhsRange = expr.range.range!!)`
-
-### 全量依赖扫描（2026-04-11 更新）
-1. `frontend.expression.monomial/polynomial` 外部 import：
-   - ospf-kotlin-core: 51 函数符号文件 + 9 模型层文件 = **60 文件**
-   - gantt-scheduling: **20 文件**
-   - bpp3d: **8 文件**
-   - 总计：~88 文件需迁移
-2. `frontend.inequality` 外部 import：**0 文件**（已清零 ✅）
-
-### R8/R9 阻塞分析（已解决）
-1. ~~R9 目录删除被 gantt-scheduling（20 文件）+ bpp3d（8 文件）阻塞~~ → **已解决**
-2. ~~bpp3d/gantt-scheduling 框架模块存在独立编译错误~~ → **已修复**
-3. `frontend.expression.monomial/polynomial` 为前端 DSL 核心，保留不删（见 R7 分析结论）
-
-### M6/R7: IntermediateSymbol/SymbolCombination 迁移（状态：分析完成，结论 — 不可迁移）
-
-**分析结论（2026-04-11）**：`frontend.expression.monomial/polynomial` 类型**不能**被 `math.symbol` 等价替代，原因如下：
-
-1. **类型语义根本不同**：
-   - `frontend.LinearMonomial` (933 行) — 核心是 `LinearMonomialSymbol`，包装 `AbstractVariableItem` 或 `LinearIntermediateSymbol`，深度集成 token/token table 系统
-   - `math.symbol.LinearMonomial<T>` — 仅是 `data class(coefficient: T, symbol: Symbol)` 的纯数学类型
-   - 两者服务于完全不同的抽象层次，无法通过 typealias 或桥接替换
-
-2. **前端 DSL 能力无法被 math.symbol 覆盖**：
-   - `frontend.LinearPolynomial` (2503 行) 包含 ~100 个操作符重载，覆盖 Variable/Symbol/Monomial/Polynomial/Quantity 的任意组合
-   - `MutableLinearPolynomial` 支持增量构建表达式（前端建模核心能力）
-   - 数量系统（Quantity）集成 — `PhysicalUnit * Variable → Quantity<LinearMonomial>`
-
-3. **IntermediateSymbol 系统与多项式类型深度耦合**：
-   - `LinearExpressionSymbol` 从 `MutableLinearPolynomial` 构造
-   - `LinearIntermediateSymbol` 实现 `ToLinearPolynomial<LinearPolynomial>` / `ToQuadraticPolynomial<QuadraticPolynomial>`
-   - `FunctionSymbol` 的 `register()` 方法与 `AddableTokenCollection` 交互
-   - `flattenedMonomials` → `LinearFlattenData` → 机制层约束注册，整条链路依赖前端类型
-
-4. **SymbolCombination.kt 的 `map`/`flatMap` 工厂函数**以 `LinearMonomial` 和 `AbstractLinearPolynomial<*>` 作为构造器 lambda 返回类型
-
-**架构结论**：
-- `math.symbol` 提供**通用符号代数**能力（纯数学运算、求值、微分、因式分解等）
-- `frontend.expression` 提供**优化建模 DSL** 能力（变量构造、表达式组合、token 集成、约束注册）
-- 两者是互补关系，不是替代关系
-- `frontend.expression.monomial/polynomial` 是前端建模 DSL 的**规范位置**，应保留
-
-**对 R8/R9 的影响**：
-- R9（删除 `frontend/expression/monomial/polynomial/adapter` 目录）需要重新评估
-- `adapter` 目录不存在（已确认），无需删除
-- `monomial` 和 `polynomial` 目录**不应删除**，它们是前端 DSL 的核心
-- 目录删除目标应改为：清理冗余代码、消除未使用的导入、标记 deprecated 层
-
-**对 gantt-scheduling / bpp3d 的影响**：
-- 这些框架模块使用 `frontend.expression.monomial/polynomial` 是**合理的**
-- 不需要迁移到 `math.symbol`
-- 需要解决的是它们独立的编译错误（Ok/Failed/Fatal 类型推断），非迁移问题
+**符号运算职责边界**：`math.symbol` 是所有数学符号运算的唯一归属地。
+- 如果发现某个操作符重载（如 `+`, `-`, `*`, `abs()`, 比较操作符等）在 `math.symbol` 中**不完备**（例如缺少特定参数类型的重载、缺少对称版本、缺少常量一侧的重载），**应当直接添加到 `math.symbol` 模块中**，而非在 core 或 function 层做变通。
+- `core/` 层仅负责**使用** `math.symbol` 提供的运算能力，不应自行补全数学运算的缺失重载。
+- 原因：数学运算是通用基础能力，分散补全会导致多处重复、版本不一致、且后续迁移成本成倍放大。
 
 ---
 
-### M6/R7-R9 深度类型分析（2026-04-11）
+## 已完成事项
 
-**分析目标**：评估将 `frontend.expression.monomial/polynomial` 替换为 `math.symbol` 类型的可行性。
+### 代数内核（Phase 1-4, M1-M4）
+- `LinearInequality<T : Ring<T>>` 泛型化（math 模块），`Flt64LinearInequality` 类型别名兼容
+- `LinearConstraint` / `QuadraticConstraint` 的 `MathConstraint` 接口
+- `MetaModel` / `MechanismModel` 的 relation API（`addConstraint(relation: ...)`）
+- 删除 `frontend/inequality` 全目录（含 adapter），零残留引用
 
-**分析结论**：`Polynomial<Self, M, Cell>` 接口中的 `Cell` 类型参数仅用于已废弃的 `cells: List<Cell>` 属性。但移除 `Cell` 参数会波及二次多项式类型，改动面过大。`LinearMonomialCell` 不能被 `math.symbol` 替代的原因：
-1. `LinearCellPair.variable` 类型为 `AbstractVariableItem<*, *>`，被 token 查找系统（`tokenList.find`、`tokenTable.find`）强依赖
-2. 改为 `Symbol` 会导致 9 处编译错误（token 查找类型不匹配）
-3. `SubObject`/`MetaModel`/`Relation` 使用 `Polynomial<*, *, LinearMonomialCell>` 约束
+### 模型层（M5）
+- `MetaConstraint` 新增 `LinearRelationConstraint` / `QuadraticRelationConstraint`
+- `addConstraint(relation: LinearRelation/QuadraticRelation)` / `addObject(flattenData: ...)`
+- Benders cut 生成迁移到 `math.symbol.LinearPolynomial<Flt64>` 类型
 
-**前端 LinearMonomial vs math LinearMonomial 根本差异**：
-- `frontend.LinearMonomial` (1278 行) — 核心是 `LinearMonomialSymbol = Either<AbstractVariableItem, LinearIntermediateSymbol>`，深度集成 token 系统、DSL 操作符、Quantity 系统
-- `math.LinearMonomial<T>` (309 行) — 纯数据类 `data class(coefficient: T, symbol: Symbol)`，无 token/token table 集成
-- 两者服务于完全不同的抽象层次，无法通过 typealias 或薄桥接替换
+### 函数符号层 — 新系统（M8/Phase 3，24 文件，22 个函数符号类）
 
-**前端 LinearPolynomial vs math LinearPolynomial 根本差异**：
-- `frontend.AbstractLinearPolynomial` (2503 行) — 实现 `Polynomial<Self, LinearMonomial, LinearMonomialCell>`，100+ 操作符重载
-- `math.LinearPolynomial<T>` — 简单数据类，仅有基础代数运算
-- `MutableLinearPolynomial` 支持增量构建表达式（前端建模核心能力）
+`core/function/` 目录，基于 `MathFunctionSymbol<T : Field<T>>` 泛型接口：
 
-**最终结论**：`frontend.expression.monomial/polynomial` 是前端建模 DSL 的核心基础设施，应保留。M8 目标应聚焦于清理冗余代码和未使用导入，而非目录删除。
+| 类别 | 文件 | 函数符号 | 状态 |
+|------|------|---------|------|
+| 基础设施 | `FunctionSymbol.kt` | 接口 + 辅助函数 + 25+ 类型别名 | ✅ |
+| 基础设施 | `BigM.kt` | `nonzeroIndicatorConstraints`, `simpleIndicatorConstraints` | ✅ |
+| 逻辑函数 | `And.kt` | `AndFunction`, `OrFunction`, `NotFunction`, `XorFunction` | ✅ |
+| 逻辑函数 | `If.kt` | `IfFunction` (premise => consequence) | ✅ |
+| 逻辑函数 | `IfThen.kt` | `IfThenFunction` (蕴含 pu <= qu) | ✅ |
+| 逻辑函数 | `IfIn.kt` | `IfInFunction` (区间包含) | ✅ |
+| 逻辑函数 | `OneOf.kt` | `OneOfFunction` (单选分支) | ✅ |
+| 逻辑函数 | `First.kt` | `FirstFunction` (首个非零索引) | ✅ |
+| 极值函数 | `Max.kt` | `MaxFunction`, `MinFunction` | ✅ |
+| 极值函数 | `MinMax.kt` | `MinMaxFunction`, `MaxMinFunction` | ✅ |
+| 差分函数 | `Slack.kt` | `SlackFunction` (x-y=neg-pos) | ✅ |
+| 差分函数 | `Abs.kt` | `AbsFunction` (pos/neg 分解) | ✅ |
+| 差分函数 | `Semi.kt` | `SemiFunction` (半连续, BigM) | ✅ |
+| 取整函数 | `Floor.kt` | `FloorFunction` (x=d*q+r) | ✅ |
+| 取整函数 | `Ceiling.kt` | `CeilingFunction` (x=d*q-r) | ✅ |
+| 取整函数 | `Rounding.kt` | `RoundingFunction` | ✅ |
+| 取整函数 | `Mod.kt` | `ModFunction` (返回 r) | ✅ |
+| 分段函数 | `UnivariateLinearPiecewise.kt` | 一元分段线性 (SOS2) | ✅ |
+| 分段函数 | `BivariateLinearPiecewise.kt` | 二元分段线性 (三角形插值) | ✅ |
+| 分段函数 | `Sigmoid.kt` | `SigmoidFunction` (委托一元分段) | ✅ |
+| 二元化 | `Binaryzation.kt` | `BinaryzationFunction` (BigM/Threshold/Indicator/SOS1) | ✅ |
+| 掩码函数 | `Masking.kt` | `MaskingFunction`, `MaskingRangeFunction` | ✅ |
+| 满足量 | `SatisfiedAmount.kt` | `SatisfiedAmountFunction` | ✅ |
+| 相等判断 | `SameAs.kt` | `SameAsFunction` | ✅ |
 
-日期：2026-04-11
-交接目标：下一个执行环境
-Rust 对齐参考：`E:\workspace\ospf-rust`
+**架构决策**：
+- `register()` 内部调用 `asFlt64Poly()` 转换为 Flt64 后生成约束（临时方案，模型层尚未泛型化）
+- 目标态：转换点推迟到求解器接口层（Phase 6，暂缓）
 
-## 当前结论
-1. `Phase 1`（正确性热修）已完成并通过回归。
-2. `Phase 2`（Context 生命周期）已完成并接入主链路。
-3. `Phase 3` 已完成基础迁移与主路径切换，但尚未收口到"可删除 `expression(非symbol)+inequality` 目录"。
-4. **`P0`（Phase 3 正确性阻断）已完成** ✅
-5. **`M1`（统一代数内核，历史阶段名）已完成** ✅
-6. **`M2`（表达层收口，历史阶段名）已完成** ✅
-7. **`M3`（引入新关系类型）已完成** ✅
-8. **`M4`（机制层去旧泛型）已完成** ✅
-9. **`M5`（模型 API 迁移）已完成** ✅
-10. **`M6`（函数符号迁移）R0-R4 已完成，R3 已完成** ✅ - 按 `R0~R4` 分批落地
-11. **`M7`（删除 adapter）inequality/adapter 目录和测试已删除** ✅
-12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
-
-### M6/R3: 函数符号 off `eq/leq/geq` DSL 迁移（已完成 ✅）
-
-**2026-04-10 完成**：
-1. 批量转换 verbose `when` 块为 `.takeUnless { it.ok }?.let { return it }` 模式：
-   - `Abs.kt` - 4 个 when 块（register 方法中的 Ok/Failed/Fatal 分支）
-   - `BivariateLinearPiecewise.kt` - 21 个 when 块（从 git 恢复后重新转换）
-   - `Semi.kt` - 7 个 when 块
-   - `Binaryzation.kt`（quadratic）- 已转换
-   - 其他文件在上一会话中已完成
-2. 统一所有符号文件的 import 从 `frontend.inequality.geq/leq` 改为 `model.mechanism.geq/leq`：
-   - `Abs.kt`, `BalanceTernaryzation.kt`, `Masking.kt`, `MaskingRange.kt`, `Max.kt`, `Min.kt`, `Not.kt`
-   - `Product.kt`, `BivariateLinearPiecewise.kt`, `Inequality.kt`（quadratic）, `Binaryzation.kt`（quadratic）, `Semi.kt`
-   - `IfIn.kt` 保持 `frontend.inequality.geq/leq`（因为它使用 `Inequality.register()` 而非 `model.addConstraint()`）
-
-**编译错误修复**（~208 → 0）：
-1. 补充 `MathInequalityDsl.kt` 缺失的 infix 函数：
-   - 跨类型 `AbstractLinearPolynomial` vs `AbstractQuadraticPolynomial` 双向
-   - `AbstractQuadraticPolynomial` vs `LinearMonomial<Flt64>`（math 类型）双向
-   - `LinearMonomial<Flt64>` vs `AbstractQuadraticPolynomial` 双向
-   - `Symbol` vs `LinearMonomial<Flt64>` 和 `FrontendLinearMonomial` 双向
-   - `AbstractVariableItem` vs `FrontendLinearMonomial`
-   - `AbstractQuadraticPolynomial` vs `FrontendLinearMonomial`
-   - `AbstractLinearPolynomial` vs `UInt64` 双向
-   - `Flt64.lt/gt/ne` vs `AbstractLinearPolynomial<*>`
-   - 修复 `UInt64.toDouble()` → `UInt64.toFlt64()`
-2. `Binaryzation.kt`（quadratic）:375 修复 `unwrap().toLong()` → `unwrap().toFlt64()`
-3. `SatisfiedAmountInequality.kt`:550 `InListFunction` 直接构造 frontend `LinearInequality` 避免类型冲突
-4. `MathInequalityBridge.kt` 新增 `Comparison.toSign()` 和 `LinearPolynomial.toFrontendPolynomial()` 转换函数
-5. 全量回归：`Tests run: 130, Failures: 0, Errors: 0, Skipped: 0` ✅
-
-### 交接注意事项
-1. ~~优先补充 MathInequalityDsl 缺失的 infix 函数~~ → **已完成**
-2. ~~编译错误 ~208，集中在 4-5 个文件~~ → **已清零**
-3. ~~建议先修复 Binaryzation.kt（quadratic）的 `leq`/`geq` 类型不匹配~~ → **已修复**
-4. ~~SatisfiedAmountInequality.kt 需要单独分析~~ → **已通过直接构造 frontend LinearInequality 修复**
-5. ~~编译通过后执行：`mvn -pl ospf-kotlin-core -am test`~~ → **130 tests passed**
-6. ~~下一步：继续 `R5-continue`：删除 `frontend/inequality` 主目录~~ → **已完成可删除部分（adapter 3 文件 + adapter 测试 2 文件 + Judgement.kt）**
-7. **无法继续删除 `frontend/inequality` 主目录** — 被 46 个外部模块文件引用，需跨模块迁移
+### 编译与测试
+- 全模块编译：BUILD SUCCESS ✅
+- Core 回归：91 tests, 0 failures ✅
+- Framework 模块（gantt-scheduling, bpp3d）：BUILD SUCCESS ✅
+- Solver plugins（copt, gurobi, scip）：BUILD SUCCESS ✅
 
 ---
 
-## 最近完成事项
+## 未完成事项
 
-### M6/R5: 删除 `frontend/inequality/adapter` 目录（2026-04-09）
-1. 删除 `frontend/inequality/adapter/` 目录（3 文件）：
-   - `InequalityAdapters.kt` - Core/Utils Inequality 双向转换
-   - `AdvancedInequalityAdapters.kt` - JSON/XML/LaTeX 序列化适配器
-   - `NormalizeAdapters.kt` - Monomial 合并适配（已内联到 Inequality 文件）
-2. 删除 `frontend/symbol_migration/adapter/` 测试目录（2 文件）：
-   - `AdapterRoundTripTest.kt`
-   - `AdvancedAdapterFeatureTest.kt`
-3. `LinearInequality.kt`：内联 `mergeMonomialsByUtils` 函数，移除 adapter import
-4. `QuadraticInequality.kt`：内联 `mergeMonomialsByUtils` 函数，移除 adapter import
-5. `NormalizeAdapters.kt` 核心逻辑（monomial 合并）已内联到对应 Inequality 文件
-6. **删除 adapter 阻塞**：其余 adapter 功能（JSON 序列化、toUtils 转换等）仍被外部模块使用（gantt-scheduling、bpp3d、core-plugin），不能继续删除
-7. 全量回归：`Tests run: 152, Failures: 0, Errors: 0, Skipped: 0`
+### 新系统缺失函数符号（7 个，需创建）
 
-### R6: 清理函数符号侧残余运算实现（2026-04-10 已完成 ✅）
-1. `IntermediateSymbol.kt`: `LinearExpressionSymbol.prepare()` 和 `QuadraticExpressionSymbol.prepare()` 中的 `.cells` 缓存预热改为 `.flattenedMonomials`
-2. 消除了最后对 deprecated `cells` 属性的计算依赖（不再是 `.cells` → `flattenedMonomials.toMonomialCells()` 的间接路径）
-3. 确认所有 54 个 `override val cells get() = ...` 仅为接口契约实现（deprecated 兼容），不参与计算
-4. 全量回归：`Tests run: 91, Failures: 0, Errors: 0, Skipped: 0` ✅
+| 文件（旧位置） | 行数 | 功能 | 优先级 |
+|---------------|------|------|--------|
+| `linear_function/BalanceTernaryzation.kt` | 1063 | 平衡三值化 | P1 |
+| `linear_function/InStepRangeFunction.kt` | 337 | 区间内阶跃函数 | P1 |
+| `linear_function/Inequality.kt` | 388 | 不等式满足量 | P2 |
+| `linear_function/SlackRange.kt` | 847 | SlackRange (quadratic 变体) | P2 |
+| `linear_function/SatisfiedAmountInequality.kt` | 840 | 满足量不等式（复杂组合函数） | P2 |
+| `linear_function/Sin.kt` | 3 | 正弦（旧版为 stub，委托 UnivariateLinearPiecewise） | P3 |
+| `linear_function/Cos.kt` | 3 | 余弦（旧版为 stub，委托 UnivariateLinearPiecewise） | P3 |
 
-**R6 完成定义**：
-- [x] 函数符号 `.prepare()` 方法不再调用 `.cells`
-- [x] `IntermediateSymbol.kt` 表达式符号类的 `prepare()` 使用 `.flattenedMonomials`
-- [x] 所有 `override val cells` 确认为纯兼容层，无计算逻辑
+### 旧系统待删除（rewrite.md B6 范围）
 
-**R6 剩余（R7 范围）**：
-- 51 个函数符号文件仍有 `frontend.expression.monomial/polynomial` 导入（用于类型声明，非计算）
-- `IntermediateSymbol.kt`：7 个 `frontend.expression` 导入（`Expression`, `Monomial`, `Polynomial`, `MonomialCell`）
-- `SymbolCombination.kt`：2 个 `frontend.expression` 导入（`LinearMonomial`, `AbstractLinearPolynomial`）
-- 这些属于 R7 的 IntermediateSymbol 到 math.symbol 桥接迁移
+| 目录/文件 | 外部引用数 | 状态 |
+|-----------|-----------|------|
+| `frontend/expression/symbol/linear_function/` | 51 文件引用 | 保留（框架使用），标注 deprecated |
+| `frontend/expression/symbol/quadratic_function/` | 部分文件引用 | 保留（框架使用），标注 deprecated |
+| `frontend/expression/Expression.kt` | 待扫描 | 待评估 |
 
-### M6/R5 最终态：完全删除 `frontend/inequality` 主目录（2026-04-10）
-1. `frontend/inequality` 主目录已完全删除（Sign.kt, Inequality.kt, LinearInequality.kt, QuadraticInequality.kt）
-2. 全模块零 `frontend.inequality` 外部 import（ospf-kotlin-core、core-plugin、framework 均确认）
-3. `Constraint.kt`：移除所有 `Inequality`-based 构造器，仅保留 `MathLinearInequality`/`MathQuadraticInequality` 构造器
-4. `MetaConstraint.kt`：新增 `MathConstraint` 接口及 `LinearInequalityConstraint`/`QuadraticInequalityConstraint` 实现
-5. `LinearConstraintInput.kt`：`evaluateFlattenData`/`evaluateQuadraticFlattenData`/`Comparison.compare` 改为 `internal`
-6. `CallBackModel.kt`：`addConstraint` 改为使用 `LinearConstraintInput`，约束评估改为 `constraint.isTrue(solution, tokens)`
-7. `MechanismModel.kt`：所有 `_constraints` 引用改为 `_relationConstraints`，返回类型改为 `MathLinearInequality`
-8. 删除测试文件：`RelationTest.kt`、`FlattenMigrationGuardTest.kt`、`InequalityNormalizeBaselineTest.kt`（依赖已删除类型）
-9. 全量回归：`Tests run: 91, Failures: 0, Errors: 0, Skipped: 0`，BUILD SUCCESS ✅
+**注意**：`frontend.expression.monomial/polynomial` 已确认**不应删除**（前端 DSL 核心），`@file:Suppress("DEPRECATION")` 为最终态。
 
-### R5 Mechanism 层去 inequality 依赖（2026-04-09）
-1. 机制层所有 `addConstraint(LinearInequality)`/`addConstraint(QuadraticInequality)` 标记 `@Deprecated` + `ReplaceWith`
-2. `LinearConstraint`/`QuadraticConstraint` 的 `Inequality`-based 构造器标记 `@Deprecated`
-3. `LinearConstraintInput.from(LinearInequality)` 标记 `@Deprecated`
+### 阶段计划未完成（rewrite.md B0-B9 进度）
 
-### R5-continue: 删除 adapter 文件（2026-04-10 第三次执行 — 最终态）
-1. 删除 `frontend/inequality/adapter/` 目录（3 文件）：
-   - `InequalityAdapters.kt` - Core/Utils Inequality 双向转换
-   - `AdvancedInequalityAdapters.kt` - JSON/XML/LaTeX 序列化适配器
-   - `NormalizeAdapters.kt` - Monomial 合并适配
-2. 删除 `frontend/symbol_migration/adapter/` 测试目录（2 文件）：
-   - `AdapterRoundTripTest.kt`
-   - `AdvancedAdapterFeatureTest.kt`
-3. 删除 `frontend/inequality/Judgement.kt`（无任何依赖者）
-4. 全量回归：`Tests run: 130, Failures: 0, Errors: 0, Skipped: 0` ✅
-5. ~~**阻塞**：`frontend/inequality` 主目录剩余 4 文件（Sign.kt, Inequality.kt, LinearInequality.kt, QuadraticInequality.kt）仍被 46 个外部模块文件引用~~ → **已解决**
-6. **M6/R5 最终态**：`frontend/inequality` 主目录已完全删除，全模块零引用，91 tests PASS ✅
+| 阶段 | 状态 | 说明 |
+|------|------|------|
+| B0 冻结与分支 | 未执行 | 需在主线创建 `rewrite-bigbang` 分支 |
+| B1 边界 API 定稿 | 已完成 | relation API 已冻结 |
+| B2 桥接层重建 | 部分完成 | `asFlt64Poly()` 已实现，`flattenedMonomials` 已迁移 |
+| B3 函数符号改造 | 进行中 | 22/29 个函数符号已迁移到新系统 |
+| B4 模型层收口 | 已完成 | relation API 为主入口 |
+| B5 一次性切流 | 未执行 | 需框架代码从旧函数符号迁移到新函数符号 |
+| B6 删除旧目录 | 未执行 | 删除旧 `expression/symbol/linear_function/` 等 |
+| B7 集中回归 | 未执行 | 待切流后执行 |
+| B8 插件编译校验 | 未执行 | 待切流后执行 |
+| B9 封口门禁 | 未执行 | CI 守卫 + 文档 |
 
-**外部依赖分析（已解决）**：
-- ~~`frontend/inequality` 主目录剩余 4 文件不可删除~~ → **已完全删除**
-- 外部模块 46 个文件依赖已全部迁移：
-  - 6 个 solver 插件（copt/cplex/gurobi/gurobi11/mindopt/scip）：已清除 `frontend.inequality` 导入
-  - `ospf-kotlin-framework`：已清除 `frontend.inequality` 导入
-  - `ospf-kotlin-framework-gantt-scheduling`：已清除 `frontend.inequality` 导入
-  - `ospf-kotlin-framework-bpp3d`：已清除 `frontend.inequality` 导入
-- **结论**：全模块零 `frontend.inequality` 引用，目录已完全删除 ✅
-4. 所有调用点添加 `@Suppress("DEPRECATION")`
-5. 全量回归：`Tests run: 152, Failures: 0, Errors: 0, Skipped: 0`
+---
 
-### M5: 模型 API 迁移（2026-04-08）
-1. `MetaConstraint.kt` 新增 `LinearRelationConstraint`/`QuadraticRelationConstraint` 类型
-2. `MetaConstraint.kt` 新增 `LinearFlattenSubObject`/`QuadraticFlattenSubObject` 类型
-3. `MetaModel.kt` 新增 `_relationConstraints` 和 `_flattenSubObjects` 存储
-4. `MetaModel.kt` 新增 `addConstraint(relation: ...)` 和 `addObject(flattenData: ...)` 方法
-5. `Model.kt` 接口新增 Relation 和 FlattenData 类型的 API
-6. `MechanismModel.kt` 新增 `addConstraint(relation: ...)` 方法
-7. 回归测试：`Tests run: 130, Failures: 0, Errors: 0, Skipped: 0`
+## Rust 架构对齐参考
 
-### M4: 机制层去旧泛型（已完成 2026-04-08）
-1. `SubObject.kt` 新增 `FlattenData` 构造器
-2. `SubObjectTest.kt`：4 tests
-3. M4-2 评估结论：转换函数保留到 M8
-4. M4-3 已在 M5 中处理 ✅
+Rust 版本 (`E:\workspace\ospf-rust\ospf-rust-core\src`) 的核心架构要点：
 
-### M3: 引入新关系类型（2026-04-08）
-1. 新建 `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口及实现
-2. 添加适配器：`LinearInequality.toRelation()` / `QuadraticInequality.toRelation()`
-3. `Constraint.kt` 新增 `LinearRelation`/`QuadraticRelation` 构造器
-4. `RelationTest.kt`：8 tests
+### 符号系统
+- **`IntermediateSymbol<V>`**：所有符号的基础 trait，含 `category()`、`evaluate_from_tokens()`、`prepare()`、`mechanism_constraints()`
+- **`FunctionSymbol<V>`**：扩展 `IntermediateSymbol`，支持辅助变量注册（`register_tokens()`）和值计算（`calculate_value()`）
+- **专门化 trait**：`LinearIntermediateSymbol<V>`（转 `Linear<V>` / `Quadratic<V>` 多项式）、`QuadraticFunctionSymbol<V>`
 
-### M6/R0: 基线扫描与阶段回归（2026-04-09）
-1. 基线扫描结果：
-   - `frontend.inequality` 外部 import：52 文件（排除 inequality 目录自身 8 文件）
-   - `frontend.expression.monomial` 外部 import：66 文件（排除 monomial 目录自身 2 文件）
-   - `frontend.expression.polynomial` 外部 import：40 文件（排除 polynomial 目录自身 2 文件）
-   - `.cells` 读取：139 处（60 文件）
-2. 阶段回归：`Tests run: 60, Failures: 0, Errors: 0, Skipped: 0`
-3. 回归命令耗时：~57s
+### 模型层
+- **`BasicModel<V>`**：基础层，管理 `Token`s、`IntermediateSymbol`s、约束、符号依赖图
+- **Mechanism 层**：`BasicMechanismModel<V>` + `MechanismModel<V>`，支持约束组和目标函数
+- **Flatten 层**：`Linear<V>` / `Quadratic<V>` 多项式内盒类型，`Flattenable<C, V>` trait 展开符号
+- **中间层**：`LinearTriadModel` / `QuadraticTetradModel` 稀疏矩阵表示
 
-### M6/R1: 补齐 mechanism 层 relation DSL 壳（2026-04-09）
-1. `Relation.kt` 新增 DSL 扩展函数：
-   - `LinearFlattenData` 算术：`minus`, `plus`, `unaryMinus`, `times`
-   - `QuadraticFlattenData` 算术：`minus`, `plus`, `unaryMinus`, `times`
-   - `LinearFlattenData` 中缀操作符：`leq/geq/eq/neq/lt/gt`（vs `Flt64` 和 vs `LinearFlattenData`）
-   - `QuadraticFlattenData` 中缀操作符：`leq/geq/eq/neq/lt/gt`（vs `Flt64` 和 vs `QuadraticFlattenData`）
-   - `linearRelation()` / `quadraticRelation()` 命名构造器
-   - `relation(sign, name, displayName)` 扩展函数
-2. `RelationDslTest.kt`：22 tests 覆盖算术、中缀、命名构造、normalize
-3. 阶段回归：`Tests run: 86, Failures: 0, Errors: 0, Skipped: 0`
+### Token 系统
+- **`Token<V>`**：求解器侧变量表示，含 `solver_index` 和 `result: RwLock<Option<V>>`
+- **`AnyVariable<V>`**：类型擦除的变量包装器
 
-### M6/R2: 显式 inequality 类型迁移（2026-04-09）
-1. 新建 `LinearConstraintInput` 数据类，携带 `LinearFlattenData`、`Sign`、`lhsRange`、`rhsConstant` 元数据
-2. `LinearConstraintInput` 新增 `isTrue()` 多态重载（5 种签名）和 `evaluateFlattenData` 辅助函数
-3. `Inequality.kt` 新增 6 个 `LinearConstraintInput.register()` 扩展函数，匹配原有 `LinearInequality` 注册逻辑
-4. 迁移 5 个函数符号文件：
-   - `linear_function/If.kt`：构造函数改为 `input: LinearConstraintInput`，保留 `ToLinearInequality` 兼容工厂
-   - `linear_function/IfThen.kt`：构造函数改为 `pInput/qInput: LinearConstraintInput`，保留 `ToLinearInequality` 兼容工厂
-   - `linear_function/SameAs.kt`：构造函数改为 `inputs: List<LinearConstraintInput>`
-   - `linear_function/SatisfiedAmountInequality.kt`：`AbstractSatisfiedAmountInequalityFunction` 基类改为 `inputs: List<LinearConstraintInput>`
-   - `linear_function/Inequality.kt`：新增 `LinearConstraintInput.register()` 扩展（含 Big-M 注册逻辑）
-5. 新增 `evaluateFlattenDataWithValuesAndTokenList` 辅助函数，支持 `AbstractTokenList` fallback
-6. 全量回归：`Tests run: 130, Failures: 0, Errors: 0, Skipped: 0`（`mvn -pl ospf-kotlin-core -am test`）
+### 关键差异（Kotlin 应对）
+| 维度 | Rust | Kotlin 当前 | 对齐方向 |
+|------|------|------------|---------|
+| 泛型策略 | `V` 作为类型参数贯穿全栈 | 临时 `asFlt64()` 转换 | 最终需泛型化模型层 |
+| 缓存 | `Box<Inner>` 地址作为缓存键 | `hashCode` 缓存 | 保持一致 |
+| 变量分配 | `VariableArena` + `typed_arena` | `AddableTokenCollection` | 已对齐 |
+| 错误处理 | `Result<T>` | `Try` (Ok/Failed/Fatal) | 已对齐 |
+| 符号依赖追踪 | 显式 `HashMap<u64, HashSet<u64>>` | 隐式 `FunctionSymbolRegistrationScope` | **需改进**：添加显式追踪 |
+
+### Kotlin 独有功能（Rust 缺失 — 重写时必须保留）
+
+| 功能 | 说明 | 重要性 |
+|------|------|--------|
+| **物理量系统** | `ospf-kotlin-quantities` 模块，47 文件，量纲检查 + SI 单位 | 核心优势 |
+| **可变多项式** | `MutableLinearPolynomial` / `MutableQuadraticPolynomial`，原地修改 | 前端 DSL 核心 |
+| **Benders 分解** | 6 个求解器插件（Gurobi/CPLEX/COPT/SCIP/MindOPT/二次） | 核心优势 |
+| **多维变量** | `VariableCombination`，支持 Shape1/2/3 多维变量数组 | 核心优势 |
+| **物理量变量** | `QuantityBinVar` 等，变量带单位 | 核心优势 |
+| **数学符号计算** | 表达式解析器、微分、积分、LaTeX 输出 | math 模块优势 |
+| **回调模型** | Policy-based + Extractor，多目标支持更完整 | 已对齐 |
+| **Coroutine 导出** | `suspend fun export()` | 独有便利性 |
+
+---
+
+## 模块级架构对齐详情
+
+### Intermediate Symbol 模块
+
+| 子模块 | 文件数 | 行数 | 新系统对应 | 状态 |
+|--------|--------|------|-----------|------|
+| `IntermediateSymbol.kt` | 1 | 1169 | `MathFunctionSymbol<T>` | 部分对齐 |
+| `SymbolCombination.kt` | 1 | ~520 | 保留（DSL 核心） | 不需重写 |
+| `legacy/linear_function/` | 33 | 19,667 | `function/` (24 文件) | 9 个待创建/废弃 |
+| `legacy/quadratic_function/` | 21 | 10,453 | 合并到线性版 | 需标记废弃 |
+| **总计** | **56** | **~31,800** | **24** | **29/56 已对齐** |
+
+### Variable 模块（含 Token）
+
+| 文件 | 行数 | 功能 | Rust 对应 | 差异 |
+|------|------|------|-----------|------|
+| `AbstractVariableItem.kt` | 145 | 基类 | `variable_item.rs` | Kotlin 双泛型更强 |
+| `Type.kt` | 119 | 变量类型定义 | `variable_type.rs` | 基本对齐 |
+| `VariableIndependentItem.kt` | 46 | BinVar/IntVar 等 | 类型别名 | 基本对齐 |
+| `VariableCombinationItem.kt` | 306 | 多维变量数组 | **无** | **Kotlin 独有** |
+| `VariableRange.kt` | 182 | 值域 | `variable_range.rs` | 基本对齐 |
+| `Token.kt` | 90 | Token 包装 | `token.rs` | Kotlin 回调更强 |
+| `TokenList.kt` | 360 | Token 列表 | `token_list.rs` | 需优化索引 |
+
+### Intermediate Model 模块（含 TokenTable）
+
+| 文件 | 行数 | 功能 | Rust 对应 | 差异 |
+|------|------|------|-----------|------|
+| `TokenTable.kt` | 1,522 | Token 表 + 缓存上下文 | `token_table.rs` | Kotlin 更丰富 |
+| `TokenCacheContexts` | — | 4 种缓存 | Lazy 上下文 | Kotlin 更丰富 |
+| Token 查找 | — | `Map<VariableItemKey, Token>` | `HashMap<VariableId, usize>` | 需优化 |
+| 按类型分组 | 无 | — | `tokens_by_type()` | **需补充** |
+
+### Model 模块
+
+| 文件 | 行数 | 功能 | Rust 对应 | 差异 |
+|------|------|------|-----------|------|
+| `MetaModel.kt` | 1,219 | 元模型 | `basic_model.rs` + `meta_model.rs` | Kotlin 接口更强 |
+| `CallBackModel.kt` | 658 | 回调模型 | `callback/` 目录 | Kotlin 多目标更强 |
+| `CallBackModelInterface.kt` | 141 | 回调接口 | `callback_model_trait.rs` | 基本对齐 |
+| `MechanismModel.kt` | — | Benders cut 生成 | 仅基础结构 | **Kotlin 核心优势** |
 
 ---
 
@@ -535,12 +248,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 
 ### F. Phase 2（Context 架构对齐）
 1. `AbstractMutableTokenTable` 增加生命周期方法：
-   - `ensureFlattenContext()`
-   - `ensureValueCacheContext()`
-   - `ensureRangeCacheContext()`
-   - `rebindContexts()`
-   - `invalidateAllCaches()`
-   - `invalidateSolutionCaches()`
+   - `ensureFlattenContext()` / `ensureValueCacheContext()` / `ensureRangeCacheContext()`
+   - `rebindContexts()` / `invalidateAllCaches()` / `invalidateSolutionCaches()`
 2. `MutableTokenTable` 已实现上述方法。
 3. `add(symbol)` 自动绑定、`remove(symbol)` 自动解绑已接入。
 
@@ -550,457 +259,786 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 3. `cells` 已在核心类型标注 `@Deprecated(level = WARNING)`，作为过渡兼容层。
 4. 已新增 `FlattenMigrationGuardTest`（12 tests）用于迁移守卫。
 
-### H. 最近验证结果
-1. `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test` 通过（53 tests）。
-2. `mvn -pl ospf-kotlin-core -am test` 通过（core 101 tests，Reactor 全绿）。
-3. 历史记录：8 plugin 联编曾通过；SCIP 插件存在独立 API 兼容问题（见“已知问题”）。
+### H. M8/Phase 3 全量完成（2026-04-13）
+1. **25 个函数符号类**（`core/function/`）：全部 `MathFunctionSymbol<T>` 泛型化
+2. **全模块编译通过**：`mvn compile -DskipTests` BUILD SUCCESS ✅
+3. **全量回归通过**：`mvn -pl ospf-kotlin-core -am test` — **Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+4. **Framework 模块**：gantt-scheduling / bpp3d BUILD SUCCESS ✅
+5. **Solver plugins**：copt / gurobi / scip BUILD SUCCESS ✅
+6. `LinearInequality.kt`（math）修复：Flt64 infix 类型推断错误（4 行改为直接构造）
 
 ---
 
-## 详细实施清单（按顺序执行）
+## 历史实施清单（P0-M9，仅供参考）
 
-说明：
-1. 状态使用：`[ ]` 未开始，`[-]` 进行中，`[x]` 已完成。
-2. 提交粒度建议：每个阶段至少 1 次可回滚提交；P0 建议拆 2~3 次小提交。
-3. 硬门禁：`P0` 未通过前，禁止进入 `M1+`。
+### P0：Phase 3 正确性阻断 ✅
+- `[x]` 修复 `QuadraticMonomialSymbol.flattenedMonomials` 的 `constant * monomial` 分支
+- `[x]` 重写 `QuadraticPolynomial` 对称项归并 key 为确定性规范化策略
+- `[x]` 新增 3 组守卫测试（`FlattenMigrationGuardTest` 15 tests）
+- 回归结果：`Tests run: 56, Failures: 0, Errors: 0, Skipped: 0`
 
-### 1. P0：Phase 3 正确性阻断（不通过不得继续）✅ 已完成
-目标：修复二次拍平正确性，建立长期守卫，阻断回归。
+### M1：统一代数内核 ✅
+- `[x]` 新建 `FlattenUtility.kt`：merge/multiply/normalize 单点实现
+- `[x]` Linear/QuadraticPolynomial 改用 utility
+- 回归结果：`Tests run: 114, Failures: 0, Errors: 0, Skipped: 0`
 
-任务拆解：
-1. `[x]` 定位 `QuadraticMonomialSymbol.flattenedMonomials` 的展开路径，补全 `constant * monomial` 分支。
-   - **修复**：在 `QuadraticMonomialSymbol.flattenedMonomials` 中添加了交叉项 `m1*c2` 和 `c1*m2`。
-2. `[x]` 检查并修复二次拍平组合中符号载荷丢失点（组合、复制、合并三个路径都检查）。
-   - **确认**：组合路径已修复，复制和合并路径无问题。
-3. `[x]` 重写 `QuadraticPolynomial` 对称项归并 key，改为确定性规范化策略（禁止依赖 `hashCode` 与插入顺序）。
-   - **修复**：改用 `identifier` 进行确定性排序，确保 `x*y` 和 `y*x` 产生相同 key。
-4. `[x]` 新增守卫测试 A：`(x + 1) * (y + 1)`，断言项集合完整（`xy/x/y/1`）。
-5. `[x]` 新增守卫测试 B：`x*y` 与 `y*x` 结果完全一致（项、系数、key）。
-6. `[x]` 新增守卫测试 C：同一语义表达式多次构造后 key 序列稳定一致。
-7. `[x]` 运行阶段小回归（见”回归命令 1”）并记录结果。
+### M2：表达层收口 ✅
+- `[x]` 主链路无 `.cells` 计算依赖
+- `[x]` `cells` 降级为兼容视图（`@Deprecated(level = WARNING)`）
+- 回归结果：`Tests run: 118, Failures: 0, Errors: 0, Skipped: 0`
 
-产出物：
-1. 修复代码 + 3 组守卫测试（`FlattenMigrationGuardTest` 现有 15 tests）。
-2. 回归命令结果：`Tests run: 56, Failures: 0, Errors: 0, Skipped: 0`
+### M3：引入新关系类型 ✅
+- `[x]` `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口及实现
+- `[x]` `Constraint.kt` 新增关系对象构造器
+- 回归结果：126 tests
 
-完成定义（DoD）：
-1. ✅ 新增守卫测试全部通过。
-2. ✅ 原有 baseline 不退化。
+### M4：机制层去旧泛型 ✅
+- `[x]` `SubObject.kt` 新增 FlattenData 构造器
+- `[x]` `SubObjectTest.kt`：4 tests
 
-风险与回退：
-1. 若归并策略改动导致波及面过大，先加兼容开关，再逐步替换旧逻辑。
+### M5：模型 API 迁移 ✅
+- `[x]` `MetaModel.kt` 新增 `addConstraint(relation: ...)` 和 `addObject(flattenData: ...)`
+- `[x]` `MechanismModel.kt` 新增 `addConstraint(relation: ...)`
+- 回归结果：130 tests
 
-### 2. M1：统一代数内核（去重复实现，历史阶段）✅ 已完成
-目标：历史阶段目标为 flatten 合并与乘法展开收口；后续不再在 core 扩展代数内核能力，统一以 `math.symbol` 为符号运算来源。
+### M6：函数符号迁移 ✅
+- `[x]` R0 冻结扫描基线
+- `[x]` R1 补齐 relation DSL 壳
+- `[x]` R2 迁移 7 个显式 inequality 类型文件
+- `[x]` R3 分批迁移 operator-only 函数符号
+- `[x]` R4 清理 `.cells` 缓存预热
+- `[x]` R5 删除 `frontend/inequality/adapter` + `frontend/inequality` 主目录
+- 回归结果：91 tests
 
-说明：
-1. 以下条目为历史完成记录，保留用于回溯，不作为后续扩展方向。
+### M7：删除 adapter ✅
+- `[x]` `frontend/inequality/adapter/` 已删除（3 文件）
+- `[x]` `frontend/symbol_migration/adapter/` 测试已删除（2 文件）
 
-任务拆解：
-1. `[x]` 建立 internal utility（拆成 merge/multiply/normalize 三类函数）。
-   - 新建 `FlattenUtility.kt`：`mergeLinearMonomials`, `mergeQuadraticMonomials`, `mergeLinearFlattenData`, `mergeQuadraticFlattenData`, `multiplyLinear`, `normalizeLinear`, `normalizeQuadratic`
-2. `[x]` 迁移线性主路径到 utility。
-   - `LinearPolynomial.calculateFlattenedMonomials` 调用 `mergeLinearFlattenData`
-3. `[x]` 迁移二次主路径到 utility。
-   - `QuadraticPolynomial.calculateFlattenedMonomials` 调用 `mergeQuadraticFlattenData`
-4. `[x]` 单项式/多项式/不等式统一调用 utility，删除分散实现。
-5. `[x]` 补充 utility 级单测（线性、二次、边界输入）。
-   - `FlattenUtilityTest`：10 tests
-6. `[x]` 执行阶段小回归并记录结果。
-   - `Tests run: 114, Failures: 0, Errors: 0, Skipped: 0`
+### M8：最终目录删除 → **已重新定义为重写路线**
+- `[x]` R7 分析结论：`monomial/polynomial` 为前端 DSL 核心，保留不删
+- `[x]` R8/R9 编译修复完成
+- `[-]` 剩余工作转入 Big-Bang 重写路线
 
-产出物：
-1. `FlattenUtility.kt` - flatten 单点实现
-2. `FlattenUtilityTest.kt` - utility 级单测
-3. LinearPolynomial/QuadraticPolynomial 改用 utility
+### M9：封口门禁 → **已重新定义**
+- `[ ]` 禁止旧路径 import 回流
+- `[ ]` 更新迁移文档
 
-完成定义（DoD）：
-1. ✅ 当时目标：flatten 核心算法收口完成。
-2. ✅ 当前约束：后续符号运算能力统一由 `math.symbol` 提供，core 仅保留桥接与装配。
+### Phase 4：二次 dual/Farkas/cut + solver dual 输出闭环
 
-### 3. M2：表达层收口（保留兼容壳，历史阶段）✅ 已完成
-目标：历史阶段目标为表达层切到 flatten 主路径；后续继续朝“`math.symbol` 运算 + core 桥接装配”收敛，`cells` 仅保留兼容。
+**当前状态**：
+- `QuadraticTetradModel.elastic()` — 已实现（1072-1394 行）✅
+- `QuadraticTetradModel.dual()` — `TODO("not implemented yet")` ❌
+- `QuadraticTetradModel.farkasDual()` — `TODO("not implemented yet")` ❌
+- `LinearMechanismModel.generateOptimalCut()/generateFeasibleCut()` — 已实现 ✅
+- `QuadraticMechanismModel.generateOptimalCut()` — `TODO("not implemented yet")` ❌
+- `QuadraticMechanismModel.generateFeasibleCut()` — `TODO("not implemented yet")` ❌
+- Solver 输出层（`FeasibleSolverOutput`）— **不包含 dual 值** ❌
+- 插件 dual 读取：Gurobi/SCIP/CPLEX 已在 Benders/ColumnGeneration 中使用，COPT/MindOPT 缺失 ❌
 
-说明：
-1. 以下条目为历史完成记录，保留用于回溯，不作为后续扩展方向。
+**文件引用**：
+| 文件 | 行号 | 状态 |
+|------|------|------|
+| `QuadraticTetradModel.kt` | 901-903 | `dual()` TODO |
+| `QuadraticTetradModel.kt` | 905-907 | `farkasDual()` TODO |
+| `MechanismModel.kt` | 811-819 | `generateOptimalCut()` TODO |
+| `MechanismModel.kt` | 821-827 | `generateFeasibleCut()` TODO |
+| `SolverOutput.kt` | 56 行 | 无 dual 字段 |
+| `IISConfig.kt` | 10-25 | `threadNum`/`notImprovementTime` 定义但未消费 |
 
-任务拆解：
-1. `[x]` `Linear/QuadraticMonomial` 主路径切到 flatten。
-   - 已使用 `symbol.flattenedMonomials` 作为主计算路径
-2. `[x]` `Linear/QuadraticPolynomial` 主路径切到 flatten。
-   - 已使用 `mergeLinearFlattenData` / `mergeQuadraticFlattenData`
-3. `[x]` `Linear/QuadraticInequality` 主路径切到 flatten。
-   - 已直接使用 `lhs.flattenedMonomials` / `rhs.flattenedMonomials`
-4. `[x]` `cells` getter 降级为兼容视图，移除参与核心计算的调用点。
-   - 所有 `cells` 标记 `@Deprecated(level = WARNING)`
-   - `cells` getter 改为 `flattenedMonomials.toMonomialCells()`
-5. `[x]` 增补”flatten 与 cells 结果一致性”回归测试。
-   - `FlattenMigrationGuardTest` 新增 4 个一致性测试（共 19 tests）
-6. `[x]` 执行阶段小回归并记录结果。
-   - `Tests run: 118, Failures: 0, Errors: 0, Skipped: 0`
+#### 4.1 `QuadraticTetradModel.dual()` 实现
 
-完成定义（DoD）：
-1. ✅ 当时目标：主链路无 `.cells` 计算依赖（`cells` 仅为兼容视图）。
-2. ✅ 当前约束：后续符号运算实现继续收敛到 `math.symbol`，core 只保留桥接装配职责。
+**目标**：给定可行二次解，计算对应的 dual 变量（拉格朗日乘子）。
 
-### 4. M3：引入新关系类型，替代 `frontend/inequality` ✅ 已完成
-目标：建立新关系对象，先引入后替换。
+**算法思路**：
+1. 基于当前 primal solution 计算 active constraints（松弛 = 0 的不等式）
+2. 构造 KKT 线性系统：`∇f(x) + Σ λ_i ∇g_i(x) = 0`
+3. 求解 λ（dual values），区分 linear dual 和 quadratic dual
+4. 返回新的 `QuadraticTetradModel` 实例，携带 dual 值
 
-任务拆解：
-1. `[x]` 定义线性/二次关系对象（含 sign、lhs、rhs 或规范化表示）。
-   - 新建 `Relation.kt`：`LinearRelation`/`QuadraticRelation` 接口
-   - `LinearRelationImpl`/`QuadraticRelationImpl` 实现
-   - 包含 `normalize()` 方法和 `toInequality()` deprecated 适配器
-2. `[x]` 提供旧 `Inequality -> 新关系对象` 适配器（单向优先）。
-   - `LinearRelationImpl.from(inequality: LinearInequality)`
-   - `QuadraticRelationImpl.from(inequality: QuadraticInequality)`
-   - 扩展函数 `LinearInequality.toRelation()` / `QuadraticInequality.toRelation()`
-3. `[x]` `Constraint` 构造新增新关系对象入口。
-   - `LinearConstraint.invoke(relation: LinearRelation, ...)` 构造器
-   - `QuadraticConstraint.invoke(relation: QuadraticRelation, ...)` 构造器
-4. `[x]` 对新增入口补单测与示例调用。
-   - `RelationTest.kt`：8 tests
+**验收**：
+- [ ] `dual()` 返回的模型携带 dual values
+- [ ] 对凸二次问题，dual objective ≤ primal objective（弱对偶）
+- [ ] 端到端测试：已知问题的 dual 值与手动计算一致
 
-产出物：
-1. `Relation.kt` - 新关系类型定义
-2. `RelationTest.kt` - 关系类型测试
-3. `Constraint.kt` 新增两个构造器
+#### 4.2 `QuadraticTetradModel.farkasDual()` 实现
 
-完成定义（DoD）：
-1. ✅ 新调用方可不依赖 `frontend/inequality`。
-2. ✅ 旧调用方经适配后继续可用。
-3. ✅ 全量回归通过：126 tests
+**目标**：给定不可行二次问题，计算 Farkas 证书（证明不可行的对偶向量）。
 
-### 5. M4：机制层去旧泛型与桥接 ✅ 已完成
-目标：mechanism 层去掉旧 cell 泛型耦合。
+**算法思路**：
+1. 基于 `elastic()` 方法的结果识别不可行源
+2. 构造 Farkas 对偶系统：`A^T y = 0, b^T y < 0, y ≥ 0`
+3. 返回携带 Farkas dual 值的 `QuadraticTetradModel`
 
-任务拆解：
-1. `[x]` `SubObject/Constraint` 输入签名移除 `*MonomialCell` 约束。
-   - 新增 `LinearSubObject.invoke(flattenData: LinearFlattenData, ...)` 构造器
-   - 新增 `QuadraticSubObject.invoke(flattenData: QuadraticFlattenData, ...)` 构造器
-   - 新增 `SubObjectTest.kt` 测试（4 tests）
-2. `[x]` 删除 `TokenCacheContext` 中 flatten <-> cell 双向桥接。
-   - **评估结论**：转换函数用于 deprecated `cells` 属性兼容层
-   - 保留到 M8 删除旧类型时再移除
-3. `[x]` `MetaModel._subObjects` 去 cell 类型耦合。
-   - 在 M5 中新增 `_flattenSubObjects` 存储 FlattenData 类型
-4. `[x]` 修复受影响调用点并补回归。
+**验收**：
+- [ ] `farkasDual()` 返回的模型携带 Farkas 证书
+- [ ] 对已知不可行问题，Farkas dual 可验证 `y^T b < 0`
+- [ ] 端到端测试：不可行二次模型 → farkasDual → 验证证书
 
-产出物：
-1. `SubObject.kt` 新增 FlattenData 构造器
-2. `SubObjectTest.kt` - 4 tests
-3. `Constraint.kt` 已在 M3 添加 LinearRelation/QuadraticRelation 构造器
+#### 4.3 `QuadraticMechanismModel.generateOptimalCut()` 实现
 
-完成定义（DoD）：
-1. ✅ 新调用方可直接使用 FlattenData，无需依赖 frontend 多项式类型。
+**目标**：基于二次子问题的 dual 解生成 Benders 最优割。
 
-### 6. M5：模型 API 迁移 ✅ 已完成
-目标：模型对外 API 切换到新关系对象与新表达签名。
+**签名**（已定义）：
+```kotlin
+fun generateOptimalCut(
+    objective: Flt64,
+    objectVariable: AbstractVariableItem<*, *>,
+    fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+    dualSolution: QuadraticDualSolution,
+): Ret<List<MathLinearInequality>>
+```
 
-任务拆解：
-1. `[x]` 迁移 `frontend/model/Model.kt`。
-   - 新增 `addConstraint(relation: LinearRelation/QuadraticRelation)` 接口方法
-   - 新增 `addObject(flattenData: LinearFlattenData/QuadraticFlattenData)` 接口方法
-2. `[x]` 迁移 `MetaConstraint.kt`。
-   - 新增 `LinearRelationConstraint`/`QuadraticRelationConstraint` 类型
-   - 新增 `LinearFlattenSubObject`/`QuadraticFlattenSubObject` 类型
-   - 新增 `toRelationConstraint()` 适配器
-3. `[x]` 迁移 `MetaModel.kt`。
-   - 新增 `_relationConstraints` 和 `_flattenSubObjects` 存储
-   - 新增 `addConstraint(relation: ...)` 实现
-   - 新增 `addObject(flattenData: ...)` 实现
-4. `[x]` 迁移 `MechanismModel.kt`。
-   - 新增 `addConstraint(relation: ...)` 方法实现
-5. `[x]` `addConstraint/partition/addObject` 改为新签名。
-6. `[x]` 旧签名保留短期 deprecated shim，并标注移除窗口。
-7. `[x]` 运行 `mvn -pl ospf-kotlin-core -am test` 并记录结果。
-   - `Tests run: 130, Failures: 0, Errors: 0, Skipped: 0`
+**算法**：
+1. 从 `dualSolution` 提取约束 dual 值
+2. 计算割的系数：`c + Σ λ_i A_i`（目标梯度 + dual 加权约束）
+3. 计算割的 RHS：`objective + Σ λ_i b_i`
+4. 返回线性不等式列表
 
-完成定义（DoD）：
-1. ✅ 模型主 API 新增 Relation 和 FlattenData 类型入口。
-2. ✅ 旧 API 保留为 deprecated 兼容层。
-3. ✅ 全量回归通过：130 tests
+**验收**：
+- [ ] 对已知二次子问题，生成的割排除当前主问题解
+- [ ] 割不切掉任何可行解（有效性）
+- [ ] 端到端 Benders 迭代测试
 
-### 7. M6：函数符号迁移（重拆执行版，2026-04-09）
-目标：优先清理函数符号对 `frontend/inequality` 的直接依赖，再清理 `.cells` 计算读取，并收敛到 `math.symbol + relation/flatten` 桥接路径。
+#### 4.4 `QuadraticMechanismModel.generateFeasibleCut()` 实现
 
-基线盘点（2026-04-09）：
-1. `expression/symbol` 总计 56 文件，其中 52 文件仍有旧路径 import（259 处）。
-2. 显式 `LinearInequality/QuadraticInequality` 类型依赖集中在 7 文件。
-3. `eq/leq/geq` DSL 使用 682 处（51 文件）。
-4. `.cells` 读取 140 处（48 文件）。
+**目标**：基于 Farkas dual 生成 Benders 可行割（当二次子问题不可行时）。
 
-任务拆解（R0~R4）：
-1. `[x]` `R0` 冻结扫描基线与回归脚本，提交”仅统计无行为变更”提交。
-2. `[x]` `R1` 在 mechanism 层补齐 relation DSL 壳（`flattenEq/flattenLeq/flattenGeq` 或等价 API），覆盖函数符号当前使用组合。
-3. `[x]` `R2` 优先迁移 7 个显式 inequality 类型文件：
-   - `linear_function/If.kt`
-   - `linear_function/IfThen.kt`
-   - `linear_function/Inequality.kt`
-   - `linear_function/SameAs.kt`
-   - `linear_function/SatisfiedAmount.kt`
-   - `linear_function/SatisfiedAmountInequality.kt`
-   - `quadratic_function/Inequality.kt`
-4. `[ ]` `R3` 分 4 批迁移其余 operator-only 函数符号文件（逻辑类/离散化类/区间分段类/取整极值类），每批一条可回滚提交。
-5. `[x]` `R4` 清理函数符号内 `.cells` 读取，统一改为 `flattenedMonomials` 主路径，并补充对应回归。
+**签名**（已定义）：
+```kotlin
+fun generateFeasibleCut(
+    fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+    farkasDualSolution: QuadraticDualSolution,
+): Ret<List<MathLinearInequality>>
+```
 
-阶段门禁（M6 完成定义）：
-1. `expression/symbol` 目录外部 `frontend.inequality` import 归零。
-2. 函数符号内 `.cells` 读取归零（保留 deprecated getter 但不参与计算）。
-3. 阶段回归绿灯：
-   - `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
+**算法**：
+1. 从 `farkasDualSolution` 提取 Farkas 证书
+2. 构造可行割：排除导致子问题不可行的主问题解
+3. 返回线性不等式列表
 
-### M6/R5: 删除 `frontend/inequality/adapter` 目录（2026-04-09）
-1. 删除 `frontend/inequality/adapter/` 目录（3 文件）
-2. 删除 `frontend/symbol_migration/adapter/` 测试目录（2 文件）
-3. `LinearInequality.kt`/`QuadraticInequality.kt` 内联 `mergeMonomialsByUtils` 函数
-4. 全量回归：`Tests run: 152, Failures: 0, Errors: 0, Skipped: 0`
-5. **阻塞**：剩余 `frontend/inequality` 主目录（5 文件）仍被 55+ 外部文件引用，需先完成 M6/R3
+**验收**：
+- [ ] 可行割排除当前不可行的主问题解
+- [ ] Benders 循环中可行割 + 最优割交替收敛
 
-### M6/R4: 清理 .cells 读取（2026-04-09）
-1. 从 36 个函数符号文件的 `prepare()` 方法中移除 `.cells` 缓存预热调用
-2. 涉及文件：
-   - `linear_function`：And.kt, Or.kt, Xor.kt, Not.kt, BalanceTernaryzation.kt, SatisfiedAmount.kt, OneOf.kt, Binaryzation.kt
-   - `quadratic_function`：Binaryzation.kt, Ceiling.kt, Floor.kt, Masking.kt, MaskingRange.kt, Max.kt, Min.kt, Mod.kt, Product.kt, Rounding.kt, Semi.kt, Sigmoid.kt, Slack.kt, SlackRange.kt, UnivariateLinearPiecewise.kt, InStepRangeFunction.kt, BivariateLinearPiecewise.kt, Linear.kt
-3. `cells` 属性声明（`override val cells`）保留为 deprecated 兼容 getter，不参与计算
-4. 全量回归：`Tests run: 152, Failures: 0, Errors: 0, Skipped: 0`（`mvn -pl ospf-kotlin-core -am test`，~11m）
+#### 4.5 Solver 输出层补 dual 值
 
-### 9. M7：删除 `expression/adapter`（并入重拆流程）
-目标：按依赖收敛顺序删除 adapter，不再与旧表达层耦合。
+**目标**：在 `FeasibleSolverOutput` 中新增 dual 字段，并统一 linear/quadratic dual。
 
-任务拆解：
-1. `[x]` 删除 `frontend/inequality/adapter`（M6/R5 已完成）
-2. `[ ]` 在 `R9` 时删除 `frontend/expression/adapter`（与 monomial/polynomial 同步删除）
-3. `[ ]` 增加守卫扫描，禁止新增 adapter import 回流
+**操作**：
+1. `SolverOutput.kt`：`FeasibleSolverOutput` 新增 `dualValues: Map<String, Flt64>?` 字段
+2. 统一求解器输出：linear dual 和 quadratic dual 统一为约束名 → Flt64 映射
+3. 插件适配：
+   - Gurobi：已在 Benders 中读取 `Pi`，需在标准求解路径也读取
+   - SCIP：已在 Benders 中读取 `getDual()`，需在标准求解路径也读取
+   - CPLEX：已在 Benders 中读取 `getDual()`，需在标准求解路径也读取
+   - COPT：新增 dual 读取
+   - MindOPT：新增 dual 读取
 
-完成定义（DoD）：
-1. `src/main` 不再存在 `frontend.expression.adapter` / `frontend.inequality.adapter` import。
+**验收**：
+- [ ] `FeasibleSolverOutput` 包含 `dualValues` 字段
+- [ ] 所有 5 个插件（gurobi/scip/cplex/copt/mindopt）透传 dual
+- [ ] 端到端测试：求解 LP → 验证 dual 值与手动计算一致
 
-### 9. M8：最终目录删除（重拆执行版 — 已重新定义）
-目标：~~完成目录级收敛，删除旧表达与 inequality 实现~~ → **已重新定义，不再删除 monomial/polynomial**
+#### 4.6 Phase 4 总验收
 
-**R7 分析结论（2026-04-11）**：
-- `frontend.expression.monomial/polynomial` 是前端建模 DSL 的核心，不能被 `math.symbol` 替代
-- `adapter` 目录不存在，无需删除
-- `frontend.expression` 目录应保留为前端 DSL 的规范位置
-
-当前规模（2026-04-09 更新）：
-1. ~~`frontend.inequality` 外部 import：~120 处（55+ 文件，排除 inequality 目录自身 5 文件）~~ → **已完全删除 ✅**
-2. ~~`frontend.expression.monomial/polynomial` 外部 import：216 处（70 文件）~~ → **保留，为前端 DSL 核心**
-3. 已删除：`frontend/inequality/adapter/`（3 文件）
-4. 已删除：`frontend/symbol_migration/adapter/` 测试（2 文件）
-
-前置条件：
-1. M6 的 `R0~R4` 全部完成并通过阶段门禁。
-2. M6/R5 部分完成（adapter 子目录已删除）
-
-任务拆解（重新定义）：
-1. `[x]` `R5` 删除 `frontend/inequality/adapter` 子目录
-2. `[x]` `R5-continue` 删除 `frontend/inequality` 主目录（含 Inequality.kt 等 4 文件）→ **已完成 ✅**
-3. `[x]` `R6` 清理函数符号侧 `.cells` 缓存预热调用 → **已完成 ✅**
-4. `[x]` `R7` 分析 IntermediateSymbol/SymbolCombination 迁移可行性 → **结论：不可迁移，保留 frontend 类型**
-5. `[ ]` `R8-new` 修复 gantt-scheduling / bpp3d 的独立编译错误（Ok/Failed/Fatal 类型推断）
-6. `[ ]` `R9-new` 清理 `frontend.expression.monomial/polynomial` 中的未使用导入和冗余代码
-7. `[ ]` 执行全量回归：
-   - `mvn -pl ospf-kotlin-core -am test`
-8. `[ ]` 执行插件编译检查
-
-完成定义（DoD）：
-1. `ospf-kotlin-core` 全量测试通过。
-2. gantt-scheduling / bpp3d 编译通过。
-3. `frontend.expression` 代码整洁，无冗余导入。
-
-### 10. M9：封口门禁（强化 — 已重新定义）
-目标：建立”删完后不可回流”的 CI 门禁与文档封口。
-
-**R7 分析结论影响**：`frontend.expression.monomial/polynomial` 为前端 DSL 核心，不应禁止 import。
-
-任务拆解：
-1. `[ ]` 新增 CI 扫描测试，禁止以下 import：
-   - ~~`frontend.inequality`~~ → **已删除，无需扫描**
-   - ~~`frontend.expression.monomial`~~ → **保留，前端 DSL 核心**
-   - ~~`frontend.expression.polynomial`~~ → **保留，前端 DSL 核心**
-   - `[ ]` `frontend.expression.adapter`（如存在）
-2. `[ ]` 更新迁移文档（旧 DSL -> relation/flatten API 对照表）。
-3. `[ ]` 在 PR 模板或检查脚本加入迁移项核对。
-
-完成定义（DoD）：
-1. 后续 PR 无法回引已删除的路径（`frontend.inequality`）。
-2. 新增功能默认按 relation/flatten API 开发。
-
-### 11. Phase 4：功能闭环
-目标：二次子问题 dual/cut 端到端打通。
-
-任务拆解：
-1. `[ ]` 完成 `QuadraticTetradModel.dual()/farkasDual()`。
-2. `[ ]` 完成 `QuadraticMechanismModel.generateOptimalCut()/generateFeasibleCut()`。
-3. `[ ]` 统一 solver dual 输出并打通插件透传。
-4. `[ ]` 新增端到端测试：可行割与最优割。
-
-完成定义（DoD）：
-1. 二次子问题可端到端生成可行割与最优割。
-
-### 12. Phase 5：性能稳定化
-目标：缓存键、IIS 控制与并发模型收敛。
-
-任务拆解：
-1. `[ ]` 重构 value cache key（避免 `List/Map` 大对象直接做哈希键）。
-2. `[ ]` IIS 真正消费 `time/threadNum/notImprovementTime`。
-3. `[ ]` `ThreadLocal` 改协程安全方案或显式透传。
-4. `[ ]` 增加性能观察指标（耗时、命中率、终止行为）。
-
-完成定义（DoD）：
-1. IIS 可控终止、并发不串、性能可观测改善。
-
-### 13. Phase 6：达标收敛
-目标：测试簇补齐，形成可对外交付状态。
-
-任务拆解：
-1. `[ ]` 补齐 correctness 测试簇。
-2. `[ ]` 补齐 architecture guard 测试簇。
-3. `[ ]` 补齐 performance-guard 测试簇。
-4. `[ ]` 补齐 plugin-compatibility 测试簇。
-5. `[ ]` 回写最终迁移文档与发布说明。
-
-完成定义（DoD）：
-1. 无 P0/P1 挂起，可对外声明达到 design 对齐目标。
+- [ ] 二次子问题可从 solver 输出直接生成可行割与最优割
+- [ ] 有端到端测试覆盖 full Benders loop（主问题 → 二次子问题 → dual → cut → 主问题）
+- [ ] 无 P0/P1 缺陷挂起
 
 ---
 
-## 回归命令（固定节奏）
-1. 阶段小回归：
-   - `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
-2. 每两到三阶段：
-   - `mvn -pl ospf-kotlin-core -am test`
-3. ~~M8/M9 完成后~~ → **M8/M9 已重新定义**：
-   - `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
-   - `mvn compile -pl ospf-kotlin-framework-gantt-scheduling,ospf-kotlin-framework-bpp3d -am`
+### Phase 5：性能与稳定性优化
+
+**当前状态**：
+| 问题 | 文件 | 现状 | 风险 |
+|------|------|------|------|
+| Value cache key 使用大对象 | `TokenCacheContexts.kt` 84-168 | `Pair<Any, List<Flt64>?>` / `Pair<Any, Map<Symbol, Flt64>>` 作为哈希键 | 哈希冲突 + 序列化开销 |
+| IIS 停止条件不完整 | `IISConfig.kt` 10-25 | `time` 已消费，`threadNum`/`notImprovementTime` 定义但未消费 | IIS 长跑无界 |
+| ThreadLocal policy | `SolveValueConversionContext.kt` 5-22 | `ThreadLocal<SolveValueConversionPolicy?>` | 协程上下文切换时 policy 丢失 |
+
+#### 5.1 重构 Value Cache Key
+
+**问题**：`ValueCacheContext` 使用 `Pair<Any, List<Flt64>?>` 和 `Pair<Any, Map<Symbol, Flt64>>` 作为缓存键。`List` 和 `Map` 作为哈希键有两个问题：
+1. `equals()`/`hashCode()` 需要遍历所有元素，O(n) 开销
+2. 大 Map 的哈希计算在热点路径上成为瓶颈
+
+**方案**：
+1. 为 `List<Flt64>` 创建 `SolutionHash` 包装类：
+   - 预计算哈希值（构造时一次性计算）
+   - 使用增量哈希或 MurmurHash3 减少碰撞
+2. 为 `Map<Symbol, Flt64>` 创建 `FixedValueHash` 包装类：
+   - 使用 `Symbol.identifier`（UInt64）+ `Flt64` 位表示的有序序列
+   - 预计算哈希，O(1) 比较
+3. 缓存键改为 `Pair<Any, SolutionHash>` / `Pair<Any, FixedValueHash>`
+
+**验收**：
+- [ ] 缓存键构造时间 < 1μs（基准算例）
+- [ ] 缓存命中率不下降（对比重构前）
+- [ ] 无哈希碰撞导致的缓存误用（回归测试通过）
+
+#### 5.2 IIS 真正消费停止条件
+
+**问题**：`IISConfig.threadNum` 和 `IISConfig.notImprovementTime` 已定义但在 `Linear.kt` / `Quadratic.kt` 的 IIS 计算逻辑中未被消费。
+
+**操作**：
+1. `Linear.kt` / `Quadratic.kt` IIS 循环中新增：
+   - `notImprovementTime` 计时器：记录上次 IIS 集合缩小的时间点
+   - 超过 `notImprovementTime` 无改善时，提前退出 IIS 计算
+   - 日志：`IIS stopped after X iterations, no improvement for Y ms`
+2. `threadNum` 用于并行 IIS 候选集评估（可选，P2）
+
+**验收**：
+- [ ] IIS 长跑不会无界（`notImprovementTime` 强制退出）
+- [ ] 停止条件日志输出可观测
+- [ ] 基准算例 IIS 耗时不增加
+
+#### 5.3 ThreadLocal Policy 改为协程上下文安全方案
+
+**问题**：`SolveValueConversionContext.kt` 使用 `ThreadLocal<SolveValueConversionPolicy?>` 存储策略。在 Kotlin 协程中，协程可能在不同线程间切换，导致 policy 丢失。
+
+**方案**（按优先级）：
+1. **方案 A（推荐）**：使用 `kotlinx.coroutines.ThreadContextElement`
+   - 创建 `SolveValueConversionContextElement : ThreadContextElement<SolveValueConversionPolicy?>`
+   - 协程切换时自动传递 policy
+2. **方案 B**：显式参数透传
+   - 移除 ThreadLocal，所有需要 policy 的地方显式传入
+   - 更安全，但 API 变更较大
+
+**验收**：
+- [ ] 协程切换线程后 policy 保持一致
+- [ ] 并发求解下 policy 不串（不同协程互不干扰）
+- [ ] 现有 `withSolveValueConversionPolicy` API 行为不变
+
+#### 5.4 Phase 5 总验收
+
+- [ ] IIS 长跑不会无界
+- [ ] 并发求解下 policy 不串
+- [ ] 缓存命中率与耗时在基准算例上可观测改善
+- [ ] 无 P0/P1 缺陷挂起
+
+---
+
+### Phase 6：测试补齐与达标判定
+
+#### 6.1 测试簇补齐
+
+**当前测试**（17 个测试文件）：
+| 测试文件 | 覆盖领域 |
+|----------|---------|
+| `QuadraticElasticModelTest.kt` | 二次弹性模型 ✅ |
+| `InfeasibleOutputFieldsTest.kt` | 不可行输出字段 ✅ |
+| `SolverOutputCompatibilityTest.kt` | 输出兼容性 ✅ |
+| `SolveOptionsTest.kt` | 求解选项 ✅ |
+| `SolverExtIISOptionsTest.kt` | IIS 选项 ✅ |
+| `SolveValueConversionContextTest.kt` | 值转换上下文 ✅ |
+| `SolveValueValidationTest.kt` | 值验证 ✅ |
+| `TokenCacheContextsTest.kt` | Token 缓存上下文 ✅ |
+| `ModelBuildingStatusBridgeTest.kt` | 建模状态桥接 ✅ |
+| `PrepareCacheKeyRegressionTest.kt` | 缓存键回归 ✅ |
+| `LinearPolynomialBaselineTest.kt` | 线性多项式基线 ✅ |
+| `QuadraticPolynomialBaselineTest.kt` | 二次多项式基线 ✅ |
+| `MultiObjectCallBackModelTest.kt` | 多目标回调 ✅ |
+| `FlattenUtilityTest.kt` | 展平工具 ✅ |
+| `MonomialCoefficientPreservationTest.kt` | 单项式系数保持 ✅ |
+| `SubObjectTest.kt` | 子对象 ✅ |
+| `ConstraintPriorityPropagationTest.kt` | 约束优先级 ✅ |
+
+**需新增的测试簇**：
+
+| 测试簇 | 测试文件 | 覆盖内容 | 优先级 |
+|--------|---------|---------|--------|
+| **correctness** | `QuadraticDualTest.kt` | `dual()` 数学等价性、弱对偶验证 | P0 |
+| **correctness** | `QuadraticFarkasDualTest.kt` | `farkasDual()` 证书验证 | P0 |
+| **correctness** | `QuadraticBendersCutTest.kt` | `generateOptimalCut()` / `generateFeasibleCut()` | P0 |
+| **correctness** | `CoefficientPreservationTest.kt` | 全链路系数保持（已有部分） | P1 |
+| **architecture** | `TokenCacheContextRebindTest.kt` | context 重绑定/隔离 | P1 |
+| **architecture** | `CoroutinePolicyTest.kt` | 协程 policy 传递一致性 | P1 |
+| **performance-guard** | `IISStoppingConditionTest.kt` | IIS 停止条件与超时退出 | P1 |
+| **performance-guard** | `CacheKeyDegradationTest.kt` | 缓存键退化保护 | P2 |
+| **compatibility** | 8 个 plugin 编译回归 | copt/gurobi/scip/cplex/mindopt + 二次插件 | P0 |
+| **compatibility** | `SolverDualOutputTest.kt` | 所有插件 dual 输出一致性 | P0 |
+
+#### 6.2 文档更新
+
+| 文档 | 内容 | 优先级 |
+|------|------|--------|
+| 迁移说明 | Phase 4-6 变更对旧 API 的影响 | P1 |
+| API 对照 | `LinearMechanismModel` vs `QuadraticMechanismModel` cut API 对照 | P1 |
+| 已知不兼容点 | dual 输出格式变更、cache key 内部重构 | P1 |
+| Rust 对齐文档 | 更新 dual/cut 实现差异 | P2 |
+
+#### 6.3 达标判定（可宣称"达到 design.md"）
+
+验收清单：
+1. [ ] Phase 1~5 全部完成且无 P0/P1 缺陷挂起
+2. [ ] Phase 4 两个关键钩子（`dual()` + `generateOptimalCut()`）已落地并有测试
+3. [ ] 二次 dual/Farkas/cut 与 solver dual 输出链路闭环
+4. [ ] Phase 5 三项优化（cache key、IIS、policy）均已落地
+5. [ ] 全量回归命令通过并附结果记录：
+   - `mvn -pl ospf-kotlin-core -am test` — 全绿
+   - 8 plugin 编译 — BUILD SUCCESS
+   - 框架模块编译 — BUILD SUCCESS
 
 ---
 
 ## 已知问题
 1. SCIP 插件存在 `EventHandler/EventMask` API 兼容问题（当前迁移主线非阻断）。
-2. 当前代码存在大量 `cells` 相关 deprecation warning（属过渡态，M6~M9 清理）。
+2. 当前代码存在大量 `cells` 相关 deprecation warning（属过渡态，待旧目录删除后清零）。
 
 ---
 
-## 下个环境起手顺序（严格执行）
-1. **编译修复完成（2026-04-11）**：
-   - `MetaConstraint` 实现 `MathConstraint` 接口
-   - `MetaDualSolution.constraints` 键类型改为 `MathConstraint`
-   - 6 个 BendersDecompositionSolver 插件修复 `MathLinearInequality/MathQuadraticInequality` 别名
-   - `MathInequalityDsl.kt` 新增 `Symbol/UInt64` leq/geq/eq 重载
-   - gantt-scheduling `Switch.kt`/`TaskTime.kt` 修复 `IfFunction` 调用方式
-2. **全量编译通过**：`mvn compile -DskipTests` BUILD SUCCESS ✅
-3. **全量回归通过**：`mvn -pl ospf-kotlin-core -am test` 91 tests, BUILD SUCCESS ✅
-4. **M8（monomial/polynomial 目录删除）进入全量迁移** — 推翻 R7 结论，按 Phase 0~6 实施
-5. 最后执行 `Phase 4 -> Phase 6` 功能与稳定化收敛
-6. 每个阶段回写本文件：新增完成项、剩余缺口、回归命令结果
+## 代码组织结构变更
+
+### 当前结构（frontend/backend 分轨）
+
+```
+core/
+├── frontend/
+│   ├── variable/              (7 文件) — 变量定义
+│   ├── expression/
+│   │   ├── monomial/          (3) — DSL 单项式
+│   │   ├── polynomial/        (3) — DSL 多项式
+│   │   ├── symbol/
+│   │   │   ├── (2 主文件)     — IntermediateSymbol, SymbolCombination
+│   │   │   ├── linear_function/   (33) — 旧函数符号
+│   │   │   └── quadratic_function/ (21) — 旧二次函数符号
+│   │   ├── bridge/            (8) — 操作符桥接
+│   │   ├── adapter/           (5) — 适配器
+│   │   ├── flatten/           (1) — 展平工具
+│   │   └── dsl/               — DSL 入口
+│   └── model/
+│       ├── Model.kt, MultiObject.kt
+│       ├── status/            (2)
+│       ├── callback/          (2)
+│       └── mechanism/         (18) — MetaModel, MechanismModel, TokenTable
+├── backend/
+│   ├── intermediate_model/    (6) — LinearTriadModel, QuadraticTetradModel
+│   └── solver/                (30) — 求解器接口、配置、启发式、IIS、输出
+└── function/                  (24) — MathFunctionSymbol<T> 新实现
+```
+
+**问题**：frontend/backend 分轨制造了"前端建模、后端求解"的错误认知。实际上整个 core 都是中间层——真正的后端是 solver 插件。
+
+### 目标结构（5 模块扁平化）
+
+```
+core/
+├── variable/                  ← frontend/variable/
+├── intermediate_symbol/       ← function/ + expression/symbol/ + expression/flatten/
+├── model/                     ← frontend/model/ (Model, callback, status)
+├── intermediate_model/        ← frontend/model/mechanism/ + backend/intermediate_model/
+└── solver/                    ← backend/solver/
+```
+
+### 文件映射表
+
+| 新模块 | 来源路径 | 文件数 | 说明 |
+|--------|---------|--------|------|
+| **variable** | `frontend/variable/` | 7 | AbstractVariableItem, Token, TokenList, Type, VariableCombination, VariableRange |
+| **intermediate_symbol** | `function/` | 24 | MathFunctionSymbol<T> 接口 + 全部实现 |
+| | `expression/symbol/` 主目录 | 2 | IntermediateSymbol.kt（清理后）, SymbolCombination.kt |
+| | `expression/flatten/` | 1 | FlattenUtility.kt |
+| | `expression/symbol/linear_function/` | 33 | 全部标记 @Deprecated → 待删除 |
+| | `expression/symbol/quadratic_function/` | 21 | 全部标记 @Deprecated → 待删除 |
+| **model** | `frontend/model/Model.kt` | 1 | Model 接口 |
+| | `frontend/model/MultiObject.kt` | 1 | 多目标 |
+| | `frontend/model/callback/` | 2 | CallBackModel, CallBackModelInterface |
+| | `frontend/model/status/` | 2 | 建模阶段/状态 |
+| **intermediate_model** | `frontend/model/mechanism/` | 18 | MetaModel, MechanismModel, TokenTable, TokenCacheContexts 等 |
+| | `backend/intermediate_model/` | 6 | LinearTriadModel, QuadraticTetradModel, ModelFileFormat 等 |
+| **solver** | `backend/solver/` 全部 | 30 | 求解器接口、配置、启发式、IIS、输出、value |
+
+### 不纳入 5 模块的内容（DSL 层，保留但不移动）
+
+| 路径 | 文件数 | 去向 |
+|------|--------|------|
+| `expression/monomial/` | 3 | **保留不动** — DSL 单项式，用户建模入口 |
+| `expression/polynomial/` | 3 | **保留不动** — DSL 多项式，用户建模入口 |
+| `expression/bridge/` | 8 | **保留不动** — DSL 操作符桥接 |
+| `expression/adapter/` | 5 | **保留不动** — DSL 适配器 |
+| `expression/dsl/` | — | **保留不动** — DSL 入口 |
+
+这些 DSL 文件是**用户建模入口**，不属于中间层。它们提供 `Variable * coeff + Variable2` 这样的建模语法。
+
+### 包名变更
+
+| 旧包名 | 新包名 |
+|--------|--------|
+| `fuookami.ospf.kotlin.core.frontend.variable` | `fuookami.ospf.kotlin.core.variable` |
+| `fuookami.ospf.kotlin.core.function` | `fuookami.ospf.kotlin.core.intermediate_symbol.function` |
+| `fuookami.ospf.kotlin.core.frontend.expression.symbol` | `fuookami.ospf.kotlin.core.intermediate_symbol` |
+| `fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function` | `fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function` |
+| `fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function` | `fuookami.ospf.kotlin.core.intermediate_symbol.legacy.quadratic_function` |
+| `fuookami.ospf.kotlin.core.frontend.expression.flatten` | `fuookami.ospf.kotlin.core.intermediate_symbol.flatten` |
+| `fuookami.ospf.kotlin.core.frontend.model` | `fuookami.ospf.kotlin.core.model` |
+| `fuookami.ospf.kotlin.core.frontend.model.callback` | `fuookami.ospf.kotlin.core.model.callback` |
+| `fuookami.ospf.kotlin.core.frontend.model.status` | `fuookami.ospf.kotlin.core.model.status` |
+| `fuookami.ospf.kotlin.core.frontend.model.mechanism` | `fuookami.ospf.kotlin.core.intermediate_model` |
+| `fuookami.ospf.kotlin.core.backend.intermediate_model` | `fuookami.ospf.kotlin.core.intermediate_model` |
+| `fuookami.ospf.kotlin.core.backend.solver` | `fuookami.ospf.kotlin.core.solver` |
+
+### 执行顺序
+
+包重命名是整个项目最大的变更（影响全项目 import），应在**阶段 0（补齐函数符号）+ 阶段 1（函数符号废弃）+ 阶段 5（框架迁移）+ 阶段 6（删除旧目录）** 完成后、**阶段 7（回归）之前**执行。
+
+或者更激进的做法：**先改名再重写**。一次性完成，不维持两个包名的双轨。
 
 ---
 
-## M8: monomial/polynomial 目录删除（全量迁移版，2026-04-11）
+## 下一步行动计划（Big-Bang 重写路线 — 细化版）
 
-### 架构决策变更
+### 阶段 0：补齐函数符号（B3 剩余，~7 文件）
 
-**R7 结论推翻（2026-04-11）**：
-- ~~`frontend.expression.monomial/polynomial` 不能被 `math.symbol` 替代~~ → **推翻**
-- `AbstractVariableItem` 已实现 `math.symbol.Symbol` 接口，可直接作为 math 类型的 symbol 参数
-- Token 集成由 MetaModel 上下文负责（`TokenCacheContexts`）
-- DSL 操作符 math.symbol 已经提供（infix le/ge/eq、plus/minus/times/div）
-- Quantity 系统 `quantities` 已经提供（`Quantity<LinearPolynomial<Flt64>>` 等）
+**目标**：创建剩余 7 个函数符号到 `intermediate_symbol/function/`，使新系统覆盖所有旧函数。
 
-### 深度 Gap 分析
+| 步骤 | 函数 | 约束模式 | 参考旧文件 | 预估行数 |
+|------|------|---------|-----------|---------|
+| 1 | `BalanceTernaryzationFunction` | BigM 三值分解（y in {-1,0,1}） | `legacy/linear_function/BalanceTernaryzation.kt` | 150-180 |
+| 2 | `InStepRangeFunction` | 分段阶跃：在 [lo,hi) 内返回 1 | `legacy/linear_function/InStepRangeFunction.kt` | 80-100 |
+| 3 | `SlackRangeFunction` | SlackRange (quadratic 变体) | `legacy/quadratic_function/SlackRange.kt` | 120-150 |
+| 4 | `InequalityFunction` | 不等式满足量 | `legacy/linear_function/Inequality.kt` | 100-120 |
+| 5 | `SatisfiedAmountInequalityFunction` | 复杂组合（InListFunction + AndFunction） | `legacy/linear_function/SatisfiedAmountInequality.kt` | 200-250 |
+| 6 | `SinFunction` | 委托 UnivariateLinearPiecewise | `legacy/linear_function/Sin.kt` (3 行 stub) | 50-60 |
+| 7 | `CosFunction` | 委托 UnivariateLinearPiecewise | `legacy/linear_function/Cos.kt` (3 行 stub) | 50-60 |
 
-| Gap | 解决方案 |
-|-----|----------|
-| math.symbol 缺少 combineTerms() | 已确认存在：`operation/CombineTerms.kt` 和 `operation/LinearQuadraticOps.kt` |
-| math.symbol 类型为泛型 `<T>` | bridge 层使用显式 `<Flt64>` |
-| math.symbol 无 name/displayName/range | 改为 bridge 扩展属性，从 IntermediateSymbol/TokenTable 读取 |
-| math.symbol 无 cells 属性 | 用 combineTerms() 替代 |
-| MutableLinearPolynomial 缺少操作符 | bridge 层复制 plusAssign/minusAssign 等重载 |
-| Quantity 操作符冲突 | bridge 层提供独立 @JvmName 函数 |
-| MonomialCell 系统 | 删除，不再需要 |
-| MonomialSymbol 包装器 | 删除，`AbstractVariableItem` 已实现 `Symbol` |
+**验收**：`legacy/linear_function/` 33 文件和 `legacy/quadratic_function/` 22 文件中，所有函数符号类都有 `function/` 对应实现。
 
-### 迁移规模
+---
 
-- `frontend.expression.monomial`：126 文件引用，227 处
-- `frontend.expression.polynomial`：93 文件引用，132 处
-- 其中 ospf-kotlin-core 内部 ~60 文件，framework 模块 ~65 文件
+### 阶段 1：intermediate_symbol 模块重写（B3 核心）
 
-### 分阶段计划
+**当前状态**：
+- `intermediate_symbol/` 主文件：2（`IntermediateSymbol.kt` 1169 行，`SymbolCombination.kt` ~520 行）
+- `legacy/linear_function/`：33 文件，19,667 行
+- `legacy/quadratic_function/`：21 文件，10,453 行
+- 总计：56 文件，~30,120 行
+- `function/` 新系统：24 文件，4,561 行（已有 22 个函数符号类）
 
-#### Phase 0：math.symbol 基础补充 ✅ 已完成
-1. `LinearMonomial<T>.toLinearPolynomial()` 泛型扩展（已添加到 LinearPolynomial.kt）
-2. `LinearPolynomial<T>.toMutable()` 已确认存在（MutableLinearPolynomial.kt:192）
-3. 验证 combineTerms()、evaluate() 功能完整 — 均已确认存在
-4. `zeroOf()` 从 private 改为 internal，供扩展函数复用
-5. `mvn -pl ospf-kotlin-math test`: **722 tests, BUILD SUCCESS** ✅
+#### 1.1 IntermediateSymbol.kt 重写
 
-#### Phase 1：创建 bridge 层 ✅ 已完成
-新建 `frontend.expression.bridge` 包，提供 operator 重载、Quantity 操作符、sum 函数：
-- `VariableOperators.kt` — AbstractVariableItem 操作符重载（~50 函数）
-- `SymbolOperators.kt` — LinearIntermediateSymbol 操作符重载（~25 函数）
-- `MonomialOperators.kt` — LinearMonomial<Flt64> 操作符重载（~20 函数）
-- `PolynomialOperators.kt` — LinearPolynomial<Flt64> 操作符重载（~15 函数）
-- `MutablePolynomialOperators.kt` — MutableLinearPolynomial<Flt64> 赋值操作符（~15 函数）
-- `QuantityOperators.kt` — Quantity 包装操作符（~50 @JvmName 函数）
-- `SumFunctions.kt` — sum/flatSum/qtySum/flatQtySum（~10 函数）
-- `PolynomialExtensions.kt` — flattenedMonomials/dependencies/range/cached/flush 扩展
+**当前问题**：
+- 1169 行，包含 `IntermediateSymbol`、`LinearIntermediateSymbol`、`QuadraticIntermediateSymbol`、`ExpressionSymbol`、`LinearExpressionSymbol`、`QuadraticExpressionSymbol`、`FunctionSymbol` 等多个类
+- 深度耦合旧 monomial/polynomial 类型（`ToLinearPolynomial`、`ToQuadraticPolynomial` 接口）
+- `cells` 属性已标记 `@Deprecated`，但 `flattenedMonomials` 仍使用旧类型
 
-**关键修复**：
-1. `LinearPolynomial` 构造函数需要 `monomials` + `constant` 两个参数，所有调用点补充 `Flt64.zero`
-2. `this.unit * rhs.unit` 中 PhysicalUnit 的 `times`/`div` 是 top-level 扩展函数，需要从 `quantities.unit` 显式导入（不能 alias）
-3. `Quantity.to(PhysicalUnit)` 与 stdlib `to` infix 冲突，需要显式 `import ...quantity.to`
-4. `MutableLinearPolynomial<Flt64>` 替换错误的 typealias shadowing
-5. `zeroOf()` 为 math 模块 internal 函数，不能从 core 模块导入
-6. `.reciprocal()` 在 Flt64 上不可用，替换为 `Flt64.one / value`
-7. `this.value * rhs.value` 类型推断失败（泛型 T vs Flt64），改为显式 `.toFlt64()` 转换后构造 LinearMonomial
+**重写方案**：
 
-**验证**：
-- `mvn compile -pl ospf-kotlin-core -am`: BUILD SUCCESS ✅
-- `mvn -pl ospf-kotlin-core -am test`: **Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+| 子步骤 | 操作 | 变更 | 验收 |
+|--------|------|------|------|
+| 1.1.1 | 保留 `IntermediateSymbol` 接口作为**桥接接口** | 移除 `Expression` 继承，仅保留 `Symbol` 继承；移除 `cells` 属性；保留 `category`、`dependencies`、`prepare()`、`flush()` | 编译通过，`cells` 零引用 |
+| 1.1.2 | 标记 `LinearIntermediateSymbol` / `QuadraticIntermediateSymbol` 为 `@Deprecated` | `ReplaceWith` 指引使用 `MathFunctionSymbol<T>`；保留接口以兼容框架 | 框架文件仍有 `@Suppress`，但不新增使用点 |
+| 1.1.3 | 标记 `LinearExpressionSymbol` / `QuadraticExpressionSymbol` 为 `@Deprecated` | 这些是 DSL 表达式构建器，框架代码仍在使用；保留但标记废弃 | 框架文件 `@Suppress("DEPRECATION")` 覆盖 |
+| 1.1.4 | 删除 `FunctionSymbol` / `LogicFunctionSymbol` / `LinearFunctionSymbol` / `LinearLogicFunctionSymbol` / `QuadraticFunctionSymbol` / `QuadraticLogicFunctionSymbol` 基类 | 旧函数符号基类，已被 `MathFunctionSymbol<T>` 替代 | 无外部引用，旧函数文件改用 `@Suppress` |
+| 1.1.5 | `ExpressionSymbol` 标记 `@Deprecated` | DSL 表达式包装器 | 框架文件 `@Suppress` 覆盖 |
 
-#### Phase 1：创建 bridge 层
-新建 `frontend.expression.bridge` 包：
-- `VariableOperators.kt` — AbstractVariableItem 操作符重载（~30 函数）
-- `SymbolOperators.kt` — LinearIntermediateSymbol 操作符重载（~25 函数）
-- `MonomialOperators.kt` — LinearMonomial<Flt64> 操作符重载（~20 函数）
-- `PolynomialOperators.kt` — LinearPolynomial<Flt64> 操作符重载（~15 函数）
-- `MutablePolynomialOperators.kt` — MutableLinearPolynomial<Flt64> 赋值操作符（~15 函数）
-- `QuantityOperators.kt` — Quantity 包装操作符（~50 @JvmName 函数）
-- `SumFunctions.kt` — sum/flatSum/qtySum/flatQtySum（~10 函数）
-- `PolynomialExtensions.kt` — flattenedMonomials/dependencies/range/cached/flush 扩展
+#### 1.2 legacy/linear_function/ 目录重写
 
-#### Phase 2：核心基础设施迁移
-1. 接口瘦身（Polynomial.kt, Monomial.kt 移除 Cell 泛型）
-2. Adapter 层简化（MonomialAdapters.kt, PolynomialAdapters.kt）
-3. TokenCacheContext 迁移到 math 类型
-4. MetaModel / MechanismModel / MathInequalityDsl 迁移
-5. Model / CallBackModel 迁移
+**当前状态**：33 文件，19,667 行。其中 24 个已有 `function/` 对应实现。
 
-#### Phase 3：函数符号迁移（~60 文件）
-1. IntermediateSymbol.kt + SymbolCombination.kt（基础）
-2. linear_function 目录（~30 文件）
-3. quadratic_function 目录（~15 文件）
+**重写策略**：按函数类型分组处理。
 
-#### Phase 4：删除旧类型目录
-1. 删除 `frontend.expression.monomial/` 目录
-2. 删除 `frontend.expression.polynomial/` 目录
-3. 清理死代码 Adapter 函数
+| 组别 | 文件 | 状态 | 处理方式 |
+|------|------|------|---------|
+| 已有对应实现（24 文件） | And, Or, Not, Xor, If, Max, Min, Slack, Abs, Semi, Floor, Ceiling, Rounding, Mod, IfIn, IfThen, OneOf, First, SameAs, SatisfiedAmount, Masking, Binaryzation, UnivariateLinearPiecewise, BivariateLinearPiecewise, Sigmoid | ✅ 已创建 | 全部添加 `@Deprecated("Use intermediate_symbol.function.X instead")` |
+| 缺失实现（7 文件） | BalanceTernaryzation, InStepRangeFunction, Inequality, SlackRange, MaskingRange, SatisfiedAmountInequality | ❌ 待创建 | **阶段 0** 创建到 `function/` |
+| Stub 文件（2 文件） | Sin.kt (3 行), Cos.kt (3 行) | ⚠️ 空壳 | 直接删除，功能已包含在 Sigmoid 分段点中 |
 
-#### Phase 5：framework 模块迁移
-1. gantt-scheduling（~50 文件）
-2. bpp3d（~8 文件）
+**具体操作**：
 
-#### Phase 6：清理收尾
-1. 全量回归测试
-2. 零引用验证
-3. 更新迁移文档
+1. 对 24 个已有对应实现的旧文件：添加 `@file:Suppress("DEPRECATION")` + `@Deprecated` 类注解
+2. 对 7 个缺失文件：**阶段 0** 完成后同样处理
+3. 对 2 个 stub 文件：直接删除
 
-### 门禁标准
-- `mvn -pl ospf-kotlin-core -am test`: BUILD SUCCESS, 91+ tests
-- `mvn compile -DskipTests`: 全模块 BUILD SUCCESS
-- 零 `frontend.expression.monomial` 引用
-- 零 `frontend.expression.polynomial` 引用
+#### 1.3 legacy/quadratic_function/ 目录重写
+
+**当前状态**：21 文件，10,453 行。其中 15 个有线性版对应实现。
+
+**重写策略**：二次变体函数统一合并到线性版中。
+
+| 文件 | 处理方式 | 理由 |
+|------|---------|------|
+| Binaryzation, BivariateLinearPiecewise, Ceiling, Floor, Masking, MaskingRange, Max, Min, Mod, Rounding, Semi, Sigmoid, Slack, SlackRange, UnivariateLinearPiecewise | 标记 `@Deprecated`，指引使用 `function/` 线性版 | `MathFunctionSymbol` 的 `LinearPolynomial<T>` 已支持二次输入，无需独立二次版 |
+| Inequality (2 行) | 直接删除 | 空文件 |
+| Linear (295 行) | 分析后决定 | 检查是否为纯线性包装器，如是则标记废弃 |
+| Product (331 行) | 分析后决定 | 检查是否已被 `math.symbol` 的乘法操作符覆盖 |
+| Cos, Sin (3 行各) | 直接删除 | stub |
+
+#### 1.4 SymbolCombination.kt 重写
+
+**当前状态**：~520 行，包含 `AbstractSymbolCombination`、`SymbolCombination`、`QuantitySymbolCombination`。
+
+**操作**：
+- 保留（DSL 核心能力，提供 `map`/`flatMap` 组合器）
+- 更新 import：将 `LinearMonomial` 相关类型替换为 `math.symbol.monomial.LinearMonomial<Flt64>` 的桥接
+- 添加对 `MathFunctionSymbol` 的 `map` 支持
+
+#### 阶段 1 验收标准
+
+- [ ] `function/` 包含所有旧函数的 `MathFunctionSymbol<T>` 实现
+- [ ] `legacy/linear_function/` 全部文件标记 `@Deprecated`
+- [ ] `legacy/quadratic_function/` 全部文件标记 `@Deprecated` 或删除
+- [ ] `IntermediateSymbol.kt` 中 `FunctionSymbol` 基类已删除
+- [ ] 无新增旧 monomial/polynomial import 到 `function/`
+
+---
+
+### 阶段 2：Variable 模块（B2 细化）
+
+**当前状态**：
+- Kotlin：`AbstractVariableItem.kt` (145 行)、`Type.kt` (119 行)、`VariableIndependentItem.kt` (46 行)、`VariableCombinationItem.kt` (306 行)、`VariableRange.kt` (182 行)、`Token.kt` (90 行)、`TokenList.kt` (360 行)，总计 ~1,248 行
+- Rust：`variable_type.rs`、`variable_item.rs`、`variable_range.rs`，更精简的设计
+
+**Kotlin vs Rust 差异**：
+
+| 维度 | Kotlin | Rust | 对齐方向 |
+|------|--------|------|---------|
+| 类型参数 | `<T, Type>` 双泛型 | 关联类型 `Value` | 保持 Kotlin（类型安全更强） |
+| 变量 ID | `identifier: UInt64` + `index: Int` | `VariableId` 结构体 | 保持 Kotlin（支持变量组） |
+| 克隆 | 标准 copy | `Arc::clone()` 共享 | 保持 Kotlin（不可变场景够用） |
+| 多维变量 | `VariableCombination` | 无 | **保留 Kotlin 独有功能** |
+| 物理量变量 | `QuantityVariable` | 无 | **保留 Kotlin 独有功能** |
+
+**操作**：
+- **不需要重写**：variable 模块已是成熟设计，且有多维变量和物理量等 Rust 没有的优势功能
+- `AbstractVariableItem` 已实现 `Symbol`（第 53 行），无需额外转换方法
+- **仅需对齐**：统一命名和补齐 TokenTable 辅助方法
+- **包迁移**：`frontend.variable` → `variable`
+
+| 子步骤 | 操作 | 文件 |
+|--------|------|------|
+| 2.1 | 统一 `VariableType.isIntegerType` 命名（与 Rust `is_integer()` 对齐） | `Type.kt` |
+| 2.2 | 包路径重命名：`frontend/variable/` → `variable/` | 全部 7 文件 |
+| 2.3 | 更新全项目 import | grep + replace |
+
+---
+
+### 阶段 3：Token 模块（B2 细化）
+
+Token 在 `variable/` 目录下（`Token.kt` + `TokenList.kt`）。TokenTable 在 `intermediate_model/` 下。
+
+**当前状态**：
+- Kotlin：`Token` (90 行)、`TokenList` (360 行)、`TokenTable` (1,522 行)、`TokenCacheContexts`（未计入）
+- Rust：`token.rs`、`token_list.rs`、`token_table.rs`，更精简
+
+**Kotlin vs Rust 差异**：
+
+| 维度 | Kotlin | Rust | 对齐方向 |
+|------|--------|------|---------|
+| 结果存储 | 可变属性 + 回调 | `RwLock<Option<V>>` | 保持 Kotlin（回调机制更有用） |
+| Token 查找 | `Map<VariableItemKey, Token>` | `HashMap<VariableId, usize>` + Vec | **优化**：添加索引加速 |
+| 并发变体 | `ConcurrentAutoTokenTable` / `ConcurrentManualAddTokenTable` | `ConcurrentTokenTable` | 保持 Kotlin（已有） |
+| 按类型分组 | 无 | `tokens_by_type()` | **补充**：添加按变量类型分组 |
+| Token 缓存上下文 | 4 种缓存（value/range/linear flatten/quadratic flatten） | Lazy 上下文 | 保持 Kotlin（更丰富） |
+
+**具体操作**：
+
+| 子步骤 | 操作 | 文件 | 变更 |
+|--------|------|------|------|
+| 3.1 | 为 `TokenList` 添加 `tokensByType(varType: VariableType): List<Token>` | `TokenList.kt` | 新增方法 |
+| 3.2 | 优化 `find()` 性能：添加 `Int` 索引作为主键 | `TokenList.kt` | `Map<VariableItemKey, Token>` → 添加 `Map<Int, Token>` 二级索引 |
+| 3.3 | 统一 `TokenTable` 接口：添加 `register()` / `unregister()` 方法签名 | `TokenTable.kt` | 对齐 Rust 接口命名 |
+| 3.4 | 清理 `TokenCacheContexts` 中对旧 `cells` 属性的依赖 | `TokenCacheContexts.kt` | 已全部迁移到 `flattenedMonomials`，验证零残留 |
+
+---
+
+### 阶段 4：中间模型重写（B4 细化）
+
+**当前状态**：
+- Kotlin：`MetaModel.kt` (1,219 行)、`TokenTable.kt` (1,522 行)、`CallBackModel.kt` (658 行)、`CallBackModelInterface.kt` (141 行)、`backend/intermediate_model/` (6 文件)
+- Rust：`basic_model.rs`、`meta_model.rs`、`callback/` 目录
+
+**Kotlin vs Rust 差异**：
+
+| 维度 | Kotlin | Rust | 对齐方向 |
+|------|--------|------|---------|
+| 层次结构 | 接口继承链 | 组合模式（MetaModel 包装 BasicModel） | **保持 Kotlin**（接口更灵活） |
+| Token 存储 | `AbstractMutableTokenTable` | `Vec<Token<V>>` + `HashMap` | 保持 Kotlin |
+| 符号依赖追踪 | 隐式（`FunctionSymbolRegistrationScope`） | 显式 `HashMap<u64, HashSet<u64>>` | **改进**：添加显式依赖追踪 |
+| 导出 | `suspend fun export()` | 无 | **保留 Kotlin 独有功能** |
+| Benders 分解 | 6 个求解器插件 | 仅框架基础结构 | **保留 Kotlin 核心优势** |
+| 回调模型 | Policy-based + Extractor | Executor/Provider 回调 | 保持各自设计 |
+| 多目标 | `MultiObjectCallBackModel` | `MultiObjectiveModelInterface` | 保持 Kotlin（更完整） |
+
+**具体操作**：
+
+| 子步骤 | 操作 | 文件 | 变更 |
+|--------|------|------|------|
+| 4.1 | 为 `AbstractMetaModel` 添加显式符号依赖追踪 | `MetaModel.kt` | 新增 `symbolDependencies: MutableMap<UInt64, MutableSet<UInt64>>` |
+| 4.2 | 将 `add(symbol: IntermediateSymbol)` 标记 `@Deprecated` | `MetaModel.kt` | `ReplaceWith` 指引使用 `addSymbol(symbol: MathFunctionSymbol<T>)` |
+| 4.3 | 新增 `addSymbol(function: MathFunctionSymbol<T>): Try` | `MetaModel.kt` | 新入口，内部调用 `function.register(this)` |
+| 4.4 | 清理 `MetaModel` 中对旧 `LinearInequality` / `QuadraticInequality` 的残留引用 | `MetaModel.kt` | 仅保留 `MathLinearInequality` / `MathQuadraticInequality` |
+| 4.5 | `CallBackModel` 添加对 `MathFunctionSymbol` 的支持 | `CallBackModel.kt` | 新增 `addConstraint(symbol: MathFunctionSymbol<T>)` |
+| 4.6 | 为 `MechanismModel` 添加显式 `generateBendersCut()` 方法文档 | `MechanismModel.kt` | 文档 + KDoc，标记为 Kotlin 独有功能 |
+| 4.7 | 合并 `backend/intermediate_model/` 到 `intermediate_model/` | 目录移动 | 6 文件 |
+
+---
+
+### 阶段 5：框架迁移（B5 细化）
+
+**当前状态**：
+- gantt-scheduling：~46 文件引用旧函数符号
+- bpp3d：~4 文件引用旧函数符号
+- 全部使用 `@file:Suppress("DEPRECATION")`
+
+**迁移策略**：按模块逐个迁移，每个模块编译通过后再进入下一个。
+
+| 步骤 | 模块 | 文件数 | 迁移内容 | 预估工作量 |
+|------|------|--------|---------|-----------|
+| 5.1 | bpp3d-domain-layer-assignment-context | 4 | ItemDemandConstraint, Assignment, Capacity, Load | 0.5 天 |
+| 5.2 | gantt-scheduling-domain-task-compilation-context | 14 | Makespan, Switch, TaskTime, Compilation 等 | 1 天 |
+| 5.3 | gantt-scheduling-domain-resource-context | 8 | Resource, ConnectionResource, ExecutionResource 等 | 0.5 天 |
+| 5.4 | gantt-scheduling-domain-produce-context | 10 | Produce, Consumption, CapacitySchedulingProduce 等 | 0.5 天 |
+| 5.5 | gantt-scheduling-domain-capacity-scheduling-context | 4 | Capacity, CapacityCompilation 等 | 0.5 天 |
+| 5.6 | gantt-scheduling-domain-bunch-compilation-context | 2 | TaskTime, Compilation | 0.5 天 |
+
+**每个模块的迁移步骤**：
+1. 扫描使用的旧函数符号（`AbsFunction`, `SlackFunction`, `MaxFunction` 等）
+2. 替换为 `intermediate_symbol.function/` 新实现（`AbsFunction<Flt64>`, `SlackFunction<Flt64>`, `MaxFunction<Flt64>`）
+3. 更新 import 路径（`frontend.*` → 新路径）
+4. 检查 API 变更（构造函数参数、属性名）
+5. 编译验证
+6. 移除该模块的 `@file:Suppress("DEPRECATION")`
+
+**风险控制**：
+- 每步迁移后立即编译验证
+- 遇到 API 不兼容时，优先在新函数符号中添加兼容构造函数，而非修改框架代码
+- 保留一个版本的应急开关（可选）
+
+---
+
+### 阶段 6.5：删除前功能核对（新增）
+
+**在阶段 6 执行删除之前，必须逐文件逐功能核对，确认新代码已覆盖旧代码的全部行为。**
+
+**核对方法**：
+
+| 步骤 | 操作 | 验收 |
+|------|------|------|
+| 6.5.1 | 对每个旧函数符号文件，列出其**全部公共 API**（类、构造函数、属性、方法） | 生成核对清单 |
+| 6.5.2 | 逐一对应到新 `function/` 实现 | 每个 API 都有对应 |
+| 6.5.3 | 核对**约束生成的逻辑分支**（固定值模式、extract 模式、threshold 模式等） | 每个分支都有对应实现 |
+| 6.5.4 | 核对**helper 变量创建逻辑**（变量类型、范围设置、条件创建） | 变量创建逻辑一致 |
+| 6.5.5 | 核对**evaluate() 返回值** | 给定相同输入，新旧返回值一致 |
+| 6.5.6 | 核对**边界条件处理**（null 值、空输入、极端值） | 边界行为一致 |
+| 6.5.7 | 为每个旧函数符号编写**行为对比测试** | 新旧输出对比通过 |
+
+**核对清单模板**（每个旧文件一个）：
+
+```
+文件: BalanceTernaryzation.kt
+新实现: BalanceTernaryzationFunction<T>
+
+□ 公共类/构造函数签名一致
+□ 所有公共属性/方法一致
+□ 约束生成: 分支 1 (xxx) → 新实现
+□ 约束生成: 分支 2 (xxx) → 新实现
+□ 约束生成: 分支 3 (xxx) → 新实现
+□ helper 变量创建逻辑一致
+□ evaluate() 返回值对比通过
+□ 边界条件: null/极端值 一致
+□ 行为对比测试通过
+```
+
+**只有核对清单全部打勾的文件才能删除。** 如有缺失项，必须在删除前补齐。
+
+---
+
+### 阶段 6：包重命名 + 删除旧目录（B6 细化）
+
+**前提条件**：
+- 阶段 0-5 全部完成
+- 框架代码零引用旧函数符号
+- `@file:Suppress("DEPRECATION")` 全部移除
+
+**包重命名**（全局 import 替换）：
+
+| 旧包 | 新包 | 影响范围 |
+|------|------|---------|
+| `frontend.variable` | `variable` | core 内部 + 框架 |
+| `frontend.model` | `model` | core 内部 + 框架 |
+| `frontend.model.mechanism` | `intermediate_model` | core 内部 + 框架 |
+| `frontend.expression.symbol` | `intermediate_symbol` | core 内部 + 框架 |
+| `frontend.expression.symbol.linear_function` | `intermediate_symbol.legacy.linear_function` | core 内部（仅废弃引用） |
+| `frontend.expression.symbol.quadratic_function` | `intermediate_symbol.legacy.quadratic_function` | core 内部（仅废弃引用） |
+| `backend.intermediate_model` | `intermediate_model` | core 内部 |
+| `backend.solver` | `solver` | core 内部 + 插件 |
+| `function` | `intermediate_symbol.function` | core 内部 + 框架 |
+
+**删除清单**：
+
+| 路径 | 文件数 | 行数 | 操作 |
+|------|--------|------|------|
+| `intermediate_symbol/legacy/linear_function/` | 33 | 19,667 | 全部删除 |
+| `intermediate_symbol/legacy/quadratic_function/` | 21 | 10,453 | 全部删除 |
+| `intermediate_symbol/IntermediateSymbol.kt` 中的废弃类 | — | ~800 | 删除废弃类（FunctionSymbol 基类等），保留 ExpressionSymbol |
+
+**不删除**（永久保留）：
+- `expression/monomial/` — DSL 核心
+- `expression/polynomial/` — DSL 核心
+- `expression/symbol/ExpressionSymbol` — DSL 表达式包装器（标记废弃）
+- `expression/symbol/SymbolCombination.kt` — DSL 组合器（移至 intermediate_symbol/）
+- `expression/bridge/` — DSL 操作符桥接
+- `expression/adapter/` — DSL 适配器
+
+**操作**：
+1. 全局 import 替换（grep + sed 批量替换）
+2. 确认零引用（`grep` 全项目搜索旧路径）
+3. 删除废弃文件
+4. 清理残留 import
+5. 编译验证到全绿
+
+---
+
+### 阶段 7：集中回归（B7-B8）
+
+| 步骤 | 操作 | 命令 | 预期 |
+|------|------|------|------|
+| 7.1 | 阶段小回归 | `mvn -pl ospf-kotlin-core "-Dtest=..." test` | 全绿 |
+| 7.2 | 全量回归 | `mvn -pl ospf-kotlin-core -am test` | 91 tests, 0 failures |
+| 7.3 | 框架编译 | `mvn compile -pl ospf-kotlin-framework -am` | BUILD SUCCESS |
+| 7.4 | 插件编译 | `mvn compile -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt,ospf-kotlin-core-plugin-gurobi,ospf-kotlin-core-plugin-scip -am` | BUILD SUCCESS |
+| 7.5 | 按优先级修复 | 阻断 > 功能 > 性能 | 全绿 |
+
+---
+
+### 阶段 8：封口门禁（B9）
+
+| 步骤 | 操作 | 验收 |
+|------|------|------|
+| 8.1 | CI 守卫：禁止 `intermediate_symbol/legacy/linear_function` import | 新增 import 时 CI 失败 |
+| 8.2 | CI 守卫：禁止 `intermediate_symbol/legacy/quadratic_function` import | 新增 import 时 CI 失败 |
+| 8.3 | CI 守卫：禁止 `.cells` 参与主计算 | 新增 `.cells` 调用时 CI 失败 |
+| 8.4 | 更新迁移文档 | 文档明确 "core 是中间层，符号运算由 math.symbol 提供" |
+| 8.5 | 更新 Rust 对齐文档 | 记录 Kotlin 独有功能（物理量、Benders、多维变量） |
+
+---
+
+## 回归命令
+
+1. 阶段小回归：
+   `mvn -pl ospf-kotlin-core "-Dtest=MonomialCoefficientPreservationTest,FlattenMigrationGuardTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest,InequalityNormalizeBaselineTest,TokenCacheContextsTest" "-Dsurefire.failIfNoSpecifiedTests=false" test`
+
+2. 全量回归：
+   `mvn -pl ospf-kotlin-core -am test`
+
+3. 插件编译检查：
+   `mvn -pl ospf-kotlin-core-plugin/... -am -DskipTests compile`
+
+## 止损条件
+
+1. 阶段 0 后函数符号层仍大量依赖旧 inequality 路径
+2. 阶段 6 后 1 天内无法恢复 core 可编译状态
+3. 阶段 7 后核心回归仍存在阻断级失败
+
+回退策略：回退到阶段 0 冻结点或上一个稳定阶段，24h 内决策是否继续 big-bang 或切回增量路线。
+
+---
+
+## 最终完成标准
+
+1. `core` 按 5 模块组织：`variable`、`intermediate_symbol`、`model`、`intermediate_model`、`solver`
+2. `intermediate_symbol/function/` 包含所有旧函数的 `MathFunctionSymbol<T>` 实现
+3. 无旧路径 import（`frontend.variable`、`frontend.model`、`frontend.expression.symbol`、`backend.*`）
+4. `mvn -pl ospf-kotlin-core -am test` 通过
+5. 插件编译检查通过
+6. `cell`、`value`、`range` 运行期处理集中在 `intermediate_model` 上下文
