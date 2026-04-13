@@ -96,7 +96,7 @@ private fun Comparison.latexSymbol(): String {
     }
 }
 
-fun LinearInequality.toLatex(
+fun LinearInequality<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"

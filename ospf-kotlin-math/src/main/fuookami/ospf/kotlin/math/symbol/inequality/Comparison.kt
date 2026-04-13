@@ -151,3 +151,27 @@ enum class Comparison {
     }
 }
 
+/**
+ * 检查给定数值是否满足此比较关系
+ * Check whether the given values satisfy this comparison relation
+ *
+ * 根据比较运算符类型，判断 lhs 和 rhs 是否满足对应的不等式关系。
+ * 例如，当 [Comparison.LT] 时，返回 `lhs < rhs` 的结果。
+ * Evaluates the comparison between [lhs] and [rhs] based on the operator type.
+ * For example, when [Comparison.LT], returns the result of `lhs < rhs`.
+ *
+ * @param lhs 左侧值 / Left-hand side value
+ * @param rhs 右侧值 / Right-hand side value
+ * @return 是否满足比较关系 / Whether the comparison relation is satisfied
+ */
+fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
+    return when (this) {
+        Comparison.LT -> lhs < rhs
+        Comparison.LE -> lhs <= rhs
+        Comparison.EQ -> lhs == rhs
+        Comparison.NE -> lhs != rhs
+        Comparison.GE -> lhs >= rhs
+        Comparison.GT -> lhs > rhs
+    }
+}
+

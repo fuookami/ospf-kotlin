@@ -3,6 +3,8 @@
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
@@ -23,6 +25,17 @@ class EvaluateTest {
         override val name: String,
         override val displayName: String? = null
     ) : Symbol
+
+    private fun closedRange(lb: Double, ub: Double): ValueRange<Flt64> {
+        val rangeRet = ValueRange(
+            lb = Flt64(lb),
+            ub = Flt64(ub),
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = Flt64
+        )
+        return (rangeRet as Ok).value
+    }
 
     @Test
     fun evaluateNullableShouldFollowMissingValuePolicy() {
@@ -230,7 +243,69 @@ class EvaluateTest {
         assertEquals(Flt64.one, byMap.constant)
         assertEquals(2, byMap.monomials.size)
     }
+
+    @Test
+    fun evaluateIntervalExtremumShouldMatchManualBounds() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(-3.0), y)
+            ),
+            constant = Flt64.one
+        )
+
+        val extremum = polynomial.evaluateIntervalExtremum(
+            intervals = mapOf(
+                x to closedRange(1.0, 3.0),
+                y to closedRange(2.0, 5.0)
+            )
+        )
+        assertEquals(Flt64(-12.0), extremum?.lowerBound?.value?.unwrapOrNull())
+        assertEquals(Flt64.one, extremum?.upperBound?.value?.unwrapOrNull())
+    }
+
+    @Test
+    fun evaluateIntervalExtremumShouldChooseBoundsByCoefficientSign() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64(4.0), x),
+                LinearMonomial(Flt64(-5.0), y)
+            ),
+            constant = Flt64(2.0)
+        )
+
+        val extremum = polynomial.evaluateIntervalExtremum(
+            intervals = mapOf(
+                x to closedRange(-1.0, 3.0),
+                y to closedRange(0.0, 4.0)
+            )
+        )
+        assertEquals(Flt64(-22.0), extremum?.lowerBound?.value?.unwrapOrNull())
+        assertEquals(Flt64(14.0), extremum?.upperBound?.value?.unwrapOrNull())
+    }
+
+    @Test
+    fun evaluateIntervalExtremumShouldReturnNullWhenIntervalMissing() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val polynomial = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(-3.0), y)
+            ),
+            constant = Flt64.zero
+        )
+
+        val extremum = polynomial.evaluateIntervalExtremum(
+            intervals = mapOf(
+                x to closedRange(1.0, 3.0)
+            )
+        )
+        assertNull(extremum)
+    }
 }
-
-
 

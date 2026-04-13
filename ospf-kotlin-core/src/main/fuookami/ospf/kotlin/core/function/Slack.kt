@@ -10,29 +10,29 @@ import fuookami.ospf.kotlin.core.frontend.variable.URealVar
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.eq
+import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.math.operator.abs
-import fuookami.ospf.kotlin.math.ordinary.max
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
-class SlackFunction(
-    val x: LinearPolynomial<Flt64>,
-    val y: LinearPolynomial<Flt64>,
+class SlackFunction<T : Field<T>>(
+    val x: LinearPolynomial<T>,
+    val y: LinearPolynomial<T>,
     val type: fuookami.ospf.kotlin.core.frontend.variable.VariableType<*> = UContinuous,
     val withNegative: Boolean = true,
     val withPositive: Boolean = true,
     val threshold: Boolean = false,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol {
+) : MathFunctionSymbol<T> {
     init {
         require(withNegative || withPositive) { "At least one of withNegative or withPositive must be true" }
     }
@@ -47,25 +47,40 @@ class SlackFunction(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOfNotNull(negVar, posVar)
 
-    val neg: LinearPolynomial<Flt64>? by lazy {
-        negVar?.let { v -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, v)), Flt64.zero) }
+    val neg: LinearPolynomial<T>? by lazy {
+        negVar?.let { v ->
+            LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), v)), zeroOf<T>())
+        }
     }
 
-    val pos: LinearPolynomial<Flt64>? by lazy {
-        posVar?.let { v -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, v)), Flt64.zero) }
+    val pos: LinearPolynomial<T>? by lazy {
+        posVar?.let { v ->
+            LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), v)), zeroOf<T>())
+        }
     }
 
     private fun createVariable(baseName: String): AbstractVariableItem<*, *> {
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
-        val xValue = x.evaluate(values)
-        val yValue = y.evaluate(values)
-        return if (withNegative && withPositive) abs(xValue - yValue)
-        else if (withNegative) max(Flt64.zero, yValue - xValue)
-        else if (withPositive) max(Flt64.zero, xValue - yValue)
-        else Flt64.zero
+    override fun evaluate(values: Map<Symbol, T>): T? {
+        val xValue = x.evaluate(values) ?: return null
+        val yValue = y.evaluate(values) ?: return null
+        val diff = (xValue.asFlt64() - yValue.asFlt64()).toDouble()
+        return if (withNegative && withPositive) {
+            @Suppress("UNCHECKED_CAST")
+            Flt64(kotlin.math.abs(diff)) as T
+        } else if (withNegative) {
+            val v = kotlin.math.max(0.0, -diff)
+            @Suppress("UNCHECKED_CAST")
+            Flt64(v) as T
+        } else if (withPositive) {
+            val v = kotlin.math.max(0.0, diff)
+            @Suppress("UNCHECKED_CAST")
+            Flt64(v) as T
+        } else {
+            zeroOf()
+        }
     }
 
     override fun register(model: AbstractLinearMetaModel): Try {
@@ -78,23 +93,29 @@ class SlackFunction(
             }
         }
 
+        val xPoly = x.asFlt64Poly()
+        val yPoly = y.asFlt64Poly()
+
         if (!threshold) {
-            when (val result = model.addConstraint(relation = polyX eq y, name = name)) {
+            val eqConstraint = MathLinearInequality(xPoly, yPoly, Comparison.EQ, name)
+            when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
                 is Ok -> {}
                 is Failed -> return Failed(result.error)
                 is Fatal -> return Fatal(result.errors)
             }
         } else {
             if (withNegative && negVar != null) {
-                val lhs = LinearPolynomial(x.monomials + LinearMonomial(Flt64.one, negVar!!), x.constant)
-                when (val result = model.addConstraint(relation = lhs geq y, name = "${name}_neg")) {
+                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
+                val constraint = MathLinearInequality(lhs, yPoly, Comparison.GE, "${name}_neg")
+                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
                     is Fatal -> return Fatal(result.errors)
                 }
             } else if (withPositive && posVar != null) {
-                val lhs = LinearPolynomial(x.monomials + LinearMonomial(-Flt64.one, posVar!!), x.constant)
-                when (val result = model.addConstraint(relation = lhs leq y, name = "${name}_pos")) {
+                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
+                val constraint = MathLinearInequality(lhs, yPoly, Comparison.LE, "${name}_pos")
+                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
                     is Fatal -> return Fatal(result.errors)
@@ -105,7 +126,8 @@ class SlackFunction(
     }
 
     val polyX: LinearPolynomial<Flt64> by lazy {
-        var result = LinearPolynomial(x.monomials.toMutableList(), x.constant)
+        val xPoly = x.asFlt64Poly()
+        var result = LinearPolynomial(xPoly.monomials.toMutableList(), xPoly.constant)
         if (withNegative && negVar != null) {
             result = LinearPolynomial(result.monomials + LinearMonomial(Flt64.one, negVar!!), result.constant)
         }
@@ -125,7 +147,7 @@ class SlackFunction(
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): SlackFunction = SlackFunction(
+        ): SlackFunction<Flt64> = SlackFunction(
             x = x,
             y = LinearPolynomial(emptyList(), y),
             type = type,
@@ -144,7 +166,7 @@ class SlackFunction(
             withNegative: Boolean? = null,
             name: String,
             displayName: String? = null
-        ): SlackFunction {
+        ): SlackFunction<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return SlackFunction(
                 x = x,

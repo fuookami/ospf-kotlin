@@ -59,6 +59,51 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
     )
 }
 
+/**
+ * 尝试转换为线性类型时的错误原因
+ * Error reasons when attempting conversion to linear types
+ *
+ * 用于标识类型转换失败的具体原因，以便调用方精确处理。
+ * Used to identify the specific reason for type conversion failures,
+ * allowing callers to handle them precisely.
+ */
+enum class TryToLinearError {
+    /** 规范单项式次数大于 1，无法转换为线性单项式 / Canonical monomial degree > 1, cannot convert to linear monomial */
+    CanonicalMonomialIsNotLinear,
+    /** 二次单项式次数大于 1，无法转换为线性单项式 / Quadratic monomial degree > 1, cannot convert to linear monomial */
+    QuadraticMonomialIsNotLinear,
+    /** 规范多项式包含高次项，无法转换为线性多项式 / Canonical polynomial contains higher-degree terms */
+    CanonicalPolynomialIsNotLinear,
+    /** 二次多项式包含高次项，无法转换为线性多项式 / Quadratic polynomial contains higher-degree terms */
+    QuadraticPolynomialIsNotLinear,
+    /** 二次不等式包含高次项，无法转换为线性不等式 / Quadratic inequality contains higher-degree terms */
+    QuadraticInequalityIsNotLinear,
+    /** 规范不等式包含高次项，无法转换为线性不等式 / Canonical inequality contains higher-degree terms */
+    CanonicalInequalityIsNotLinear
+}
+
+/**
+ * 尝试转换为二次类型时的错误原因
+ * Error reasons when attempting conversion to quadratic types
+ */
+enum class TryToQuadraticError {
+    /** 规范单项式次数大于 2，无法转换为二次单项式 / Canonical monomial degree > 2 */
+    CanonicalMonomialIsNotQuadratic,
+    /** 规范多项式包含次数大于 2 的项，无法转换为二次多项式 / Canonical polynomial contains terms with degree > 2 */
+    CanonicalPolynomialIsNotQuadratic,
+    /** 规范不等式包含次数大于 2 的项，无法转换为二次不等式 / Canonical inequality contains terms with degree > 2 */
+    CanonicalInequalityIsNotQuadratic
+}
+
+/**
+ * 尝试转换为规范类型时的错误原因
+ * Error reasons when attempting conversion to canonical types
+ */
+enum class TryToCanonicalError {
+    /** 不支持的转换类型 / Unsupported conversion type */
+    Unsupported
+}
+
 // ============================================================================
 // Ret wrappers for nullable conversion functions
 // ============================================================================
@@ -68,7 +113,11 @@ fun CanonicalMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     return if (linearMonomial != null) {
         Ok(linearMonomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert canonical monomial to linear monomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical monomial to linear monomial.",
+            TryToLinearError.CanonicalMonomialIsNotLinear
+        )
     }
 }
 
@@ -79,7 +128,11 @@ fun CanonicalMonomial<Flt64>.toQuadraticMonomialRet(
     return if (quadraticMonomial != null) {
         Ok(quadraticMonomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert canonical monomial to quadratic monomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical monomial to quadratic monomial.",
+            TryToQuadraticError.CanonicalMonomialIsNotQuadratic
+        )
     }
 }
 
@@ -88,7 +141,11 @@ fun QuadraticMonomial<Flt64>.toLinearMonomialRet(): Ret<LinearMonomial<Flt64>> {
     return if (linearMonomial != null) {
         Ok(linearMonomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert quadratic monomial to linear monomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert quadratic monomial to linear monomial.",
+            TryToLinearError.QuadraticMonomialIsNotLinear
+        )
     }
 }
 
@@ -97,7 +154,11 @@ fun CanonicalPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
     return if (linearPolynomial != null) {
         Ok(linearPolynomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert canonical polynomial to linear polynomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical polynomial to linear polynomial.",
+            TryToLinearError.CanonicalPolynomialIsNotLinear
+        )
     }
 }
 
@@ -108,7 +169,11 @@ fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialRet(
     return if (quadraticPolynomial != null) {
         Ok(quadraticPolynomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert canonical polynomial to quadratic polynomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical polynomial to quadratic polynomial.",
+            TryToQuadraticError.CanonicalPolynomialIsNotQuadratic
+        )
     }
 }
 
@@ -117,7 +182,11 @@ fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
     return if (linearPolynomial != null) {
         Ok(linearPolynomial)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert quadratic polynomial to linear polynomial")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert quadratic polynomial to linear polynomial.",
+            TryToLinearError.QuadraticPolynomialIsNotLinear
+        )
     }
 }
 
@@ -125,7 +194,7 @@ fun QuadraticPolynomial<Flt64>.toLinearPolynomialRet(): Ret<LinearPolynomial<Flt
 // Inequality conversions
 // ============================================================================
 
-fun LinearInequality.toQuadraticInequality(): QuadraticInequality {
+fun LinearInequality<Flt64>.toQuadraticInequality(): QuadraticInequality {
     return QuadraticInequality(
         lhs = lhs.toQuadraticPolynomial(),
         rhs = rhs.toQuadraticPolynomial(),
@@ -133,7 +202,7 @@ fun LinearInequality.toQuadraticInequality(): QuadraticInequality {
     )
 }
 
-fun LinearInequality.toCanonicalInequality(
+fun LinearInequality<Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality {
     return CanonicalInequality(
@@ -153,7 +222,7 @@ fun QuadraticInequality.toCanonicalInequality(
     )
 }
 
-fun QuadraticInequality.toLinearInequalityOrNull(): LinearInequality? {
+fun QuadraticInequality.toLinearInequalityOrNull(): LinearInequality<Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
     return LinearInequality(
@@ -163,16 +232,20 @@ fun QuadraticInequality.toLinearInequalityOrNull(): LinearInequality? {
     )
 }
 
-fun QuadraticInequality.toLinearInequalityRet(): Ret<LinearInequality> {
+fun QuadraticInequality.toLinearInequalityRet(): Ret<LinearInequality<Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
         Ok(linearInequality)
     } else {
-        Failed(ErrorCode.IllegalArgument, "Cannot convert quadratic inequality to linear inequality")
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert quadratic inequality to linear inequality.",
+            TryToLinearError.QuadraticInequalityIsNotLinear
+        )
     }
 }
 
-fun CanonicalInequality.toLinearInequalityOrNull(): LinearInequality? {
+fun CanonicalInequality.toLinearInequalityOrNull(): LinearInequality<Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
     return LinearInequality(
@@ -194,11 +267,39 @@ fun CanonicalInequality.toQuadraticInequalityOrNull(
     )
 }
 
+fun CanonicalInequality.toLinearInequalityRet(): Ret<LinearInequality<Flt64>> {
+    val linearInequality = toLinearInequalityOrNull()
+    return if (linearInequality != null) {
+        Ok(linearInequality)
+    } else {
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical inequality to linear inequality.",
+            TryToLinearError.CanonicalInequalityIsNotLinear
+        )
+    }
+}
+
+fun CanonicalInequality.toQuadraticInequalityRet(
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): Ret<QuadraticInequality> {
+    val quadraticInequality = toQuadraticInequalityOrNull(symbolComparator)
+    return if (quadraticInequality != null) {
+        Ok(quadraticInequality)
+    } else {
+        Failed(
+            ErrorCode.IllegalArgument,
+            "Cannot convert canonical inequality to quadratic inequality.",
+            TryToQuadraticError.CanonicalInequalityIsNotQuadratic
+        )
+    }
+}
+
 // ============================================================================
 // Inequality operations
 // ============================================================================
 
-fun LinearInequality.moveAllToLhs(combineTerms: Boolean = true): LinearInequality {
+fun LinearInequality<Flt64>.moveAllToLhs(combineTerms: Boolean = true): LinearInequality<Flt64> {
     val lhsToZeroRhs = lhs.minus(rhs)
     val normalizedLhs = if (combineTerms) {
         lhsToZeroRhs.combineTerms()
@@ -212,7 +313,7 @@ fun LinearInequality.moveAllToLhs(combineTerms: Boolean = true): LinearInequalit
     )
 }
 
-fun LinearInequality.normalizeToLessEqualForm(combineTerms: Boolean = true): LinearInequality {
+fun LinearInequality<Flt64>.normalizeToLessEqualForm(combineTerms: Boolean = true): LinearInequality<Flt64> {
     if (comparison == Comparison.NE) {
         return this
     }

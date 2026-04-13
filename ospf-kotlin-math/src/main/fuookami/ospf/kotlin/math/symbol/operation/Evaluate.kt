@@ -12,6 +12,8 @@ package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -461,6 +463,62 @@ fun LinearPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearP
         zero = Flt64.zero,
         isZero = { it == Flt64.zero }
     )
+}
+
+/**
+ * 计算线性多项式在给定区间内的极值范围
+ * Compute the extremum range of a linear polynomial within given intervals
+ *
+ * 根据每个符号的取值区间，计算线性多项式可能达到的最小值和最大值。
+ * 对于正系数项，下界取符号下界、上界取符号上界；对于负系数项则相反。
+ * 如果任何符号缺少区间信息，返回 null。
+ *
+ * Computes the minimum and maximum values the linear polynomial can reach,
+ * given the value range for each symbol. For positive coefficients, the lower
+ * bound uses the symbol's lower bound and the upper bound uses the symbol's
+ * upper bound; for negative coefficients, the opposite applies.
+ * Returns null if interval information is missing for any symbol.
+ *
+ * @param intervals 每个符号的取值区间映射 / Map of symbols to their value ranges
+ * @return 极值范围（闭区间），或 null（区间信息不完整时）
+ *         Extremum range (closed interval), or null if interval information is incomplete
+ */
+fun LinearPolynomial<Flt64>.evaluateIntervalExtremum(
+    intervals: Map<Symbol, ValueRange<Flt64>>
+): ValueRange<Flt64>? {
+    var lowerBound = constant
+    var upperBound = constant
+    for (monomial in monomials) {
+        val interval = intervals[monomial.symbol] ?: return null
+        val lb = interval.lowerBound.value.unwrapOrNull() ?: return null
+        val ub = interval.upperBound.value.unwrapOrNull() ?: return null
+        when {
+            monomial.coefficient > Flt64.zero -> {
+                lowerBound += monomial.coefficient * lb
+                upperBound += monomial.coefficient * ub
+            }
+
+            monomial.coefficient < Flt64.zero -> {
+                lowerBound += monomial.coefficient * ub
+                upperBound += monomial.coefficient * lb
+            }
+
+            else -> {}
+        }
+    }
+    return when (
+        val range = ValueRange(
+            lb = lowerBound,
+            ub = upperBound,
+            lbInterval = Interval.Closed,
+            ubInterval = Interval.Closed,
+            constants = Flt64
+        )
+    ) {
+        is Ok -> range.value
+        is Failed -> null
+        is Fatal -> null
+    }
 }
 
 // ============================================================================

@@ -2,8 +2,10 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
@@ -116,6 +118,113 @@ class InequalityTest {
         val gtConst = Flt64.zero gt q
         assertEquals(Comparison.GT, gtConst.comparison)
         assertEquals(Flt64.zero, gtConst.lhs.constant)
+    }
+
+    @Test
+    fun linearInequalityShouldSupportSatisfiabilityCheck() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val inequality = LinearInequality(
+            lhs = LinearPolynomial(
+                monomials = listOf(
+                    LinearMonomial(Flt64.two, x),
+                    LinearMonomial(Flt64.one, y)
+                ),
+                constant = Flt64.zero
+            ),
+            rhs = LinearPolynomial(constant = Flt64(5.0)),
+            comparison = Comparison.LE
+        )
+
+        assertEquals(
+            true,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64.one, y to Flt64.two))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64(2.0), y to Flt64(3.0)))
+        )
+
+        val order = listOf(y, x)
+        assertEquals(
+            true,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.two, Flt64.one))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(3.0), Flt64(2.0)))
+        )
+    }
+
+    @Test
+    fun quadraticInequalityShouldSupportSatisfiabilityCheck() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val inequality = QuadraticInequality(
+            lhs = QuadraticPolynomial(
+                monomials = listOf(
+                    QuadraticMonomial(Flt64.one, x, x),
+                    QuadraticMonomial(Flt64.one, y, null)
+                ),
+                constant = Flt64.zero
+            ),
+            rhs = QuadraticPolynomial(constant = Flt64(6.0)),
+            comparison = Comparison.LE
+        )
+
+        assertEquals(
+            true,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64(2.0), y to Flt64.one))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64(3.0), y to Flt64.zero))
+        )
+
+        val order = listOf(y, x)
+        assertEquals(
+            true,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.one, Flt64(2.0)))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64.zero, Flt64(3.0)))
+        )
+    }
+
+    @Test
+    fun canonicalInequalityShouldSupportSatisfiabilityCheck() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val inequality = CanonicalInequality(
+            lhs = CanonicalPolynomial(
+                monomials = listOf(
+                    CanonicalMonomial(Flt64.one, listOf(x, y))
+                ),
+                constant = Flt64.one
+            ),
+            rhs = CanonicalPolynomial(constant = Flt64(5.0)),
+            comparison = Comparison.LE
+        )
+
+        assertEquals(
+            true,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64.one, y to Flt64(2.0)))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfied(mapOf<Symbol, Flt64>(x to Flt64(3.0), y to Flt64(2.0)))
+        )
+
+        val order = listOf(y, x)
+        assertEquals(
+            true,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64.one))
+        )
+        assertEquals(
+            false,
+            inequality.isSatisfiedOrdered(order, listOf(Flt64(2.0), Flt64(3.0)))
+        )
     }
 }
 

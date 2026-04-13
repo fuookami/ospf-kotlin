@@ -16,7 +16,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.SymbolId
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -40,10 +44,28 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequalityOrNull
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomialOrNull
 import fuookami.ospf.kotlin.utils.serialization.readFromJson
 import fuookami.ospf.kotlin.utils.serialization.writeJson
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 
 typealias SymbolExpr = Expr
+
+/**
+ * 序列化符号标识符的前缀标记
+ * Prefix marker for serialized symbol identifiers
+ *
+ * 用于区分普通符号名和包含完整身份信息的序列化标识符。
+ * 以此后缀开头的字符串会被解析为 [SymbolIdentityExpr]。
+ * Used to distinguish plain symbol names from serialized identifiers containing full identity information.
+ * Strings starting with this prefix are parsed as [SymbolIdentityExpr].
+ */
+const val SerializedSymbolIdentityPrefix = "__ospf_symbol_identity__"
 
 private data class DefaultSymbol(
     override val name: String,
@@ -52,6 +74,255 @@ private data class DefaultSymbol(
 
 private fun defaultSymbolOf(name: String): Symbol {
     return DefaultSymbol(name)
+}
+
+/**
+ * 符号身份表达式
+ * Symbol Identity Expression
+ *
+ * 描述符号的完整身份信息，支持简单名称、带 ID 的符号和复合符号。
+ * 用于序列化时保留符号的完整身份信息（包括 name、displayName 和 symbolId）。
+ * Describes complete identity information for symbols, supporting simple names,
+ * ID-bearing symbols, and composite symbols. Used during serialization to preserve
+ * complete symbol identity (including name, displayName, and symbolId).
+ */
+@Serializable
+sealed interface SymbolIdentityExpr {
+    val name: String
+    val displayName: String?
+
+    /**
+     * 简单符号（仅名称和可选显示名）
+     * Simple symbol (name and optional display name only)
+     */
+    @Serializable
+    data class Simple(
+        override val name: String,
+        override val displayName: String? = null
+    ) : SymbolIdentityExpr
+
+    /**
+     * 带唯一标识符的符号
+     * Symbol with a unique identifier
+     */
+    @Serializable
+    data class WithId(
+        override val name: String,
+        val id: String,
+        override val displayName: String? = null
+    ) : SymbolIdentityExpr
+
+    /**
+     * 复合符号（单参数运算符包装）
+     * Composite symbol (single-argument operator wrapper)
+     */
+    @Serializable
+    data class Composite(
+        val operator: String,
+        val arg: SymbolIdentityExpr,
+        override val name: String,
+        override val displayName: String? = null
+    ) : SymbolIdentityExpr
+
+    /**
+     * 复合符号（多参数运算符包装）
+     * Composite symbol (multi-argument operator wrapper)
+     */
+    @Serializable
+    data class CompositeMulti(
+        val operator: String,
+        val args: List<SymbolIdentityExpr>,
+        override val name: String,
+        override val displayName: String? = null
+    ) : SymbolIdentityExpr
+}
+
+private data class SerializedIdentitySymbol(
+    val identityExpr: SymbolIdentityExpr
+) : Symbol, IdentifiedSymbol {
+    override val name: String = identityExpr.name
+    override val displayName: String? = identityExpr.displayName
+    override val symbolId: String = identityExpr.toSerializedIdentifier()
+}
+
+private fun ByteArray.toHexString(): String {
+    return joinToString(separator = "") { value -> "%02x".format(value) }
+}
+
+private fun String.hexToByteArrayOrNull(): ByteArray? {
+    if (length % 2 != 0) {
+        return null
+    }
+    return try {
+        ByteArray(length / 2) { index ->
+            val start = index * 2
+            substring(start, start + 2).toInt(16).toByte()
+        }
+    } catch (_: NumberFormatException) {
+        null
+    }
+}
+
+private val symbolIdentityJson = Json {
+    ignoreUnknownKeys = true
+}
+
+private fun JsonObject.stringOrNull(key: String): String? {
+    val element = this[key] ?: return null
+    return try {
+        element.jsonPrimitive.content
+    } catch (_: Exception) {
+        null
+    }
+}
+
+private fun identityExprFromJsonElement(element: JsonElement): SymbolIdentityExpr? {
+    val objectValue = element as? JsonObject ?: return null
+    val name = objectValue.stringOrNull("name")
+    val displayName = objectValue.stringOrNull("displayName")
+    val operator = objectValue.stringOrNull("operator")
+    val id = objectValue.stringOrNull("id")
+    val args = objectValue["args"] as? JsonArray
+    val arg = objectValue["arg"]
+    return when {
+        operator != null && args != null -> {
+            val parsedArgs = args.mapNotNull(::identityExprFromJsonElement)
+            if (parsedArgs.size != args.size) {
+                null
+            } else {
+                SymbolIdentityExpr.CompositeMulti(
+                    operator = operator,
+                    args = parsedArgs,
+                    name = name ?: operator,
+                    displayName = displayName
+                )
+            }
+        }
+
+        operator != null && arg != null -> {
+            val parsedArg = identityExprFromJsonElement(arg) ?: return null
+            SymbolIdentityExpr.Composite(
+                operator = operator,
+                arg = parsedArg,
+                name = name ?: operator,
+                displayName = displayName
+            )
+        }
+
+        id != null && name != null -> {
+            SymbolIdentityExpr.WithId(
+                name = name,
+                id = id,
+                displayName = displayName
+            )
+        }
+
+        name != null -> {
+            SymbolIdentityExpr.Simple(
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        else -> null
+    }
+}
+
+private fun parseIdentityExprOrNull(json: String): SymbolIdentityExpr? {
+    return try {
+        identityExprFromJsonElement(symbolIdentityJson.parseToJsonElement(json))
+    } catch (_: Exception) {
+        null
+    }
+}
+
+/**
+ * 将符号身份表达式序列化为字符串标识符
+ * Serialize a symbol identity expression to a string identifier
+ *
+ * 对于简单的 [SymbolIdentityExpr.Simple]（无 displayName 且不以 [SerializedSymbolIdentityPrefix] 开头），
+ * 直接返回名称。其他情况将表达式序列化为 JSON 并进行 hex 编码，添加前缀标记。
+ * For simple [SymbolIdentityExpr.Simple] (no displayName and not starting with [SerializedSymbolIdentityPrefix]),
+ * returns the name directly. Otherwise, serializes the expression to JSON, hex-encodes it, and adds the prefix marker.
+ *
+ * @return 字符串标识符 / String identifier
+ */
+fun SymbolIdentityExpr.toSerializedIdentifier(): String {
+    if (this is SymbolIdentityExpr.Simple && displayName == null && !name.startsWith(SerializedSymbolIdentityPrefix)) {
+        return name
+    }
+    val payload = writeJson(this).toByteArray(Charsets.UTF_8).toHexString()
+    return "$SerializedSymbolIdentityPrefix$payload"
+}
+
+/**
+ * 将 Symbol 转换为其身份表达式表示
+ * Convert a Symbol to its identity expression representation
+ *
+ * 根据 Symbol 的具体类型，提取完整的身份信息并构造对应的 [SymbolIdentityExpr]。
+ * 支持 [SerializedIdentitySymbol]、[OwnedSymbolLike]、[IdentifiedSymbol] 和普通 Symbol。
+ * Extracts complete identity information based on the Symbol's concrete type
+ * and constructs the corresponding [SymbolIdentityExpr].
+ * Supports [SerializedIdentitySymbol], [OwnedSymbolLike], [IdentifiedSymbol], and plain Symbol.
+ *
+ * @return 符号身份表达式 / Symbol identity expression
+ */
+fun Symbol.toSymbolIdentityExpr(): SymbolIdentityExpr {
+    return when (this) {
+        is SerializedIdentitySymbol -> identityExpr
+        is OwnedSymbolLike -> SymbolIdentityExpr.WithId(
+            name = name,
+            id = id.value,
+            displayName = displayName
+        )
+        is IdentifiedSymbol -> SymbolIdentityExpr.WithId(
+            name = name,
+            id = symbolId,
+            displayName = displayName
+        )
+        else -> SymbolIdentityExpr.Simple(
+            name = name,
+            displayName = displayName
+        )
+    }
+}
+
+/**
+ * 从序列化标识符还原 Symbol
+ * Reconstruct a Symbol from a serialized identifier
+ *
+ * 如果标识符以 [SerializedSymbolIdentityPrefix] 开头，则解析其中包含的 JSON 身份信息
+ * 并构造对应的 Symbol；否则作为普通符号名创建默认 Symbol。
+ * 这是 [Symbol.toSymbolIdentityExpr] 的逆操作。
+ * If the identifier starts with [SerializedSymbolIdentityPrefix], parses the embedded JSON identity
+ * information and constructs the corresponding Symbol; otherwise creates a default Symbol with
+ * the identifier as a plain name. This is the inverse operation of [Symbol.toSymbolIdentityExpr].
+ *
+ * @param identifier 序列化标识符 / Serialized identifier
+ * @return 还原的符号 / Reconstructed symbol
+ */
+fun symbolOfSerializedIdentifier(identifier: String): Symbol {
+    if (!identifier.startsWith(SerializedSymbolIdentityPrefix)) {
+        return defaultSymbolOf(identifier)
+    }
+    val payload = identifier.removePrefix(SerializedSymbolIdentityPrefix)
+    val bytes = payload.hexToByteArrayOrNull() ?: return defaultSymbolOf(identifier)
+    val rawJson = bytes.toString(Charsets.UTF_8)
+    val identityExpr = parseIdentityExprOrNull(rawJson) ?: return defaultSymbolOf(identifier)
+    return when (identityExpr) {
+        is SymbolIdentityExpr.Simple -> defaultSymbolOf(identityExpr.name).let { symbol ->
+            if (identityExpr.displayName == null) symbol else DefaultSymbol(identityExpr.name, identityExpr.displayName)
+        }
+
+        is SymbolIdentityExpr.WithId -> OwnedSymbol(
+            id = SymbolId(identityExpr.id),
+            name = identityExpr.name,
+            displayName = identityExpr.displayName
+        )
+
+        is SymbolIdentityExpr.Composite,
+        is SymbolIdentityExpr.CompositeMulti -> SerializedIdentitySymbol(identityExpr)
+    }
 }
 
 private fun formatNumber(value: Flt64): String {
@@ -63,7 +334,7 @@ private fun numberExpr(value: Flt64): Expr.NumberLiteral {
 }
 
 private fun symbolExpr(symbol: Symbol): Expr.Identifier {
-    return Expr.Identifier(symbol.name)
+    return Expr.Identifier(symbol.toSymbolIdentityExpr().toSerializedIdentifier())
 }
 
 private fun powerExpr(
@@ -192,7 +463,7 @@ private fun exprOperatorToComparison(operator: ComparisonOperator): Comparison {
     }
 }
 
-fun LinearInequality.toExpr(): Expr.Comparison {
+fun LinearInequality<Flt64>.toExpr(): Expr.Comparison {
     return this.toCanonicalInequality().toExpr()
 }
 
@@ -381,7 +652,7 @@ fun <T> Expr.toCanonicalPolynomialTyped(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): CanonicalPolynomial<T> where T : Ring<T> {
@@ -462,7 +733,7 @@ fun <T> Expr.toLinearPolynomialTypedOrNull(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): LinearPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
     numberParser = numberParser,
@@ -479,7 +750,7 @@ fun <T> Expr.toQuadraticPolynomialTypedOrNull(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
@@ -510,7 +781,7 @@ private fun powCanonical(
 }
 
 fun Expr.toCanonicalPolynomial(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): CanonicalPolynomial<Flt64> {
     return toCanonicalPolynomialTyped(
         numberParser = Flt64NumberParser,
@@ -522,20 +793,20 @@ fun Expr.toCanonicalPolynomial(
 }
 
 fun Expr.toLinearPolynomialOrNull(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): LinearPolynomial<Flt64>? {
     return toCanonicalPolynomial(symbolOf).toLinearPolynomialOrNull()
 }
 
 fun Expr.toQuadraticPolynomialOrNull(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
     return toCanonicalPolynomial(symbolOf).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
 fun Expr.Comparison.toCanonicalInequality(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): CanonicalInequality {
     return CanonicalInequality(
         lhs = left.toCanonicalPolynomial(symbolOf),
@@ -545,13 +816,13 @@ fun Expr.Comparison.toCanonicalInequality(
 }
 
 fun Expr.Comparison.toLinearInequalityOrNull(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf
-): LinearInequality? {
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
+): LinearInequality<Flt64>? {
     return toCanonicalInequality(symbolOf).toLinearInequalityOrNull()
 }
 
 fun Expr.Comparison.toQuadraticInequalityOrNull(
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticInequality? {
     return toCanonicalInequality(symbolOf).toQuadraticInequalityOrNull(symbolComparator)
@@ -601,7 +872,7 @@ fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>
  * 将 LinearInequality 序列化为 JSON 字符串
  * Serialize LinearInequality to JSON string
  */
-fun LinearInequality.toJsonString(): String {
+fun LinearInequality<Flt64>.toJsonString(): String {
     return this.toExpr().toJsonString()
 }
 
@@ -629,7 +900,7 @@ fun CanonicalInequality.toJsonString(symbolComparator: Comparator<Symbol>? = nul
  * 从 JSON 字符串解析为 LinearPolynomial
  * Parse LinearPolynomial from JSON string
  */
-fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): LinearPolynomial<Flt64>? {
+fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<Flt64>? {
     return symbolExprFromJson(json).toLinearPolynomialOrNull(symbolOf)
 }
 
@@ -639,7 +910,7 @@ fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::defa
  */
 fun quadraticPolynomialFromJson(
     json: String,
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
     return symbolExprFromJson(json).toQuadraticPolynomialOrNull(symbolOf, symbolComparator)
@@ -649,7 +920,7 @@ fun quadraticPolynomialFromJson(
  * 从 JSON 字符串解析为 CanonicalPolynomial
  * Parse CanonicalPolynomial from JSON string
  */
-fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): CanonicalPolynomial<Flt64> {
+fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<Flt64> {
     return symbolExprFromJson(json).toCanonicalPolynomial(symbolOf)
 }
 
@@ -657,7 +928,7 @@ fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::d
  * 从 JSON 字符串解析为 LinearInequality
  * Parse LinearInequality from JSON string
  */
-fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): LinearInequality? {
+fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<Flt64>? {
     val expr = symbolExprFromJson(json)
     return (expr as? Expr.Comparison)?.toLinearInequalityOrNull(symbolOf)
 }
@@ -668,7 +939,7 @@ fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::defa
  */
 fun quadraticInequalityFromJson(
     json: String,
-    symbolOf: (String) -> Symbol = ::defaultSymbolOf,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticInequality? {
     val expr = symbolExprFromJson(json)
@@ -679,7 +950,7 @@ fun quadraticInequalityFromJson(
  * 从 JSON 字符串解析为 CanonicalInequality
  * Parse CanonicalInequality from JSON string
  */
-fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::defaultSymbolOf): CanonicalInequality? {
+fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality? {
     val expr = symbolExprFromJson(json)
     return (expr as? Expr.Comparison)?.toCanonicalInequality(symbolOf)
 }

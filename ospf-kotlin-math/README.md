@@ -31,6 +31,8 @@ A comprehensive mathematical algebra and symbol system for OSPF Kotlin. Provides
 | `ordinary` | Common math operations | `gcd`, `lcm`, `Prime`, `Factorization` |
 | `parallel` | Parallel computation | `parallelFold`, `chunked` |
 | `symbol` | Symbolic expression system | `Symbol`, `LinearPolynomial`, `CanonicalPolynomial`, `Inequality` |
+| `symbol/parser` | Expression parser with Ret errors | `parseLinear`, `parseQuadratic`, `ParseIssue`, `ParseResult` |
+| `symbol/serde` | Symbol serialization | `SymbolIdentityExpr`, `symbolOfSerializedIdentifier` |
 
 ## Architecture Design
 
@@ -202,6 +204,12 @@ val latex = linear.toLatex()  // "1 + 2x + 3y"
 
 // Factorization
 val factored = factorize(linear)  // Attempts algebraic factorization
+
+// Interval extremum evaluation
+val extremum = linear.evaluateIntervalExtremum(
+    mapOf(x to closedRange(0.0, 10.0), y to closedRange(-5.0, 5.0))
+)
+// Returns the min/max bounds of the polynomial over the given intervals
 ```
 
 ### Inequality System
@@ -221,6 +229,72 @@ val feasible = inequality.isFeasible()
 // Combine inequalities
 val system = listOf(inequality1, inequality2, inequality3)
 val result = solveInequalitySystem(system)
+```
+
+### Satisfiability Checking
+
+Check whether a given assignment of values satisfies an inequality:
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.inequality.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+val x = symbolOf("x")
+val y = symbolOf("y")
+
+// Create a linear inequality: 2x + y <= 5
+val inequality = Flt64LinearInequality(
+    lhs = LinearPolynomial(
+        monomials = listOf(
+            LinearMonomial(Flt64(2.0), x),
+            LinearMonomial(Flt64.one, y)
+        ),
+        constant = Flt64.zero
+    ),
+    rhs = LinearPolynomial(constant = Flt64(5.0)),
+    comparison = Comparison.LE
+)
+
+// Check satisfiability with a map-based assignment
+val satisfied = inequality.isSatisfied(mapOf(x to Flt64.one, y to Flt64(2.0)))
+// true: 2*1 + 2 = 4 <= 5
+
+// Check with ordered assignment (avoids Map overhead)
+val order = listOf(x, y)
+val satisfiedOrdered = inequality.isSatisfiedOrdered(order, listOf(Flt64.one, Flt64(2.0)))
+// true
+
+// Works for QuadraticInequality and CanonicalInequality too
+```
+
+### Non-Throwing Parse Functions
+
+Parse expressions and inequalities without catching exceptions, using `Ret<T>` for structured error handling:
+
+```kotlin
+import fuookami.ospf.kotlin.math.symbol.parser.*
+import fuookami.ospf.kotlin.utils.functional.*
+
+// Parse with structured error handling
+val result: ParseResult<Expr> = parseSymbolExpressionRet("2*x + 3*y")
+when (result) {
+    is Ok -> println("Parsed: ${result.value}")
+    is Failed -> println("Error: ${result.error}")
+    is Fatal -> println("Fatal: ${result.errors}")
+}
+
+// Parse with error classification
+val linearResult = parseLinear("2*x + 3*y - 5 <= 0")
+if (linearResult is Failed) {
+    val issue = linearResult.error.context as? ParseIssue
+    println("Issue type: ${issue?.type}") // Lexical, Syntax, Conversion, Semantic, Unknown
+    println("Position: ${issue?.position}")
+}
+
+// Parse specific polynomial types
+val canonicalResult = parseCanonical("x^2 + 2*x*y + y^2")
+val quadraticResult = parseQuadratic("x^2 + 2*x*y + y^2")
+val inequalityResult = parseLinearInequality("2*x + y <= 5")
 ```
 
 ### Expression DSL
@@ -510,6 +584,7 @@ val result = Scale.mega / Scale.kilo  // 10³
 | Parallel fold | Chunk-based limiting | Controls coroutine count |
 | Contract operation | Stride pre-computation | Output-driven iteration |
 | Polynomial evaluation | Compile optimization | Reduces overhead for repeated evaluation |
+| Interval extremum | Coefficient sign analysis | Linear scan over monomials |
 | IntX/FltX | Lazy evaluation | BigDecimal operations only when needed |
 
 ## Testing

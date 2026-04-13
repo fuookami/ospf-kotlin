@@ -286,7 +286,7 @@ fun canonicalPolynomial(
 fun linearInequality(
     symbolOf: (String) -> Symbol,
     block: SymbolDslScope.() -> Expr.Comparison
-): LinearInequality? {
+): LinearInequality<Flt64>? {
     return (symbolExpr(block) as Expr.Comparison).toLinearInequalityOrNull(symbolOf)
 }
 

@@ -17,13 +17,13 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 10. **`M6`（函数符号迁移）R0-R4 已完成，R3 已完成** ✅ - 按 `R0~R4` 分批落地
 11. **`M7`（删除 adapter）inequality/adapter 目录和测试已删除** ✅
 12. **`M8`（最终目录删除）进入重拆执行版** - 按 `R5~R9` 实施
-13. **`M8/Phase3`（math.symbol 函数符号层）进行中** - SlackFunction 编译通过
+13. **`M8/Phase3`（math.symbol 函数符号层）已完成** ✅ - 9 个 math 函数符号文件编译通过，泛型化完成
 
 **下一步行动**：
-1. 继续创建剩余 math 函数符号：Masking.kt, If.kt, And.kt, Or.kt, Max.kt, MinMax.kt, Binaryzation.kt
-2. 创建 MathSymbolContainers.kt（math 版 LinearExpressionSymbols1/2, LinearIntermediateSymbols1/2）
-3. 框架代码迁移（import 替换，64 文件）
-4. 验证：mvn compile + mvn test
+1. ~~继续创建剩余 math 函数符号~~ → **全部完成**
+2. ~~创建 MathSymbolContainers.kt~~ → **M8/Phase 4 决策终止**（框架不可迁移，无需 math 版容器）
+3. ~~框架代码迁移~~ → **M8/Phase 4 决策终止**（框架使用 frontend DSL 合理，`@Suppress("DEPRECATION")` 为最终态）
+4. 验证：mvn compile + mvn test（进行中）
 
 **历史行动（已完成）**：
 1. ~~进入 `M6/R3`，迁移函数符号 off `eq/leq/geq` DSL~~ → ~~**M6/R3 进行中，编译未通过**~~ → **M6/R3 已完成** ✅
@@ -53,12 +53,64 @@ Rust 对齐参考：`E:\workspace\ospf-rust`
 - 支持类型：UContinuous（URealVar）/ UInteger（UIntVar）
 
 **验证**：
-- `mvn compile -pl ospf-kotlin-core`：BUILD SUCCESS ✅
+- `mvn compile -DskipTests`：全模块 BUILD SUCCESS ✅
+- `mvn -pl ospf-kotlin-core -am test`：**Tests run: 91, Failures: 0, Errors: 0, Skipped: 0** ✅
+- `mvn -pl ospf-kotlin-math -am test`：**Tests run: 727, Failures: 0, Errors: 0, Skipped: 0** ✅
 
-**剩余工作**：
-- 6 个函数符号文件待创建
-- MathSymbolContainers.kt 待创建
-- 框架代码 import 迁移（64 文件）
+**M8/Phase 3 全部完成（2026-04-13 更新）**：
+- `core/function/FunctionSymbol.kt` — `MathFunctionSymbol` 接口 + `evaluate()` 扩展 ✅
+- `core/function/Slack.kt` — SlackFunction（decomposition: x - y = neg - pos）✅
+- `core/function/BigM.kt` — Big-M 工具函数（nonzeroIndicatorConstraints, simpleIndicatorConstraints）✅
+- `core/function/And.kt` — AndFunction, OrFunction, NotFunction, XorFunction ✅
+- `core/function/If.kt` — IfFunction（premise => consequence implication）✅
+- `core/function/Max.kt` — MaxFunction, MinFunction ✅
+- `core/function/MinMax.kt` — MinMaxFunction, MaxMinFunction ✅
+- `core/function/Masking.kt` — MaskingFunction, MaskingRangeFunction ✅
+- `core/function/Binaryzation.kt` — BinaryzationFunction（BigM/Threshold/Indicator/SOS1）✅
+
+**泛型化完成（2026-04-13 更新）**：
+- `LinearInequality<T : Ring<T>>` 已泛型化（`ospf-kotlin-math` 模块）
+- `Flt64LinearInequality` 类型别名向后兼容
+- 所有 9 个 function 文件使用 `import ...Flt64LinearInequality as MathLinearInequality` 模式
+- 全项目编译通过，91 tests 全绿 ✅
+
+**泛型化设计决策**：
+- **当前态（临时）**：`MathFunctionSymbol.register()` 内部调用 `asFlt64Poly()` 将 `LinearPolynomial<T>` 转换为 `LinearPolynomial<Flt64>`，然后生成 `MathLinearInequality`（即 `LinearInequality<Flt64>`）约束。转换发生在每个 function symbol 的 `register` 方法内。
+- **原因**：`AbstractLinearMetaModel.addConstraint` 只接受 `MathLinearInequality`（Flt64），模型层尚未泛型化。
+- **目标态**：转换点应从 function symbol 内部推迟到**求解器接口层**。具体路径：
+  1. `register()` 返回 `List<LinearInequality<T>>` 而非直接在内部调用 `addConstraint`
+  2. 模型层（`AbstractLinearMetaModel`、`AbstractLinearMechanismModel`、`Model`）泛型化为 `<T : Field<T>>`
+  3. 在求解器适配层（solver plugin）统一做 `asFlt64()` 转换
+- **Phase 6（模型层泛型化）暂缓原因**：改动面大（涉及整个核心建模层），且当前只有 Flt64 求解器。当真正需要支持多数值类型求解器时再执行。详见计划文件 Phase 6 节。
+
+---
+
+### Function Symbol 泛型化完成与修复记录（2026-04-13 第二轮）
+
+**泛型化实现（全部 9 个文件）**：
+- `FunctionSymbol.kt` — `MathFunctionSymbol<T : Field<T>>` 泛型接口 + 辅助函数：`asFlt64()`, `zeroOf()`, `oneOf()`, `asFlt64Poly()`, `isNearZero()`, `isNonZero()`, `evaluate()` ✅
+- `BigM.kt` — `evaluateWith` 泛型化为 `<T : Ring<T>>`，保留 `nonzeroIndicatorConstraints` 和 `simpleIndicatorConstraints` 为 Flt64（约束生成工具）✅
+- `And.kt` — `AndFunction<T>`, `OrFunction<T>`, `NotFunction<T>`, `XorFunction<T>` ✅
+- `If.kt` — `IfFunction<T>` ✅
+- `Binaryzation.kt` — `BinaryzationFunction<T>` ✅
+- `Masking.kt` — `MaskingFunction<T>`, `MaskingRangeFunction<T>` ✅
+- `Max.kt` — `MaxFunction<T>`, `MinFunction<T>` ✅
+- `MinMax.kt` — `MinMaxFunction<T>`, `MaxMinFunction<T>` ✅
+- `Slack.kt` — `SlackFunction<T>` ✅
+
+**类型别名兼容层**（FunctionSymbol.kt 底部）：
+- `Flt64MathFunctionSymbol = MathFunctionSymbol<Flt64>`
+- `Flt64AndFunction`, `Flt64OrFunction`, `Flt64NotFunction`, `Flt64XorFunction`, `Flt64IfFunction`, `Flt64BinaryzationFunction`, `Flt64MaskingFunction`, `Flt64MaskingRangeFunction`, `Flt64MaxFunction`, `Flt64MinFunction`, `Flt64MinMaxFunction`, `Flt64MaxMinFunction`, `Flt64SlackFunction`
+
+**修复的编译问题**：
+1. `Parser.kt`（math 模块）：`parseCanonical` 和 `parseQuadraticInequality` 函数签名缺少参数声明，已修复
+2. `QuadraticBendersDecompositionSolver.kt`（framework）：`LinearInequality` 需要类型参数，改为导入 `Flt64LinearInequality`
+3. 6 个 Benders solver 插件（copt/cplex/gurobi/gurobi11/mindopt/scip）：同上，改为 `Flt64LinearInequality as MathLinearInequality`
+
+**泛型化设计决策**：
+- **当前态（临时）**：`register()` 内部调用 `asFlt64Poly()` 转换后生成 Flt64 约束
+- **目标态**：转换推迟到求解器接口层，`register()` 应返回 `List<LinearInequality<T>>`
+- **Phase 6（模型层泛型化）**：详见计划文件，暂缓执行
 
 ---
 
