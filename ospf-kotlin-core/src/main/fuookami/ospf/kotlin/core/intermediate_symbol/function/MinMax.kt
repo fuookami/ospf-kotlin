@@ -57,6 +57,23 @@ class MinMaxFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MinMaxFunction<Flt64> = MinMaxFunction(
+            polynomials = polynomials.map { it.asMathLinearPolynomial() },
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
     }
 }
 

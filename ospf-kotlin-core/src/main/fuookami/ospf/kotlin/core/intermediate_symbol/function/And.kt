@@ -89,6 +89,23 @@ class AndFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): AndFunction<Flt64> = AndFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): AndFunction<Flt64> = AndFunction(
+            polynomials = polynomials.map { it.asMathLinearPolynomial() },
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
     }
 }
 
@@ -163,6 +180,23 @@ class OrFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): OrFunction<Flt64> = OrFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): OrFunction<Flt64> = OrFunction(
+            polynomials = polynomials.map { it.asMathLinearPolynomial() },
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
     }
 }
 

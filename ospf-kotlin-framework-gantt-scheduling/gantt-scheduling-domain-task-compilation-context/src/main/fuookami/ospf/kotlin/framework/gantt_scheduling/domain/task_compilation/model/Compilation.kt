@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.expression.polynomial.plus
 import fuookami.ospf.kotlin.core.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.OrFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel

@@ -3,8 +3,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MaxFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MinMaxFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MinMaxFunction
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy

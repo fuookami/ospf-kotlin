@@ -109,6 +109,23 @@ class MaxFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaxFunction<Flt64> = MaxFunction(
+            polynomials = polynomials.map { it.asMathLinearPolynomial() },
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
     }
 }
 

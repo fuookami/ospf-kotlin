@@ -112,6 +112,38 @@ class IfFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): IfFunction<Flt64> = IfFunction(premise, consequence, bigM, constraintMode = false, name, displayName)
+
+        /**
+         * Factory: accept legacy LinearConstraintInput for framework compatibility.
+         * Converts the input relation into premise/consequence inequalities.
+         * For legacy single-inequality input, premise is always true (vacuous),
+         * so the result indicates whether the input inequality holds.
+         */
+        @JvmStatic
+        operator fun invoke(
+            input: fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): IfFunction<Flt64> {
+            // LinearConstraintInput.sign is already math.symbol.inequality.Comparison
+            val comp = input.sign
+            // Reconstruct linear inequality from flattenData
+            val monos = input.flattenData.monomials.map {
+                LinearMonomial(it.coefficient, it.symbol)
+            }
+            val lhs = LinearPolynomial(monos, input.flattenData.constant)
+            val rhs = LinearPolynomial(emptyList(), Flt64.zero)
+            val premiseIneq = MathLinearInequality(lhs, rhs, comp, "${name}_premise")
+            // Vacuous consequence: 0 <= 0 (always true)
+            val consequenceIneq = MathLinearInequality(
+                LinearPolynomial(emptyList(), Flt64.zero),
+                LinearPolynomial(emptyList(), Flt64.zero),
+                Comparison.LE,
+                "${name}_consequence"
+            )
+            return IfFunction(premiseIneq, consequenceIneq, bigM, constraintMode = true, name, displayName)
+        }
     }
 }
 

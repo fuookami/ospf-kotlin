@@ -11,9 +11,9 @@ import fuookami.ospf.kotlin.core.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AndFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.IfFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel

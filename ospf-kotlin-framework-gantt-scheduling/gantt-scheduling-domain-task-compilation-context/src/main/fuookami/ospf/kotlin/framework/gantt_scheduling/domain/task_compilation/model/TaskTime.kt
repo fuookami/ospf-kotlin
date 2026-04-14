@@ -12,10 +12,10 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AbstractSlackFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.IfFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MaskingFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
@@ -100,7 +100,9 @@ abstract class TaskTimeImpl<
                         is AbstractSlackFunction<*> -> {
                             LinearPolynomial(slack.pos!!)
                         }
-
+                        is SlackFunction<Flt64> -> {
+                            LinearPolynomial(slack.pos!!)
+                        }
                         else -> {
                             LinearPolynomial()
                         }
@@ -164,7 +166,9 @@ abstract class TaskTimeImpl<
                         is AbstractSlackFunction<*> -> {
                             LinearPolynomial(slack.neg!!)
                         }
-
+                        is SlackFunction<Flt64> -> {
+                            LinearPolynomial(slack.neg!!)
+                        }
                         else -> {
                             LinearPolynomial()
                         }
