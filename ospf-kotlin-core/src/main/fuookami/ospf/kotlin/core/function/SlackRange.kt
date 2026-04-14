@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -28,12 +28,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variables: `neg >= 0`, `pos >= 0`
- * - Constraint: `lb <= x + neg - pos <= ub`
+ * - Constraint: `lb <= x + neg - pos <= ub` (when `constraint = true`)
  * - Output: `y = pos + neg`
  *
  * @param x the input linear polynomial
  * @param lb lower bound (default 0)
  * @param ub upper bound (default 0)
+ * @param constraint if true, register bounds constraints (default true); set false when model already enforces bounds
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
@@ -41,6 +42,7 @@ class SlackRangeFunction<T : Field<T>>(
     val x: LinearPolynomial<T>,
     val lb: Flt64 = Flt64.zero,
     val ub: Flt64 = Flt64.zero,
+    val constraint: Boolean = true,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<T> {
@@ -105,6 +107,12 @@ class SlackRangeFunction<T : Field<T>>(
             }
         }
 
+        // Skip constraint registration when constraint=false
+        // (useful when model already enforces bounds or in fixed-value scenarios)
+        if (!constraint) {
+            return ok
+        }
+
         val xPoly = x.asFlt64Poly()
 
         // Constraint: x + neg - pos <= ub
@@ -117,7 +125,7 @@ class SlackRangeFunction<T : Field<T>>(
             xPoly.constant
         )
         val upperRhs = LinearPolynomial(emptyList(), ub)
-        val upperConstraint = MathLinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_ub")
+        val upperConstraint = LinearInequality<Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_ub")
         when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -134,7 +142,7 @@ class SlackRangeFunction<T : Field<T>>(
             xPoly.constant
         )
         val lowerRhs = LinearPolynomial(emptyList(), lb)
-        val lowerConstraint = MathLinearInequality(lowerLhs, lowerRhs, Comparison.GE, "${name}_lb")
+        val lowerConstraint = LinearInequality<Flt64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_lb")
         when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -149,12 +157,14 @@ class SlackRangeFunction<T : Field<T>>(
             x: LinearPolynomial<Flt64>,
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64.zero,
+            constraint: Boolean = true,
             name: String,
             displayName: String? = null
         ): SlackRangeFunction<Flt64> = SlackRangeFunction(
             x = x,
             lb = lb,
             ub = ub,
+            constraint = constraint,
             name = name,
             displayName = displayName
         )
@@ -163,12 +173,14 @@ class SlackRangeFunction<T : Field<T>>(
             x: LinearMonomial<Flt64>,
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64.zero,
+            constraint: Boolean = true,
             name: String,
             displayName: String? = null
         ): SlackRangeFunction<Flt64> = SlackRangeFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             lb = lb,
             ub = ub,
+            constraint = constraint,
             name = name,
             displayName = displayName
         )

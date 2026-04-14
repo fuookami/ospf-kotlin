@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.function
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearFlattenData
+import fuookami.ospf.kotlin.core.frontend.model.mechanism.compare
 import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.frontend.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -42,9 +43,9 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-class SatisfiedAmountInequalityFunction<T : Field<T>>(
+open class SatisfiedAmountInequalityFunction<T : Field<T>>(
     val inputs: List<LinearConstraintInput>,
-    val amount: ValueRange<UInt64>? = null,
+    open val amount: ValueRange<UInt64>? = null,
     val epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "satisfied_amount",
     override var displayName: String? = null
@@ -57,7 +58,8 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
 
     /** Single binary output when amount is specified. */
     private val amountFlagVar: AbstractVariableItem<*, *>? by lazy {
-        if (amount != null) BinVar("${name}_y") else null
+        val currentAmount = amount
+        if (currentAmount != null) BinVar("${name}_y") else null
     }
 
     override val helperVariables: List<AbstractVariableItem<*, *>> by lazy {
@@ -72,7 +74,8 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
      * If amount is specified, this is a binary indicator (0 or 1).
      */
     val result: LinearPolynomial<T> by lazy {
-        if (amount != null) {
+        val currentAmount = amount
+        if (currentAmount != null) {
             LinearPolynomial(
                 listOf(LinearMonomial(oneOf<T>(), amountFlagVar!!)),
                 zeroOf<T>()
@@ -91,9 +94,10 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
             val satisfied = checkInputSatisfied(input, values) ?: return null
             if (satisfied) count++
         }
-        val countUInt = UInt64(count.toLong())
-        val result = if (amount != null) {
-            if (amount.contains(countUInt)) Flt64.one else Flt64.zero
+        val countUInt = UInt64(count)
+        val currentAmount = amount
+        val result = if (currentAmount != null) {
+            if (currentAmount.contains(countUInt)) Flt64.one else Flt64.zero
         } else {
             Flt64(count.toDouble())
         }
@@ -164,7 +168,7 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     )
                     val upperRhs = LinearPolynomial(emptyList(), m + eps)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
                         ),
                         name = "${name}_i${i}_upper"
@@ -176,7 +180,7 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     )
                     val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
                         ),
                         name = "${name}_i${i}_lower"
@@ -191,10 +195,10 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     }
                     // Fix flag to the trivial value
                     val fixedValue = if (triviallySatisfied) Flt64.one else Flt64.zero
-                    val poly = LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), flag)), zeroOf<T>())
+                    val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
                         ),
                         name = "${name}_i${i}_flag"
@@ -204,7 +208,8 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
         }
 
         // Amount range constraint: lb <= sum(u) <= ub, with binary y indicator
-        if (amount != null) {
+        val currentAmount = amount
+        if (currentAmount != null) {
             val y = amountFlagVar!!
             val sumPoly = LinearPolynomial(
                 flagVars.map { LinearMonomial(oneOf<T>(), it) },
@@ -219,10 +224,10 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
             )
             val lbRhs = LinearPolynomial(
                 emptyList(),
-                Flt64(amount.lowerBound!!.value.unwrap().toDouble()) + Flt64(nInputs.toDouble())
+                Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
             model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                     lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
                 ),
                 name = "${name}_amount_lb"
@@ -235,10 +240,10 @@ class SatisfiedAmountInequalityFunction<T : Field<T>>(
             )
             val ubRhs = LinearPolynomial(
                 emptyList(),
-                Flt64(amount.upperBound!!.value.unwrap().toDouble()) + Flt64(nInputs.toDouble())
+                Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
             model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                     ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
                 ),
                 name = "${name}_amount_ub"
@@ -277,7 +282,7 @@ class AnyFunction<T : Field<T>>(
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<T>(
     inputs = inputs,
-    amount = ValueRange(UInt64.one, UInt64(inputs.size.toLong())).value!!,
+    amount = ValueRange(UInt64.one, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
@@ -309,7 +314,7 @@ class AllFunction<T : Field<T>>(
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<T>(
     inputs = inputs,
-    amount = ValueRange(UInt64(inputs.size.toLong()), UInt64(inputs.size.toLong())).value!!,
+    amount = ValueRange(UInt64(inputs.size), UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
@@ -342,14 +347,14 @@ class AtLeastInequalityFunction<T : Field<T>>(
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<T>(
     inputs = inputs,
-    amount = ValueRange(k, UInt64(inputs.size.toLong())).value!!,
+    amount = ValueRange(k, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
 ) {
     init {
         assert(k > UInt64.zero)
-        assert(UInt64(inputs.size.toLong()) >= k)
+        assert(UInt64(inputs.size) >= k)
     }
 
     companion object {
@@ -406,7 +411,7 @@ class NotAllFunction<T : Field<T>>(
  */
 class NumerableFunction<T : Field<T>>(
     inputs: List<LinearConstraintInput>,
-    val amount: ValueRange<UInt64>,
+    override val amount: ValueRange<UInt64>,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "numerable",
     override var displayName: String? = null

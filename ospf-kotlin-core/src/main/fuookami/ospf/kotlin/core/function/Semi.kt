@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -83,7 +83,7 @@ class SemiFunction<T : Field<T>>(
         val yPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, yVar)), Flt64.zero)
 
         // Constraint 1: y >= x  =>  y - x >= 0  =>  y geq x
-        val geqConstraint = MathLinearInequality(yPoly, xPoly, Comparison.GE, "${name}_geq_x")
+        val geqConstraint = LinearInequality<Flt64>(yPoly, xPoly, Comparison.GE, "${name}_geq_x")
         when (val result = model.addConstraint(relation = geqConstraint, name = geqConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -97,7 +97,7 @@ class SemiFunction<T : Field<T>>(
             yPoly.constant - xPoly.constant
         )
         val upperRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        val upperConstraint = MathLinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_upper_bound")
+        val upperConstraint = LinearInequality<Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_upper_bound")
         when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -113,7 +113,7 @@ class SemiFunction<T : Field<T>>(
             Flt64.zero
         )
         val activationRhs = LinearPolynomial(emptyList(), mVal)
-        val activationConstraint = MathLinearInequality(activationLhs, activationRhs, Comparison.LE, "${name}_activation")
+        val activationConstraint = LinearInequality<Flt64>(activationLhs, activationRhs, Comparison.LE, "${name}_activation")
         when (val result = model.addConstraint(relation = activationConstraint, name = activationConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)

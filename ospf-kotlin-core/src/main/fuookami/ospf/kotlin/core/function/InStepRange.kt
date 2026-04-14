@@ -62,11 +62,13 @@ class InStepRangeFunction<T : Field<T>>(
      * The result: `y = lb + q * step` where `q = floor((ub - lb) / step)`.
      */
     val result: LinearPolynomial<T> by lazy {
-        val qResult = floorFunc.result
+        val qResult = floorFunc.q
         val scaledMonomials = qResult.monomials.map {
-            LinearMonomial(it.coefficient * step, it.symbol)
+            @Suppress("UNCHECKED_CAST")
+            LinearMonomial((it.coefficient.asFlt64() * step) as T, it.symbol)
         }
-        val scaledConstant = qResult.constant * step
+        @Suppress("UNCHECKED_CAST")
+        val scaledConstant = (qResult.constant.asFlt64() * step) as T
         LinearPolynomial(
             scaledMonomials + lb.monomials,
             scaledConstant + lb.constant

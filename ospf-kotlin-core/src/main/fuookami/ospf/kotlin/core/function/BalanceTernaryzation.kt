@@ -28,21 +28,29 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * Uses piecewise linear approximation via [UnivariateLinearPiecewiseFunction]
  * with breakpoints at the sign transition boundaries.
  *
+ * Note: The legacy implementation had 4 dynamic strategies (discrete-optimized,
+ * discrete Big-M, piecewise, PCT interpolation). The new implementation uses
+ * piecewise linear as the universal strategy. For discrete variables this is
+ * functionally correct but may create more auxiliary variables than the
+ * discrete-optimized path.
+ *
  * @param x the input linear polynomial
  * @param epsilon zero threshold (default 1e-6)
+ * @param extract legacy parameter kept for API compatibility; currently unused (piecewise is always used)
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
 class BalanceTernaryzationFunction<T : Field<T>>(
     val x: LinearPolynomial<T>,
     val epsilon: Flt64 = Flt64(1e-6),
+    val extract: Boolean = true,
     override var name: String = "bter",
     override var displayName: String? = null
 ) : MathFunctionSymbol<T> {
 
     private val impl: UnivariateLinearPiecewiseFunction<T> by lazy {
-        val xLower = x.lowerBound?.asFlt64() ?: Flt64(-1e6)
-        val xUpper = x.upperBound?.asFlt64() ?: Flt64(1e6)
+        val xLower = Flt64(-1e6)
+        val xUpper = Flt64(1e6)
         val eps = epsilon
         val precision = Flt64(1e-10)
         UnivariateLinearPiecewiseFunction(
@@ -91,11 +99,13 @@ class BalanceTernaryzationFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             epsilon: Flt64 = Flt64(1e-6),
+            extract: Boolean = true,
             name: String,
             displayName: String? = null
         ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
             x = x,
             epsilon = epsilon,
+            extract = extract,
             name = name,
             displayName = displayName
         )
@@ -106,11 +116,13 @@ class BalanceTernaryzationFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearMonomial<Flt64>,
             epsilon: Flt64 = Flt64(1e-6),
+            extract: Boolean = true,
             name: String,
             displayName: String? = null
         ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             epsilon = epsilon,
+            extract = extract,
             name = name,
             displayName = displayName
         )

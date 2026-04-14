@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -97,7 +97,7 @@ class SlackFunction<T : Field<T>>(
         val yPoly = y.asFlt64Poly()
 
         if (!threshold) {
-            val eqConstraint = MathLinearInequality(xPoly, yPoly, Comparison.EQ, name)
+            val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
             when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
                 is Ok -> {}
                 is Failed -> return Failed(result.error)
@@ -106,7 +106,7 @@ class SlackFunction<T : Field<T>>(
         } else {
             if (withNegative && negVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
-                val constraint = MathLinearInequality(lhs, yPoly, Comparison.GE, "${name}_neg")
+                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
                 when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
@@ -114,7 +114,7 @@ class SlackFunction<T : Field<T>>(
                 }
             } else if (withPositive && posVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
-                val constraint = MathLinearInequality(lhs, yPoly, Comparison.LE, "${name}_pos")
+                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
                 when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)

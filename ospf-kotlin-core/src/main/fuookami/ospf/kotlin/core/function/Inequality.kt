@@ -25,10 +25,11 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * - 1 if the inequality is satisfied
  * - 0 if the inequality is violated
  *
- * Supported comparisons: LE (<=), GE (>=), EQ (==)
+ * Supported comparisons: LE (<=), GE (>=), EQ (==), NE (!=)
  *
- * For LE/GE: uses Big-M to link a binary flag to the slack variable.
- * For EQ: uses Big-M to check if |lhs| < epsilon.
+ * Note: LT (<) and GT (>) are treated as LE (<=) and GE (>=) respectively,
+ * since strict inequalities cannot be modeled in MIP.
+ * NE (!=) is not supported and will return an error.
  *
  * @param lhs the left-hand side linear polynomial (representing lhs <op> rhs)
  * @param rhs the right-hand side constant
@@ -69,7 +70,7 @@ class InequalityFunction<T : Field<T>>(
             Comparison.NE -> kotlin.math.abs(lhsDouble - rhsDouble) > 1e-9
         }
         @Suppress("UNCHECKED_CAST")
-        return if (satisfied) Flt64.one else Flt64.zero as T
+        return (if (satisfied) Flt64.one else Flt64.zero) as T
     }
 
     override fun register(model: AbstractLinearMetaModel): Try {
