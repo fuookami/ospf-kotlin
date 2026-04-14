@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.BinaryzationFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.core.variable.BinVariable1

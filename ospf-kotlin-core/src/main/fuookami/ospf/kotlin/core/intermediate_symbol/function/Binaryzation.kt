@@ -132,6 +132,8 @@ class BinaryzationFunction<T : Field<T>>(
     }
 
     companion object {
+        private val BINARYZATION_PIECEWISE_THRESHOLD: Flt64 = Flt64(1e-5)
+
         operator fun invoke(
             input: LinearPolynomial<Flt64>,
             threshold: Flt64 = Flt64.zero,
@@ -154,5 +156,28 @@ class BinaryzationFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): BinaryzationFunction<Flt64> = BinaryzationFunction(input, threshold, null, BinaryzationMethod.Threshold, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         * Maps legacy parameters to new API: extract/threshold/epsilon -> method selection.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomial")
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            extract: Boolean = true,
+            epsilon: Flt64 = Flt64(1e-6),
+            piecewise: Boolean = false,
+            name: String,
+            displayName: String? = null
+        ): BinaryzationFunction<Flt64> {
+            val input = x.asMathLinearPolynomial()
+            val method = if (piecewise || epsilon >= BINARYZATION_PIECEWISE_THRESHOLD) {
+                BinaryzationMethod.Threshold
+            } else {
+                BinaryzationMethod.BigM
+            }
+            return BinaryzationFunction(input, Flt64.zero, null, method, name, displayName)
+        }
     }
 }

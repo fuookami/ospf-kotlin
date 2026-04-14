@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AbstractSlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
