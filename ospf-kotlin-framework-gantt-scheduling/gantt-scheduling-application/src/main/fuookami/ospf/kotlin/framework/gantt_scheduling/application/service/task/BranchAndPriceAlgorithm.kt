@@ -4,10 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.toMeta
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.intermediate_model.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.ExtractIterativeTaskCompilationContext

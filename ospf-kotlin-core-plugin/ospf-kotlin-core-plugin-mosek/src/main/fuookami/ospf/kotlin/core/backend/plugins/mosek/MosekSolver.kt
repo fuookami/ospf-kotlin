@@ -1,8 +1,8 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package fuookami.ospf.kotlin.core.backend.plugins.mosek
+package fuookami.ospf.kotlin.core.intermediate_plugins.mosek
 
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

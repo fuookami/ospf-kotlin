@@ -2,12 +2,12 @@
 
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.intermediate_model.LinearDualSolution
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

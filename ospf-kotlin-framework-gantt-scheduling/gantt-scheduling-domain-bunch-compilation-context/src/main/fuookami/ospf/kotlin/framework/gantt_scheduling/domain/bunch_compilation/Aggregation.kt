@@ -4,10 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.frontend.variable.Binary
-import fuookami.ospf.kotlin.core.frontend.variable.eq
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.variable.Binary
+import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*

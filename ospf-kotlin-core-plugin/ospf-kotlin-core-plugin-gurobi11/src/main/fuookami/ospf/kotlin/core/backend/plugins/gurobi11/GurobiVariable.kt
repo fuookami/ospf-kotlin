@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.intermediate_plugins.gurobi11
 
 import com.gurobi.gurobi.GRB
-import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.variable.*
 
 enum class GurobiVariable {
     Binary {
@@ -17,15 +17,15 @@ enum class GurobiVariable {
     companion object {
         operator fun invoke(type: VariableType<*>): GurobiVariable {
             return when (type) {
-                is fuookami.ospf.kotlin.core.frontend.variable.Binary -> {
+                is fuookami.ospf.kotlin.core.variable.Binary -> {
                     Binary
                 }
 
-                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer, is UInteger -> {
+                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer, is UInteger -> {
                     Integer
                 }
 
-                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinuous -> {
+                is Percentage, is fuookami.ospf.kotlin.core.variable.Continuous, is UContinuous -> {
                     Continuous
                 }
             }

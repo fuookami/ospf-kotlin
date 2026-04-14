@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.core.backend.plugins.mindopt
+package fuookami.ospf.kotlin.core.intermediate_plugins.mindopt
 
 import com.alibaba.damo.mindopt.MDO
 import com.alibaba.damo.mindopt.MDOEnv
 import com.alibaba.damo.mindopt.MDOException
 import com.alibaba.damo.mindopt.MDOModel
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

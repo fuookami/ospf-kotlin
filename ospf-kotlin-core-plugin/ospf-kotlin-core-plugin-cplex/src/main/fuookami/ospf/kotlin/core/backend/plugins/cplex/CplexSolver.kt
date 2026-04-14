@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.core.backend.plugins.cplex
+package fuookami.ospf.kotlin.core.intermediate_plugins.cplex
 
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import ilog.cplex.IloCplex

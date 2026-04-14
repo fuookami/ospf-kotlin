@@ -1,3 +1,3 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.hca
+package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.hca
 
 class HillClimbingAlgorithm

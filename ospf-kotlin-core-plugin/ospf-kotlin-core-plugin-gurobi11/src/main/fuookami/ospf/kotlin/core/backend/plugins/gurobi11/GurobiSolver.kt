@@ -1,12 +1,12 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.intermediate_plugins.gurobi11
 
 import com.gurobi.gurobi.GRB
 import com.gurobi.gurobi.GRBEnv
 import com.gurobi.gurobi.GRBException
 import com.gurobi.gurobi.GRBModel
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

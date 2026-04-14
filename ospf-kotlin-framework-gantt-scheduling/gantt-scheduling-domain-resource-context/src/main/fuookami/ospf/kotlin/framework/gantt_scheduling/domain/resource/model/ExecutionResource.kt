@@ -4,12 +4,12 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch

@@ -4,9 +4,9 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.expression.polynomial.times
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction

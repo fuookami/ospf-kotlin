@@ -1,3 +1,3 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.soa
+package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.soa
 
 class SeagullOptimizationAlgorithm

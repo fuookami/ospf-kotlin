@@ -1,14 +1,14 @@
-﻿package fuookami.ospf.kotlin.core.backend.plugins.hexaly
+﻿package fuookami.ospf.kotlin.core.intermediate_plugins.hexaly
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModel
-import fuookami.ospf.kotlin.core.backend.intermediate_model.ModelFileFormat
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModel
+import fuookami.ospf.kotlin.core.intermediate_model.ModelFileFormat
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.Error

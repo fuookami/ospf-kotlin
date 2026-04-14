@@ -2,19 +2,19 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.plus
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.*
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.OrFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
-import fuookami.ospf.kotlin.core.frontend.variable.BinVariable2
-import fuookami.ospf.kotlin.core.frontend.variable.eq
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_symbol.*
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.OrFunction
+import fuookami.ospf.kotlin.core.intermediate_model.geq
+import fuookami.ospf.kotlin.core.intermediate_model.leq
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.variable.BinVariable1
+import fuookami.ospf.kotlin.core.variable.BinVariable2
+import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.utils.error.Err

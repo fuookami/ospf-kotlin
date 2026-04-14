@@ -4,15 +4,15 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbols2
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.flatMap
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.variable.BinVariable3
-import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable3
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.variable.BinVariable3
+import fuookami.ospf.kotlin.core.variable.UIntVariable3
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow

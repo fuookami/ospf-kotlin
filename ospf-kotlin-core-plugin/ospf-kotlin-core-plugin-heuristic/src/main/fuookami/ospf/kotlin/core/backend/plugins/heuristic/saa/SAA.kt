@@ -1,11 +1,11 @@
 ﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.saa
+package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.saa
 
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.*
-import fuookami.ospf.kotlin.core.frontend.model.MulObj
-import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.heuristic.*
+import fuookami.ospf.kotlin.core.model.MulObj
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.copt
+package fuookami.ospf.kotlin.core.intermediate_plugins.copt
 
 import copt.*
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun

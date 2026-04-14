@@ -2,12 +2,12 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.utils.functional.*

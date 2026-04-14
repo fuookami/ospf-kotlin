@@ -1,14 +1,14 @@
-﻿package fuookami.ospf.kotlin.core.backend.plugins.scip
+﻿package fuookami.ospf.kotlin.core.intermediate_plugins.scip
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.*
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.output.SolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.*
-import fuookami.ospf.kotlin.core.frontend.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
 import fuookami.ospf.kotlin.framework.solver.QuadraticBendersDecompositionSolver
 import fuookami.ospf.kotlin.utils.error.ErrorCode

@@ -1,9 +1,9 @@
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package fuookami.ospf.kotlin.core.backend.plugins.hexaly
+package fuookami.ospf.kotlin.core.intermediate_plugins.hexaly
 
 import com.hexaly.optimizer.*
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

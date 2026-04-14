@@ -1,12 +1,12 @@
 ﻿package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.backend.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
+import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

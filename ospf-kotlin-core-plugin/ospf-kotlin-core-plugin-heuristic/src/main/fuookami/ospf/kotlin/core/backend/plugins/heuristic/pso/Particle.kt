@@ -1,9 +1,9 @@
-﻿package fuookami.ospf.kotlin.core.backend.plugins.heuristic.pso
+﻿package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.pso
 
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.AbstractHeuristicPolicy
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.Individual
-import fuookami.ospf.kotlin.core.backend.solver.heuristic.Iteration
-import fuookami.ospf.kotlin.core.frontend.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.heuristic.AbstractHeuristicPolicy
+import fuookami.ospf.kotlin.core.solver.heuristic.Individual
+import fuookami.ospf.kotlin.core.solver.heuristic.Iteration
+import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.ifNull
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order

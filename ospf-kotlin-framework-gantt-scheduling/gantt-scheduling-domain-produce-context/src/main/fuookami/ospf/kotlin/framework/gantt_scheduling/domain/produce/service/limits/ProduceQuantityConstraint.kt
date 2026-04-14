@@ -2,11 +2,11 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AbstractSlackFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.geq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.intermediate_model.geq
+import fuookami.ospf.kotlin.core.intermediate_model.leq
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce

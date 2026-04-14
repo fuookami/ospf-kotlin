@@ -2,12 +2,12 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.SlackFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.variable.UInteger
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.expression.polynomial.times
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.variable.UInteger
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
 import fuookami.ospf.kotlin.utils.functional.*

@@ -1,10 +1,10 @@
 ﻿package fuookami.ospf.kotlin.framework.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearDualSolution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.toMeta
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_model.LinearDualSolution
+import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.toMeta
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf

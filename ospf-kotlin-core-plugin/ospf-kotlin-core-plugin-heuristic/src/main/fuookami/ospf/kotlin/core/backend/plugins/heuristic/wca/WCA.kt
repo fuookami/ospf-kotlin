@@ -1,3 +1,3 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.wca
+package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.wca
 
 class WaterCycleAlgorithm

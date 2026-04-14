@@ -1,3 +1,3 @@
-package fuookami.ospf.kotlin.core.backend.plugins.heuristic.gco
+package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.gco
 
 class GerminalCenterOptimization

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.copt
+package fuookami.ospf.kotlin.core.intermediate_plugins.copt
 
 import copt.COPT
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.Sign
 
 enum class CoptConstraintSign {
     GreaterEqual {

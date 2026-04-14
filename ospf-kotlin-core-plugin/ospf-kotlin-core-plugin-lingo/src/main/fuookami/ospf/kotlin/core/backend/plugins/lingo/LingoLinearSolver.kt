@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.backend.plugins.lingo
+package fuookami.ospf.kotlin.core.intermediate_plugins.lingo
 
 class LingoLinearSolver {
 }

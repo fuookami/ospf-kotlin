@@ -2,18 +2,18 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.monomial.times
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.BinaryzationFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.frontend.variable.BinVariable1
-import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable1
-import fuookami.ospf.kotlin.core.frontend.variable.UIntVariable2
+import fuookami.ospf.kotlin.core.expression.monomial.times
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.BinaryzationFunction
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.variable.BinVariable1
+import fuookami.ospf.kotlin.core.variable.UIntVariable1
+import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item

@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.intermediate_plugins.gurobi11
 
 import com.gurobi.gurobi.*
-import fuookami.ospf.kotlin.core.backend.solver.output.SolverStatus
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.syncRun

@@ -1,24 +1,24 @@
 ﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
-package fuookami.ospf.kotlin.core.backend.plugins.hexaly
+package fuookami.ospf.kotlin.core.intermediate_plugins.hexaly
 
-import fuookami.ospf.kotlin.core.backend.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.backend.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatus
-import fuookami.ospf.kotlin.core.backend.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
+import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
 import com.hexaly.optimizer.HxCallbackType
 import com.hexaly.optimizer.HxException
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxObjectiveDirection
-import fuookami.ospf.kotlin.core.backend.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.backend.intermediate_model.nonNullConstraintPriorityAmount
-import fuookami.ospf.kotlin.core.backend.solver.LinearSolver
-import fuookami.ospf.kotlin.core.backend.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.backend.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.frontend.model.Solution
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.ObjectCategory
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
+import fuookami.ospf.kotlin.core.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.intermediate_model.Sign
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode

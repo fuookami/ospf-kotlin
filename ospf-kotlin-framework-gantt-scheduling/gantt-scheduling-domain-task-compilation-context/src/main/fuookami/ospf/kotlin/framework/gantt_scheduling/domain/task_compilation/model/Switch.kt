@@ -4,19 +4,19 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.ToLinearPolynomial
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.minus
-import fuookami.ospf.kotlin.core.frontend.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.LinearIntermediateSymbols3
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.AndFunction
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.IfFunction
-import fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function.MaskingFunction
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.leq
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.minus
+import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AndFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.IfFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.MaskingFunction
+import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
+import fuookami.ospf.kotlin.core.intermediate_model.leq
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor

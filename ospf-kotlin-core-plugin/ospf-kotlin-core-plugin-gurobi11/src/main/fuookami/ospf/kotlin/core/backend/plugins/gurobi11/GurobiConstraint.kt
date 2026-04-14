@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.backend.plugins.gurobi11
+package fuookami.ospf.kotlin.core.intermediate_plugins.gurobi11
 
 import com.gurobi.gurobi.GRB
-import fuookami.ospf.kotlin.core.frontend.model.mechanism.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.Sign
 
 enum class GurobiConstraintSign {
     GreaterEqual {

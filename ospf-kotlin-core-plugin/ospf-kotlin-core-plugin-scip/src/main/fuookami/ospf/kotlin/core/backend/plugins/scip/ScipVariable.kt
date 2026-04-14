@@ -1,6 +1,6 @@
-package fuookami.ospf.kotlin.core.backend.plugins.scip
+package fuookami.ospf.kotlin.core.intermediate_plugins.scip
 
-import fuookami.ospf.kotlin.core.frontend.variable.*
+import fuookami.ospf.kotlin.core.variable.*
 import jscip.SCIP_Vartype
 
 enum class ScipVariable {
@@ -17,15 +17,15 @@ enum class ScipVariable {
     companion object {
         operator fun invoke(type: VariableType<*>): ScipVariable {
             return when (type) {
-                is fuookami.ospf.kotlin.core.frontend.variable.Binary -> {
+                is fuookami.ospf.kotlin.core.variable.Binary -> {
                     Binary
                 }
 
-                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.frontend.variable.Integer, is UInteger -> {
+                is Ternary, is BalancedTernary, is fuookami.ospf.kotlin.core.variable.Integer, is UInteger -> {
                     Integer
                 }
 
-                is Percentage, is fuookami.ospf.kotlin.core.frontend.variable.Continuous, is UContinuous -> {
+                is Percentage, is fuookami.ospf.kotlin.core.variable.Continuous, is UContinuous -> {
                     Continuous
                 }
             }
