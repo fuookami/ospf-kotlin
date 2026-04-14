@@ -1,3 +1,5 @@
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+
 package fuookami.ospf.kotlin.core.frontend.expression.symbol
 
 import fuookami.ospf.kotlin.core.frontend.expression.Expression
@@ -323,6 +325,7 @@ private fun IntermediateSymbol.evaluateWithCachedTokenTable(
     }
 }
 
+@Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 abstract class ExpressionSymbol(
     open val _polynomial: MutablePolynomial<*, *, *>,
     override val category: Category = _polynomial.category,
@@ -439,6 +442,7 @@ abstract class ExpressionSymbol(
     }
 }
 
+@Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class LinearExpressionSymbol(
     override val _polynomial: MutableLinearPolynomial,
     category: Category = _polynomial.category,
@@ -683,6 +687,7 @@ class LinearExpressionSymbol(
     }
 }
 
+@Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class QuadraticExpressionSymbol(
     override val _polynomial: MutableQuadraticPolynomial,
     category: Category = _polynomial.category,
@@ -999,6 +1004,7 @@ data class FunctionSymbolRegistrationScope(
     }
 }
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 interface FunctionSymbol : IntermediateSymbol {
     fun register(tokenTable: AddableTokenCollection): Try
 
@@ -1043,6 +1049,7 @@ interface FunctionSymbol : IntermediateSymbol {
     fun calculateValue(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64?
 }
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 interface LogicFunctionSymbol : FunctionSymbol {
     fun isTrue(tokenList: AbstractTokenList, zeroIfNone: Boolean): Boolean? {
         return this.evaluate(
@@ -1068,6 +1075,7 @@ interface LogicFunctionSymbol : FunctionSymbol {
     }
 }
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 abstract class LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
@@ -1102,8 +1110,10 @@ abstract class LinearFunctionSymbol : LinearIntermediateSymbol, FunctionSymbol {
     }
 }
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 abstract class LinearLogicFunctionSymbol : LinearFunctionSymbol(), LogicFunctionSymbol {}
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 abstract class QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSymbol {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
@@ -1138,6 +1148,7 @@ abstract class QuadraticFunctionSymbol : QuadraticIntermediateSymbol, FunctionSy
     }
 }
 
+@Deprecated("Use fuookami.ospf.kotlin.core.function.MathFunctionSymbol instead")
 abstract class QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol(), LogicFunctionSymbol {}
 
 operator fun LinearIntermediateSymbol.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol> {
