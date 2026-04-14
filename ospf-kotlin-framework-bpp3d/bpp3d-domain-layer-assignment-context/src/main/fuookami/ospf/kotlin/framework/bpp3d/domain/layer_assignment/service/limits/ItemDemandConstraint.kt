@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AbstractSlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
@@ -34,19 +34,21 @@ class ItemDemandConstraint<
         for ((item, demand, demandRange) in items) {
             if (load.overEnabled && !demandRange.fixed && demandRange.upperBound.value.unwrap() neq demand) {
                 when (val overLoad = load.overLoad[item]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            overLoad.polyX leq demandRange.upperBound.value.unwrap(),
-                            name = "${name}_ub_${item}"
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        overLoad.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX leq demandRange.upperBound.value.unwrap(),
+                                name = "${name}_ub_${item}"
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -56,9 +58,9 @@ class ItemDemandConstraint<
                             load.load[item] leq demandRange.upperBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok -> {}
+                            is Ok<*, *> -> {}
 
-                            is Failed -> {
+                            is Failed<*, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -87,19 +89,21 @@ class ItemDemandConstraint<
 
             if (!demandRange.fixed && demandRange.lowerBound.value.unwrap() neq demand) {
                 when (val lessLoad = load.lessLoad[item]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            lessLoad.polyX leq demandRange.upperBound.value.unwrap(),
-                            name = "${name}_lb_${item}"
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        lessLoad.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX geq demandRange.lowerBound.value.unwrap(),
+                                name = "${name}_lb_${item}"
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -109,9 +113,9 @@ class ItemDemandConstraint<
                             load.load[item] geq demandRange.lowerBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok -> {}
+                            is Ok<*, *> -> {}
 
-                            is Failed -> {
+                            is Failed<*, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -126,9 +130,9 @@ class ItemDemandConstraint<
                     load.load[item] geq demand,
                     name = "${name}_ub_${item}"
                 )) {
-                    is Ok -> {}
+                    is Ok<*, *> -> {}
 
-                    is Failed -> {
+                    is Failed<*, *> -> {
                         return Failed(result.error)
                     }
 

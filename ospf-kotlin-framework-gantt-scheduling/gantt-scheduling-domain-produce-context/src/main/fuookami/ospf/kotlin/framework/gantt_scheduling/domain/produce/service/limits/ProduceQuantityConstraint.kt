@@ -3,6 +3,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
@@ -41,20 +43,22 @@ class ProduceQuantityConstraint<
         for ((product, demand) in products) {
             if (produce.overEnabled && demand.overEnabled) {
                 when (val overQuantity = produce.overQuantity[product]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            overQuantity.polyX leq demand.quantity.upperBound.value.unwrap(),
-                            name = "${name}_ub_${product}",
-                            args = ProduceQuantityShadowPriceKey(product)
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        overQuantity.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX leq demand.quantity.upperBound.value.unwrap(),
+                                name = "${name}_ub_${product}",
+                                args = ProduceQuantityShadowPriceKey(product)
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -65,9 +69,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok -> {}
+                            is Ok<*, *> -> {}
 
-                            is Failed -> {
+                            is Failed<*, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -83,9 +87,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok -> {}
+                    is Ok<*, *> -> {}
 
-                    is Failed -> {
+                    is Failed<*, *> -> {
                         return Failed(result.error)
                     }
 
@@ -97,20 +101,22 @@ class ProduceQuantityConstraint<
 
             if (produce.lessEnabled && demand.lessEnabled) {
                 when (val lessQuantity = produce.lessQuantity[product]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            lessQuantity.polyX geq demand.quantity.lowerBound.value.unwrap(),
-                            name = "${name}_lb_${product}",
-                            args = ProduceQuantityShadowPriceKey(product)
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        lessQuantity.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX geq demand.quantity.lowerBound.value.unwrap(),
+                                name = "${name}_lb_${product}",
+                                args = ProduceQuantityShadowPriceKey(product)
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -121,9 +127,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok -> {}
+                            is Ok<*, *> -> {}
 
-                            is Failed -> {
+                            is Failed<*, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -139,9 +145,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok -> {}
+                    is Ok<*, *> -> {}
 
-                    is Failed -> {
+                    is Failed<*, *> -> {
                         return Failed(result.error)
                     }
 

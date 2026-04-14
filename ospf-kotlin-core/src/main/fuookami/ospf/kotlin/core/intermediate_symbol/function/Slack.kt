@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -12,6 +13,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.eq
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -37,10 +39,10 @@ class SlackFunction<T : Field<T>>(
         require(withNegative || withPositive) { "At least one of withNegative or withPositive must be true" }
     }
 
-    private val negVar: AbstractVariableItem<*, *>? by lazy {
+    internal val negVar: AbstractVariableItem<*, *>? by lazy {
         if (withNegative) createVariable("${name}_neg") else null
     }
-    private val posVar: AbstractVariableItem<*, *>? by lazy {
+    internal val posVar: AbstractVariableItem<*, *>? by lazy {
         if (withPositive) createVariable("${name}_pos") else null
     }
 
@@ -165,8 +167,41 @@ class SlackFunction<T : Field<T>>(
             )
         )
 
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial with UInt64 threshold.
+         */
+        @JvmStatic
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            threshold: UInt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
+            withPositive: Boolean = true,
+            withNegative: Boolean? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val positive = withNegative?.let { !it } ?: withPositive
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x.asMathLinearPolynomial(),
+                    y = LinearPolynomial(emptyList(), threshold.toFlt64()),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = true,
+                    name = name,
+                    displayName = displayName
+                )
+            )
+        }
+
+        /**
+         * Factory: accept AbstractVariableItem for x and Flt64 for y.
+         * For framework code passing variable items directly.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: AbstractVariableItem<*, *>,
             y: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withNegative: Boolean = true,
@@ -176,7 +211,7 @@ class SlackFunction<T : Field<T>>(
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
             SlackFunction(
-                x = x,
+                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
                 y = LinearPolynomial(emptyList(), y),
                 type = type,
                 withNegative = withNegative,
@@ -210,5 +245,176 @@ class SlackFunction<T : Field<T>>(
                 )
             )
         }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for x and Flt64 for y.
+         * For framework code passing intermediate symbols directly.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            y: Flt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            SlackFunction(
+                x = x.asMathLinearPolynomial(),
+                y = LinearPolynomial(emptyList(), y),
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
+                name = name,
+                displayName = displayName
+            )
+        )
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for x and Flt64 threshold.
+         * For framework code passing intermediate symbols with threshold mode.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            threshold: Flt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withPositive: Boolean = true,
+            withNegative: Boolean? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val positive = withNegative?.let { !it } ?: withPositive
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x.asMathLinearPolynomial(),
+                    y = LinearPolynomial(emptyList(), threshold),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = true,
+                    name = name,
+                    displayName = displayName
+                )
+            )
+        }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for x and Flt64 threshold with legacy constraint parameter.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            threshold: Flt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withPositive: Boolean = true,
+            withNegative: Boolean? = null,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val positive = withNegative?.let { !it } ?: withPositive
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x.asMathLinearPolynomial(),
+                    y = LinearPolynomial(emptyList(), threshold),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = constraint,
+                    name = name,
+                    displayName = displayName
+                )
+            )
+        }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for x and UInt64 threshold.
+         * For framework code using UInt64 threshold values.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            threshold: UInt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withPositive: Boolean = true,
+            withNegative: Boolean? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val positive = withNegative?.let { !it } ?: withPositive
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x.asMathLinearPolynomial(),
+                    y = LinearPolynomial(emptyList(), threshold.toFlt64()),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = true,
+                    name = name,
+                    displayName = displayName
+                )
+            )
+        }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for x and UInt64 threshold with legacy constraint parameter.
+         * For framework code using UInt64 threshold values and constraint flag.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            threshold: UInt64,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withPositive: Boolean = true,
+            withNegative: Boolean? = null,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val positive = withNegative?.let { !it } ?: withPositive
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x.asMathLinearPolynomial(),
+                    y = LinearPolynomial(emptyList(), threshold.toFlt64()),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = constraint,
+                    name = name,
+                    displayName = displayName
+                )
+            )
+        }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for both x and y.
+         * For framework code computing slack between two intermediate symbols.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            y: LinearIntermediateSymbol,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            SlackFunction(
+                x = x.asMathLinearPolynomial(),
+                y = y.asMathLinearPolynomial(),
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }

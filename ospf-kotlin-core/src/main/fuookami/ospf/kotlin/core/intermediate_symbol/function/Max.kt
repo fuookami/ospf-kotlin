@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -126,6 +127,27 @@ class MaxFunction<T : Field<T>>(
             name = name,
             displayName = displayName
         )
+
+        /**
+         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
+         * Each symbol is converted to a single-term polynomial.
+         * Parameter named 'polynomials' to match callers using named arguments.
+         */
+        @JvmStatic
+        @JvmName("fromSymbols")
+        operator fun invoke(
+            polynomials: List<LinearIntermediateSymbol>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MaxFunction(
+                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }
 
@@ -219,5 +241,41 @@ class MinFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromCorePolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MinFunction<Flt64> = MinFunction(
+            polynomials = polynomials.map { it.asMathLinearPolynomial() },
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
+        /**
+         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromSymbols")
+        operator fun invoke(
+            polynomials: List<LinearIntermediateSymbol>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MinFunction(
+                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }

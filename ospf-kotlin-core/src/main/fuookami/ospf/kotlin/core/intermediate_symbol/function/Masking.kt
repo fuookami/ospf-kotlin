@@ -2,16 +2,29 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.expression.ExpressionRange
 import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -169,6 +182,216 @@ class MaskingFunction<T : Field<T>>(
                 displayName = displayName
             )
         )
+
+        /**
+         * Factory: accept AbstractLinearPolynomial for both x and mask.
+         * For framework code passing polynomial masks (e.g., sum of variables).
+         * Creates an internal helper variable to represent the polynomial mask.
+         */
+        @JvmStatic
+        @JvmName("fromPolynomialMask")
+        operator fun invoke(
+            x: AbstractLinearPolynomial<*>,
+            mask: AbstractLinearPolynomial<*>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+            input = x.asMathLinearPolynomial(),
+            maskPoly = mask.asMathLinearPolynomial(),
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
+        /**
+         * Factory: accept ToLinearPolynomial for x and AbstractLinearPolynomial for mask.
+         * For mixed-type inputs with polynomial mask.
+         */
+        @JvmStatic
+        @JvmName("fromToLinearPolynomialWithPolyMask")
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>,
+            mask: AbstractLinearPolynomial<*>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+            input = x.toLinearPolynomial().asMathLinearPolynomial(),
+            maskPoly = mask.asMathLinearPolynomial(),
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
+        /**
+         * Factory: accept AbstractLinearPolynomial for x and ToLinearPolynomial for mask.
+         * For framework code passing LinearIntermediateSymbol as mask.
+         */
+        @JvmStatic
+        @JvmName("fromSymbolMask")
+        operator fun invoke(
+            x: AbstractLinearPolynomial<*>,
+            mask: fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+            input = x.asMathLinearPolynomial(),
+            maskPoly = mask.toLinearPolynomial().asMathLinearPolynomial(),
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
+        /**
+         * Factory: accept ToLinearPolynomial for both x and mask.
+         * Fully generic factory for mixed framework types.
+         */
+        @JvmStatic
+        @JvmName("fromToLinearPolynomials")
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>,
+            mask: fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+            input = x.toLinearPolynomial().asMathLinearPolynomial(),
+            maskPoly = mask.toLinearPolynomial().asMathLinearPolynomial(),
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+    }
+}
+
+/**
+ * Masking function variant where mask is a polynomial instead of a single variable.
+ * y = x * mask where mask is a polynomial expression.
+ * Creates an internal variable `m` with constraint m = maskPoly, then applies
+ * standard Big-M masking constraints with m as the binary mask.
+ */
+class MaskingWithPolyMaskFunction(
+    val input: LinearPolynomial<Flt64>,
+    val maskPoly: LinearPolynomial<Flt64>,
+    bigM: Flt64? = null,
+    override var name: String,
+    override var displayName: String? = null
+) : LinearIntermediateSymbol, MathFunctionSymbol<Flt64> {
+    private val bigM: Flt64 = bigM ?: Flt64(BIG_M_DEFAULT)
+    val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
+    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
+
+    override val helperVariables: List<AbstractVariableItem<*, *>>
+        get() = listOf(maskVar, resultVar)
+
+    override val identifier: UInt64 get() = IdentifierGenerator.gen()
+    override val index: Int get() = 0
+    override val category: Category get() = Linear
+    override val cached: Boolean get() = false
+    override val dependencies: Set<IntermediateSymbol> get() = emptySet()
+    override val discrete: Boolean get() = false
+    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+
+    override fun flush(force: Boolean) {}
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? = null
+    override fun toRawString(unfold: UInt64): String = name
+
+    @Deprecated("Use flattenedMonomials instead. cells is transitional compatibility layer.", level = DeprecationLevel.WARNING)
+    override val cells: List<LinearMonomialCell> get() = emptyList()
+    override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
+
+    override fun toLinearPolynomial(): CoreLinearPolynomial {
+        return CoreLinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun toQuadraticPolynomial(): CoreQuadraticPolynomial {
+        return CoreQuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? =
+        (this as MathFunctionSymbol<Flt64>).evaluate(values)
+
+    override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
+        val maskValue = maskPoly.evaluate(values) ?: return Flt64.zero
+        val maskD = maskValue.toDouble()
+        if (maskD <= 1e-12 && maskD >= -1e-12) return Flt64.zero
+        return input.evaluate(values)
+    }
+
+    override fun register(model: AbstractLinearMetaModel): Try {
+        when (val result = model.add(helperVariables)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        // maskPoly = maskVar constraint
+        val maskMonos = maskPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, maskVar)
+        val maskConstraint = MathLinearInequality(
+            LinearPolynomial(monomials = maskMonos, constant = -maskPoly.constant),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.EQ, "${name}_mask_eq")
+        when (val r = model.addConstraint(relation = maskConstraint, name = maskConstraint.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        val mD = bigM.toDouble()
+
+        // c1: result - input <= M*(1 - mask_var_normalized)
+        val c1Monos = input.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(Flt64(mD), maskVar)
+        val c1 = MathLinearInequality(
+            LinearPolynomial(monomials = c1Monos, constant = -input.constant),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64(mD)), Comparison.LE, "${name}_ub")
+        when (val r = model.addConstraint(relation = c1, name = c1.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c2: result - input >= -M*mask_var
+        val c2Monos = input.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(Flt64(mD), maskVar)
+        val c2 = MathLinearInequality(
+            LinearPolynomial(monomials = c2Monos, constant = -input.constant),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_lb")
+        when (val r = model.addConstraint(relation = c2, name = c2.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c3: result <= M*mask_var
+        val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64(mD), maskVar))
+        val c3 = MathLinearInequality(
+            LinearPolynomial(monomials = c3Monos, constant = Flt64.zero),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.LE, "${name}_zero_ub")
+        when (val r = model.addConstraint(relation = c3, name = c3.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c4: result >= -M*mask_var
+        val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64(mD), maskVar))
+        val c4 = MathLinearInequality(
+            LinearPolynomial(monomials = c4Monos, constant = Flt64.zero),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_zero_lb")
+        when (val r = model.addConstraint(relation = c4, name = c4.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        return ok
     }
 }
 

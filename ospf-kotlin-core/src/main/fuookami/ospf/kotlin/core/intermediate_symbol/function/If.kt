@@ -2,11 +2,24 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -31,7 +44,7 @@ class IfFunction<T : Field<T>>(
     val constraintMode: Boolean = true,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : LinearIntermediateSymbol, MathFunctionSymbol<T> {
     private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_if_then")
@@ -95,6 +108,36 @@ class IfFunction<T : Field<T>>(
 
         return addConstraints(model, allConstraints) ?: ok
     }
+
+    // LinearIntermediateSymbol members
+    override val identifier: UInt64 get() = IdentifierGenerator.gen()
+    override val index: Int get() = 0
+    override val category: Category get() = Linear
+    override val cached: Boolean get() = false
+    override val dependencies: Set<IntermediateSymbol> get() = emptySet()
+    override val discrete: Boolean get() = false
+    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+
+    override fun flush(force: Boolean) {}
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? = null
+    override fun toRawString(unfold: UInt64): String = name
+
+    @Deprecated("Use flattenedMonomials instead. cells is transitional compatibility layer.", level = DeprecationLevel.WARNING)
+    override val cells: List<LinearMonomialCell> get() = emptyList()
+    override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
+
+    override fun toLinearPolynomial(): CoreLinearPolynomial {
+        return CoreLinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun toQuadraticPolynomial(): CoreQuadraticPolynomial {
+        return CoreQuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? =
+        (this as MathFunctionSymbol<Flt64>).evaluate(values)
 
     companion object {
         operator fun invoke(

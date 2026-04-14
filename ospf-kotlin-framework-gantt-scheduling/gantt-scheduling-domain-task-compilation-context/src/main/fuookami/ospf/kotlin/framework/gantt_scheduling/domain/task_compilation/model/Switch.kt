@@ -59,7 +59,7 @@ class TaskSchedulingSwitch<
                 ) { _, v ->
                     val task1 = tasks[v[0]]
                     val task2 = tasks[v[1]]
-                    if (task1 == task2) {
+                    val result: LinearIntermediateSymbol = if (task1 == task2) {
                         LinearIntermediateSymbol.empty(
                             name = "front_of_${task1}_${task2}"
                         )
@@ -72,6 +72,7 @@ class TaskSchedulingSwitch<
                             name = "front_of_${task1}_$task2"
                         )
                     }
+                    result
                 }
             }
             when (val result = model.add(frontOf)) {
@@ -96,7 +97,7 @@ class TaskSchedulingSwitch<
                     val task1 = tasks[v[1]]
                     val task2 = tasks[v[2]]
                     val task3 = tasks[v[3]]
-                    if (task1 == task2 || task1 == task3 || task2 == task3) {
+                    val result: LinearIntermediateSymbol = if (task1 == task2 || task1 == task3 || task2 == task3) {
                         LinearIntermediateSymbol.empty(
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
@@ -109,6 +110,7 @@ class TaskSchedulingSwitch<
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
+                    result
                 }
             }
             when (val result = model.add(betweenIn)) {
@@ -132,7 +134,7 @@ class TaskSchedulingSwitch<
                 val executor = executors[v[0]]
                 val task1 = tasks[v[1]]
                 val task2 = tasks[v[2]]
-                if (task1 == task2) {
+                val result: LinearIntermediateSymbol = if (task1 == task2) {
                     LinearIntermediateSymbol.empty(
                         name = "front_of_${task1}_${task2}"
                     )
@@ -169,6 +171,7 @@ class TaskSchedulingSwitch<
                         )
                     }
                 }
+                result
             }
         }
 

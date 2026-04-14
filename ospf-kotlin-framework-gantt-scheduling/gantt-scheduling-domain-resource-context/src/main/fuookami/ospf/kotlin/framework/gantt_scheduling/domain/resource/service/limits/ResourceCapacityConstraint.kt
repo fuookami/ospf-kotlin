@@ -5,6 +5,8 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
@@ -41,20 +43,22 @@ class ResourceCapacityConstraint<
             val thisQuantity = quantity(slot)
             if (withSlack && usage.overEnabled && slot.resourceCapacity.overEnabled) {
                 when (val overQuantity = usage.overQuantity[slot]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            overQuantity.polyX leq thisQuantity.upperBound.value.unwrap(),
-                            name = "${name}_ub_$slot",
-                            args = ResourceCapacityShadowPriceKey(slot)
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        overQuantity.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX leq thisQuantity.upperBound.value.unwrap(),
+                                name = "${name}_ub_$slot",
+                                args = ResourceCapacityShadowPriceKey(slot)
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -83,9 +87,9 @@ class ResourceCapacityConstraint<
                     name = "${usage.name}_${name}_ub_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
-                    is Ok -> {}
+                    is Ok<*, *> -> {}
 
-                    is Failed -> {
+                    is Failed<*, *> -> {
                         return Failed(result.error)
                     }
 
@@ -97,20 +101,22 @@ class ResourceCapacityConstraint<
 
             if (withSlack && usage.lessEnabled && slot.resourceCapacity.lessEnabled) {
                 when (val lessQuantity = usage.lessQuantity[slot]) {
-                    is AbstractSlackFunction<*> -> {
-                        when (val result = model.addConstraint(
-                            lessQuantity.polyX geq thisQuantity.lowerBound.value.unwrap(),
-                            name = "${name}_lb_$slot",
-                            args = ResourceCapacityShadowPriceKey(slot)
-                        )) {
-                            is Ok -> {}
+                    is LinearFunctionSymbolAdapter -> {
+                        lessQuantity.polyX?.let { polyX ->
+                            when (val result = model.addConstraint(
+                                polyX geq thisQuantity.lowerBound.value.unwrap(),
+                                name = "${name}_lb_$slot",
+                                args = ResourceCapacityShadowPriceKey(slot)
+                            )) {
+                                is Ok<*, *> -> {}
 
-                            is Failed -> {
-                                return Failed(result.error)
-                            }
+                                is Failed<*, *> -> {
+                                    return Failed(result.error)
+                                }
 
-                            is Fatal -> {
-                                return Fatal(result.errors)
+                                is Fatal -> {
+                                    return Fatal(result.errors)
+                                }
                             }
                         }
                     }
@@ -139,9 +145,9 @@ class ResourceCapacityConstraint<
                     name = "${name}_lb_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
-                    is Ok -> {}
+                    is Ok<*, *> -> {}
 
-                    is Failed -> {
+                    is Failed<*, *> -> {
                         return Failed(result.error)
                     }
 

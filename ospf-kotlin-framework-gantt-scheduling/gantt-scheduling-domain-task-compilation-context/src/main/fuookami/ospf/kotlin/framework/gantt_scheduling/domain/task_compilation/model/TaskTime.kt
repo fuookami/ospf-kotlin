@@ -13,9 +13,10 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.asCoreLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.AbstractSlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
@@ -97,11 +98,11 @@ abstract class TaskTimeImpl<
                 ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
-                        is AbstractSlackFunction<*> -> {
-                            LinearPolynomial(slack.pos!!)
+                        is LinearFunctionSymbolAdapter -> {
+                            slack.pos ?: LinearPolynomial()
                         }
-                        is SlackFunction<Flt64> -> {
-                            LinearPolynomial(slack.pos!!)
+                        is SlackFunction<*> -> {
+                            LinearPolynomial(slack.pos!!.asCoreLinearPolynomial())
                         }
                         else -> {
                             LinearPolynomial()
@@ -163,11 +164,11 @@ abstract class TaskTimeImpl<
                 ) { i, _ ->
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
-                        is AbstractSlackFunction<*> -> {
-                            LinearPolynomial(slack.neg!!)
+                        is LinearFunctionSymbolAdapter -> {
+                            slack.neg ?: LinearPolynomial()
                         }
-                        is SlackFunction<Flt64> -> {
-                            LinearPolynomial(slack.neg!!)
+                        is SlackFunction<*> -> {
+                            LinearPolynomial(slack.neg!!.asCoreLinearPolynomial())
                         }
                         else -> {
                             LinearPolynomial()

@@ -79,6 +79,71 @@ class LinearFunctionSymbolAdapter(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = delegate.helperVariables
 
+    /**
+     * Expose positive slack variable as a core LinearPolynomial, for framework compatibility.
+     * Only meaningful when the delegate is a SlackFunction with withPositive=true.
+     */
+    val pos: CoreLinearPolynomial? by lazy {
+        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
+        slack.posVar?.let { v ->
+            CoreLinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, v)),
+                constant = Flt64.zero
+            )
+        }
+    }
+
+    /**
+     * Expose negative slack variable as a core LinearPolynomial, for framework compatibility.
+     * Only meaningful when the delegate is a SlackFunction with withNegative=true.
+     */
+    val neg: CoreLinearPolynomial? by lazy {
+        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
+        slack.negVar?.let { v ->
+            CoreLinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, v)),
+                constant = Flt64.zero
+            )
+        }
+    }
+
+    /**
+     * Expose the full slack expression (x + neg - pos) as a core LinearPolynomial, for framework compatibility.
+     * Only meaningful when the delegate is a SlackFunction.
+     */
+    val polyX: CoreLinearPolynomial? by lazy {
+        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
+        val xPoly = slack.x.asFlt64Poly()
+        val coreMonomials = xPoly.monomials.mapNotNull { mono ->
+            val sym = mono.symbol
+            when (sym) {
+                is fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *> ->
+                    fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(mono.coefficient, sym)
+                is fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol ->
+                    fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(mono.coefficient, sym)
+                is fuookami.ospf.kotlin.math.symbol.Symbol -> {
+                    // Math-level symbols can't be directly represented as core monomials
+                    null
+                }
+                else -> null
+            }
+        }
+        var result = CoreLinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
+        if (slack.withNegative && slack.negVar != null) {
+            result = CoreLinearPolynomial(
+                monomials = result.monomials + fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, slack.negVar!!),
+                constant = result.constant
+            )
+        }
+        if (slack.withPositive && slack.posVar != null) {
+            result = CoreLinearPolynomial(
+                monomials = result.monomials + fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(-Flt64.one, slack.posVar!!),
+                constant = result.constant
+            )
+        }
+        result
+    }
+
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = delegate.evaluate(values)
     override fun register(model: AbstractLinearMetaModel): Try = delegate.register(model)
 
