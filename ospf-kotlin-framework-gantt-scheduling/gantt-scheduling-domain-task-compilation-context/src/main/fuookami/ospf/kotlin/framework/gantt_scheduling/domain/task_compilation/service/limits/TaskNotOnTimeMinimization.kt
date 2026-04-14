@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 import fuookami.ospf.kotlin.core.expression.monomial.times
 import fuookami.ospf.kotlin.core.expression.polynomial.sum
 import fuookami.ospf.kotlin.core.expression.polynomial.times
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UInteger
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*

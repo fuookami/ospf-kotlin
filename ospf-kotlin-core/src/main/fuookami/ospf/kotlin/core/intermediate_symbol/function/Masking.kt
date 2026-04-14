@@ -104,6 +104,24 @@ class MaskingFunction<T : Field<T>>(
     }
 
     companion object {
+        /**
+         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            mask: AbstractVariableItem<*, *>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingFunction<Flt64> = MaskingFunction(
+            input = x.asMathLinearPolynomial(),
+            mask = mask,
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             input: LinearPolynomial<Flt64>,
             mask: AbstractVariableItem<*, *>,

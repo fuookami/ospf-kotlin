@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.l
 
 import fuookami.ospf.kotlin.core.expression.monomial.times
 import fuookami.ospf.kotlin.core.expression.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function.SlackFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial

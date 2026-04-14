@@ -138,6 +138,31 @@ class SlackFunction<T : Field<T>>(
     }
 
     companion object {
+        /**
+         * Factory: create SlackFunction from core expression polynomials.
+         * For framework code using legacy DSL types.
+         */
+        @JvmStatic
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            y: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String,
+            displayName: String? = null
+        ): SlackFunction<Flt64> = SlackFunction(
+            x = x.asMathLinearPolynomial(),
+            y = y.asMathLinearPolynomial(),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             y: Flt64,
