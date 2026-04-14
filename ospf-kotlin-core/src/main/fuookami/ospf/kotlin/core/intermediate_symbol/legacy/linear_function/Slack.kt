@@ -588,6 +588,10 @@ sealed class AbstractSlackFunction<V : Variable<*>>(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SlackFunction instead",
+    replaceWith = ReplaceWith("SlackFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction")
+)
 object SlackFunction {
     operator fun invoke(
         x: AbstractLinearPolynomial<*>,
@@ -1165,6 +1169,10 @@ object SlackFunction {
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SlackFunction instead",
+    replaceWith = ReplaceWith("SlackFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction")
+)
 class UIntegerSlackFunction(
     x: AbstractLinearPolynomial<*>,
     y: AbstractLinearPolynomial<*>,
@@ -1192,6 +1200,10 @@ class UIntegerSlackFunction(
     override val discrete = true
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SlackFunction instead",
+    replaceWith = ReplaceWith("SlackFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction")
+)
 class URealSlackFunction(
     x: AbstractLinearPolynomial<*>,
     y: AbstractLinearPolynomial<*>,

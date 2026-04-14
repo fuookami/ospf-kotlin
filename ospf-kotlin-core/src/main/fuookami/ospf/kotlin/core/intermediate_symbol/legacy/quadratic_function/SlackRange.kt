@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SlackRangeFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("SlackRangeFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction")
+)
 sealed class AbstractSlackRangeFunction<V : Variable<*>>(
     private val x: AbstractQuadraticPolynomial<*>,
     private val lb: AbstractQuadraticPolynomial<*>,

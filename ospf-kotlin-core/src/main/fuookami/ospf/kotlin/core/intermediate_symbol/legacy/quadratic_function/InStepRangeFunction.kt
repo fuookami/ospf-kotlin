@@ -19,6 +19,10 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.InStepRangeFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("InStepRangeFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.InStepRangeFunction")
+)
 class InStepRange(
     private val lb: AbstractQuadraticPolynomial<*>,
     private val ub: AbstractQuadraticPolynomial<*>,

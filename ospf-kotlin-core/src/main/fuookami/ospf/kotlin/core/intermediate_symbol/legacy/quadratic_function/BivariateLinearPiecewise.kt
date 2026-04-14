@@ -661,6 +661,10 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BivariateLinearPiecewiseFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("BivariateLinearPiecewiseFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BivariateLinearPiecewiseFunction")
+)
 class BivariateLinearPiecewiseFunction(
     x: AbstractQuadraticPolynomial<*>,
     y: AbstractQuadraticPolynomial<*>,

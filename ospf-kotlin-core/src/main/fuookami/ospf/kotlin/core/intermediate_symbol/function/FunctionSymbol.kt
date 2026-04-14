@@ -2,12 +2,23 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
+import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -24,7 +35,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param T the numeric type (must implement Field). Currently only Flt64 is supported for register().
  */
 interface MathFunctionSymbol<T : Field<T>> {
-    val name: String
+    var name: String
     var displayName: String?
 
     /**
@@ -43,6 +54,64 @@ interface MathFunctionSymbol<T : Field<T>> {
      * Note: Currently only supports T=Flt64 since the solver layer uses Flt64 constraints.
      */
     fun register(model: AbstractLinearMetaModel): Try
+}
+
+/**
+ * Adapter that wraps a [MathFunctionSymbol]<Flt64> to also implement
+ * [LinearIntermediateSymbol]. This allows function symbols to be stored in
+ * `LinearIntermediateSymbols1/2` containers used throughout the framework.
+ *
+ * All [LinearIntermediateSymbol] members have sensible defaults since function
+ * symbols generate constraints via [MathFunctionSymbol.register] rather than
+ * through the traditional prepare/flatten pipeline.
+ */
+class LinearFunctionSymbolAdapter(
+    private val delegate: MathFunctionSymbol<Flt64>
+) : LinearIntermediateSymbol, MathFunctionSymbol<Flt64> {
+    override var name: String
+        get() = delegate.name
+        set(value) { delegate.name = value }
+
+    override var displayName: String?
+        get() = delegate.displayName
+        set(value) { delegate.displayName = value }
+
+    override val helperVariables: List<AbstractVariableItem<*, *>>
+        get() = delegate.helperVariables
+
+    override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = delegate.evaluate(values)
+    override fun register(model: AbstractLinearMetaModel): Try = delegate.register(model)
+
+    override val identifier: UInt64 get() = IdentifierGenerator.gen()
+    override val index: Int get() = 0
+    override val category: Category get() = Linear
+    override val cached: Boolean get() = false
+    override val dependencies: Set<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol> get() = emptySet()
+    override val discrete: Boolean get() = false
+    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+
+    override fun flush(force: Boolean) {}
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? = null
+    override fun toRawString(unfold: UInt64): String = name
+
+    @Deprecated(
+        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
+        level = DeprecationLevel.WARNING
+    )
+    override val cells: List<LinearMonomialCell> get() = emptyList()
+    override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
+
+    override fun toLinearPolynomial(): CoreLinearPolynomial {
+        return CoreLinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun toQuadraticPolynomial(): CoreQuadraticPolynomial {
+        return CoreQuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    }
+
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? = delegate.evaluate(values)
 }
 
 /**
@@ -102,14 +171,14 @@ typealias Flt64OrFunction = OrFunction<Flt64>
 typealias Flt64NotFunction = NotFunction<Flt64>
 typealias Flt64XorFunction = XorFunction<Flt64>
 typealias Flt64IfFunction = IfFunction<Flt64>
-typealias Flt64BinaryzationFunction = BinaryzationFunction<Flt64>
-typealias Flt64MaskingFunction = MaskingFunction<Flt64>
-typealias Flt64MaskingRangeFunction = MaskingRangeFunction<Flt64>
+typealias Flt64BinaryzationFunction = LinearFunctionSymbolAdapter
+typealias Flt64MaskingFunction = LinearFunctionSymbolAdapter
+typealias Flt64MaskingRangeFunction = LinearFunctionSymbolAdapter
 typealias Flt64MaxFunction = MaxFunction<Flt64>
 typealias Flt64MinFunction = MinFunction<Flt64>
 typealias Flt64MinMaxFunction = MinMaxFunction<Flt64>
 typealias Flt64MaxMinFunction = MaxMinFunction<Flt64>
-typealias Flt64SlackFunction = SlackFunction<Flt64>
+typealias Flt64SlackFunction = LinearFunctionSymbolAdapter
 
 // Newly migrated functions (2026-04-13)
 typealias Flt64AbsFunction = AbsFunction<Flt64>

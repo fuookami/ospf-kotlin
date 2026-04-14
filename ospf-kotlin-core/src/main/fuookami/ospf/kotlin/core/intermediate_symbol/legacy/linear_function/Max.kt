@@ -315,6 +315,10 @@ sealed class AbstractMaxFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.MinMaxFunction instead",
+    replaceWith = ReplaceWith("MinMaxFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.MinMaxFunction")
+)
 class MinMaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
@@ -356,6 +360,10 @@ class MinMaxFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.MaxFunction instead",
+    replaceWith = ReplaceWith("MaxFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction")
+)
 class MaxFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,

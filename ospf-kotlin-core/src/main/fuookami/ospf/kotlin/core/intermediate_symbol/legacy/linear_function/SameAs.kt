@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SameAsFunction instead",
+    replaceWith = ReplaceWith("SameAsFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SameAsFunction")
+)
 class SameAsFunction(
     inputs: List<LinearConstraintInput>,
     private val constraint: Boolean = true,

@@ -1175,6 +1175,10 @@ sealed class AbstractSatisfiedAmountPolynomialFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SatisfiedAmountFunction instead",
+    replaceWith = ReplaceWith("SatisfiedAmountFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SatisfiedAmountFunction")
+)
 class SatisfiedAmountPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     parent: IntermediateSymbol? = null,
@@ -1211,6 +1215,10 @@ class SatisfiedAmountPolynomialFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SatisfiedAmountFunction instead",
+    replaceWith = ReplaceWith("SatisfiedAmountFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SatisfiedAmountFunction")
+)
 class AtLeastPolynomialFunction(
     polynomials: List<AbstractLinearPolynomial<*>>,
     override val amount: UInt64,

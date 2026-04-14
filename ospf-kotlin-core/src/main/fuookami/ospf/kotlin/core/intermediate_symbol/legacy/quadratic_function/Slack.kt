@@ -25,6 +25,10 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SlackFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("SlackFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction")
+)
 sealed class AbstractSlackFunction<V : Variable<*>>(
     private val x: AbstractQuadraticPolynomial<*>,
     private val y: AbstractQuadraticPolynomial<*>,

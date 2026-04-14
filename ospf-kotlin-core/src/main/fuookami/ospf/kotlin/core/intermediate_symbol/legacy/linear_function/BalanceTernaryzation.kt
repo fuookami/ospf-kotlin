@@ -856,6 +856,10 @@ class BalanceTernaryzationFunctionExtractAndNotDiscreteImpl(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BalanceTernaryzationFunction instead",
+    replaceWith = ReplaceWith("BalanceTernaryzationFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BalanceTernaryzationFunction")
+)
 class BalanceTernaryzationFunction(
     val x: AbstractLinearPolynomial<*>,
     internal val extract: Boolean = true,

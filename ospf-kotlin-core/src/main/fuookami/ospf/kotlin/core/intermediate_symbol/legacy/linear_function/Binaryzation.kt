@@ -1130,6 +1130,10 @@ class BinaryzationFunctionExtractAndNotDiscreteImpl(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BinaryzationFunction instead",
+    replaceWith = ReplaceWith("BinaryzationFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction")
+)
 class BinaryzationFunction(
     private val x: AbstractLinearPolynomial<*>,
     internal val extract: Boolean = true,

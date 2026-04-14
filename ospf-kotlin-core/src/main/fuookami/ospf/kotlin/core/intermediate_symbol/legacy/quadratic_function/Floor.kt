@@ -29,6 +29,10 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.FloorFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("FloorFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.FloorFunction")
+)
 class FloorFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,

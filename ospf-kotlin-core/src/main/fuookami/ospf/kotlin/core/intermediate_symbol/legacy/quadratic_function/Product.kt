@@ -28,6 +28,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use operator * from math.symbol instead.",
+    replaceWith = ReplaceWith("product", "fuookami.ospf.kotlin.core.expression.polynomial.times")
+)
 class ProductFunction(
     val polynomials: List<AbstractQuadraticPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,

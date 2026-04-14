@@ -18,6 +18,10 @@ import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SigmoidFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("SigmoidFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SigmoidFunction")
+)
 class SigmoidFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val samplingPoints: List<Point2>,

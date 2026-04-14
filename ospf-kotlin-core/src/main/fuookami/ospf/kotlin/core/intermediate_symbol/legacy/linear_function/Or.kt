@@ -28,6 +28,10 @@ import fuookami.ospf.kotlin.math.toFlt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.OrFunction instead",
+    replaceWith = ReplaceWith("OrFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction")
+)
 class OrFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,

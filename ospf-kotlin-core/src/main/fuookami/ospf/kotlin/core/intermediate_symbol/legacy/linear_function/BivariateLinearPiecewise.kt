@@ -960,6 +960,10 @@ sealed class AbstractBivariateLinearPiecewiseFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BivariateLinearPiecewiseFunction instead",
+    replaceWith = ReplaceWith("BivariateLinearPiecewiseFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BivariateLinearPiecewiseFunction")
+)
 class BivariateLinearPiecewiseFunction(
     x: AbstractLinearPolynomial<*>,
     y: AbstractLinearPolynomial<*>,
@@ -1029,6 +1033,10 @@ class BivariateLinearPiecewiseFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BivariateLinearPiecewiseFunction instead",
+    replaceWith = ReplaceWith("BivariateLinearPiecewiseFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BivariateLinearPiecewiseFunction")
+)
 class IsolineBivariateLinearPiecewiseFunction(
     x: AbstractLinearPolynomial<*>,
     y: AbstractLinearPolynomial<*>,

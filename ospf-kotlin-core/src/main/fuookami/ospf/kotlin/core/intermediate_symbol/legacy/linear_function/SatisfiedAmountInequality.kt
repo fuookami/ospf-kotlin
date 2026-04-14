@@ -544,6 +544,10 @@ open class AnyFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.AnyFunction instead",
+    replaceWith = ReplaceWith("AnyFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.AnyFunction")
+)
 class InListFunction(
     val x: AbstractLinearPolynomial<*>,
     val list: List<AbstractLinearPolynomial<*>>,
@@ -588,6 +592,10 @@ class InListFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.NotAllFunction instead",
+    replaceWith = ReplaceWith("NotAllFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.NotAllFunction")
+)
 class NotAllFunction(
     inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
@@ -636,6 +644,10 @@ class NotAllFunction(
 }
 
 // todo: optimize
+@Deprecated(
+    message = "Use intermediate_symbol.function.AllFunction instead",
+    replaceWith = ReplaceWith("AllFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.AllFunction")
+)
 class AllFunction(
     inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
@@ -683,6 +695,10 @@ class AllFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SatisfiedAmountInequalityFunction instead",
+    replaceWith = ReplaceWith("SatisfiedAmountInequalityFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SatisfiedAmountInequalityFunction")
+)
 class SatisfiedAmountInequalityFunction(
     inequalities: List<LinearConstraintInput>,
     parent: IntermediateSymbol? = null,
@@ -720,6 +736,10 @@ class SatisfiedAmountInequalityFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.AtLeastInequalityFunction instead",
+    replaceWith = ReplaceWith("AtLeastInequalityFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.AtLeastInequalityFunction")
+)
 class AtLeastInequalityFunction(
     inequalities: List<LinearConstraintInput>,
     constraint: Boolean = true,
@@ -783,6 +803,10 @@ class AtLeastInequalityFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.NumerableFunction instead",
+    replaceWith = ReplaceWith("NumerableFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.NumerableFunction")
+)
 class NumerableFunction(
     inequalities: List<LinearConstraintInput>,
     override val amount: ValueRange<UInt64>,

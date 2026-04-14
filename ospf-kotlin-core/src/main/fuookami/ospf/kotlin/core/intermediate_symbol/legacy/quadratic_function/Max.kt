@@ -560,6 +560,10 @@ class MinMaxFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.MaxFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("MaxFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction")
+)
 class MaxFunction(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     parent: IntermediateSymbol? = null,

@@ -418,6 +418,10 @@ class BinaryzationFunctionLinearImpl(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.BinaryzationFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("BinaryzationFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction")
+)
 class BinaryzationFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     internal val epsilon: Flt64 = Flt64(1e-6),

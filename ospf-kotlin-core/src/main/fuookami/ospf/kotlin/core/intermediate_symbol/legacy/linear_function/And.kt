@@ -813,6 +813,10 @@ private class AndFunctionMultiPolynomialBinaryImpl(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.AndFunction instead",
+    replaceWith = ReplaceWith("AndFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction")
+)
 class AndFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,

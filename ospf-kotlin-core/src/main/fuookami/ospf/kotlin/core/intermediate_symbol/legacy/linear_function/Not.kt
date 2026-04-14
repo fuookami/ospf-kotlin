@@ -671,6 +671,10 @@ class NotFunctionExtractAndNotDiscreteImpl(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.NotFunction instead",
+    replaceWith = ReplaceWith("NotFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.NotFunction")
+)
 class NotFunction(
     private val x: AbstractLinearPolynomial<*>,
     internal val extract: Boolean = true,

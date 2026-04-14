@@ -2,7 +2,9 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -141,21 +143,27 @@ class BinaryzationFunction<T : Field<T>>(
             method: BinaryzationMethod = BinaryzationMethod.BigM,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> = BinaryzationFunction(input, threshold, bigM, method, name, displayName)
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            BinaryzationFunction(input, threshold, bigM, method, name, displayName)
+        )
 
         fun withBigM(
             input: LinearPolynomial<Flt64>,
             bigM: Flt64,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> = BinaryzationFunction(input, Flt64.zero, bigM, BinaryzationMethod.BigM, name, displayName)
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            BinaryzationFunction(input, Flt64.zero, bigM, BinaryzationMethod.BigM, name, displayName)
+        )
 
         fun withThreshold(
             input: LinearPolynomial<Flt64>,
             threshold: Flt64,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> = BinaryzationFunction(input, threshold, null, BinaryzationMethod.Threshold, name, displayName)
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            BinaryzationFunction(input, threshold, null, BinaryzationMethod.Threshold, name, displayName)
+        )
 
         /**
          * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
@@ -164,20 +172,45 @@ class BinaryzationFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromCorePolynomial")
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            x: AbstractLinearPolynomial<*>,
             extract: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             piecewise: Boolean = false,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> {
+        ): LinearFunctionSymbolAdapter {
             val input = x.asMathLinearPolynomial()
             val method = if (piecewise || epsilon >= BINARYZATION_PIECEWISE_THRESHOLD) {
                 BinaryzationMethod.Threshold
             } else {
                 BinaryzationMethod.BigM
             }
-            return BinaryzationFunction(input, Flt64.zero, null, method, name, displayName)
+            return LinearFunctionSymbolAdapter(
+                BinaryzationFunction(input, Flt64.zero, null, method, name, displayName)
+            )
         }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromLinearIntermediateSymbol")
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            threshold: Flt64 = Flt64.zero,
+            bigM: Flt64? = null,
+            method: BinaryzationMethod = BinaryzationMethod.BigM,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            BinaryzationFunction(
+                input = x.asMathLinearPolynomial(),
+                threshold = threshold,
+                bigM = bigM,
+                method = method,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }

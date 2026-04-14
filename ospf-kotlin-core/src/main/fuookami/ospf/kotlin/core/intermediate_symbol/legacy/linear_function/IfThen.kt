@@ -26,6 +26,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.IfThenFunction instead",
+    replaceWith = ReplaceWith("IfThenFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.IfThenFunction")
+)
 class IfThenFunction(
     pInput: LinearConstraintInput,
     qInput: LinearConstraintInput,

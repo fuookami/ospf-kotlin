@@ -28,6 +28,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.operator.abs
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.MaskingFunction instead",
+    replaceWith = ReplaceWith("MaskingFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction")
+)
 class MaskingFunction(
     private val x: AbstractLinearPolynomial<*>,
     mask: AbstractLinearPolynomial<*>? = null,

@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.ModFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("ModFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.ModFunction")
+)
 class ModFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     private val d: AbstractQuadraticPolynomial<*>,

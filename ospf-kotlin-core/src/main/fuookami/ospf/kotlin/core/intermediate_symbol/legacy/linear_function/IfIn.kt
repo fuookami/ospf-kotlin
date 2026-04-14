@@ -29,6 +29,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.IfInFunction instead",
+    replaceWith = ReplaceWith("IfInFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.IfInFunction")
+)
 class IfInFunction(
     private val x: AbstractLinearPolynomial<*>,
     lowerBound: AbstractLinearPolynomial<*>,

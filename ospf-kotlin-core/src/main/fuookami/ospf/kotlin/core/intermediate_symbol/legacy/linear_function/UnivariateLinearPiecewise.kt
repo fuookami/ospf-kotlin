@@ -507,6 +507,10 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.UnivariateLinearPiecewiseFunction instead",
+    replaceWith = ReplaceWith("UnivariateLinearPiecewiseFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.UnivariateLinearPiecewiseFunction")
+)
 open class UnivariateLinearPiecewiseFunction(
     x: AbstractLinearPolynomial<*>,
     points: List<Point2>,

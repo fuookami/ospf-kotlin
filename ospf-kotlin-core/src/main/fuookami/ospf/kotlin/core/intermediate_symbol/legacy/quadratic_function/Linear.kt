@@ -20,6 +20,10 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.LinearFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("LinearFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunction")
+)
 class LinearFunction(
     val polynomial: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,

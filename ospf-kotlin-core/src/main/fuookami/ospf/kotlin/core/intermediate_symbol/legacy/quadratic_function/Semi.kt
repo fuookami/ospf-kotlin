@@ -25,6 +25,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.operator.abs
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.SemiFunction instead. The linear version handles quadratic inputs.",
+    replaceWith = ReplaceWith("SemiFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.SemiFunction")
+)
 class SemiFunction(
     private val x: AbstractQuadraticPolynomial<*>,
     override val parent: IntermediateSymbol? = null,

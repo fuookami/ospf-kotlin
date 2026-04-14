@@ -152,15 +152,17 @@ class SlackFunction<T : Field<T>>(
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): SlackFunction<Flt64> = SlackFunction(
-            x = x.asMathLinearPolynomial(),
-            y = y.asMathLinearPolynomial(),
-            type = type,
-            withNegative = withNegative,
-            withPositive = withPositive,
-            threshold = threshold,
-            name = name,
-            displayName = displayName
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            SlackFunction(
+                x = x.asMathLinearPolynomial(),
+                y = y.asMathLinearPolynomial(),
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
+                name = name,
+                displayName = displayName
+            )
         )
 
         operator fun invoke(
@@ -172,15 +174,17 @@ class SlackFunction<T : Field<T>>(
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): SlackFunction<Flt64> = SlackFunction(
-            x = x,
-            y = LinearPolynomial(emptyList(), y),
-            type = type,
-            withNegative = withNegative,
-            withPositive = withPositive,
-            threshold = threshold,
-            name = name,
-            displayName = displayName
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            SlackFunction(
+                x = x,
+                y = LinearPolynomial(emptyList(), y),
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
+                name = name,
+                displayName = displayName
+            )
         )
 
         operator fun invoke(
@@ -191,17 +195,19 @@ class SlackFunction<T : Field<T>>(
             withNegative: Boolean? = null,
             name: String,
             displayName: String? = null
-        ): SlackFunction<Flt64> {
+        ): LinearFunctionSymbolAdapter {
             val positive = withNegative?.let { !it } ?: withPositive
-            return SlackFunction(
-                x = x,
-                y = LinearPolynomial(emptyList(), threshold),
-                type = type,
-                withNegative = !positive,
-                withPositive = positive,
-                threshold = true,
-                name = name,
-                displayName = displayName
+            return LinearFunctionSymbolAdapter(
+                SlackFunction(
+                    x = x,
+                    y = LinearPolynomial(emptyList(), threshold),
+                    type = type,
+                    withNegative = !positive,
+                    withPositive = positive,
+                    threshold = true,
+                    name = name,
+                    displayName = displayName
+                )
             )
         }
     }

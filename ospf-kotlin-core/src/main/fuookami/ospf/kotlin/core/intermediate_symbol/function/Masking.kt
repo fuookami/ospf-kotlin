@@ -2,7 +2,9 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -109,17 +111,19 @@ class MaskingFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            x: AbstractLinearPolynomial<*>,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaskingFunction<Flt64> = MaskingFunction(
-            input = x.asMathLinearPolynomial(),
-            mask = mask,
-            bigM = bigM,
-            name = name,
-            displayName = displayName
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MaskingFunction(
+                input = x.asMathLinearPolynomial(),
+                mask = mask,
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
         )
 
         operator fun invoke(
@@ -128,7 +132,9 @@ class MaskingFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaskingFunction<Flt64> = MaskingFunction(input, mask, bigM, name, displayName)
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MaskingFunction(input, mask, bigM, name, displayName)
+        )
 
         operator fun invoke(
             input: LinearPolynomial<Flt64>,
@@ -136,10 +142,33 @@ class MaskingFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaskingFunction<Flt64> {
+        ): LinearFunctionSymbolAdapter {
             val maskVar = BinVar("${name}_${maskVarName}")
-            return MaskingFunction(input, maskVar, bigM, name, displayName)
+            return LinearFunctionSymbolAdapter(
+                MaskingFunction(input, maskVar, bigM, name, displayName)
+            )
         }
+
+        /**
+         * Factory: accept LinearIntermediateSymbol for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromLinearIntermediateSymbol")
+        operator fun invoke(
+            x: LinearIntermediateSymbol,
+            mask: AbstractVariableItem<*, *>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MaskingFunction(
+                input = x.asMathLinearPolynomial(),
+                mask = mask,
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }
 
@@ -225,6 +254,8 @@ class MaskingRangeFunction<T : Field<T>>(
             upper: Flt64,
             name: String,
             displayName: String? = null
-        ): MaskingRangeFunction<Flt64> = MaskingRangeFunction(mask, lower, upper, name, displayName)
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            MaskingRangeFunction(mask, lower, upper, name, displayName)
+        )
     }
 }

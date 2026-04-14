@@ -27,6 +27,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import org.apache.logging.log4j.kotlin.logger
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.FirstFunction instead",
+    replaceWith = ReplaceWith("FirstFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.FirstFunction")
+)
 class FirstFunction(
     private val polynomials: List<AbstractLinearPolynomial<*>>,
     override val parent: IntermediateSymbol? = null,

@@ -466,6 +466,10 @@ sealed class AbstractOneOfFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.IfElseFunction instead",
+    replaceWith = ReplaceWith("IfElseFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.IfElseFunction")
+)
 class IfElseFunction(
     private val branch: Branch,
     private val elseBranch: Branch,
@@ -542,6 +546,10 @@ class IfElseFunction(
     }
 }
 
+@Deprecated(
+    message = "Use intermediate_symbol.function.OneOfFunction instead",
+    replaceWith = ReplaceWith("OneOfFunction", "fuookami.ospf.kotlin.core.intermediate_symbol.function.OneOfFunction")
+)
 class OneOfFunction(
     branches: List<Branch>,
     parent: IntermediateSymbol? = null,
