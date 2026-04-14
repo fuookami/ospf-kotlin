@@ -407,10 +407,6 @@ sealed class AbstractUnivariateLinearPiecewiseFunction(
             is Fatal -> {
                 return Fatal(result.errors)
             }
-
-            is Fatal -> {
-                return Fatal(result.errors)
-            }
         }
 
         model.tokens.find(b[i])?.let { token ->

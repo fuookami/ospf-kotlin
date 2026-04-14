@@ -8,9 +8,9 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 
 ## 路线变更（2026-04-13）
 
-**从增量迁移路线（daily.md）转入 Big-Bang 重写路线（rewrite.md）**。
+**从增量迁移路线转入 Big-Bang 重写路线（以 `daily.md` 为唯一事实源）**。
 
-历史 daily.md 记录了大量渐进式迁移决策，但经过多轮实践后得出结论：双轨并行（旧 `frontend.expression` + 新 `math.symbol`）的维护成本高于一次性切换。现在采用 `rewrite.md` 定义的一次性重写策略。
+历史 daily.md 记录了大量渐进式迁移决策，但经过多轮实践后得出结论：双轨并行（旧 `frontend.expression` + 新 `math.symbol`）的维护成本高于一次性切换。`rewrite.md` 已删除，B0-B9 阶段定义统一维护在本文件。
 
 **核心判断变更**：
 - ~~`frontend.expression.monomial/polynomial` 是前端 DSL 核心，不应删除~~ → **保留为建模 DSL，但函数符号层统一切到 `math.symbol`**
@@ -41,9 +41,9 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 - `addConstraint(relation: LinearRelation/QuadraticRelation)` / `addObject(flattenData: ...)`
 - Benders cut 生成迁移到 `math.symbol.LinearPolynomial<Flt64>` 类型
 
-### 函数符号层 — 新系统（M8/Phase 3，24 文件，22 个函数符号类）
+### 函数符号层 — 新系统（M8/Phase 3，31 文件，已覆盖 legacy 主要函数）
 
-`core/function/` 目录，基于 `MathFunctionSymbol<T : Field<T>>` 泛型接口：
+`core/intermediate_symbol/function/` 目录，基于 `MathFunctionSymbol<T : Field<T>>` 泛型接口：
 
 | 类别 | 文件 | 函数符号 | 状态 |
 |------|------|---------|------|
@@ -72,6 +72,8 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 | 满足量 | `SatisfiedAmount.kt` | `SatisfiedAmountFunction` | ✅ |
 | 相等判断 | `SameAs.kt` | `SameAsFunction` | ✅ |
 
+- 2026-04-14 复核：`BalanceTernaryzation/InStepRange/Inequality/SlackRange/SatisfiedAmountInequality/Sin/Cos` 已在 `intermediate_symbol/function/` 落地。
+
 **架构决策**：
 - `register()` 内部调用 `asFlt64Poly()` 转换为 Flt64 后生成约束（临时方案，模型层尚未泛型化）
 - 目标态：转换点推迟到求解器接口层（Phase 6，暂缓）
@@ -86,38 +88,40 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 
 ## 未完成事项
 
-### 新系统缺失函数符号（7 个，需创建）
+### 函数符号补齐复核（2026-04-14）
 
-| 文件（旧位置） | 行数 | 功能 | 优先级 |
-|---------------|------|------|--------|
-| `linear_function/BalanceTernaryzation.kt` | 1063 | 平衡三值化 | P1 |
-| `linear_function/InStepRangeFunction.kt` | 337 | 区间内阶跃函数 | P1 |
-| `linear_function/Inequality.kt` | 388 | 不等式满足量 | P2 |
-| `linear_function/SlackRange.kt` | 847 | SlackRange (quadratic 变体) | P2 |
-| `linear_function/SatisfiedAmountInequality.kt` | 840 | 满足量不等式（复杂组合函数） | P2 |
-| `linear_function/Sin.kt` | 3 | 正弦（旧版为 stub，委托 UnivariateLinearPiecewise） | P3 |
-| `linear_function/Cos.kt` | 3 | 余弦（旧版为 stub，委托 UnivariateLinearPiecewise） | P3 |
+以下 7 个原“缺失项”已实现，当前工作从“创建”转为“行为核对 + 迁移验证”：
 
-### 旧系统待删除（rewrite.md B6 范围）
+| 新文件（现位置） | 对应旧文件 | 当前状态 | 下一步 |
+|---------------|------|--------|------|
+| `intermediate_symbol/function/BalanceTernaryzation.kt` | `legacy/linear_function/BalanceTernaryzation.kt` | ✅ 已实现 | 行为核对 |
+| `intermediate_symbol/function/InStepRange.kt` | `legacy/linear_function/InStepRangeFunction.kt` | ✅ 已实现 | 行为核对 |
+| `intermediate_symbol/function/Inequality.kt` | `legacy/linear_function/Inequality.kt` | ✅ 已实现 | 行为核对 |
+| `intermediate_symbol/function/SlackRange.kt` | `legacy/linear_function/SlackRange.kt` / `legacy/quadratic_function/SlackRange.kt` | ✅ 已实现 | 行为核对 |
+| `intermediate_symbol/function/SatisfiedAmountInequality.kt` | `legacy/linear_function/SatisfiedAmountInequality.kt` | ✅ 已实现 | 行为核对 |
+| `intermediate_symbol/function/Sin.kt` | `legacy/linear_function/Sin.kt` | ✅ 已实现 | 精度/性能核对 |
+| `intermediate_symbol/function/Cos.kt` | `legacy/linear_function/Cos.kt` | ✅ 已实现 | 精度/性能核对 |
+
+### 旧系统待删除（B6 范围）
 
 | 目录/文件 | 外部引用数 | 状态 |
 |-----------|-----------|------|
-| `frontend/expression/symbol/linear_function/` | 51 文件引用 | 保留（框架使用），标注 deprecated |
-| `frontend/expression/symbol/quadratic_function/` | 部分文件引用 | 保留（框架使用），标注 deprecated |
-| `frontend/expression/Expression.kt` | 待扫描 | 待评估 |
+| `intermediate_symbol/legacy/linear_function/` | 74 处引用（含 core/framework） | 保留（待迁移），需标注 deprecated |
+| `intermediate_symbol/legacy/quadratic_function/` | 22 处引用（含 core/framework） | 保留（待迁移），需标注 deprecated |
+| `expression/Expression.kt` | 已保留 | DSL 入口，不在本轮删除范围 |
 
-**注意**：`frontend.expression.monomial/polynomial` 已确认**不应删除**（前端 DSL 核心），`@file:Suppress("DEPRECATION")` 为最终态。
+**注意**：`expression.monomial/polynomial` 已确认**不应删除**（前端 DSL 核心）。`@file:Suppress("DEPRECATION")` 仅作为迁移过渡态，不是最终态。
 
-### 阶段计划未完成（rewrite.md B0-B9 进度）
+### 阶段计划进度（B0-B9）
 
 | 阶段 | 状态 | 说明 |
 |------|------|------|
-| B0 冻结与分支 | 未执行 | 需在主线创建 `rewrite-bigbang` 分支 |
+| B0 冻结与分支 | 已完成 | `rewrite-bigbang` 分支已创建并正在使用 |
 | B1 边界 API 定稿 | 已完成 | relation API 已冻结 |
-| B2 桥接层重建 | 部分完成 | `asFlt64Poly()` 已实现，`flattenedMonomials` 已迁移 |
-| B3 函数符号改造 | 进行中 | 22/29 个函数符号已迁移到新系统 |
+| B2 桥接层重建 | 已完成（核心链路） | `asFlt64Poly()` 已实现，`flattenedMonomials` 已迁移 |
+| B3 函数符号改造 | 已完成（待核对） | 函数实现已补齐，待行为一致性验收 |
 | B4 模型层收口 | 已完成 | relation API 为主入口 |
-| B5 一次性切流 | 未执行 | 需框架代码从旧函数符号迁移到新函数符号 |
+| B5 一次性切流 | 进行中 | 框架代码仍有 legacy 引用，待完成迁移 |
 | B6 删除旧目录 | 未执行 | 删除旧 `expression/symbol/linear_function/` 等 |
 | B7 集中回归 | 未执行 | 待切流后执行 |
 | B8 插件编译校验 | 未执行 | 待切流后执行 |
@@ -587,121 +591,67 @@ fun generateFeasibleCut(
 
 ---
 
-## 代码组织结构变更
+## 代码组织结构变更（2026-04-14 复核）
 
-### 当前结构（frontend/backend 分轨）
-
-```
-core/
-├── frontend/
-│   ├── variable/              (7 文件) — 变量定义
-│   ├── expression/
-│   │   ├── monomial/          (3) — DSL 单项式
-│   │   ├── polynomial/        (3) — DSL 多项式
-│   │   ├── symbol/
-│   │   │   ├── (2 主文件)     — IntermediateSymbol, SymbolCombination
-│   │   │   ├── linear_function/   (33) — 旧函数符号
-│   │   │   └── quadratic_function/ (21) — 旧二次函数符号
-│   │   ├── bridge/            (8) — 操作符桥接
-│   │   ├── adapter/           (5) — 适配器
-│   │   ├── flatten/           (1) — 展平工具
-│   │   └── dsl/               — DSL 入口
-│   └── model/
-│       ├── Model.kt, MultiObject.kt
-│       ├── status/            (2)
-│       ├── callback/          (2)
-│       └── mechanism/         (18) — MetaModel, MechanismModel, TokenTable
-├── backend/
-│   ├── intermediate_model/    (6) — LinearTriadModel, QuadraticTetradModel
-│   └── solver/                (30) — 求解器接口、配置、启发式、IIS、输出
-└── function/                  (24) — MathFunctionSymbol<T> 新实现
-```
-
-**问题**：frontend/backend 分轨制造了"前端建模、后端求解"的错误认知。实际上整个 core 都是中间层——真正的后端是 solver 插件。
-
-### 目标结构（5 模块扁平化）
+### 当前结构（已完成）
 
 ```
 core/
-├── variable/                  ← frontend/variable/
-├── intermediate_symbol/       ← function/ + expression/symbol/ + expression/flatten/
-├── model/                     ← frontend/model/ (Model, callback, status)
-├── intermediate_model/        ← frontend/model/mechanism/ + backend/intermediate_model/
-└── solver/                    ← backend/solver/
+├── expression/
+├── intermediate_symbol/
+├── variable/
+├── model/
+├── intermediate_model/
+└── solver/
 ```
 
-### 文件映射表
+`frontend/backend` 分轨迁移已完成，当前应以这 6 个目录为真实基线。
 
-| 新模块 | 来源路径 | 文件数 | 说明 |
-|--------|---------|--------|------|
-| **variable** | `frontend/variable/` | 7 | AbstractVariableItem, Token, TokenList, Type, VariableCombination, VariableRange |
-| **intermediate_symbol** | `function/` | 24 | MathFunctionSymbol<T> 接口 + 全部实现 |
-| | `expression/symbol/` 主目录 | 2 | IntermediateSymbol.kt（清理后）, SymbolCombination.kt |
-| | `expression/flatten/` | 1 | FlattenUtility.kt |
-| | `expression/symbol/linear_function/` | 33 | 全部标记 @Deprecated → 待删除 |
-| | `expression/symbol/quadratic_function/` | 21 | 全部标记 @Deprecated → 待删除 |
-| **model** | `frontend/model/Model.kt` | 1 | Model 接口 |
-| | `frontend/model/MultiObject.kt` | 1 | 多目标 |
-| | `frontend/model/callback/` | 2 | CallBackModel, CallBackModelInterface |
-| | `frontend/model/status/` | 2 | 建模阶段/状态 |
-| **intermediate_model** | `frontend/model/mechanism/` | 18 | MetaModel, MechanismModel, TokenTable, TokenCacheContexts 等 |
-| | `backend/intermediate_model/` | 6 | LinearTriadModel, QuadraticTetradModel, ModelFileFormat 等 |
-| **solver** | `backend/solver/` 全部 | 30 | 求解器接口、配置、启发式、IIS、输出、value |
+### 历史结构说明（已归档）
 
-### 不纳入 5 模块的内容（DSL 层，保留但不移动）
+旧 `frontend/*` 与 `backend/*` 结构仅用于历史迁移说明，不再作为目标结构描述，避免“前端建模/后端求解”的误导。
 
-| 路径 | 文件数 | 去向 |
-|------|--------|------|
-| `expression/monomial/` | 3 | **保留不动** — DSL 单项式，用户建模入口 |
-| `expression/polynomial/` | 3 | **保留不动** — DSL 多项式，用户建模入口 |
-| `expression/bridge/` | 8 | **保留不动** — DSL 操作符桥接 |
-| `expression/adapter/` | 5 | **保留不动** — DSL 适配器 |
-| `expression/dsl/` | — | **保留不动** — DSL 入口 |
+### 剩余结构工作
 
-这些 DSL 文件是**用户建模入口**，不属于中间层。它们提供 `Variable * coeff + Variable2` 这样的建模语法。
+| 路径 | 文件数 | 当前状态 | 下一步 |
+|------|--------|---------|------|
+| `intermediate_symbol/legacy/linear_function/` | 33 | 仍被引用 | 框架迁移后删除 |
+| `intermediate_symbol/legacy/quadratic_function/` | 21 | 仍被引用 | 框架迁移后删除 |
+| `intermediate_symbol/IntermediateSymbol.kt` 废弃基类 | — | 尚未清理 | B6 清理 |
+| `expression/monomial` / `expression/polynomial` / `expression/bridge` / `expression/adapter` | — | DSL 核心 | 长期保留 |
 
-### 包名变更
+### 包名变更状态
 
-| 旧包名 | 新包名 |
-|--------|--------|
-| `fuookami.ospf.kotlin.core.frontend.variable` | `fuookami.ospf.kotlin.core.variable` |
-| `fuookami.ospf.kotlin.core.function` | `fuookami.ospf.kotlin.core.intermediate_symbol.function` |
-| `fuookami.ospf.kotlin.core.frontend.expression.symbol` | `fuookami.ospf.kotlin.core.intermediate_symbol` |
-| `fuookami.ospf.kotlin.core.frontend.expression.symbol.linear_function` | `fuookami.ospf.kotlin.core.intermediate_symbol.legacy.linear_function` |
-| `fuookami.ospf.kotlin.core.frontend.expression.symbol.quadratic_function` | `fuookami.ospf.kotlin.core.intermediate_symbol.legacy.quadratic_function` |
-| `fuookami.ospf.kotlin.core.frontend.expression.flatten` | `fuookami.ospf.kotlin.core.intermediate_symbol.flatten` |
-| `fuookami.ospf.kotlin.core.frontend.model` | `fuookami.ospf.kotlin.core.model` |
-| `fuookami.ospf.kotlin.core.frontend.model.callback` | `fuookami.ospf.kotlin.core.model.callback` |
-| `fuookami.ospf.kotlin.core.frontend.model.status` | `fuookami.ospf.kotlin.core.model.status` |
-| `fuookami.ospf.kotlin.core.frontend.model.mechanism` | `fuookami.ospf.kotlin.core.intermediate_model` |
-| `fuookami.ospf.kotlin.core.backend.intermediate_model` | `fuookami.ospf.kotlin.core.intermediate_model` |
-| `fuookami.ospf.kotlin.core.backend.solver` | `fuookami.ospf.kotlin.core.solver` |
+| 旧包名 | 新包名 | 状态 |
+|--------|--------|------|
+| `fuookami.ospf.kotlin.core.frontend.variable` | `fuookami.ospf.kotlin.core.variable` | 主线完成 |
+| `fuookami.ospf.kotlin.core.frontend.model.*` | `fuookami.ospf.kotlin.core.model.*` / `intermediate_model` | 主线完成 |
+| `fuookami.ospf.kotlin.core.backend.*` | `fuookami.ospf.kotlin.core.intermediate_model` / `solver` | 主线完成 |
+| `fuookami.ospf.kotlin.core.function` | `fuookami.ospf.kotlin.core.intermediate_symbol.function` | 主线完成 |
 
 ### 执行顺序
 
-包重命名是整个项目最大的变更（影响全项目 import），应在**阶段 0（补齐函数符号）+ 阶段 1（函数符号废弃）+ 阶段 5（框架迁移）+ 阶段 6（删除旧目录）** 完成后、**阶段 7（回归）之前**执行。
-
-或者更激进的做法：**先改名再重写**。一次性完成，不维持两个包名的双轨。
+统一按单一路线执行：**阶段 0A（行为核对）→ 阶段 1（legacy 废弃标注）→ 阶段 5（框架迁移）→ 阶段 6（删除 legacy）→ 阶段 7（回归）→ 阶段 8（门禁）**。不再保留“先改名再重写”分支。
 
 ---
 
 ## 下一步行动计划（Big-Bang 重写路线 — 细化版）
 
-### 阶段 0：补齐函数符号（B3 剩余，~7 文件）
+### 阶段 0A：函数符号行为核对（实现已补齐）
 
-**目标**：创建剩余 7 个函数符号到 `intermediate_symbol/function/`，使新系统覆盖所有旧函数。
+**目标**：不再“创建函数”，改为验证新实现是否满足可接受行为边界。
 
-| 步骤 | 函数 | 约束模式 | 参考旧文件 | 预估行数 |
-|------|------|---------|-----------|---------|
-| 1 | `BalanceTernaryzationFunction` | BigM 三值分解（y in {-1,0,1}） | `legacy/linear_function/BalanceTernaryzation.kt` | 150-180 |
-| 2 | `InStepRangeFunction` | 分段阶跃：在 [lo,hi) 内返回 1 | `legacy/linear_function/InStepRangeFunction.kt` | 80-100 |
-| 3 | `SlackRangeFunction` | SlackRange (quadratic 变体) | `legacy/quadratic_function/SlackRange.kt` | 120-150 |
-| 4 | `InequalityFunction` | 不等式满足量 | `legacy/linear_function/Inequality.kt` | 100-120 |
-| 5 | `SatisfiedAmountInequalityFunction` | 复杂组合（InListFunction + AndFunction） | `legacy/linear_function/SatisfiedAmountInequality.kt` | 200-250 |
-| 6 | `SinFunction` | 委托 UnivariateLinearPiecewise | `legacy/linear_function/Sin.kt` (3 行 stub) | 50-60 |
-| 7 | `CosFunction` | 委托 UnivariateLinearPiecewise | `legacy/linear_function/Cos.kt` (3 行 stub) | 50-60 |
+| 步骤 | 函数 | 当前实现文件 | 核对重点 |
+|------|------|-----------|---------|
+| 1 | `BalanceTernaryzationFunction` | `function/BalanceTernaryzation.kt` | `extract` 参数兼容与分段近似差异 |
+| 2 | `InStepRangeFunction` | `function/InStepRange.kt` | 边界落点与 step 对齐 |
+| 3 | `SlackRangeFunction` | `function/SlackRange.kt` | `constraint=false` 路径行为 |
+| 4 | `InequalityFunction` | `function/Inequality.kt` | `LE/GE/EQ/NE` 编码正确性 |
+| 5 | `SatisfiedAmountInequalityFunction` | `function/SatisfiedAmountInequality.kt` | 组合逻辑与 amount 区间 |
+| 6 | `SinFunction` | `function/Sin.kt` | 采样点精度与可解性 |
+| 7 | `CosFunction` | `function/Cos.kt` | 采样点精度与可解性 |
 
-**验收**：`legacy/linear_function/` 33 文件和 `legacy/quadratic_function/` 22 文件中，所有函数符号类都有 `function/` 对应实现。
+**验收**：7 个函数全部有行为核对记录，且至少覆盖 1 组边界样例 + 1 组正常样例。
 
 ---
 
@@ -712,7 +662,7 @@ core/
 - `legacy/linear_function/`：33 文件，19,667 行
 - `legacy/quadratic_function/`：21 文件，10,453 行
 - 总计：56 文件，~30,120 行
-- `function/` 新系统：24 文件，4,561 行（已有 22 个函数符号类）
+- `function/` 新系统：31 文件（已包含 BalanceTernaryzation/InStepRange/Inequality/SlackRange/SatisfiedAmountInequality/Sin/Cos）
 
 #### 1.1 IntermediateSymbol.kt 重写
 
@@ -733,21 +683,21 @@ core/
 
 #### 1.2 legacy/linear_function/ 目录重写
 
-**当前状态**：33 文件，19,667 行。其中 24 个已有 `function/` 对应实现。
+**当前状态**：33 文件，19,667 行。功能在 `function/` 均已有对应实现，当前剩余工作为废弃标注与引用迁移。
 
 **重写策略**：按函数类型分组处理。
 
 | 组别 | 文件 | 状态 | 处理方式 |
 |------|------|------|---------|
-| 已有对应实现（24 文件） | And, Or, Not, Xor, If, Max, Min, Slack, Abs, Semi, Floor, Ceiling, Rounding, Mod, IfIn, IfThen, OneOf, First, SameAs, SatisfiedAmount, Masking, Binaryzation, UnivariateLinearPiecewise, BivariateLinearPiecewise, Sigmoid | ✅ 已创建 | 全部添加 `@Deprecated("Use intermediate_symbol.function.X instead")` |
-| 缺失实现（7 文件） | BalanceTernaryzation, InStepRangeFunction, Inequality, SlackRange, MaskingRange, SatisfiedAmountInequality | ❌ 待创建 | **阶段 0** 创建到 `function/` |
-| Stub 文件（2 文件） | Sin.kt (3 行), Cos.kt (3 行) | ⚠️ 空壳 | 直接删除，功能已包含在 Sigmoid 分段点中 |
+| 已有对应实现（主干函数） | And, Or, Not, Xor, If, Max, Min, Slack, Abs, Semi, Floor, Ceiling, Rounding, Mod, IfIn, IfThen, OneOf, First, SameAs, SatisfiedAmount, Masking, Binaryzation, UnivariateLinearPiecewise, BivariateLinearPiecewise, Sigmoid | ✅ 已创建 | 添加 `@Deprecated("Use intermediate_symbol.function.X instead")` |
+| 原缺失实现（已补齐） | BalanceTernaryzation, InStepRange, Inequality, SlackRange, SatisfiedAmountInequality | ✅ 已创建 | 纳入行为核对清单 |
+| 原 stub（已补齐） | Sin, Cos | ✅ 已创建 | 保留并进行近似精度核对 |
 
 **具体操作**：
 
-1. 对 24 个已有对应实现的旧文件：添加 `@file:Suppress("DEPRECATION")` + `@Deprecated` 类注解
-2. 对 7 个缺失文件：**阶段 0** 完成后同样处理
-3. 对 2 个 stub 文件：直接删除
+1. 对 legacy 旧文件统一添加 `@Deprecated` 注解和迁移指引
+2. 对“原缺失 7 项”优先补行为核对与边界测试
+3. `Sin/Cos` 不再按 stub 删除，保留为分段近似函数实现
 
 #### 1.3 legacy/quadratic_function/ 目录重写
 
@@ -774,7 +724,7 @@ core/
 
 #### 阶段 1 验收标准
 
-- [ ] `function/` 包含所有旧函数的 `MathFunctionSymbol<T>` 实现
+- [x] `function/` 已包含所有旧函数的 `MathFunctionSymbol<T>` 实现
 - [ ] `legacy/linear_function/` 全部文件标记 `@Deprecated`
 - [ ] `legacy/quadratic_function/` 全部文件标记 `@Deprecated` 或删除
 - [ ] `IntermediateSymbol.kt` 中 `FunctionSymbol` 基类已删除
