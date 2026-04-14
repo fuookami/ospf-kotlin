@@ -106,7 +106,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 
 | 目录/文件 | 外部引用数 | 状态 |
 |-----------|-----------|------|
-| `intermediate_symbol/legacy/linear_function/` | 74 处引用（含 core/framework） | 保留（待迁移），需标注 deprecated |
+| `intermediate_symbol/legacy/linear_function/` | 3 处引用（仅 bpp3d: BinaryzationFunction/MaskingFunction/AbstractSlackFunction） | 保留（待迁移），需标注 deprecated |
 | `intermediate_symbol/legacy/quadratic_function/` | 22 处引用（含 core/framework） | 保留（待迁移），需标注 deprecated |
 | `expression/Expression.kt` | 已保留 | DSL 入口，不在本轮删除范围 |
 
@@ -121,7 +121,7 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 | B2 桥接层重建 | 已完成（核心链路） | `asFlt64Poly()` 已实现，`flattenedMonomials` 已迁移 |
 | B3 函数符号改造 | 已完成（待核对） | 函数实现已补齐，待行为一致性验收 |
 | B4 模型层收口 | 已完成 | relation API 为主入口 |
-| B5 一次性切流 | 进行中 | 框架代码仍有 legacy 引用，待完成迁移 |
+| B5 一次性切流 | 进行中 | gantt-scheduling 全文件已迁移，bpp3d 留待 Binaryzation 补齐后迁移 |
 | B6 删除旧目录 | 未执行 | 删除旧 `expression/symbol/linear_function/` 等 |
 | B7 集中回归 | 未执行 | 待切流后执行 |
 | B8 插件编译校验 | 未执行 | 待切流后执行 |
