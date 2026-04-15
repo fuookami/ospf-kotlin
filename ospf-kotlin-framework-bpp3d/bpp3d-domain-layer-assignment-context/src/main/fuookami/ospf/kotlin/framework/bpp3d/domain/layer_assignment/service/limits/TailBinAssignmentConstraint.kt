@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.expression.polynomial.minus
+import fuookami.ospf.kotlin.core.intermediate_model.minus
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel

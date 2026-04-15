@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel

@@ -97,7 +97,7 @@ class AndFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromCorePolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -138,7 +138,7 @@ class AndFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -231,7 +231,7 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromCorePolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -269,7 +269,7 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

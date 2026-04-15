@@ -1,13 +1,11 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractQuadraticPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.qsum
-import fuookami.ospf.kotlin.core.expression.polynomial.sum
+package fuookami.ospf.kotlin.core.intermediate_model
+
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality

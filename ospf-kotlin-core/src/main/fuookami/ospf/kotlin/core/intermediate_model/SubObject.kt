@@ -1,8 +1,9 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.Polynomial
+package fuookami.ospf.kotlin.core.intermediate_model
+
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

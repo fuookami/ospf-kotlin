@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.core.intermediate_model.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction

@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.expression.polynomial.plus
+import fuookami.ospf.kotlin.core.intermediate_model.plus
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask

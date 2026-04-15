@@ -1,11 +1,10 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
@@ -21,8 +20,8 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -75,35 +74,35 @@ class IfFunction<T : Field<T>>(
         // Build consequence indicator constraints
         allConstraints += simpleIndicatorConstraints(consequence, consequenceIndicator, bigM.asFlt64(), "${name}_consequence")
 
-        val premMon = LinearMonomial(Flt64.one, premiseIndicator)
-        val consMon = LinearMonomial(Flt64.one, consequenceIndicator)
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
+        val premMon = MathLinearMonomial(Flt64.one, premiseIndicator)
+        val consMon = MathLinearMonomial(Flt64.one, consequenceIndicator)
+        val resultMon = MathLinearMonomial(Flt64.one, resultVar)
 
         if (constraintMode) {
             // premise_indicator - consequence_indicator <= 0
             allConstraints += MathLinearInequality(
-                LinearPolynomial(listOf(premMon, LinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_if_then")
+                MathLinearPolynomial(listOf(premMon, MathLinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_if_then")
 
             // result = 1
             allConstraints += MathLinearInequality(
-                LinearPolynomial(listOf(resultMon), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_if_then_result")
+                MathLinearPolynomial(listOf(resultMon), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_if_then_result")
         } else {
             // result + premise_indicator >= 1
             allConstraints += MathLinearInequality(
-                LinearPolynomial(listOf(resultMon, premMon), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.one), Comparison.GE, "${name}_if_then_value_lb1")
+                MathLinearPolynomial(listOf(resultMon, premMon), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.one), Comparison.GE, "${name}_if_then_value_lb1")
 
             // result - consequence_indicator >= 0
             allConstraints += MathLinearInequality(
-                LinearPolynomial(listOf(resultMon, LinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_if_then_value_lb2")
+                MathLinearPolynomial(listOf(resultMon, MathLinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_if_then_value_lb2")
 
             // result + premise_indicator - consequence_indicator <= 1
             allConstraints += MathLinearInequality(
-                LinearPolynomial(listOf(resultMon, premMon, LinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_if_then_value_ub")
+                MathLinearPolynomial(listOf(resultMon, premMon, MathLinearMonomial(Flt64(-1.0), consequenceIndicator)), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_if_then_value_ub")
         }
 
         return addConstraints(model, allConstraints) ?: ok
@@ -126,12 +125,12 @@ class IfFunction<T : Field<T>>(
     override val cells: List<LinearMonomialCell> get() = emptyList()
     override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
 
-    override fun toLinearPolynomial(): CoreLinearPolynomial {
-        return CoreLinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toLinearPolynomial(): fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial {
+        return fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
     }
 
-    override fun toQuadraticPolynomial(): CoreQuadraticPolynomial {
-        return CoreQuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
@@ -173,15 +172,15 @@ class IfFunction<T : Field<T>>(
             val comp = input.sign
             // Reconstruct linear inequality from flattenData
             val monos = input.flattenData.monomials.map {
-                LinearMonomial(it.coefficient, it.symbol)
+                MathLinearMonomial(it.coefficient, it.symbol)
             }
-            val lhs = LinearPolynomial(monos, input.flattenData.constant)
-            val rhs = LinearPolynomial(emptyList(), Flt64.zero)
+            val lhs = MathLinearPolynomial(monos, input.flattenData.constant)
+            val rhs = MathLinearPolynomial(emptyList(), Flt64.zero)
             val premiseIneq = MathLinearInequality(lhs, rhs, comp, "${name}_premise")
             // Vacuous consequence: 0 <= 0 (always true)
             val consequenceIneq = MathLinearInequality(
-                LinearPolynomial(emptyList(), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.zero),
                 Comparison.LE,
                 "${name}_consequence"
             )
@@ -202,7 +201,7 @@ private fun <T : Field<T>> checkInequality(ineq: MathLinearInequality, values: M
     }
 }
 
-private fun <T : Field<T>> evalPoly(poly: LinearPolynomial<Flt64>, values: Map<Symbol, T>): T? {
+private fun <T : Field<T>> evalPoly(poly: MathLinearPolynomial<Flt64>, values: Map<Symbol, T>): T? {
     var sum: T? = null
     for (m in poly.monomials) {
         val sv = values[m.symbol] ?: return null

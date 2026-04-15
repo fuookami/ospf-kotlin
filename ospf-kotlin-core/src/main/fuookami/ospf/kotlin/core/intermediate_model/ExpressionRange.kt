@@ -1,15 +1,9 @@
-﻿package fuookami.ospf.kotlin.core.expression
+package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
-import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.Invariant
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.Invariant
-import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.reflect.full.companionObjectInstance
@@ -142,46 +136,3 @@ open class ExpressionRange<V>(
         return range?.toString() ?: "empty"
     }
 }
-
-interface Expression {
-    /** for lp **/
-    var name: String
-
-    /** for opm */
-    var displayName: String?
-
-    val discrete: Boolean get() = false
-
-    val range: ExpressionRange<Flt64>
-    val lowerBound get() = range.lowerBound?.toFlt64()
-    val upperBound get() = range.upperBound?.toFlt64()
-    val fixedValue get() = range.fixedValue
-
-    fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            tokenList = tokenTable.tokenList,
-            zeroIfNone = zeroIfNone
-        )
-    }
-
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            results = results,
-            tokenList = tokenTable.tokenList,
-            zeroIfNone = zeroIfNone
-        )
-    }
-
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList? = null, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable? = null, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            values = values,
-            tokenList = tokenTable?.tokenList,
-            zeroIfNone = zeroIfNone
-        )
-    }
-}
-
-

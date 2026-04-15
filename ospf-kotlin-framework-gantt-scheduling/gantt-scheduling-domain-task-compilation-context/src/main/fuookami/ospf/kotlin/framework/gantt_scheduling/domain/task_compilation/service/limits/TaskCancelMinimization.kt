@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.core.intermediate_model.sum
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation

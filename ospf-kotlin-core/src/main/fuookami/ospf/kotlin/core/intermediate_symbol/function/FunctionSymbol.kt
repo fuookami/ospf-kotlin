@@ -1,11 +1,11 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial as CoreQuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
@@ -20,8 +20,8 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -83,11 +83,11 @@ class LinearFunctionSymbolAdapter(
      * Expose positive slack variable as a core LinearPolynomial, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction with withPositive=true.
      */
-    val pos: CoreLinearPolynomial? by lazy {
+    val pos: LinearPolynomial? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         slack.posVar?.let { v ->
-            CoreLinearPolynomial(
-                monomials = listOf(fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, v)),
+            LinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(Flt64.one, v)),
                 constant = Flt64.zero
             )
         }
@@ -97,11 +97,11 @@ class LinearFunctionSymbolAdapter(
      * Expose negative slack variable as a core LinearPolynomial, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction with withNegative=true.
      */
-    val neg: CoreLinearPolynomial? by lazy {
+    val neg: LinearPolynomial? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         slack.negVar?.let { v ->
-            CoreLinearPolynomial(
-                monomials = listOf(fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, v)),
+            LinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(Flt64.one, v)),
                 constant = Flt64.zero
             )
         }
@@ -111,16 +111,16 @@ class LinearFunctionSymbolAdapter(
      * Expose the full slack expression (x + neg - pos) as a core LinearPolynomial, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction.
      */
-    val polyX: CoreLinearPolynomial? by lazy {
+    val polyX: LinearPolynomial? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         val xPoly = slack.x.asFlt64Poly()
         val coreMonomials = xPoly.monomials.mapNotNull { mono ->
             val sym = mono.symbol
             when (sym) {
                 is fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *> ->
-                    fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(mono.coefficient, sym)
+                    fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(mono.coefficient, sym)
                 is fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol ->
-                    fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(mono.coefficient, sym)
+                    fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(mono.coefficient, sym)
                 is fuookami.ospf.kotlin.math.symbol.Symbol -> {
                     // Math-level symbols can't be directly represented as core monomials
                     null
@@ -128,16 +128,16 @@ class LinearFunctionSymbolAdapter(
                 else -> null
             }
         }
-        var result = CoreLinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
+        var result = LinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
         if (slack.withNegative && slack.negVar != null) {
-            result = CoreLinearPolynomial(
-                monomials = result.monomials + fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(Flt64.one, slack.negVar!!),
+            result = LinearPolynomial(
+                monomials = result.monomials + fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(Flt64.one, slack.negVar!!),
                 constant = result.constant
             )
         }
         if (slack.withPositive && slack.posVar != null) {
-            result = CoreLinearPolynomial(
-                monomials = result.monomials + fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial(-Flt64.one, slack.posVar!!),
+            result = LinearPolynomial(
+                monomials = result.monomials + fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(-Flt64.one, slack.posVar!!),
                 constant = result.constant
             )
         }
@@ -166,12 +166,12 @@ class LinearFunctionSymbolAdapter(
     override val cells: List<LinearMonomialCell> get() = emptyList()
     override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
 
-    override fun toLinearPolynomial(): CoreLinearPolynomial {
-        return CoreLinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toLinearPolynomial(): LinearPolynomial {
+        return LinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
     }
 
-    override fun toQuadraticPolynomial(): CoreQuadraticPolynomial {
-        return CoreQuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toQuadraticPolynomial(): QuadraticPolynomial {
+        return QuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
@@ -184,7 +184,7 @@ class LinearFunctionSymbolAdapter(
  * Returns null if any symbol in the polynomial is missing from the map.
  */
 @Suppress("UNCHECKED_CAST")
-fun <T : Field<T>> LinearPolynomial<T>.evaluate(values: Map<Symbol, T>): T? {
+fun <T : Field<T>> MathLinearPolynomial<T>.evaluate(values: Map<Symbol, T>): T? {
     val monomialsWithValues = monomials.mapNotNull { mono ->
         val sv = values[mono.symbol] ?: return null
         mono.coefficient * sv
@@ -218,11 +218,11 @@ internal fun <T : Field<T>> T.isNonZero(tolerance: Double = NONZERO_TOLERANCE): 
     return d > tolerance || d < -tolerance
 }
 
-/** Internal helper: convert LinearPolynomial<T> to LinearPolynomial<Flt64> for constraint generation. */
+/** Internal helper: convert MathLinearPolynomial<T> to MathLinearPolynomial<Flt64> for constraint generation. */
 @Suppress("UNCHECKED_CAST")
-internal fun <T : Field<T>> LinearPolynomial<T>.asFlt64Poly(): LinearPolynomial<Flt64> {
-    return LinearPolynomial(
-        monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
+internal fun <T : Field<T>> MathLinearPolynomial<T>.asFlt64Poly(): MathLinearPolynomial<Flt64> {
+    return MathLinearPolynomial(
+        monomials.map { MathLinearMonomial(it.coefficient.asFlt64(), it.symbol) },
         constant.asFlt64()
     )
 }

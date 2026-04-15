@@ -146,8 +146,8 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
-            y: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
+            y: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,
@@ -172,7 +172,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>,
+            x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
             threshold: UInt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
             withPositive: Boolean = true,

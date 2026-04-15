@@ -65,7 +65,7 @@ class MinMaxFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromCorePolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

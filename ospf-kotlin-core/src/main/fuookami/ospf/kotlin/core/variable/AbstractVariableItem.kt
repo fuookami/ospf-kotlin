@@ -1,9 +1,8 @@
 ﻿package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants

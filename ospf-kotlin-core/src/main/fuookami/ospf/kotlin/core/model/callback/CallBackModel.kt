@@ -1,8 +1,8 @@
-﻿package fuookami.ospf.kotlin.core.model.callback
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.Expression
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.Polynomial
+package fuookami.ospf.kotlin.core.model.callback
+
+import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.model.MulObj
 import fuookami.ospf.kotlin.core.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.Solution
@@ -268,6 +268,10 @@ class CallBackModel internal constructor(
         )
     }
 
+    @Deprecated(
+        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -290,6 +294,10 @@ class CallBackModel internal constructor(
         return ok
     }
 
+    @Deprecated(
+        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun addObject(
         category: ObjectCategory,
         polynomial: Polynomial<*, *, *>,
@@ -332,6 +340,10 @@ class CallBackModel internal constructor(
         return ok
     }
 
+    @Deprecated(
+        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun maximize(
         expression: Expression,
         name: String?,
@@ -358,6 +370,10 @@ class CallBackModel internal constructor(
         )
     }
 
+    @Deprecated(
+        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun minimize(
         expression: Expression,
         name: String?,
@@ -550,6 +566,10 @@ class MultiObjectCallBackModel internal constructor(
         )
     }
 
+    @Deprecated(
+        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -566,6 +586,10 @@ class MultiObjectCallBackModel internal constructor(
         )
     }
 
+    @Deprecated(
+        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun addObject(
         category: ObjectCategory,
         polynomial: Polynomial<*, *, *>,
@@ -605,6 +629,10 @@ class MultiObjectCallBackModel internal constructor(
         return ok
     }
 
+    @Deprecated(
+        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun maximize(
         location: MultiObjectLocation,
         expression: Expression,
@@ -620,6 +648,10 @@ class MultiObjectCallBackModel internal constructor(
         )
     }
 
+    @Deprecated(
+        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
+    )
     fun minimize(
         location: MultiObjectLocation,
         expression: Expression,

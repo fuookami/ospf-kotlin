@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1

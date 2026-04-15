@@ -1,10 +1,9 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial as CoreLinearMonomial
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial as CoreLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -35,7 +34,7 @@ fun LinearIntermediateSymbol.asMathLinearPolynomial(): MathLinearPolynomial<Flt6
 /**
  * Convert core expression LinearMonomial to math LinearMonomial<Flt64>.
  */
-fun CoreLinearMonomial.asMathLinearMonomial(): MathLinearMonomial<Flt64> {
+fun LinearMonomial.asMathLinearMonomial(): MathLinearMonomial<Flt64> {
     return MathLinearMonomial(this.coefficient, this.symbol as Symbol)
 }
 
@@ -44,8 +43,8 @@ fun CoreLinearMonomial.asMathLinearMonomial(): MathLinearMonomial<Flt64> {
  * Used when framework code needs to construct core polynomials from math types
  * (e.g., extracting slack.pos/neg from new SlackFunction).
  */
-fun MathLinearPolynomial<Flt64>.asCoreLinearPolynomial(): CoreLinearPolynomial {
-    return CoreLinearPolynomial(
+fun MathLinearPolynomial<Flt64>.asCoreLinearPolynomial(): LinearPolynomial {
+    return LinearPolynomial(
         monomials = this.monomials.map { it.asCoreLinearMonomial() },
         constant = this.constant
     )
@@ -57,9 +56,9 @@ fun MathLinearPolynomial<Flt64>.asCoreLinearPolynomial(): CoreLinearPolynomial {
  */
 @Suppress("UNCHECKED_CAST")
 @JvmName("asCoreLinearPolynomialStar")
-fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): CoreLinearPolynomial {
+fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): LinearPolynomial {
     val poly = this as MathLinearPolynomial<Flt64>
-    return CoreLinearPolynomial(
+    return LinearPolynomial(
         monomials = poly.monomials.map { it.asCoreLinearMonomial() },
         constant = poly.constant
     )
@@ -68,11 +67,11 @@ fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): CoreLinearPolynomial {
 /**
  * Convert math LinearMonomial<Flt64> to core expression LinearMonomial.
  */
-fun MathLinearMonomial<Flt64>.asCoreLinearMonomial(): CoreLinearMonomial {
+fun MathLinearMonomial<Flt64>.asCoreLinearMonomial(): LinearMonomial {
     val coreSymbol = when (val sym = this.symbol) {
-        is AbstractVariableItem<*, *> -> CoreLinearMonomial(sym).symbol
-        is LinearIntermediateSymbol -> CoreLinearMonomial(sym).symbol
+        is AbstractVariableItem<*, *> -> LinearMonomial(sym).symbol
+        is LinearIntermediateSymbol -> LinearMonomial(sym).symbol
         else -> throw IllegalArgumentException("Cannot convert symbol type ${sym::class} to core LinearMonomial")
     }
-    return CoreLinearMonomial(this.coefficient, coreSymbol)
+    return LinearMonomial(this.coefficient, coreSymbol)
 }

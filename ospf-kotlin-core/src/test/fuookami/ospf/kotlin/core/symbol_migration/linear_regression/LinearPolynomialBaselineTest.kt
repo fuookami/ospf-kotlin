@@ -1,7 +1,9 @@
-﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
+
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.AutoTokenList

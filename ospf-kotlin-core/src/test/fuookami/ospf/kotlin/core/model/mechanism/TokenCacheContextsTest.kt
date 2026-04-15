@@ -1,8 +1,7 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_model.*
 
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange

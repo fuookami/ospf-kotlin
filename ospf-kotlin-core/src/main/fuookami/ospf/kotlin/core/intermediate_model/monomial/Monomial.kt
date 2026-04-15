@@ -1,8 +1,10 @@
-﻿package fuookami.ospf.kotlin.core.expression.monomial
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.Expression
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
+package fuookami.ospf.kotlin.core.intermediate_model.monomial
+
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.Expression
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -180,6 +182,3 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
         )?.let { coefficient * it }
     }
 }
-
-
-

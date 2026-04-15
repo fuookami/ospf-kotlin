@@ -1,21 +1,116 @@
-﻿package fuookami.ospf.kotlin.core.expression.polynomial
+@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.Expression
-import fuookami.ospf.kotlin.core.expression.monomial.Monomial
-import fuookami.ospf.kotlin.core.expression.monomial.MonomialCell
+package fuookami.ospf.kotlin.core.intermediate_model
+
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialCell
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
+import fuookami.ospf.kotlin.math.BalancedTrivalent
+import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.algebra.value_range.times as vr_times
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
+import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.algebra.value_range.Interval
-import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.operator.*
+
+@JvmName("calculateLinearPolynomialFlattenedMonomials")
+internal fun calculateLinearFlattenedMonomials(
+    monomials: List<fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial>,
+    constant: Flt64
+): LinearFlattenData {
+    return fuookami.ospf.kotlin.core.intermediate_symbol.flatten.mergeLinearFlattenData(
+        flattenDataList = monomials.map { it.flattenedMonomials },
+        initialConstant = constant
+    )
+}
+
+@JvmName("calculateQuadraticPolynomialFlattenedMonomials")
+internal fun calculateQuadraticFlattenedMonomials(
+    monomials: List<fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial>,
+    constant: Flt64
+): QuadraticFlattenData {
+    return fuookami.ospf.kotlin.core.intermediate_symbol.flatten.mergeQuadraticFlattenData(
+        flattenDataList = monomials.map { it.flattenedMonomials },
+        initialConstant = constant
+    )
+}
+
+@Throws(IllegalArgumentException::class)
+fun List<Any>.toLinearPolynomials(): List<AbstractLinearPolynomial<*>> {
+    return this.map {
+        when (it) {
+            is Int -> LinearPolynomial(it)
+            is Double -> LinearPolynomial(it)
+            is Boolean -> LinearPolynomial(it)
+            is Trivalent -> LinearPolynomial(it)
+            is BalancedTrivalent -> LinearPolynomial(it)
+            is RealNumber<*> -> LinearPolynomial(it.toFlt64())
+            is ToLinearPolynomial<*> -> it.toLinearPolynomial()
+            else -> throw IllegalArgumentException("Cannot convert $it to a linear polynomial")
+        }
+    }
+}
+
+@Throws(IllegalArgumentException::class)
+fun List<Any>.toQuadraticPolynomials(): List<AbstractQuadraticPolynomial<*>> {
+    return this.map {
+        when (it) {
+            is Int -> QuadraticPolynomial(it)
+            is Double -> QuadraticPolynomial(it)
+            is Boolean -> QuadraticPolynomial(it)
+            is Trivalent -> QuadraticPolynomial(it)
+            is BalancedTrivalent -> QuadraticPolynomial(it)
+            is RealNumber<*> -> QuadraticPolynomial(it.toFlt64())
+            is ToQuadraticPolynomial<*> -> it.toQuadraticPolynomial()
+            else -> throw IllegalArgumentException("Cannot convert $it to a quadratic polynomial")
+        }
+    }
+}
+
+@JvmName("possibleRangeLinear")
+internal fun possibleRange(
+    monomials: List<fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial>,
+    constant: Flt64
+): ValueRange<Flt64>? {
+    var range: ValueRange<Flt64>? = ValueRange(constant, Flt64).value
+    for (monomial in monomials) {
+        val symRange = (monomial.symbol.range as ExpressionRange<Flt64>).valueRange
+        if (symRange != null) {
+            val scaled = monomial.coefficient.vr_times(symRange)
+            range = range?.let { r -> scaled?.let { s -> r + s } }
+        } else {
+            range = null
+            break
+        }
+    }
+    return range
+}
+
+@JvmName("possibleRangeQuadratic")
+internal fun possibleRange(
+    monomials: List<fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial>,
+    constant: Flt64
+): ValueRange<Flt64>? {
+    var range: ValueRange<Flt64>? = ValueRange(constant, Flt64).value
+    for (monomial in monomials) {
+        val symRange = (monomial.symbol.range as ExpressionRange<Flt64>).valueRange
+        if (symRange != null) {
+            val scaled = monomial.coefficient.vr_times(symRange)
+            range = range?.let { r -> scaled?.let { s -> r + s } }
+        } else {
+            range = null
+            break
+        }
+    }
+    return range
+}
 
 sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>
     : Expression, Copyable<Self>, Neg<Self>,
@@ -102,10 +197,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                tokenList = tokenList,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(tokenList = tokenList, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -114,11 +206,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                results = results,
-                tokenList = tokenList,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(results = results, tokenList = tokenList, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -127,10 +215,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(tokenTable = tokenTable, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -139,11 +224,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                results = results,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(results = results, tokenTable = tokenTable, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -152,11 +233,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                values = values,
-                tokenList = tokenList,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(values = values, tokenList = tokenList, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -165,11 +242,7 @@ sealed interface Polynomial<Self : Polynomial<Self, M, Cell>, M : Monomial<M, Ce
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
         var ret = constant
         for (monomial in monomials) {
-            val thisValue = monomial.evaluate(
-                values = values,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            ) ?: return null
+            val thisValue = monomial.evaluate(values = values, tokenTable = tokenTable, zeroIfNone = zeroIfNone) ?: return null
             ret += thisValue
         }
         return ret
@@ -230,6 +303,14 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
         this.timesAssign(rhs.toFlt64())
     }
 
+    override fun times(rhs: Int): Self {
+        return this.times(Flt64(rhs))
+    }
+
+    override fun times(rhs: Double): Self {
+        return this.times(Flt64(rhs))
+    }
+
     operator fun divAssign(rhs: Int) {
         this.divAssign(Flt64(rhs))
     }
@@ -241,29 +322,46 @@ sealed interface MutablePolynomial<Self : MutablePolynomial<Self, M, Cell>, M : 
     operator fun <T : RealNumber<T>> divAssign(rhs: T) {
         this.divAssign(rhs.toFlt64())
     }
-}
 
-internal fun possibleRange(
-    monomials: List<Monomial<*, *>>,
-    constant: Flt64
-): ValueRange<Flt64>? {
-    return if (monomials.isEmpty()) {
-        ValueRange(
-            constant,
-            constant,
-            Interval.Closed,
-            Interval.Closed
-        ).value
-    } else {
-        var ret = monomials[0].range.range ?: return null
-        for (i in 1..<monomials.size) {
-            val value = monomials[i].range.range ?: return null
-            ret += value
-        }
-        ret += constant
-        ret
+    override fun div(rhs: Int): Self {
+        return this.div(Flt64(rhs))
+    }
+
+    override fun div(rhs: Double): Self {
+        return this.div(Flt64(rhs))
+    }
+
+    override fun <T : RealNumber<T>> div(rhs: T): Self {
+        return this.div(rhs.toFlt64())
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun toMutable(): Self {
+        return this as Self
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun asMutable(): Self {
+        return this as Self
     }
 }
 
+fun sum(
+    polynomials: List<AbstractLinearPolynomial<*>>,
+    name: String = "",
+    displayName: String? = null
+): LinearPolynomial {
+    val monomials = polynomials.flatMap { it.monomials.map { m -> m.copy() } }
+    val constant = polynomials.fold(Flt64.zero) { acc, p -> acc + p.constant }
+    return LinearPolynomial(monomials = monomials, constant = constant, name = name, displayName = displayName)
+}
 
-
+fun qsum(
+    polynomials: List<AbstractQuadraticPolynomial<*>>,
+    name: String = "",
+    displayName: String? = null
+): QuadraticPolynomial {
+    val monomials = polynomials.flatMap { it.monomials.map { m -> m.copy() } }
+    val constant = polynomials.fold(Flt64.zero) { acc, p -> acc + p.constant }
+    return QuadraticPolynomial(monomials = monomials, constant = constant, name = name, displayName = displayName)
+}

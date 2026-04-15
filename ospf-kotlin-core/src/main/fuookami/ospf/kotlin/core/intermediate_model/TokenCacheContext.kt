@@ -1,11 +1,12 @@
+@file:Suppress("DEPRECATION")
+
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractQuadraticPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.Polynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -380,7 +381,7 @@ internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMono
 @Deprecated(
     message = "Use AbstractLinearPolynomial.flattenedMonomials directly. Will be removed in M9.",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial")
+    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial")
 )
 @Suppress("INAPPLICABLE_JVM_NAME")
 @get:JvmName("getFlattenedMonomialsViaCell")

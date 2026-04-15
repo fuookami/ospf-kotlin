@@ -1,9 +1,12 @@
-﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial
+package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
+
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -15,7 +18,6 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import fuookami.ospf.kotlin.core.intermediate_model.eq
-import fuookami.ospf.kotlin.core.intermediate_symbol.legacy.quadratic_function.LinearFunction as QuadraticLinearFunction
 
 class QuadraticPolynomialBaselineTest {
     @Test
@@ -207,13 +209,13 @@ class QuadraticPolynomialBaselineTest {
     }
 
     @Test
-    fun quadraticFunctionEvaluate_shouldRespectSelfValueOverrideOnTokenTablePath() {
+    fun quadraticExpressionSymbolEvaluate_shouldRespectSelfValueOverrideOnTokenTablePath() {
         val x = RealVar("x")
         val tokenTable = AutoTokenTable(Quadratic, false)
         tokenTable.add(x)
         tokenTable.setSolution(mapOf(x to Flt64(5.0)))
 
-        val function = QuadraticLinearFunction(
+        val symbol = QuadraticExpressionSymbol(
             polynomial = QuadraticPolynomial(
                 monomials = listOf(x * x),
                 constant = Flt64.one
@@ -221,9 +223,9 @@ class QuadraticPolynomialBaselineTest {
             name = "q_linear"
         )
 
-        val overridden = function.evaluate(
+        val overridden = symbol.evaluate(
             values = mapOf<Symbol, Flt64>(
-                function to Flt64(40.0),
+                symbol to Flt64(40.0),
                 x to Flt64(3.0)
             ),
             tokenTable = tokenTable,
@@ -232,7 +234,7 @@ class QuadraticPolynomialBaselineTest {
         assertNotNull(overridden)
         assertTrue(overridden eq Flt64(40.0))
 
-        val fromValues = function.evaluate(
+        val fromValues = symbol.evaluate(
             values = mapOf<Symbol, Flt64>(x to Flt64(3.0)),
             tokenTable = tokenTable,
             zeroIfNone = false

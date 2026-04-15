@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem

@@ -2,12 +2,16 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
-import fuookami.ospf.kotlin.core.expression.Expression
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.*
+import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialSymbol
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable

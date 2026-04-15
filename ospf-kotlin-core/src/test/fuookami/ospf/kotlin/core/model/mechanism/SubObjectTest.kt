@@ -1,11 +1,7 @@
+@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_model.*
-
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.times
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.times
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Category

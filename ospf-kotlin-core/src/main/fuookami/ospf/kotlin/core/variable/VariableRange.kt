@@ -1,6 +1,6 @@
 ﻿package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.core.expression.ExpressionRange
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber

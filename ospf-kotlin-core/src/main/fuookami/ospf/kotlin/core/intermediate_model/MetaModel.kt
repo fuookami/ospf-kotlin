@@ -1,19 +1,7 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+﻿@file:Suppress("DEPRECATION")
 
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.Monomial
-import fuookami.ospf.kotlin.core.expression.monomial.MonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomialCell
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.AbstractQuadraticPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.MutablePolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.Polynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.sum
-import fuookami.ospf.kotlin.core.expression.polynomial.qsum
+package fuookami.ospf.kotlin.core.intermediate_model
+
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -24,7 +12,12 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.intermediate_model.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticInequalityConstraint
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenSubObject
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenSubObject
 import fuookami.ospf.kotlin.core.model.LinearModel
 import fuookami.ospf.kotlin.core.model.Model
@@ -941,8 +934,8 @@ class LinearMetaModel(
     override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
-    internal val _flattenSubObjects: MutableList<LinearFlattenSubObject> = ArrayList()
-    val flattenSubObjects: List<LinearFlattenSubObject> by ::_flattenSubObjects
+    internal val _flattenSubObjects: MutableList<LinearSubObject> = ArrayList()
+    val flattenSubObjects: List<LinearSubObject> by ::_flattenSubObjects
 
     override fun addObject(
         category: ObjectCategory,
@@ -972,14 +965,13 @@ class LinearMetaModel(
         name: String,
         displayName: String?
     ): Try {
-        _flattenSubObjects.add(
-            LinearFlattenSubObject(
-                category = category,
-                flattenData = flattenData,
-                name = name,
-                displayName = displayName
-            )
+        val subObject = LinearSubObject.invoke(
+            category = category,
+            flattenData = flattenData,
+            tokens = tokens,
+            name = name
         )
+        _flattenSubObjects.add(subObject)
         return ok
     }
 

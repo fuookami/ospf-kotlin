@@ -4,10 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.expression.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.ToLinearPolynomial
-import fuookami.ospf.kotlin.core.expression.polynomial.minus
-import fuookami.ospf.kotlin.core.expression.polynomial.sum
+import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.minus
+import fuookami.ospf.kotlin.core.intermediate_model.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3

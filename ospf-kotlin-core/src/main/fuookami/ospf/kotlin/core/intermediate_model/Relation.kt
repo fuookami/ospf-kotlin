@@ -1,7 +1,5 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.expression.monomial.LinearMonomialCell
-import fuookami.ospf.kotlin.core.expression.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
@@ -101,7 +99,7 @@ data class LinearRelationImpl(
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun toInequality(): MathLinearInequality {
         val cells = flattenData.toLinearMonomialCells()
         val nonConstantCells = cells.filter { !it.isConstant }
@@ -161,7 +159,7 @@ data class QuadraticRelationImpl(
         }
     }
 
-    @Suppress("DEPRECATION")
+    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
     override fun toInequality(): MathQuadraticInequality {
         throw NotImplementedError("toInequality() is deprecated and should not be used. Use QuadraticRelation directly.")
     }
