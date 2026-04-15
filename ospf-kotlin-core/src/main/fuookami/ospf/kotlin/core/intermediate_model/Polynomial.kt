@@ -356,6 +356,48 @@ fun sum(
     return LinearPolynomial(monomials = monomials, constant = constant, name = name, displayName = displayName)
 }
 
+@JvmName("sumVariables")
+fun sum(
+    variables: Iterable<AbstractVariableItem<*, *>>,
+    name: String = "",
+    displayName: String? = null
+): LinearPolynomial {
+    return LinearPolynomial(
+        monomials = variables.map { fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(it) },
+        constant = Flt64.zero,
+        name = name,
+        displayName = displayName
+    )
+}
+
+@JvmName("sumLinearSymbols")
+fun sum(
+    symbols: Iterable<fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol>,
+    name: String = "",
+    displayName: String? = null
+): LinearPolynomial {
+    return LinearPolynomial(
+        monomials = symbols.map { fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(it) },
+        constant = Flt64.zero,
+        name = name,
+        displayName = displayName
+    )
+}
+
+@JvmName("sumLinearMonomials")
+fun sum(
+    monomials: Iterable<fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial>,
+    name: String = "",
+    displayName: String? = null
+): LinearPolynomial {
+    return LinearPolynomial(
+        monomials = monomials.map { it.copy() },
+        constant = Flt64.zero,
+        name = name,
+        displayName = displayName
+    )
+}
+
 fun qsum(
     polynomials: List<AbstractQuadraticPolynomial<*>>,
     name: String = "",
@@ -364,4 +406,32 @@ fun qsum(
     val monomials = polynomials.flatMap { it.monomials.map { m -> m.copy() } }
     val constant = polynomials.fold(Flt64.zero) { acc, p -> acc + p.constant }
     return QuadraticPolynomial(monomials = monomials, constant = constant, name = name, displayName = displayName)
+}
+
+@JvmName("qsumMonomials")
+fun qsum(
+    monomials: Iterable<fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial>,
+    name: String = "",
+    displayName: String? = null
+): QuadraticPolynomial {
+    return QuadraticPolynomial(
+        monomials = monomials.map { it.copy() },
+        constant = Flt64.zero,
+        name = name,
+        displayName = displayName
+    )
+}
+
+@JvmName("qsumQuadraticSymbols")
+fun qsum(
+    symbols: Iterable<fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol>,
+    name: String = "",
+    displayName: String? = null
+): QuadraticPolynomial {
+    return QuadraticPolynomial(
+        monomials = symbols.map { fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(it) },
+        constant = Flt64.zero,
+        name = name,
+        displayName = displayName
+    )
 }

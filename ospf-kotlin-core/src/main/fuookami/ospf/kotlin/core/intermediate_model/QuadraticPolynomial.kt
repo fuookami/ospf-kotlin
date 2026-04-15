@@ -359,7 +359,7 @@ class QuadraticPolynomial(
         QuadraticPolynomial(monomials.map { it.copy() }, constant - rhs)
 
     override fun times(rhs: Flt64): QuadraticPolynomial =
-        QuadraticPolynomial(monomials.map { rhs * it }, constant)
+        QuadraticPolynomial(monomials.map { it * rhs }, constant)
 
     override fun times(rhs: AbstractVariableItem<*, *>): QuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
@@ -655,7 +655,7 @@ class MutableQuadraticPolynomial(
         MutableQuadraticPolynomial(monomials.map { it.copy() }.toMutableList(), constant - rhs)
 
     override fun times(rhs: Flt64): MutableQuadraticPolynomial =
-        MutableQuadraticPolynomial((monomials.map { rhs * it }).toMutableList(), constant)
+        MutableQuadraticPolynomial((monomials.map { it * rhs }).toMutableList(), constant)
 
     override fun times(rhs: AbstractVariableItem<*, *>): MutableQuadraticPolynomial {
         val newMonomials = monomials.map { it.copy() }.toMutableList()
@@ -771,7 +771,7 @@ class MutableQuadraticPolynomial(
     override fun minusAssign(rhs: Flt64) { constant -= rhs }
 
     override fun timesAssign(rhs: Flt64) {
-        monomials.replaceAll { (rhs * it) as QuadraticMonomial }
+        monomials.replaceAll { (it * rhs) as QuadraticMonomial }
     }
 
     override fun divAssign(rhs: Flt64) {

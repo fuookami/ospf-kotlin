@@ -140,5 +140,30 @@ operator fun AbstractVariableItem<*, *>.div(rhs: PhysicalUnit): Quantity<Abstrac
     return Quantity(this, rhs.reciprocal())
 }
 
+/** Create LinearMonomial from Int coefficient and variable */
+operator fun Int.times(rhs: AbstractVariableItem<*, *>): fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial {
+    return fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(this, rhs)
+}
+
+/** Create LinearMonomial from Double coefficient and variable */
+operator fun Double.times(rhs: AbstractVariableItem<*, *>): fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial {
+    return fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(this, rhs)
+}
+
+/** Create QuadraticMonomial from two variables */
+operator fun AbstractVariableItem<*, *>.times(rhs: AbstractVariableItem<*, *>): fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial {
+    return fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(this, rhs)
+}
+
+/** Scale QuadraticMonomial by Int coefficient */
+operator fun Int.times(rhs: fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial): fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial {
+    return rhs * fuookami.ospf.kotlin.math.algebra.number.Flt64(this)
+}
+
+/** Scale QuadraticMonomial by Double coefficient */
+operator fun Double.times(rhs: fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial): fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial {
+    return rhs * fuookami.ospf.kotlin.math.algebra.number.Flt64(this)
+}
+
 
 

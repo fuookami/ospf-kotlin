@@ -3,12 +3,13 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
-import fuookami.ospf.kotlin.core.intermediate_model.times
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
