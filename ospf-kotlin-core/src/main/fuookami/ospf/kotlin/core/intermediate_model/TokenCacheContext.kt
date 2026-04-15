@@ -395,7 +395,7 @@ val Polynomial<*, *, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
 @Deprecated(
     message = "Use AbstractQuadraticPolynomial.flattenedMonomials directly. Will be removed in M9.",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.expression.polynomial.AbstractQuadraticPolynomial")
+    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticPolynomial")
 )
 @Suppress("INAPPLICABLE_JVM_NAME")
 @get:JvmName("getFlattenedMonomialsViaCellQuad")

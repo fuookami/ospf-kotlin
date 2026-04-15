@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
@@ -17,7 +17,6 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.intermediate_model.eq
 
 class QuadraticPolynomialBaselineTest {
     @Test

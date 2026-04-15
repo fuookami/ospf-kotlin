@@ -166,6 +166,22 @@ data class LinearMonomial(
     override val cached: Boolean get() = symbol.cached
 
     companion object {
+        operator fun invoke(coefficient: Int, variable: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(variable))
+        }
+
+        operator fun invoke(coefficient: Int, symbol: LinearIntermediateSymbol): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
+        }
+
+        operator fun invoke(coefficient: Double, variable: AbstractVariableItem<*, *>): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(variable))
+        }
+
+        operator fun invoke(coefficient: Double, symbol: LinearIntermediateSymbol): LinearMonomial {
+            return LinearMonomial(Flt64(coefficient), LinearMonomialSymbol(symbol))
+        }
+
         operator fun invoke(variable: AbstractVariableItem<*, *>): LinearMonomial {
             return LinearMonomial(Flt64.one, LinearMonomialSymbol(variable))
         }
