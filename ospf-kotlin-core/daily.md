@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Daily
 
-日期：2026-04-15
+日期：2026-04-16
 交接目标：下一个执行环境
 Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 
@@ -29,6 +29,24 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 ---
 
 ## 已完成事项
+
+### E7 Polynomial 删除迁移编译修复（2026-04-16）
+
+**背景**：E7 物理删除 `expression/` 目录后，`Polynomial.kt` 等核心文件中仍有对旧 expression 多项式类型的引用，需全部替换为 math 模块类型。
+
+**修复清单**：
+
+| # | 文件 | 行号 | 问题 | 修复方案 |
+|---|------|------|------|---------|
+| 1 | `MetaConstraint.kt` | 170 | Benders cut 生成中手动构造 monomial | 改用 `it.toUtilsMonomial()` 工具方法 |
+| 2 | `Polynomial.kt` | — | `toQuadraticPolynomials()` 中 Variant3 类型转换缺失 | 新增 `Symbol.toCoreSymbol()` 辅助方法处理类型转换 |
+| 3 | `MetaModel.kt` | 992, 1233 | `addObject` 的 math 类型重载声明了 `override` 但接口未定义 | 移除 `override` 修饰符 |
+| 4 | `MechanismModel.kt` | — | SubObject 构造函数中 `poly = it.polynomial` 类型不匹配（6 处） | 改为 `flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant)` |
+| 5 | `MathInequalityDsl.kt` | — | `AbstractLinearPolynomial<*>` 和 `AbstractQuadraticPolynomial<*>` 缺少完整 DSL 运算符 | 补全 eq, le, ge, lt, gt, ne, leq, geq, neq, ls, gr（支持 Boolean/Flt64/math polynomial RHS） |
+
+**验证结果**：
+- 编译：BUILD SUCCESS ✅
+- 回归测试：161 tests, 0 failures ✅
 
 ### 代数内核（Phase 1-4, M1-M4）
 - `LinearInequality<T : Ring<T>>` 泛型化（math 模块），`Flt64LinearInequality` 类型别名兼容
@@ -146,10 +164,10 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 | B6 删除旧目录 | 已完成 | legacy/linear_function/ (33) + legacy/quadratic_function/ (21) 已删除 |
 | B7 集中回归 | 已完成 | 161 core tests + 全项目 BUILD SUCCESS |
 | B8 插件编译校验 | 已完成 | 全模块编译通过 |
-| B9 封口门禁 | 进行中 | 扩展为 expression 删除门禁（legacy + expression 双守卫） |
-| B10 expression 删库收口 | 进行中 | E7 已物理删除，编译通过 |
+| B9 封口门禁 | 已完成 | 扩展为 expression 删除门禁（legacy + expression 双守卫） |
+| B10 expression 删库收口 | 已完成 | E7 已物理删除，Polynomial 类型迁移编译修复完成，161 tests 全绿 |
 
-### E7 物理删除 expression 目录（2026-04-15 完成）
+### E7 物理删除 expression 目录（2026-04-15 完成，2026-04-16 Polynomial 类型迁移修复）
 
 **删除内容**：
 - `expression/monomial/`（3 文件，~4,200 行）→ 能力已转移至 `math.symbol.monomial/*` + `intermediate_model.monomial/*`
@@ -158,14 +176,65 @@ Rust 对齐参考：`E:\workspace\ospf-rust\ospf-rust-core\src`
 - `expression/adapter/`（5 文件，~500 行）→ 已无外部引用
 - `expression/Expression.kt`（1 文件，~160 行）→ `Expression`/`ExpressionRange` 已迁出
 
-**修复的编译问题**：
+**2026-04-15 修复的编译问题**：
 1. `QuadraticMonomial.kt`：删除 companion object 外部重复代码，修复 `value()` 函数缺失 return 和闭合括号；logger 中 `this.value` 改为 `this.toRawString()` 避免与函数名冲突
 2. `QuadraticPolynomial.kt`：`Category.values()` 不存在（sealed class），改为 `monomials.map { it.category }.maxOrNull()`
 3. `Polynomial.kt`：两个 `possibleRange` 重载 JVM 签名冲突，添加 `@JvmName` 注解区分
 4. `MathInequalityDsl.kt`：删除 `FrontendLinearMonomial/QuadraticMonomial` 废弃 DSL 函数（~100 行），修复类型参数和转换调用
 5. 框架文件（gantt-scheduling + bpp3d）批量迁移 import，移除对 `core.expression.*` 的依赖
 
-**验证结果**：全模块编译通过，零错误，仅遗留 deprecation 警告
+**2026-04-16 Polynomial 删除迁移修复**（核心 expression 多项式类型 → math 模块类型）：
+1. `MetaConstraint.kt:170` — Benders cut 生成改用 `it.toUtilsMonomial()` 替代手动构造
+2. `Polynomial.kt` — 新增 `Symbol.toCoreSymbol()` 辅助方法处理 Variant3 类型转换
+3. `MetaModel.kt:992,1233` — 移除 math 类型 `addObject` 重载的 `override` 修饰符
+4. `MechanismModel.kt` — 6 处 SubObject 构造改为 `LinearFlattenData(it.polynomial.monomials, it.polynomial.constant)`
+5. `MathInequalityDsl.kt` — 补全 `AbstractLinearPolynomial<*>` / `AbstractQuadraticPolynomial<*>` 的完整 DSL 运算符（eq/le/ge/lt/gt/ne/leq/geq/neq/ls/gr）
+
+### E8 Polynomial.kt 拆分计划（2026-04-16 分析）
+
+**背景**：`Polynomial.kt` 当前 1726 行，是 core 中最大的单文件。目标是将 `AbstractLinearPolynomial`/`AbstractQuadraticPolynomial` 及具体类拆分到独立文件，然后删除原 Polynomial.kt。
+
+**依赖分析**：
+
+| 类型 | 行数 | 被引用文件数 | 能否删除 |
+|------|------|-------------|---------|
+| `Polynomial` interface | 170-305 | ~5 | **不能删** — 核心接口 |
+| `MutablePolynomial` interface | 307-402 | ~3 | **不能删** — 核心接口 |
+| `AbstractLinearPolynomial` | 496-610 | ~15 | **不能删** — 所有 DSL/Model/MetaModel 都用 |
+| `LinearPolynomial` | 612-762 | ~10 | **不能删** — 具体实现 |
+| `MutableLinearPolynomial` | 764-968 | ~5 | **不能删** |
+| `AbstractQuadraticPolynomial` | 974-1110 | ~10 | **不能删** |
+| `QuadraticPolynomial` | 1112-1391 | ~8 | **不能删** |
+| `MutableQuadraticPolynomial` | 1393-1723 | ~5 | **不能删** |
+| `sum()`/`qsum()` helpers | 404-492 | ~5 | 需迁移 |
+| `toLinearPolynomials()`/`toQuadraticPolynomials()` | 82-130 | ~3 | 需迁移 |
+| `possibleRange()` | 132-168 | ~2 | 需迁移 |
+| `calculateFlattenedMonomials()` | 44-64 | ~2 | 需迁移 |
+
+**拆分方案**：
+
+| 新文件 | 内容 | 预估行数 |
+|--------|------|---------|
+| `Polynomial.kt` | 保留 `Polynomial` + `MutablePolynomial` interface | ~135 |
+| `AbstractLinearPolynomial.kt` | `AbstractLinearPolynomial` + `LinearPolynomial` + `MutableLinearPolynomial` | ~470 |
+| `AbstractQuadraticPolynomial.kt` | `AbstractQuadraticPolynomial` + `QuadraticPolynomial` + `MutableQuadraticPolynomial` | ~550 |
+| `PolynomialHelpers.kt` | `sum`/`qsum`/`toPolynomials`/`possibleRange`/`calculateFlattenedMonomials` | ~80 |
+
+**执行步骤**：
+
+| 步骤 | 操作 | 风险 |
+|------|------|------|
+| 1 | 提取线性多项式到 `AbstractLinearPolynomial.kt` | 低 — 同包移动 |
+| 2 | 提取二次多项式到 `AbstractQuadraticPolynomial.kt` | 低 — 同包移动 |
+| 3 | 提取 helpers 到 `PolynomialHelpers.kt` | 低 |
+| 4 | 删除原 `Polynomial.kt` 中已提取的内容 | 中 — 验证 import |
+| 5 | 编译验证 | 中 |
+
+**风险缓解**：拆分不改变代码内容，仅是同 `package` 内移动，不需要改 import。每步后编译验证。
+
+**下一步**：执行步骤 1-4 拆分，然后验证编译。
+
+**验证结果**：BUILD SUCCESS，161 tests, 0 failures ✅
 
 ---
 

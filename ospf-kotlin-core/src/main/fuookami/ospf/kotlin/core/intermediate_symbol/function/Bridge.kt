@@ -13,22 +13,18 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinea
 
 /**
  * Convert core expression AbstractLinearPolynomial to math LinearPolynomial<Flt64>.
- * Used by new MathFunctionSymbol implementations to accept legacy DSL polynomial types.
+ * Now returns the result of toLinearPolynomial() directly since it already returns the math type.
  */
 fun AbstractLinearPolynomial<*>.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    val corePoly = this.toLinearPolynomial()
-    val mathMonos = corePoly.monomials.map { it.asMathLinearMonomial() }
-    return MathLinearPolynomial(mathMonos, corePoly.constant.asFlt64())
+    return this.toLinearPolynomial()
 }
 
 /**
  * Convert LinearIntermediateSymbol to math LinearPolynomial<Flt64>.
- * Used when framework code passes LinearIntermediateSymbol to new MathFunctionSymbol constructors.
+ * toLinearPolynomial() already returns the math type directly.
  */
 fun LinearIntermediateSymbol.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    val corePoly = this.toLinearPolynomial()
-    val mathMonos = corePoly.monomials.map { it.asMathLinearMonomial() }
-    return MathLinearPolynomial(mathMonos, corePoly.constant.asFlt64())
+    return this.toLinearPolynomial()
 }
 
 /**

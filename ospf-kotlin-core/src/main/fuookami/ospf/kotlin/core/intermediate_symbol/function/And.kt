@@ -131,20 +131,20 @@ class AndFunction<T : Field<T>>(
         )
 
         /**
-         * Factory: accept List<ToLinearPolynomial<*>> for mixed-type inputs.
+         * Factory: accept List<ToLinearPolynomial> for mixed-type inputs.
          * Handles cases where polynomials include both LinearIntermediateSymbol
          * and AbstractLinearPolynomial elements.
          */
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            AndFunction(
-                polynomials = polynomials.map { it.toLinearPolynomial().asMathLinearPolynomial() },
+            AndFunction<Flt64>(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName
@@ -264,18 +264,18 @@ class OrFunction<T : Field<T>>(
         )
 
         /**
-         * Factory: accept List<ToLinearPolynomial<*>> for mixed-type inputs.
+         * Factory: accept List<ToLinearPolynomial> for mixed-type inputs.
          */
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            OrFunction(
-                polynomials = polynomials.map { it.toLinearPolynomial().asMathLinearPolynomial() },
+            OrFunction<Flt64>(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName

@@ -2,6 +2,10 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as UtilsMutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial as UtilsMutableQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
@@ -96,7 +100,7 @@ interface IntermediateSymbol : Symbol, Expression {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
+interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial, ToQuadraticPolynomial {
     companion object {
         fun empty(
             parent: IntermediateSymbol? = null,
@@ -123,16 +127,23 @@ interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial<Line
     @Suppress("DEPRECATION")
     val flattenedMonomials: LinearFlattenData get() = cells.toLinearFlattenData()
 
-    override fun toLinearPolynomial(): LinearPolynomial {
-        return LinearPolynomial(this)
+    override fun toLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
+        return UtilsLinearPolynomial(
+            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(it.coefficient, it.symbol) },
+            constant = flattenedMonomials.constant
+        )
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(this)
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        val linearPoly = toLinearPolynomial()
+        return UtilsQuadraticPolynomial(
+            monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol, it.symbol) },
+            constant = linearPoly.constant
+        )
     }
 }
 
-interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomial<QuadraticPolynomial> {
+interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomial {
     companion object {
         fun empty(
             parent: IntermediateSymbol? = null,
@@ -159,8 +170,11 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
     @Suppress("DEPRECATION")
     val flattenedMonomials: QuadraticFlattenData get() = cells.toQuadraticFlattenData()
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(this)
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        return UtilsQuadraticPolynomial(
+            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
+            constant = flattenedMonomials.constant
+        )
     }
 }
 

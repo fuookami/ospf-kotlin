@@ -2,6 +2,10 @@
 
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -39,12 +43,33 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
+private fun UtilsLinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+    return if (monomials.isEmpty()) {
+        "$constant"
+    } else if (constant neq Flt64.zero) {
+        "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }} + $constant"
+    } else {
+        monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }
+    }
+}
+
+private fun UtilsQuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+    return if (monomials.isEmpty()) {
+        "$constant"
+    } else if (constant neq Flt64.zero) {
+        "${monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }} + $constant"
+    } else {
+        monomials.filter { it.coefficient neq Flt64.zero }.joinToString(" + ") { it.toString() }
+    }
+}
+
 sealed interface MetaModel : Model, AutoCloseable {
-    class SubObject<Poly : Polynomial<Poly, M, Cell>, M : Monomial<M, Cell>, Cell : MonomialCell<Cell>>(
+    class SubObject(
         val parent: MetaModel,
         val category: ObjectCategory,
-        val polynomial: Poly,
-        val name: String = polynomial.name
+        val name: String,
+        val displayName: String? = null,
+        val polynomial: UtilsLinearPolynomial<Flt64>
     ) {
         fun evaluate(zeroIfNone: Boolean = false): Flt64? {
             return evaluate(
@@ -53,34 +78,46 @@ sealed interface MetaModel : Model, AutoCloseable {
             )
         }
 
-        fun evaluate(results: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
-            return evaluate(
-                results = results,
-                tokenTable = parent.tokens,
-                zeroIfNone = zeroIfNone
-            )
+        fun evaluate(solution: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
+            var result = polynomial.constant
+            for (m in polynomial.monomials) {
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.Token ?: return if (zeroIfNone) Flt64.zero else null
+                val idx = parent.tokens.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
+                result += m.coefficient * solution[idx]
+            }
+            return result
         }
 
         fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.evaluate(
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            )
+            var result = polynomial.constant
+            for (m in polynomial.monomials) {
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.Token ?: return if (zeroIfNone) Flt64.zero else null
+                val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
+                val tokenResult = tokenTable[idx].result ?: return if (zeroIfNone) Flt64.zero else null
+                result += m.coefficient * tokenResult
+            }
+            return result
         }
 
         fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-            return polynomial.evaluate(
-                results = results,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            )
+            var result = polynomial.constant
+            for (m in polynomial.monomials) {
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.Token ?: return if (zeroIfNone) Flt64.zero else null
+                val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
+                result += m.coefficient * results[idx]
+            }
+            return result
+        }
+
+        fun flush(force: Boolean = false) {
+            // Math polynomials don't have caching
         }
     }
 
     val name: String
     val constraints: List<MathConstraint>
     override val objectCategory: ObjectCategory
-    val subObjects: List<SubObject<*, *, *>>
+    val subObjects: List<SubObject>
     val tokens: AbstractMutableTokenTable
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
@@ -432,7 +469,7 @@ sealed interface MetaModel : Model, AutoCloseable {
             // Math inequality types don't have flush - they reference tokens via polynomial
         }
         for (objective in subObjects) {
-            objective.polynomial.flush(force)
+            // Math polynomials don't have caching - no-op
         }
     }
 
@@ -600,7 +637,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     }
 
     fun addConstraint(
-        constraint: AbstractLinearPolynomial<*>,
+        constraint: UtilsLinearPolynomial<Flt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -609,7 +646,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            relation =constraint eq true,
+            relation = constraint eq Flt64.one,
             group = group,
             lazy = lazy,
             name = name,
@@ -664,7 +701,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(variables),
+            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
+                monomials = variables.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(fuookami.ospf.kotlin.math.algebra.number.Flt64.one, it) }.toList(),
+                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            ),
             group = group,
             lazy = lazy,
             name = name,
@@ -684,7 +724,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(symbols),
+            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
+                monomials = symbols.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(fuookami.ospf.kotlin.math.algebra.number.Flt64.one, it) }.toList(),
+                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            ),
             group = group,
             lazy = lazy,
             name = name,
@@ -704,7 +747,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(monomials),
+            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
+                monomials = monomials.map { it.toUtilsMonomial() }.toList(),
+                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            ),
             group = group,
             lazy = lazy,
             name = name,
@@ -714,7 +760,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     }
 
     fun partition(
-        polynomial: AbstractLinearPolynomial<*>,
+        polynomial: UtilsLinearPolynomial<Flt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -722,7 +768,7 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation =polynomial eq true,
+            relation = polynomial eq Flt64.one,
             group = group,
             lazy = lazy,
             name = name,
@@ -754,7 +800,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     }
 
     fun addConstraint(
-        constraint: AbstractQuadraticPolynomial<*>,
+        constraint: UtilsQuadraticPolynomial<Flt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -763,7 +809,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation =constraint eq true,
+            relation = constraint eq Flt64.one,
             group = group,
             lazy = lazy,
             name = name,
@@ -818,7 +864,10 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = qsum(monomials),
+            polynomial = UtilsQuadraticPolynomial(
+                monomials = monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.toUtilsMonomial().symbol1, it.toUtilsMonomial().symbol2) }.toList(),
+                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            ),
             group = group,
             lazy = lazy,
             name = name,
@@ -838,7 +887,10 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = qsum(symbols),
+            polynomial = UtilsQuadraticPolynomial(
+                monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
+                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            ),
             group = group,
             lazy = lazy,
             name = name,
@@ -848,7 +900,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     }
 
     fun partition(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        polynomial: UtilsQuadraticPolynomial<Flt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -856,7 +908,7 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation =polynomial eq Flt64.one,
+            relation = polynomial eq Flt64.one,
             group = group,
             lazy = lazy,
             name = name,
@@ -930,12 +982,30 @@ class LinearMetaModel(
     override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<LinearInequalityConstraint> by ::_relationConstraints
 
-    internal val _subObjects: MutableList<MetaModel.SubObject<LinearPolynomial, LinearMonomial, LinearMonomialCell>> = ArrayList()
-    override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
+    internal val _subObjects: MutableList<MetaModel.SubObject> = ArrayList()
+    override val subObjects: List<MetaModel.SubObject> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<LinearSubObject> = ArrayList()
     val flattenSubObjects: List<LinearSubObject> by ::_flattenSubObjects
+
+    fun addObject(
+        category: ObjectCategory,
+        polynomial: UtilsLinearPolynomial<Flt64>,
+        name: String,
+        displayName: String?
+    ): Try {
+        _subObjects.add(
+            MetaModel.SubObject(
+                parent = this,
+                category = category,
+                name = name,
+                displayName = displayName,
+                polynomial = polynomial
+            )
+        )
+        return ok
+    }
 
     override fun addObject(
         category: ObjectCategory,
@@ -943,17 +1013,12 @@ class LinearMetaModel(
         name: String?,
         displayName: String?
     ): Try {
-        val obj = LinearPolynomial(polynomial)
-        name?.let { obj.name = it }
-        displayName?.let { obj.displayName = it }
-        _subObjects.add(
-            MetaModel.SubObject(
-                parent = this,
-                category = category,
-                polynomial = obj
-            )
+        return addObject(
+            category = category,
+            polynomial = polynomial.toUtilsPolynomial(),
+            name = name ?: "",
+            displayName = displayName
         )
-        return ok
     }
 
     /**
@@ -1037,8 +1102,8 @@ class QuadraticMetaModel(
     override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<QuadraticInequalityConstraint> by ::_relationConstraints
 
-    internal val _subObjects: MutableList<MetaModel.SubObject<QuadraticPolynomial, QuadraticMonomial, QuadraticMonomialCell>> = ArrayList()
-    override val subObjects: List<MetaModel.SubObject<*, *, *>> by ::_subObjects
+    internal val _subObjects: MutableList<MetaModel.SubObject> = ArrayList()
+    override val subObjects: List<MetaModel.SubObject> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject> = ArrayList()
@@ -1165,23 +1230,54 @@ class QuadraticMetaModel(
         return ok
     }
 
+    fun addObject(
+        category: ObjectCategory,
+        polynomial: UtilsQuadraticPolynomial<Flt64>,
+        name: String,
+        displayName: String?
+    ): Try {
+        // Convert to QuadraticFlattenData for the new API
+        val flattenData = QuadraticFlattenData(
+            monomials = polynomial.monomials,
+            constant = polynomial.constant
+        )
+        _flattenSubObjects.add(
+            QuadraticFlattenSubObject(
+                category = category,
+                flattenData = flattenData,
+                name = name,
+                displayName = displayName
+            )
+        )
+        // Also add a linear approximation to subObjects for compatibility
+        val linearPoly = UtilsLinearPolynomial(
+            monomials = polynomial.monomials.map { UtilsLinearMonomial(it.coefficient, it.symbol1) },
+            constant = polynomial.constant
+        )
+        _subObjects.add(
+            MetaModel.SubObject(
+                parent = this,
+                category = category,
+                name = name,
+                displayName = displayName,
+                polynomial = linearPoly
+            )
+        )
+        return ok
+    }
+
     override fun addObject(
         category: ObjectCategory,
         polynomial: AbstractQuadraticPolynomial<*>,
         name: String?,
         displayName: String?
     ): Try {
-        val obj = QuadraticPolynomial(polynomial)
-        name?.let { obj.name = it }
-        displayName?.let { obj.displayName = it }
-        _subObjects.add(
-            MetaModel.SubObject(
-                parent = this,
-                category = category,
-                polynomial = obj
-            )
+        return addObject(
+            category = category,
+            polynomial = polynomial.toUtilsPolynomial(),
+            name = name ?: "",
+            displayName = displayName
         )
-        return ok
     }
 
     /**

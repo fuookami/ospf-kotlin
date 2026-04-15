@@ -166,12 +166,12 @@ class LinearFunctionSymbolAdapter(
     override val cells: List<LinearMonomialCell> get() = emptyList()
     override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
 
-    override fun toLinearPolynomial(): LinearPolynomial {
-        return LinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toLinearPolynomial(): MathLinearPolynomial<Flt64> {
+        return MathLinearPolynomial(emptyList(), Flt64.zero)
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toQuadraticPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<Flt64> {
+        return fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero)
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null

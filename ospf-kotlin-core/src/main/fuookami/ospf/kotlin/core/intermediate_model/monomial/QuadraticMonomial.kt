@@ -671,7 +671,7 @@ class QuadraticMonomial(
     override var name: String = "",
     override var displayName: String? = null
 ) : Monomial<QuadraticMonomial, QuadraticMonomialCell>, Eq<QuadraticMonomial>,
-    ToQuadraticPolynomial<QuadraticPolynomial> {
+    ToQuadraticPolynomial {
     override val range: ExpressionRange<Flt64>
         get() = symbol.range.valueRange?.let { ExpressionRange(it) } ?: ExpressionRange(null, Flt64)
     companion object {
@@ -919,8 +919,8 @@ class QuadraticMonomial(
         error("Cannot convert complex quadratic monomial to single UtilsQuadraticMonomial")
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(monomials = listOf(this), constant = Flt64.zero)
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        return toUtilsPolynomial()
     }
 
     fun toUtilsPolynomial(): UtilsQuadraticPolynomial<Flt64> {

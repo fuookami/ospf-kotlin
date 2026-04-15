@@ -21,6 +21,9 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.functional.Eq
@@ -161,7 +164,7 @@ data class LinearMonomial(
     override val coefficient: Flt64,
     override val symbol: LinearMonomialSymbol
 ) : Monomial<LinearMonomial, LinearMonomialCell>, Eq<LinearMonomial>,
-    ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
+    ToLinearPolynomial, ToQuadraticPolynomial {
 
     override val cached: Boolean get() = symbol.cached
 
@@ -347,12 +350,15 @@ data class LinearMonomial(
 
     override fun copy(): LinearMonomial = LinearMonomial(coefficient, symbol)
 
-    override fun toLinearPolynomial(): LinearPolynomial {
-        return LinearPolynomial(monomials = listOf(this), constant = Flt64.zero)
+    override fun toLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
+        val utilsMono = toUtilsMonomial()
+        return UtilsLinearPolynomial(monomials = listOf(utilsMono), constant = Flt64.zero)
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(monomials = listOf(fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(this)), constant = Flt64.zero)
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        val utilsMono = toUtilsMonomial()
+        val qMono = UtilsQuadraticMonomial(coefficient, utilsMono.symbol, utilsMono.symbol)
+        return UtilsQuadraticPolynomial(monomials = listOf(qMono), constant = Flt64.zero)
     }
 
     /**

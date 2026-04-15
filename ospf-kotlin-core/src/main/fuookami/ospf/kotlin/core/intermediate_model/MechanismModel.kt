@@ -157,7 +157,7 @@ class LinearMechanismModel(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             category = it.category,
-                            poly = it.polynomial,
+                            flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
                             tokens = tokens,
                             name = it.name
                         )
@@ -270,7 +270,7 @@ class LinearMechanismModel(
                             ).map {
                                 LinearSubObject(
                                     category = it.category,
-                                    poly = it.polynomial,
+                                    flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
                                     tokens = tokens,
                                     name = it.name
                                 )
@@ -287,7 +287,7 @@ class LinearMechanismModel(
                         val result = listOf(
                             LinearSubObject(
                                 category = it.category,
-                                poly = it.polynomial,
+                                flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
                                 tokens = tokens,
                                 name = it.name
                             )
@@ -556,7 +556,7 @@ class QuadraticMechanismModel(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             category = it.category,
-                            poly = it.polynomial,
+                            flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                             tokens = tokens,
                             name = it.name
                         )
@@ -673,7 +673,7 @@ class QuadraticMechanismModel(
                             ).map {
                                 QuadraticSubObject(
                                     category = it.category,
-                                    poly = it.polynomial,
+                                    flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                                     tokens = tokens,
                                     name = it.name
                                 )
@@ -690,7 +690,7 @@ class QuadraticMechanismModel(
                         val result = listOf(
                             QuadraticSubObject(
                                 category = it.category,
-                                poly = it.polynomial,
+                                flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                                 tokens = tokens,
                                 name = it.name
                             )

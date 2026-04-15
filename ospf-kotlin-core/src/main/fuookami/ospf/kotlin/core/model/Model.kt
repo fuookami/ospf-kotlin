@@ -616,7 +616,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation = constraint.toMathQuadraticInequality(),
+            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial).toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -656,7 +656,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation = constraint.toMathQuadraticInequality(),
+            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial).toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -676,7 +676,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation = constraint.toMathQuadraticInequality(),
+            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial).toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,

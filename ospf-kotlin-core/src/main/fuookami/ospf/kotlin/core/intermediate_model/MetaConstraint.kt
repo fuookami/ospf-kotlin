@@ -6,6 +6,11 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.asMathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
@@ -117,7 +122,10 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(variables),
+            polynomial = UtilsLinearPolynomial(
+                monomials = variables.map { UtilsLinearMonomial(Flt64.one, it) }.toList(),
+                constant = Flt64.zero
+            ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -136,7 +144,10 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(symbols),
+            polynomial = UtilsLinearPolynomial(
+                monomials = symbols.map { UtilsLinearMonomial(Flt64.one, it) }.toList(),
+                constant = Flt64.zero
+            ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -155,7 +166,10 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = sum(monomials),
+            polynomial = UtilsLinearPolynomial(
+                monomials = monomials.map { it.toUtilsMonomial() }.toList(),
+                constant = Flt64.zero
+            ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -172,7 +186,7 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation =polynomial eq true,
+            relation = polynomial.asMathLinearPolynomial() eq Flt64.one,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -245,7 +259,10 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = qsum(monomials),
+            polynomial = UtilsQuadraticPolynomial(
+                monomials = monomials.map { UtilsQuadraticMonomial(it.coefficient, it.toUtilsMonomial().symbol1, it.toUtilsMonomial().symbol2) }.toList(),
+                constant = Flt64.zero
+            ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -264,7 +281,10 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = qsum(symbols),
+            polynomial = UtilsQuadraticPolynomial(
+                monomials = symbols.flatMap { it.toQuadraticPolynomial().monomials }.toList(),
+                constant = Flt64.zero
+            ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -281,7 +301,7 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation =polynomial eq Flt64.one,
+            relation = polynomial.toUtilsPolynomial() eq Flt64.one,
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,

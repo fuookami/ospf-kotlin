@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Either
+import fuookami.ospf.kotlin.utils.functional.Variant3
 import fuookami.ospf.kotlin.math.BalancedTrivalent
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -35,7 +36,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.maxOrNull
-import fuookami.ospf.kotlin.utils.functional.Variant3
 import fuookami.ospf.kotlin.utils.functional.flatMapNotNull
 import fuookami.ospf.kotlin.quantities.quantity.toFlt64
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
@@ -63,6 +63,22 @@ internal fun calculateQuadraticFlattenedMonomials(
     )
 }
 
+/**
+ * Convert math module raw Symbol to core's Variant3 type.
+ * Used when converting math polynomials back to core types.
+ */
+@Suppress("UNCHECKED_CAST")
+private fun Symbol.toCoreSymbol(): Variant3<AbstractVariableItem<*, *>, LinearIntermediateSymbol, QuadraticIntermediateSymbol> {
+    return when (this) {
+        is AbstractVariableItem<*, *> -> Variant3.V1(this)
+        is LinearIntermediateSymbol -> Variant3.V2(this)
+        is QuadraticIntermediateSymbol -> Variant3.V3(this)
+        else -> throw IllegalArgumentException("Unsupported symbol type: ${this::class}")
+    }
+}
+
+typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, LinearIntermediateSymbol, QuadraticIntermediateSymbol>
+
 @Throws(IllegalArgumentException::class)
 fun List<Any>.toLinearPolynomials(): List<AbstractLinearPolynomial<*>> {
     return this.map {
@@ -73,7 +89,13 @@ fun List<Any>.toLinearPolynomials(): List<AbstractLinearPolynomial<*>> {
             is Trivalent -> LinearPolynomial(it)
             is BalancedTrivalent -> LinearPolynomial(it)
             is RealNumber<*> -> LinearPolynomial(it.toFlt64())
-            is ToLinearPolynomial<*> -> it.toLinearPolynomial()
+            is ToLinearPolynomial -> {
+                val mathPoly = it.toLinearPolynomial()
+                LinearPolynomial(
+                    monomials = mathPoly.monomials.map { m -> fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(m.coefficient, m.symbol) },
+                    constant = mathPoly.constant
+                )
+            }
             else -> throw IllegalArgumentException("Cannot convert $it to a linear polynomial")
         }
     }
@@ -89,7 +111,19 @@ fun List<Any>.toQuadraticPolynomials(): List<AbstractQuadraticPolynomial<*>> {
             is Trivalent -> QuadraticPolynomial(it)
             is BalancedTrivalent -> QuadraticPolynomial(it)
             is RealNumber<*> -> QuadraticPolynomial(it.toFlt64())
-            is ToQuadraticPolynomial<*> -> it.toQuadraticPolynomial()
+            is ToQuadraticPolynomial -> {
+                val mathPoly = it.toQuadraticPolynomial()
+                QuadraticPolynomial(
+                    monomials = mathPoly.monomials.map { m ->
+                        @Suppress("UNCHECKED_CAST")
+                        val sym1 = m.symbol1.toCoreSymbol() as QuadraticMonomialSymbolUnit
+                        @Suppress("UNCHECKED_CAST")
+                        val sym2 = m.symbol2?.let { s2 -> s2.toCoreSymbol() as QuadraticMonomialSymbolUnit? }
+                        fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(m.coefficient, fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialSymbol(sym1, sym2))
+                    },
+                    constant = mathPoly.constant
+                )
+            }
             else -> throw IllegalArgumentException("Cannot convert $it to a quadratic polynomial")
         }
     }
@@ -461,7 +495,7 @@ fun qsum(
 
 sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     Polynomial<Self, LinearMonomial, LinearMonomialCell>,
-    ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial> {
+    ToLinearPolynomial, ToQuadraticPolynomial {
 
     abstract override val monomials: List<LinearMonomial>
     abstract fun toUtilsPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64>
@@ -528,16 +562,14 @@ sealed class AbstractLinearPolynomial<Self : AbstractLinearPolynomial<Self>> :
     abstract operator fun minus(rhs: LinearIntermediateSymbol): Self
     abstract operator fun minus(rhs: Iterable<LinearIntermediateSymbol>): Self
 
-    final override fun toLinearPolynomial(): LinearPolynomial {
-        return when (this) {
-            is LinearPolynomial -> this
-            is MutableLinearPolynomial -> LinearPolynomial(monomials.map { it.copy() }, constant, name, displayName)
-        }
+    final override fun toLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
+        return toUtilsPolynomial()
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(
-            monomials = monomials.map { fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(it) },
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        val quadraticMonomials = monomials.map { fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial(it) }
+        return UtilsQuadraticPolynomial(
+            monomials = quadraticMonomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.toUtilsMonomial().symbol1, it.toUtilsMonomial().symbol2) },
             constant = constant
         )
     }
@@ -715,7 +747,7 @@ class LinearPolynomial(
     override fun div(rhs: Flt64): LinearPolynomial = LinearPolynomial(monomials.map { it / rhs }, constant)
 
     override fun toMathQuadraticInequality(): MathQuadraticInequality {
-        return toQuadraticPolynomial() eq true
+        return toQuadraticPolynomial() eq Flt64.one
     }
 
     override fun toUtilsPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64> {
@@ -941,7 +973,7 @@ class MutableLinearPolynomial(
 
 sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self>> :
     Polynomial<Self, QuadraticMonomial, QuadraticMonomialCell>,
-    ToQuadraticPolynomial<QuadraticPolynomial> {
+    ToQuadraticPolynomial {
 
     abstract override val monomials: List<QuadraticMonomial>
     abstract fun toUtilsPolynomial(): UtilsQuadraticPolynomial<Flt64>
@@ -1050,10 +1082,7 @@ sealed class AbstractQuadraticPolynomial<Self : AbstractQuadraticPolynomial<Self
     abstract operator fun times(rhs: AbstractLinearPolynomial<*>): Self
     abstract operator fun times(rhs: AbstractQuadraticPolynomial<*>): Self
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial = when (this) {
-        is QuadraticPolynomial -> this
-        is MutableQuadraticPolynomial -> QuadraticPolynomial(monomials.map { it.copy() }, constant, name, displayName)
-    }
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> = toUtilsPolynomial()
 
     override fun toMutable(): MutableQuadraticPolynomial {
         return MutableQuadraticPolynomial(

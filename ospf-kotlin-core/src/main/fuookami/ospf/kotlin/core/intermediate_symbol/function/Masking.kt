@@ -209,13 +209,13 @@ class MaskingFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomialWithPolyMask")
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>,
+            x: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
             mask: AbstractLinearPolynomial<*>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.toLinearPolynomial().asMathLinearPolynomial(),
+            input = x.toLinearPolynomial(),
             maskPoly = mask.asMathLinearPolynomial(),
             bigM = bigM,
             name = name,
@@ -230,13 +230,13 @@ class MaskingFunction<T : Field<T>>(
         @JvmName("fromSymbolMask")
         operator fun invoke(
             x: AbstractLinearPolynomial<*>,
-            mask: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>,
+            mask: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
             input = x.asMathLinearPolynomial(),
-            maskPoly = mask.toLinearPolynomial().asMathLinearPolynomial(),
+            maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
             name = name,
             displayName = displayName
@@ -249,14 +249,14 @@ class MaskingFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>,
-            mask: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial<*>,
+            x: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
+            mask: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.toLinearPolynomial().asMathLinearPolynomial(),
-            maskPoly = mask.toLinearPolynomial().asMathLinearPolynomial(),
+            input = x.toLinearPolynomial(),
+            maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
             name = name,
             displayName = displayName
@@ -300,12 +300,12 @@ class MaskingWithPolyMaskFunction(
     override val cells: List<LinearMonomialCell> get() = emptyList()
     override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
 
-    override fun toLinearPolynomial(): fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial {
-        return fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toLinearPolynomial(): MathLinearPolynomial<Flt64> {
+        return MathLinearPolynomial(emptyList(), Flt64.zero)
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(emptyList(), Flt64.zero, name = name, displayName = displayName)
+    override fun toQuadraticPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<Flt64> {
+        return fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero)
     }
 
     override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null

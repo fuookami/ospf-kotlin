@@ -3,6 +3,10 @@
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
@@ -49,7 +53,7 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
     val type: Type,
     override var name: String,
     val constants: RealNumberConstants<T>
-) : Symbol, ToLinearPolynomial<LinearPolynomial>, ToQuadraticPolynomial<QuadraticPolynomial>
+) : Symbol, ToLinearPolynomial, ToQuadraticPolynomial
         where T : RealNumber<T>, T : NumberField<T> {
     abstract val dimension: Int
     abstract val identifier: UInt64
@@ -75,12 +79,13 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return identifier == combination.identifier
     }
 
-    override fun toLinearPolynomial(): LinearPolynomial {
-        return LinearPolynomial(this)
+    override fun toLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
+        return UtilsLinearPolynomial(monomials = listOf(UtilsLinearMonomial(Flt64.one, this)), constant = Flt64.zero)
     }
 
-    override fun toQuadraticPolynomial(): QuadraticPolynomial {
-        return QuadraticPolynomial(this)
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        val mono = UtilsQuadraticMonomial(Flt64.one, this, this)
+        return UtilsQuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
     }
 
     override fun hashCode() = key.hashCode()
