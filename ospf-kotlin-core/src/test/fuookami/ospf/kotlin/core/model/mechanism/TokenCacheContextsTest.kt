@@ -7,6 +7,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.utils.functional.Ok
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFalse
@@ -132,5 +134,24 @@ class TokenCacheContextsTest {
         assertEquals(range, tokenTable.cachedRangeValue(polynomialKey))
         assertEquals(Flt64.one, tokenTable.cachedValue(monomialKey, null))
         assertEquals(Flt64(2.0), tokenTable.cachedValue(polynomialKey, fixedValues))
+    }
+
+    @Test
+    fun concurrentRegisterShouldPreheatValueFlattenAndRangeCache() = runBlocking {
+        val symbol = LinearExpressionSymbol(
+            polynomial = LinearPolynomial(constant = Flt64.one),
+            name = "concurrent_register_context_symbol"
+        )
+        val tokenTable = ConcurrentAutoTokenTable(Linear, false)
+
+        val result = listOf(symbol).register(tokenTable)
+
+        assertTrue(result is Ok)
+        assertEquals(true, tokenTable.cached(symbol, null))
+        assertEquals(Flt64.one, tokenTable.cachedValue(symbol, null))
+        assertEquals(true, tokenTable.cachedLinearFlatten(symbol))
+        assertEquals(true, tokenTable.cachedRange(symbol))
+
+        tokenTable.close()
     }
 }

@@ -194,6 +194,8 @@ sealed interface AbstractTokenTable : AutoCloseable {
         return null
     }
 
+    fun clearValue(cacheKey: Any) {}
+
     fun cache(cacheKey: Any, solution: List<Flt64>? = null, value: () -> Flt64?): Flt64? {
         return value()?.let {
             cache(
@@ -411,6 +413,10 @@ data class TokenTable(
         return cacheContexts.range.remove(cacheKey)
     }
 
+    override fun clearValue(cacheKey: Any) {
+        cacheContexts.value.remove(cacheKey)
+    }
+
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
     override fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>?) {
@@ -515,6 +521,14 @@ sealed class MutableTokenTable(
     override fun remove(symbol: IntermediateSymbol) {
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
+
+        // B1: 解绑和缓存清理
+        // B1: Unbind and clear caches for removed symbol
+        unbindTokenTableContext(symbol, this)
+        cacheContexts.linearFlatten.remove(symbol)
+        cacheContexts.quadraticFlatten.remove(symbol)
+        cacheContexts.range.remove(symbol)
+        cacheContexts.value.remove(symbol)
     }
 
     override fun flush() {
@@ -595,6 +609,10 @@ sealed class MutableTokenTable(
 
     override fun clearRange(cacheKey: Any): ExpressionRange<Flt64>? {
         return cacheContexts.range.remove(cacheKey)
+    }
+
+    override fun clearValue(cacheKey: Any) {
+        cacheContexts.value.remove(cacheKey)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -693,12 +711,15 @@ fun Collection<IntermediateSymbol>.register(
                 null -> {}
 
                 is Ok -> {
+                    // B2: Keep function-symbol compatibility path; full value-cache alignment is handled by the batch pass below
+                    // B2: 保留函数符号兼容路径；value 缓存全量对齐由下方批量阶段统一处理
                     if (fixedValues.isNullOrEmpty()) {
                         symbol.prepareAndCache(null, tokenTable)
                     } else {
                         symbol.prepareAndCache(fixedValues, tokenTable)
                     }
-                    tokenTable.cacheSymbolContext(symbol)
+                    // Removed duplicated single-symbol flatten/range preheat.
+                    // 已移除单符号 flatten/range 预热重复调用。
                 }
 
                 is Failed -> {
@@ -721,6 +742,17 @@ fun Collection<IntermediateSymbol>.register(
                 return Fatal(result.errors)
             }
         }
+        // B2: Batch write value cache for all ready symbols to align with concurrent register path
+        // B2: 为所有就绪符号批量写入 value 缓存，与并发注册链路保持一致
+        tokenTable.cache(
+            symbols = readySymbols.associateWithNotNull {
+                if (fixedValues.isNullOrEmpty()) {
+                    it.prepare(null, tokenTable)
+                } else {
+                    it.prepare(fixedValues, tokenTable)
+                }
+            }.mapKeys { it.key as IntermediateSymbol }
+        )
         tokenTable.cacheSymbolContexts(readySymbols)
         if (memoryUseOver()) {
             System.gc()
@@ -884,6 +916,12 @@ data class ConcurrentTokenTable(
     override fun clearRange(cacheKey: Any): ExpressionRange<Flt64>? {
         return synchronized(lock) {
             cacheContexts.range.remove(cacheKey)
+        }
+    }
+
+    override fun clearValue(cacheKey: Any) {
+        synchronized(lock) {
+            cacheContexts.value.remove(cacheKey)
         }
     }
 
@@ -1095,8 +1133,18 @@ sealed class ConcurrentMutableTokenTable(
     }
 
     override fun remove(symbol: IntermediateSymbol) {
-        _symbols.remove(symbol)
-        _symbolsMap.remove(symbol.name)
+        synchronized(lock) {
+            _symbols.remove(symbol)
+            _symbolsMap.remove(symbol.name)
+
+            // B1: 解绑和缓存清理
+            // B1: Unbind and clear caches for removed symbol
+            unbindTokenTableContext(symbol, this)
+            cacheContexts.linearFlatten.remove(symbol)
+            cacheContexts.quadraticFlatten.remove(symbol)
+            cacheContexts.range.remove(symbol)
+            cacheContexts.value.remove(symbol)
+        }
     }
 
     override fun flush() {
@@ -1214,6 +1262,12 @@ sealed class ConcurrentMutableTokenTable(
     override fun clearRange(cacheKey: Any): ExpressionRange<Flt64>? {
         return synchronized(lock) {
             cacheContexts.range.remove(cacheKey)
+        }
+    }
+
+    override fun clearValue(cacheKey: Any) {
+        synchronized(lock) {
+            cacheContexts.value.remove(cacheKey)
         }
     }
 
@@ -1357,6 +1411,8 @@ suspend fun Collection<IntermediateSymbol>.register(
                         launch(Dispatchers.Default) {
                             val thisReadSymbol = readySymbolList
                                 .subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
+                            // B2: Batch write value cache via prepare + cache
+                            // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
                                     if (fixedValues.isNullOrEmpty()) {
@@ -1366,6 +1422,8 @@ suspend fun Collection<IntermediateSymbol>.register(
                                     }
                                 }.mapKeys { it.key as IntermediateSymbol }
                             )
+                            // B2: Batch write flatten/range cache
+                            // B2: 批量写入 flatten/range 缓存
                             tokenTable.cacheSymbolContexts(thisReadSymbol)
                             if (memoryUseOver()) {
                                 System.gc()
@@ -1388,6 +1446,8 @@ suspend fun Collection<IntermediateSymbol>.register(
                 } else {
                     listOf(
                         launch(Dispatchers.Default) {
+                            // B2: Batch write value cache via prepare + cache
+                            // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
                                     if (fixedValues.isNullOrEmpty()) {
@@ -1397,6 +1457,8 @@ suspend fun Collection<IntermediateSymbol>.register(
                                     }
                                 }.mapKeys { it.key as IntermediateSymbol }
                             )
+                            // B2: Batch write flatten/range cache
+                            // B2: 批量写入 flatten/range 缓存
                             tokenTable.cacheSymbolContexts(readySymbols)
 
                             if (callBack != null) {

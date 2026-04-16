@@ -515,18 +515,266 @@ triad/tetrad/solver
 
 C2 阶段性完成，进入 C3（缓存上收）。
 
-### 阶段 C3：缓存上收（2 天）
+### 阶段 C3：缓存上收（3 天，修订版）
 
-1. 抽离旧类型缓存语义到 contexts：
-   - flatten/value/range
-2. 清理旧缓存主路径依赖：
-   - TokenCacheContext / TokenTable / Polynomial 相关
-3. 补缓存一致性回归：
-   - 命中率、失效、上下文重绑
-4. 交付物：
-   - 缓存归属图
-5. 退出条件：
-   - context 成为唯一主缓存路径。
+> **状态**：⏳ 进行中
+> **修订日期**：2026-04-16
+> **修订原因**：审核发现 3 个阻断级缺口需先补齐
+
+#### C3 审核发现（2026-04-16）
+
+| 阻断点 | 当前状态 | 影响 |
+|--------|----------|------|
+| **并发注册链路遗漏** | 同步走 `prepareAndCache` + `cacheSymbolContext`，并发走 `prepare` + `cache(symbols=...)` | 验收漏检 |
+| **remove(symbol) 缺解绑** | 只删列表和 map，不做 unbind 和缓存清理 | 缓存残留、上下文泄漏 |
+| **双写缓存并存** | Symbol key + Polynomial private key 两条路径写同一 context | 缓存冗余、清理不一致 |
+| **cacheSymbolContext 重复调用** | 单符号 + 批量各调用一次 | 预热开销冗余 |
+| **扫描关键词不全** | 漏了 range/bind/unbind 相关 API | 清单不完整 |
+
+#### C3 详细步骤（修订版）
+
+##### C3-1: 缓存点分布清单生成（预估 2.5h）
+
+**目标**: 生成完整的缓存调用点清单
+
+**扫描关键词（补全后）**:
+| 分类 | 关键词 | 说明 |
+|------|--------|------|
+| 写入 | `cacheLinearFlatten`, `cacheQuadraticFlatten`, `cacheRange`, `cache(cacheKey` | 按类型分 |
+| 写入 | `cacheSymbolContext`, `cacheSymbolContexts` | 批量预热 |
+| 读取 | `cachedLinearFlatten`, `cachedQuadraticFlatten`, `cachedRange`, `cachedValue` | 命中检查 |
+| 读取 | `cachedLinearFlattenValue`, `cachedQuadraticFlattenValue`, `cachedRangeValue` | 取值 |
+| 清理 | `clearLinearFlatten`, `clearQuadraticFlatten`, `clearRange`, `clearAll` | 失效 |
+| 绑定 | `bindTokenTableContext`, `unbindTokenTableContext`, `boundTokenTableContext` | 上下文 |
+| 移除 | `remove(symbol` | 符号移除 |
+
+**输出**: `docs/refactor-baseline/cache-usage.md`
+
+**验收**: 清单可复现，包含文件名、行号、调用上下文、路径类型（Symbol key / Private key）
+
+---
+
+##### C3-2: 缓存生命周期分析（预估 3h）
+
+**目标**: 完整分析缓存绑定/解绑/失效/移除生命周期
+
+**生命周期图**:
+```
+[符号注册]
+  ├── 同步注册 register()
+  │     └── prepareAndCache() → cache(cacheKey=symbol) → cacheSymbolContext(symbol)
+  │           [问题：cacheSymbolContext 重复调用]
+  │
+  └── 并发注册 register()
+        └── prepare() → cache(symbols=...) → cacheSymbolContexts(readySymbols)
+              [遗漏：无单个符号的 cacheSymbolContext]
+              
+[符号移除] ← 需新增
+  └── remove(symbol)
+        ├── 当前：仅 _symbols.remove(symbol), _symbolsMap.remove(name)
+        ├── 缺失：unbindTokenTableContext(symbol, this)
+        ├── 缺失：clearLinearFlatten(symbol), clearQuadraticFlatten(symbol)
+        ├── 缺失：clearRange(symbol)
+        └── 缺失：cacheContexts.value.remove(symbol)
+
+[缓存失效]
+  ├── MetaModel.flush(force)
+  │     └── TokenTable.flush() → cacheContexts.clearAll()
+  │     └── Symbol.flush(force) [逐个]
+  │
+  └── Polynomial.flush(force) ← Private key 路径
+        └── clearRange(privateKey), clearLinearFlatten(privateKey)
+              [问题：Private key 缓存不在 clearAll 管理范围内]
+```
+
+**输出**: `docs/refactor-baseline/cache-lifecycle.md`
+
+---
+
+##### C3-3: 统一缓存失效与移除入口（预估 4h） ⚠️ 阻断点修复
+
+**目标**: 统一 flush 和 remove 的缓存清理逻辑
+
+**改动文件**:
+| 文件 | 改动 |
+|------|------|
+| `MutableTokenTable` | 修改 `remove(symbol)` 增加 unbind 和缓存清理 |
+| `ConcurrentMutableTokenTable` | 同上，加 synchronized |
+| `AbstractMutableTokenTable` interface | 无需改动（已有 remove 签名） |
+
+**改动实现草案**:
+```kotlin
+// MutableTokenTable.kt
+override fun remove(symbol: IntermediateSymbol) {
+    _symbols.remove(symbol)
+    _symbolsMap.remove(symbol.name)
+    
+    // 新增：解绑和缓存清理
+    unbindTokenTableContext(symbol, this)
+    cacheContexts.linearFlatten.remove(symbol)
+    cacheContexts.quadraticFlatten.remove(symbol)
+    cacheContexts.range.remove(symbol)
+}
+
+// ConcurrentMutableTokenTable.kt
+override fun remove(symbol: IntermediateSymbol) {
+    synchronized(lock) {
+        _symbols.remove(symbol)
+        _symbolsMap.remove(symbol.name)
+        
+        unbindTokenTableContext(symbol, this)
+        cacheContexts.linearFlatten.remove(symbol)
+        cacheContexts.quadraticFlatten.remove(symbol)
+        cacheContexts.range.remove(symbol)
+    }
+}
+```
+
+**验收**: remove 后符号缓存清空、unbind 触发
+
+---
+
+##### C3-4: 缓存预热链路验证（预估 4h） ⚠️ 阻断点修复
+
+**目标**: 验证两条注册链路的缓存预热一致性
+
+**链路对比**:
+| 步骤 | 同步注册 | 并发注册 |
+|------|----------|----------|
+| 1 | `symbol.prepareAndCache(values, tokenTable)` | `symbol.prepare(values, tokenTable)` |
+| 2 | `tokenTable.cache(cacheKey=symbol, value)` [在 prepareAndCache 内] | `tokenTable.cache(symbols=map)` [批量写入] |
+| 3 | `tokenTable.cacheSymbolContext(symbol)` [单符号] | `tokenTable.cacheSymbolContexts(readySymbols)` [批量] |
+| 4 | `tokenTable.cacheSymbolContexts(readySymbols)` [批量二次] | 无二次调用 |
+
+**问题点**:
+- 同步注册：cacheSymbolContext 被调用两次（单符号 + 批量）
+- 并发注册：无单符号调用，但批量调用覆盖
+
+**修复建议**:
+| 问题 | 建议修复 |
+|------|----------|
+| 同步重复调用 | 移除 TokenTable.kt 第 701 行的单符号调用，仅保留批量调用 |
+| 路一致性 | 确认两种链路最终效果一致（缓存命中检查） |
+
+**验收**: 两条链路预热后缓存均可用，依赖链预热正确
+
+---
+
+##### C3-5: 缓存一致性测试补充（预估 4h） ⚠️ 阻断点修复
+
+**目标**: 补充覆盖阻断点的回归测试
+
+**新增测试场景**:
+| 场景 | 测试文件 | 验收点 |
+|------|----------|--------|
+| **并发注册预热** | `TokenCacheContextsTest.kt` | 多线程注册后缓存命中 |
+| **remove 后重绑** | 新增 `CacheRebindTest.kt` | remove 后重新 add 同名符号，缓存重新生成 |
+| **双 TokenTable 重绑一致性** | `CacheRebindTest.kt` | 符号绑定新 TokenTable 后，旧 TokenTable 缓存失效 |
+| **缓存命中/失效** | `TokenCacheContextsTest.kt` | flush 后缓存清空 |
+| **Private key 与 Symbol key 冲突检测** | `CacheKeyConflictTest.kt` | 验证两种 key 不产生数据覆盖 |
+
+**验收**: 新增测试通过，覆盖核心阻断场景
+
+---
+
+##### C3-6: 双写缓存收口策略定义（预估 2h）
+
+**目标**: 明确 Symbol key 与 Private key 的收口策略
+
+**当前状态分析**:
+| 路径 | Key 类型 | Key 前缀 | 调用位置 |
+|------|----------|----------|----------|
+| Symbol key | `IntermediateSymbol` | 符号标识符 | `cacheSymbolContext(symbol)` |
+| Private key | `TokenCacheKey` | `__linear_polynomial_flatten_cache__` | `Polynomial.flattenedMonomials` |
+
+**收口策略**: 采用 **选项 C** 作为 C3 临时方案，C6 删除 Polynomial 后自动解决
+- remove(symbol) 时清理 Symbol key
+- flush() 时 clearAll() 清理所有
+- Private key 仅 Polynomial 内部使用，C6 删除后自动消失
+
+**输出**: `docs/refactor-baseline/cache-double-write.md`
+
+---
+
+##### C3-7: 全量测试验证（预估 1h）
+
+**命令**: `mvn -pl ospf-kotlin-core -am test`
+
+**验收标准**:
+- ✅ 无新增失败
+- ✅ `TokenCacheContextsTest` 全绿
+- ✅ 新增 `CacheRebindTest`、`CacheKeyConflictTest` 全绿
+
+---
+
+##### C3-8: 交付物生成（预估 1h）
+
+**交付物**:
+| 文件 | 内容 |
+|------|------|
+| `docs/refactor-baseline/cache-usage.md` | 缓存调用点清单（含 key 类型标注） |
+| `docs/refactor-baseline/cache-lifecycle.md` | 缓存生命周期图（含 remove 分支） |
+| `docs/refactor-baseline/cache-tests.md` | 新增测试清单 |
+| `docs/refactor-baseline/cache-double-write.md` | 双写缓存收口策略 |
+
+#### C3 阻断点修复进度（2026-04-16）
+
+| 阻断点 | 状态 | 完成内容 |
+|--------|------|----------|
+| **B1** | ✅ 已完成 | `remove(symbol)` 增加 unbind + 四类缓存清理（linear/quadratic/range/value） |
+| **B2** | ✅ 已完成 | 同步注册链路移除重复 `cacheSymbolContext(symbol)` 调用，并发链路添加注释保持一致性 |
+| **B3** | ✅ 已完成 | 新增 3 个回归测试：并发预热、remove 重绑、双 TokenTable 重绑一致性 |
+
+**B1/B2/B3 主代码改动**:
+
+| 文件 | 改动内容 |
+|------|----------|
+| `TokenCacheContext.kt` | `ValueCacheContext.remove(cacheKey)` 新增按 key 清理能力 |
+| `TokenCacheContext.kt` | `bindTokenTableContext` 重绑时清理旧表缓存 |
+| `TokenTable.kt` | `MutableTokenTable.remove(symbol)` 增加 unbind + 四类缓存清理 |
+| `TokenTable.kt` | `ConcurrentMutableTokenTable.remove(symbol)` 同上 + synchronized |
+| `TokenTable.kt` | `AbstractTokenTable.clearValue(cacheKey)` 新增接口 + 四类实现 |
+| `TokenTable.kt` | 同步注册移除重复 `cacheSymbolContext(symbol)`，改用批量 value 预热对齐并发 |
+| `TokenTable.kt` | 并发注册添加 B2 注释保持文档一致性 |
+
+**B3 新增测试**:
+
+| 测试文件 | 测试方法 | 验收点 |
+|----------|----------|--------|
+| `TokenCacheContextsTest.kt` | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | 并发注册后缓存命中 |
+| `CacheRebindTest.kt` | `removeShouldClearCachesAndAllowRebind` | remove 后重新注册，缓存重新生成 |
+| `CacheRebindTest.kt` | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | 符号绑定新表后，旧表缓存失效 |
+
+**编译验证**:
+- ✅ `mvn -pl ospf-kotlin-core compile` 主代码通过
+- ⚠️ 测试编译失败（C2 泛型化遗留：FlattenUtilityTest、MonomialCoefficientPreservationTest 等）
+- 测试编译问题与 B1/B2/B3 改动无关，需在后续专项修复
+
+---
+
+#### C3 退出条件（修订版）
+
+1. ✅ `docs/refactor-baseline/cache-*.md` 文档存在且可复现
+2. ✅ 缓存生命周期图包含 remove 分支
+3. ✅ `remove(symbol)` 实现 unbind + 缓存清理
+4. ✅ 同步/并发两条注册链路预热效果一致
+5. ✅ 新增并发预热、remove 重绑、双 TokenTable 重绑测试通过
+6. ✅ 双写缓存收口策略文档化
+7. ✅ `mvn -pl ospf-kotlin-core -am test` 无新增失败
+
+#### C3 预估工时汇总
+
+| 步骤 | 预估 | 变化 |
+|------|------|------|
+| C3-1 | 2.5h | +0.5h（补全关键词） |
+| C3-2 | 3h | +1h（增加 remove 分支） |
+| C3-3 | 4h | +1h（增加 remove 实现） |
+| C3-4 | 4h | +1h（拆分链路验收） |
+| C3-5 | 4h | +1h（增加 3 个场景） |
+| C3-6 | 2h | 新增（双写收口策略） |
+| C3-7 | 1h | 无变化 |
+| C3-8 | 1h | 无变化 |
+| **总计** | **21.5h（约 3 天）** | +4.5h |
 
 ### 阶段 C4：MechanismModel 边界收口（1.5 天）
 

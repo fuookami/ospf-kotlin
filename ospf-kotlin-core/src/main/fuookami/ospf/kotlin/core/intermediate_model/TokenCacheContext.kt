@@ -185,6 +185,18 @@ class ValueCacheContext(
         }
         return cachedValue
     }
+
+    /**
+     * Remove all cache entries for a given cacheKey.
+     * 清除指定 cacheKey 的所有缓存条目。
+     *
+     * This removes entries from both solutionCache and fixedValueCache
+     * where the first element of the pair matches the cacheKey.
+     */
+    fun remove(cacheKey: Any) {
+        solutionCache.keys.removeAll { it.first == cacheKey }
+        fixedValueCache.keys.removeAll { it.first == cacheKey }
+    }
 }
 
 class RangeCacheContext(
@@ -262,6 +274,13 @@ private val symbolTokenTableContext = Collections.synchronizedMap(
 )
 
 internal fun bindTokenTableContext(symbol: IntermediateSymbol, tokenTable: AbstractTokenTable) {
+    val oldTokenTable = symbolTokenTableContext[symbol]
+    if (oldTokenTable != null && oldTokenTable != tokenTable) {
+        oldTokenTable.clearLinearFlatten(symbol)
+        oldTokenTable.clearQuadraticFlatten(symbol)
+        oldTokenTable.clearRange(symbol)
+        oldTokenTable.clearValue(symbol)
+    }
     symbolTokenTableContext[symbol] = tokenTable
 }
 
