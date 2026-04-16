@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -102,7 +103,7 @@ fun LinearInequality<Flt64>.toLatex(
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
-fun QuadraticInequality.toLatex(
+fun QuadraticInequalityOf<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"

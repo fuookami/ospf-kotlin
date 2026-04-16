@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -321,7 +322,7 @@ class SerializationTest {
         val symbolByName = mapOf("x" to x)
         val symbolComparator = compareBy<Symbol> { it.name }
 
-        val inequality = QuadraticInequality(
+        val inequality: QuadraticInequalityOf<Flt64> = QuadraticInequalityOf(
             lhs = QuadraticPolynomial<Flt64>(
                 monomials = listOf(
                     QuadraticMonomial.quadratic(Flt64(1.0), x, x),

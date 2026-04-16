@@ -1,6 +1,8 @@
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataOf
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataOf
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
@@ -34,7 +36,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = LinearFlattenData(
+        val flattenData = LinearFlattenDataOf<Flt64>(
             monomials = listOf(
                 UtilsLinearMonomial(Flt64(2.0), x),
                 UtilsLinearMonomial(Flt64(3.0), y)
@@ -62,7 +64,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = QuadraticFlattenData(
+        val flattenData = QuadraticFlattenDataOf<Flt64>(
             monomials = listOf(
                 UtilsQuadraticMonomial(Flt64(2.0), x, y),
                 UtilsQuadraticMonomial(Flt64(3.0), x, null)  // Linear term

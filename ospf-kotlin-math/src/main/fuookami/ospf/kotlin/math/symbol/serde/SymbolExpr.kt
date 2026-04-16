@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.parser.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.parser.ComparisonOperator
@@ -467,7 +468,7 @@ fun LinearInequality<Flt64>.toExpr(): Expr.Comparison {
     return this.toCanonicalInequality().toExpr()
 }
 
-fun QuadraticInequality.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
+fun QuadraticInequalityOf<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
     return this.toCanonicalInequality(symbolComparator).toExpr()
 }
 
@@ -880,7 +881,7 @@ fun LinearInequality<Flt64>.toJsonString(): String {
  * 将 QuadraticInequality 序列化为 JSON 字符串
  * Serialize QuadraticInequality to JSON string
  */
-fun QuadraticInequality.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+fun QuadraticInequalityOf<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
     return this.toExpr(symbolComparator).toJsonString()
 }
 

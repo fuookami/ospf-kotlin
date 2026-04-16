@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.expression.flatten
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataOf
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataOf
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatten.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -66,11 +66,11 @@ class FlattenUtilityTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val data1 = LinearFlattenData(
+        val data1 = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64(2.0), x)),
             constant = Flt64(1.0)
         )
-        val data2 = LinearFlattenData(
+        val data2 = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64(3.0), x), UtilsLinearMonomial(Flt64(1.0), y)),
             constant = Flt64(2.0)
         )
@@ -124,11 +124,11 @@ class FlattenUtilityTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val data1 = QuadraticFlattenData(
+        val data1 = QuadraticFlattenDataOf<Flt64>(
             monomials = listOf(UtilsQuadraticMonomial(Flt64(2.0), x, y)),
             constant = Flt64(1.0)
         )
-        val data2 = QuadraticFlattenData(
+        val data2 = QuadraticFlattenDataOf<Flt64>(
             monomials = listOf(UtilsQuadraticMonomial(Flt64(3.0), y, x)),  // Symmetric to data1
             constant = Flt64(2.0)
         )
@@ -147,11 +147,11 @@ class FlattenUtilityTest {
         val y = RealVar("y")
 
         // (x + 1) * (y + 1) = xy + x + y + 1
-        val lhs = LinearFlattenData(
+        val lhs = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64.one, x)),
             constant = Flt64.one
         )
-        val rhs = LinearFlattenData(
+        val rhs = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64.one, y)),
             constant = Flt64.one
         )
@@ -168,11 +168,11 @@ class FlattenUtilityTest {
         val y = RealVar("y")
 
         // x * y = xy (no linear terms)
-        val lhs = LinearFlattenData(
+        val lhs = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        val rhs = LinearFlattenData(
+        val rhs = LinearFlattenDataOf<Flt64>(
             monomials = listOf(UtilsLinearMonomial(Flt64.one, y)),
             constant = Flt64.zero
         )
@@ -193,7 +193,7 @@ class FlattenUtilityTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val data = LinearFlattenData(
+        val data = LinearFlattenDataOf<Flt64>(
             monomials = listOf(
                 UtilsLinearMonomial(Flt64(2.0), x),
                 UtilsLinearMonomial(Flt64.zero, y)  // Zero coefficient
@@ -212,7 +212,7 @@ class FlattenUtilityTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val data = QuadraticFlattenData(
+        val data = QuadraticFlattenDataOf<Flt64>(
             monomials = listOf(
                 UtilsQuadraticMonomial(Flt64(2.0), y, x),  // Different order
                 UtilsQuadraticMonomial(Flt64.zero, x, null)  // Zero coefficient

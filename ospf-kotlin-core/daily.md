@@ -533,12 +533,19 @@ C2 阶段性完成，进入 C3（缓存上收）。
 | **主代码编译** | ✅ 通过 | mvn -pl ospf-kotlin-core compile -q |
 | **全量测试** | ⏳ 阻塞 | C2 泛型化遗留导致 test-compile 失败 |
 
-**C2 阻塞清单**（非 C3 回归）:
-- FlattenUtilityTest.kt: `LinearFlattenData` vs `LinearFlattenDataOf<Flt64>` 类型不匹配
-- MonomialCoefficientPreservationTest.kt: `invoke` 类型参数错误
-- LinearPolynomialBaselineTest.kt: `evaluate` 重载歧义
-- QuadraticPolynomialBaselineTest.kt: 同上
-- SubObjectTest.kt: 类型不匹配
+**C2 阻塞清单**（非 C3 回归，共56条） ✅ 已修复 (2026-04-17):
+
+| 文件 | 错误数 | 错误类型分布 | 修复方法 |
+|------|--------|--------------|----------|
+| MonomialCoefficientPreservationTest.kt | 22 | 14×泛型参数 + 6×evaluate歧义 + 2×候选不匹配 | 移除 `<Flt64>` + 类型转换 |
+| LinearPolynomialBaselineTest.kt | 12 | 3×tokenList类型 + 4×evaluate候选 + 4×类型推断 + 1×引用错误 | `as AbstractTokenListOf<Flt64>` |
+| QuadraticPolynomialBaselineTest.kt | 12 | 同 Linear 版本 | 同上 |
+| FlattenUtilityTest.kt | 8 | 8×typealias类型不匹配 | `LinearFlattenDataOf<Flt64>` 替换 |
+| SubObjectTest.kt | 2 | 2×typealias类型不匹配 | 同上 |
+
+**根因**: Kotlin 2.2.20 typealias 身份识别变更
+**修复方案**: 修改测试文件（最小差异）- 详见 `test-compile-fix.md`
+**验证**: `mvn test-compile -pl ospf-kotlin-core -am -DskipTests=true` ✅ BUILD SUCCESS
 
 **提交记录**:
 - `0ea150fd` refactor(core): fix cache consistency blockers B1-B3 for C3 phase
@@ -803,7 +810,41 @@ override fun remove(symbol: IntermediateSymbol) {
 | C3-8 | 1h | 无变化 |
 | **总计** | **21.5h（约 3 天）** | +4.5h |
 
-### 阶段 C4：MechanismModel 边界收口（1.5 天）
+### 阶段 C4：MechanismModel 边界收口（1.5 天） ⏳ 进行中 (2026-04-16)
+
+#### C4-1 边界现状分析 ✅ 完成
+
+**分析结论**（2026-04-16）：
+
+| 发现 | 状态 | 说明 |
+|------|------|------|
+| **单入口模式** | ✅ | Linear/Quadratic 各有唯一 invoke() 入口 |
+| **内部分支** | ⚠️ | concurrent 配置分化为同步/异步两分支 |
+| **重复逻辑** | ❌ | 5 个问题点（P1-P5）需处理 |
+
+**问题点优先级清单**：
+
+| 优先级 | 问题 | 文件 | 行号 | C4 处理策略 |
+|--------|------|------|------|-------------|
+| **P1** | LinearInequality 重复转换 | MechanismModel.kt | 794-803 | 提取公共转换函数 |
+| **P2** | dumpAsync 逻辑重复 | MechanismModel.kt | 214-328, 622-731 | 提取 AbstractMechanismModel |
+| **P3** | Constraint 创建逻辑相似 | Constraint.kt | 112-207 | 提取 Cell 工厂函数 |
+| **P4** | SubObject 创建逻辑重复 | SubObject.kt | 81-181 | 提取通用处理函数 |
+| **P5** | Triad/Tetrad dump 重复 | LinearTriadModel.kt, QuadraticTetradModel.kt | 大量 | C5 阶段处理 |
+
+**交付物**：
+- `ospf-kotlin-core/docs/refactor-baseline/mechanism-boundary.md` ✅
+- `ospf-kotlin-core/docs/refactor-baseline/mechanism-plan.md` ✅
+
+#### C4-2 至 C4-5 实施步骤 ⏳ 待执行
+
+详见 `mechanism-plan.md`。
+
+**预估工时**：4h（P1-P4 处理）
+
+---
+
+#### C4 原定目标
 
 1. 明确内部模型边界：
    - MetaModel 输入（math.symbol）

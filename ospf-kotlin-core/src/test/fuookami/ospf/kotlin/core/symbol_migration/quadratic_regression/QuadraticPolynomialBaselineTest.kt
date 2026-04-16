@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListOf
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -95,7 +96,7 @@ class QuadraticPolynomialBaselineTest {
 
         val valueFromMapAndToken = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMapAndToken)
@@ -163,7 +164,7 @@ class QuadraticPolynomialBaselineTest {
             constant = Flt64(4.0)
         )
 
-        val valueFromTokenList = polynomial.evaluate(tokenList, zeroIfNone = false)
+        val valueFromTokenList = polynomial.evaluate(tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val valueFromTokenTable = polynomial.evaluate(tokenTable, zeroIfNone = false)
 
         assertNotNull(valueFromTokenList)
@@ -193,9 +194,9 @@ class QuadraticPolynomialBaselineTest {
         val monomial = x * y
         val results = listOf(Flt64(2.0), Flt64(5.0))
 
-        val polynomialByList = polynomial.evaluate(results, tokenList, zeroIfNone = false)
+        val polynomialByList = polynomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val polynomialByTable = polynomial.evaluate(results, tokenTable, zeroIfNone = false)
-        val monomialByList = monomial.evaluate(results, tokenList, zeroIfNone = false)
+        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val monomialByTable = monomial.evaluate(results, tokenTable, zeroIfNone = false)
 
         assertNotNull(polynomialByList)
@@ -304,7 +305,7 @@ class QuadraticPolynomialBaselineTest {
         val monomial = x * y
         val valueFromMap = monomial.evaluate(
             values = mapOf(x to Flt64(2.0)),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMap)
@@ -312,7 +313,7 @@ class QuadraticPolynomialBaselineTest {
 
         val valueFromTokenFallback = monomial.evaluate(
             values = emptyMap(),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromTokenFallback)

@@ -2,6 +2,7 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -160,7 +161,7 @@ class InequalityTest {
     fun quadraticInequalityShouldSupportSatisfiabilityCheck() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val inequality = QuadraticInequality(
+        val inequality: QuadraticInequalityOf<Flt64> = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(
                     QuadraticMonomial(Flt64.one, x, x),

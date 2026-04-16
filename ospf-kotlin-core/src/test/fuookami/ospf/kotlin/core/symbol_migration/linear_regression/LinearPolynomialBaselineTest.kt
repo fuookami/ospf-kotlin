@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListOf
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -93,7 +94,7 @@ class LinearPolynomialBaselineTest {
 
         val valueFromMapAndToken = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMapAndToken)
@@ -160,7 +161,7 @@ class LinearPolynomialBaselineTest {
             constant = Flt64(3.0)
         )
 
-        val valueFromTokenList = polynomial.evaluate(tokenList, zeroIfNone = false)
+        val valueFromTokenList = polynomial.evaluate(tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val valueFromTokenTable = polynomial.evaluate(tokenTable, zeroIfNone = false)
 
         assertNotNull(valueFromTokenList)
@@ -189,9 +190,9 @@ class LinearPolynomialBaselineTest {
         val monomial = LinearMonomial(3, x)
         val results = listOf(Flt64(4.0), Flt64(1.0))
 
-        val polynomialByList = polynomial.evaluate(results, tokenList, zeroIfNone = false)
+        val polynomialByList = polynomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val polynomialByTable = polynomial.evaluate(results, tokenTable, zeroIfNone = false)
-        val monomialByList = monomial.evaluate(results, tokenList, zeroIfNone = false)
+        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
         val monomialByTable = monomial.evaluate(results, tokenTable, zeroIfNone = false)
 
         assertNotNull(polynomialByList)
@@ -312,7 +313,7 @@ class LinearPolynomialBaselineTest {
         val monomial = LinearMonomial(3, x)
         val valueFromMap = monomial.evaluate(
             values = mapOf(x to Flt64(2.0)),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMap)
@@ -320,7 +321,7 @@ class LinearPolynomialBaselineTest {
 
         val valueFromTokenFallback = monomial.evaluate(
             values = emptyMap(),
-            tokenList = tokenList,
+            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
             zeroIfNone = false
         )
         assertNotNull(valueFromTokenFallback)

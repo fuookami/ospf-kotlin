@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -94,7 +95,7 @@ class LatexTest {
             ),
             comparison = Comparison.LE
         )
-        val quadratic = QuadraticInequality(
+        val quadratic: QuadraticInequalityOf<Flt64> = QuadraticInequalityOf(
             lhs = QuadraticPolynomial<Flt64>(
                 monomials = listOf(QuadraticMonomial<Flt64>(Flt64.one, x, x)),
                 constant = Flt64.zero
