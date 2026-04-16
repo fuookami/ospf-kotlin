@@ -38,15 +38,15 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
  * @property rhs 右侧二次多项式 / Right-hand quadratic polynomial
  * @property comparison 比较运算符 / Comparison operator
  */
-data class QuadraticInequality(
-    val lhs: QuadraticPolynomial<Flt64>,
-    val rhs: QuadraticPolynomial<Flt64>,
+data class QuadraticInequalityOf<T>(
+    val lhs: QuadraticPolynomial<T>,
+    val rhs: QuadraticPolynomial<T>,
     val comparison: Comparison,
     val name: String = "",
     val displayName: String = ""
 ) {
-    fun reverse(): QuadraticInequality {
-        return QuadraticInequality(
+    fun reverse(): QuadraticInequalityOf<T> {
+        return QuadraticInequalityOf(
             lhs = rhs,
             rhs = lhs,
             comparison = comparison.reverse(),
@@ -55,6 +55,9 @@ data class QuadraticInequality(
         )
     }
 }
+
+// Backward compatibility typealias (Phase 1)
+typealias QuadraticInequality = QuadraticInequalityOf<Flt64>
 
 /**
  * 将二次单项式转换为二次多项式
@@ -95,7 +98,7 @@ private fun Flt64.asQuadraticPolynomial(): QuadraticPolynomial<Flt64> {
  * 二次多项式小于比较
  * Quadratic polynomial less than comparison
  */
-infix fun QuadraticPolynomial<Flt64>.lt(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs, Comparison.LT)
+infix fun QuadraticPolynomial<Flt64>.lt(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequalityOf(this, rhs, Comparison.LT)
 
 /**
  * 二次多项式小于等于比较

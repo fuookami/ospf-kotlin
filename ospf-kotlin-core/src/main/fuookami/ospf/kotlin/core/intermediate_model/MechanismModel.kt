@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
-sealed interface MechanismModel : AutoCloseable {
+sealed interface MechanismModelOf<V> : AutoCloseable {
     val name: String
     val constraints: List<Constraint>
     val objectFunction: Object
@@ -31,7 +31,10 @@ sealed interface MechanismModel : AutoCloseable {
     }
 }
 
-interface AbstractLinearMechanismModel : MechanismModel {
+// Backward compatibility: typealias aliases (Phase 1)
+typealias MechanismModel = MechanismModelOf<Flt64>
+
+interface AbstractLinearMechanismModelOf<V> : MechanismModelOf<V> {
     /**
      * Add constraint using math LinearInequality
      */
@@ -54,7 +57,7 @@ interface AbstractLinearMechanismModel : MechanismModel {
     }
 }
 
-interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
+interface AbstractQuadraticMechanismModelOf<V> : AbstractLinearMechanismModelOf<V> {
     /**
      * Add constraint using math QuadraticInequality
      */
@@ -77,17 +80,23 @@ interface AbstractQuadraticMechanismModel : AbstractLinearMechanismModel {
     }
 }
 
-interface SingleObjectMechanismModel : MechanismModel {
+// Backward compatibility: typealias aliases (Phase 1)
+typealias AbstractLinearMechanismModel = AbstractLinearMechanismModelOf<Flt64>
+typealias AbstractQuadraticMechanismModel = AbstractQuadraticMechanismModelOf<Flt64>
+
+interface SingleObjectMechanismModelOf<V> : MechanismModelOf<V> {
     override val objectFunction: SingleObject<*>
 }
 
-class LinearMechanismModel(
-    internal val parent: LinearMetaModel,
+typealias SingleObjectMechanismModel = SingleObjectMechanismModelOf<Flt64>
+
+class LinearMechanismModelOf<V>(
+    internal val parent: LinearMetaModelOf<V>,
     override var name: String,
     constraints: List<LinearConstraint>,
     override val objectFunction: SingleObject<LinearSubObject>,
     override val tokens: AbstractTokenTable
-) : AbstractLinearMechanismModel, SingleObjectMechanismModel {
+) : AbstractLinearMechanismModelOf<V>, SingleObjectMechanismModelOf<V> {
     private val logger = logger()
 
     companion object {
@@ -472,7 +481,7 @@ class LinearMechanismModel(
 
     override fun close() {
         _constraints.clear()
-        super<AbstractLinearMechanismModel>.close()
+        tokens.close()
     }
 
     override fun toString(): String {
@@ -480,13 +489,16 @@ class LinearMechanismModel(
     }
 }
 
-class QuadraticMechanismModel(
-    internal val parent: QuadraticMetaModel,
+// Backward compatibility: typealias aliases (Phase 1)
+typealias LinearMechanismModel = LinearMechanismModelOf<Flt64>
+
+class QuadraticMechanismModelOf<V>(
+    internal val parent: QuadraticMetaModelOf<V>,
     override var name: String,
     constraints: List<QuadraticConstraint>,
     override val objectFunction: SingleObject<QuadraticSubObject>,
     override val tokens: AbstractTokenTable
-) : AbstractQuadraticMechanismModel, SingleObjectMechanismModel {
+) : AbstractQuadraticMechanismModelOf<V>, SingleObjectMechanismModelOf<V> {
     private val logger = logger()
 
     companion object {
@@ -828,13 +840,16 @@ class QuadraticMechanismModel(
 
     override fun close() {
         _constraints.clear()
-        super<AbstractQuadraticMechanismModel>.close()
+        tokens.close()
     }
 
     override fun toString(): String {
         return name
     }
 }
+
+// Backward compatibility: typealias aliases (Phase 1)
+typealias QuadraticMechanismModel = QuadraticMechanismModelOf<Flt64>
 
 
 

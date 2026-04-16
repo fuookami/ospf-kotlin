@@ -6,9 +6,24 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.intermediate_model.Sign
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+
+/**
+ * Generic constraint interface skeleton - C2-2.6 declaration layer.
+ * Phantom type parameter V for API signature; numerical kernel remains Flt64.
+ */
+interface ConstraintOf<V : RealNumber<V>> {
+    val lhs: List<CellOf<V>>
+    val sign: Sign
+    val rhs: Flt64
+    val lazy: Boolean
+    val name: String
+    val origin: MetaConstraint<*>?
+    val from: Pair<IntermediateSymbol, Boolean>?
+}
 
 typealias DualSolution = Map<Constraint, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>

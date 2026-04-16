@@ -33,27 +33,28 @@ import fuookami.ospf.kotlin.math.operator.Abs
 import fuookami.ospf.kotlin.math.operator.abs
 
 /**
- * Cell representation for linear monomials.
+ * Cell representation for linear monomials - phantom type parameter V.
  * Either a (coefficient, variable) pair or a constant value.
+ * Internal implementation uses Flt64.
  */
-data class LinearMonomialCell internal constructor(
-    val cell: Either<LinearCellPair, Flt64>
-) : Copyable<LinearMonomialCell>, MonomialCell<LinearMonomialCell> {
+data class LinearMonomialCellOf<V> internal constructor(
+    val cell: Either<LinearCellPairOf<V>, Flt64>
+) : Copyable<LinearMonomialCellOf<V>>, MonomialCell<LinearMonomialCellOf<V>> {
 
-    data class LinearCellPair(
+    data class LinearCellPairOf<V>(
         val coefficient: Flt64,
         val variable: AbstractVariableItem<*, *>
-    ) : Copyable<LinearCellPair> {
-        operator fun unaryMinus() = LinearCellPair(-coefficient, variable)
-        operator fun plus(rhs: LinearCellPair) = LinearCellPair(coefficient + rhs.coefficient, variable)
-        operator fun minus(rhs: LinearCellPair) = LinearCellPair(coefficient - rhs.coefficient, variable)
-        operator fun times(rhs: Flt64) = LinearCellPair(coefficient * rhs, variable)
-        operator fun div(rhs: Flt64) = LinearCellPair(coefficient / rhs, variable)
-        override fun copy() = LinearCellPair(coefficient, variable)
+    ) : Copyable<LinearCellPairOf<V>> {
+        operator fun unaryMinus() = LinearCellPairOf<V>(-coefficient, variable)
+        operator fun plus(rhs: LinearCellPairOf<V>) = LinearCellPairOf<V>(coefficient + rhs.coefficient, variable)
+        operator fun minus(rhs: LinearCellPairOf<V>) = LinearCellPairOf<V>(coefficient - rhs.coefficient, variable)
+        operator fun times(rhs: Flt64) = LinearCellPairOf<V>(coefficient * rhs, variable)
+        operator fun div(rhs: Flt64) = LinearCellPairOf<V>(coefficient / rhs, variable)
+        override fun copy() = LinearCellPairOf<V>(coefficient, variable)
         override fun hashCode(): Int = variable.hashCode()
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other !is LinearCellPair) return false
+            if (other !is LinearCellPairOf<*>) return false
             if (coefficient != other.coefficient) return false
             if (variable != other.variable) return false
             return true
@@ -61,12 +62,12 @@ data class LinearMonomialCell internal constructor(
     }
 
     companion object {
-        operator fun invoke(coefficient: Flt64, variable: AbstractVariableItem<*, *>) =
-            LinearMonomialCell(Either.Left(LinearCellPair(coefficient, variable)))
-        operator fun invoke(variable: AbstractVariableItem<*, *>) =
-            LinearMonomialCell(Either.Left(LinearCellPair(Flt64.one, variable)))
-        operator fun invoke(constant: Flt64) =
-            LinearMonomialCell(Either.Right(constant))
+        operator fun <V> invoke(coefficient: Flt64, variable: AbstractVariableItem<*, *>): LinearMonomialCellOf<V> =
+            LinearMonomialCellOf(Either.Left(LinearCellPairOf<V>(coefficient, variable)))
+        operator fun <V> invoke(variable: AbstractVariableItem<*, *>): LinearMonomialCellOf<V> =
+            LinearMonomialCellOf(Either.Left(LinearCellPairOf<V>(Flt64.one, variable)))
+        operator fun <V> invoke(constant: Flt64): LinearMonomialCellOf<V> =
+            LinearMonomialCellOf(Either.Right(constant))
     }
 
     val isPair by cell::isLeft
@@ -74,41 +75,41 @@ data class LinearMonomialCell internal constructor(
     val pair by cell::left
     override val constant by cell::right
 
-    override operator fun unaryMinus() = when (cell) {
-        is Either.Left -> LinearMonomialCell(Either.Left(-cell.value))
-        is Either.Right -> LinearMonomialCell(Either.Right(-cell.value))
+    override operator fun unaryMinus(): LinearMonomialCellOf<V> = when (cell) {
+        is Either.Left -> LinearMonomialCellOf(Either.Left(-cell.value))
+        is Either.Right -> LinearMonomialCellOf(Either.Right(-cell.value))
     }
 
-    override operator fun plus(rhs: LinearMonomialCell): LinearMonomialCell {
+    override operator fun plus(rhs: LinearMonomialCellOf<V>): LinearMonomialCellOf<V> {
         return when {
-            cell.isLeft && rhs.cell.isLeft -> LinearMonomialCell(Either.Left(cell.left!! + rhs.cell.left!!))
-            cell.isRight && rhs.cell.isRight -> LinearMonomialCell(Either.Right(cell.right!! + rhs.cell.right!!))
+            cell.isLeft && rhs.cell.isLeft -> LinearMonomialCellOf(Either.Left(cell.left!! + rhs.cell.left!!))
+            cell.isRight && rhs.cell.isRight -> LinearMonomialCellOf(Either.Right(cell.right!! + rhs.cell.right!!))
             else -> throw IllegalArgumentException("Cannot add monomial and constant")
         }
     }
 
-    override operator fun minus(rhs: LinearMonomialCell): LinearMonomialCell {
+    override operator fun minus(rhs: LinearMonomialCellOf<V>): LinearMonomialCellOf<V> {
         return when {
-            cell.isLeft && rhs.cell.isLeft -> LinearMonomialCell(Either.Left(cell.left!! - rhs.cell.left!!))
-            cell.isRight && rhs.cell.isRight -> LinearMonomialCell(Either.Right(cell.right!! - rhs.cell.right!!))
+            cell.isLeft && rhs.cell.isLeft -> LinearMonomialCellOf(Either.Left(cell.left!! - rhs.cell.left!!))
+            cell.isRight && rhs.cell.isRight -> LinearMonomialCellOf(Either.Right(cell.right!! - rhs.cell.right!!))
             else -> throw IllegalArgumentException("Cannot subtract monomial and constant")
         }
     }
 
-    override operator fun times(rhs: Flt64) = when (cell) {
-        is Either.Left -> LinearMonomialCell(Either.Left(cell.value * rhs))
-        is Either.Right -> LinearMonomialCell(Either.Right(cell.value * rhs))
+    override operator fun times(rhs: Flt64): LinearMonomialCellOf<V> = when (cell) {
+        is Either.Left -> LinearMonomialCellOf(Either.Left(cell.value * rhs))
+        is Either.Right -> LinearMonomialCellOf(Either.Right(cell.value * rhs))
     }
 
-    override operator fun div(rhs: Flt64) = when (cell) {
-        is Either.Left -> LinearMonomialCell(Either.Left(cell.value / rhs))
-        is Either.Right -> LinearMonomialCell(Either.Right(cell.value / rhs))
+    override operator fun div(rhs: Flt64): LinearMonomialCellOf<V> = when (cell) {
+        is Either.Left -> LinearMonomialCellOf(Either.Left(cell.value / rhs))
+        is Either.Right -> LinearMonomialCellOf(Either.Right(cell.value / rhs))
     }
 
-    override fun copy(): LinearMonomialCell {
+    override fun copy(): LinearMonomialCellOf<V> {
         return when (cell) {
-            is Either.Left -> LinearMonomialCell(cell.value.coefficient, cell.value.variable)
-            is Either.Right -> LinearMonomialCell(cell.value)
+            is Either.Left -> LinearMonomialCellOf(cell.value.coefficient, cell.value.variable)
+            is Either.Right -> LinearMonomialCellOf(cell.value)
         }
     }
 
@@ -155,6 +156,11 @@ data class LinearMonomialCell internal constructor(
         } ?: if (zeroIfNone) Flt64.zero else null
     }
 }
+
+/**
+ * Legacy typealias for Flt64-specific LinearMonomialCell.
+ */
+typealias LinearMonomialCell = LinearMonomialCellOf<Flt64>
 
 /**
  * A linear monomial: coefficient * symbol, where symbol is either a variable or an intermediate symbol.
@@ -246,13 +252,13 @@ data class LinearMonomial(
         get() = when (val sym = symbol.symbol) {
             is Either.Left -> listOf(
                 LinearMonomialCell(
-                    Either.Left(LinearMonomialCell.LinearCellPair(coefficient, sym.value))
+                    Either.Left(LinearMonomialCellOf.LinearCellPairOf<Flt64>(coefficient, sym.value))
                 )
             )
             is Either.Right -> {
                 sym.value.flattenedMonomials.monomials.map {
-                    LinearMonomialCell(it.coefficient * coefficient, it.symbol as AbstractVariableItem<*, *>)
-                } + LinearMonomialCell(sym.value.flattenedMonomials.constant * coefficient)
+                    LinearMonomialCellOf<Flt64>(it.coefficient * coefficient, it.symbol as AbstractVariableItem<*, *>)
+                } + LinearMonomialCellOf<Flt64>(sym.value.flattenedMonomials.constant * coefficient)
             }
         }
 

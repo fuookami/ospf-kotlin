@@ -3,14 +3,53 @@
 import fuookami.ospf.kotlin.core.variable.Token
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
-sealed interface Cell {
+/**
+ * Generic cell interface skeleton - C2-2.6 declaration layer.
+ * Phantom type parameter V for API signature; numerical kernel remains Flt64.
+ */
+interface CellOf<V : RealNumber<V>> {
     fun evaluate(): Flt64?
     fun evaluate(solution: List<Flt64>): Flt64?
     fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64?
 }
 
-class LinearCell(
+/**
+ * Legacy typealias for Flt64-specific Cell.
+ * Preserved for backward compatibility.
+ */
+typealias Cell = CellOf<Flt64>
+
+/**
+ * Generic linear cell interface skeleton - C2-2.6 declaration layer.
+ */
+interface LinearCellOf<V : RealNumber<V>> : CellOf<V> {
+    val coefficient: Flt64
+    val token: Token
+}
+
+/**
+ * Legacy typealias for Flt64-specific LinearCell interface.
+ */
+typealias LinearCellI = LinearCellOf<Flt64>
+
+/**
+ * Generic quadratic cell interface skeleton - C2-2.6 declaration layer.
+ */
+interface QuadraticCellOf<V : RealNumber<V>> : CellOf<V> {
+    val coefficient: Flt64
+    val token1: Token
+    val token2: Token?
+}
+
+/**
+ * Legacy typealias for Flt64-specific QuadraticCell interface.
+ */
+typealias QuadraticCellI = QuadraticCellOf<Flt64>
+
+// Legacy implementation classes (numerical kernel unchanged)
+class LinearCellImpl(
     private val tokenTable: AbstractTokenTable,
     val coefficient: Flt64,
     val token: Token
@@ -38,7 +77,7 @@ class LinearCell(
     }
 }
 
-class QuadraticCell(
+class QuadraticCellImpl(
     private val tokenTable: AbstractTokenTable,
     val coefficient: Flt64,
     val token1: Token,
@@ -90,6 +129,10 @@ class QuadraticCell(
         }
     }
 }
+
+// Legacy typealiases for implementation classes (most code uses these)
+typealias LinearCell = LinearCellImpl
+typealias QuadraticCell = QuadraticCellImpl
 
 
 

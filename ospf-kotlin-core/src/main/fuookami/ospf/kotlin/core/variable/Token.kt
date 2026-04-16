@@ -1,14 +1,19 @@
 package fuookami.ospf.kotlin.core.variable
 
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlin.random.Random
 import kotlin.random.nextULong
 
-data class Token(
+/**
+ * Generic Token - phantom type parameter T for API signature.
+ * Internal implementation uses Flt64 for solver compatibility.
+ */
+data class TokenOf<T : RealNumber<T>>(
     val variable: AbstractVariableItem<*, *>,
     val solverIndex: Int,
-    internal val refreshCallbacks: MutableMap<AbstractTokenList, (Boolean) -> Unit>
+    internal val refreshCallbacks: MutableMap<AbstractTokenListOf<T>, (Boolean) -> Unit>
 ) {
     val key by variable::key
     internal var __result: Flt64? = null
@@ -77,7 +82,7 @@ data class Token(
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
 
-        other as Token
+        other as TokenOf<*>
 
         return key == other.key
     }
@@ -85,6 +90,7 @@ data class Token(
     override fun toString() = "$name: ${result ?: "?"}"
 }
 
-
-
-
+/**
+ * Legacy typealias for Flt64-specific Token.
+ */
+typealias Token = TokenOf<Flt64>

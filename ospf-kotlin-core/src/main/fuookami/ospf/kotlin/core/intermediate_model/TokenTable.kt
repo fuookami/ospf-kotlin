@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.ExErr
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.ord
@@ -29,6 +30,41 @@ class RepeatedSymbolError(
     val symbol: IntermediateSymbol
 ) : Throwable() {
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
+}
+
+/**
+ * Generic token table interface skeleton - C2-2.5a declaration layer.
+ * Phantom type parameter V for API signature; internal numerical kernel remains Flt64.
+ * This interface coexists with the legacy AbstractTokenTable sealed interface.
+ * C2-2.5b will convert AbstractTokenTable to typealias after Expression/Polynomial deletion.
+ */
+interface AbstractTokenTableOf<V : RealNumber<V>> : AutoCloseable {
+    val category: Category
+    val tokenList: AbstractTokenListOf<V>
+    val symbols: Collection<IntermediateSymbol>
+
+    // Phantom type declarations (implementation uses Flt64 internally)
+    val tokens: Collection<TokenOf<V>> get() = tokenList.tokens
+    val tokensInSolver: List<TokenOf<V>> get() = tokenList.tokensInSolver
+    val cachedSolution: Boolean get() = tokenList.cachedSolution
+
+    fun find(item: AbstractVariableItem<*, *>): TokenOf<V>? = tokenList.find(item)
+    fun find(index: Int): TokenOf<V>? = tokenList.find(index)
+    operator fun get(index: Int): TokenOf<V> = tokenList[index]
+    fun indexOf(token: TokenOf<V>): Int? = tokenList.indexOf(token)
+
+    // Numerical kernel methods (Flt64 unchanged)
+    fun flush() {}
+    fun cached(cacheKey: Any, solution: List<Flt64>? = null): Boolean? = null
+    fun cachedValue(cacheKey: Any, solution: List<Flt64>? = null): Flt64? = null
+}
+
+/**
+ * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
+ */
+interface AbstractMutableTokenTableOf<V : RealNumber<V>> : AbstractTokenTableOf<V>, AddableTokenCollectionOf<V> {
+    fun addSymbols(symbols: Iterable<IntermediateSymbol>): Try
+    fun removeSymbol(symbol: IntermediateSymbol)
 }
 
 sealed interface AbstractTokenTable : AutoCloseable {

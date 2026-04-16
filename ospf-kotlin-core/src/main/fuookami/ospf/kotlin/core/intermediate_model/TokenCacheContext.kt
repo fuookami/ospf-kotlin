@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
@@ -16,15 +17,33 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 import java.util.Collections
 import java.util.WeakHashMap
 
-data class LinearFlattenData(
-    val monomials: List<UtilsLinearMonomial<Flt64>>,
-    val constant: Flt64
+/**
+ * Generic linear flatten data - monomials + constant.
+ * T is the numeric type (e.g., Flt64).
+ */
+data class LinearFlattenDataOf<T : RealNumber<T>>(
+    val monomials: List<UtilsLinearMonomial<T>>,
+    val constant: T
 )
 
-data class QuadraticFlattenData(
-    val monomials: List<UtilsQuadraticMonomial<Flt64>>,
-    val constant: Flt64
+/**
+ * Legacy typealias for Flt64-specific LinearFlattenData.
+ */
+typealias LinearFlattenData = LinearFlattenDataOf<Flt64>
+
+/**
+ * Generic quadratic flatten data - monomials + constant.
+ * T is the numeric type (e.g., Flt64).
+ */
+data class QuadraticFlattenDataOf<T : RealNumber<T>>(
+    val monomials: List<UtilsQuadraticMonomial<T>>,
+    val constant: T
 )
+
+/**
+ * Legacy typealias for Flt64-specific QuadraticFlattenData.
+ */
+typealias QuadraticFlattenData = QuadraticFlattenDataOf<Flt64>
 
 class LinearFlattenContext(
     private val cache: MutableMap<Any, LinearFlattenData?> = HashMap()
@@ -293,14 +312,11 @@ internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
     level = DeprecationLevel.WARNING
 )
 internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell> {
-    val cells = monomials.map {
-        LinearMonomialCell(
-            coefficient = it.coefficient,
-            variable = it.symbol as AbstractVariableItem<*, *>
-        )
+    val cells = monomials.map { m ->
+        LinearMonomialCell.invoke<Flt64>(m.coefficient, m.symbol as AbstractVariableItem<*, *>)
     }.toMutableList()
     if (constant != Flt64.zero) {
-        cells.add(LinearMonomialCell(constant))
+        cells.add(LinearMonomialCell.invoke<Flt64>(constant))
     }
     return cells
 }
@@ -362,14 +378,14 @@ internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlat
 )
 internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMonomialCell> {
     val cells = monomials.map {
-        QuadraticMonomialCell(
+        QuadraticMonomialCell.invoke<Flt64>(
             coefficient = it.coefficient,
             variable1 = it.symbol1 as AbstractVariableItem<*, *>,
             variable2 = it.symbol2 as AbstractVariableItem<*, *>?
         )
     }.toMutableList()
     if (constant != Flt64.zero) {
-        cells.add(QuadraticMonomialCell(constant))
+        cells.add(QuadraticMonomialCell.invoke<Flt64>(constant))
     }
     return cells
 }

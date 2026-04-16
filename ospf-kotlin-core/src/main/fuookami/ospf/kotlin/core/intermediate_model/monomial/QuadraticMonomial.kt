@@ -34,19 +34,20 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import org.apache.logging.log4j.kotlin.logger
 
 /**
- * Cell representation for quadratic monomials.
+ * Cell representation for quadratic monomials - phantom type parameter V.
  * Either a (coefficient, variable1, variable2?) triple or a constant value.
+ * Internal implementation uses Flt64.
  */
-data class QuadraticMonomialCell internal constructor(
-    val cell: Either<QuadraticCellTriple, Flt64>
-) : MonomialCell<QuadraticMonomialCell> {
+data class QuadraticMonomialCellOf<V> internal constructor(
+    val cell: Either<QuadraticCellTripleOf<V>, Flt64>
+) : MonomialCell<QuadraticMonomialCellOf<V>> {
     private val logger = logger()
 
-    data class QuadraticCellTriple(
+    data class QuadraticCellTripleOf<V>(
         val coefficient: Flt64,
         val variable1: AbstractVariableItem<*, *>,
         val variable2: AbstractVariableItem<*, *>?
-    ) : Cloneable, Copyable<QuadraticCellTriple> {
+    ) : Cloneable, Copyable<QuadraticCellTripleOf<V>> {
         init {
             if (variable2 != null) {
                 assert(variable1.identifier <= variable2.identifier)
@@ -56,49 +57,49 @@ data class QuadraticMonomialCell internal constructor(
             }
         }
 
-        operator fun unaryMinus(): QuadraticCellTriple {
-            return QuadraticCellTriple(-coefficient, variable1, variable2)
+        operator fun unaryMinus(): QuadraticCellTripleOf<V> {
+            return QuadraticCellTripleOf<V>(-coefficient, variable1, variable2)
         }
 
         @Throws(IllegalArgumentException::class)
-        operator fun plus(rhs: QuadraticCellTriple): QuadraticCellTriple {
+        operator fun plus(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
             if (variable1 != rhs.variable1 || variable2 != rhs.variable2) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.plus: not same variable.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.plus: not same variable.")
             }
-            return QuadraticCellTriple(coefficient + rhs.coefficient, variable1, variable2)
+            return QuadraticCellTripleOf<V>(coefficient + rhs.coefficient, variable1, variable2)
         }
 
         @Throws(IllegalArgumentException::class)
-        operator fun minus(rhs: QuadraticCellTriple): QuadraticCellTriple {
+        operator fun minus(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
             if (variable1 != rhs.variable1 || variable2 != rhs.variable2) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.minus: not same variable.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.minus: not same variable.")
             }
-            return QuadraticCellTriple(coefficient - rhs.coefficient, variable1, variable2)
+            return QuadraticCellTripleOf<V>(coefficient - rhs.coefficient, variable1, variable2)
         }
 
-        operator fun times(rhs: Flt64) = QuadraticCellTriple(coefficient * rhs, variable1, variable2)
+        operator fun times(rhs: Flt64) = QuadraticCellTripleOf<V>(coefficient * rhs, variable1, variable2)
 
         @Throws(IllegalArgumentException::class)
-        operator fun times(rhs: QuadraticCellTriple): QuadraticCellTriple {
+        operator fun times(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
             if (variable2 != null || rhs.variable2 != null) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.times: over quadratic.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.times: over quadratic.")
             }
             return if ((variable1.key ord rhs.variable1.key) is Order.Greater) {
-                QuadraticCellTriple(coefficient * rhs.coefficient, rhs.variable1, variable1)
+                QuadraticCellTripleOf<V>(coefficient * rhs.coefficient, rhs.variable1, variable1)
             } else {
-                QuadraticCellTriple(coefficient * rhs.coefficient, variable1, rhs.variable1)
+                QuadraticCellTripleOf<V>(coefficient * rhs.coefficient, variable1, rhs.variable1)
             }
         }
 
-        operator fun div(rhs: Flt64) = QuadraticCellTriple(coefficient / rhs, variable1, variable2)
+        operator fun div(rhs: Flt64) = QuadraticCellTripleOf<V>(coefficient / rhs, variable1, variable2)
 
-        override fun copy(): QuadraticCellTriple = QuadraticCellTriple(coefficient, variable1, variable2)
+        override fun copy(): QuadraticCellTripleOf<V> = QuadraticCellTripleOf<V>(coefficient, variable1, variable2)
         public override fun clone() = copy()
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-            other as QuadraticCellTriple
+            other as QuadraticCellTripleOf<*>
             if (coefficient != other.coefficient) return false
             if (variable1 != other.variable1) return false
             if (variable2 != other.variable2) return false
@@ -114,59 +115,59 @@ data class QuadraticMonomialCell internal constructor(
     }
 
     companion object {
-        operator fun invoke(linearCell: LinearMonomialCell): QuadraticMonomialCell {
+        operator fun <V> invoke(linearCell: LinearMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
             return when (val cell = linearCell.cell) {
-                is Either.Left -> QuadraticMonomialCell(
-                    Either.Left(QuadraticCellTriple(cell.value.coefficient, cell.value.variable, null))
+                is Either.Left -> QuadraticMonomialCellOf<V>(
+                    Either.Left(QuadraticCellTripleOf<V>(cell.value.coefficient, cell.value.variable, null))
                 )
-                is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value))
+                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value))
             }
         }
 
-        operator fun invoke(
+        operator fun <V> invoke(
             variable1: AbstractVariableItem<*, *>,
             variable2: AbstractVariableItem<*, *>?
-        ): QuadraticMonomialCell {
+        ): QuadraticMonomialCellOf<V> {
             return if (variable2 == null) {
-                QuadraticMonomialCell(
-                    Either.Left(QuadraticCellTriple(Flt64.one, variable1, null))
+                QuadraticMonomialCellOf<V>(
+                    Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable1, null))
                 )
             } else {
                 if ((variable1.key ord variable2.key) is Order.Greater) {
-                    QuadraticMonomialCell(
-                        Either.Left(QuadraticCellTriple(Flt64.one, variable2, variable1))
+                    QuadraticMonomialCellOf<V>(
+                        Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable2, variable1))
                     )
                 } else {
-                    QuadraticMonomialCell(
-                        Either.Left(QuadraticCellTriple(Flt64.one, variable1, variable2))
+                    QuadraticMonomialCellOf<V>(
+                        Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable1, variable2))
                     )
                 }
             }
         }
 
-        operator fun invoke(
+        operator fun <V> invoke(
             coefficient: Flt64,
             variable1: AbstractVariableItem<*, *>,
             variable2: AbstractVariableItem<*, *>?
-        ): QuadraticMonomialCell {
+        ): QuadraticMonomialCellOf<V> {
             return if (variable2 == null) {
-                QuadraticMonomialCell(
-                    Either.Left(QuadraticCellTriple(coefficient, variable1, null))
+                QuadraticMonomialCellOf<V>(
+                    Either.Left(QuadraticCellTripleOf<V>(coefficient, variable1, null))
                 )
             } else {
                 if ((variable1.key ord variable2.key) is Order.Greater) {
-                    QuadraticMonomialCell(
-                        Either.Left(QuadraticCellTriple(coefficient, variable2, variable1))
+                    QuadraticMonomialCellOf<V>(
+                        Either.Left(QuadraticCellTripleOf<V>(coefficient, variable2, variable1))
                     )
                 } else {
-                    QuadraticMonomialCell(
-                        Either.Left(QuadraticCellTriple(coefficient, variable1, variable2))
+                    QuadraticMonomialCellOf<V>(
+                        Either.Left(QuadraticCellTripleOf<V>(coefficient, variable1, variable2))
                     )
                 }
             }
         }
 
-        operator fun invoke(constant: Flt64) = QuadraticMonomialCell(Either.Right(constant))
+        operator fun <V> invoke(constant: Flt64): QuadraticMonomialCellOf<V> = QuadraticMonomialCellOf<V>(Either.Right(constant))
     }
 
     val isTriple by cell::isLeft
@@ -174,73 +175,73 @@ data class QuadraticMonomialCell internal constructor(
     val triple by cell::left
     override val constant by cell::right
 
-    override operator fun unaryMinus(): QuadraticMonomialCell {
+    override operator fun unaryMinus(): QuadraticMonomialCellOf<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCell(Either.Left(-cell.value))
-            is Either.Right -> QuadraticMonomialCell(Either.Right(-cell.value))
+            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(-cell.value))
+            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(-cell.value))
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    override operator fun plus(rhs: QuadraticMonomialCell): QuadraticMonomialCell {
+    override operator fun plus(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCell(Either.Left(cell.value + rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value + rhs.cell.value))
                 is Either.Right -> throw IllegalArgumentException("Cannot add monomial and constant")
             }
             is Either.Right -> when (rhs.cell) {
                 is Either.Left -> throw IllegalArgumentException("Cannot add monomial and constant")
-                is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value + rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value + rhs.cell.value))
             }
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    override operator fun minus(rhs: QuadraticMonomialCell): QuadraticMonomialCell {
+    override operator fun minus(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCell(Either.Left(cell.value - rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value - rhs.cell.value))
                 is Either.Right -> throw IllegalArgumentException("Cannot subtract monomial and constant")
             }
             is Either.Right -> when (rhs.cell) {
                 is Either.Left -> throw IllegalArgumentException("Cannot subtract monomial and constant")
-                is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value - rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value - rhs.cell.value))
             }
         }
     }
 
-    override fun times(rhs: Flt64): QuadraticMonomialCell {
+    override fun times(rhs: Flt64): QuadraticMonomialCellOf<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCell(Either.Left(cell.value * rhs))
-            is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value * rhs))
+            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs))
+            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value * rhs))
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: QuadraticMonomialCell): QuadraticMonomialCell {
+    operator fun times(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCell(Either.Left(cell.value * rhs.cell.value))
-                is Either.Right -> QuadraticMonomialCell(Either.Left(cell.value * rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs.cell.value))
             }
             is Either.Right -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCell(Either.Left(rhs.cell.value * cell.value))
-                is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value * rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(rhs.cell.value * cell.value))
+                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value * rhs.cell.value))
             }
         }
     }
 
-    override fun div(rhs: Flt64): QuadraticMonomialCell {
+    override fun div(rhs: Flt64): QuadraticMonomialCellOf<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCell(Either.Left(cell.value / rhs))
-            is Either.Right -> QuadraticMonomialCell(Either.Right(cell.value / rhs))
+            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value / rhs))
+            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value / rhs))
         }
     }
 
-    override fun copy(): QuadraticMonomialCell {
+    override fun copy(): QuadraticMonomialCellOf<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCell(cell.value.coefficient, cell.value.variable1, cell.value.variable2)
-            is Either.Right -> QuadraticMonomialCell(cell.value)
+            is Either.Left -> QuadraticMonomialCellOf<V>(cell.value.coefficient, cell.value.variable1, cell.value.variable2)
+            is Either.Right -> QuadraticMonomialCellOf<V>(cell.value)
         }
     }
 
@@ -281,7 +282,7 @@ data class QuadraticMonomialCell internal constructor(
         return result ?: if (zeroIfNone) Flt64.zero else null
     }
 
-    private fun evaluateFromTriple(triple: QuadraticCellTriple, tokenList: AbstractTokenList, unused: Any?): Flt64? {
+    private fun evaluateFromTriple(triple: QuadraticCellTripleOf<V>, tokenList: AbstractTokenList, unused: Any?): Flt64? {
         val token1 = tokenList.find(triple.variable1) ?: return null
         val r1 = token1.result ?: return null
         if (triple.variable2 == null) return triple.coefficient * r1
@@ -290,7 +291,7 @@ data class QuadraticMonomialCell internal constructor(
         return triple.coefficient * r1 * r2
     }
 
-    private fun evaluateFromTripleByIndex(triple: QuadraticCellTriple, results: List<Flt64>, tokenList: AbstractTokenList): Flt64? {
+    private fun evaluateFromTripleByIndex(triple: QuadraticCellTripleOf<V>, results: List<Flt64>, tokenList: AbstractTokenList): Flt64? {
         val idx1 = tokenList.indexOf(triple.variable1) ?: return null
         if (idx1 == -1) return null
         if (triple.variable2 == null) return triple.coefficient * results[idx1]
@@ -298,13 +299,18 @@ data class QuadraticMonomialCell internal constructor(
         return triple.coefficient * results[idx1] * results[idx2]
     }
 
-    private fun evaluateFromTripleByValues(triple: QuadraticCellTriple, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?): Flt64? {
+    private fun evaluateFromTripleByValues(triple: QuadraticCellTripleOf<V>, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?): Flt64? {
         val v1 = values[triple.variable1] ?: tokenList?.find(triple.variable1)?.result ?: return null
         if (triple.variable2 == null) return triple.coefficient * v1
         val v2 = values[triple.variable2] ?: tokenList?.find(triple.variable2)?.result ?: return null
         return triple.coefficient * v1 * v2
     }
 }
+
+/**
+ * Legacy typealias for Flt64-specific QuadraticMonomialCell.
+ */
+typealias QuadraticMonomialCell = QuadraticMonomialCellOf<Flt64>
 
 // ========== QuadraticMonomialSymbol ==========
 

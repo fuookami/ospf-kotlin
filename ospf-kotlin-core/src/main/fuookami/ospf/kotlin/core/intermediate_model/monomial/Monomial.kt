@@ -25,11 +25,11 @@ sealed interface MonomialCell<Self : MonomialCell<Self>>
         operator fun <Cell : MonomialCell<Cell>> invoke(constant: Flt64, category: Category): Cell {
             return when (category) {
                 is Linear -> {
-                    LinearMonomialCell(constant) as Cell
+                    LinearMonomialCellOf<Flt64>(constant) as Cell
                 }
 
                 is Quadratic -> {
-                    QuadraticMonomialCell(constant) as Cell
+                    QuadraticMonomialCellOf<Flt64>(constant) as Cell
                 }
 
                 else -> {

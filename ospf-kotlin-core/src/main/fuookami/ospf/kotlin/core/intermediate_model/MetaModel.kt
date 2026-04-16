@@ -63,13 +63,13 @@ private fun UtilsQuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.
     }
 }
 
-sealed interface MetaModel : Model, AutoCloseable {
-    class SubObject(
-        val parent: MetaModel,
+sealed interface MetaModelOf<V> : Model, AutoCloseable {
+    class SubObject<V>(
+        val parent: MetaModelOf<V>,
         val category: ObjectCategory,
         val name: String,
         val displayName: String? = null,
-        val polynomial: UtilsLinearPolynomial<Flt64>
+        val polynomial: UtilsLinearPolynomial<Flt64>  // Phase 1: internal still uses Flt64
     ) {
         fun evaluate(zeroIfNone: Boolean = false): Flt64? {
             return evaluate(
@@ -117,7 +117,7 @@ sealed interface MetaModel : Model, AutoCloseable {
     val name: String
     val constraints: List<MathConstraint>
     override val objectCategory: ObjectCategory
-    val subObjects: List<SubObject>
+    val subObjects: List<SubObject<V>>
     val tokens: AbstractMutableTokenTable
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
@@ -595,7 +595,10 @@ sealed interface MetaModel : Model, AutoCloseable {
     }
 }
 
-interface AbstractLinearMetaModel : MetaModel, LinearModel {
+// Backward compatibility: typealias aliases (Phase 1)
+typealias MetaModel = MetaModelOf<Flt64>
+
+interface AbstractLinearMetaModelOf<V> : MetaModelOf<V>, LinearModel {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
         group: MetaConstraintGroup?,
@@ -778,7 +781,10 @@ interface AbstractLinearMetaModel : MetaModel, LinearModel {
     }
 }
 
-interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
+// Backward compatibility: typealias aliases (Phase 1)
+typealias AbstractLinearMetaModel = AbstractLinearMetaModelOf<Flt64>
+
+interface AbstractQuadraticMetaModelOf<V> : MetaModelOf<V>, QuadraticModel {
     fun addConstraint(
         constraint: QuadraticMonomial,
         group: MetaConstraintGroup?,
@@ -918,6 +924,9 @@ interface AbstractQuadraticMetaModel : MetaModel, QuadraticModel {
     }
 }
 
+// Backward compatibility: typealias aliases (Phase 1)
+typealias AbstractQuadraticMetaModel = AbstractQuadraticMetaModelOf<Flt64>
+
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
@@ -926,10 +935,10 @@ data class MetaModelConfiguration(
     internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
 )
 
-abstract class AbstractMetaModel(
+abstract class AbstractMetaModelOf<V>(
     val category: Category,
     internal val configuration: MetaModelConfiguration
-) : MetaModel {
+) : MetaModelOf<V> {
     override val tokens: AbstractMutableTokenTable = if (configuration.concurrent) {
         if (configuration.manualTokenAddition) {
             ConcurrentManualAddTokenTable(category, configuration.checkTokenExists)
@@ -972,18 +981,23 @@ abstract class AbstractMetaModel(
     }
 }
 
-class LinearMetaModel(
+// Backward compatibility: typealias aliases (Phase 1)
+typealias AbstractMetaModel = AbstractMetaModelOf<Flt64>
+
+// Generic version with phantom type parameter (Phase 1: internal still uses Flt64)
+class LinearMetaModelOf<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration()
-) : AbstractMetaModel(Linear, configuration), AbstractLinearMetaModel {
+) : AbstractMetaModelOf<V>(Linear, configuration), AbstractLinearMetaModelOf<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<LinearInequalityConstraint> by ::_relationConstraints
 
-    internal val _subObjects: MutableList<MetaModel.SubObject> = ArrayList()
-    override val subObjects: List<MetaModel.SubObject> by ::_subObjects
+    internal val _subObjects: MutableList<MetaModelOf.SubObject<V>> = ArrayList()
+    @Suppress("UNCHECKED_CAST")
+    override val subObjects: List<MetaModelOf.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<LinearSubObject> = ArrayList()
@@ -996,7 +1010,7 @@ class LinearMetaModel(
         displayName: String?
     ): Try {
         _subObjects.add(
-            MetaModel.SubObject(
+            MetaModelOf.SubObject<V>(
                 parent = this,
                 category = category,
                 name = name,
@@ -1100,18 +1114,23 @@ class LinearMetaModel(
     }
 }
 
-class QuadraticMetaModel(
+// Backward compatibility: typealias aliases (Phase 1)
+typealias LinearMetaModel = LinearMetaModelOf<Flt64>
+
+// Generic version with phantom type parameter (Phase 1: internal still uses Flt64)
+class QuadraticMetaModelOf<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration()
-) : AbstractMetaModel(Quadratic, configuration), AbstractLinearMetaModel, AbstractQuadraticMetaModel {
+) : AbstractMetaModelOf<V>(Quadratic, configuration), AbstractLinearMetaModelOf<V>, AbstractQuadraticMetaModelOf<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<QuadraticInequalityConstraint> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
     val relationConstraints: List<QuadraticInequalityConstraint> by ::_relationConstraints
 
-    internal val _subObjects: MutableList<MetaModel.SubObject> = ArrayList()
-    override val subObjects: List<MetaModel.SubObject> by ::_subObjects
+    internal val _subObjects: MutableList<MetaModelOf.SubObject<V>> = ArrayList()
+    @Suppress("UNCHECKED_CAST")
+    override val subObjects: List<MetaModelOf.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject> = ArrayList()
@@ -1263,7 +1282,7 @@ class QuadraticMetaModel(
             constant = polynomial.constant
         )
         _subObjects.add(
-            MetaModel.SubObject(
+            MetaModelOf.SubObject<V>(
                 parent = this,
                 category = category,
                 name = name,
@@ -1316,6 +1335,9 @@ class QuadraticMetaModel(
         return ok
     }
 }
+
+// Backward compatibility: typealias aliases (Phase 1)
+typealias QuadraticMetaModel = QuadraticMetaModelOf<Flt64>
 
 
 
