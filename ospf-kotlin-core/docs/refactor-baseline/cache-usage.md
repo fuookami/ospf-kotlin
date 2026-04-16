@@ -291,12 +291,19 @@
 |------|------|------|--------|
 | TokenTable.kt | 684 | `cache(emptySymbols)` | 空符号 value 预热 |
 | TokenTable.kt | 684 | `cacheSymbolContexts(emptySymbols)` | 空符号 flatten/range 预热 |
-| TokenTable.kt | 717-719 | `prepareAndCache(null/fixedValues)` | FunctionSymbol value 预热（单符号） |
+| TokenTable.kt | 717-719 | `prepareAndCache(null/fixedValues)` | FunctionSymbol value 预热（单符号）⚠️ |
 | TokenTable.kt | 735-747 | `cache(symbols=map)` | **B2新增：批量 value 预热** |
 | TokenTable.kt | 756 | `cacheSymbolContexts(readySymbols)` | 批量 flatten/range 预热 |
 
 **B2修复前**：单符号 + 批量 flatten/range 预热各一次（重复）
-**B2修复后**：移除单符号调用，仅保留批量预热
+**B2修复后**：移除单符号 flatten/range 重复调用
+
+⚠️ **兼容性保留点**：同步链路保留 `prepareAndCache()` + 批量 `cache(symbols=...)`，函数符号 value 预热存在重复计算风险。
+- `prepareAndCache()` 内部调用 `cache(cacheKey=symbol)` [单符号]
+- 批量 `cache(symbols=...)` 再次写入同一 symbol 的 value 缓存
+- 并发链路仅使用批量预热，无重复
+- 当前行为：后写入覆盖前写入，功能一致但有冗余计算
+- 建议在 C6 收口时统一为批量路径
 
 ---
 
@@ -337,6 +344,27 @@
 ---
 
 ## 8. 统计汇总
+
+### 8.1 统计规则说明
+
+**统计口径定义**（避免歧义）:
+
+| 统计项 | 统计规则 | 说明 |
+|--------|----------|------|
+| **写入点** | 实际调用点（不含接口定义） | 排除 `fun cacheLinearFlatten(...)` 接口声明，仅统计调用 |
+| **读取点** | 实际调用点（含内部实现） | 含 `getOrPut` 内部读取，不含接口定义 |
+| **清理点（单点）** | 实际调用点 + 重绑清理 | 含四类TokenTable实现调用、bind重绑清理 |
+| **清理点（批量）** | 实际调用点（不含方法定义） | 仅统计 `clearAll()` 等实际调用，不含函数定义行 |
+| **移除点** | remove(symbol) 实现体调用 | 含缓存清理 + unbind 调用 |
+| **绑定/解绑** | 实际调用点 | 含 bind/unbind/bound 三类 |
+| **失效点** | 实际调用点 + clearAll 调用 | 含 TokenTable.flush 内的 clearAll 调用 |
+
+**3.2 批量清理统计说明**:
+- 表格展开项含函数定义（如 `TokenCacheContext.kt:244 clearLinearFlatten()` 定义）
+- 统计汇总仅计实际调用（如 `TokenTable.kt:338 cacheContexts.clearAll()`）
+- 定义行不计入统计，仅作文档参考
+
+### 8.2 统计汇总表
 
 | 分类 | Symbol key | Private key | 总计 |
 |------|------------|-------------|------|
