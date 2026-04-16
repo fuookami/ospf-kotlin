@@ -692,7 +692,7 @@ override fun remove(symbol: IntermediateSymbol) {
 - flush() 时 clearAll() 清理所有
 - Private key 仅 Polynomial 内部使用，C6 删除后自动消失
 
-**输出**: `docs/refactor-baseline/cache-double-write.md`
+**输出**: `ospf-kotlin-core/docs/refactor-baseline/cache-double-write.md`（仓库根路径口径）
 
 ---
 
@@ -754,7 +754,7 @@ override fun remove(symbol: IntermediateSymbol) {
 
 #### C3 退出条件（修订版）
 
-1. ✅ `docs/refactor-baseline/cache-*.md` 文档存在且可复现
+1. ✅ `ospf-kotlin-core/docs/refactor-baseline/cache-*.md` 文档存在且可复现（仓库根路径口径）
 2. ✅ 缓存生命周期图包含 remove 分支
 3. ✅ `remove(symbol)` 实现 unbind + 缓存清理
 4. ✅ 同步/并发两条注册链路预热效果一致
@@ -840,7 +840,7 @@ override fun remove(symbol: IntermediateSymbol) {
 - 建议提交信息：
   - `chore(core): add refactor baseline inventories for symbol exposure and numeric concretization`
 - 主要改动：
-  - 新增 `docs/refactor-baseline/`（API 暴露清单、`Flt64/Double` 固化点、`.cells` 调用点）
+  - 新增 `ospf-kotlin-core/docs/refactor-baseline/`（API 暴露清单、`Flt64/Double` 固化点、`.cells` 调用点）
   - 新增或更新扫描脚本（例如 `scripts/refactor-baseline.ps1`）
 - 必跑命令：
   - `mvn -pl ospf-kotlin-core -am test -DskipTests`
