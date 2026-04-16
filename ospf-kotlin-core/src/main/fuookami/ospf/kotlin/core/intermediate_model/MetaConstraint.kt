@@ -78,8 +78,9 @@ interface MetaConstraintGroup {
         message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addConstraint(constraint.toLinearPolynomial() eq true, lazy, name, displayName, args, withRangeSet)",
-            "fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality"
+            "addConstraint(constraint.toLinearPolynomial() eq Flt64.one, lazy, name, displayName, args, withRangeSet)",
+            "fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
         )
     )
     fun AbstractLinearMetaModel.addConstraint(
@@ -233,8 +234,9 @@ interface MetaConstraintGroup {
         message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addConstraint(constraint.toQuadraticPolynomial() eq true, lazy, name, displayName, args, withRangeSet)",
-            "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality"
+            "addConstraint(constraint.toQuadraticPolynomial() eq Flt64.one, lazy, name, displayName, args, withRangeSet)",
+            "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
         )
     )
     fun AbstractQuadraticMetaModel.addConstraint(
