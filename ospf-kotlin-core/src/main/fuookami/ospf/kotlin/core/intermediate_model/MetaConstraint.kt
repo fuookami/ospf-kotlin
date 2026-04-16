@@ -74,6 +74,14 @@ interface MetaConstraintGroup {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "addConstraint(constraint.toLinearPolynomial() eq true, lazy, name, displayName, args, withRangeSet)",
+            "fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality"
+        )
+    )
     fun AbstractLinearMetaModel.addConstraint(
         constraint: AbstractLinearPolynomial<*>,
         lazy: Boolean? = null,
@@ -178,6 +186,14 @@ interface MetaConstraintGroup {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "addConstraint(polynomial.toLinearPolynomial() eq Flt64.one, lazy, name, displayName, args)",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
+        )
+    )
     fun AbstractLinearMetaModel.partition(
         polynomial: AbstractLinearPolynomial<*>,
         lazy: Boolean? = null,
@@ -213,6 +229,14 @@ interface MetaConstraintGroup {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "addConstraint(constraint.toQuadraticPolynomial() eq true, lazy, name, displayName, args, withRangeSet)",
+            "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality"
+        )
+    )
     fun AbstractQuadraticMetaModel.addConstraint(
         constraint: AbstractQuadraticPolynomial<*>,
         lazy: Boolean? = null,
@@ -293,6 +317,14 @@ interface MetaConstraintGroup {
         )
     }
 
+    @Deprecated(
+        message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "addConstraint(polynomial.toQuadraticPolynomial() eq Flt64.one, lazy, name, displayName, args)",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
+        )
+    )
     fun AbstractQuadraticMetaModel.partition(
         polynomial: AbstractQuadraticPolynomial<*>,
         lazy: Boolean? = null,

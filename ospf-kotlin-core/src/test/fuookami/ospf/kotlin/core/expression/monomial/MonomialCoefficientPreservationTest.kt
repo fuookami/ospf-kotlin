@@ -6,6 +6,12 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
 import fuookami.ospf.kotlin.core.variable.AbstractTokenList
 import fuookami.ospf.kotlin.core.variable.Token
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialSymbol
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialSymbol
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotEquals
