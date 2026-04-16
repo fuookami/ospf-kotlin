@@ -548,7 +548,7 @@ C2 阶段性完成，进入 C3（缓存上收）。
 | 绑定 | `bindTokenTableContext`, `unbindTokenTableContext`, `boundTokenTableContext` | 上下文 |
 | 移除 | `remove(symbol` | 符号移除 |
 
-**输出**: `docs/refactor-baseline/cache-usage.md`
+**输出**: `ospf-kotlin-core/docs/refactor-baseline/cache-usage.md`（仓库根路径口径）
 
 **验收**: 清单可复现，包含文件名、行号、调用上下文、路径类型（Symbol key / Private key）
 
@@ -587,7 +587,7 @@ C2 阶段性完成，进入 C3（缓存上收）。
               [问题：Private key 缓存不在 clearAll 管理范围内]
 ```
 
-**输出**: `docs/refactor-baseline/cache-lifecycle.md`
+**输出**: `ospf-kotlin-core/docs/refactor-baseline/cache-lifecycle.md`（仓库根路径口径）
 
 ---
 
@@ -709,13 +709,13 @@ override fun remove(symbol: IntermediateSymbol) {
 
 ##### C3-8: 交付物生成（预估 1h）
 
-**交付物**:
+**交付物**（仓库根路径口径）:
 | 文件 | 内容 |
 |------|------|
-| `docs/refactor-baseline/cache-usage.md` | 缓存调用点清单（含 key 类型标注） |
-| `docs/refactor-baseline/cache-lifecycle.md` | 缓存生命周期图（含 remove 分支） |
-| `docs/refactor-baseline/cache-tests.md` | 新增测试清单 |
-| `docs/refactor-baseline/cache-double-write.md` | 双写缓存收口策略 |
+| `ospf-kotlin-core/docs/refactor-baseline/cache-usage.md` | 缓存调用点清单（含 key 类型标注） |
+| `ospf-kotlin-core/docs/refactor-baseline/cache-lifecycle.md` | 缓存生命周期图（含 remove 分支） |
+| `ospf-kotlin-core/docs/refactor-baseline/cache-tests.md` | 新增测试清单 |
+| `ospf-kotlin-core/docs/refactor-baseline/cache-double-write.md` | 双写缓存收口策略 |
 
 #### C3 阻断点修复进度（2026-04-16）
 
