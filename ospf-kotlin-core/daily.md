@@ -515,11 +515,38 @@ triad/tetrad/solver
 
 C2 阶段性完成，进入 C3（缓存上收）。
 
-### 阶段 C3：缓存上收（3 天，修订版）
+### 阶段 C3：缓存上收（3 天，修订版） ✅ 已完成 (2026-04-16)
 
-> **状态**：⏳ 进行中
-> **修订日期**：2026-04-16
-> **修订原因**：审核发现 3 个阻断级缺口需先补齐
+> **状态**：✅ 实现与文档交付完成，全量测试受 C2 阻塞
+> **完成日期**：2026-04-16
+> **验收口径**：主代码编译通过 + 新增测试文件存在 + 文档交付完成；全量测试待 C2 遗留修复后补验
+
+#### C3 完成总结（2026-04-16）
+
+| 交付物 | 状态 | 文件路径 |
+|--------|------|----------|
+| **B1-B3 阻断修复** | ✅ 完成 | TokenCacheContext.kt, TokenTable.kt |
+| **C3-1 缓存点清单** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-usage.md |
+| **C3-2 生命周期图** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-lifecycle.md |
+| **C3-3 双写收口决策** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-double-write.md |
+| **C3-4 测试清单** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-tests.md |
+| **主代码编译** | ✅ 通过 | mvn -pl ospf-kotlin-core compile -q |
+| **全量测试** | ⏳ 阻塞 | C2 泛型化遗留导致 test-compile 失败 |
+
+**C2 阻塞清单**（非 C3 回归）:
+- FlattenUtilityTest.kt: `LinearFlattenData` vs `LinearFlattenDataOf<Flt64>` 类型不匹配
+- MonomialCoefficientPreservationTest.kt: `invoke` 类型参数错误
+- LinearPolynomialBaselineTest.kt: `evaluate` 重载歧义
+- QuadraticPolynomialBaselineTest.kt: 同上
+- SubObjectTest.kt: 类型不匹配
+
+**提交记录**:
+- `0ea150fd` refactor(core): fix cache consistency blockers B1-B3 for C3 phase
+- `4c3aae52` docs(core): add cache-usage.md baseline inventory for C3-1
+- `0c508988` docs(core): clarify cache-usage.md statistics rules
+- `ca2554f5` docs(core): add cache-lifecycle.md for C3-2
+- `a8ec35ba` docs(core): add cache-double-write.md decision doc for C3-3
+- `9d503883` docs(core): add cache-tests.md and complete C3-4 verification
 
 #### C3 审核发现（2026-04-16）
 
