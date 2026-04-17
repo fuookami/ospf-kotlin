@@ -712,15 +712,8 @@ fun Collection<IntermediateSymbol>.register(
                 null -> {}
 
                 is Ok -> {
-                    // B2: Keep function-symbol compatibility path; full value-cache alignment is handled by the batch pass below
-                    // B2: 保留函数符号兼容路径；value 缓存全量对齐由下方批量阶段统一处理
-                    if (fixedValues.isNullOrEmpty()) {
-                        symbol.prepareAndCache(null, tokenTable)
-                    } else {
-                        symbol.prepareAndCache(fixedValues, tokenTable)
-                    }
-                    // Removed duplicated single-symbol flatten/range preheat.
-                    // 已移除单符号 flatten/range 预热重复调用。
+                    // Value cache is written once by the batch cache(symbols=...) below.
+                    // No per-symbol prepareAndCache here to avoid duplicate value computation.
                 }
 
                 is Failed -> {
@@ -743,8 +736,8 @@ fun Collection<IntermediateSymbol>.register(
                 return Fatal(result.errors)
             }
         }
-        // B2: Batch write value cache for all ready symbols to align with concurrent register path
-        // B2: 为所有就绪符号批量写入 value 缓存，与并发注册链路保持一致
+        // Batch write value cache for all ready symbols (single computation, aligned with concurrent path)
+        // 为所有就绪符号批量写入 value 缓存（单次计算，与并发链路一致）
         tokenTable.cache(
             symbols = readySymbols.associateWithNotNull {
                 if (fixedValues.isNullOrEmpty()) {

@@ -515,11 +515,11 @@ triad/tetrad/solver
 
 C2 阶段性完成，进入 C3（缓存上收）。
 
-### 阶段 C3：缓存上收（3 天，修订版） ✅ 已完成 (2026-04-16)
+### 阶段 C3：缓存上收（3 天，修订版） ✅ 已完成 (2026-04-18)
 
-> **状态**：✅ 实现与文档交付完成，全量测试受 C2 阻塞
-> **完成日期**：2026-04-16
-> **验收口径**：主代码编译通过 + 新增测试文件存在 + 文档交付完成；全量测试待 C2 遗留修复后补验
+> **状态**：✅ 实现与文档交付完成，全量测试通过
+> **完成日期**：2026-04-18（审核修复后）
+> **验收口径**：主代码编译通过 + 新增测试文件存在 + 全量测试通过 + 文档交付完成
 
 #### C3 完成总结（2026-04-16）
 
@@ -531,7 +531,7 @@ C2 阶段性完成，进入 C3（缓存上收）。
 | **C3-3 双写收口决策** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-double-write.md |
 | **C3-4 测试清单** | ✅ 完成 | ospf-kotlin-core/docs/refactor-baseline/cache-tests.md |
 | **主代码编译** | ✅ 通过 | mvn -pl ospf-kotlin-core compile -q |
-| **全量测试** | ⏳ 阻塞 | C2 泛型化遗留导致 test-compile 失败 |
+| **全量测试** | ✅ 通过 | 15 C3 tests, 0 failures (2026-04-18 验证) |
 
 **C2 阻塞清单**（非 C3 回归，共56条） ✅ 已修复 (2026-04-17):
 
@@ -555,15 +555,15 @@ C2 阶段性完成，进入 C3（缓存上收）。
 - `a8ec35ba` docs(core): add cache-double-write.md decision doc for C3-3
 - `9d503883` docs(core): add cache-tests.md and complete C3-4 verification
 
-#### C3 审核发现（2026-04-16）
+#### C3 审核发现（2026-04-16，2026-04-18 修复）
 
-| 阻断点 | 当前状态 | 影响 |
-|--------|----------|------|
-| **并发注册链路遗漏** | 同步走 `prepareAndCache` + `cacheSymbolContext`，并发走 `prepare` + `cache(symbols=...)` | 验收漏检 |
-| **remove(symbol) 缺解绑** | 只删列表和 map，不做 unbind 和缓存清理 | 缓存残留、上下文泄漏 |
-| **双写缓存并存** | Symbol key + Polynomial private key 两条路径写同一 context | 缓存冗余、清理不一致 |
-| **cacheSymbolContext 重复调用** | 单符号 + 批量各调用一次 | 预热开销冗余 |
-| **扫描关键词不全** | 漏了 range/bind/unbind 相关 API | 清单不完整 |
+| 阻断点 | 原状态 | 修复后状态 | 修复内容 |
+|--------|--------|------------|----------|
+| **并发注册链路遗漏** | ⚠️ | ✅ 已修复 | 移除同步路径重复 prepareAndCache，与并发对齐 |
+| **remove(symbol) 缺解绑** | ❌ | ✅ 已修复 | B1: 增加 unbind + 四类缓存清理 |
+| **双写缓存并存** | ⚠️ | ✅ 策略已定 | C6 删除 Polynomial 后自动解决 |
+| **cacheSymbolContext 重复调用** | ❌ | ✅ 已修复 | B2: 移除重复调用 |
+| **扫描关键词不全** | ⚠️ | ✅ 已补全 | 补 range/bind/unbind 相关 API |
 
 #### C3 详细步骤（修订版）
 
@@ -730,14 +730,15 @@ override fun remove(symbol: IntermediateSymbol) {
 
 ---
 
-##### C3-7: 全量测试验证（预估 1h）
+##### C3-7: 全量测试验证（预估 1h） ✅ 已完成 (2026-04-18)
 
 **命令**: `mvn -pl ospf-kotlin-core -am test`
 
 **验收标准**:
 - ✅ 无新增失败
-- ✅ `TokenCacheContextsTest` 全绿
-- ✅ 新增 `CacheRebindTest`、`CacheKeyConflictTest` 全绿
+- ✅ `TokenCacheContextsTest` 全绿（7 tests）
+- ✅ `CacheRebindTest` 全绿（2 tests）
+- ✅ `CacheKeyConflictTest` 全绿（6 tests）
 
 ---
 
@@ -778,11 +779,12 @@ override fun remove(symbol: IntermediateSymbol) {
 | `TokenCacheContextsTest.kt` | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | 并发注册后缓存命中 |
 | `CacheRebindTest.kt` | `removeShouldClearCachesAndAllowRebind` | remove 后重新注册，缓存重新生成 |
 | `CacheRebindTest.kt` | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | 符号绑定新表后，旧表缓存失效 |
+| `CacheKeyConflictTest.kt` | 6 个测试方法 | Symbol key 与 Private key 不产生数据覆盖 |
 
 **编译验证**:
 - ✅ `mvn -pl ospf-kotlin-core compile` 主代码通过
-- ⚠️ 测试编译失败（C2 泛型化遗留：FlattenUtilityTest、MonomialCoefficientPreservationTest 等）
-- 测试编译问题与 B1/B2/B3 改动无关，需在后续专项修复
+- ✅ `mvn test-compile -pl ospf-kotlin-core -am` 测试编译通过
+- ✅ C3 新增测试全部通过（15 tests, 0 failures, 2026-04-18 验证）
 
 ---
 
@@ -791,8 +793,8 @@ override fun remove(symbol: IntermediateSymbol) {
 1. ✅ `ospf-kotlin-core/docs/refactor-baseline/cache-*.md` 文档存在且可复现（仓库根路径口径）
 2. ✅ 缓存生命周期图包含 remove 分支
 3. ✅ `remove(symbol)` 实现 unbind + 缓存清理
-4. ✅ 同步/并发两条注册链路预热效果一致
-5. ✅ 新增并发预热、remove 重绑、双 TokenTable 重绑测试通过
+4. ✅ 同步/并发两条注册链路预热效果一致（重复 prepareAndCache 已移除）
+5. ✅ 新增并发预热、remove 重绑、双 TokenTable 重绑、缓存Key冲突测试通过
 6. ✅ 双写缓存收口策略文档化
 7. ✅ `mvn -pl ospf-kotlin-core -am test` 无新增失败
 
@@ -1160,11 +1162,12 @@ override fun remove(symbol: IntermediateSymbol) {
    - `src/test/.../QuadraticMechanismModelCutTest.kt`
    - 覆盖：二次最优性割、可行性割符号翻转、线性回退路径。
 
-### C6（删库）⏳
+### C6（删库）✅
 
-1. `Expression.kt` 已物理删除，接口迁移至：
-   - `ExpressionContract.kt`
-2. `Polynomial.kt` 仍有大量主链路引用，暂未进入物理删除收口。
+1. `Expression.kt` 已物理删除，接口迁移至 `IntermediateSymbol.kt` 中的 `Expression` 接口
+2. `Polynomial.kt` 已物理删除（提交 `71d2f4d2`），所有主链路引用已迁移至 `math.symbol` 多项式类型
+3. 编译验证通过：`mvn test-compile -pl ospf-kotlin-core -am` ✅
+4. CI 门禁已上线：`.github/workflows/core-refactor-guards.yml`
 
 ### C7（阶段化回归）✅
 

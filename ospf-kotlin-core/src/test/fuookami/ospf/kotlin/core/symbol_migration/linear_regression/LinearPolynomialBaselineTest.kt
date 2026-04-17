@@ -213,8 +213,8 @@ class LinearPolynomialBaselineTest {
         tokenTable.setSolution(mapOf(x to Flt64(9.0)))
 
         val expression = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(
-                monomials = listOf(LinearMonomial(2, x)),
+            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr"
@@ -249,8 +249,8 @@ class LinearPolynomialBaselineTest {
         val results = listOf(Flt64(4.0))
 
         val expression = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(
-                monomials = listOf(LinearMonomial(2, x)),
+            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr_results"

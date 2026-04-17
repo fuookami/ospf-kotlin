@@ -341,19 +341,17 @@ flowchart TB
 | 环节 | 同步注册 | 并发注册 | 一致性 |
 |------|----------|----------|--------|
 | **空符号预热** | `cache(emptySymbols)` + `cacheSymbolContexts()` | 同 | ✅ |
-| **FunctionSymbol预热** | `prepareAndCache()` [单符号] + 批量 | 仅批量 | ⚠️ 有差异 |
-| **value预热** | `prepareAndCache`内 + 批量`cache(symbols)` | 仅批量`cache(symbols)` | ⚠️ 同步有重复 |
+| **FunctionSymbol预热** | 仅批量 | 仅批量 | ✅ 已对齐 |
+| **value预热** | 批量`cache(symbols)` | 仅批量`cache(symbols)` | ✅ 已对齐 |
 | **flatten/range预热** | 批量`cacheSymbolContexts()` | 批量`cacheSymbolContexts()` | ✅ |
 | **缓存命中效果** | 最终覆盖写入 | 最终覆盖写入 | ✅ 功能一致 |
 
-**兼容性保留点标注**:
+**同步/并发对齐修复（2026-04-18）**:
 
-⚠️ **同步链路 prepareAndCache + 批量 cache 重复问题**:
-- 同步注册保留 `prepareAndCache()` 调用（历史兼容）
-- `prepareAndCache()` 内部调用 `cache(cacheKey=symbol)`
-- 批量 `cache(symbols=...)` 再次写入同一 symbol
-- 结果：后写入覆盖前写入，功能一致但有冗余计算
-- 建议在 C6 收口时移除 `prepareAndCache()`，统一为批量路径
+✅ **同步链路重复 prepareAndCache 已移除**:
+- 同步注册原保留 `prepareAndCache()` 调用（历史兼容），导致重复 value 计算
+- 已移除 `prepareAndCache()` 调用，统一为批量 `cache(symbols=...)` 路径
+- 同步/并发两条链路现在完全对齐
 
 ---
 
@@ -392,9 +390,9 @@ flowchart TB
 | 1. cache-*.md 文档存在 | ✅ | cache-usage.md + cache-lifecycle.md |
 | 2. 生命周期图含 remove/重绑分支 | ✅ | ASCII + Mermaid 图覆盖 |
 | 3. remove(symbol) 实现 unbind + 四类清理 | ✅ | B1 已实现 |
-| 4. 同步/并发链路预热效果一致 | ⚠️ | 功能一致，但有冗余计算（已标注） |
-| 5. 新增 3 个回归测试通过 | ⏳ | 待 C2 遗留修复后验证 |
-| 6. 双写缓存收口策略文档化 | ⏳ | 待 C3-3 生成 |
+| 4. 同步/并发链路预热效果一致 | ✅ | 同步链路已移除重复 prepareAndCache，与并发对齐 |
+| 5. 新增 3 个回归测试通过 | ✅ | TokenCacheContextsTest + CacheRebindTest + CacheKeyConflictTest 全绿 |
+| 6. 双写缓存收口策略文档化 | ✅ | cache-double-write.md 已生成 |
 | 7. 主代码编译通过 | ✅ | 已验证 |
 
 ---
@@ -403,10 +401,10 @@ flowchart TB
 
 | 步骤 | 内容 | 状态 |
 |------|------|------|
-| C3-3 | 双写缓存收口策略 | ⏳ 待执行 |
-| C3-4 | 全量测试验证 | ⏳ 待 C2 修复后 |
-| C3-5 | 交付物生成 | ⏳ 待执行 |
-| C6 | 删除 Polynomial.kt | ⏳ 预留 |
+| C3-3 | 双写缓存收口策略 | ✅ cache-double-write.md |
+| C3-4 | 全量测试验证 | ✅ 15 tests, 0 failures |
+| C3-5 | 交付物生成 | ✅ cache-*.md 全部就位 |
+| C6 | 删除 Polynomial.kt | ✅ 已完成 |
 
 **C6 收口建议**:
 - 移除同步链路 `prepareAndCache()` 调用，统一为批量路径

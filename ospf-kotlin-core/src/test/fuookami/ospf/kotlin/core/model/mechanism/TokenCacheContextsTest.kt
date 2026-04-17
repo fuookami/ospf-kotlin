@@ -18,7 +18,7 @@ class TokenCacheContextsTest {
     @Test
     fun valueCacheContextShouldSeparateSolutionAndFixedCacheKey() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "value_context_symbol"
         )
         val context = ValueCacheContext()
@@ -39,7 +39,7 @@ class TokenCacheContextsTest {
     @Test
     fun tokenCacheContextsShouldFlushIndependently() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "context_flush_symbol"
         )
         val contexts = TokenCacheContexts()
@@ -65,7 +65,7 @@ class TokenCacheContextsTest {
     @Test
     fun tokenTableShouldExposeFlattenAndRangeContext() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "table_context_symbol"
         )
         val tokenTable = AutoTokenTable(Linear, false)
@@ -85,7 +85,7 @@ class TokenCacheContextsTest {
     @Test
     fun registerShouldPopulateFlattenAndRangeContext() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "register_context_symbol"
         )
         val tokenTable = AutoTokenTable(Linear, false)
@@ -99,7 +99,7 @@ class TokenCacheContextsTest {
     @Test
     fun closeShouldUnbindTokenTableContext() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "close_context_symbol"
         )
         val tokenTable = AutoTokenTable(Linear, false)
@@ -114,7 +114,7 @@ class TokenCacheContextsTest {
     @Test
     fun contextsShouldSupportNonSymbolCacheKey() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "nonsymbol_cache_key"
         )
         val monomialKey = newTokenCacheKey(Linear, "__monomial_cache_key__")
@@ -139,7 +139,7 @@ class TokenCacheContextsTest {
     @Test
     fun concurrentRegisterShouldPreheatValueFlattenAndRangeCache() = runBlocking {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "concurrent_register_context_symbol"
         )
         val tokenTable = ConcurrentAutoTokenTable(Linear, false)

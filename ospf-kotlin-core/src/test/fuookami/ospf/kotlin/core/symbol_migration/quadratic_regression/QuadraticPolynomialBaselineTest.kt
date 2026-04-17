@@ -217,8 +217,8 @@ class QuadraticPolynomialBaselineTest {
         tokenTable.setSolution(mapOf(x to Flt64(5.0)))
 
         val symbol = QuadraticExpressionSymbol(
-            polynomial = QuadraticPolynomial(
-                monomials = listOf(x * x),
+            _utilsPolynomial = fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial(
+                monomials = listOf(fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.quadratic(Flt64.one, x, x)),
                 constant = Flt64.one
             ),
             name = "q_linear"

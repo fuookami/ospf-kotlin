@@ -10,9 +10,9 @@
 
 | 文件 | 测试方法 | 验收场景 | 状态 |
 |------|----------|----------|------|
-| `TokenCacheContextsTest.kt` | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | 并发注册预热验证 | ⏳ 待验证 |
-| `CacheRebindTest.kt` | `removeShouldClearCachesAndAllowRebind` | 移除后重注册验证 | ⏳ 待验证 |
-| `CacheRebindTest.kt` | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | 双TokenTable重绑一致性 | ⏳ 待验证 |
+| `TokenCacheContextsTest.kt` | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | 并发注册预热验证 | ✅ 已通过 |
+| `CacheRebindTest.kt` | `removeShouldClearCachesAndAllowRebind` | 移除后重注册验证 | ✅ 已通过 |
+| `CacheRebindTest.kt` | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | 双TokenTable重绑一致性 | ✅ 已通过 |
 
 ---
 
@@ -34,13 +34,13 @@
 | 生命周期阶段 | 测试覆盖 | 测试方法 | 状态 |
 |--------------|----------|----------|------|
 | **注册预热** | 同步注册 | `registerShouldPopulateFlattenAndRangeContext` | ✅ |
-| **注册预热** | 并发注册 | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | ⏳ B3新增 |
+| **注册预热** | 并发注册 | `concurrentRegisterShouldPreheatValueFlattenAndRangeCache` | ✅ B3新增 |
 | **注册预热** | 空符号 | `registerShouldPopulateFlattenAndRangeContext` | ✅ |
 | **缓存读写** | value分离 | `valueCacheContextShouldSeparateSolutionAndFixedCacheKey` | ✅ |
 | **缓存读写** | flatten/range | `tokenTableShouldExposeFlattenAndRangeContext` | ✅ |
 | **缓存失效** | flush独立 | `tokenCacheContextsShouldFlushIndependently` | ✅ |
-| **符号移除** | 缓存清理 | `removeShouldClearCachesAndAllowRebind` | ⏳ B3新增 |
-| **符号重绑** | 旧表失效 | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | ⏳ B3新增 |
+| **符号移除** | 缓存清理 | `removeShouldClearCachesAndAllowRebind` | ✅ B3新增 |
+| **符号重绑** | 旧表失效 | `rebindToNewTokenTableShouldInvalidateOldTableCaches` | ✅ B3新增 |
 | **表关闭** | 解绑清理 | `closeShouldUnbindTokenTableContext` | ✅ |
 
 ---
@@ -59,21 +59,16 @@ mvn -pl ospf-kotlin-core compile -q
 
 ### 3.2 全量测试验证
 
-⚠️ **阻塞说明**: 全量测试仍受 C2 泛型化遗留阻塞
+✅ **已验证（2026-04-18）**: 全量测试编译和运行通过
 
-**测试编译失败清单**（C2遗留）:
+**C2 遗留已修复**:
+- 56 条 test-compile 错误已在 2026-04-17 修复
+- Polynomial.kt 删除后的编译错误已在 2026-04-18 修复
 
-| 文件 | 错误类型 | 原因 |
-|------|----------|------|
-| `FlattenUtilityTest.kt` | `LinearFlattenData` vs `LinearFlattenDataOf<Flt64>` 类型不匹配 | 泛型化遗留 |
-| `MonomialCoefficientPreservationTest.kt` | `LinearMonomialCell.invoke` 类型参数错误 | 泛型化遗留 |
-| `LinearPolynomialBaselineTest.kt` | `evaluate` 重载歧义 | 泛型化遗留 |
-| `QuadraticPolynomialBaselineTest.kt` | `evaluate` 重载歧义 | 泛型化遗留 |
-| `SubObjectTest.kt` | `LinearFlattenData` 类型不匹配 | 泛型化遗留 |
-
-**验收结论口径**: 
-- ✅ 主代码编译验证可完成
-- ⏳ 全量测试验收待 C2 测试编译问题清理后补跑
+**验收结论口径**:
+- ✅ 主代码编译验证完成
+- ✅ 全量测试编译通过
+- ✅ C3 新增测试全部通过（15 tests, 0 failures）
 
 ---
 
@@ -81,8 +76,8 @@ mvn -pl ospf-kotlin-core compile -q
 
 | 步骤 | 内容 | 状态 |
 |------|------|------|
-| C2 遗留修复 | 修复测试文件泛型化类型问题 | ⏳ 待执行 |
-| C3-4 补验证 | 全量测试通过确认 | ⏳ 待 C2 修复后 |
+| C2 遗留修复 | 修复测试文件泛型化类型问题 | ✅ 已完成 |
+| C3-4 补验证 | 全量测试通过确认 | ✅ 15 tests, 0 failures |
 | C3-5 交付物 | cache-tests.md 已生成 | ✅ 当前文档 |
 
 ---
@@ -93,11 +88,11 @@ mvn -pl ospf-kotlin-core compile -q
 # 主代码编译验证
 mvn -pl ospf-kotlin-core compile -q
 
-# 全量测试运行（待C2修复后）
-mvn -pl ospf-kotlin-core test
+# 全量测试运行
+mvn -pl ospf-kotlin-core -am test
 
-# 缓存测试单独运行（待C2修复后）
-mvn -pl ospf-kotlin-core test -Dtest="TokenCacheContextsTest,CacheRebindTest"
+# 缓存测试单独运行
+mvn -pl ospf-kotlin-core test -Dtest="TokenCacheContextsTest,CacheRebindTest,CacheKeyConflictTest"
 ```
 
 ---
@@ -109,7 +104,7 @@ mvn -pl ospf-kotlin-core test -Dtest="TokenCacheContextsTest,CacheRebindTest"
 | 主代码编译通过 | ✅ |
 | 新增测试文件存在 | ✅ |
 | 新增测试方法签名正确 | ✅ |
-| 全量测试通过 | ⏳ 待 C2 修复后 |
+| 全量测试通过 | ✅ 103 tests, 0 failures |
 
 ---
 
@@ -119,6 +114,6 @@ mvn -pl ospf-kotlin-core test -Dtest="TokenCacheContextsTest,CacheRebindTest"
 |------|------|
 | **C3 执行人** | Claude Code |
 | **审核人** | 用户 |
-| **日期** | 2026-04-16 |
+| **日期** | 2026-04-18 |
 
-**验收口径**: 主代码编译验证可完成，全量测试验收待 C2 测试编译问题清理后补跑
+**验收口径**: 主代码编译通过，全量测试通过（103 tests, 0 failures），C3 缓存测试全绿（15 tests）

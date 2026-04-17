@@ -15,7 +15,7 @@ class PrepareCacheKeyRegressionTest {
     @Test
     fun fixedCacheKeyShouldIgnoreValuesCacheKey() {
         val key = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "cache_key_symbol"
         )
         val tokenTable = AutoTokenTable(Linear, false)
@@ -31,7 +31,7 @@ class PrepareCacheKeyRegressionTest {
     @Test
     fun fixedCacheHelperShouldSkipBlockWhenSolutionCacheExists() {
         val key = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "cache_key_symbol_block"
         )
         val tokenTable = AutoTokenTable(Linear, false)

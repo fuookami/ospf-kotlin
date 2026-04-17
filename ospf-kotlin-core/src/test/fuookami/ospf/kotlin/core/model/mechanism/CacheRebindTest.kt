@@ -11,7 +11,7 @@ class CacheRebindTest {
     @Test
     fun removeShouldClearCachesAndAllowRebind() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "remove_rebind_symbol"
         )
         val tokenTable = AutoTokenTable(Linear, false)
@@ -44,7 +44,7 @@ class CacheRebindTest {
     @Test
     fun rebindToNewTokenTableShouldInvalidateOldTableCaches() {
         val symbol = LinearExpressionSymbol(
-            polynomial = LinearPolynomial(constant = Flt64.one),
+            constant = Flt64.one,
             name = "dual_table_rebind_symbol"
         )
         val oldTokenTable = AutoTokenTable(Linear, false)
