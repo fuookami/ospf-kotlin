@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.ExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbolRegistrationScope
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
@@ -678,7 +679,7 @@ fun Collection<IntermediateSymbol>.register(
     callBack: RegistrationStatusCallBack? = null
 ): Try {
     val (emptySymbols, notEmptySymbols) = this@register.partition {
-        it is ExpressionSymbol && it.polynomial.monomials.isEmpty() && it.polynomial.constant eq Flt64.zero
+        it is LinearExpressionSymbol && it.flattenedMonomials.monomials.isEmpty() && it.flattenedMonomials.constant eq Flt64.zero
     }
     tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol })
     tokenTable.cacheSymbolContexts(emptySymbols)
@@ -1338,9 +1339,9 @@ suspend fun Collection<IntermediateSymbol>.register(
 ): Try {
     return coroutineScope {
         val (emptySymbols, notEmptySymbols) = this@register.partition {
-            it is ExpressionSymbol
-                    && it.polynomial.monomials.isEmpty()
-                    && it.polynomial.constant eq Flt64.zero
+            it is LinearExpressionSymbol
+                    && it.flattenedMonomials.monomials.isEmpty()
+                    && it.flattenedMonomials.constant eq Flt64.zero
         }
         tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol })
         tokenTable.cacheSymbolContexts(emptySymbols)

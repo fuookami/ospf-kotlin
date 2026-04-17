@@ -6,6 +6,11 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLine
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as UtilsMutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial as UtilsMutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
+import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
@@ -31,6 +36,7 @@ import fuookami.ospf.kotlin.core.variable.AddableTokenCollection
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.utils.functional.Variant3
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
@@ -108,10 +114,6 @@ interface LinearIntermediateSymbol : IntermediateSymbol, ToLinearPolynomial, ToQ
             displayName: String? = null
         ): LinearIntermediateSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    name = name,
-                    displayName = displayName
-                ),
                 parent = parent,
                 name = name,
                 displayName = displayName
@@ -151,10 +153,6 @@ interface QuadraticIntermediateSymbol : IntermediateSymbol, ToQuadraticPolynomia
             displayName: String? = null
         ): QuadraticIntermediateSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    name = name,
-                    displayName = displayName
-                ),
                 parent = parent,
                 name = name,
                 displayName = displayName
@@ -462,18 +460,28 @@ abstract class ExpressionSymbol(
 
 @Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class LinearExpressionSymbol(
-    override val _polynomial: MutableLinearPolynomial,
-    category: Category = _polynomial.category,
+    internal val _utilsPolynomial: UtilsMutableLinearPolynomial<Flt64>,
+    category: Category = Linear,
     parent: IntermediateSymbol? = null,
     name: String = "",
     displayName: String? = null
-) : LinearIntermediateSymbol, ExpressionSymbol(
-    _polynomial = _polynomial,
-    category = category,
-    parent = parent,
-    name = name,
-    displayName = displayName
-) {
+) : LinearIntermediateSymbol {
+    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _index: Int? = null
+    override val identifier: UInt64 by lazy {
+        _group?.identifier ?: IdentifierGenerator.gen()
+    }
+    override val index: Int by lazy {
+        _index ?: 0
+    }
+
+    override val category: Category = category
+    override val parent: IntermediateSymbol? = parent
+    override var name: String = name
+    override var displayName: String? = displayName
+
+    override val operationCategory: Category = Linear
+
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -482,10 +490,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    monomials = mutableListOf(LinearMonomial(item)),
-                    name = name.ifEmpty { item.name },
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = listOf(UtilsLinearMonomial(Flt64.one, item)),
+                    constant = Flt64.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -501,10 +508,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    monomials = mutableListOf(LinearMonomial(symbol)),
-                    name = name.ifEmpty { symbol.name },
-                    displayName = displayName ?: symbol.displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol)),
+                    constant = Flt64.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -520,10 +526,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    monomials = mutableListOf(monomial.copy()),
-                    name = name.ifEmpty { monomial.name },
-                    displayName = displayName ?: monomial.displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = listOf(monomial.toUtilsMonomial()),
+                    constant = Flt64.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -538,17 +543,34 @@ class LinearExpressionSymbol(
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbol {
+            val flattened = polynomial.flattenedMonomials
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    monomials = polynomial.monomials.map { it.copy() }.toMutableList(),
-                    constant = polynomial.constant,
-                    name = name.ifEmpty { polynomial.name },
-                    displayName = displayName ?: polynomial.displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = flattened.monomials,
+                    constant = flattened.constant
                 ),
                 category = Linear,
                 parent = parent,
                 name = name.ifEmpty { polynomial.name },
                 displayName = displayName ?: polynomial.displayName
+            )
+        }
+
+        operator fun invoke(
+            polynomial: UtilsLinearPolynomial<Flt64>,
+            parent: IntermediateSymbol? = null,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = polynomial.monomials,
+                    constant = polynomial.constant
+                ),
+                category = Linear,
+                parent = parent,
+                name = name.ifEmpty { polynomial.toString() },
+                displayName = displayName
             )
         }
 
@@ -559,10 +581,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64(constant)
                 ),
                 category = Linear,
                 parent = parent,
@@ -578,10 +599,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64(constant)
                 ),
                 category = Linear,
                 parent = parent,
@@ -597,10 +617,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = if (constant) Flt64.one else Flt64.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -616,10 +635,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.value.toFlt64()
                 ),
                 category = Linear,
                 parent = parent,
@@ -635,10 +653,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.value.toFlt64()
                 ),
                 category = Linear,
                 parent = parent,
@@ -654,10 +671,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.toFlt64()
                 ),
                 category = Linear,
                 parent = parent,
@@ -672,10 +688,9 @@ class LinearExpressionSymbol(
             displayName: String? = null
         ): LinearExpressionSymbol {
             return LinearExpressionSymbol(
-                _polynomial = MutableLinearPolynomial(
-                    constant = Flt64.zero,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -685,40 +700,337 @@ class LinearExpressionSymbol(
         }
     }
 
-    override val operationCategory: Category = Linear
-    override val polynomial: AbstractLinearPolynomial<*> get() = _polynomial
-    override val flattenedMonomials by _polynomial::flattenedMonomials
-    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
-    override val cells by _polynomial::cells
+    // polynomial property returns immutable version
+    val polynomial: UtilsLinearPolynomial<Flt64> get() = _utilsPolynomial.toLinearPolynomial()
 
-    override fun asMutable(): MutableLinearPolynomial {
-        return _polynomial
+    // flattenedMonomials: extract from monomials
+    override val flattenedMonomials: LinearFlattenData
+        get() = LinearFlattenData(
+            monomials = _utilsPolynomial.monomials,
+            constant = _utilsPolynomial.constant
+        )
+
+    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
+    override val cells: List<LinearMonomialCell>
+        get() = flattenedMonomials.toLinearMonomialCells()
+
+    // asMutable returns UtilsMutableLinearPolynomial<Flt64>
+    fun asMutable(): UtilsMutableLinearPolynomial<Flt64> {
+        return _utilsPolynomial
     }
 
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        flattenedMonomials
-        return if (values.isNullOrEmpty()) {
-            _polynomial.evaluate(tokenTable)
-        } else {
-            _polynomial.evaluate(values, tokenTable)
+    // Helper: evaluate a single monomial's symbol
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val token = tokenList.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(tokenList, zeroIfNone)
+            else -> null
         }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val token = tokenTable.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(tokenTable, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenList.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(results, tokenList, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenTable.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(results, tokenTable, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenList?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(values, tokenList, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(values, tokenTable, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    // dependencies: extract IntermediateSymbol from monomials.symbol
+    override val dependencies: Set<IntermediateSymbol>
+        get() = _utilsPolynomial.monomials
+            .mapNotNull { monomial ->
+                when (val sym = monomial.symbol) {
+                    is LinearIntermediateSymbol -> sym
+                    else -> null
+                }
+            }
+            .toSet()
+
+    // range/lowerBound/upperBound using possibleRange algorithm
+    private fun calculateRange(): ValueRange<Flt64>? {
+        var range: ValueRange<Flt64>? = ValueRange(_utilsPolynomial.constant, Flt64).value
+        for (monomial in _utilsPolynomial.monomials) {
+            val symRange = when (val sym = monomial.symbol) {
+                is AbstractVariableItem<*, *> -> sym.range.valueRange
+                is LinearIntermediateSymbol -> sym.range.valueRange
+                else -> null
+            }
+            if (symRange != null) {
+                val scaled = monomial.coefficient * symRange
+                range = range?.let { r -> scaled?.let { s -> r + s } }
+            } else {
+                range = null
+                break
+            }
+        }
+        return range
+    }
+
+    override val range: ExpressionRange<Flt64>
+        get() = ExpressionRange(calculateRange(), Flt64)
+
+    // discrete: check if all monomials are discrete and constant is integral
+    override val discrete: Boolean
+        get() = _utilsPolynomial.monomials.all { monomial ->
+            when (val sym = monomial.symbol) {
+                is AbstractVariableItem<*, *> -> sym.type.isIntegerType && monomial.coefficient.round() eq monomial.coefficient
+                is LinearIntermediateSymbol -> sym.discrete && monomial.coefficient.round() eq monomial.coefficient
+                else -> false
+            }
+        } && _utilsPolynomial.constant.round() eq _utilsPolynomial.constant
+
+    // cached/flush via TokenTable cache key
+    private val rangeCacheKey = newTokenCacheKey(
+        category = Linear,
+        prefix = "__linear_expression_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = Linear,
+        prefix = "__linear_expression_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return dependencies
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
+    override val cached: Boolean
+        get() {
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedLinearFlatten(flattenCacheKey)
+            return cachedFlatten == true
+        }
+
+    override fun flush(force: Boolean) {
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
+        }
+        for (dep in dependencies) {
+            dep.flush(force)
+        }
+        if (force) {
+            tokenTable?.clearLinearFlatten(flattenCacheKey)
+        }
+    }
+
+    // prepare: using math.evaluate + ValueProvider
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
+        // Trigger flattenedMonomials to populate cache
+        val flatten = flattenedMonomials
+
+        return if (values.isNullOrEmpty()) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, false)
+                if (symbolValue == null) return null
+                ret += monomial.coefficient * symbolValue
+            }
+            ret
+        } else {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, false)
+                if (symbolValue == null) return null
+                ret += monomial.coefficient * symbolValue
+            }
+            ret
+        }
+    }
+
+    // toRawString
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold neq UInt64.zero) {
+            val monomialStrings = _utilsPolynomial.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
+                val symStr = when (val sym = m.symbol) {
+                    is IntermediateSymbol -> sym.toRawString(unfold - UInt64.one)
+                    else -> sym.name
+                }
+                if (m.coefficient eq Flt64.one) symStr
+                else if (m.coefficient eq -Flt64.one) "-$symStr"
+                else "${m.coefficient} * $symStr"
+            }
+            if (_utilsPolynomial.constant neq Flt64.zero) {
+                "${monomialStrings.joinToString(" + ")} + ${_utilsPolynomial.constant}"
+            } else {
+                monomialStrings.joinToString(" + ")
+            }
+        } else {
+            displayName ?: name
+        }
+    }
+
+    // evaluate methods - similar to Polynomial.evaluate implementation
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
+            if (symbolValue == null && !zeroIfNone) return null
+            ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+        }
+        return ret
+    }
+
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            ret
+        }
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
+            if (symbolValue == null && !zeroIfNone) return null
+            ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+        }
+        return ret
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, results, tokenTable, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            ret
+        }
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        if (values.containsKey(this)) return values[this]!!
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val symbolValue = evaluateSymbol(monomial.symbol, values, tokenList, zeroIfNone)
+            if (symbolValue == null && !zeroIfNone) return null
+            ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+        }
+        return ret
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
+            if (values.containsKey(this)) {
+                return@evaluateWithCachedTokenTable values[this]!!
+            }
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) {
+                    return@evaluateWithCachedTokenTable null
+                }
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            ret
+        }
+    }
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
+
+    override fun hashCode(): Int {
+        return identifier.toInt() * 31 + index
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is LinearExpressionSymbol) return false
+
+        if (identifier != other.identifier) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+
+        return true
     }
 }
 
 @Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class QuadraticExpressionSymbol(
-    override val _polynomial: MutableQuadraticPolynomial,
-    category: Category = _polynomial.category,
+    internal val _utilsPolynomial: UtilsMutableQuadraticPolynomial<Flt64>,
+    category: Category = _utilsPolynomial.category,
     parent: IntermediateSymbol? = null,
     name: String = "",
     displayName: String? = null
-) : QuadraticIntermediateSymbol, ExpressionSymbol(
-    _polynomial = _polynomial,
-    category = category,
-    parent = parent,
-    name = name,
-    displayName = displayName
-) {
+) : QuadraticIntermediateSymbol {
+    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _index: Int? = null
+    override val identifier: UInt64 by lazy {
+        _group?.identifier ?: IdentifierGenerator.gen()
+    }
+    override val index: Int by lazy {
+        _index ?: 0
+    }
+
+    override val category: Category = category
+    override val parent: IntermediateSymbol? = parent
+    override var name: String = name
+    override var displayName: String? = displayName
+
+    override val operationCategory: Category = Quadratic
+
     companion object {
         operator fun invoke(
             item: AbstractVariableItem<*, *>,
@@ -727,10 +1039,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = mutableListOf(QuadraticMonomial(item)),
-                    name = name.ifEmpty { item.name },
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, item)),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -746,10 +1057,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = mutableListOf(QuadraticMonomial(symbol)),
-                    name = name.ifEmpty { symbol.name },
-                    displayName = displayName ?: symbol.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -765,10 +1075,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = mutableListOf(QuadraticMonomial(symbol)),
-                    name = name.ifEmpty { symbol.name },
-                    displayName = displayName ?: symbol.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -783,11 +1092,11 @@ class QuadraticExpressionSymbol(
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
+            val utilsLinearMonomial = monomial.toUtilsMonomial()
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = mutableListOf(QuadraticMonomial(monomial)),
-                    name = name.ifEmpty { monomial.name },
-                    displayName = displayName ?: monomial.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = listOf(UtilsQuadraticMonomial.linear(utilsLinearMonomial.coefficient, utilsLinearMonomial.symbol)),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -802,11 +1111,25 @@ class QuadraticExpressionSymbol(
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
+            val sym1: Symbol = when (monomial.symbol.symbol1) {
+                is Variant3.V1 -> monomial.symbol.symbol1.value
+                is Variant3.V2 -> monomial.symbol.symbol1.value
+                is Variant3.V3 -> monomial.symbol.symbol1.value
+            }
+            val utilsMonomial = if (monomial.symbol.symbol2 == null) {
+                UtilsQuadraticMonomial.linear(monomial.coefficient, sym1)
+            } else {
+                val sym2: Symbol = when (monomial.symbol.symbol2!!) {
+                    is Variant3.V1 -> monomial.symbol.symbol2!!.value
+                    is Variant3.V2 -> monomial.symbol.symbol2!!.value
+                    is Variant3.V3 -> monomial.symbol.symbol2!!.value
+                }
+                UtilsQuadraticMonomial.quadratic(monomial.coefficient, sym1, sym2)
+            }
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = mutableListOf(monomial.copy()),
-                    name = name.ifEmpty { monomial.name },
-                    displayName = displayName ?: monomial.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = listOf(utilsMonomial),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -821,12 +1144,14 @@ class QuadraticExpressionSymbol(
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
+            val flattened = polynomial.flattenedMonomials
+            val monomials = flattened.monomials.map { m ->
+                UtilsQuadraticMonomial.linear(m.coefficient, m.symbol)
+            }
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = polynomial.monomials.map { QuadraticMonomial(it) }.toMutableList(),
-                    constant = polynomial.constant,
-                    name = name.ifEmpty { polynomial.name },
-                    displayName = displayName ?: polynomial.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = monomials,
+                    constant = flattened.constant
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -841,12 +1166,19 @@ class QuadraticExpressionSymbol(
             name: String = "",
             displayName: String? = null
         ): QuadraticExpressionSymbol {
+            val flattened = polynomial.flattenedMonomials
+            val monomials = flattened.monomials.map { m ->
+                val sym2 = m.symbol2
+                if (sym2 == null) {
+                    UtilsQuadraticMonomial.linear(m.coefficient, m.symbol1)
+                } else {
+                    UtilsQuadraticMonomial.quadratic(m.coefficient, m.symbol1, sym2)
+                }
+            }
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    monomials = polynomial.monomials.map { it.copy() }.toMutableList(),
-                    constant = polynomial.constant,
-                    name = name.ifEmpty { polynomial.name },
-                    displayName = displayName ?: polynomial.displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = monomials,
+                    constant = flattened.constant
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -862,10 +1194,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64(constant)
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -881,10 +1212,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64(constant)
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -900,10 +1230,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = if (constant) Flt64.one else Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -919,10 +1248,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.value.toFlt64()
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -938,10 +1266,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.value.toFlt64()
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -957,10 +1284,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    constant = constant,
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = constant.toFlt64()
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -975,9 +1301,9 @@ class QuadraticExpressionSymbol(
             displayName: String? = null
         ): QuadraticExpressionSymbol {
             return QuadraticExpressionSymbol(
-                _polynomial = MutableQuadraticPolynomial(
-                    name = name,
-                    displayName = displayName
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -987,23 +1313,404 @@ class QuadraticExpressionSymbol(
         }
     }
 
-    override val operationCategory: Category = Quadratic
-    override val polynomial: AbstractQuadraticPolynomial<*> get() = _polynomial
-    override val flattenedMonomials by _polynomial::flattenedMonomials
-    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
-    override val cells by _polynomial::cells
+    // polynomial property returns immutable version
+    val polynomial: UtilsQuadraticPolynomial<Flt64> get() = _utilsPolynomial.toQuadraticPolynomial()
 
-    override fun asMutable(): MutableQuadraticPolynomial {
-        return _polynomial
+    // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
+    override val flattenedMonomials: QuadraticFlattenData
+        get() = QuadraticFlattenData(
+            monomials = _utilsPolynomial.monomials,
+            constant = _utilsPolynomial.constant
+        )
+
+    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
+    override val cells: List<QuadraticMonomialCell>
+        get() = flattenedMonomials.toQuadraticMonomialCells()
+
+    // asMutable returns UtilsMutableQuadraticPolynomial<Flt64>
+    fun asMutable(): UtilsMutableQuadraticPolynomial<Flt64> {
+        return _utilsPolynomial
     }
 
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
-        flattenedMonomials
-        return if (values.isNullOrEmpty()) {
-            _polynomial.evaluate(tokenTable)
-        } else {
-            _polynomial.evaluate(values, tokenTable)
+    // Helper: evaluate a single symbol
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val token = tokenList.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(tokenList, zeroIfNone)
+            else -> null
         }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val token = tokenTable.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(tokenTable, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(tokenTable, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenList.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(results, tokenList, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenTable.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(results, tokenTable, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(results, tokenTable, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenList?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(values, tokenList, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol -> symbol.evaluate(values, tokenTable, zeroIfNone)
+            is QuadraticIntermediateSymbol -> symbol.evaluate(values, tokenTable, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    // dependencies: extract IntermediateSymbol from monomials.symbol1/symbol2
+    override val dependencies: Set<IntermediateSymbol>
+        get() = _utilsPolynomial.monomials
+            .flatMap { monomial ->
+                val deps = mutableListOf<IntermediateSymbol>()
+                when (val sym1 = monomial.symbol1) {
+                    is LinearIntermediateSymbol -> deps.add(sym1)
+                    is QuadraticIntermediateSymbol -> deps.add(sym1)
+                }
+                if (monomial.symbol2 != null) {
+                    when (val sym2 = monomial.symbol2!!) {
+                        is LinearIntermediateSymbol -> deps.add(sym2)
+                        is QuadraticIntermediateSymbol -> deps.add(sym2)
+                    }
+                }
+                deps
+            }
+            .toSet()
+
+    // range/lowerBound/upperBound using possibleRange algorithm
+    private fun calculateRange(): ValueRange<Flt64>? {
+        var range: ValueRange<Flt64>? = ValueRange(_utilsPolynomial.constant, Flt64).value
+        for (monomial in _utilsPolynomial.monomials) {
+            val sym1Range: ValueRange<Flt64>? = when (val sym1 = monomial.symbol1) {
+                is AbstractVariableItem<*, *> -> sym1.range.valueRange
+                is LinearIntermediateSymbol -> sym1.range.valueRange
+                is QuadraticIntermediateSymbol -> sym1.range.valueRange
+                else -> null
+            }
+            val sym2Range: ValueRange<Flt64>? = if (monomial.symbol2 != null) {
+                when (val sym2 = monomial.symbol2!!) {
+                    is AbstractVariableItem<*, *> -> sym2.range.valueRange
+                    is LinearIntermediateSymbol -> sym2.range.valueRange
+                    is QuadraticIntermediateSymbol -> sym2.range.valueRange
+                    else -> null
+                }
+            } else null
+
+            if (sym1Range == null) {
+                range = null
+                break
+            }
+
+            if (monomial.symbol2 == null) {
+                val scaled = monomial.coefficient * sym1Range!!
+                range = range?.let { r -> scaled?.let { s -> r + s } }
+            } else if (sym2Range != null) {
+                val s1r = sym1Range!!
+                val s2r = sym2Range!!
+                // For quadratic term: coefficient * range1 * range2
+                val termRange = (monomial.coefficient * s1r)?.times(s2r)
+                range = range?.let { r -> termRange?.let { s -> r + s } }
+            } else {
+                range = null
+                break
+            }
+        }
+        return range
+    }
+
+    override val range: ExpressionRange<Flt64>
+        get() = ExpressionRange(calculateRange(), Flt64)
+
+    // discrete: check if all monomials are discrete and constant is integral
+    override val discrete: Boolean
+        get() = _utilsPolynomial.monomials.all { monomial ->
+            val sym1Discrete = when (val sym1 = monomial.symbol1) {
+                is AbstractVariableItem<*, *> -> sym1.type.isIntegerType && monomial.coefficient.round() eq monomial.coefficient
+                is LinearIntermediateSymbol -> sym1.discrete && monomial.coefficient.round() eq monomial.coefficient
+                is QuadraticIntermediateSymbol -> sym1.discrete && monomial.coefficient.round() eq monomial.coefficient
+                else -> false
+            }
+            val sym2Discrete = if (monomial.symbol2 != null) {
+                when (val sym2 = monomial.symbol2!!) {
+                    is AbstractVariableItem<*, *> -> sym2.type.isIntegerType && monomial.coefficient.round() eq monomial.coefficient
+                    is LinearIntermediateSymbol -> sym2.discrete && monomial.coefficient.round() eq monomial.coefficient
+                    is QuadraticIntermediateSymbol -> sym2.discrete && monomial.coefficient.round() eq monomial.coefficient
+                    else -> false
+                }
+            } else true
+            sym1Discrete && sym2Discrete
+        } && _utilsPolynomial.constant.round() eq _utilsPolynomial.constant
+
+    // cached/flush via TokenTable cache key
+    private val rangeCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_expression_range_cache__"
+    )
+    private val flattenCacheKey = newTokenCacheKey(
+        category = Quadratic,
+        prefix = "__quadratic_expression_flatten_cache__"
+    )
+
+    private fun cacheTokenTable(): AbstractTokenTable? {
+        return dependencies
+            .asSequence()
+            .mapNotNull { boundTokenTableContext(it) }
+            .firstOrNull()
+    }
+
+    override val cached: Boolean
+        get() {
+            val tokenTable = cacheTokenTable()
+            val cachedFlatten = tokenTable?.cachedQuadraticFlatten(flattenCacheKey)
+            return cachedFlatten == true
+        }
+
+    override fun flush(force: Boolean) {
+        val tokenTable = cacheTokenTable()
+        val cachedRange = tokenTable?.cachedRangeValue(rangeCacheKey)
+        if (force || cachedRange?.set == false) {
+            tokenTable?.clearRange(rangeCacheKey)
+        }
+        for (dep in dependencies) {
+            dep.flush(force)
+        }
+        if (force) {
+            tokenTable?.clearQuadraticFlatten(flattenCacheKey)
+        }
+    }
+
+    // prepare: using math.evaluate + ValueProvider
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? {
+        // Trigger flattenedMonomials to populate cache
+        val flatten = flattenedMonomials
+
+        return if (values.isNullOrEmpty()) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, false)
+                if (sym1Value == null) return null
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, false)
+                    if (sym2Value == null) return null
+                    sym1Value * sym2Value
+                } else sym1Value
+                ret += monomial.coefficient * termValue
+            }
+            ret
+        } else {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, false)
+                if (sym1Value == null) return null
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, false)
+                    if (sym2Value == null) return null
+                    sym1Value * sym2Value
+                } else sym1Value
+                ret += monomial.coefficient * termValue
+            }
+            ret
+        }
+    }
+
+    // toRawString
+    override fun toRawString(unfold: UInt64): String {
+        return if (unfold neq UInt64.zero) {
+            val monomialStrings = _utilsPolynomial.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
+                val sym1Str = when (val s1 = m.symbol1) {
+                    is IntermediateSymbol -> s1.toRawString(unfold - UInt64.one)
+                    else -> s1.name
+                }
+                val termStr = if (m.symbol2 != null) {
+                    val sym2Str = when (val s2 = m.symbol2!!) {
+                        is IntermediateSymbol -> s2.toRawString(unfold - UInt64.one)
+                        else -> s2.name
+                    }
+                    if (m.symbol1 == m.symbol2) "$sym1Str^2" else "$sym1Str * $sym2Str"
+                } else sym1Str
+                if (m.coefficient eq Flt64.one) termStr
+                else if (m.coefficient eq -Flt64.one) "-$termStr"
+                else "${m.coefficient} * $termStr"
+            }
+            if (_utilsPolynomial.constant neq Flt64.zero) {
+                "${monomialStrings.joinToString(" + ")} + ${_utilsPolynomial.constant}"
+            } else {
+                monomialStrings.joinToString(" + ")
+            }
+        } else {
+            displayName ?: name
+        }
+    }
+
+    // evaluate methods - similar to Polynomial.evaluate implementation
+    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
+            if (sym1Value == null && !zeroIfNone) return null
+            val termValue = if (monomial.symbol2 != null) {
+                val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenList, zeroIfNone)
+                if (sym2Value == null && !zeroIfNone) return null
+                (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+            } else (sym1Value ?: Flt64.zero)
+            ret += monomial.coefficient * termValue
+        }
+        return ret
+    }
+
+    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, zeroIfNone)
+                if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, zeroIfNone)
+                    if (sym2Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                    (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+                } else (sym1Value ?: Flt64.zero)
+                ret += monomial.coefficient * termValue
+            }
+            ret
+        }
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
+            if (sym1Value == null && !zeroIfNone) return null
+            val termValue = if (monomial.symbol2 != null) {
+                val sym2Value = evaluateSymbol(monomial.symbol2!!, results, tokenList, zeroIfNone)
+                if (sym2Value == null && !zeroIfNone) return null
+                (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+            } else (sym1Value ?: Flt64.zero)
+            ret += monomial.coefficient * termValue
+        }
+        return ret
+    }
+
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenTable, zeroIfNone)
+                if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, results, tokenTable, zeroIfNone)
+                    if (sym2Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                    (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+                } else (sym1Value ?: Flt64.zero)
+                ret += monomial.coefficient * termValue
+            }
+            ret
+        }
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+        if (values.containsKey(this)) return values[this]!!
+        var ret = _utilsPolynomial.constant
+        for (monomial in _utilsPolynomial.monomials) {
+            val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenList, zeroIfNone)
+            if (sym1Value == null && !zeroIfNone) return null
+            val termValue = if (monomial.symbol2 != null) {
+                val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenList, zeroIfNone)
+                if (sym2Value == null && !zeroIfNone) return null
+                (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+            } else (sym1Value ?: Flt64.zero)
+            ret += monomial.coefficient * termValue
+        }
+        return ret
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+        return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
+            if (values.containsKey(this)) {
+                return@evaluateWithCachedTokenTable values[this]!!
+            }
+            var ret = _utilsPolynomial.constant
+            for (monomial in _utilsPolynomial.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, zeroIfNone)
+                if (sym1Value == null && !zeroIfNone) {
+                    return@evaluateWithCachedTokenTable null
+                }
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, zeroIfNone)
+                    if (sym2Value == null && !zeroIfNone) {
+                        return@evaluateWithCachedTokenTable null
+                    }
+                    (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+                } else (sym1Value ?: Flt64.zero)
+                ret += monomial.coefficient * termValue
+            }
+            ret
+        }
+    }
+
+    override fun toString(): String {
+        return displayName ?: name
+    }
+
+    override fun hashCode(): Int {
+        return identifier.toInt() * 31 + index
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is QuadraticExpressionSymbol) return false
+
+        if (identifier != other.identifier) return false
+        if (index != other.index) return false
+        if (name != other.name) return false
+
+        return true
     }
 }
 

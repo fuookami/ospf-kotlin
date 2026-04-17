@@ -5,7 +5,9 @@ package fuookami.ospf.kotlin.core.intermediate_symbol
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -362,7 +364,7 @@ fun <T> map(
 fun <T> flatMap(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> AbstractLinearPolynomial<*>,
+    ctor: (T) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
 ): LinearExpressionSymbols1 {
     val l = objs.toList()

@@ -4,7 +4,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.le
@@ -89,6 +91,27 @@ interface SingleObjectMechanismModelOf<V> : MechanismModelOf<V> {
 }
 
 typealias SingleObjectMechanismModel = SingleObjectMechanismModelOf<Flt64>
+
+private data class OrderedVariablePair(
+    val first: AbstractVariableItem<*, *>,
+    val second: AbstractVariableItem<*, *>
+) {
+    companion object {
+        fun of(
+            lhs: AbstractVariableItem<*, *>,
+            rhs: AbstractVariableItem<*, *>
+        ): OrderedVariablePair {
+            return if (
+                lhs.key.identifier < rhs.key.identifier ||
+                (lhs.key.identifier == rhs.key.identifier && lhs.key.index <= rhs.key.index)
+            ) {
+                OrderedVariablePair(lhs, rhs)
+            } else {
+                OrderedVariablePair(rhs, lhs)
+            }
+        }
+    }
+}
 
 private suspend fun <T, R> dumpItemsAsync(
     items: List<T>,
@@ -762,16 +785,154 @@ class QuadraticMechanismModelOf<V>(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: QuadraticDualSolution,
-    ): Ret<List<MathLinearInequality>> {
-        TODO("not implemented yet")
+    ): Ret<List<Any>> {
+        val constants = constraints.fold(Flt64.zero) { acc, constraint ->
+            acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
+        }
+        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
+        val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
+        for (constraint in constraints) {
+            val dual = dualSolution[constraint] ?: continue
+            if (dual eq Flt64.zero) {
+                continue
+            }
+
+            for (cell in constraint.lhs) {
+                val variable1 = cell.token1.variable
+                val variable2 = cell.token2?.variable
+                if (variable2 == null) {
+                    if (variable1 in fixedVariables) {
+                        val projected = -dual * cell.coefficient
+                        if (projected neq Flt64.zero) {
+                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: Flt64.zero) + projected
+                        }
+                    }
+                } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
+                    val projected = -dual * cell.coefficient
+                    if (projected neq Flt64.zero) {
+                        val key = OrderedVariablePair.of(variable1, variable2)
+                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: Flt64.zero) + projected
+                    }
+                }
+            }
+        }
+
+        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
+        if (!hasQuadratic) {
+            val rhs = MathLinearPolynomial(
+                monomials = linearPolynomial
+                    .filterValues { it neq Flt64.zero }
+                    .map { MathLinearMonomial(it.value, it.key) },
+                constant = constants
+            )
+            val lhs = MathLinearPolynomial(
+                monomials = listOf(MathLinearMonomial(Flt64.one, objectVariable)),
+                constant = Flt64.zero
+            )
+            val cut = when (this.objectFunction.category) {
+                ObjectCategory.Maximum -> {
+                    (lhs le rhs).normalize()
+                }
+
+                ObjectCategory.Minimum -> {
+                    (lhs ge rhs).normalize()
+                }
+            }
+            return Ok(listOf(cut))
+        }
+
+        val rhs = MathQuadraticPolynomial(
+            monomials = linearPolynomial
+                .filterValues { it neq Flt64.zero }
+                .map { MathQuadraticMonomial.linear(it.value, it.key) } +
+                quadraticPolynomial
+                    .filterValues { it neq Flt64.zero }
+                    .map { MathQuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+            constant = constants
+        )
+        val lhs = MathQuadraticPolynomial(
+            monomials = listOf(MathQuadraticMonomial.linear(Flt64.one, objectVariable)),
+            constant = Flt64.zero
+        )
+        val cut = when (this.objectFunction.category) {
+            ObjectCategory.Maximum -> {
+                (lhs le rhs).normalize()
+            }
+
+            ObjectCategory.Minimum -> {
+                (lhs ge rhs).normalize()
+            }
+        }
+        return Ok(listOf(cut))
     }
 
     @Suppress("UNUSED_PARAMETER")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: QuadraticDualSolution,
-    ): Ret<List<MathLinearInequality>> {
-        TODO("not implemented yet")
+    ): Ret<List<Any>> {
+        var value = Flt64.zero
+        var constants = Flt64.zero
+        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
+        val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
+        for (constraint in constraints) {
+            val dual = farkasDualSolution[constraint] ?: continue
+            if (dual eq Flt64.zero) {
+                continue
+            }
+
+            value += dual * constraint.rhs
+            constants += dual * constraint.rhs
+            for (cell in constraint.lhs) {
+                val variable1 = cell.token1.variable
+                val variable2 = cell.token2?.variable
+                if (variable2 == null) {
+                    if (variable1 in fixedVariables) {
+                        val projected = -dual * cell.coefficient
+                        if (projected neq Flt64.zero) {
+                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: Flt64.zero) + projected
+                        }
+                        value -= dual * cell.coefficient * fixedVariables[variable1]!!
+                    }
+                } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
+                    val projected = -dual * cell.coefficient
+                    if (projected neq Flt64.zero) {
+                        val key = OrderedVariablePair.of(variable1, variable2)
+                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: Flt64.zero) + projected
+                    }
+                    value -= dual * cell.coefficient * fixedVariables[variable1]!! * fixedVariables[variable2]!!
+                }
+            }
+        }
+        if (value ls Flt64.zero) {
+            logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
+            constants *= -Flt64.one
+            linearPolynomial.replaceAll { _, coefficient -> -coefficient }
+            quadraticPolynomial.replaceAll { _, coefficient -> -coefficient }
+        }
+
+        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
+        if (!hasQuadratic) {
+            val lhs = MathLinearPolynomial(
+                monomials = linearPolynomial
+                    .filterValues { it neq Flt64.zero }
+                    .map { MathLinearMonomial(it.value, it.key) },
+                constant = constants
+            )
+            return Ok(listOf((lhs le Flt64.zero).normalize()))
+        }
+
+        val lhs = MathQuadraticPolynomial(
+            monomials = linearPolynomial
+                .filterValues { it neq Flt64.zero }
+                .map { MathQuadraticMonomial.linear(it.value, it.key) } +
+                quadraticPolynomial
+                    .filterValues { it neq Flt64.zero }
+                    .map { MathQuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+            constant = constants
+        )
+        val rhs = MathQuadraticPolynomial<Flt64>(emptyList(), Flt64.zero)
+        return Ok(listOf((lhs le rhs).normalize()))
     }
 
     override fun close() {

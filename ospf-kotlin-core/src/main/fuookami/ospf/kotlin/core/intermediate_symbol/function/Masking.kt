@@ -119,7 +119,9 @@ class MaskingFunction<T : Field<T>>(
     companion object {
         /**
          * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask, bigM, name, displayName)"))
         @JvmStatic
         operator fun invoke(
             x: AbstractLinearPolynomial<*>,
@@ -185,7 +187,9 @@ class MaskingFunction<T : Field<T>>(
          * Factory: accept AbstractLinearPolynomial for both x and mask.
          * For framework code passing polynomial masks (e.g., sum of variables).
          * Creates an internal helper variable to represent the polynomial mask.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask.asMathLinearPolynomial(), bigM, name, displayName)"))
         @JvmStatic
         @JvmName("fromPolynomialMask")
         operator fun invoke(
@@ -225,7 +229,9 @@ class MaskingFunction<T : Field<T>>(
         /**
          * Factory: accept AbstractLinearPolynomial for x and ToLinearPolynomial for mask.
          * For framework code passing LinearIntermediateSymbol as mask.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask.toLinearPolynomial(), bigM, name, displayName)"))
         @JvmStatic
         @JvmName("fromSymbolMask")
         operator fun invoke(

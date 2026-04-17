@@ -11,7 +11,9 @@ import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
@@ -274,6 +276,16 @@ interface LinearModel : Model {
         withRangeSet: Boolean? = false
     ): Try
 
+    @Deprecated(
+        message = "Use addConstraint(relation: MathLinearInequality) with math.symbol types instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING,
+        replaceWith = ReplaceWith(
+            "addConstraint(relation = variables.map { MathLinearMonomial(Flt64.one, it) }.sumOf { it }.le(Flt64.one), lazy, name, displayName)",
+            "fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial",
+            "fuookami.ospf.kotlin.math.symbol.inequality.le",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
+        )
+    )
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
     fun partition(
@@ -699,8 +711,10 @@ interface QuadraticModel : LinearModel {
         message = "Use addConstraint(relation: MathQuadraticInequality) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addConstraint(relation = qsum(monomials).toMathQuadraticInequality(), lazy, name, displayName, withRangeSet)",
-            "fuookami.ospf.kotlin.core.intermediate_model.MathInequalityDslKt"
+            "addConstraint(relation = monomials.map { MathQuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) }.sumOf { it }.le(Flt64.one), lazy, name, displayName)",
+            "fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial",
+            "fuookami.ospf.kotlin.math.symbol.inequality.le",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
         )
     )
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -723,8 +737,10 @@ interface QuadraticModel : LinearModel {
         message = "Use addConstraint(relation: MathQuadraticInequality) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addConstraint(relation = qsum(symbols).toMathQuadraticInequality(), lazy, name, displayName, withRangeSet)",
-            "fuookami.ospf.kotlin.core.intermediate_model.MathInequalityDslKt"
+            "addConstraint(relation = symbols.map { MathQuadraticMonomial(Flt64.one, it) }.sumOf { it }.le(Flt64.one), lazy, name, displayName)",
+            "fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial",
+            "fuookami.ospf.kotlin.math.symbol.inequality.le",
+            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
         )
     )
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -757,8 +773,9 @@ interface QuadraticModel : LinearModel {
         name: String? = null,
         displayName: String? = null
     ): Try {
+        val inequality: MathQuadraticInequality = polynomial.toMathQuadraticInequality()
         return addConstraint(
-            relation = polynomial.toMathQuadraticInequality(),
+            relation = inequality,
             lazy = lazy,
             name = name,
             displayName = displayName
@@ -1018,6 +1035,60 @@ interface QuadraticModel : LinearModel {
             category = ObjectCategory.Maximum,
             polynomial = polynomial,
             name = name,
+            displayName = displayName
+        )
+    }
+
+    // ========== math.symbol type overloads for Quadratic ==========
+
+    fun minimize(
+        polynomial: MathQuadraticPolynomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        polynomial: MathQuadraticPolynomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun minimize(
+        monomial: MathQuadraticMonomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = QuadraticFlattenData(listOf(monomial), Flt64.zero),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        monomial: MathQuadraticMonomial<Flt64>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = QuadraticFlattenData(listOf(monomial), Flt64.zero),
+            name = name ?: "",
             displayName = displayName
         )
     }

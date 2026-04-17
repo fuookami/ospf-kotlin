@@ -61,7 +61,9 @@ class MinMaxFunction<T : Field<T>>(
 
         /**
          * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
         @JvmStatic
         @JvmName("fromCorePolynomials")
         operator fun invoke(

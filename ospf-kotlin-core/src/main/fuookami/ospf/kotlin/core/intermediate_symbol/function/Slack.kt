@@ -143,7 +143,9 @@ class SlackFunction<T : Field<T>>(
         /**
          * Factory: create SlackFunction from core expression polynomials.
          * For framework code using legacy DSL types.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), y.asMathLinearPolynomial(), type, withNegative, withPositive, threshold, name, displayName)"))
         @JvmStatic
         operator fun invoke(
             x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
@@ -169,7 +171,9 @@ class SlackFunction<T : Field<T>>(
 
         /**
          * Factory: accept core expression AbstractLinearPolynomial with UInt64 threshold.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), LinearPolynomial(emptyList(), threshold.toFlt64()), type, !withPositive, withPositive, true, name, displayName)"))
         @JvmStatic
         operator fun invoke(
             x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,

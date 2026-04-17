@@ -144,6 +144,12 @@ infix fun UtilsQuadraticPolynomial<Flt64>.ne(rhs: UtilsLinearPolynomial<Flt64>):
 infix fun UtilsQuadraticPolynomial<Flt64>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this le rhs
 infix fun UtilsQuadraticPolynomial<Flt64>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
 infix fun UtilsQuadraticPolynomial<Flt64>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+infix fun UtilsQuadraticPolynomial<Flt64>.lt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.LT)
+infix fun UtilsQuadraticPolynomial<Flt64>.gt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.GT)
+infix fun UtilsQuadraticPolynomial<Flt64>.ls(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this lt rhs
+infix fun UtilsQuadraticPolynomial<Flt64>.gr(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this gt rhs
 
 // ========== Utils QuadraticPolynomial DSL ==========
 
@@ -646,6 +652,44 @@ infix fun AbstractLinearPolynomial<*>.leq(rhs: UtilsLinearPolynomial<Flt64>): Ma
 infix fun AbstractLinearPolynomial<*>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ge rhs
 @Deprecated("Use math.symbol LinearPolynomial.neq instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial() neq rhs"))
 infix fun AbstractLinearPolynomial<*>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ne rhs
+@Deprecated("Use math.symbol LinearPolynomial.ls instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial() ls rhs"))
+infix fun AbstractLinearPolynomial<*>.ls(rhs: Flt64): MathLinearInequality = this lt rhs
+@Deprecated("Use math.symbol LinearPolynomial.gr instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial() gr rhs"))
+infix fun AbstractLinearPolynomial<*>.gr(rhs: Flt64): MathLinearInequality = this gt rhs
+@Deprecated("Use math.symbol LinearPolynomial.ls instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial() ls rhs"))
+infix fun AbstractLinearPolynomial<*>.ls(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = toLinearPolynomial() lt rhs
+@Deprecated("Use math.symbol LinearPolynomial.gr instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial() gr rhs"))
+infix fun AbstractLinearPolynomial<*>.gr(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = toLinearPolynomial() gt rhs
+
+// AbstractLinearPolynomial vs UtilsQuadraticPolynomial (produces quadratic)
+@Deprecated("Use math.symbol LinearPolynomial.eq (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() eq rhs"))
+infix fun AbstractLinearPolynomial<*>.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() eq rhs
+@Deprecated("Use math.symbol LinearPolynomial.le (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() le rhs"))
+infix fun AbstractLinearPolynomial<*>.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() le rhs
+@Deprecated("Use math.symbol LinearPolynomial.ge (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() ge rhs"))
+infix fun AbstractLinearPolynomial<*>.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() ge rhs
+@Deprecated("Use math.symbol LinearPolynomial.lt (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() lt rhs"))
+infix fun AbstractLinearPolynomial<*>.lt(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() lt rhs
+@Deprecated("Use math.symbol LinearPolynomial.gt (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() gt rhs"))
+infix fun AbstractLinearPolynomial<*>.gt(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() gt rhs
+@Deprecated("Use math.symbol LinearPolynomial.ne (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() ne rhs"))
+infix fun AbstractLinearPolynomial<*>.ne(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+    toLinearPolynomial().toQuadraticPolynomial() ne rhs
+@Deprecated("Use math.symbol LinearPolynomial.leq (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() leq rhs"))
+infix fun AbstractLinearPolynomial<*>.leq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this le rhs
+@Deprecated("Use math.symbol LinearPolynomial.geq (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() geq rhs"))
+infix fun AbstractLinearPolynomial<*>.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
+@Deprecated("Use math.symbol LinearPolynomial.neq (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() neq rhs"))
+infix fun AbstractLinearPolynomial<*>.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+@Deprecated("Use math.symbol LinearPolynomial.ls (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() ls rhs"))
+infix fun AbstractLinearPolynomial<*>.ls(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = toLinearPolynomial().toQuadraticPolynomial() lt rhs
+@Deprecated("Use math.symbol LinearPolynomial.gr (quadratic) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toLinearPolynomial().toQuadraticPolynomial() gr rhs"))
+infix fun AbstractLinearPolynomial<*>.gr(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = toLinearPolynomial().toQuadraticPolynomial() gt rhs
 
 // ========== AbstractQuadraticPolynomial DSL (delegates to math types) ==========
 // All functions deprecated: use math.symbol QuadraticPolynomial infix operators instead
@@ -719,3 +763,41 @@ infix fun AbstractQuadraticPolynomial<*>.leq(rhs: UtilsQuadraticPolynomial<Flt64
 infix fun AbstractQuadraticPolynomial<*>.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
 @Deprecated("Use math.symbol QuadraticPolynomial.neq instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() neq rhs"))
 infix fun AbstractQuadraticPolynomial<*>.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.ls instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() ls rhs"))
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: Flt64): MathQuadraticInequality = this lt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.gr instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() gr rhs"))
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: Flt64): MathQuadraticInequality = this gt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.ls instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() ls rhs"))
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = toQuadraticPolynomial() lt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.gr instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() gr rhs"))
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = toQuadraticPolynomial() gt rhs
+
+// AbstractQuadraticPolynomial vs UtilsLinearPolynomial (produces quadratic)
+@Deprecated("Use math.symbol QuadraticPolynomial.eq (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() eq rhs"))
+infix fun AbstractQuadraticPolynomial<*>.eq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() eq rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.le (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() le rhs"))
+infix fun AbstractQuadraticPolynomial<*>.le(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() le rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.ge (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() ge rhs"))
+infix fun AbstractQuadraticPolynomial<*>.ge(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() ge rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.lt (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() lt rhs"))
+infix fun AbstractQuadraticPolynomial<*>.lt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() lt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.gt (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() gt rhs"))
+infix fun AbstractQuadraticPolynomial<*>.gt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() gt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.ne (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() ne rhs"))
+infix fun AbstractQuadraticPolynomial<*>.ne(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+    toQuadraticPolynomial() ne rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.leq (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() leq rhs"))
+infix fun AbstractQuadraticPolynomial<*>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this le rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.geq (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() geq rhs"))
+infix fun AbstractQuadraticPolynomial<*>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.neq (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() neq rhs"))
+infix fun AbstractQuadraticPolynomial<*>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.ls (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() ls rhs"))
+infix fun AbstractQuadraticPolynomial<*>.ls(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = toQuadraticPolynomial() lt rhs
+@Deprecated("Use math.symbol QuadraticPolynomial.gr (linear) instead. Will be removed in E7.", level = DeprecationLevel.WARNING, replaceWith = ReplaceWith("this.toQuadraticPolynomial() gr rhs"))
+infix fun AbstractQuadraticPolynomial<*>.gr(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = toQuadraticPolynomial() gt rhs

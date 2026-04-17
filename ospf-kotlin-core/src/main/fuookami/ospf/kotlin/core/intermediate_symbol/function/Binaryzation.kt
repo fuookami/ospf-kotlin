@@ -168,7 +168,9 @@ class BinaryzationFunction<T : Field<T>>(
         /**
          * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
          * Maps legacy parameters to new API: extract/threshold/epsilon -> method selection.
+         * @deprecated Use math.symbol LinearPolynomial API directly.
          */
+        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), Flt64.zero, null, if (piecewise || epsilon >= BINARYZATION_PIECEWISE_THRESHOLD) BinaryzationMethod.Threshold else BinaryzationMethod.BigM, name, displayName)"))
         @JvmStatic
         @JvmName("fromCorePolynomial")
         operator fun invoke(
