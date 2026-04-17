@@ -166,33 +166,6 @@ class BinaryzationFunction<T : Field<T>>(
         )
 
         /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * Maps legacy parameters to new API: extract/threshold/epsilon -> method selection.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), Flt64.zero, null, if (piecewise || epsilon >= BINARYZATION_PIECEWISE_THRESHOLD) BinaryzationMethod.Threshold else BinaryzationMethod.BigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomial")
-        operator fun invoke(
-            x: AbstractLinearPolynomial<*>,
-            extract: Boolean = true,
-            epsilon: Flt64 = Flt64(1e-6),
-            piecewise: Boolean = false,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
-            val input = x.asMathLinearPolynomial()
-            val method = if (piecewise || epsilon >= BINARYZATION_PIECEWISE_THRESHOLD) {
-                BinaryzationMethod.Threshold
-            } else {
-                BinaryzationMethod.BigM
-            }
-            return LinearFunctionSymbolAdapter(
-                BinaryzationFunction(input, Flt64.zero, null, method, name, displayName)
-            )
-        }
-
-        /**
          * Factory: accept LinearIntermediateSymbol for framework compatibility.
          */
         @JvmStatic

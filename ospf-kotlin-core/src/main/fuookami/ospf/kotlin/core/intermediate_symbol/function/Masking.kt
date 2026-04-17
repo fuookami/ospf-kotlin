@@ -117,28 +117,6 @@ class MaskingFunction<T : Field<T>>(
     }
 
     companion object {
-        /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask, bigM, name, displayName)"))
-        @JvmStatic
-        operator fun invoke(
-            x: AbstractLinearPolynomial<*>,
-            mask: AbstractVariableItem<*, *>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            MaskingFunction(
-                input = x.asMathLinearPolynomial(),
-                mask = mask,
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
-
         operator fun invoke(
             input: MathLinearPolynomial<Flt64>,
             mask: AbstractVariableItem<*, *>,
@@ -181,71 +159,6 @@ class MaskingFunction<T : Field<T>>(
                 name = name,
                 displayName = displayName
             )
-        )
-
-        /**
-         * Factory: accept AbstractLinearPolynomial for both x and mask.
-         * For framework code passing polynomial masks (e.g., sum of variables).
-         * Creates an internal helper variable to represent the polynomial mask.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask.asMathLinearPolynomial(), bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromPolynomialMask")
-        operator fun invoke(
-            x: AbstractLinearPolynomial<*>,
-            mask: AbstractLinearPolynomial<*>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.asMathLinearPolynomial(),
-            maskPoly = mask.asMathLinearPolynomial(),
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
-        /**
-         * Factory: accept ToLinearPolynomial for x and AbstractLinearPolynomial for mask.
-         * For mixed-type inputs with polynomial mask.
-         */
-        @JvmStatic
-        @JvmName("fromToLinearPolynomialWithPolyMask")
-        operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
-            mask: AbstractLinearPolynomial<*>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.toLinearPolynomial(),
-            maskPoly = mask.asMathLinearPolynomial(),
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
-        /**
-         * Factory: accept AbstractLinearPolynomial for x and ToLinearPolynomial for mask.
-         * For framework code passing LinearIntermediateSymbol as mask.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), mask.toLinearPolynomial(), bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromSymbolMask")
-        operator fun invoke(
-            x: AbstractLinearPolynomial<*>,
-            mask: fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.asMathLinearPolynomial(),
-            maskPoly = mask.toLinearPolynomial(),
-            bigM = bigM,
-            name = name,
-            displayName = displayName
         )
 
         /**

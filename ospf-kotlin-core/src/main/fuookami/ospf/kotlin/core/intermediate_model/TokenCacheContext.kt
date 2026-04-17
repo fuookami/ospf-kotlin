@@ -408,31 +408,3 @@ internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMono
     }
     return cells
 }
-
-/**
- * 从 Polynomial 提取 LinearFlattenData（通过 Cell 类型参数）。
- * 已废弃：使用 `AbstractLinearPolynomial.flattenedMonomials` 直接访问。
- */
-@Deprecated(
-    message = "Use AbstractLinearPolynomial.flattenedMonomials directly. Will be removed in M9.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial")
-)
-@Suppress("INAPPLICABLE_JVM_NAME")
-@get:JvmName("getFlattenedMonomialsViaCell")
-val Polynomial<*, *, LinearMonomialCell>.flattenedMonomials: LinearFlattenData
-    get() = (this as AbstractLinearPolynomial<*>).flattenedMonomials
-
-/**
- * 从 Polynomial 提取 QuadraticFlattenData（通过 Cell 类型参数）。
- * 已废弃：使用 `AbstractQuadraticPolynomial.flattenedMonomials` 直接访问。
- */
-@Deprecated(
-    message = "Use AbstractQuadraticPolynomial.flattenedMonomials directly. Will be removed in M9.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("this.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticPolynomial")
-)
-@Suppress("INAPPLICABLE_JVM_NAME")
-@get:JvmName("getFlattenedMonomialsViaCellQuad")
-val Polynomial<*, *, QuadraticMonomialCell>.flattenedMonomials: QuadraticFlattenData
-    get() = (this as AbstractQuadraticPolynomial<*>).flattenedMonomials

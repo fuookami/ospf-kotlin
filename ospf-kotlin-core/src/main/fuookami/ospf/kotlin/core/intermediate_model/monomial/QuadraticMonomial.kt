@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticMonomialCells

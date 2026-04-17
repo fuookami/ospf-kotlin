@@ -1,0 +1,45 @@
+name: Core Refactor Guards
+
+on:
+  pull_request:
+    paths:
+      - "ospf-kotlin-core/**"
+      - "ospf-kotlin-framework/**"
+      - "ospf-kotlin-core-plugin/**"
+      - ".github/workflows/core-refactor-guards.yml"
+  push:
+    paths:
+      - "ospf-kotlin-core/**"
+      - "ospf-kotlin-framework/**"
+      - "ospf-kotlin-core-plugin/**"
+      - ".github/workflows/core-refactor-guards.yml"
+
+jobs:
+  c7-c8-guards:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Run C7 Regression
+        shell: pwsh
+        run: ./ospf-kotlin-core/scripts/run-c7-regression.ps1
+
+      - name: Run C8 Guards
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "pull_request") {
+            $baseRef = "${{ github.event.pull_request.base.sha }}"
+          } else {
+            $baseRef = "HEAD~1"
+          }
+          ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -BaseRef $baseRef

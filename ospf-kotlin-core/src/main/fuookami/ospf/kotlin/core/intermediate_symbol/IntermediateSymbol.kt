@@ -538,25 +538,6 @@ class LinearExpressionSymbol(
         }
 
         operator fun invoke(
-            polynomial: AbstractLinearPolynomial<*>,
-            parent: IntermediateSymbol? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol {
-            val flattened = polynomial.flattenedMonomials
-            return LinearExpressionSymbol(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
-                    monomials = flattened.monomials,
-                    constant = flattened.constant
-                ),
-                category = Linear,
-                parent = parent,
-                name = name.ifEmpty { polynomial.name },
-                displayName = displayName ?: polynomial.displayName
-            )
-        }
-
-        operator fun invoke(
             polynomial: UtilsLinearPolynomial<Flt64>,
             parent: IntermediateSymbol? = null,
             name: String = "",
@@ -1135,55 +1116,6 @@ class QuadraticExpressionSymbol(
                 parent = parent,
                 name = name.ifEmpty { monomial.name },
                 displayName = displayName ?: monomial.displayName
-            )
-        }
-
-        operator fun invoke(
-            polynomial: AbstractLinearPolynomial<*>,
-            parent: IntermediateSymbol? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            val flattened = polynomial.flattenedMonomials
-            val monomials = flattened.monomials.map { m ->
-                UtilsQuadraticMonomial.linear(m.coefficient, m.symbol)
-            }
-            return QuadraticExpressionSymbol(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = monomials,
-                    constant = flattened.constant
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name.ifEmpty { polynomial.name },
-                displayName = displayName ?: polynomial.displayName
-            )
-        }
-
-        operator fun invoke(
-            polynomial: AbstractQuadraticPolynomial<*>,
-            parent: IntermediateSymbol? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            val flattened = polynomial.flattenedMonomials
-            val monomials = flattened.monomials.map { m ->
-                val sym2 = m.symbol2
-                if (sym2 == null) {
-                    UtilsQuadraticMonomial.linear(m.coefficient, m.symbol1)
-                } else {
-                    UtilsQuadraticMonomial.quadratic(m.coefficient, m.symbol1, sym2)
-                }
-            }
-            return QuadraticExpressionSymbol(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = monomials,
-                    constant = flattened.constant
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name.ifEmpty { polynomial.name },
-                displayName = displayName ?: polynomial.displayName
             )
         }
 

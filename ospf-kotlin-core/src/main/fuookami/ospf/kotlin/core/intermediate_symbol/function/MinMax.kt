@@ -60,25 +60,6 @@ class MinMaxFunction<T : Field<T>>(
         ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, name, displayName)
 
         /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomials")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MinMaxFunction<Flt64> = MinMaxFunction(
-            polynomials = polynomials.map { it.asMathLinearPolynomial() },
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
-        /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
          */
         @JvmStatic

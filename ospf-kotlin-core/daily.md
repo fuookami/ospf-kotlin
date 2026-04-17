@@ -1145,3 +1145,52 @@ override fun remove(symbol: IntermediateSymbol) {
 
 12. 非线性分支基础完备性不足（P2）
    - Kotlin `MonomialCell.invoke(..., category)` 对非线性分支仍存在 TODO，会影响后续类别扩展的一致性。
+
+---
+
+## C5~C8 进展（2026-04-17）
+
+### C5（Quadratic cut 对齐）✅
+
+1. `MechanismModel.kt` 补齐 Quadratic:
+   - `generateOptimalCut(...)`
+   - `generateFeasibleCut(...)`
+2. 输出支持混合 cut 列表（线性 / 二次），供插件侧 `filterIsInstance` 分流。
+3. 新增回归测试：
+   - `src/test/.../QuadraticMechanismModelCutTest.kt`
+   - 覆盖：二次最优性割、可行性割符号翻转、线性回退路径。
+
+### C6（删库）⏳
+
+1. `Expression.kt` 已物理删除，接口迁移至：
+   - `ExpressionContract.kt`
+2. `Polynomial.kt` 仍有大量主链路引用，暂未进入物理删除收口。
+
+### C7（阶段化回归）✅
+
+新增脚本：
+
+- `ospf-kotlin-core/scripts/run-c7-regression.ps1`
+
+默认串行执行：
+
+1. core 测试
+2. framework 编译
+3. core-plugin 编译
+
+### C8（门禁）✅
+
+新增脚本：
+
+- `ospf-kotlin-core/scripts/check-c8-guards.ps1`
+
+当前增量门禁：
+
+1. API 主入口新增 `Abstract*Polynomial` 暴露拦截
+2. `Polynomial.kt` 外新增 `.cells` 拦截
+3. core 主路径新增 `Double` 固化拦截
+
+新增 CI：
+
+- `.github/workflows/core-refactor-guards.yml`
+- 执行顺序：C7 回归 -> C8 门禁

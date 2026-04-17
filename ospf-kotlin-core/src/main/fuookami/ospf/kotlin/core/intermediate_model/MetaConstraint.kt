@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.asMathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
@@ -76,15 +75,10 @@ interface MetaConstraintGroup {
 
     @Deprecated(
         message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(constraint.toLinearPolynomial() eq Flt64.one, lazy, name, displayName, args, withRangeSet)",
-            "fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality",
-            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
-        )
+        level = DeprecationLevel.WARNING
     )
     fun AbstractLinearMetaModel.addConstraint(
-        constraint: AbstractLinearPolynomial<*>,
+        constraint: ToLinearPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -92,7 +86,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = false
     ): Try {
         return addConstraint(
-            relation = constraint eq true,
+            relation = constraint.toMathLinearInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -188,22 +182,18 @@ interface MetaConstraintGroup {
     }
 
     @Deprecated(
-        message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(polynomial.toLinearPolynomial() eq Flt64.one, lazy, name, displayName, args)",
-            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
-        )
+        message = "Use partition with MathLinearInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
     )
     fun AbstractLinearMetaModel.partition(
-        polynomial: AbstractLinearPolynomial<*>,
+        polynomial: ToLinearPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation = polynomial.asMathLinearPolynomial() eq Flt64.one,
+            relation = polynomial.toMathLinearInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -232,15 +222,10 @@ interface MetaConstraintGroup {
 
     @Deprecated(
         message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(constraint.toQuadraticPolynomial() eq Flt64.one, lazy, name, displayName, args, withRangeSet)",
-            "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality",
-            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
-        )
+        level = DeprecationLevel.WARNING
     )
     fun AbstractQuadraticMetaModel.addConstraint(
-        constraint: AbstractQuadraticPolynomial<*>,
+        constraint: ToQuadraticPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -248,7 +233,7 @@ interface MetaConstraintGroup {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation = constraint eq true,
+            relation = constraint.toMathQuadraticInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -320,22 +305,18 @@ interface MetaConstraintGroup {
     }
 
     @Deprecated(
-        message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(polynomial.toQuadraticPolynomial() eq Flt64.one, lazy, name, displayName, args)",
-            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
-        )
+        message = "Use partition with MathQuadraticInequality instead. Will be removed in E7.",
+        level = DeprecationLevel.WARNING
     )
     fun AbstractQuadraticMetaModel.partition(
-        polynomial: AbstractQuadraticPolynomial<*>,
+        polynomial: ToQuadraticPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
     ): Try {
         return addConstraint(
-            relation = polynomial.toUtilsPolynomial() eq Flt64.one,
+            relation = polynomial.toMathQuadraticInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,

@@ -92,50 +92,7 @@ class AndFunction<T : Field<T>>(
         ): AndFunction<Flt64> = AndFunction(polynomials, bigM, name, displayName)
 
         /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomials")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            AndFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
-
-        /**
-         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
-         * Parameter named 'polynomials' to match callers using named arguments.
-         */
-        @JvmStatic
-        @JvmName("fromSymbols")
-        operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            AndFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
-
-        /**
          * Factory: accept List<ToLinearPolynomial> for mixed-type inputs.
-         * Handles cases where polynomials include both LinearIntermediateSymbol
-         * and AbstractLinearPolynomial elements.
          */
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
@@ -226,27 +183,6 @@ class OrFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): OrFunction<Flt64> = OrFunction(polynomials, bigM, name, displayName)
-
-        /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomials")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            OrFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.

@@ -5,8 +5,6 @@ package fuookami.ospf.kotlin.core.intermediate_model.monomial
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial

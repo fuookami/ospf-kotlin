@@ -54,11 +54,12 @@ class LinearSubObject(
         @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
-            poly: Polynomial<*, *, LinearMonomialCell>,
+            poly: ToLinearPolynomial,
             tokens: AbstractTokenTable,
             name: String
         ): LinearSubObject {
-            val flattenData = poly.flattenedMonomials
+            val lp = poly.toLinearPolynomial()
+            val flattenData = LinearFlattenData(lp.monomials, lp.constant)
             val cells = createLinearCells(flattenData.monomials, tokens)
             return LinearSubObject(
                 category = category,
@@ -110,11 +111,12 @@ class QuadraticSubObject(
         @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
-            poly: Polynomial<*, *, QuadraticMonomialCell>,
+            poly: ToQuadraticPolynomial,
             tokens: AbstractTokenTable,
             name: String
         ): QuadraticSubObject {
-            val flattenData = poly.flattenedMonomials
+            val qp = poly.toQuadraticPolynomial()
+            val flattenData = QuadraticFlattenData(qp.monomials, qp.constant)
             val cells = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticSubObject(
                 category = category,

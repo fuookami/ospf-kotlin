@@ -1,4 +1,4 @@
-@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -10,14 +10,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-
-/**
- * Convert core expression AbstractLinearPolynomial to math LinearPolynomial<Flt64>.
- * Now returns the result of toLinearPolynomial() directly since it already returns the math type.
- */
-fun AbstractLinearPolynomial<*>.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    return this.toLinearPolynomial()
-}
 
 /**
  * Convert LinearIntermediateSymbol to math LinearPolynomial<Flt64>.

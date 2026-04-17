@@ -112,25 +112,6 @@ class MaxFunction<T : Field<T>>(
         ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
 
         /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomials")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MaxFunction<Flt64> = MaxFunction(
-            polynomials = polynomials.map { it.asMathLinearPolynomial() },
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
-        /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
          * Each symbol is converted to a single-term polynomial.
          * Parameter named 'polynomials' to match callers using named arguments.
@@ -243,25 +224,6 @@ class MinFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
-
-        /**
-         * Factory: accept core expression AbstractLinearPolynomial for framework compatibility.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(polynomials.map { it.asMathLinearPolynomial() }, bigM, name, displayName)"))
-        @JvmStatic
-        @JvmName("fromCorePolynomials")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MinFunction<Flt64> = MinFunction(
-            polynomials = polynomials.map { it.asMathLinearPolynomial() },
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.

@@ -141,65 +141,6 @@ class SlackFunction<T : Field<T>>(
 
     companion object {
         /**
-         * Factory: create SlackFunction from core expression polynomials.
-         * For framework code using legacy DSL types.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), y.asMathLinearPolynomial(), type, withNegative, withPositive, threshold, name, displayName)"))
-        @JvmStatic
-        operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
-            y: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
-            withNegative: Boolean = true,
-            withPositive: Boolean = true,
-            threshold: Boolean = false,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            SlackFunction(
-                x = x.asMathLinearPolynomial(),
-                y = y.asMathLinearPolynomial(),
-                type = type,
-                withNegative = withNegative,
-                withPositive = withPositive,
-                threshold = threshold,
-                name = name,
-                displayName = displayName
-            )
-        )
-
-        /**
-         * Factory: accept core expression AbstractLinearPolynomial with UInt64 threshold.
-         * @deprecated Use math.symbol LinearPolynomial API directly.
-         */
-        @Deprecated("Use math.symbol API with LinearPolynomial<Flt64> instead", ReplaceWith("invoke(x.asMathLinearPolynomial(), LinearPolynomial(emptyList(), threshold.toFlt64()), type, !withPositive, withPositive, true, name, displayName)"))
-        @JvmStatic
-        operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearPolynomial<*>,
-            threshold: UInt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = fuookami.ospf.kotlin.core.variable.UContinuous,
-            withPositive: Boolean = true,
-            withNegative: Boolean? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
-            val positive = withNegative?.let { !it } ?: withPositive
-            return LinearFunctionSymbolAdapter(
-                SlackFunction(
-                    x = x.asMathLinearPolynomial(),
-                    y = LinearPolynomial(emptyList(), threshold.toFlt64()),
-                    type = type,
-                    withNegative = !positive,
-                    withPositive = positive,
-                    threshold = true,
-                    name = name,
-                    displayName = displayName
-                )
-            )
-        }
-
-        /**
          * Factory: accept AbstractVariableItem for x and Flt64 for y.
          * For framework code passing variable items directly.
          */

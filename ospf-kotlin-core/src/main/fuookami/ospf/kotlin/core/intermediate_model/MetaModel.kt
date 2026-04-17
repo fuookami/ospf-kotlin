@@ -1022,28 +1022,6 @@ class LinearMetaModelOf<V>(
         return ok
     }
 
-    @Deprecated(
-        message = "Use addObject with LinearFlattenData instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addObject(category, LinearFlattenData(polynomial.toLinearPolynomial().monomials, polynomial.toLinearPolynomial().constant), name ?: \"\", displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData"
-        )
-    )
-    override fun addObject(
-        category: ObjectCategory,
-        polynomial: AbstractLinearPolynomial<*>,
-        name: String?,
-        displayName: String?
-    ): Try {
-        return addObject(
-            category = category,
-            polynomial = polynomial.toUtilsPolynomial(),
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
     /**
      * Add objective using LinearFlattenData (new API)
      */
@@ -1284,28 +1262,6 @@ class QuadraticMetaModelOf<V>(
             )
         )
         return ok
-    }
-
-    @Deprecated(
-        message = "Use addObject with QuadraticFlattenData instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addObject(category, QuadraticFlattenData(polynomial.toQuadraticPolynomial().monomials, polynomial.toQuadraticPolynomial().constant), name ?: \"\", displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData"
-        )
-    )
-    override fun addObject(
-        category: ObjectCategory,
-        polynomial: AbstractQuadraticPolynomial<*>,
-        name: String?,
-        displayName: String?
-    ): Try {
-        return addObject(
-            category = category,
-            polynomial = polynomial.toUtilsPolynomial(),
-            name = name ?: "",
-            displayName = displayName
-        )
     }
 
     /**
