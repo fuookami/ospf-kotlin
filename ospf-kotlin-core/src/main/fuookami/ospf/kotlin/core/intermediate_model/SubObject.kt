@@ -58,15 +58,8 @@ class LinearSubObject(
             tokens: AbstractTokenTable,
             name: String
         ): LinearSubObject {
-            val cells = ArrayList<LinearCell>()
             val flattenData = poly.flattenedMonomials
-            for (monomial in flattenData.monomials) {
-                val variable = monomial.symbol as AbstractVariableItem<*, *>
-                val token = tokens.find(variable)
-                if (token != null && monomial.coefficient neq Flt64.zero) {
-                    cells.add(LinearCell(tokens, monomial.coefficient, token))
-                }
-            }
+            val cells = createLinearCells(flattenData.monomials, tokens)
             return LinearSubObject(
                 category = category,
                 cells = cells,
@@ -84,14 +77,7 @@ class LinearSubObject(
             tokens: AbstractTokenTable,
             name: String = ""
         ): LinearSubObject {
-            val cells = ArrayList<LinearCell>()
-            for (monomial in flattenData.monomials) {
-                val variable = monomial.symbol as AbstractVariableItem<*, *>
-                val token = tokens.find(variable)
-                if (token != null && monomial.coefficient neq Flt64.zero) {
-                    cells.add(LinearCell(tokens, monomial.coefficient, token))
-                }
-            }
+            val cells = createLinearCells(flattenData.monomials, tokens)
             return LinearSubObject(
                 category = category,
                 cells = cells,
@@ -128,20 +114,8 @@ class QuadraticSubObject(
             tokens: AbstractTokenTable,
             name: String
         ): QuadraticSubObject {
-            val cells = ArrayList<QuadraticCell>()
             val flattenData = poly.flattenedMonomials
-            for (monomial in flattenData.monomials) {
-                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
-                val token1 = tokens.find(variable1)
-                val token2 = if (monomial.symbol2 != null) {
-                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
-                } else {
-                    null
-                }
-                if (token1 != null && monomial.coefficient neq Flt64.zero) {
-                    cells.add(QuadraticCell(tokens, monomial.coefficient, token1, token2))
-                }
-            }
+            val cells = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticSubObject(
                 category = category,
                 cells = cells,
@@ -159,19 +133,7 @@ class QuadraticSubObject(
             tokens: AbstractTokenTable,
             name: String = ""
         ): QuadraticSubObject {
-            val cells = ArrayList<QuadraticCell>()
-            for (monomial in flattenData.monomials) {
-                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
-                val token1 = tokens.find(variable1)
-                val token2 = if (monomial.symbol2 != null) {
-                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
-                } else {
-                    null
-                }
-                if (token1 != null && monomial.coefficient neq Flt64.zero) {
-                    cells.add(QuadraticCell(tokens, monomial.coefficient, token1, token2))
-                }
-            }
+            val cells = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticSubObject(
                 category = category,
                 cells = cells,

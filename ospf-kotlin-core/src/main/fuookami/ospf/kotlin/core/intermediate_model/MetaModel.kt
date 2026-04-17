@@ -35,6 +35,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -1149,14 +1150,10 @@ class QuadraticMetaModelOf<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert to math QuadraticInequality
-        val quadraticInequality = MathQuadraticInequality(
-            relation.lhs.toQuadraticPolynomial(),
-            relation.rhs.toQuadraticPolynomial(),
-            relation.comparison
-        )
+        // Convert to math QuadraticInequality using unified extension function
+        // 使用统一扩展函数转换为 math QuadraticInequality
         return addConstraint(
-            relation = quadraticInequality,
+            relation = relation.toQuadraticInequality(),
             group = group,
             lazy = lazy,
             name = name,
@@ -1177,14 +1174,10 @@ class QuadraticMetaModelOf<V>(
         displayName: String?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert to math QuadraticInequality
-        val quadraticInequality = MathQuadraticInequality(
-            relation.lhs.toQuadraticPolynomial(),
-            relation.rhs.toQuadraticPolynomial(),
-            relation.comparison
-        )
+        // Convert to math QuadraticInequality using unified extension function
+        // 使用统一扩展函数转换为 math QuadraticInequality
         return addConstraint(
-            relation = quadraticInequality,
+            relation = relation.toQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,

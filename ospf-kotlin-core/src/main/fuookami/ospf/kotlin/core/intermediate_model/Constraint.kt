@@ -10,6 +10,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 
 /**
  * Generic constraint interface skeleton - C2-2.6 declaration layer.
@@ -117,21 +119,8 @@ class LinearConstraint(
             origin: MetaConstraint<*>? = null,
             from: Pair<IntermediateSymbol, Boolean>? = null,
         ): LinearConstraint {
-            val lhs = ArrayList<LinearCell>()
             val flattenData = relation.flattenData
-            for (monomial in flattenData.monomials) {
-                val variable = monomial.symbol as AbstractVariableItem<*, *>
-                val token = tokens.find(variable)
-                if (token != null && monomial.coefficient neq Flt64.zero) {
-                    lhs.add(
-                        LinearCell(
-                            tokenTable = tokens,
-                            coefficient = monomial.coefficient,
-                            token = token
-                        )
-                    )
-                }
-            }
+            val lhs = createLinearCells(flattenData.monomials, tokens)
             return LinearConstraint(
                 lhs = lhs,
                 sign = Sign(relation.comparison),
@@ -174,27 +163,8 @@ class QuadraticConstraint(
             origin: MetaConstraint<*>? = null,
             from: Pair<IntermediateSymbol, Boolean>? = null,
         ): QuadraticConstraint {
-            val lhs = ArrayList<QuadraticCell>()
             val flattenData = relation.flattenData
-            for (monomial in flattenData.monomials) {
-                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
-                val token1 = tokens.find(variable1)
-                val token2 = if (monomial.symbol2 != null) {
-                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
-                } else {
-                    null
-                }
-                if (token1 != null && monomial.coefficient neq Flt64.zero) {
-                    lhs.add(
-                        QuadraticCell(
-                            tokenTable = tokens,
-                            coefficient = monomial.coefficient,
-                            token1 = token1,
-                            token2 = token2
-                        )
-                    )
-                }
-            }
+            val lhs = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticConstraint(
                 lhs = lhs,
                 sign = Sign(relation.comparison),
@@ -206,4 +176,56 @@ class QuadraticConstraint(
             )
         }
     }
+}
+
+/**
+ * Internal factory: create LinearCell ArrayList from linear monomials.
+ * 内部工厂函数：从线性单项式创建 LinearCell ArrayList。
+ *
+ * Preserves filtering: token != null && coefficient != zero.
+ * 保留过滤条件：token != null && coefficient != zero。
+ */
+internal fun createLinearCells(
+    monomials: List<UtilsLinearMonomial<Flt64>>,
+    tokens: AbstractTokenTable
+): ArrayList<LinearCell> {
+    val cells = ArrayList<LinearCell>()
+    for (monomial in monomials) {
+        val variable = monomial.symbol as AbstractVariableItem<*, *>
+        val token = tokens.find(variable)
+        if (token != null && monomial.coefficient neq Flt64.zero) {
+            cells.add(LinearCell(tokens, monomial.coefficient, token))
+        }
+    }
+    return cells
+}
+
+/**
+ * Internal factory: create QuadraticCell ArrayList from quadratic monomials.
+ * 内部工厂函数：从二次单项式创建 QuadraticCell ArrayList。
+ *
+ * Preserves filtering: token1 != null && coefficient != zero.
+ * 保留过滤条件：token1 != null && coefficient != zero。
+ *
+ * Skips monomial when token2 lookup fails (continue behavior).
+ * 当 token2 查找失败时跳过该单项式（continue 行为）。
+ */
+internal fun createQuadraticCells(
+    monomials: List<UtilsQuadraticMonomial<Flt64>>,
+    tokens: AbstractTokenTable
+): ArrayList<QuadraticCell> {
+    val cells = ArrayList<QuadraticCell>()
+    for (monomial in monomials) {
+        val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+        val token1 = tokens.find(variable1)
+        val token2 = if (monomial.symbol2 != null) {
+            tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
+        } else {
+            null
+        }
+        if (token1 != null && monomial.coefficient neq Flt64.zero) {
+            cells.add(QuadraticCell(tokens, monomial.coefficient, token1, token2))
+        }
+    }
+    return cells
 }

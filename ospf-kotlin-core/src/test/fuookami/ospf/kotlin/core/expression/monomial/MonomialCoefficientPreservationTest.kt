@@ -31,7 +31,7 @@ class MonomialCoefficientPreservationTest {
     fun linearMonomialCell_evaluateWithValues_shouldPreserveCoefficient() {
         // Create a linear monomial cell with coefficient 3.0
         val variable = RealVar("x")
-        val cell = LinearMonomialCell.invoke(Flt64(3.0), variable)
+        val cell = LinearMonomialCell.invoke<Flt64>(Flt64(3.0), variable)
 
         // Evaluate with values map containing variable value 2.0
         val values = mapOf<Symbol, Flt64>(variable to Flt64(2.0))
@@ -45,7 +45,7 @@ class MonomialCoefficientPreservationTest {
     @Test
     fun linearMonomialCell_evaluateWithNegativeCoefficient_shouldWorkCorrectly() {
         val variable = RealVar("y")
-        val cell = LinearMonomialCell.invoke(Flt64(-2.0), variable)
+        val cell = LinearMonomialCell.invoke<Flt64>(Flt64(-2.0), variable)
 
         val values = mapOf<Symbol, Flt64>(variable to Flt64(3.0))
 
@@ -61,7 +61,7 @@ class MonomialCoefficientPreservationTest {
     fun quadraticMonomialCell_evaluateWithValues_linearTerm_shouldPreserveCoefficient() {
         // Linear term (variable2 = null)
         val variable = RealVar("z")
-        val cell = QuadraticMonomialCell.invoke(Flt64(7.0), variable, null)
+        val cell = QuadraticMonomialCell.invoke<Flt64>(Flt64(7.0), variable, null)
 
         val values = mapOf<Symbol, Flt64>(variable to Flt64(2.0))
 
@@ -75,7 +75,7 @@ class MonomialCoefficientPreservationTest {
     fun quadraticMonomialCell_evaluateWithValues_quadraticTerm_shouldPreserveCoefficient() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val cell = QuadraticMonomialCell.invoke(Flt64(3.0), x, y)
+        val cell = QuadraticMonomialCell.invoke<Flt64>(Flt64(3.0), x, y)
 
         val values = mapOf<Symbol, Flt64>(
             x to Flt64(2.0),
@@ -92,7 +92,7 @@ class MonomialCoefficientPreservationTest {
     fun quadraticMonomialCell_evaluateWithNegativeCoefficient_shouldWorkCorrectly() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val cell = QuadraticMonomialCell.invoke(Flt64(-1.5), x, y)
+        val cell = QuadraticMonomialCell.invoke<Flt64>(Flt64(-1.5), x, y)
 
         val values = mapOf<Symbol, Flt64>(
             x to Flt64(2.0),
@@ -109,7 +109,7 @@ class MonomialCoefficientPreservationTest {
     fun quadraticMonomialCell_evaluateSquaredTerm_shouldPreserveCoefficient() {
         // x^2 term (same variable twice)
         val x = RealVar("x")
-        val cell = QuadraticMonomialCell.invoke(Flt64(4.0), x, x)
+        val cell = QuadraticMonomialCell.invoke<Flt64>(Flt64(4.0), x, x)
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
 
@@ -124,8 +124,8 @@ class MonomialCoefficientPreservationTest {
     @Test
     fun quadraticMonomialCell_equals_shouldReturnTrueForSameType() {
         val x = RealVar("x")
-        val cell1 = QuadraticMonomialCell.invoke(Flt64(2.0), x, null)
-        val cell2 = QuadraticMonomialCell.invoke(Flt64(2.0), x, null)
+        val cell1 = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, null)
+        val cell2 = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, null)
 
         assertEquals(cell1, cell2)
     }
@@ -133,8 +133,8 @@ class MonomialCoefficientPreservationTest {
     @Test
     fun quadraticMonomialCell_equals_shouldReturnFalseForLinearMonomialCell() {
         val x = RealVar("x")
-        val quadraticCell = QuadraticMonomialCell.invoke(Flt64(2.0), x, null)
-        val linearCell = LinearMonomialCell.invoke(Flt64(2.0), x)
+        val quadraticCell = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, null)
+        val linearCell = LinearMonomialCell.invoke<Flt64>(Flt64(2.0), x)
 
         // Should not be equal because they are different types
         assertFalse(quadraticCell == linearCell)
@@ -144,8 +144,8 @@ class MonomialCoefficientPreservationTest {
     @Test
     fun quadraticMonomialCell_equals_shouldReturnFalseForDifferentCoefficients() {
         val x = RealVar("x")
-        val cell1 = QuadraticMonomialCell.invoke(Flt64(2.0), x, null)
-        val cell2 = QuadraticMonomialCell.invoke(Flt64(3.0), x, null)
+        val cell1 = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, null)
+        val cell2 = QuadraticMonomialCell.invoke<Flt64>(Flt64(3.0), x, null)
 
         assertNotEquals(cell1, cell2)
     }
@@ -154,8 +154,8 @@ class MonomialCoefficientPreservationTest {
     fun quadraticMonomialCell_hashCode_shouldBeConsistentWithEquals() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val cell1 = QuadraticMonomialCell.invoke(Flt64(2.0), x, y)
-        val cell2 = QuadraticMonomialCell.invoke(Flt64(2.0), x, y)
+        val cell1 = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, y)
+        val cell2 = QuadraticMonomialCell.invoke<Flt64>(Flt64(2.0), x, y)
 
         assertEquals(cell1.hashCode(), cell2.hashCode())
         assertTrue(cell1 == cell2)

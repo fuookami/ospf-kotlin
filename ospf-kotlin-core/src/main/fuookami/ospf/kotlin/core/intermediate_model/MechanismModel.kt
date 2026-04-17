@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
@@ -89,6 +89,96 @@ interface SingleObjectMechanismModelOf<V> : MechanismModelOf<V> {
 }
 
 typealias SingleObjectMechanismModel = SingleObjectMechanismModelOf<Flt64>
+
+private suspend fun <T, R> dumpItemsAsync(
+    items: List<T>,
+    scope: CoroutineScope,
+    memoryCheckInSingleTask: Boolean,
+    onProgress: ((UInt64) -> Unit)? = null,
+    transform: (T) -> R
+): List<R> {
+    val factor = Flt64(items.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
+    val deferredItems = if (factor >= 1) {
+        val completedLock = Any()
+        var completed = UInt64.zero
+        val segment = pow(UInt64.ten, factor).toInt()
+        (0..(items.size / segment)).map { i ->
+            scope.async(Dispatchers.Default) {
+                val result = items
+                    .subList(
+                        (i * segment),
+                        minOf(items.size, (i + 1) * segment)
+                    ).map(transform)
+                if (memoryUseOver()) {
+                    System.gc()
+                }
+                if (onProgress != null) {
+                    synchronized(completedLock) {
+                        completed += result.usize
+                        onProgress(completed)
+                    }
+                }
+                result
+            }
+        }
+    } else {
+        items.map { item ->
+            scope.async(Dispatchers.Default) {
+                val result = listOf(transform(item))
+                if (memoryCheckInSingleTask && memoryUseOver()) {
+                    System.gc()
+                }
+                result
+            }
+        }
+    }
+    return deferredItems.flatMap { it.await() }
+}
+
+private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
+    metaModel: MetaModel,
+    relationConstraints: List<RC>,
+    subObjects: List<SO>,
+    scope: CoroutineScope,
+    callBack: MechanismModelDumpingStatusCallBack?,
+    memoryCheckInSingleTask: Boolean,
+    createConstraint: (RC) -> C,
+    createSubObject: (SO) -> S
+): Pair<List<C>, List<S>> {
+    val constraints = dumpItemsAsync(
+        items = relationConstraints,
+        scope = scope,
+        memoryCheckInSingleTask = memoryCheckInSingleTask,
+        onProgress = callBack?.let { callback ->
+            { ready ->
+                callback(
+                    MechanismModelDumpingStatus.dumpingConstrains(
+                        ready = ready,
+                        model = metaModel
+                    )
+                )
+            }
+        },
+        transform = createConstraint
+    )
+    val dumpedSubObjects = dumpItemsAsync(
+        items = subObjects,
+        scope = scope,
+        memoryCheckInSingleTask = memoryCheckInSingleTask,
+        transform = createSubObject
+    )
+
+    if (callBack != null) {
+        callBack(
+            MechanismModelDumpingStatus.dumpingConstrains(
+                ready = metaModel.constraints.usize,
+                model = metaModel
+            )
+        )
+    }
+
+    return constraints to dumpedSubObjects
+}
 
 class LinearMechanismModelOf<V>(
     internal val parent: LinearMetaModelOf<V>,
@@ -217,112 +307,34 @@ class LinearMechanismModelOf<V>(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModel {
-            val factor1 = Flt64(metaModel._relationConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-            val constraints = if (factor1 >= 1) {
-                val thisCompletedConstraintAmountLock = Any()
-                var thisCompletedConstraintAmount = UInt64.zero
-                val segment = pow(UInt64.ten, factor1).toInt()
-                (0..(metaModel._relationConstraints.size / segment)).map { i ->
-                    scope.async(Dispatchers.Default) {
-                        val result = metaModel._relationConstraints
-                            .subList(
-                                (i * segment),
-                                minOf(metaModel._relationConstraints.size, (i + 1) * segment)
-                            ).map {
-                                LinearConstraint(
-                                    relation = it.inequality,
-                                    tokens = tokens
-                                )
-                            }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        if (callBack != null) {
-                            synchronized(thisCompletedConstraintAmountLock) {
-                                thisCompletedConstraintAmount += result.usize
-                                callBack(
-                                    MechanismModelDumpingStatus.dumpingConstrains(
-                                        ready = thisCompletedConstraintAmount,
-                                        model = metaModel
-                                    )
-                                )
-                            }
-                        }
-                        result
-                    }
-                }
-            } else {
-                metaModel._relationConstraints.map {
-                    scope.async(Dispatchers.Default) {
-                        val result = listOf(
-                            LinearConstraint(
-                                relation = it.inequality,
-                                tokens = tokens
-                            )
-                        )
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        result
-                    }
-                }
-            }
-            val factor2 = Flt64(metaModel._subObjects.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-            val subObjects = if (factor2 >= 1) {
-                val segment = pow(UInt64.ten, factor2).toInt()
-                (0..(metaModel._subObjects.size / segment)).map { i ->
-                    scope.async(Dispatchers.Default) {
-                        val result = metaModel._subObjects
-                            .subList(
-                                (i * segment),
-                                minOf(metaModel._subObjects.size, (i + 1) * segment)
-                            ).map {
-                                LinearSubObject(
-                                    category = it.category,
-                                    flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
-                                    tokens = tokens,
-                                    name = it.name
-                                )
-                            }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        result
-                    }
-                }
-            } else {
-                metaModel._subObjects.map {
-                    scope.async(Dispatchers.Default) {
-                        val result = listOf(
-                            LinearSubObject(
-                                category = it.category,
-                                flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
-                                tokens = tokens,
-                                name = it.name
-                            )
-                        )
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        result
-                    }
-                }
-            }
-
-            if (callBack != null) {
-                callBack(
-                    MechanismModelDumpingStatus.dumpingConstrains(
-                        ready = metaModel.constraints.usize,
-                        model = metaModel
+            val (constraints, subObjects) = dumpMechanismPartsAsync(
+                metaModel = metaModel,
+                relationConstraints = metaModel._relationConstraints,
+                subObjects = metaModel._subObjects,
+                scope = scope,
+                callBack = callBack,
+                memoryCheckInSingleTask = true,
+                createConstraint = {
+                    LinearConstraint(
+                        relation = it.inequality,
+                        tokens = tokens
                     )
-                )
-            }
+                },
+                createSubObject = {
+                    LinearSubObject(
+                        category = it.category,
+                        flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
+                        tokens = tokens,
+                        name = it.name
+                    )
+                }
+            )
 
             return LinearMechanismModel(
                 parent = metaModel,
                 name = metaModel.name,
-                constraints = constraints.flatMap { it.await() }.toMutableList(),
-                objectFunction = SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
+                constraints = constraints.toMutableList(),
+                objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
             )
         }
@@ -626,106 +638,34 @@ class QuadraticMechanismModelOf<V>(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModel {
-            val factor1 = Flt64(metaModel._relationConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-            val constraints = if (factor1 >= 1) {
-                val thisCompletedConstraintAmountLock = Any()
-                var thisCompletedConstraintAmount = UInt64.zero
-                val segment = pow(UInt64.ten, factor1).toInt()
-                (0..(metaModel._relationConstraints.size / segment)).map { i ->
-                    scope.async(Dispatchers.Default) {
-                        val result = metaModel._relationConstraints
-                            .subList(
-                                (i * segment),
-                                minOf(metaModel._relationConstraints.size, (i + 1) * segment)
-                            ).map {
-                                QuadraticConstraint(
-                                    relation = it.inequality,
-                                    tokens = tokens
-                                )
-                            }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        if (callBack != null) {
-                            synchronized(thisCompletedConstraintAmountLock) {
-                                thisCompletedConstraintAmount += result.usize
-                                callBack(
-                                    MechanismModelDumpingStatus.dumpingConstrains(
-                                        ready = thisCompletedConstraintAmount,
-                                        model = metaModel
-                                    )
-                                )
-                            }
-                        }
-                        result
-                    }
-                }
-            } else {
-                metaModel._relationConstraints.map {
-                    scope.async(Dispatchers.Default) {
-                        val result = listOf(
-                            QuadraticConstraint(
-                                relation = it.inequality,
-                                tokens = tokens
-                            )
-                        )
-                        result
-                    }
-                }
-            }
-            val factor2 = Flt64(metaModel._subObjects.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-            val subObjects = if (factor2 >= 1) {
-                val segment = pow(UInt64.ten, factor2).toInt()
-                (0..(metaModel._subObjects.size / segment)).map { i ->
-                    scope.async(Dispatchers.Default) {
-                        val result = metaModel._subObjects
-                            .subList(
-                                (i * segment),
-                                minOf(metaModel._subObjects.size, (i + 1) * segment)
-                            ).map {
-                                QuadraticSubObject(
-                                    category = it.category,
-                                    flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
-                                    tokens = tokens,
-                                    name = it.name
-                                )
-                            }
-                        if (memoryUseOver()) {
-                            System.gc()
-                        }
-                        result
-                    }
-                }
-            } else {
-                metaModel._subObjects.map {
-                    scope.async(Dispatchers.Default) {
-                        val result = listOf(
-                            QuadraticSubObject(
-                                category = it.category,
-                                flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
-                                tokens = tokens,
-                                name = it.name
-                            )
-                        )
-                        result
-                    }
-                }
-            }
-
-            if (callBack != null) {
-                callBack(
-                    MechanismModelDumpingStatus.dumpingConstrains(
-                        ready = metaModel.constraints.usize,
-                        model = metaModel
+            val (constraints, subObjects) = dumpMechanismPartsAsync(
+                metaModel = metaModel,
+                relationConstraints = metaModel._relationConstraints,
+                subObjects = metaModel._subObjects,
+                scope = scope,
+                callBack = callBack,
+                memoryCheckInSingleTask = false,
+                createConstraint = {
+                    QuadraticConstraint(
+                        relation = it.inequality,
+                        tokens = tokens
                     )
-                )
-            }
+                },
+                createSubObject = {
+                    QuadraticSubObject(
+                        category = it.category,
+                        flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                        tokens = tokens,
+                        name = it.name
+                    )
+                }
+            )
 
             return QuadraticMechanismModel(
                 parent = metaModel,
                 name = metaModel.name,
-                constraints = constraints.flatMap { it.await() }.toMutableList(),
-                objectFunction = SingleObject(metaModel.objectCategory, subObjects.flatMap { it.await() }),
+                constraints = constraints.toMutableList(),
+                objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
             )
         }
@@ -790,14 +730,10 @@ class QuadraticMechanismModelOf<V>(
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
-        // Convert MathLinearInequality to MathQuadraticInequality
-        val quadraticInequality = MathQuadraticInequality(
-            relation.lhs.toQuadraticPolynomial(),
-            relation.rhs.toQuadraticPolynomial(),
-            relation.comparison
-        )
+        // Convert MathLinearInequality to MathQuadraticInequality using unified extension function
+        // 使用统一扩展函数将 MathLinearInequality 转换为 MathQuadraticInequality
         return addConstraint(
-            relation = quadraticInequality,
+            relation = relation.toQuadraticInequality(),
             name = name,
             from = from
         )
