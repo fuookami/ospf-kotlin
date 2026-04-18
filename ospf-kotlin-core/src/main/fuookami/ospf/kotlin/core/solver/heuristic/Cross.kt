@@ -10,33 +10,3 @@ interface Cross<V> {
         model: AbstractCallBackModelInterface<*, V>
     ): List<Solution>
 }
-
-//data object OnePointCrossOperation : CrossOperation {
-//    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
-//        TODO("Not yet implemented")
-//    }
-//}
-//
-//data object TwoPointCrossOperation : CrossOperation {
-//    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
-//        TODO("Not yet implemented")
-//    }
-//}
-//
-//data object MultiPointCrossOperation : CrossOperation {
-//    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
-//        TODO("Not yet implemented")
-//    }
-//}
-//
-//data object UniformCrossOperation : CrossOperation {
-//    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
-//        TODO("Not yet implemented")
-//    }
-//}
-//
-//data object CycleCrossOperation : CrossOperation {
-//    override fun invoke(population: Population, modelInterface: CallBackModelInterface): List<Chromosome> {
-//        TODO("Not yet implemented")
-//    }
-//}

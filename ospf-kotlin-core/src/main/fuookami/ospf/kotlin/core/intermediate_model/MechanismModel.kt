@@ -232,17 +232,9 @@ class LinearMechanismModelOf<V>(
                 fixedVariables = fixedVariables,
                 callBack = registrationStatusCallBack
             )) {
-                is Ok -> {
-                    result.value
-                }
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
@@ -556,17 +548,9 @@ class QuadraticMechanismModelOf<V>(
                 fixedVariables = fixedVariables,
                 callBack = registrationStatusCallBack
             )) {
-                is Ok -> {
-                    result.value
-                }
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
+                is Ok -> result.value
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
             }
             logger.trace { "Tokens unfolded for $metaModel" }
 
@@ -753,13 +737,15 @@ class QuadraticMechanismModelOf<V>(
         name: String?,
         from: Pair<IntermediateSymbol, Boolean>?
     ): Try {
-        // Convert MathLinearInequality to MathQuadraticInequality using unified extension function
-        // 使用统一扩展函数将 MathLinearInequality 转换为 MathQuadraticInequality
-        return addConstraint(
-            relation = relation.toQuadraticInequality(),
-            name = name,
-            from = from
+        _constraints.add(
+            relation.toQuadraticConstraint(
+                tokens = tokens,
+                lazy = false,
+                name = name.orEmpty(),
+                from = from
+            )
         )
+        return ok
     }
 
     override fun addConstraint(

@@ -298,6 +298,8 @@ sealed interface AbstractTokenTable : AutoCloseable {
     override fun close() {
         tokenList.close()
     }
+
+    val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = emptyMap()
 }
 
 sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable, AddableTokenCollection {
@@ -461,6 +463,37 @@ sealed class MutableTokenTable(
     override val symbols by ::_symbols
 
     internal val cacheContexts = TokenCacheContexts()
+
+    private val _symbolDependencies: MutableMap<IntermediateSymbol, MutableSet<IntermediateSymbol>> = mutableMapOf()
+    override val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = _symbolDependencies
+
+    fun addSymbolDependency(symbol: IntermediateSymbol, dependsOn: IntermediateSymbol) {
+        _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
+    }
+
+    fun addSymbolWithDependencies(symbol: IntermediateSymbol, dependencies: Set<IntermediateSymbol>) {
+        _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
+    }
+
+    fun validateNoCycles(): Boolean {
+        val visited = mutableSetOf<IntermediateSymbol>()
+        val onStack = mutableSetOf<IntermediateSymbol>()
+        fun dfs(symbol: IntermediateSymbol): Boolean {
+            if (symbol in onStack) return false
+            if (symbol in visited) return true
+            visited.add(symbol)
+            onStack.add(symbol)
+            for (dep in _symbolDependencies[symbol] ?: emptySet()) {
+                if (!dfs(dep)) return false
+            }
+            onStack.remove(symbol)
+            return true
+        }
+        for (symbol in _symbolDependencies.keys) {
+            if (symbol !in visited && !dfs(symbol)) return false
+        }
+        return true
+    }
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
@@ -697,6 +730,9 @@ fun Collection<IntermediateSymbol>.register(
             dependency !in completedSymbols
         }.toMutableSet()
     }.toMap()
+    for ((symbol, deps) in dependencies) {
+        tokenTable.addSymbolWithDependencies(symbol, deps)
+    }
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
@@ -1067,6 +1103,43 @@ sealed class ConcurrentMutableTokenTable(
     private val lock = Any()
     internal val cacheContexts = TokenCacheContexts()
 
+    private val _symbolDependencies: MutableMap<IntermediateSymbol, MutableSet<IntermediateSymbol>> = mutableMapOf()
+    override val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = synchronized(lock) { _symbolDependencies.toMap() }
+
+    fun addSymbolDependency(symbol: IntermediateSymbol, dependsOn: IntermediateSymbol) {
+        synchronized(lock) {
+            _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
+        }
+    }
+
+    fun addSymbolWithDependencies(symbol: IntermediateSymbol, dependencies: Set<IntermediateSymbol>) {
+        synchronized(lock) {
+            _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
+        }
+    }
+
+    fun validateNoCycles(): Boolean {
+        synchronized(lock) {
+            val visited = mutableSetOf<IntermediateSymbol>()
+            val onStack = mutableSetOf<IntermediateSymbol>()
+            fun dfs(symbol: IntermediateSymbol): Boolean {
+                if (symbol in onStack) return false
+                if (symbol in visited) return true
+                visited.add(symbol)
+                onStack.add(symbol)
+                for (dep in _symbolDependencies[symbol] ?: emptySet()) {
+                    if (!dfs(dep)) return false
+                }
+                onStack.remove(symbol)
+                return true
+            }
+            for (symbol in _symbolDependencies.keys) {
+                if (symbol !in visited && !dfs(symbol)) return false
+            }
+            return true
+        }
+    }
+
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokenList.add(item)
     }
@@ -1352,6 +1425,9 @@ suspend fun Collection<IntermediateSymbol>.register(
                 dependency !in completedSymbols
             }.toMutableSet()
         }.toMap()
+        for ((symbol, deps) in dependencies) {
+            tokenTable.addSymbolWithDependencies(symbol, deps)
+        }
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {

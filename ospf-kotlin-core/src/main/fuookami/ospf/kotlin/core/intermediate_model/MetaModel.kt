@@ -120,6 +120,7 @@ sealed interface MetaModelOf<V> : Model, AutoCloseable {
     override val objectCategory: ObjectCategory
     val subObjects: List<SubObject<V>>
     val tokens: AbstractMutableTokenTable
+    val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = tokens.symbolDependencies
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
         return tokens.add(item)

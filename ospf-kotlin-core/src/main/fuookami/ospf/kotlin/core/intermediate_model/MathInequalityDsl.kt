@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -18,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 
 // ========== LinearInequality normalize extension ==========
@@ -573,3 +575,22 @@ infix fun UtilsQuadraticPolynomial<Flt64>.geq(rhs: LinearMonomial): MathQuadrati
 infix fun UtilsQuadraticPolynomial<Flt64>.neq(rhs: LinearMonomial): MathQuadraticInequality = this ne rhs
 infix fun UtilsQuadraticPolynomial<Flt64>.ls(rhs: LinearMonomial): MathQuadraticInequality = this lt rhs
 infix fun UtilsQuadraticPolynomial<Flt64>.gr(rhs: LinearMonomial): MathQuadraticInequality = this gt rhs
+
+// ========== LinearInequality to QuadraticConstraint direct conversion ==========
+
+fun MathLinearInequality.toQuadraticConstraint(
+    tokens: AbstractTokenTable,
+    lazy: Boolean = false,
+    name: String = "",
+    origin: MetaConstraint<*>? = null,
+    from: Pair<IntermediateSymbol, Boolean>? = null,
+): QuadraticConstraint {
+    return QuadraticConstraint(
+        relation = toQuadraticInequality(),
+        tokens = tokens,
+        lazy = lazy,
+        name = name,
+        origin = origin,
+        from = from
+    )
+}

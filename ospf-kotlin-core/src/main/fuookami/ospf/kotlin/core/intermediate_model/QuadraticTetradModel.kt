@@ -317,6 +317,7 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
+        /** V→Flt64 conversion boundary: phantom-V generic resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
             model: QuadraticMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
@@ -483,15 +484,7 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
-                                coefficient = cell.coefficient.let { coefficient ->
-                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        coefficient
-                                    }
-                                }
+                                coefficient = cell.coefficient.clampCoefficient()
                             )
                         )
                     } else if (tokenIndexes.containsKey(cell.token1)) {
@@ -501,16 +494,7 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                 colIndex2 = null,
-                                coefficient = cell.coefficient.let {
-                                    val coefficient = it * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
-                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        coefficient
-                                    }
-                                }
+                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)).clampCoefficient()
                             )
                         )
                     } else if (tokenIndexes.containsKey(cell.token2)) {
@@ -520,16 +504,7 @@ data class QuadraticTetradModel(
                                 rowIndex = index,
                                 colIndex1 = tokenIndexes[cell.token2]!!,
                                 colIndex2 = null,
-                                coefficient = cell.coefficient.let {
-                                    val coefficient = it * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
-                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        coefficient
-                                    }
-                                }
+                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)).clampCoefficient()
                             )
                         )
                     } else {
@@ -602,15 +577,7 @@ data class QuadraticTetradModel(
                                                 rowIndex = i,
                                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                                 colIndex2 = cell.token2?.let { token -> tokenIndexes[token]!! },
-                                                coefficient = cell.coefficient.let { coefficient ->
-                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                                        Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                                        -Flt64.decimalPrecision.reciprocal()
-                                                    } else {
-                                                        coefficient
-                                                    }
-                                                }
+                                                coefficient = cell.coefficient.clampCoefficient()
                                             )
                                         )
                                     } else if (tokenIndexes.containsKey(cell.token1)) {
@@ -620,16 +587,7 @@ data class QuadraticTetradModel(
                                                 rowIndex = i,
                                                 colIndex1 = tokenIndexes[cell.token1]!!,
                                                 colIndex2 = null,
-                                                coefficient = cell.coefficient.let { originCoefficient ->
-                                                    val coefficient = originCoefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
-                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                                        Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                                        -Flt64.decimalPrecision.reciprocal()
-                                                    } else {
-                                                        coefficient
-                                                    }
-                                                }
+                                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)).clampCoefficient()
                                             )
                                         )
                                     } else if (tokenIndexes.containsKey(cell.token2)) {
@@ -639,16 +597,7 @@ data class QuadraticTetradModel(
                                                 rowIndex = i,
                                                 colIndex1 = tokenIndexes[cell.token2]!!,
                                                 colIndex2 = null,
-                                                coefficient = cell.coefficient.let { originCoefficient ->
-                                                    val coefficient = originCoefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
-                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                                        Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                                        -Flt64.decimalPrecision.reciprocal()
-                                                    } else {
-                                                        coefficient
-                                                    }
-                                                }
+                                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)).clampCoefficient()
                                             )
                                         )
                                     } else {
@@ -715,15 +664,7 @@ data class QuadraticTetradModel(
                                     rowIndex = index,
                                     colIndex1 = tokenIndexes[cell.token1]!!,
                                     colIndex2 = cell.token2?.let { token -> tokenIndexes[token]!! },
-                                    coefficient = cell.coefficient.let { coefficient ->
-                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                            Flt64.decimalPrecision.reciprocal()
-                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                            -Flt64.decimalPrecision.reciprocal()
-                                        } else {
-                                            coefficient
-                                        }
-                                    }
+                                    coefficient = cell.coefficient.clampCoefficient()
                                 )
                             )
                         } else if (tokenIndexes.containsKey(cell.token1)) {
@@ -733,16 +674,7 @@ data class QuadraticTetradModel(
                                     rowIndex = index,
                                     colIndex1 = tokenIndexes[cell.token1]!!,
                                     colIndex2 = null,
-                                    coefficient = cell.coefficient.let { originCoefficient ->
-                                        val coefficient = originCoefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)
-                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                            Flt64.decimalPrecision.reciprocal()
-                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                            -Flt64.decimalPrecision.reciprocal()
-                                        } else {
-                                            coefficient
-                                        }
-                                    }
+                                    coefficient = (cell.coefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)).clampCoefficient()
                                 )
                             )
                         } else if (tokenIndexes.containsKey(cell.token2)) {
@@ -752,16 +684,7 @@ data class QuadraticTetradModel(
                                     rowIndex = index,
                                     colIndex1 = tokenIndexes[cell.token2]!!,
                                     colIndex2 = null,
-                                    coefficient = cell.coefficient.let { originCoefficient ->
-                                        val coefficient = originCoefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)
-                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                            Flt64.decimalPrecision.reciprocal()
-                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                            -Flt64.decimalPrecision.reciprocal()
-                                        } else {
-                                            coefficient
-                                        }
-                                    }
+                                    coefficient = (cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)).clampCoefficient()
                                 )
                             )
                         } else {
@@ -860,15 +783,7 @@ data class QuadraticTetradModel(
                         QuadraticObjectiveCell(
                             colIndex1 = i,
                             colIndex2 = j,
-                            coefficient = value.let { cellValue ->
-                                if (cellValue.isInfinity() || cellValue geq Flt64.decimalPrecision.reciprocal()) {
-                                    Flt64.decimalPrecision.reciprocal()
-                                } else if (cellValue.isNegativeInfinity() || cellValue leq -Flt64.decimalPrecision.reciprocal()) {
-                                    -Flt64.decimalPrecision.reciprocal()
-                                } else {
-                                    cellValue
-                                }
-                            }
+                            coefficient = value.clampCoefficient()
                         )
                     )
                 }

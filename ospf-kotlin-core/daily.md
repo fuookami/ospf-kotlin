@@ -812,7 +812,7 @@ override fun remove(symbol: IntermediateSymbol) {
 | C3-8 | 1h | 无变化 |
 | **总计** | **21.5h（约 3 天）** | +4.5h |
 
-### 阶段 C4：MechanismModel 边界收口（1.5 天） ⏳ 进行中 (2026-04-16)
+### 阶段 C4：MechanismModel 边界收口（1.5 天） ✅ 已完成 (2026-04-18)
 
 #### C4-1 边界现状分析 ✅ 完成
 
@@ -838,9 +838,15 @@ override fun remove(symbol: IntermediateSymbol) {
 - `ospf-kotlin-core/docs/refactor-baseline/mechanism-boundary.md` ✅
 - `ospf-kotlin-core/docs/refactor-baseline/mechanism-plan.md` ✅
 
-#### C4-2 至 C4-5 实施步骤 ⏳ 待执行
+#### C4-2 至 C4-5 实施步骤 ✅ 已完成 (2026-04-18)
 
-详见 `mechanism-plan.md`。
+**完成内容**:
+
+| 步骤 | 内容 | 状态 |
+|------|------|------|
+| C4-2 | LinearInequality→QuadraticConstraint 共享转换函数 | ✅ `MathInequalityDsl.kt: toQuadraticConstraint()` |
+| C4-3 | MechanismModel invoke() 去重（符号注册因类型系统限制保持内联） | ✅ 简化 unfold 模式 |
+| C4-P5 | Triad/Tetrad dump 共享工具 | ✅ `DumpHelpers.kt: clampCoefficient()` |
 
 **预估工时**：4h（P1-P4 处理）
 
@@ -1197,3 +1203,43 @@ override fun remove(symbol: IntermediateSymbol) {
 
 - `.github/workflows/core-refactor-guards.yml`
 - 执行顺序：C7 回归 -> C8 门禁
+
+---
+
+## Deferred Items（延期项）
+
+### C2 第二段：数值内核泛型化专项 — 设计完成，实现延期
+
+**状态**：设计完成，实现延期
+
+**理由**：
+- V 在所有 `*Of<V>` 类型中为 phantom（从未实际使用，所有内部实现均为 Flt64）
+- 真正泛型化需改 math 库（QuadraticInequality DSL）、sealed interface、Token/Cell/Constraint 内部字段，预估 15-20h 高风险工作
+- 当前 phantom-V + typealias 方案已满足 C2 退出条件（泛型接口声明完成、兼容别名生效、现有调用不破坏、测试通过）
+- 无当前使用场景驱动 V 的真实泛型化
+
+**何时恢复**：当出现需要 V ≠ Flt64 的具体使用场景时重新评估
+
+**已完成设计产物**：
+- `docs/refactor-baseline/generic-boundary.md` — 泛型化差异清单
+- C2-2.1~C2-2.9 声明层骨架（接口泛型、typealias 兼容）
+- C2-2.10 全量测试通过
+
+---
+
+## P1/P2 完成状态（2026-04-18）
+
+| 项目 | 状态 | 完成内容 |
+|------|------|----------|
+| P1-2 显式符号依赖图 | ✅ | `TokenTable.kt: symbolDependencies, addSymbolDependency, addSymbolWithDependencies, validateNoCycles`; `MetaModel.kt: symbolDependencies` 暴露 |
+| P1-3 .cells 主路径清退 | ✅ | C8 守卫已阻止新 .cells 使用；现有内部调用为合理实现细节 |
+| P0-6 API 兼容测试 | ✅ | `ApiCompatibilityTest.kt` 8 个测试方法 |
+| P2-1 启发式 TODO 清理 | ✅ | Migration.kt 8 个实现类；Cross.kt/Mutation.kt 死代码删除 |
+| P2-2 文档与门禁统一 | ✅ | daily.md 状态更新；C8 门禁已含 Flt64 守卫 |
+
+---
+
+## Conversion Boundary Markers（V→Flt64 转换边界标记）
+
+- `LinearTriadModel.invoke()` — MechanismModel<V> 到 IntermediateModel 的 V→Flt64 实例化入口
+- `QuadraticTetradModel.invoke()` — 同上，二次路径的 V→Flt64 实例化入口

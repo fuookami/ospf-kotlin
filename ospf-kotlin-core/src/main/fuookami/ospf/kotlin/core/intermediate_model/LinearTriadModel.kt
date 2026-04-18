@@ -323,6 +323,7 @@ data class LinearTriadModel(
     companion object {
         private val logger = logger()
 
+        /** V→Flt64 conversion boundary: phantom-V generic resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
             model: LinearMechanismModel,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
@@ -487,15 +488,7 @@ data class LinearTriadModel(
                             LinearConstraintCell(
                                 rowIndex = index,
                                 colIndex = tokenIndexes[cell.token]!!,
-                                coefficient = cell.coefficient.let { coefficient ->
-                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                        Flt64.decimalPrecision.reciprocal()
-                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                        -Flt64.decimalPrecision.reciprocal()
-                                    } else {
-                                        coefficient
-                                    }
-                                }
+                                coefficient = cell.coefficient.clampCoefficient()
                             )
                         )
                     } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
@@ -567,15 +560,7 @@ data class LinearTriadModel(
                                             LinearConstraintCell(
                                                 rowIndex = i,
                                                 colIndex = tokenIndexes[cell.token]!!,
-                                                coefficient = cell.coefficient.let { coefficient ->
-                                                    if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                                        Flt64.decimalPrecision.reciprocal()
-                                                    } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                                        -Flt64.decimalPrecision.reciprocal()
-                                                    } else {
-                                                        coefficient
-                                                    }
-                                                }
+                                                coefficient = cell.coefficient.clampCoefficient()
                                             )
                                         )
                                     } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
@@ -639,15 +624,7 @@ data class LinearTriadModel(
                                 LinearConstraintCell(
                                     rowIndex = index,
                                     colIndex = tokenIndexes[cell.token]!!,
-                                    coefficient = cell.coefficient.let { coefficient ->
-                                        if (coefficient.isInfinity() || coefficient geq Flt64.decimalPrecision.reciprocal()) {
-                                            Flt64.decimalPrecision.reciprocal()
-                                        } else if (coefficient.isNegativeInfinity() || coefficient leq -Flt64.decimalPrecision.reciprocal()) {
-                                            -Flt64.decimalPrecision.reciprocal()
-                                        } else {
-                                            coefficient
-                                        }
-                                    }
+                                    coefficient = cell.coefficient.clampCoefficient()
                                 )
                             )
                         } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
@@ -717,15 +694,7 @@ data class LinearTriadModel(
                 objective.add(
                     LinearObjectiveCell(
                         colIndex = i,
-                        coefficient = coefficient[i].let { value ->
-                            if (value.isInfinity() || value geq Flt64.decimalPrecision.reciprocal()) {
-                                Flt64.decimalPrecision.reciprocal()
-                            } else if (value.isNegativeInfinity() || value leq -Flt64.decimalPrecision.reciprocal()) {
-                                -Flt64.decimalPrecision.reciprocal()
-                            } else {
-                                value
-                            }
-                        }
+                        coefficient = coefficient[i].clampCoefficient()
                     )
                 )
             }

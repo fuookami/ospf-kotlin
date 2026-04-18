@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.heuristic
+package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
@@ -12,50 +12,3 @@ interface Mutation<V> {
         mutationRate: Flt64
     ): Solution
 }
-
-//class UniformMutationOperation(
-//    val rng: Random
-//) : MutationOperation {
-//    override fun invoke(chromosome: Chromosome, mutationRate: Flt64, model: CallBackModelInterface): Chromosome? {
-//        val newGene = chromosome.gene.toMutableList()
-//        var flag = false
-//        for (i in newGene.indices) {
-//            if (Flt64(rng.nextDouble()) ls mutationRate) {
-//                flag = true
-//                newGene[i] = model.tokens.find(i)!!.random(rng)
-//            }
-//        }
-//
-//        return if (flag) {
-//            Chromosome(
-//                fitness = if (model.constraintSatisfied(newGene) != false) {
-//                    model.objective(newGene)
-//                } else {
-//                    null
-//                },
-//                gene = newGene
-//            )
-//        } else {
-//            null
-//        }
-//    }
-//}
-//
-//class NonUniformMutationOperation(
-//    val rng: Random
-//) : MutationOperation {
-//    override fun invoke(chromosome: Chromosome, mutationRate: Flt64, model: CallBackModelInterface): Chromosome? {
-//        TODO("Not yet implemented")
-//    }
-//}
-//
-//class GaussianMutationOperation(
-//    val rng: Random
-//) : MutationOperation {
-//    override fun invoke(chromosome: Chromosome, mutationRate: Flt64, model: CallBackModelInterface): Chromosome? {
-//        TODO("Not yet implemented")
-//    }
-//}
-
-
-
