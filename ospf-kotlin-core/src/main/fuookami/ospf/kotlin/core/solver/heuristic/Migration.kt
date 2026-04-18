@@ -47,7 +47,7 @@ data class BetterToWorseMigration<V>(
         val bestFromEach = populations.map { pop ->
             pop.individuals.minMaxWithPartialThreeWayComparatorOrNull { lhs, rhs ->
                 model.compareObjective(lhs.fitness, rhs.fitness)
-            }?.second ?: pop.individuals.first()
+            }?.first ?: pop.individuals.first()
         }
         return populations.mapIndexed { index, population ->
             val sourceIndex = (index - 1 + populations.size) % populations.size
@@ -145,7 +145,7 @@ data class ElitistMigrationMigration<V>(
         val elites = populations.map { pop ->
             pop.individuals
                 .sortedByDescending { individual ->
-                    model.compareObjective(individual.fitness, pop.best.fitness) is Order.Greater
+                    model.compareObjective(individual.fitness, pop.best.fitness) is Order.Less
                 }
                 .take(eliteCount)
         }

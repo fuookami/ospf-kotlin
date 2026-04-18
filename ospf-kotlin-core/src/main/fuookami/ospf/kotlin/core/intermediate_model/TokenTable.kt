@@ -563,6 +563,8 @@ sealed class MutableTokenTable(
         cacheContexts.quadraticFlatten.remove(symbol)
         cacheContexts.range.remove(symbol)
         cacheContexts.value.remove(symbol)
+        _symbolDependencies.remove(symbol)
+        _symbolDependencies.values.forEach { it.remove(symbol) }
     }
 
     override fun flush() {
@@ -681,6 +683,7 @@ sealed class MutableTokenTable(
         }
         _symbolsMap.clear()
         symbols.clear()
+        _symbolDependencies.clear()
         super.close()
     }
 }
@@ -1211,6 +1214,8 @@ sealed class ConcurrentMutableTokenTable(
             cacheContexts.quadraticFlatten.remove(symbol)
             cacheContexts.range.remove(symbol)
             cacheContexts.value.remove(symbol)
+            _symbolDependencies.remove(symbol)
+            _symbolDependencies.values.forEach { it.remove(symbol) }
         }
     }
 
@@ -1393,6 +1398,7 @@ sealed class ConcurrentMutableTokenTable(
         }
         _symbolsMap.clear()
         _symbols.clear()
+        _symbolDependencies.clear()
         super.close()
     }
 }

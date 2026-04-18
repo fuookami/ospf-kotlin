@@ -31,10 +31,9 @@
 │           │                                    │                          │
 │           ▼                                    ▼                          │
 │  ┌──────────────────────────┐    ┌──────────────────────────────────┐    │
-│  │ 2. FunctionSymbol预热     │    │ 2. 批量预热                       │    │
-│  │    prepareAndCache()      │    │    prepare() + cache(symbols)    │    │
-│  │    [⚠️ 兼容性保留点]       │    │    [无重复]                       │    │
-│  │    cache(cacheKey=symbol) │    │                                  │    │
+│  │ 2. 批量value预热         │    │ 2. 批量预热                       │    │
+│  │    cache(symbols=map)    │    │    prepare() + cache(symbols)    │    │
+│  │    [统一路径]            │    │    [无重复]                       │    │
 │  └──────────────────────────┘    └──────────────────────────────────┘    │
 │           │                                    │                          │
 │           ▼                                    ▼                          │
@@ -196,9 +195,8 @@ flowchart TB
         A4[并发注册]
         
         A3 --> A3a[空符号预热<br/>cache+cacheSymbolContexts]
-        A3a --> A3b[FunctionSymbol预热<br/>prepareAndCache<br/>⚠️兼容性保留点]
-        A3b --> A3c[批量value预热<br/>cache symbols<br/>⚠️潜在重复]
-        A3c --> A3d[批量flatten/range<br/>cacheSymbolContexts]
+        A3a --> A3b[批量value预热<br/>cache symbols<br/>统一路径]
+        A3b --> A3c[批量flatten/range<br/>cacheSymbolContexts]
         
         A4 --> A4a[空符号预热]
         A4a --> A4b[批量value预热<br/>prepare+cache]
@@ -273,7 +271,7 @@ flowchart TB
 
 | 阶段 | 操作 | Key 类型 | 状态变化 |
 |------|------|----------|----------|
-| **注册** | `prepareAndCache()` 内 `cache(cacheKey=symbol)` | Symbol | 写入 |
+| **注册** | `prepare()` + 批量 `cache(symbols=map)` | Symbol | 写入 |
 | **注册** | 批量 `cache(symbols=map)` | Symbol | 写入 |
 | **求值** | `cacheIfNotCached(cacheKey=symbol)` | Symbol | 按需写入 |
 | **移除** | `cacheContexts.value.remove(symbol)` | Symbol | 清空 ✅B1 |
