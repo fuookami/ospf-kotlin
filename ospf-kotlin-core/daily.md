@@ -112,6 +112,33 @@
 
 ## 待办事项
 
+### P1 执行进度
+
+| # | 项目 | 状态 | 完成日期 |
+|---|------|------|----------|
+| P1-10 | 主链路语义等价回归 | 完成 | 2026-04-20 |
+| P1-8 | Benders cut by_id/from_output 公共 API | 待执行 | — |
+| P1-11 | Basic*Model 独立公开入口规范化 | 待执行 | — |
+| P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 待执行 | — |
+| P1-12 | C6 兼容层删除流程（D0~D4） | 待执行 | — |
+
+#### P1-10 完成详情
+
+新增 `SemanticEquivalenceTest.kt`，8 个测试用例覆盖：
+
+1. 线性模型等价（MathLinearInequality 构造 vs DSL `le`）
+2. 二次约束项正确性
+3. V 泛型路径 vs Flt64 路径（convertMechanismModelToF64）
+4. ConstraintRelation 双射往返
+5. LinearRelation.from(MathLinearInequality) 语义保留
+6. 目标函数等价 — minimize(MathLinearPolynomial) vs addObject(LinearFlattenDataF64)
+7. 全流水线等价 — 两种入口点产生相同 MechanismModel
+8. 插件边界 Double 转换 — QuadraticMechanismModel<Flt64> 通过 convertMechanismModelToF64 后约束完整保留
+
+验收：`mvn -pl ospf-kotlin-core test` — 129 tests, 0 failures
+
+---
+
 ### P1 — 本期尽量完成
 
 | # | 项目 | 内容 | 风险 | 预估 |
