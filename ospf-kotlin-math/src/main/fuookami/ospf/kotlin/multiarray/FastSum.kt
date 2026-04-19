@@ -15,7 +15,7 @@
  * - sumAxes: Σₖ₌₁..m a[i₁,...,iₖ,...,iₙ] (沿多轴求和 / sum along multiple axes)
  * - cumsumAxis: a[i₁,...,iₖ,...,iₙ] + cumsum[i₁,...,iₖ₋₁,...,iₙ] (累积求和 / cumulative sum)
  */
-package fuookami.ospf.kotlin.math.multiarray
+package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring

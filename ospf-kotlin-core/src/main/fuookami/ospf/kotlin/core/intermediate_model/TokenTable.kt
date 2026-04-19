@@ -1,6 +1,5 @@
 ﻿package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.ExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbolRegistrationScope
@@ -27,32 +26,32 @@ import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
 class RepeatedSymbolError(
-    val repeatedSymbol: IntermediateSymbol,
-    val symbol: IntermediateSymbol
+    val repeatedSymbol: IntermediateSymbol<*>,
+    val symbol: IntermediateSymbol<*>
 ) : Throwable() {
     override val message get() = "Repeated \"${symbol.name}\", old: $repeatedSymbol, new: $symbol."
 }
 
 /**
  * Generic token table interface skeleton - C2-2.5a declaration layer.
- * Phantom type parameter V for API signature; internal numerical kernel remains Flt64.
- * This interface coexists with the legacy AbstractTokenTable sealed interface.
- * C2-2.5b will convert AbstractTokenTable to typealias after Expression/Polynomial deletion.
+ * Type parameter V for API signature; internal numerical kernel remains Flt64.
+ * This interface coexists with the legacy LegacyAbstractTokenTable sealed interface.
+ * C2-2.5b will convert LegacyAbstractTokenTable to typealias after Expression/Polynomial deletion.
  */
-interface AbstractTokenTableOf<V : RealNumber<V>> : AutoCloseable {
+interface AbstractTokenTable<V : RealNumber<V>> : AutoCloseable {
     val category: Category
-    val tokenList: AbstractTokenListOf<V>
-    val symbols: Collection<IntermediateSymbol>
+    val tokenList: AbstractTokenList<V>
+    val symbols: Collection<IntermediateSymbol<*>>
 
-    // Phantom type declarations (implementation uses Flt64 internally)
-    val tokens: Collection<TokenOf<V>> get() = tokenList.tokens
-    val tokensInSolver: List<TokenOf<V>> get() = tokenList.tokensInSolver
+    // V-typed declarations (implementation uses Flt64 internally)
+    val tokens: Collection<Token<V>> get() = tokenList.tokens
+    val tokensInSolver: List<Token<V>> get() = tokenList.tokensInSolver
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
-    fun find(item: AbstractVariableItem<*, *>): TokenOf<V>? = tokenList.find(item)
-    fun find(index: Int): TokenOf<V>? = tokenList.find(index)
-    operator fun get(index: Int): TokenOf<V> = tokenList[index]
-    fun indexOf(token: TokenOf<V>): Int? = tokenList.indexOf(token)
+    fun find(item: AbstractVariableItem<*, *>): Token<V>? = tokenList.find(item)
+    fun find(index: Int): Token<V>? = tokenList.find(index)
+    operator fun get(index: Int): Token<V> = tokenList[index]
+    fun indexOf(token: Token<V>): Int? = tokenList.indexOf(token)
 
     // Numerical kernel methods (Flt64 unchanged)
     fun flush() {}
@@ -60,35 +59,39 @@ interface AbstractTokenTableOf<V : RealNumber<V>> : AutoCloseable {
     fun cachedValue(cacheKey: Any, solution: List<Flt64>? = null): Flt64? = null
 }
 
+typealias AbstractTokenTableF64 = AbstractTokenTable<Flt64>
+
 /**
  * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
  */
-interface AbstractMutableTokenTableOf<V : RealNumber<V>> : AbstractTokenTableOf<V>, AddableTokenCollectionOf<V> {
-    fun addSymbols(symbols: Iterable<IntermediateSymbol>): Try
-    fun removeSymbol(symbol: IntermediateSymbol)
+interface AbstractMutableTokenTable<V : RealNumber<V>> : AbstractTokenTable<V>, AddableTokenCollection<V> {
+    fun addSymbols(symbols: Iterable<IntermediateSymbol<*>>): Try
+    fun removeSymbol(symbol: IntermediateSymbol<*>)
 }
 
-sealed interface AbstractTokenTable : AutoCloseable {
+typealias AbstractMutableTokenTableF64 = AbstractMutableTokenTable<Flt64>
+
+sealed interface LegacyAbstractTokenTable : AutoCloseable {
     val category: Category
-    val tokenList: AbstractTokenList
-    val tokens: Collection<Token> get() = tokenList.tokens
-    val tokensInSolver: List<Token> get() = tokenList.tokensInSolver
-    val symbols: Collection<IntermediateSymbol>
+    val tokenList: AbstractTokenListF64
+    val tokens: Collection<TokenF64> get() = tokenList.tokens
+    val tokensInSolver: List<TokenF64> get() = tokenList.tokensInSolver
+    val symbols: Collection<IntermediateSymbol<*>>
     val cachedSolution: Boolean get() = tokenList.cachedSolution
 
-    fun find(item: AbstractVariableItem<*, *>): Token? {
+    fun find(item: AbstractVariableItem<*, *>): TokenF64? {
         return tokenList.find(item)
     }
 
-    fun find(index: Int): Token? {
+    fun find(index: Int): TokenF64? {
         return tokenList.find(index)
     }
 
-    operator fun get(index: Int): Token {
+    operator fun get(index: Int): TokenF64 {
         return tokenList[index]
     }
 
-    fun indexOf(token: Token): Int? {
+    fun indexOf(token: TokenF64): Int? {
         return tokenList.indexOf(token)
     }
 
@@ -96,8 +99,8 @@ sealed interface AbstractTokenTable : AutoCloseable {
         return find(item)?.let { indexOf(it) }
     }
 
-    fun tokensInSolverWithout(items: Set<AbstractVariableItem<*, *>>): List<Token> {
-        val tokensInSolver = ArrayList<Token>()
+    fun tokensInSolverWithout(items: Set<AbstractVariableItem<*, *>>): List<TokenF64> {
+        val tokensInSolver = ArrayList<TokenF64>()
         for (token in this.tokensInSolver) {
             if (token.variable !in items) {
                 tokensInSolver.add(token)
@@ -151,15 +154,15 @@ sealed interface AbstractTokenTable : AutoCloseable {
         return null
     }
 
-    fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData? {
+    fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenDataF64? {
         return null
     }
 
-    fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData?): LinearFlattenData? {
+    fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenDataF64?): LinearFlattenDataF64? {
         return flatten
     }
 
-    fun clearLinearFlatten(cacheKey: Any): LinearFlattenData? {
+    fun clearLinearFlatten(cacheKey: Any): LinearFlattenDataF64? {
         return null
     }
 
@@ -167,15 +170,15 @@ sealed interface AbstractTokenTable : AutoCloseable {
         return null
     }
 
-    fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData? {
+    fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenDataF64? {
         return null
     }
 
-    fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData?): QuadraticFlattenData? {
+    fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenDataF64?): QuadraticFlattenDataF64? {
         return flatten
     }
 
-    fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData? {
+    fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenDataF64? {
         return null
     }
 
@@ -249,7 +252,7 @@ sealed interface AbstractTokenTable : AutoCloseable {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>? = null) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) {
             cache(
                 cacheKey = symbol,
@@ -261,7 +264,7 @@ sealed interface AbstractTokenTable : AutoCloseable {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         for ((symbol, value) in symbols) {
             cache(
                 cacheKey = symbol,
@@ -273,7 +276,7 @@ sealed interface AbstractTokenTable : AutoCloseable {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>? = null) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) {
             cache(
                 cacheKey = symbol,
@@ -285,7 +288,7 @@ sealed interface AbstractTokenTable : AutoCloseable {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         for ((symbol, value) in symbols) {
             cache(
                 cacheKey = symbol,
@@ -299,10 +302,10 @@ sealed interface AbstractTokenTable : AutoCloseable {
         tokenList.close()
     }
 
-    val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = emptyMap()
+    val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = emptyMap()
 }
 
-sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>, AbstractTokenTable, AddableTokenCollection {
+sealed interface LegacyAbstractMutableTokenTable : Copyable<LegacyAbstractMutableTokenTable>, LegacyAbstractTokenTable, AddableTokenCollectionF64 {
     override fun add(item: AbstractVariableItem<*, *>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -314,19 +317,19 @@ sealed interface AbstractMutableTokenTable : Copyable<AbstractMutableTokenTable>
         return add(scope.tokens)
     }
 
-    fun add(symbol: IntermediateSymbol): Try
+    fun add(symbol: IntermediateSymbol<*>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
-    fun add(symbols: Iterable<IntermediateSymbol>): Try
-    fun remove(symbol: IntermediateSymbol)
+    fun add(symbols: Iterable<IntermediateSymbol<*>>): Try
+    fun remove(symbol: IntermediateSymbol<*>)
 }
 
 data class TokenTable(
     override val category: Category,
-    override val tokenList: TokenList,
-    override val symbols: List<IntermediateSymbol>
-) : AbstractTokenTable {
+    override val tokenList: TokenListF64,
+    override val symbols: List<IntermediateSymbol<*>>
+) : LegacyAbstractTokenTable {
     constructor(tokenTable: MutableTokenTable) : this(
         category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList),
@@ -369,16 +372,16 @@ data class TokenTable(
         return cacheContexts.linearFlatten.contains(cacheKey)
     }
 
-    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData? {
+    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenDataF64? {
         return cacheContexts.linearFlatten.get(cacheKey)
     }
 
-    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData?): LinearFlattenData? {
+    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenDataF64?): LinearFlattenDataF64? {
         cacheContexts.linearFlatten.put(cacheKey, flatten)
         return flatten
     }
 
-    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenData? {
+    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenDataF64? {
         return cacheContexts.linearFlatten.remove(cacheKey)
     }
 
@@ -386,16 +389,16 @@ data class TokenTable(
         return cacheContexts.quadraticFlatten.contains(cacheKey)
     }
 
-    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData? {
+    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenDataF64? {
         return cacheContexts.quadraticFlatten.get(cacheKey)
     }
 
-    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData?): QuadraticFlattenData? {
+    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenDataF64?): QuadraticFlattenDataF64? {
         cacheContexts.quadraticFlatten.put(cacheKey, flatten)
         return flatten
     }
 
-    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData? {
+    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenDataF64? {
         return cacheContexts.quadraticFlatten.remove(cacheKey)
     }
 
@@ -422,25 +425,25 @@ data class TokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, solution: List<Flt64>?) {
         cacheContexts.value.putAll(symbols, solution)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         cacheContexts.value.putAll(symbols, fixedValues)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, solution: List<Flt64>?) {
         cacheContexts.value.putAllLazy(symbols, solution)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         cacheContexts.value.putAllLazy(symbols, fixedValues)
     }
 
@@ -456,29 +459,29 @@ data class TokenTable(
 
 sealed class MutableTokenTable(
     override val category: Category,
-    override val tokenList: MutableTokenList,
-    protected val _symbols: MutableList<IntermediateSymbol> = ArrayList()
-) : AbstractMutableTokenTable {
-    private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
+    override val tokenList: MutableTokenListF64,
+    protected val _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : LegacyAbstractMutableTokenTable {
+    private val _symbolsMap: MutableMap<String, IntermediateSymbol<*>> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
     internal val cacheContexts = TokenCacheContexts()
 
-    private val _symbolDependencies: MutableMap<IntermediateSymbol, MutableSet<IntermediateSymbol>> = mutableMapOf()
-    override val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = _symbolDependencies
+    private val _symbolDependencies: MutableMap<IntermediateSymbol<*>, MutableSet<IntermediateSymbol<*>>> = mutableMapOf()
+    override val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = _symbolDependencies
 
-    fun addSymbolDependency(symbol: IntermediateSymbol, dependsOn: IntermediateSymbol) {
+    fun addSymbolDependency(symbol: IntermediateSymbol<*>, dependsOn: IntermediateSymbol<*>) {
         _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
     }
 
-    fun addSymbolWithDependencies(symbol: IntermediateSymbol, dependencies: Set<IntermediateSymbol>) {
+    fun addSymbolWithDependencies(symbol: IntermediateSymbol<*>, dependencies: Set<IntermediateSymbol<*>>) {
         _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
     }
 
     fun validateNoCycles(): Boolean {
-        val visited = mutableSetOf<IntermediateSymbol>()
-        val onStack = mutableSetOf<IntermediateSymbol>()
-        fun dfs(symbol: IntermediateSymbol): Boolean {
+        val visited = mutableSetOf<IntermediateSymbol<*>>()
+        val onStack = mutableSetOf<IntermediateSymbol<*>>()
+        fun dfs(symbol: IntermediateSymbol<*>): Boolean {
             if (symbol in onStack) return false
             if (symbol in visited) return true
             visited.add(symbol)
@@ -509,7 +512,7 @@ sealed class MutableTokenTable(
         return tokenList.remove(item)
     }
 
-    override fun add(symbol: IntermediateSymbol): Try {
+    override fun add(symbol: IntermediateSymbol<*>): Try {
         if ((symbol.operationCategory ord category) is Order.Greater) {
             return Failed(
                 code = ErrorCode.ApplicationError,
@@ -535,7 +538,7 @@ sealed class MutableTokenTable(
 
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
-    override fun add(symbols: Iterable<IntermediateSymbol>): Try {
+    override fun add(symbols: Iterable<IntermediateSymbol<*>>): Try {
         for (symbol in symbols) {
             when (val result = add(symbol)) {
                 is Ok -> {}
@@ -552,7 +555,7 @@ sealed class MutableTokenTable(
         return ok
     }
 
-    override fun remove(symbol: IntermediateSymbol) {
+    override fun remove(symbol: IntermediateSymbol<*>) {
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
 
@@ -600,16 +603,16 @@ sealed class MutableTokenTable(
         return cacheContexts.linearFlatten.contains(cacheKey)
     }
 
-    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData? {
+    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenDataF64? {
         return cacheContexts.linearFlatten.get(cacheKey)
     }
 
-    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData?): LinearFlattenData? {
+    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenDataF64?): LinearFlattenDataF64? {
         cacheContexts.linearFlatten.put(cacheKey, flatten)
         return flatten
     }
 
-    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenData? {
+    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenDataF64? {
         return cacheContexts.linearFlatten.remove(cacheKey)
     }
 
@@ -617,16 +620,16 @@ sealed class MutableTokenTable(
         return cacheContexts.quadraticFlatten.contains(cacheKey)
     }
 
-    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData? {
+    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenDataF64? {
         return cacheContexts.quadraticFlatten.get(cacheKey)
     }
 
-    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData?): QuadraticFlattenData? {
+    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenDataF64?): QuadraticFlattenDataF64? {
         cacheContexts.quadraticFlatten.put(cacheKey, flatten)
         return flatten
     }
 
-    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData? {
+    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenDataF64? {
         return cacheContexts.quadraticFlatten.remove(cacheKey)
     }
 
@@ -653,25 +656,25 @@ sealed class MutableTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, solution: List<Flt64>?) {
         cacheContexts.value.putAll(symbols, solution)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         cacheContexts.value.putAll(symbols, fixedValues)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, solution: List<Flt64>?) {
         cacheContexts.value.putAllLazy(symbols, solution)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         cacheContexts.value.putAllLazy(symbols, fixedValues)
     }
 
@@ -688,28 +691,31 @@ sealed class MutableTokenTable(
     }
 }
 
-private fun AbstractTokenTable.cacheSymbolContext(symbol: IntermediateSymbol) {
+typealias MutableTokenTableF64 = MutableTokenTable
+typealias ConcurrentMutableTokenTableF64 = ConcurrentMutableTokenTable
+
+private fun LegacyAbstractTokenTable.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
-        is LinearIntermediateSymbol -> {
+        is LinearIntermediateSymbol<*> -> {
             cacheLinearFlatten(symbol, symbol.flattenedMonomials)
         }
 
-        is QuadraticIntermediateSymbol -> {
+        is QuadraticIntermediateSymbol<*> -> {
             cacheQuadraticFlatten(symbol, symbol.flattenedMonomials)
         }
     }
     cacheRange(symbol, symbol.range)
 }
 
-private fun AbstractTokenTable.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol>) {
+private fun LegacyAbstractTokenTable.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
 }
 
 @Suppress("USELESS_CAST")
-fun Collection<IntermediateSymbol>.register(
+fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: MutableTokenTable,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
@@ -717,7 +723,7 @@ fun Collection<IntermediateSymbol>.register(
     val (emptySymbols, notEmptySymbols) = this@register.partition {
         it is LinearExpressionSymbol && it.flattenedMonomials.monomials.isEmpty() && it.flattenedMonomials.constant eq Flt64.zero
     }
-    tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol })
+    tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol<*> })
     tokenTable.cacheSymbolContexts(emptySymbols)
 
     val completedSymbols = emptySymbols.toMutableSet()
@@ -763,6 +769,13 @@ fun Collection<IntermediateSymbol>.register(
                     return Fatal(result.errors)
                 }
             }
+            // Allow symbols to register auxiliary tokens (e.g. slack variables, binaryzation helpers).
+            // Default is no-op, so this is backward compatible.
+            when (val result = symbol.registerAuxiliaryTokens(scope)) {
+                is Ok -> {}
+                is Failed -> { return Failed(result.error) }
+                is Fatal -> { return Fatal(result.errors) }
+            }
         }
         when (val result = tokenTable.add(scope)) {
             is Ok -> {}
@@ -784,7 +797,7 @@ fun Collection<IntermediateSymbol>.register(
                 } else {
                     it.prepare(fixedValues, tokenTable)
                 }
-            }.mapKeys { it.key as IntermediateSymbol }
+            }.mapKeys { it.key as IntermediateSymbol<*> }
         )
         tokenTable.cacheSymbolContexts(readySymbols)
         if (memoryUseOver()) {
@@ -821,9 +834,9 @@ fun Collection<IntermediateSymbol>.register(
 
 data class ConcurrentTokenTable(
     override val category: Category,
-    override val tokenList: TokenList,
-    override val symbols: List<IntermediateSymbol>
-) : AbstractTokenTable {
+    override val tokenList: TokenListF64,
+    override val symbols: List<IntermediateSymbol<*>>
+) : LegacyAbstractTokenTable {
     constructor(tokenTable: ConcurrentMutableTokenTable) : this(
         category = tokenTable.category,
         tokenList = TokenList(tokenTable.tokenList),
@@ -883,20 +896,20 @@ data class ConcurrentTokenTable(
         }
     }
 
-    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData? {
+    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.get(cacheKey)
         }
     }
 
-    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData?): LinearFlattenData? {
+    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenDataF64?): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.put(cacheKey, flatten)
             flatten
         }
     }
 
-    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenData? {
+    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.remove(cacheKey)
         }
@@ -908,20 +921,20 @@ data class ConcurrentTokenTable(
         }
     }
 
-    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData? {
+    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.get(cacheKey)
         }
     }
 
-    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData?): QuadraticFlattenData? {
+    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenDataF64?): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.put(cacheKey, flatten)
             flatten
         }
     }
 
-    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData? {
+    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.remove(cacheKey)
         }
@@ -972,7 +985,7 @@ data class ConcurrentTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, solution)
         }
@@ -980,7 +993,7 @@ data class ConcurrentTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, fixedValues)
         }
@@ -988,7 +1001,7 @@ data class ConcurrentTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, solution)
         }
@@ -996,7 +1009,7 @@ data class ConcurrentTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, fixedValues)
         }
@@ -1017,8 +1030,8 @@ data class ConcurrentTokenTable(
 
 class AutoTokenTable private constructor(
     category: Category,
-    tokenList: MutableTokenList,
-    symbols: List<IntermediateSymbol>
+    tokenList: MutableTokenListF64,
+    symbols: List<IntermediateSymbol<*>>
 ) : MutableTokenTable(
     category = category,
     tokenList = tokenList,
@@ -1026,7 +1039,7 @@ class AutoTokenTable private constructor(
 ) {
     companion object {
         operator fun invoke(
-            tokenTable: AbstractTokenTable,
+            tokenTable: LegacyAbstractTokenTable,
             checkTokenExists: Boolean
         ): AutoTokenTable {
             return AutoTokenTable(
@@ -1057,8 +1070,8 @@ class AutoTokenTable private constructor(
 
 class ManualTokenTable private constructor(
     category: Category,
-    tokenList: MutableTokenList,
-    symbols: List<IntermediateSymbol>
+    tokenList: MutableTokenListF64,
+    symbols: List<IntermediateSymbol<*>>
 ) : MutableTokenTable(
     category = category,
     tokenList = tokenList,
@@ -1066,7 +1079,7 @@ class ManualTokenTable private constructor(
 ) {
     companion object {
         operator fun invoke(
-            tokenTable: AbstractTokenTable,
+            tokenTable: LegacyAbstractTokenTable,
             checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
         ): ManualTokenTable {
             return ManualTokenTable(
@@ -1097,25 +1110,25 @@ class ManualTokenTable private constructor(
 
 sealed class ConcurrentMutableTokenTable(
     override val category: Category,
-    override val tokenList: MutableTokenList,
-    protected val _symbols: MutableList<IntermediateSymbol> = ArrayList()
-) : AbstractMutableTokenTable {
-    private val _symbolsMap: MutableMap<String, IntermediateSymbol> = _symbols.associateBy { it.name }.toMutableMap()
+    override val tokenList: MutableTokenListF64,
+    protected val _symbols: MutableList<IntermediateSymbol<*>> = ArrayList()
+) : LegacyAbstractMutableTokenTable {
+    private val _symbolsMap: MutableMap<String, IntermediateSymbol<*>> = _symbols.associateBy { it.name }.toMutableMap()
     override val symbols by ::_symbols
 
     private val lock = Any()
     internal val cacheContexts = TokenCacheContexts()
 
-    private val _symbolDependencies: MutableMap<IntermediateSymbol, MutableSet<IntermediateSymbol>> = mutableMapOf()
-    override val symbolDependencies: Map<IntermediateSymbol, Set<IntermediateSymbol>> get() = synchronized(lock) { _symbolDependencies.toMap() }
+    private val _symbolDependencies: MutableMap<IntermediateSymbol<*>, MutableSet<IntermediateSymbol<*>>> = mutableMapOf()
+    override val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = synchronized(lock) { _symbolDependencies.toMap() }
 
-    fun addSymbolDependency(symbol: IntermediateSymbol, dependsOn: IntermediateSymbol) {
+    fun addSymbolDependency(symbol: IntermediateSymbol<*>, dependsOn: IntermediateSymbol<*>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.add(dependsOn)
         }
     }
 
-    fun addSymbolWithDependencies(symbol: IntermediateSymbol, dependencies: Set<IntermediateSymbol>) {
+    fun addSymbolWithDependencies(symbol: IntermediateSymbol<*>, dependencies: Set<IntermediateSymbol<*>>) {
         synchronized(lock) {
             _symbolDependencies.getOrPut(symbol) { mutableSetOf() }.addAll(dependencies)
         }
@@ -1123,9 +1136,9 @@ sealed class ConcurrentMutableTokenTable(
 
     fun validateNoCycles(): Boolean {
         synchronized(lock) {
-            val visited = mutableSetOf<IntermediateSymbol>()
-            val onStack = mutableSetOf<IntermediateSymbol>()
-            fun dfs(symbol: IntermediateSymbol): Boolean {
+            val visited = mutableSetOf<IntermediateSymbol<*>>()
+            val onStack = mutableSetOf<IntermediateSymbol<*>>()
+            fun dfs(symbol: IntermediateSymbol<*>): Boolean {
                 if (symbol in onStack) return false
                 if (symbol in visited) return true
                 visited.add(symbol)
@@ -1157,7 +1170,7 @@ sealed class ConcurrentMutableTokenTable(
         return tokenList.remove(item)
     }
 
-    override fun add(symbol: IntermediateSymbol): Try {
+    override fun add(symbol: IntermediateSymbol<*>): Try {
         if ((symbol.operationCategory ord category) is Order.Greater) {
             return Failed(
                 Err(
@@ -1185,7 +1198,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @JvmName("addSymbols")
     @Suppress("INAPPLICABLE_JVM_NAME")
-    override fun add(symbols: Iterable<IntermediateSymbol>): Try {
+    override fun add(symbols: Iterable<IntermediateSymbol<*>>): Try {
         for (symbol in symbols) {
             when (val result = add(symbol)) {
                 is Ok -> {}
@@ -1202,7 +1215,7 @@ sealed class ConcurrentMutableTokenTable(
         return ok
     }
 
-    override fun remove(symbol: IntermediateSymbol) {
+    override fun remove(symbol: IntermediateSymbol<*>) {
         synchronized(lock) {
             _symbols.remove(symbol)
             _symbolsMap.remove(symbol.name)
@@ -1268,20 +1281,20 @@ sealed class ConcurrentMutableTokenTable(
         }
     }
 
-    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenData? {
+    override fun cachedLinearFlattenValue(cacheKey: Any): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.get(cacheKey)
         }
     }
 
-    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenData?): LinearFlattenData? {
+    override fun cacheLinearFlatten(cacheKey: Any, flatten: LinearFlattenDataF64?): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.put(cacheKey, flatten)
             flatten
         }
     }
 
-    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenData? {
+    override fun clearLinearFlatten(cacheKey: Any): LinearFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.linearFlatten.remove(cacheKey)
         }
@@ -1293,20 +1306,20 @@ sealed class ConcurrentMutableTokenTable(
         }
     }
 
-    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenData? {
+    override fun cachedQuadraticFlattenValue(cacheKey: Any): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.get(cacheKey)
         }
     }
 
-    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenData?): QuadraticFlattenData? {
+    override fun cacheQuadraticFlatten(cacheKey: Any, flatten: QuadraticFlattenDataF64?): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.put(cacheKey, flatten)
             flatten
         }
     }
 
-    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenData? {
+    override fun clearQuadraticFlatten(cacheKey: Any): QuadraticFlattenDataF64? {
         return synchronized(lock) {
             cacheContexts.quadraticFlatten.remove(cacheKey)
         }
@@ -1345,7 +1358,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, solution)
         }
@@ -1353,7 +1366,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, Flt64>, fixedValues: Map<Symbol, Flt64>) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, fixedValues)
         }
@@ -1361,7 +1374,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, solution: List<Flt64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, solution)
         }
@@ -1369,7 +1382,7 @@ sealed class ConcurrentMutableTokenTable(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, fixedValues)
         }
@@ -1404,7 +1417,7 @@ sealed class ConcurrentMutableTokenTable(
 }
 
 @Suppress("USELESS_CAST")
-suspend fun Collection<IntermediateSymbol>.register(
+suspend fun Collection<IntermediateSymbol<*>>.register(
     tokenTable: ConcurrentMutableTokenTable,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
@@ -1415,7 +1428,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                     && it.flattenedMonomials.monomials.isEmpty()
                     && it.flattenedMonomials.constant eq Flt64.zero
         }
-        tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol })
+        tokenTable.cache(emptySymbols.associateWith { Flt64.zero }.mapKeys { it.key as IntermediateSymbol<*> })
         tokenTable.cacheSymbolContexts(emptySymbols)
 
         val completedSymbols = emptySymbols.toMutableSet()
@@ -1458,6 +1471,13 @@ suspend fun Collection<IntermediateSymbol>.register(
                         return@coroutineScope Fatal(result.errors)
                     }
                 }
+                // Allow symbols to register auxiliary tokens (e.g. slack variables, binaryzation helpers).
+                // Default is no-op, so this is backward compatible.
+                when (val result = symbol.registerAuxiliaryTokens(scope)) {
+                    is Ok -> {}
+                    is Failed -> { return@coroutineScope Failed(result.error) }
+                    is Fatal -> { return@coroutineScope Fatal(result.errors) }
+                }
             }
             when (val result = tokenTable.add(scope)) {
                 is Ok -> {}
@@ -1496,7 +1516,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                                     } else {
                                         it.prepare(fixedValues, tokenTable)
                                     }
-                                }.mapKeys { it.key as IntermediateSymbol }
+                                }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
                             // B2: 批量写入 flatten/range 缓存
@@ -1531,7 +1551,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                                     } else {
                                         it.prepare(fixedValues, tokenTable)
                                     }
-                                }.mapKeys { it.key as IntermediateSymbol }
+                                }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
                             // B2: 批量写入 flatten/range 缓存
@@ -1575,7 +1595,7 @@ suspend fun Collection<IntermediateSymbol>.register(
                         } else {
                             it.prepare(fixedValues, tokenTable)
                         }
-                    }.mapKeys { it.key as IntermediateSymbol }
+                    }.mapKeys { it.key as IntermediateSymbol<*> }
                 )
                 tokenTable.cacheSymbolContexts(readySymbols)
 
@@ -1612,8 +1632,8 @@ suspend fun Collection<IntermediateSymbol>.register(
 
 class ConcurrentAutoTokenTable private constructor(
     category: Category,
-    tokenList: MutableTokenList,
-    symbols: List<IntermediateSymbol>
+    tokenList: MutableTokenListF64,
+    symbols: List<IntermediateSymbol<*>>
 ) : ConcurrentMutableTokenTable(
     category = category,
     tokenList = tokenList,
@@ -1621,7 +1641,7 @@ class ConcurrentAutoTokenTable private constructor(
 ) {
     companion object {
         operator fun invoke(
-            tokenTable: AbstractTokenTable,
+            tokenTable: LegacyAbstractTokenTable,
             checkTokenExists: Boolean
         ): ConcurrentMutableTokenTable {
             return ConcurrentAutoTokenTable(
@@ -1652,8 +1672,8 @@ class ConcurrentAutoTokenTable private constructor(
 
 class ConcurrentManualAddTokenTable private constructor(
     category: Category,
-    tokenList: MutableTokenList,
-    symbols: List<IntermediateSymbol>
+    tokenList: MutableTokenListF64,
+    symbols: List<IntermediateSymbol<*>>
 ) : ConcurrentMutableTokenTable(
     category = category,
     tokenList = tokenList,
@@ -1661,7 +1681,7 @@ class ConcurrentManualAddTokenTable private constructor(
 ) {
     companion object {
         operator fun invoke(
-            tokenTable: AbstractTokenTable,
+            tokenTable: LegacyAbstractTokenTable,
             checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
         ): ConcurrentMutableTokenTable {
             return ConcurrentManualAddTokenTable(

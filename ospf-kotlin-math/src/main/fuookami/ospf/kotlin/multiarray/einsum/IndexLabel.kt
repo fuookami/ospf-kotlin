@@ -10,7 +10,7 @@
  * In Rust, type-level programming is used for compile-time index tracking.
  * In Kotlin, enums and runtime lists are used for similar functionality.
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 // ============================================================================
 // IndexLabel - 索引标签枚举

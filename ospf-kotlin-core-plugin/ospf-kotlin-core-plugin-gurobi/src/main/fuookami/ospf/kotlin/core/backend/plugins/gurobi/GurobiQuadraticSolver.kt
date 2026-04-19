@@ -185,17 +185,17 @@ private class GurobiQuadraticSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBQuadExpr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    if (cell.colIndex2 == null) {
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                    if (colIndex2 == null) {
                                         lhs.addTerm(
-                                            cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"),
-                                            grbVars[cell.colIndex1]
+                                            coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"),
+                                            grbVars[colIndex1]
                                         )
                                     } else {
                                         lhs.addTerm(
-                                            cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"),
-                                            grbVars[cell.colIndex1],
-                                            grbVars[cell.colIndex2!!]
+                                            coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"),
+                                            grbVars[colIndex1],
+                                            grbVars[colIndex2]
                                         )
                                     }
                                 }
@@ -224,17 +224,17 @@ private class GurobiQuadraticSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = GRBQuadExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            if (cell.colIndex2 == null) {
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                            if (colIndex2 == null) {
                                 lhs.addTerm(
-                                    cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"),
-                                    grbVars[cell.colIndex1]
+                                    coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"),
+                                    grbVars[colIndex1]
                                 )
                             } else {
                                 lhs.addTerm(
-                                    cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"),
-                                    grbVars[cell.colIndex1],
-                                    grbVars[cell.colIndex2!!]
+                                    coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"),
+                                    grbVars[colIndex1],
+                                    grbVars[colIndex2]
                                 )
                             }
                         }

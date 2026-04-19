@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -76,6 +76,10 @@ class BalanceTernaryzationFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         val xValue = x.evaluate(values) ?: return null
         val xDouble = xValue.asFlt64().toDouble()
@@ -88,7 +92,7 @@ class BalanceTernaryzationFunction<T : Field<T>>(
         }
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         return impl.register(model)
     }
 

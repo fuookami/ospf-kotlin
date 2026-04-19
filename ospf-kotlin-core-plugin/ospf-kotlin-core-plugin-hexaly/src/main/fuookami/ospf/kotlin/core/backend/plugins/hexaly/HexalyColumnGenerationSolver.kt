@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 
@@ -26,7 +27,7 @@ class HexalyColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -104,7 +105,7 @@ class HexalyColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         amount: UInt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -191,7 +192,7 @@ class HexalyColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

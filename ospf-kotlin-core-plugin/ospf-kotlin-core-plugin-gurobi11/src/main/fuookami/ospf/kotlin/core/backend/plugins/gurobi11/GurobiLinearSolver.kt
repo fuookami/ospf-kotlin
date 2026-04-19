@@ -186,8 +186,8 @@ private class GurobiLinearSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = GRBLinExpr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), grbVars[cell.colIndex])
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                    lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), grbVars[colIndex])
                                 }
                                 ii to lhs
                             }
@@ -214,8 +214,8 @@ private class GurobiLinearSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = GRBLinExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), grbVars[cell.colIndex])
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                            lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"), grbVars[colIndex])
                         }
                         grbModel.addConstr(
                             lhs,

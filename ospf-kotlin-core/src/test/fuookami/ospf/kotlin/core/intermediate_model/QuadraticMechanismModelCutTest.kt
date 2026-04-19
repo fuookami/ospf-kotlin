@@ -35,16 +35,16 @@ class QuadraticMechanismModelCutTest {
             rhs = MathQuadraticPolynomial(emptyList(), Flt64(6.0)),
             comparison = Comparison.LE
         )
-        val constraint = QuadraticConstraint(
+        val constraint = QuadraticConstraintImpl(
             relation = relation,
             tokens = tokens,
             name = "qc-optimal"
         )
-        val mechanismModel = QuadraticMechanismModel(
-            parent = QuadraticMetaModel(name = "cut-parent-optimal"),
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-optimal"),
             name = "cut-model-optimal",
             constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject>()),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
             tokens = tokens
         )
 
@@ -84,16 +84,16 @@ class QuadraticMechanismModelCutTest {
             rhs = MathQuadraticPolynomial(emptyList(), Flt64.one),
             comparison = Comparison.LE
         )
-        val constraint = QuadraticConstraint(
+        val constraint = QuadraticConstraintImpl(
             relation = relation,
             tokens = tokens,
             name = "qc-feasible"
         )
-        val mechanismModel = QuadraticMechanismModel(
-            parent = QuadraticMetaModel(name = "cut-parent-feasible"),
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-feasible"),
             name = "cut-model-feasible",
             constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject>()),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
             tokens = tokens
         )
 
@@ -129,16 +129,16 @@ class QuadraticMechanismModelCutTest {
             rhs = MathQuadraticPolynomial(emptyList(), Flt64(3.0)),
             comparison = Comparison.LE
         )
-        val constraint = QuadraticConstraint(
+        val constraint = QuadraticConstraintImpl(
             relation = relation,
             tokens = tokens,
             name = "qc-linear-fallback"
         )
-        val mechanismModel = QuadraticMechanismModel(
-            parent = QuadraticMetaModel(name = "cut-parent-linear-fallback"),
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-linear-fallback"),
             name = "cut-model-linear-fallback",
             constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Maximum, emptyList<QuadraticSubObject>()),
+            objectFunction = SingleObject(ObjectCategory.Maximum, emptyList<QuadraticSubObject<Flt64>>()),
             tokens = tokens
         )
 
@@ -162,7 +162,7 @@ class QuadraticMechanismModelCutTest {
     }
 
     private fun findLinearCoefficient(
-        flattenData: LinearFlattenData,
+        flattenData: LinearFlattenDataF64,
         variable: AbstractVariableItem<*, *>
     ): Flt64 {
         return flattenData
@@ -173,7 +173,7 @@ class QuadraticMechanismModelCutTest {
     }
 
     private fun findLinearCoefficient(
-        flattenData: QuadraticFlattenData,
+        flattenData: QuadraticFlattenDataF64,
         variable: AbstractVariableItem<*, *>
     ): Flt64 {
         return flattenData
@@ -184,7 +184,7 @@ class QuadraticMechanismModelCutTest {
     }
 
     private fun findQuadraticCoefficient(
-        flattenData: QuadraticFlattenData,
+        flattenData: QuadraticFlattenDataF64,
         variable1: AbstractVariableItem<*, *>,
         variable2: AbstractVariableItem<*, *>
     ): Flt64 {

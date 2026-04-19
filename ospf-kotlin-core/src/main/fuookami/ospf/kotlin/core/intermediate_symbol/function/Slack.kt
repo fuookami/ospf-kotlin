@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
@@ -49,6 +49,10 @@ class SlackFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOfNotNull(negVar, posVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     val neg: LinearPolynomial<T>? by lazy {
         negVar?.let { v ->
             LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), v)), zeroOf<T>())
@@ -85,14 +89,11 @@ class SlackFunction<T : Field<T>>(
         }
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        val vars = listOfNotNull(negVar, posVar)
-        if (vars.isNotEmpty()) {
-            when (val result = model.add(vars)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val result = registerAuxiliaryTokens(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val xPoly = x.asFlt64Poly()
@@ -197,7 +198,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             y: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withNegative: Boolean = true,
@@ -224,7 +225,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             threshold: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -252,7 +253,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             threshold: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -282,7 +283,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             threshold: UInt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -311,7 +312,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             threshold: UInt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -341,8 +342,8 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol,
-            y: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
+            y: LinearIntermediateSymbol<*>,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,

@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -48,6 +48,10 @@ class MaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         var maxVal: T? = null
         var maxValD: Double = Double.NEGATIVE_INFINITY
@@ -62,8 +66,8 @@ class MaxFunction<T : Field<T>>(
         return maxVal
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -119,7 +123,7 @@ class MaxFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
+            polynomials: List<LinearIntermediateSymbol<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -162,6 +166,10 @@ class MinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         var minVal: T? = null
         var minValD: Double = Double.POSITIVE_INFINITY
@@ -176,8 +184,8 @@ class MinFunction<T : Field<T>>(
         return minVal
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -231,7 +239,7 @@ class MinFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
+            polynomials: List<LinearIntermediateSymbol<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

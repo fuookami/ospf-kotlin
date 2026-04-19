@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.LinearDualSolution
 import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModelOf
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.toMeta
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -60,7 +60,7 @@ abstract class AbstractShadowPriceMap<in Args : Any, in M : AbstractShadowPriceM
 
 fun <
         Args : Any,
-        Model : MetaModelOf<*>,
+        Model : MetaModel<*>,
         Map : AbstractShadowPriceMap<Args, Map>
         > extractShadowPrice(
     shadowPriceMap: Map,
@@ -92,7 +92,7 @@ fun <
 fun <
         Args : Any,
         Map : AbstractShadowPriceMap<Args, Map>
-        > IntermediateSymbol.refresh(
+        > IntermediateSymbol<*>.refresh(
     shadowPriceMap: Map,
     shadowPrices: MetaDualSolution
 ): Try {

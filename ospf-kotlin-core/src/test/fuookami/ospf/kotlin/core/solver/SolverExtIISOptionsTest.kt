@@ -6,6 +6,8 @@ import fuookami.ospf.kotlin.core.intermediate_model.BasicLinearTriadModel
 import fuookami.ospf.kotlin.core.intermediate_model.BasicQuadraticTetradModel
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintBatch
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticConstraintBatch
+import fuookami.ospf.kotlin.core.intermediate_model.SparseMatrixF64
+import fuookami.ospf.kotlin.core.intermediate_model.SparseQuadraticMatrix
 import fuookami.ospf.kotlin.core.intermediate_model.LinearObjective
 import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
@@ -576,7 +578,7 @@ private class InfeasibleQuadraticSolver(
 
 private fun emptyLinearModel(): LinearTriadModel {
     val constraints = LinearConstraintBatch(
-        lhs = emptyList(),
+        sparseLhs = SparseMatrixF64(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),
@@ -607,7 +609,7 @@ private fun boundedLinearModel(): LinearTriadModel {
         name = "x"
     )
     val constraints = LinearConstraintBatch(
-        lhs = emptyList(),
+        sparseLhs = SparseMatrixF64(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),
@@ -630,7 +632,7 @@ private fun boundedLinearModel(): LinearTriadModel {
 
 private fun emptyQuadraticModel(): QuadraticTetradModel {
     val constraints = QuadraticConstraintBatch(
-        lhs = emptyList(),
+        sparseLhs = SparseQuadraticMatrix(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),
@@ -661,7 +663,7 @@ private fun boundedQuadraticModel(): QuadraticTetradModel {
         name = "x"
     )
     val constraints = QuadraticConstraintBatch(
-        lhs = emptyList(),
+        sparseLhs = SparseQuadraticMatrix(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),

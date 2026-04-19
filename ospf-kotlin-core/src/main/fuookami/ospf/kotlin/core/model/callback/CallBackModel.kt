@@ -85,7 +85,7 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: AbstractMutableTokenTable = ManualTokenTable(category),
+    override val tokens: LegacyAbstractMutableTokenTable = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
@@ -118,7 +118,7 @@ class CallBackModel internal constructor(
         )
 
         operator fun invoke(
-            model: AbstractMetaModel,
+            model: AbstractMetaModelF64,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel {
             val tokens = model.tokens.copy()
@@ -154,7 +154,7 @@ class CallBackModel internal constructor(
         }
 
         operator fun invoke(
-            model: SingleObjectMechanismModel,
+            model: SingleObjectMechanismModelF64,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
         ): CallBackModel {
@@ -165,7 +165,7 @@ class CallBackModel internal constructor(
             }
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution -> constraint.isTrue(solution) },
+                    { solution: Solution -> (constraint as ConstraintImpl<Flt64, *>).isTrue(solution) },
                     constraint.name
                 )
             }.toMutableList()
@@ -173,9 +173,9 @@ class CallBackModel internal constructor(
                 Pair(
                     { solution: Solution ->
                         if (objective.category == model.objectFunction.category) {
-                            objective.evaluate(solution)
+                            objective.evaluateF64(solution)
                         } else {
-                            objective.evaluate(solution)?.let {
+                            objective.evaluateF64(solution)?.let {
                                 -it
                             }
                         }
@@ -248,7 +248,7 @@ class CallBackModel internal constructor(
     ): Try {
         return addObject(
             category = category,
-            expression = LinearPolynomial(variable),
+            func = { solution: Solution -> tokens.find(variable)?.result },
             name = name,
             displayName = displayName
         )
@@ -260,16 +260,17 @@ class CallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
+        val fltConstant = constant.toFlt64()
         return addObject(
             category = category,
-            expression = LinearPolynomial(constant),
+            func = { solution: Solution -> fltConstant },
             name = name,
             displayName = displayName
         )
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     @Suppress("UNUSED_PARAMETER")
@@ -294,29 +295,6 @@ class CallBackModel internal constructor(
         return ok
     }
 
-    @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun addObject(
-        category: ObjectCategory,
-        polynomial: Polynomial<*, *, *>,
-        name: String?
-    ): Try {
-        _objectiveFunctions.add(
-            Pair(
-                { solution: Solution ->
-                    if (category == objectCategory) {
-                        polynomial.evaluate(solution, tokens)
-                    } else {
-                        polynomial.evaluate(solution, tokens)?.let { -it }
-                    }
-                },
-                name ?: String()
-            )
-        )
-        return ok
-    }
 
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
@@ -421,7 +399,7 @@ class MultiObjectCallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val objectiveLocation: List<MultiObjectLocation>,
-    override val tokens: AbstractMutableTokenTable = ManualTokenTable(category),
+    override val tokens: LegacyAbstractMutableTokenTable = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution>, String>> = ArrayList(),
     private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
@@ -544,7 +522,7 @@ class MultiObjectCallBackModel internal constructor(
     ): Try {
         return addObject(
             category = category,
-            expression = LinearPolynomial(variable),
+            func = { solution: Solution -> tokens.find(variable)?.result },
             location = defaultLocation,
             name = name,
             displayName = displayName
@@ -557,9 +535,10 @@ class MultiObjectCallBackModel internal constructor(
         name: String?,
         displayName: String?
     ): Try {
+        val fltConstant = constant.toFlt64()
         return addObject(
             category = category,
-            expression = LinearPolynomial(constant),
+            func = { solution: Solution -> fltConstant },
             location = defaultLocation,
             name = name,
             displayName = displayName
@@ -567,7 +546,7 @@ class MultiObjectCallBackModel internal constructor(
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     @Suppress("UNUSED_PARAMETER")
@@ -581,24 +560,6 @@ class MultiObjectCallBackModel internal constructor(
         return addObject(
             category = category,
             func = { solution -> expression.evaluate(solution, tokens) },
-            location = location,
-            name = name
-        )
-    }
-
-    @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun addObject(
-        category: ObjectCategory,
-        polynomial: Polynomial<*, *, *>,
-        location: MultiObjectLocation,
-        name: String? = null
-    ): Try {
-        return addObject(
-            category = category,
-            func = { solution -> polynomial.evaluate(solution, tokens) },
             location = location,
             name = name
         )

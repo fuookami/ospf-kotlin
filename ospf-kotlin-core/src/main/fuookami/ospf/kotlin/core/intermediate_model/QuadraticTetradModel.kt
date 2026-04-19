@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
@@ -23,7 +23,19 @@ import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
 
-typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.intermediate_model.QuadraticConstraint
+typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.intermediate_model.QuadraticConstraintImpl
+
+private fun buildSparseLhs(rows: List<List<QuadraticConstraintCell>>): SparseQuadraticMatrix {
+    val mat = SparseQuadraticMatrix()
+    for (row in rows) {
+        val sv = SparseQuadraticVector()
+        for (cell in row) {
+            sv.add(cell.colIndex1, cell.colIndex2, cell.coefficient)
+        }
+        mat.addRow(sv)
+    }
+    return mat
+}
 
 private fun OriginQuadraticConstraint.isBound(): Boolean {
     return lhs.size == 1
@@ -61,26 +73,54 @@ class QuadraticConstraintCell(
 }
 
 class QuadraticConstraintBatch(
-    lhs: List<List<QuadraticConstraintCell>>,
-    signs: List<Sign>,
+    val sparseLhs: SparseQuadraticMatrix,
+    signs: List<ConstraintRelation>,
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    origins: List<OriginQuadraticConstraint?> = (0 until lhs.size).map { null },
-    froms: List<Pair<IntermediateSymbol, Boolean>?> = (0 until lhs.size).map { null },
-    priorities: List<Int?> = (0 until lhs.size).map { null }
-) : ModelConstraint<QuadraticConstraintCell>(lhs, signs, rhs, names, sources) {
+    origins: List<OriginQuadraticConstraint?> = (0 until sparseLhs.numRows()).map { null },
+    froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
+    priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
+) : ModelConstraint<QuadraticConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
+    /**
+     * Sparse representation of the quadratic LHS matrix.
+     * Each row is a SparseQuadraticVector where entries carry (colIndex1, colIndex2?, coefficient).
+     * This is the primary constraint representation.
+     */
+
+    @Deprecated("Use sparseLhs instead. Will be removed in E7.", level = DeprecationLevel.WARNING)
+    override val lhs: List<List<QuadraticConstraintCell>> by lazy {
+        sparseLhs.rows.mapIndexed { rowIndex, row ->
+            row.entries.map { entry ->
+                QuadraticConstraintCell(
+                    rowIndex = rowIndex,
+                    colIndex1 = entry.colIndex1,
+                    colIndex2 = entry.colIndex2,
+                    coefficient = entry.coefficient
+                )
+            }
+        }
+    }
+
     private val _origins: MutableList<OriginQuadraticConstraint?> = origins.toMutableList()
     val origins: List<OriginQuadraticConstraint?> by ::_origins
 
-    private val _froms: MutableList<Pair<IntermediateSymbol, Boolean>?> = froms.toMutableList()
-    val froms: List<Pair<IntermediateSymbol, Boolean>?> by ::_froms
+    private val _froms: MutableList<Pair<IntermediateSymbol<*>, Boolean>?> = froms.toMutableList()
+    val froms: List<Pair<IntermediateSymbol<*>, Boolean>?> by ::_froms
 
     private val _priorities: MutableList<Int?> = priorities.toMutableList()
     val priorities: List<Int?> by ::_priorities
 
     override fun copy() = QuadraticConstraintBatch(
-        lhs.map { line -> line.map { it.copy() } },
+        SparseQuadraticMatrix().also { mat ->
+            for (row in sparseLhs.rows) {
+                val newRow = SparseQuadraticVector()
+                for (entry in row.entries) {
+                    newRow.add(entry.colIndex1, entry.colIndex2, entry.coefficient.copy())
+                }
+                mat.addRow(newRow)
+            }
+        },
         signs.toList(),
         rhs.map { it.copy() },
         names.toList(),
@@ -188,6 +228,7 @@ class BasicQuadraticTetradModel(
         )
     }
 
+    @Suppress("DEPRECATION")
     override fun exportLP(writer: OutputStreamWriter): Try {
         writer.append("Subject To\n")
         for (i in constraints.indices) {
@@ -305,7 +346,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
-    val tokensInSolver: List<Token>,
+    val tokensInSolver: List<TokenF64>,
     override val objective: QuadraticObjective,
     internal val dualOrigin: QuadraticTetradModelView? = null
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
@@ -317,9 +358,9 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
-        /** V→Flt64 conversion boundary: phantom-V generic resolves to concrete Flt64 for quadratic intermediate model construction. */
+        /** V→Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
-            model: QuadraticMechanismModel,
+            model: QuadraticMechanismModelF64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -332,7 +373,7 @@ data class QuadraticTetradModel(
                 model.tokens.tokensInSolverWithout(fixedVariables.keys)
             }
             val tokenIndexMap = tokensInSolver.withIndex().associate { (index, token) -> token to index }
-            val bounds = model.constraints
+            val bounds = model.quadraticConstraints
                 .flatMap { constraint ->
                     if ((dumpConstraintsToBounds ?: true) && constraint.isBound()) {
                         listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs))
@@ -340,15 +381,15 @@ data class QuadraticTetradModel(
                         if (constraint.lhs.size == 1 && constraint.lhs.first().token2 == null) {
                             listOf(Quadruple(constraint, constraint.lhs.first().token1, constraint.sign, constraint.rhs / constraint.lhs.first().coefficient))
                         } else if (constraint.lhs.all { it.coefficient eq Flt64.one && it.token2 == null && it.token1.lowerBound!!.value.unwrap() geq Flt64.zero }
-                            && (constraint.sign == Sign.LessEqual || constraint.sign == Sign.Equal)
+                            && (constraint.sign == ConstraintRelation.LessEqual || constraint.sign == ConstraintRelation.Equal)
                             && constraint.rhs eq Flt64.zero
                         ) {
-                            constraint.lhs.map { Quadruple(constraint, it.token1, Sign.Equal, Flt64.zero) }
+                            constraint.lhs.map { Quadruple(constraint, it.token1, ConstraintRelation.Equal, Flt64.zero) }
                         } else if (constraint.lhs.all { it.coefficient eq -Flt64.one && it.token2 == null && it.token1.lowerBound!!.value.unwrap() geq Flt64.zero }
-                            && (constraint.sign == Sign.GreaterEqual || constraint.sign == Sign.Equal)
+                            && (constraint.sign == ConstraintRelation.GreaterEqual || constraint.sign == ConstraintRelation.Equal)
                             && constraint.rhs eq Flt64.zero
                         ) {
-                            constraint.lhs.map { Quadruple(constraint, it.token1, Sign.Equal, Flt64.zero) }
+                            constraint.lhs.map { Quadruple(constraint, it.token1, ConstraintRelation.Equal, Flt64.zero) }
                         } else {
                             emptyList()
                         }
@@ -423,9 +464,9 @@ data class QuadraticTetradModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: QuadraticMechanismModel,
-            tokenIndexes: Map<Token, Int>,
-            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -435,10 +476,10 @@ data class QuadraticTetradModel(
             for ((token, i) in tokenIndexes) {
                 val thisBounds = bounds[token] ?: emptyList()
                 val lb = thisBounds
-                    .filter { it.third == Sign.GreaterEqual || it.third == Sign.Equal }
+                    .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
                     .maxOfOrNull { it.fourth }
                 val ub = thisBounds
-                    .filter { it.third == Sign.LessEqual || it.third == Sign.Equal }
+                    .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
                     .minOfOrNull { it.fourth }
                 variables[i] = Variable(
                     index = i,
@@ -464,15 +505,15 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpConstraints(
-            model: QuadraticMechanismModel,
-            tokenIndexes: Map<Token, Int>,
-            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>,
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
                 thisBounds.map { it.first }
             }.distinct().toSet()
-            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
+            val notBoundConstraints = model.quadraticConstraints.filter { !boundConstraints.contains(it) }
 
             val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
                 val lhs = ArrayList<QuadraticConstraintCell>()
@@ -515,12 +556,12 @@ data class QuadraticTetradModel(
             }
 
             val lhs = ArrayList<List<QuadraticConstraintCell>>()
-            val signs = ArrayList<Sign>()
+            val signs = ArrayList<ConstraintRelation>()
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginQuadraticConstraint>()
-            val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+            val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
                 lhs.add(constraints[index].first)
@@ -533,7 +574,7 @@ data class QuadraticTetradModel(
                 priorities.add(constraint.origin?.priority)
             }
             return QuadraticConstraintBatch(
-                lhs = lhs,
+                sparseLhs = buildSparseLhs(lhs),
                 signs = signs,
                 rhs = rhs,
                 names = names,
@@ -545,15 +586,15 @@ data class QuadraticTetradModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: QuadraticMechanismModel,
-            tokenIndexes: Map<Token, Int>,
-            bounds: Map<Token, List<Quadruple<OriginQuadraticConstraint, Token, Sign, Flt64>>>,
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
                 thisBounds.map { it.first }
             }.distinct().toSet()
-            val notBoundConstraints = model.constraints.filter { !boundConstraints.contains(it) }
+            val notBoundConstraints = model.quadraticConstraints.filter { !boundConstraints.contains(it) }
 
             return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
                 val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
@@ -615,12 +656,12 @@ data class QuadraticTetradModel(
                     }
 
                     val lhs = ArrayList<List<QuadraticConstraintCell>>()
-                    val signs = ArrayList<Sign>()
+                    val signs = ArrayList<ConstraintRelation>()
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginQuadraticConstraint>()
-                    val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                    val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                     val priorities = ArrayList<Int?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
                         val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
@@ -635,7 +676,7 @@ data class QuadraticTetradModel(
                     }
                     System.gc()
                     QuadraticConstraintBatch(
-                        lhs = lhs,
+                        sparseLhs = buildSparseLhs(lhs),
                         signs = signs,
                         rhs = rhs,
                         names = names,
@@ -647,12 +688,12 @@ data class QuadraticTetradModel(
                 }
             } else {
                 val lhs = ArrayList<List<QuadraticConstraintCell>>()
-                val signs = ArrayList<Sign>()
+                val signs = ArrayList<ConstraintRelation>()
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginQuadraticConstraint>()
-                val froms = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                 val priorities = ArrayList<Int?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
                     val thisLhs = ArrayList<QuadraticConstraintCell>()
@@ -703,7 +744,7 @@ data class QuadraticTetradModel(
                 }
                 System.gc()
                 QuadraticConstraintBatch(
-                    lhs = lhs,
+                    sparseLhs = buildSparseLhs(lhs),
                     signs = signs,
                     rhs = rhs,
                     names = names,
@@ -716,8 +757,8 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpObjectives(
-            model: QuadraticMechanismModel,
-            tokenIndexes: Map<Token, Int>,
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
@@ -731,11 +772,12 @@ data class QuadraticTetradModel(
             for (subObject in model.objectFunction.subObjects) {
                 if (subObject.category == objectiveCategory) {
                     for (cell in subObject.cells) {
-                        if (fixedVariables?.containsKey(cell.token1.variable) == true && (cell.token2 == null || fixedVariables[cell.token2.variable] != null)) {
-                            constant += cell.coefficient * fixedVariables[cell.token1.variable]!! * (fixedVariables[cell.token2?.variable] ?: Flt64.one)
+                        val t2 = cell.token2
+                        if (fixedVariables?.containsKey(cell.token1.variable) == true && (t2 == null || fixedVariables[t2.variable] != null)) {
+                            constant += cell.coefficient * fixedVariables[cell.token1.variable]!! * (fixedVariables[t2?.variable] ?: Flt64.one)
                         } else if (fixedVariables?.containsKey(cell.token1.variable) == true) {
-                            assert(cell.token2 != null)
-                            val index = tokenIndexes[cell.token2] ?: continue
+                            assert(t2 != null)
+                            val index = tokenIndexes[t2] ?: continue
                             coefficient[index][null] = (coefficient[index][null] ?: Flt64.zero) + cell.coefficient * fixedVariables[cell.token1.variable]!!
                         } else if (fixedVariables?.containsKey(cell.token2?.variable) == true) {
                             val index = tokenIndexes[cell.token1] ?: continue
@@ -753,11 +795,12 @@ data class QuadraticTetradModel(
                     constant += subObject.constant
                 } else {
                     for (cell in subObject.cells) {
-                        if (fixedVariables?.containsKey(cell.token1.variable) == true && (cell.token2 == null || fixedVariables[cell.token2.variable] != null)) {
-                            constant -= cell.coefficient * fixedVariables[cell.token1.variable]!! * (fixedVariables[cell.token2?.variable] ?: Flt64.one)
+                        val t2 = cell.token2
+                        if (fixedVariables?.containsKey(cell.token1.variable) == true && (t2 == null || fixedVariables[t2.variable] != null)) {
+                            constant -= cell.coefficient * fixedVariables[cell.token1.variable]!! * (fixedVariables[t2?.variable] ?: Flt64.one)
                         } else if (fixedVariables?.containsKey(cell.token1.variable) == true) {
-                            assert(cell.token2 != null)
-                            val index = tokenIndexes[cell.token2] ?: continue
+                            assert(t2 != null)
+                            val index = tokenIndexes[t2] ?: continue
                             coefficient[index][null] = (coefficient[index][null] ?: Flt64.zero) - cell.coefficient * fixedVariables[cell.token1.variable]!!
                         } else if (fixedVariables?.containsKey(cell.token2?.variable) == true) {
                             val index = tokenIndexes[cell.token1] ?: continue
@@ -821,18 +864,18 @@ data class QuadraticTetradModel(
         TODO("not implemented yet")
     }
 
+    @Suppress("DEPRECATION")
     override fun feasibility(): QuadraticTetradModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Variable>()
         val artifactVariables = ArrayList<Variable>()
-        val constraints = QuadraticConstraintBatch(
-            lhs = this.constraints.indices.map {
+        val lhs = this.constraints.indices.map {
                 when (if (this.constraints.rhs[it] ls Flt64.zero) {
                     this.constraints.signs[it].reverse
                 } else {
                     this.constraints.signs[it]
                 }) {
-                    Sign.LessEqual -> {
+                    ConstraintRelation.LessEqual -> {
                         val slack = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -863,7 +906,7 @@ data class QuadraticTetradModel(
                         )
                     }
 
-                    Sign.GreaterEqual -> {
+                    ConstraintRelation.GreaterEqual -> {
                         val slack = Variable(
                             colIndex,
                             lowerBound = Flt64.zero,
@@ -913,7 +956,7 @@ data class QuadraticTetradModel(
                         )
                     }
 
-                    Sign.Equal -> {
+                    ConstraintRelation.Equal -> {
                         val artifact = Variable(
                             colIndex,
                             lowerBound = Flt64.zero,
@@ -942,9 +985,11 @@ data class QuadraticTetradModel(
                         )
                     }
                 }
-            },
+            }
+        val constraints = QuadraticConstraintBatch(
+            sparseLhs = buildSparseLhs(lhs),
             signs = this.constraints.indices.map {
-                Sign.Equal
+                ConstraintRelation.Equal
             },
             rhs = this.constraints.indices.map {
                 this.constraints.rhs[it]
@@ -984,12 +1029,13 @@ data class QuadraticTetradModel(
         )
     }
 
+    @Suppress("DEPRECATION")
     override fun elastic(): QuadraticTetradModel {
         var colIndex = this.variables.size
         val slackVariables = ArrayList<Pair<Variable?, Variable?>>()
         for (i in this.constraints.indices) {
             when (this.constraints.signs[i]) {
-                Sign.LessEqual -> {
+                ConstraintRelation.LessEqual -> {
                     slackVariables.add(
                         Variable(
                             index = colIndex,
@@ -1008,7 +1054,7 @@ data class QuadraticTetradModel(
                     colIndex += 1
                 }
 
-                Sign.GreaterEqual -> {
+                ConstraintRelation.GreaterEqual -> {
                     slackVariables.add(
                         null to Variable(
                             index = colIndex,
@@ -1027,7 +1073,7 @@ data class QuadraticTetradModel(
                     colIndex += 1
                 }
 
-                Sign.Equal -> {
+                ConstraintRelation.Equal -> {
                     slackVariables.add(
                         Variable(
                             index = colIndex,
@@ -1129,8 +1175,7 @@ data class QuadraticTetradModel(
         }
 
         var rowIndex = this.variables.size
-        val constraints = QuadraticConstraintBatch(
-            lhs = this.constraints.indices.map { i ->
+        val lhs = this.constraints.indices.map { i ->
                 this.constraints.lhs[i] + listOfNotNull(
                     slackVariables[i].first?.let {
                         QuadraticConstraintCell(
@@ -1191,17 +1236,19 @@ data class QuadraticTetradModel(
                     rowIndex += 1
                 }
                 thisLhs
-            },
+            }
+        val constraints = QuadraticConstraintBatch(
+            sparseLhs = buildSparseLhs(lhs),
             signs = this.constraints.signs + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisSigns = ArrayList<Sign>()
+                val thisConstraintRelations = ArrayList<ConstraintRelation>()
                 if (slackVariables[jp].first != null) {
-                    thisSigns.add(Sign.GreaterEqual)
+                    thisConstraintRelations.add(ConstraintRelation.GreaterEqual)
                 }
                 if (slackVariables[jp].second != null) {
-                    thisSigns.add(Sign.LessEqual)
+                    thisConstraintRelations.add(ConstraintRelation.LessEqual)
                 }
-                thisSigns
+                thisConstraintRelations
             },
             rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
@@ -1249,7 +1296,7 @@ data class QuadraticTetradModel(
             },
             froms = this.constraints.froms + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<Pair<IntermediateSymbol, Boolean>?>()
+                val thisOrigins = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }

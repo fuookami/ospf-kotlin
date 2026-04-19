@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -91,8 +91,13 @@ class FirstFunction<T : Field<T>>(
         return Flt64(n.toDouble()) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        // Register all binary functions
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        // Register own auxiliary tokens (_yVars); binaryFunctions register their own via register()
+        return tokens.add(_yVars.items)
+    }
+
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        // Register all binary functions (they register their own auxiliary tokens + constraints)
         for (binFunc in binaryFunctions) {
             when (val r = binFunc.register(model)) {
                 is Ok -> {}
@@ -101,8 +106,8 @@ class FirstFunction<T : Field<T>>(
             }
         }
 
-        // Register y variables
-        when (val r = model.add(listOf(_yVars))) {
+        // Register y variables via registerAuxiliaryTokens
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

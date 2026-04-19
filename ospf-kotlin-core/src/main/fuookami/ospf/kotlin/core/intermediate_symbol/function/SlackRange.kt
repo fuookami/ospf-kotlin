@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variables: `neg >= 0`, `pos >= 0`
- * - Constraint: `lb <= x + neg - pos <= ub` (when `constraint = true`)
+ * - ConstraintF64: `lb <= x + neg - pos <= ub` (when `constraint = true`)
  * - Output: `y = pos + neg`
  *
  * @param x the input linear polynomial
@@ -52,6 +52,10 @@ class SlackRangeFunction<T : Field<T>>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(negVar, posVar)
+
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
 
     /**
      * The slack amount: `y = pos + neg`.
@@ -96,15 +100,12 @@ class SlackRangeFunction<T : Field<T>>(
         }
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Add helper variables
-        val varsToAdd = listOf(negVar, posVar)
-        if (varsToAdd.isNotEmpty()) {
-            when (val result = model.add(varsToAdd)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+        when (val result = registerAuxiliaryTokens(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         // Skip constraint registration when constraint=false
@@ -115,7 +116,7 @@ class SlackRangeFunction<T : Field<T>>(
 
         val xPoly = x.asFlt64Poly()
 
-        // Constraint: x + neg - pos <= ub
+        // ConstraintF64: x + neg - pos <= ub
         // => x + neg - pos <= ub
         val upperLhs = LinearPolynomial(
             xPoly.monomials + listOf(
@@ -132,7 +133,7 @@ class SlackRangeFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // Constraint: x + neg - pos >= lb
+        // ConstraintF64: x + neg - pos >= lb
         // => x + neg - pos >= lb
         val lowerLhs = LinearPolynomial(
             xPoly.monomials + listOf(

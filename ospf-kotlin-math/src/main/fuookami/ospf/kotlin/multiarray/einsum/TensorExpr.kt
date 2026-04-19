@@ -5,7 +5,7 @@
  * 提供带编译期索引标记的张量包装类型。
  * Provides tensor wrapper types with compile-time index labels.
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 import fuookami.ospf.kotlin.multiarray.*
 

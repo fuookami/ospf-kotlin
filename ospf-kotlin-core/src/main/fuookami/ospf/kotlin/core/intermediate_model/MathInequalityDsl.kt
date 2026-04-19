@@ -491,16 +491,16 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): MathLinearInequality = (
 infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): MathLinearInequality = (this as Symbol) ls rhs
 infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): MathLinearInequality = (this as Symbol) gr rhs
 
-// ========== QuadraticIntermediateSymbol vs Boolean ==========
+// ========== QuadraticIntermediateSymbol<*> vs Boolean ==========
 
-infix fun QuadraticIntermediateSymbol.eq(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbol<*>.eq(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
-infix fun QuadraticIntermediateSymbol.le(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbol<*>.le(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
-infix fun QuadraticIntermediateSymbol.ge(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbol<*>.ge(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
-infix fun QuadraticIntermediateSymbol.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
-infix fun QuadraticIntermediateSymbol.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
+infix fun QuadraticIntermediateSymbol<*>.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
+infix fun QuadraticIntermediateSymbol<*>.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
 
 // ========== QuadraticMonomial vs Boolean ==========
 
@@ -579,13 +579,13 @@ infix fun UtilsQuadraticPolynomial<Flt64>.gr(rhs: LinearMonomial): MathQuadratic
 // ========== LinearInequality to QuadraticConstraint direct conversion ==========
 
 fun MathLinearInequality.toQuadraticConstraint(
-    tokens: AbstractTokenTable,
+    tokens: LegacyAbstractTokenTable,
     lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
-    from: Pair<IntermediateSymbol, Boolean>? = null,
-): QuadraticConstraint {
-    return QuadraticConstraint(
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+): QuadraticConstraintImpl {
+    return QuadraticConstraintImpl(
         relation = toQuadraticInequality(),
         tokens = tokens,
         lazy = lazy,
@@ -593,4 +593,42 @@ fun MathLinearInequality.toQuadraticConstraint(
         origin = origin,
         from = from
     )
+}
+
+// ========== Relation-based constraint creation ==========
+
+fun LinearRelation.toConstraint(
+    tokens: LegacyAbstractTokenTable,
+    lazy: Boolean = false,
+    name: String = "",
+    origin: MetaConstraint<*>? = null,
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+): LinearConstraintImpl {
+    return LinearConstraintImpl(this, tokens, lazy, name, origin, from)
+}
+
+fun QuadraticRelation.toConstraint(
+    tokens: LegacyAbstractTokenTable,
+    lazy: Boolean = false,
+    name: String = "",
+    origin: MetaConstraint<*>? = null,
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+): QuadraticConstraintImpl {
+    return QuadraticConstraintImpl(this, tokens, lazy, name, origin, from)
+}
+
+fun LinearRelation.toQuadraticConstraint(
+    tokens: LegacyAbstractTokenTable,
+    lazy: Boolean = false,
+    name: String = "",
+    origin: MetaConstraint<*>? = null,
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+): QuadraticConstraintImpl {
+    val normalized = normalize()
+    val qMonomials = normalized.flattenData.monomials.map {
+        UtilsQuadraticMonomial(it.coefficient, it.symbol, null)
+    }
+    val qFlattenData = QuadraticFlattenDataF64(qMonomials, normalized.flattenData.constant)
+    val qRelation = QuadraticRelationImpl(qFlattenData, normalized.sign, normalized.name, normalized.displayName)
+    return QuadraticConstraintImpl(qRelation, tokens, lazy, name, origin, from)
 }

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 /**
  * LinearRelation - New relation type for linear constraints
  *
- * This type uses LinearFlattenData as the primary data carrier,
+ * This type uses LinearFlattenDataF64 as the primary data carrier,
  * providing a normalized representation for linear relations.
  *
  * Design goals:
@@ -19,10 +19,12 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
  * - Provide clear, normalized representation
  */
 sealed interface LinearRelation {
-    val flattenData: LinearFlattenData
+    val flattenData: LinearFlattenDataF64
     val sign: Comparison
     val name: String
     val displayName: String?
+
+    val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
 
     /**
      * Normalize to canonical form (<= or ==)
@@ -44,10 +46,12 @@ sealed interface LinearRelation {
  * QuadraticRelation - New relation type for quadratic constraints
  */
 sealed interface QuadraticRelation {
-    val flattenData: QuadraticFlattenData
+    val flattenData: QuadraticFlattenDataF64
     val sign: Comparison
     val name: String
     val displayName: String?
+
+    val constraintRelation: ConstraintRelation get() = ConstraintRelation(sign)
 
     /**
      * Normalize to canonical form (<= or ==)
@@ -69,7 +73,7 @@ sealed interface QuadraticRelation {
  * Default implementation of LinearRelation
  */
 data class LinearRelationImpl(
-    override val flattenData: LinearFlattenData,
+    override val flattenData: LinearFlattenDataF64,
     override val sign: Comparison,
     override val name: String = "",
     override val displayName: String? = null
@@ -78,7 +82,7 @@ data class LinearRelationImpl(
     override fun normalize(): LinearRelation {
         return when (sign) {
             Comparison.GT -> LinearRelationImpl(
-                flattenData = LinearFlattenData(
+                flattenData = LinearFlattenDataF64(
                     monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
                     constant = -flattenData.constant
                 ),
@@ -87,7 +91,7 @@ data class LinearRelationImpl(
                 displayName = displayName
             )
             Comparison.GE -> LinearRelationImpl(
-                flattenData = LinearFlattenData(
+                flattenData = LinearFlattenDataF64(
                     monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
                     constant = -flattenData.constant
                 ),
@@ -129,7 +133,7 @@ data class LinearRelationImpl(
  * Default implementation of QuadraticRelation
  */
 data class QuadraticRelationImpl(
-    override val flattenData: QuadraticFlattenData,
+    override val flattenData: QuadraticFlattenDataF64,
     override val sign: Comparison,
     override val name: String = "",
     override val displayName: String? = null
@@ -138,7 +142,7 @@ data class QuadraticRelationImpl(
     override fun normalize(): QuadraticRelation {
         return when (sign) {
             Comparison.GT -> QuadraticRelationImpl(
-                flattenData = QuadraticFlattenData(
+                flattenData = QuadraticFlattenDataF64(
                     monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
                     constant = -flattenData.constant
                 ),
@@ -147,7 +151,7 @@ data class QuadraticRelationImpl(
                 displayName = displayName
             )
             Comparison.GE -> QuadraticRelationImpl(
-                flattenData = QuadraticFlattenData(
+                flattenData = QuadraticFlattenDataF64(
                     monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
                     constant = -flattenData.constant
                 ),

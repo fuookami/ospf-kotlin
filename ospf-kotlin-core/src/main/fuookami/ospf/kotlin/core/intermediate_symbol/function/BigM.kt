@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
@@ -46,7 +46,7 @@ fun <T : Ring<T>> LinearPolynomial<T>.evaluateWith(values: Map<Symbol, T>): T? {
  * Add a list of constraints to the model, returning early on failure.
  * Returns null on success, or the error result on failure.
  */
-internal fun addConstraints(model: AbstractLinearMetaModel, constraints: List<MathLinearInequality>): Try? {
+internal fun addConstraints(model: AbstractLinearMetaModelF64, constraints: List<MathLinearInequality>): Try? {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
             is Ok -> {}

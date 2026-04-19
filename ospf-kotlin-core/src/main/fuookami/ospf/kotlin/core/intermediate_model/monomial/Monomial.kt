@@ -2,10 +2,10 @@
 
 package fuookami.ospf.kotlin.core.intermediate_model.monomial
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.Expression
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -22,14 +22,14 @@ sealed interface MonomialCell<Self : MonomialCell<Self>>
     : Cloneable, Copyable<Self>, Neg<Self>, Plus<Self, Self>, Minus<Self, Self>, Times<Flt64, Self>, Div<Flt64, Self> {
     companion object {
         @Suppress("UNCHECKED_CAST")
-        operator fun <Cell : MonomialCell<Cell>> invoke(constant: Flt64, category: Category): Cell {
+        operator fun <CellF64 : MonomialCell<CellF64>> invoke(constant: Flt64, category: Category): CellF64 {
             return when (category) {
                 is Linear -> {
-                    LinearMonomialCellOf<Flt64>(constant) as Cell
+                    LinearMonomialCell<Flt64>(constant) as CellF64
                 }
 
                 is Quadratic -> {
-                    QuadraticMonomialCellOf<Flt64>(constant) as Cell
+                    QuadraticMonomialCell<Flt64>(constant) as CellF64
                 }
 
                 else -> {
@@ -50,9 +50,9 @@ sealed interface MonomialCell<Self : MonomialCell<Self>>
         return this.div(rhs.toFlt64())
     }
 
-    fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList? = null, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64? = null, zeroIfNone: Boolean = false): Flt64?
 }
 
 sealed interface MonomialSymbol {
@@ -64,16 +64,16 @@ sealed interface MonomialSymbol {
     val lowerBound: Bound<Flt64>?
     val upperBound: Bound<Flt64>?
 
-    fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+    fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
         return evaluate(
             tokenList = tokenTable.tokenList,
             zeroIfNone = zeroIfNone
         )
     }
 
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
         return evaluate(
             results = results,
             tokenList = tokenTable.tokenList,
@@ -81,8 +81,8 @@ sealed interface MonomialSymbol {
         )
     }
 
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean = false): Flt64? {
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean = false): Flt64? {
         return evaluate(
             values = values,
             tokenList = tokenTable?.tokenList,
@@ -93,13 +93,13 @@ sealed interface MonomialSymbol {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>>
-    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, Cell>>, Times<Flt64, Self>, Div<Flt64, Self> {
+sealed interface Monomial<Self : Monomial<Self, CellF64>, CellF64 : MonomialCell<CellF64>>
+    : Expression, Cloneable, Copyable<Self>, Neg<Monomial<Self, CellF64>>, Times<Flt64, Self>, Div<Flt64, Self> {
     val coefficient: Flt64
     val symbol: MonomialSymbol
     val category: Category get() = symbol.category
     override val discrete: Boolean get() = (coefficient.round() eq coefficient) && symbol.discrete
-    val cells: List<Cell>
+    val cells: List<CellF64>
     val cached: Boolean
 
     operator fun times(rhs: Int): Self {
@@ -136,14 +136,14 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             tokenList = tokenList,
             zeroIfNone = zeroIfNone
         )?.let { coefficient * it }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             results = results,
             tokenList = tokenList,
@@ -151,14 +151,14 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
         )?.let { coefficient * it }
     }
 
-    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             tokenTable = tokenTable,
             zeroIfNone = zeroIfNone
         )?.let { coefficient * it }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             results = results,
             tokenTable = tokenTable,
@@ -166,7 +166,7 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
         )?.let { coefficient * it }
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             values = values,
             tokenList = tokenList,
@@ -174,7 +174,7 @@ sealed interface Monomial<Self : Monomial<Self, Cell>, Cell : MonomialCell<Cell>
         )?.let { coefficient * it }
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
         return symbol.evaluate(
             values = values,
             tokenTable = tokenTable,

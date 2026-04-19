@@ -1,16 +1,14 @@
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataOf
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataOf
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.times
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Category
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -36,7 +34,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = LinearFlattenDataOf<Flt64>(
+        val flattenData = LinearFlattenData<Flt64>(
             monomials = listOf(
                 UtilsLinearMonomial(Flt64(2.0), x),
                 UtilsLinearMonomial(Flt64(3.0), y)
@@ -64,7 +62,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = QuadraticFlattenDataOf<Flt64>(
+        val flattenData = QuadraticFlattenData<Flt64>(
             monomials = listOf(
                 UtilsQuadraticMonomial(Flt64(2.0), x, y),
                 UtilsQuadraticMonomial(Flt64(3.0), x, null)  // Linear term
@@ -92,26 +90,26 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val poly = LinearPolynomial(
+        val flattenData = LinearFlattenDataF64(
             monomials = listOf(
-                LinearMonomial(2.0, x),
-                LinearMonomial(3.0, y)
+                UtilsLinearMonomial(Flt64(2.0), x),
+                UtilsLinearMonomial(Flt64(3.0), y)
             ),
             constant = Flt64(5.0)
         )
 
-        // Create using polynomial constructor
+        // Create using flattenData constructor
         val subObject1 = LinearSubObject(
             category = ObjectCategory.Minimum,
-            poly = poly,
+            flattenData = flattenData,
             tokens = tokens,
             name = "test"
         )
 
-        // Create using flattenData constructor
+        // Create using the same flattenData again
         val subObject2 = LinearSubObject(
             category = ObjectCategory.Minimum,
-            flattenData = poly.flattenedMonomials,
+            flattenData = flattenData,
             tokens = tokens,
             name = "test"
         )
@@ -129,23 +127,26 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val poly = QuadraticPolynomial(
-            monomials = listOf(x * y, QuadraticMonomial(2.0, x)),
+        val flattenData = QuadraticFlattenDataF64(
+            monomials = listOf(
+                UtilsQuadraticMonomial(Flt64.one, x, y),
+                UtilsQuadraticMonomial(Flt64(2.0), x, null)
+            ),
             constant = Flt64(5.0)
         )
 
-        // Create using polynomial constructor
+        // Create using flattenData constructor
         val subObject1 = QuadraticSubObject(
             category = ObjectCategory.Minimum,
-            poly = poly,
+            flattenData = flattenData,
             tokens = tokens,
             name = "test"
         )
 
-        // Create using flattenData constructor
+        // Create using the same flattenData again
         val subObject2 = QuadraticSubObject(
             category = ObjectCategory.Minimum,
-            flattenData = poly.flattenedMonomials,
+            flattenData = flattenData,
             tokens = tokens,
             name = "test"
         )

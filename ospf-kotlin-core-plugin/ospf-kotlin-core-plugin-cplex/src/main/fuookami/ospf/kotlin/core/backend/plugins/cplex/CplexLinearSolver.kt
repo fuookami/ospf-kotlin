@@ -200,8 +200,8 @@ private class CplexLinearSolverImpl(
                                 }
                             }
                             val lhs = cplex.linearNumExpr()
-                            for (cell in model.constraints.lhs[ii]) {
-                                lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), cplexVars[cell.colIndex])
+                            model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), cplexVars[colIndex])
                             }
                             ii to Triple(lb, lhs, ub)
                         }
@@ -247,8 +247,8 @@ private class CplexLinearSolverImpl(
                         }
                     }
                     val lhs = cplex.linearNumExpr()
-                    for (cell in model.constraints.lhs[i]) {
-                        lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), cplexVars[cell.colIndex])
+                    model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                        lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"), cplexVars[colIndex])
                     }
                     val constraint = cplex.range(
                         lb.toSolverDouble("linear.constraints.bounds[$i].lower"),

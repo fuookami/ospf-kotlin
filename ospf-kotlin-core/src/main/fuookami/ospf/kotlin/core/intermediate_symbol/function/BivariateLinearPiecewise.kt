@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -72,6 +72,10 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = lambdaVars.flatMap { it.items } + zVars.items
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /**
      * Result polynomial: sum of z-coordinates weighted by lambdas.
      * For each triangle i, vertices p1, p2, p3:
@@ -127,18 +131,9 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
         return u to v
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Register all lambda and z variables
-        val allVars = mutableListOf<AbstractVariableItem<*, *>>()
-        for (lv in lambdaVars) {
-            for (item in lv.items) {
-                allVars.add(item)
-            }
-        }
-        for (item in zVars.items) {
-            allVars.add(item)
-        }
-        when (val r = model.add(allVars)) {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.intermediate_model.LinearDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -22,7 +22,7 @@ interface ColumnGenerationSolver {
 
     suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -31,7 +31,7 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -49,7 +49,7 @@ interface ColumnGenerationSolver {
 
     suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         amount: UInt64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -68,7 +68,7 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         amount: UInt64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -99,7 +99,7 @@ interface ColumnGenerationSolver {
 
     suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -108,7 +108,7 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveLPAsync(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null

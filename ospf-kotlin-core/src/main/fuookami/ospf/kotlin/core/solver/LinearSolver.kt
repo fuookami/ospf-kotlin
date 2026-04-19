@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModelF64
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -139,7 +139,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
     ): Ret<FeasibleSolverOutput> {
         return solveWithOptions(
@@ -151,7 +151,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
@@ -166,7 +166,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -181,7 +181,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
@@ -198,7 +198,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
@@ -212,7 +212,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
@@ -229,7 +229,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
@@ -247,7 +247,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMechanismModel,
+        model: LinearMechanismModelF64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
@@ -266,7 +266,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -298,7 +298,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -317,7 +317,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -337,7 +337,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -358,7 +358,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -390,7 +390,7 @@ interface AbstractLinearSolver {
     }
 
     suspend operator fun invoke(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -411,7 +411,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -433,7 +433,7 @@ interface AbstractLinearSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -455,16 +455,16 @@ interface AbstractLinearSolver {
         }
     }
 
-    suspend fun dump(model: LinearMechanismModel): LinearTriadModel {
+    suspend fun dump(model: LinearMechanismModelF64): LinearTriadModel {
         return LinearTriadModel(model)
     }
 
     suspend fun dump(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<LinearMechanismModel> {
-        return LinearMechanismModel(
+    ): Ret<LinearMechanismModelF64> {
+        return LinearMechanismModelF64(
             metaModel = model,
             registrationStatusCallBack = registrationStatusCallBack,
             dumpingStatusCallBack = dumpingStatusCallBack
@@ -475,7 +475,7 @@ interface AbstractLinearSolver {
 interface LinearSolver : AbstractLinearSolver {
     val config: SolverConfig
 
-    override suspend fun dump(model: LinearMechanismModel): LinearTriadModel {
+    override suspend fun dump(model: LinearMechanismModelF64): LinearTriadModel {
         return LinearTriadModel(
             model = model,
             fixedVariables = null,
@@ -486,11 +486,11 @@ interface LinearSolver : AbstractLinearSolver {
     }
 
     override suspend fun dump(
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<LinearMechanismModel> {
-        return LinearMechanismModel(
+    ): Ret<LinearMechanismModelF64> {
+        return LinearMechanismModelF64(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpIntermediateModelConcurrent,

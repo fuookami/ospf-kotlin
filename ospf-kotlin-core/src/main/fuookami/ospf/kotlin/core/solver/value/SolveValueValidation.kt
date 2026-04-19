@@ -81,17 +81,23 @@ fun validateLinearModelValueConversion(
         }
     }
 
-    model.constraints.lhs.forEachIndexed { rowIndex, row ->
-        row.forEachIndexed { cellIndex, cell ->
-            when (val result = validateSolverFlt64Value(
-                value = cell.coefficient,
-                policy = policy,
-                fieldName = "linear.constraints.lhs[$rowIndex][$cellIndex].coefficient"
-            )) {
-                is Failed -> return result
-                else -> {}
+    for (rowIndex in model.constraints.indices) {
+        var cellIndex = 0
+        var error: Try? = null
+        model.constraints.sparseLhs.forEachEntry(rowIndex) { _, coefficient ->
+            if (error == null) {
+                when (val result = validateSolverFlt64Value(
+                    value = coefficient,
+                    policy = policy,
+                    fieldName = "linear.constraints.lhs[$rowIndex][$cellIndex].coefficient"
+                )) {
+                    is Failed -> { error = result }
+                    else -> {}
+                }
             }
+            cellIndex++
         }
+        error?.let { return it }
     }
 
     model.constraints.rhs.forEachIndexed { rowIndex, rhs ->
@@ -160,17 +166,23 @@ fun validateQuadraticModelValueConversion(
         }
     }
 
-    model.constraints.lhs.forEachIndexed { rowIndex, row ->
-        row.forEachIndexed { cellIndex, cell ->
-            when (val result = validateSolverFlt64Value(
-                value = cell.coefficient,
-                policy = policy,
-                fieldName = "quadratic.constraints.lhs[$rowIndex][$cellIndex].coefficient"
-            )) {
-                is Failed -> return result
-                else -> {}
+    for (rowIndex in model.constraints.indices) {
+        var cellIndex = 0
+        var error: Try? = null
+        model.constraints.sparseLhs.forEachEntry(rowIndex) { _, _, coefficient ->
+            if (error == null) {
+                when (val result = validateSolverFlt64Value(
+                    value = coefficient,
+                    policy = policy,
+                    fieldName = "quadratic.constraints.lhs[$rowIndex][$cellIndex].coefficient"
+                )) {
+                    is Failed -> { error = result }
+                    else -> {}
+                }
             }
+            cellIndex++
         }
+        error?.let { return it }
     }
 
     model.constraints.rhs.forEachIndexed { rowIndex, rhs ->

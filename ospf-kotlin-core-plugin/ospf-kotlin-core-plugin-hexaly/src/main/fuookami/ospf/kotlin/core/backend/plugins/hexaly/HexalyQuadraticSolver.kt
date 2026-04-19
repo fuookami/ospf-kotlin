@@ -151,17 +151,17 @@ private class HexalyQuadraticSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = hexalyModel.sum()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    if (cell.colIndex2 != null) {
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                    if (colIndex2 != null) {
                                         lhs.addOperands(
                                             hexalyModel.prod(
-                                                hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
-                                                hexalyVars[cell.colIndex2!!]
+                                                hexalyModel.prod(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"), hexalyVars[colIndex1]),
+                                                hexalyVars[colIndex2]
                                             )
                                         )
                                     } else {
                                         lhs.addOperands(
-                                            hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), hexalyVars[cell.colIndex1])
+                                            hexalyModel.prod(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"), hexalyVars[colIndex1])
                                         )
                                     }
                                 }
@@ -199,17 +199,17 @@ private class HexalyQuadraticSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = hexalyModel.sum()
-                        for (cell in model.constraints.lhs[i]) {
-                            if (cell.colIndex2 != null) {
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                            if (colIndex2 != null) {
                                 lhs.addOperands(
                                     hexalyModel.prod(
-                                        hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), hexalyVars[cell.colIndex1]),
-                                        hexalyVars[cell.colIndex2!!]
+                                        hexalyModel.prod(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"), hexalyVars[colIndex1]),
+                                        hexalyVars[colIndex2]
                                     )
                                 )
                             } else {
                                 lhs.addOperands(
-                                    hexalyModel.prod(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), hexalyVars[cell.colIndex1])
+                                    hexalyModel.prod(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"), hexalyVars[colIndex1])
                                 )
                             }
                         }

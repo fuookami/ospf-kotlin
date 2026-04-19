@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -43,11 +43,15 @@ class MinMaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         return inner.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         return inner.register(model)
     }
 
@@ -65,7 +69,7 @@ class MinMaxFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
+            polynomials: List<LinearIntermediateSymbol<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -103,11 +107,15 @@ class MaxMinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         return inner.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         return inner.register(model)
     }
 
@@ -125,7 +133,7 @@ class MaxMinFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
+            polynomials: List<LinearIntermediateSymbol<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

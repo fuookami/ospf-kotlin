@@ -1,6 +1,6 @@
 # ospf-kotlin-math/multiarray
 
-[中文文档 (README_ch.md)](./README_ch.md)
+[中文文档 (README_ch.md)](README_ch.md)
 
 Multi-dimensional array operations including fast summation and Einstein summation (einsum) for OSPF Kotlin.
 
@@ -67,5 +67,5 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 ## Related
 
 - [Main README](../../README.md)
-- [Functional Module](../functional/README.md)
-- [Algebra Module](../algebra/README.md)
+- [Functional Module](../math/functional/README.md)
+- [Algebra Module](../math/algebra/README.md)

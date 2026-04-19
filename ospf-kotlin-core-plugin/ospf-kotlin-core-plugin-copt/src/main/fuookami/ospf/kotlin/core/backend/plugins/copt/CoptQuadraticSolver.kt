@@ -186,11 +186,11 @@ private class CoptQuadraticSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = QuadExpr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    if (cell.colIndex2 != null) {
-                                        lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"))
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                    if (colIndex2 != null) {
+                                        lhs.addTerm(coptVars[colIndex1], coptVars[colIndex2], coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"))
                                     } else {
-                                        lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"))
+                                        lhs.addTerm(coptVars[colIndex1], coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"))
                                     }
                                 }
                                 ii to lhs
@@ -218,11 +218,11 @@ private class CoptQuadraticSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = QuadExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            if (cell.colIndex2 != null) {
-                                lhs.addTerm(coptVars[cell.colIndex1], coptVars[cell.colIndex2!!], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"))
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                            if (colIndex2 != null) {
+                                lhs.addTerm(coptVars[colIndex1], coptVars[colIndex2], coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"))
                             } else {
-                                lhs.addTerm(coptVars[cell.colIndex1], cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"))
+                                lhs.addTerm(coptVars[colIndex1], coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"))
                             }
                         }
                         coptModel.addQConstr(

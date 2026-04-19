@@ -5,7 +5,7 @@
  * 提供矩阵乘法、点积、迹等常见运算的便捷函数。
  * Provides convenience functions for common operations like matrix multiplication, dot product, and trace.
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring

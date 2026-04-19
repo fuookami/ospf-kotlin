@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.core.intermediate_model.monomial
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.toLinearMonomialCells
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -22,11 +22,11 @@ import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.utils.functional.Eq
 import org.apache.logging.log4j.kotlin.logger
 
-typealias LinearMonomialSymbolUnit = Either<AbstractVariableItem<*, *>, LinearIntermediateSymbol>
+typealias LinearMonomialSymbolUnit = Either<AbstractVariableItem<*, *>, LinearIntermediateSymbol<*>>
 
 /**
  * Symbol wrapper for linear monomials.
- * Wraps either a raw AbstractVariableItem or a LinearIntermediateSymbol.
+ * Wraps either a raw AbstractVariableItem or a LinearIntermediateSymbol<*>.
  */
 data class LinearMonomialSymbol(
     val symbol: LinearMonomialSymbolUnit
@@ -38,7 +38,7 @@ data class LinearMonomialSymbol(
             return LinearMonomialSymbol(Either.Left(variable))
         }
 
-        operator fun invoke(symbol: LinearIntermediateSymbol): LinearMonomialSymbol {
+        operator fun invoke(symbol: LinearIntermediateSymbol<*>): LinearMonomialSymbol {
             return LinearMonomialSymbol(Either.Right(symbol))
         }
     }
@@ -93,10 +93,10 @@ data class LinearMonomialSymbol(
     val variable by symbol::left
     val exprSymbol by symbol::right
 
-    val flattenedMonomials: LinearFlattenData
+    val flattenedMonomials: LinearFlattenDataF64
         get() = when (symbol) {
             is Either.Left -> {
-                LinearFlattenData(
+                LinearFlattenDataF64(
                     monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol.value)),
                     constant = Flt64.zero
                 )
@@ -108,7 +108,7 @@ data class LinearMonomialSymbol(
         message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
         level = DeprecationLevel.WARNING
     )
-    val cells: List<LinearMonomialCell>
+    val cells: List<LinearMonomialCellF64>
         get() = flattenedMonomials.toLinearMonomialCells()
 
     val cached: Boolean
@@ -149,7 +149,7 @@ data class LinearMonomialSymbol(
     }
 
     override fun evaluate(
-        tokenList: AbstractTokenList,
+        tokenList: AbstractTokenListF64,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {
@@ -171,7 +171,7 @@ data class LinearMonomialSymbol(
     }
 
     override fun evaluate(
-        tokenTable: AbstractTokenTable,
+        tokenTable: LegacyAbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {
@@ -194,7 +194,7 @@ data class LinearMonomialSymbol(
 
     override fun evaluate(
         results: List<Flt64>,
-        tokenList: AbstractTokenList,
+        tokenList: AbstractTokenListF64,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {
@@ -211,7 +211,7 @@ data class LinearMonomialSymbol(
 
     override fun evaluate(
         results: List<Flt64>,
-        tokenTable: AbstractTokenTable,
+        tokenTable: LegacyAbstractTokenTable,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {
@@ -228,7 +228,7 @@ data class LinearMonomialSymbol(
 
     override fun evaluate(
         values: Map<Symbol, Flt64>,
-        tokenList: AbstractTokenList?,
+        tokenList: AbstractTokenListF64?,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {
@@ -255,7 +255,7 @@ data class LinearMonomialSymbol(
 
     override fun evaluate(
         values: Map<Symbol, Flt64>,
-        tokenTable: AbstractTokenTable?,
+        tokenTable: LegacyAbstractTokenTable?,
         zeroIfNone: Boolean
     ): Flt64? {
         return when (symbol) {

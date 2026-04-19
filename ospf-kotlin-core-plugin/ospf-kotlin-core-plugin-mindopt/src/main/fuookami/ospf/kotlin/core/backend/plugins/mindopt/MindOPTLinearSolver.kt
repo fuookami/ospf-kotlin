@@ -166,8 +166,8 @@ private class MindOPTLinearSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = MDOLinExpr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                    lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), mindoptVars[colIndex])
                                 }
                                 ii to lhs
                             }
@@ -194,8 +194,8 @@ private class MindOPTLinearSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = MDOLinExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), mindoptVars[cell.colIndex])
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                            lhs.addTerm(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"), mindoptVars[colIndex])
                         }
                         mindoptModel.addConstr(
                             lhs,

@@ -158,9 +158,9 @@ class MosekLinearSolverImpl(
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val cols = ArrayList<Int>()
                                 val coefficients = ArrayList<Double>()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    cols.add(cell.colIndex)
-                                    coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"))
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                    cols.add(colIndex)
+                                    coefficients.add(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"))
                                 }
                                 Triple(ii, cols, coefficients)
                             }
@@ -214,9 +214,9 @@ class MosekLinearSolverImpl(
                     model.constraints.indices.map { i ->
                         val cols = ArrayList<Int>()
                         val coefficients = ArrayList<Double>()
-                        for (cell in model.constraints.lhs[i]) {
-                            cols.add(cell.colIndex)
-                            coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"))
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                            cols.add(colIndex)
+                            coefficients.add(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"))
                         }
                         when (model.constraints.signs[i]) {
                             Sign.LessEqual -> {

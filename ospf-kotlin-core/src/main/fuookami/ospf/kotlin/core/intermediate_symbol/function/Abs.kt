@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create two non-negative variables: `pos >= 0`, `neg >= 0`
- * - Constraint: `x = pos - neg`  (i.e. `x + neg = pos`)
+ * - ConstraintF64: `x = pos - neg`  (i.e. `x + neg = pos`)
  * - Output:     `y = pos + neg`  (which equals `|x|`)
  *
  * When `extract = true`, additional binary variable and Big-M constraints are added
@@ -60,6 +60,10 @@ class AbsFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOfNotNull(posVar, negVar, binVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /**
      * Linear polynomial representing the positive part: `pos`.
      * Exposed for framework reference (e.g. in objectives).
@@ -83,20 +87,17 @@ class AbsFunction<T : Field<T>>(
         return Flt64(kotlin.math.abs(doubleVal)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Add helper variables to the model
-        val varsToAdd = listOfNotNull(posVar, negVar, binVar)
-        if (varsToAdd.isNotEmpty()) {
-            when (val result = model.add(varsToAdd)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+        when (val result = registerAuxiliaryTokens(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val xPoly = x.asFlt64Poly()
 
-        // Constraint: x + neg = pos   ->   x + neg - pos = 0
+        // ConstraintF64: x + neg = pos   ->   x + neg - pos = 0
         val posPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, posVar)), Flt64.zero)
         val negPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, negVar)), Flt64.zero)
 

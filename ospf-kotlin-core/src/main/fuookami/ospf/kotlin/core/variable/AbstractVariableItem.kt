@@ -152,7 +152,7 @@ operator fun Int.times(rhs: AbstractVariableItem<*, *>): fuookami.ospf.kotlin.co
 
 /** Create LinearMonomial from Double coefficient and variable */
 operator fun Double.times(rhs: AbstractVariableItem<*, *>): fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial {
-    return fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(this, rhs)
+    return fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(Flt64(this), rhs)
 }
 
 /** Create QuadraticMonomial from two variables */

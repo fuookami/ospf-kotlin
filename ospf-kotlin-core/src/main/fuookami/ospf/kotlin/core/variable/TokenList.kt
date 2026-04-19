@@ -7,20 +7,20 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * Generic abstract token list - phantom type parameter T for API signature.
+ * Generic abstract token list with real type parameter T.
  */
-sealed class AbstractTokenListOf<T : RealNumber<T>> : AutoCloseable {
-    abstract val tokens: Collection<TokenOf<T>>
-    abstract val tokensInSolver: List<TokenOf<T>>
-    open val cachedSolution: Boolean get() = tokens.any { it.result != null }
+sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
+    abstract val tokens: Collection<Token<T>>
+    abstract val tokensInSolver: List<Token<T>>
+    open val cachedSolution: Boolean get() = tokens.any { it.resultF64 != null }
 
-    operator fun get(index: Int): TokenOf<T> {
+    operator fun get(index: Int): Token<T> {
         return find(index)!!
     }
 
-    private val cache = HashMap<TokenOf<T>, Int?>()
+    private val cache = HashMap<Token<T>, Int?>()
 
-    open fun indexOf(token: TokenOf<T>): Int? {
+    open fun indexOf(token: Token<T>): Int? {
         return if (tokensInSolver.isNotEmpty()) {
             cache.getOrPut(token) {
                 tokensInSolver.indexOf(token).let {
@@ -40,9 +40,9 @@ sealed class AbstractTokenListOf<T : RealNumber<T>> : AutoCloseable {
         return find(item)?.let { indexOf(it) }
     }
 
-    abstract fun find(item: AbstractVariableItem<*, *>): TokenOf<T>?
+    abstract fun find(item: AbstractVariableItem<*, *>): Token<T>?
 
-    fun find(index: Int): TokenOf<T>? {
+    fun find(index: Int): Token<T>? {
         return if (tokensInSolver.isNotEmpty() && index in tokensInSolver.indices) {
             tokensInSolver[index]
         } else {
@@ -75,21 +75,21 @@ sealed class AbstractTokenListOf<T : RealNumber<T>> : AutoCloseable {
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractTokenList.
+ * Legacy typealias for Flt64-specific AbstractTokenListF64.
  */
-typealias AbstractTokenList = AbstractTokenListOf<Flt64>
+typealias AbstractTokenListF64 = AbstractTokenList<Flt64>
 
 @OptIn(ExperimentalStdlibApi::class)
-class TokenListOf<T : RealNumber<T>>(
-    val list: Map<VariableItemKey, TokenOf<T>>
-) : AbstractTokenListOf<T>() {
-    constructor(tokens: MutableTokenListOf<T>) : this(tokens.list.toMap())
+class TokenList<T : RealNumber<T>>(
+    val list: Map<VariableItemKey, Token<T>>
+) : AbstractTokenList<T>() {
+    constructor(tokens: MutableTokenList<T>) : this(tokens.list.toMap())
 
     init {
         list.forEach { (_, value) ->
             value.refreshCallbacks[this] = {
                 synchronized(lock) {
-                    _cachedSolution = tokens.any { it.result != null }
+                    _cachedSolution = tokens.any { it.resultF64 != null }
                 }
             }
         }
@@ -99,7 +99,7 @@ class TokenListOf<T : RealNumber<T>>(
 
     private val lock = Any()
 
-    override val tokensInSolver: List<TokenOf<T>> by lazy {
+    override val tokensInSolver: List<Token<T>> by lazy {
         tokens.sortedBy { it.solverIndex }
     }
     private var _cachedSolution: Boolean? = null
@@ -107,13 +107,13 @@ class TokenListOf<T : RealNumber<T>>(
         get() {
             return synchronized(lock) {
                 if (_cachedSolution == null) {
-                    _cachedSolution = tokens.any { it.result != null }
+                    _cachedSolution = tokens.any { it.resultF64 != null }
                 }
                 _cachedSolution!!
             }
         }
 
-    override fun find(item: AbstractVariableItem<*, *>): TokenOf<T>? {
+    override fun find(item: AbstractVariableItem<*, *>): Token<T>? {
         return list[item.key]
     }
 
@@ -123,7 +123,7 @@ class TokenListOf<T : RealNumber<T>>(
             for ((index, token) in tokensInSolver.withIndex()) {
                 token.__result = solution[index]
             }
-            _cachedSolution = tokens.any { it.result != null }
+            _cachedSolution = tokens.any { it.resultF64 != null }
         }
     }
 
@@ -132,7 +132,7 @@ class TokenListOf<T : RealNumber<T>>(
             for ((variable, value) in solution) {
                 find(variable)?.__result = value
             }
-            _cachedSolution = tokens.any { it.result != null }
+            _cachedSolution = tokens.any { it.resultF64 != null }
         }
     }
 
@@ -141,7 +141,7 @@ class TokenListOf<T : RealNumber<T>>(
             for (token in tokens) {
                 token.__result = null
             }
-            _cachedSolution = tokens.any { it.result != null }
+            _cachedSolution = tokens.any { it.resultF64 != null }
         }
     }
 
@@ -154,40 +154,40 @@ class TokenListOf<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific TokenList.
+ * Legacy typealias for Flt64-specific TokenListF64.
  */
-typealias TokenList = TokenListOf<Flt64>
+typealias TokenListF64 = TokenList<Flt64>
 
-interface AddableTokenCollectionOf<T : RealNumber<T>> {
+interface AddableTokenCollection<T : RealNumber<T>> {
     fun add(item: AbstractVariableItem<*, *>): Try
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
 }
 
 /**
- * Legacy typealias for Flt64-specific AddableTokenCollection.
+ * Legacy typealias for Flt64-specific AddableTokenCollectionF64.
  */
-typealias AddableTokenCollection = AddableTokenCollectionOf<Flt64>
+typealias AddableTokenCollectionF64 = AddableTokenCollection<Flt64>
 
-abstract class AbstractMutableTokenListOf<T : RealNumber<T>> : AbstractTokenListOf<T>(), AddableTokenCollectionOf<T> {
+abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
     abstract fun remove(item: AbstractVariableItem<*, *>)
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractMutableTokenList.
+ * Legacy typealias for Flt64-specific AbstractMutableTokenListF64.
  */
-typealias AbstractMutableTokenList = AbstractMutableTokenListOf<Flt64>
+typealias AbstractMutableTokenListF64 = AbstractMutableTokenList<Flt64>
 
-sealed class MutableTokenListOf<T : RealNumber<T>>(
-    internal val list: MutableMap<VariableItemKey, TokenOf<T>> = HashMap(),
+sealed class MutableTokenList<T : RealNumber<T>>(
+    internal val list: MutableMap<VariableItemKey, Token<T>> = HashMap(),
     protected val checkTokenExisted: Boolean = System.getProperty("env", "prod") != "prod",
     protected var currentIndex: Int = 0
-) : AbstractMutableTokenListOf<T>(), Copyable<MutableTokenListOf<T>> {
+) : AbstractMutableTokenList<T>(), Copyable<MutableTokenList<T>> {
     override val tokens by list::values
 
     protected val lock = Any()
 
-    private lateinit var _tokensInSolver: List<TokenOf<T>>
-    override val tokensInSolver: List<TokenOf<T>>
+    private lateinit var _tokensInSolver: List<Token<T>>
+    override val tokensInSolver: List<Token<T>>
         get() {
             if (!::_tokensInSolver.isInitialized || _tokensInSolver.isEmpty()) {
                 _tokensInSolver = tokens.sortedBy { it.solverIndex }
@@ -199,7 +199,7 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
         get() {
             return synchronized(lock) {
                 if (_cachedSolution == null) {
-                    _cachedSolution = tokens.any { it.result != null }
+                    _cachedSolution = tokens.any { it.resultF64 != null }
                 }
                 _cachedSolution!!
             }
@@ -209,9 +209,9 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
         if (checkTokenExisted && list.containsKey(item.key)) {
             return Failed(code = ErrorCode.TokenExisted)
         }
-        list[item.key] = TokenOf(item, currentIndex, mutableMapOf(this as AbstractTokenListOf<T> to {
+        list[item.key] = Token<T>(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
             synchronized(lock) {
-                _cachedSolution = tokens.any { it.result != null }
+                _cachedSolution = tokens.any { it.resultF64 != null }
             }
         }))
         ++currentIndex
@@ -239,8 +239,8 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
         synchronized(lock) {
             _tokensInSolver = ArrayList()
             val removedToken = list.remove(item.key)
-            if (removedToken?.result != null) {
-                _cachedSolution = tokens.any { it.result != null }
+            if (removedToken?.resultF64 != null) {
+                _cachedSolution = tokens.any { it.resultF64 != null }
             }
         }
     }
@@ -255,7 +255,7 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
                 token.__result = solution[index]
-                _cachedSolution = tokens.any { it.result != null }
+                _cachedSolution = tokens.any { it.resultF64 != null }
             }
         }
     }
@@ -265,7 +265,7 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
             for ((variable, value) in solution) {
                 find(variable)?.__result = value
             }
-            _cachedSolution = tokens.any { it.result != null }
+            _cachedSolution = tokens.any { it.resultF64 != null }
         }
     }
 
@@ -280,7 +280,7 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
 
     override fun close() {
         list.forEach { (_, value) ->
-            value.refreshCallbacks.remove(this as AbstractTokenListOf<T>)
+            value.refreshCallbacks.remove(this as AbstractTokenList<T>)
         }
         super.close()
         list.clear()
@@ -289,25 +289,25 @@ sealed class MutableTokenListOf<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific MutableTokenList.
+ * Legacy typealias for Flt64-specific MutableTokenListF64.
  */
-typealias MutableTokenList = MutableTokenListOf<Flt64>
+typealias MutableTokenListF64 = MutableTokenList<Flt64>
 
-class AutoTokenListOf<T : RealNumber<T>> private constructor(
-    list: MutableMap<VariableItemKey, TokenOf<T>>,
+class AutoTokenList<T : RealNumber<T>> private constructor(
+    list: MutableMap<VariableItemKey, Token<T>>,
     checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenListOf<T>(
+) : MutableTokenList<T>(
     list = list,
     checkTokenExisted = checkTokenExisted,
     currentIndex = currentIndex
 ) {
     companion object {
         operator fun <T : RealNumber<T>> invoke(
-            tokenList: AbstractTokenListOf<T>,
+            tokenList: AbstractTokenList<T>,
             checkTokenExisted: Boolean
-        ): MutableTokenListOf<T> {
-            return AutoTokenListOf<T>(
+        ): MutableTokenList<T> {
+            return AutoTokenList<T>(
                 list = tokenList.tokens.associateBy { it.key }.toMutableMap(),
                 checkTokenExisted = checkTokenExisted,
                 currentIndex = tokenList.tokens.maxOf { it.solverIndex } + 1
@@ -321,49 +321,49 @@ class AutoTokenListOf<T : RealNumber<T>> private constructor(
         currentIndex = 0
     )
 
-    override fun copy(): MutableTokenListOf<T> {
-        return AutoTokenListOf<T>(
+    override fun copy(): MutableTokenList<T> {
+        return AutoTokenList<T>(
             list = list.toMutableMap(),
             checkTokenExisted = checkTokenExisted,
             currentIndex = currentIndex
         )
     }
 
-    override fun find(item: AbstractVariableItem<*, *>): TokenOf<T> {
+    override fun find(item: AbstractVariableItem<*, *>): Token<T> {
         return synchronized(lock) {
             val token = list.getOrPut(item.key) {
-                TokenOf<T>(item, currentIndex, mutableMapOf(this as AbstractTokenListOf<T> to {
+                Token<T>(item, currentIndex, mutableMapOf(this as AbstractTokenList<T> to {
                     synchronized(super.lock) {
-                        super._cachedSolution = tokens.any { it.result != null }
+                        super._cachedSolution = tokens.any { it.resultF64 != null }
                     }
                 }))
             }
-            super._cachedSolution = tokens.any { it.result != null }
+            super._cachedSolution = tokens.any { it.resultF64 != null }
             token
         }
     }
 }
 
 /**
- * Legacy typealias for Flt64-specific AutoTokenList.
+ * Legacy typealias for Flt64-specific AutoTokenListF64.
  */
-typealias AutoTokenList = AutoTokenListOf<Flt64>
+typealias AutoTokenListF64 = AutoTokenList<Flt64>
 
-class ManualTokenListOf<T : RealNumber<T>> private constructor(
-    list: MutableMap<VariableItemKey, TokenOf<T>>,
+class ManualTokenList<T : RealNumber<T>> private constructor(
+    list: MutableMap<VariableItemKey, Token<T>>,
     checkTokenExisted: Boolean,
     currentIndex: Int
-) : MutableTokenListOf<T>(
+) : MutableTokenList<T>(
     list = list,
     checkTokenExisted = checkTokenExisted,
     currentIndex = currentIndex
 ) {
     companion object {
         operator fun <T : RealNumber<T>> invoke(
-            tokenList: AbstractTokenListOf<T>,
+            tokenList: AbstractTokenList<T>,
             checkTokenExisted: Boolean
-        ): MutableTokenListOf<T> {
-            return ManualTokenListOf<T>(
+        ): MutableTokenList<T> {
+            return ManualTokenList<T>(
                 list = tokenList.tokens.associateBy { it.key }.toMutableMap(),
                 checkTokenExisted = checkTokenExisted,
                 currentIndex = tokenList.tokens.maxOf { it.solverIndex } + 1
@@ -377,20 +377,20 @@ class ManualTokenListOf<T : RealNumber<T>> private constructor(
         currentIndex = 0
     )
 
-    override fun copy(): MutableTokenListOf<T> {
-        return ManualTokenListOf<T>(
+    override fun copy(): MutableTokenList<T> {
+        return ManualTokenList<T>(
             list = list.toMutableMap(),
             checkTokenExisted = checkTokenExisted,
             currentIndex = currentIndex
         )
     }
 
-    override fun find(item: AbstractVariableItem<*, *>): TokenOf<T>? {
+    override fun find(item: AbstractVariableItem<*, *>): Token<T>? {
         return list[item.key]
     }
 }
 
 /**
- * Legacy typealias for Flt64-specific ManualTokenList.
+ * Legacy typealias for Flt64-specific ManualTokenListF64.
  */
-typealias ManualTokenList = ManualTokenListOf<Flt64>
+typealias ManualTokenListF64 = ManualTokenList<Flt64>

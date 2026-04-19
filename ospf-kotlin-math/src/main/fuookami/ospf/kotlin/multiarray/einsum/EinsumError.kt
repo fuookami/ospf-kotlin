@@ -5,7 +5,7 @@
  * 提供爱因斯坦求和操作的错误类型。
  * Provides error types for Einstein summation operations.
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 /**
  * 爱因斯坦求和错误类型 / Einstein summation error type

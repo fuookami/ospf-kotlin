@@ -2,17 +2,16 @@
 
 package fuookami.ospf.kotlin.core.intermediate_model.monomial
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticMonomialCells
-import fuookami.ospf.kotlin.core.intermediate_symbol.ExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.Either
@@ -33,20 +32,20 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import org.apache.logging.log4j.kotlin.logger
 
 /**
- * Cell representation for quadratic monomials - phantom type parameter V.
+ * CellF64 representation for quadratic monomials with type parameter V.
  * Either a (coefficient, variable1, variable2?) triple or a constant value.
  * Internal implementation uses Flt64.
  */
-data class QuadraticMonomialCellOf<V> internal constructor(
-    val cell: Either<QuadraticCellTripleOf<V>, Flt64>
-) : MonomialCell<QuadraticMonomialCellOf<V>> {
+data class QuadraticMonomialCell<V> internal constructor(
+    val cell: Either<QuadraticCellTriple<V>, Flt64>
+) : MonomialCell<QuadraticMonomialCell<V>> {
     private val logger = logger()
 
-    data class QuadraticCellTripleOf<V>(
+    data class QuadraticCellTriple<V>(
         val coefficient: Flt64,
         val variable1: AbstractVariableItem<*, *>,
         val variable2: AbstractVariableItem<*, *>?
-    ) : Cloneable, Copyable<QuadraticCellTripleOf<V>> {
+    ) : Cloneable, Copyable<QuadraticCellTriple<V>> {
         init {
             if (variable2 != null) {
                 assert(variable1.identifier <= variable2.identifier)
@@ -56,49 +55,49 @@ data class QuadraticMonomialCellOf<V> internal constructor(
             }
         }
 
-        operator fun unaryMinus(): QuadraticCellTripleOf<V> {
-            return QuadraticCellTripleOf<V>(-coefficient, variable1, variable2)
+        operator fun unaryMinus(): QuadraticCellTriple<V> {
+            return QuadraticCellTriple<V>(-coefficient, variable1, variable2)
         }
 
         @Throws(IllegalArgumentException::class)
-        operator fun plus(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
+        operator fun plus(rhs: QuadraticCellTriple<V>): QuadraticCellTriple<V> {
             if (variable1 != rhs.variable1 || variable2 != rhs.variable2) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.plus: not same variable.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.plus: not same variable.")
             }
-            return QuadraticCellTripleOf<V>(coefficient + rhs.coefficient, variable1, variable2)
+            return QuadraticCellTriple<V>(coefficient + rhs.coefficient, variable1, variable2)
         }
 
         @Throws(IllegalArgumentException::class)
-        operator fun minus(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
+        operator fun minus(rhs: QuadraticCellTriple<V>): QuadraticCellTriple<V> {
             if (variable1 != rhs.variable1 || variable2 != rhs.variable2) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.minus: not same variable.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.minus: not same variable.")
             }
-            return QuadraticCellTripleOf<V>(coefficient - rhs.coefficient, variable1, variable2)
+            return QuadraticCellTriple<V>(coefficient - rhs.coefficient, variable1, variable2)
         }
 
-        operator fun times(rhs: Flt64) = QuadraticCellTripleOf<V>(coefficient * rhs, variable1, variable2)
+        operator fun times(rhs: Flt64) = QuadraticCellTriple<V>(coefficient * rhs, variable1, variable2)
 
         @Throws(IllegalArgumentException::class)
-        operator fun times(rhs: QuadraticCellTripleOf<V>): QuadraticCellTripleOf<V> {
+        operator fun times(rhs: QuadraticCellTriple<V>): QuadraticCellTriple<V> {
             if (variable2 != null || rhs.variable2 != null) {
-                throw IllegalArgumentException("Invalid argument of QuadraticCellTripleOf.times: over quadratic.")
+                throw IllegalArgumentException("Invalid argument of QuadraticCellTriple.times: over quadratic.")
             }
             return if ((variable1.key ord rhs.variable1.key) is Order.Greater) {
-                QuadraticCellTripleOf<V>(coefficient * rhs.coefficient, rhs.variable1, variable1)
+                QuadraticCellTriple<V>(coefficient * rhs.coefficient, rhs.variable1, variable1)
             } else {
-                QuadraticCellTripleOf<V>(coefficient * rhs.coefficient, variable1, rhs.variable1)
+                QuadraticCellTriple<V>(coefficient * rhs.coefficient, variable1, rhs.variable1)
             }
         }
 
-        operator fun div(rhs: Flt64) = QuadraticCellTripleOf<V>(coefficient / rhs, variable1, variable2)
+        operator fun div(rhs: Flt64) = QuadraticCellTriple<V>(coefficient / rhs, variable1, variable2)
 
-        override fun copy(): QuadraticCellTripleOf<V> = QuadraticCellTripleOf<V>(coefficient, variable1, variable2)
+        override fun copy(): QuadraticCellTriple<V> = QuadraticCellTriple<V>(coefficient, variable1, variable2)
         public override fun clone() = copy()
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
             if (javaClass != other?.javaClass) return false
-            other as QuadraticCellTripleOf<*>
+            other as QuadraticCellTriple<*>
             if (coefficient != other.coefficient) return false
             if (variable1 != other.variable1) return false
             if (variable2 != other.variable2) return false
@@ -114,31 +113,31 @@ data class QuadraticMonomialCellOf<V> internal constructor(
     }
 
     companion object {
-        operator fun <V> invoke(linearCell: LinearMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
+        operator fun <V> invoke(linearCell: LinearMonomialCell<V>): QuadraticMonomialCell<V> {
             return when (val cell = linearCell.cell) {
-                is Either.Left -> QuadraticMonomialCellOf<V>(
-                    Either.Left(QuadraticCellTripleOf<V>(cell.value.coefficient, cell.value.variable, null))
+                is Either.Left -> QuadraticMonomialCell<V>(
+                    Either.Left(QuadraticCellTriple<V>(cell.value.coefficient, cell.value.variable, null))
                 )
-                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value))
+                is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value))
             }
         }
 
         operator fun <V> invoke(
             variable1: AbstractVariableItem<*, *>,
             variable2: AbstractVariableItem<*, *>?
-        ): QuadraticMonomialCellOf<V> {
+        ): QuadraticMonomialCell<V> {
             return if (variable2 == null) {
-                QuadraticMonomialCellOf<V>(
-                    Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable1, null))
+                QuadraticMonomialCell<V>(
+                    Either.Left(QuadraticCellTriple<V>(Flt64.one, variable1, null))
                 )
             } else {
                 if ((variable1.key ord variable2.key) is Order.Greater) {
-                    QuadraticMonomialCellOf<V>(
-                        Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable2, variable1))
+                    QuadraticMonomialCell<V>(
+                        Either.Left(QuadraticCellTriple<V>(Flt64.one, variable2, variable1))
                     )
                 } else {
-                    QuadraticMonomialCellOf<V>(
-                        Either.Left(QuadraticCellTripleOf<V>(Flt64.one, variable1, variable2))
+                    QuadraticMonomialCell<V>(
+                        Either.Left(QuadraticCellTriple<V>(Flt64.one, variable1, variable2))
                     )
                 }
             }
@@ -148,25 +147,25 @@ data class QuadraticMonomialCellOf<V> internal constructor(
             coefficient: Flt64,
             variable1: AbstractVariableItem<*, *>,
             variable2: AbstractVariableItem<*, *>?
-        ): QuadraticMonomialCellOf<V> {
+        ): QuadraticMonomialCell<V> {
             return if (variable2 == null) {
-                QuadraticMonomialCellOf<V>(
-                    Either.Left(QuadraticCellTripleOf<V>(coefficient, variable1, null))
+                QuadraticMonomialCell<V>(
+                    Either.Left(QuadraticCellTriple<V>(coefficient, variable1, null))
                 )
             } else {
                 if ((variable1.key ord variable2.key) is Order.Greater) {
-                    QuadraticMonomialCellOf<V>(
-                        Either.Left(QuadraticCellTripleOf<V>(coefficient, variable2, variable1))
+                    QuadraticMonomialCell<V>(
+                        Either.Left(QuadraticCellTriple<V>(coefficient, variable2, variable1))
                     )
                 } else {
-                    QuadraticMonomialCellOf<V>(
-                        Either.Left(QuadraticCellTripleOf<V>(coefficient, variable1, variable2))
+                    QuadraticMonomialCell<V>(
+                        Either.Left(QuadraticCellTriple<V>(coefficient, variable1, variable2))
                     )
                 }
             }
         }
 
-        operator fun <V> invoke(constant: Flt64): QuadraticMonomialCellOf<V> = QuadraticMonomialCellOf<V>(Either.Right(constant))
+        operator fun <V> invoke(constant: Flt64): QuadraticMonomialCell<V> = QuadraticMonomialCell<V>(Either.Right(constant))
     }
 
     val isTriple by cell::isLeft
@@ -174,73 +173,73 @@ data class QuadraticMonomialCellOf<V> internal constructor(
     val triple by cell::left
     override val constant by cell::right
 
-    override operator fun unaryMinus(): QuadraticMonomialCellOf<V> {
+    override operator fun unaryMinus(): QuadraticMonomialCell<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(-cell.value))
-            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(-cell.value))
+            is Either.Left -> QuadraticMonomialCell<V>(Either.Left(-cell.value))
+            is Either.Right -> QuadraticMonomialCell<V>(Either.Right(-cell.value))
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    override operator fun plus(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
+    override operator fun plus(rhs: QuadraticMonomialCell<V>): QuadraticMonomialCell<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value + rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCell<V>(Either.Left(cell.value + rhs.cell.value))
                 is Either.Right -> throw IllegalArgumentException("Cannot add monomial and constant")
             }
             is Either.Right -> when (rhs.cell) {
                 is Either.Left -> throw IllegalArgumentException("Cannot add monomial and constant")
-                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value + rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value + rhs.cell.value))
             }
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    override operator fun minus(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
+    override operator fun minus(rhs: QuadraticMonomialCell<V>): QuadraticMonomialCell<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value - rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCell<V>(Either.Left(cell.value - rhs.cell.value))
                 is Either.Right -> throw IllegalArgumentException("Cannot subtract monomial and constant")
             }
             is Either.Right -> when (rhs.cell) {
                 is Either.Left -> throw IllegalArgumentException("Cannot subtract monomial and constant")
-                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value - rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value - rhs.cell.value))
             }
         }
     }
 
-    override fun times(rhs: Flt64): QuadraticMonomialCellOf<V> {
+    override fun times(rhs: Flt64): QuadraticMonomialCell<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs))
-            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value * rhs))
+            is Either.Left -> QuadraticMonomialCell<V>(Either.Left(cell.value * rhs))
+            is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value * rhs))
         }
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: QuadraticMonomialCellOf<V>): QuadraticMonomialCellOf<V> {
+    operator fun times(rhs: QuadraticMonomialCell<V>): QuadraticMonomialCell<V> {
         return when (cell) {
             is Either.Left -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs.cell.value))
-                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Left(cell.value * rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCell<V>(Either.Left(cell.value * rhs.cell.value))
+                is Either.Right -> QuadraticMonomialCell<V>(Either.Left(cell.value * rhs.cell.value))
             }
             is Either.Right -> when (rhs.cell) {
-                is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(rhs.cell.value * cell.value))
-                is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value * rhs.cell.value))
+                is Either.Left -> QuadraticMonomialCell<V>(Either.Left(rhs.cell.value * cell.value))
+                is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value * rhs.cell.value))
             }
         }
     }
 
-    override fun div(rhs: Flt64): QuadraticMonomialCellOf<V> {
+    override fun div(rhs: Flt64): QuadraticMonomialCell<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCellOf<V>(Either.Left(cell.value / rhs))
-            is Either.Right -> QuadraticMonomialCellOf<V>(Either.Right(cell.value / rhs))
+            is Either.Left -> QuadraticMonomialCell<V>(Either.Left(cell.value / rhs))
+            is Either.Right -> QuadraticMonomialCell<V>(Either.Right(cell.value / rhs))
         }
     }
 
-    override fun copy(): QuadraticMonomialCellOf<V> {
+    override fun copy(): QuadraticMonomialCell<V> {
         return when (cell) {
-            is Either.Left -> QuadraticMonomialCellOf<V>(cell.value.coefficient, cell.value.variable1, cell.value.variable2)
-            is Either.Right -> QuadraticMonomialCellOf<V>(cell.value)
+            is Either.Left -> QuadraticMonomialCell<V>(cell.value.coefficient, cell.value.variable1, cell.value.variable2)
+            is Either.Right -> QuadraticMonomialCell<V>(cell.value)
         }
     }
 
@@ -257,7 +256,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         }
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         val result = when (val c = cell) {
             is Either.Left -> evaluateFromTriple(c.value, tokenList, null)
             is Either.Right -> c.value
@@ -265,7 +264,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         return result ?: if (zeroIfNone) Flt64.zero else null
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         val result = when (val c = cell) {
             is Either.Left -> evaluateFromTripleByIndex(c.value, results, tokenList)
             is Either.Right -> c.value
@@ -273,7 +272,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         return result ?: if (zeroIfNone) Flt64.zero else null
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         val result = when (val c = cell) {
             is Either.Left -> evaluateFromTripleByValues(c.value, values, tokenList)
             is Either.Right -> c.value
@@ -281,7 +280,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         return result ?: if (zeroIfNone) Flt64.zero else null
     }
 
-    private fun evaluateFromTriple(triple: QuadraticCellTripleOf<V>, tokenList: AbstractTokenList, unused: Any?): Flt64? {
+    private fun evaluateFromTriple(triple: QuadraticCellTriple<V>, tokenList: AbstractTokenListF64, unused: Any?): Flt64? {
         val token1 = tokenList.find(triple.variable1) ?: return null
         val r1 = token1.result ?: return null
         if (triple.variable2 == null) return triple.coefficient * r1
@@ -290,7 +289,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         return triple.coefficient * r1 * r2
     }
 
-    private fun evaluateFromTripleByIndex(triple: QuadraticCellTripleOf<V>, results: List<Flt64>, tokenList: AbstractTokenList): Flt64? {
+    private fun evaluateFromTripleByIndex(triple: QuadraticCellTriple<V>, results: List<Flt64>, tokenList: AbstractTokenListF64): Flt64? {
         val idx1 = tokenList.indexOf(triple.variable1) ?: return null
         if (idx1 == -1) return null
         if (triple.variable2 == null) return triple.coefficient * results[idx1]
@@ -298,7 +297,7 @@ data class QuadraticMonomialCellOf<V> internal constructor(
         return triple.coefficient * results[idx1] * results[idx2]
     }
 
-    private fun evaluateFromTripleByValues(triple: QuadraticCellTripleOf<V>, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?): Flt64? {
+    private fun evaluateFromTripleByValues(triple: QuadraticCellTriple<V>, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?): Flt64? {
         val v1 = values[triple.variable1] ?: tokenList?.find(triple.variable1)?.result ?: return null
         if (triple.variable2 == null) return triple.coefficient * v1
         val v2 = values[triple.variable2] ?: tokenList?.find(triple.variable2)?.result ?: return null
@@ -307,13 +306,13 @@ data class QuadraticMonomialCellOf<V> internal constructor(
 }
 
 /**
- * Legacy typealias for Flt64-specific QuadraticMonomialCell.
+ * Legacy typealias for Flt64-specific QuadraticMonomialCellF64.
  */
-typealias QuadraticMonomialCell = QuadraticMonomialCellOf<Flt64>
+typealias QuadraticMonomialCellF64 = QuadraticMonomialCell<Flt64>
 
 // ========== QuadraticMonomialSymbol ==========
 
-typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, LinearIntermediateSymbol, QuadraticIntermediateSymbol>
+typealias QuadraticMonomialSymbolUnit = Variant3<AbstractVariableItem<*, *>, LinearIntermediateSymbol<*>, QuadraticIntermediateSymbol<*>>
 
 data class QuadraticMonomialSymbol(
     val symbol1: QuadraticMonomialSymbolUnit,
@@ -330,11 +329,11 @@ data class QuadraticMonomialSymbol(
             return QuadraticMonomialSymbol(Variant3.V1(variable))
         }
 
-        operator fun invoke(symbol: LinearIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol: LinearIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V2(symbol))
         }
 
-        operator fun invoke(symbol: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V3(symbol))
         }
 
@@ -342,23 +341,23 @@ data class QuadraticMonomialSymbol(
             return QuadraticMonomialSymbol(Variant3.V1(variable1), Variant3.V1(variable2))
         }
 
-        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V1(variable), Variant3.V2(symbol))
         }
 
-        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(variable: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V1(variable), Variant3.V3(symbol))
         }
 
-        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: LinearIntermediateSymbol<*>, symbol2: LinearIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V2(symbol1), Variant3.V2(symbol2))
         }
 
-        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: LinearIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V2(symbol1), Variant3.V3(symbol2))
         }
 
-        operator fun invoke(symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomialSymbol {
+        operator fun invoke(symbol1: QuadraticIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomialSymbol {
             return QuadraticMonomialSymbol(Variant3.V3(symbol1), Variant3.V3(symbol2))
         }
 
@@ -414,9 +413,9 @@ data class QuadraticMonomialSymbol(
                 is Variant3.V3 -> this.value.range
             }
 
-        val QuadraticMonomialSymbolUnit.flattenedMonomials: QuadraticFlattenData
+        val QuadraticMonomialSymbolUnit.flattenedMonomials: QuadraticFlattenDataF64
             get() = when (this) {
-                is Variant3.V1 -> QuadraticFlattenData(
+                is Variant3.V1 -> QuadraticFlattenDataF64(
                     monomials = listOf(UtilsQuadraticMonomial(Flt64.one, this.value, null)),
                     constant = Flt64.zero
                 )
@@ -460,7 +459,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            tokenList: AbstractTokenList, zeroIfNone: Boolean
+            tokenList: AbstractTokenListF64, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -475,7 +474,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            tokenTable: AbstractTokenTable, zeroIfNone: Boolean
+            tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -490,7 +489,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean
+            results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -506,7 +505,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean
+            results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -522,7 +521,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean
+            values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -536,7 +535,7 @@ data class QuadraticMonomialSymbol(
         }
 
         fun QuadraticMonomialSymbolUnit.value(
-            values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean
+            values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean
         ): Flt64? {
             val result: Flt64? = when (this) {
                 is Variant3.V1 -> {
@@ -574,7 +573,7 @@ data class QuadraticMonomialSymbol(
 
     val pure by lazy { symbol1 is Variant3.V1 && symbol2 is Variant3.V1 }
 
-    val flattenedMonomials: QuadraticFlattenData
+    val flattenedMonomials: QuadraticFlattenDataF64
         get() = if (symbol2 == null) symbol1.flattenedMonomials
         else {
             val flatten1 = symbol1.flattenedMonomials
@@ -610,14 +609,14 @@ data class QuadraticMonomialSymbol(
                     ))
                 }
             }
-            QuadraticFlattenData(monomials, flatten1.constant * flatten2.constant)
+            QuadraticFlattenDataF64(monomials, flatten1.constant * flatten2.constant)
         }
 
     @Deprecated(
         message = "Use flattenedMonomials instead. cells is transitional.",
         level = DeprecationLevel.WARNING
     )
-    val cells: List<QuadraticMonomialCell>
+    val cells: List<QuadraticMonomialCellF64>
         get() = flattenedMonomials.toQuadraticMonomialCells()
 
     val cached get() = symbol1.cached || (symbol2?.cached == true)
@@ -643,27 +642,27 @@ data class QuadraticMonomialSymbol(
     override fun toRawString(unfold: UInt64): String =
         if (symbol2 == null) symbol1.toRawString(unfold) else "${symbol1.toRawString(unfold)} * ${symbol2.toRawString(unfold)}"
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(tokenList, zeroIfNone)
         else symbol1.value(tokenList, zeroIfNone)?.let { v1 -> symbol2.value(tokenList, zeroIfNone)?.let { v2 -> v1 * v2 } }
 
-    override fun evaluate(tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(tokenTable, zeroIfNone)
         else symbol1.value(tokenTable, zeroIfNone)?.let { v1 -> symbol2.value(tokenTable, zeroIfNone)?.let { v2 -> v1 * v2 } }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(results, tokenList, zeroIfNone)
         else symbol1.value(results, tokenList, zeroIfNone)?.let { v1 -> symbol2.value(results, tokenList, zeroIfNone)?.let { v2 -> v1 * v2 } }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(results, tokenTable, zeroIfNone)
         else symbol1.value(results, tokenTable, zeroIfNone)?.let { v1 -> symbol2.value(results, tokenTable, zeroIfNone)?.let { v2 -> v1 * v2 } }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(values, tokenList, zeroIfNone)
         else symbol1.value(values, tokenList, zeroIfNone)?.let { v1 -> symbol2.value(values, tokenList, zeroIfNone)?.let { v2 -> v1 * v2 } }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable?, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? =
         if (symbol2 == null) symbol1.value(values, tokenTable, zeroIfNone)
         else symbol1.value(values, tokenTable, zeroIfNone)?.let { v1 -> symbol2.value(values, tokenTable, zeroIfNone)?.let { v2 -> v1 * v2 } }
 }
@@ -675,7 +674,7 @@ class QuadraticMonomial(
     override val symbol: QuadraticMonomialSymbol,
     override var name: String = "",
     override var displayName: String? = null
-) : Monomial<QuadraticMonomial, QuadraticMonomialCell>, Eq<QuadraticMonomial>,
+) : Monomial<QuadraticMonomial, QuadraticMonomialCellF64>, Eq<QuadraticMonomial>,
     ToQuadraticPolynomial {
     override val range: ExpressionRange<Flt64>
         get() = symbol.range.valueRange?.let { ExpressionRange(it) } ?: ExpressionRange(null, Flt64)
@@ -684,9 +683,6 @@ class QuadraticMonomial(
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item))
 
         operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item))
-
-        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item))
 
         operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>): QuadraticMonomial =
@@ -698,94 +694,70 @@ class QuadraticMonomial(
         operator fun invoke(coefficient: Int, item1: AbstractVariableItem<*, *>, item2: AbstractVariableItem<*, *>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item1, item2))
 
-        operator fun invoke(coefficient: Double, item1: AbstractVariableItem<*, *>, item2: AbstractVariableItem<*, *>): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item1, item2))
-
         operator fun invoke(coefficient: Flt64, item1: AbstractVariableItem<*, *>, item2: AbstractVariableItem<*, *>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item1, item2))
 
-        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
-
-        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(coefficient: Double, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(item, symbol))
-
-        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, item: AbstractVariableItem<*, *>, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(item, symbol))
 
-        operator fun invoke(symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(coefficient: Int, symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(coefficient: Double, symbol: LinearIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
-
-        operator fun invoke(coefficient: Flt64, symbol: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, symbol: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(symbol1: LinearIntermediateSymbol<*>, symbol2: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol<*>, symbol2: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Double, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
-
-        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol, symbol2: LinearIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol<*>, symbol2: LinearIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(symbol1: LinearIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, symbol1: LinearIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Double, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
-
-        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, symbol1: LinearIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(coefficient: Int, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(coefficient: Double, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol))
-
-        operator fun invoke(coefficient: Flt64, symbol: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, symbol: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol))
 
-        operator fun invoke(symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(symbol1: QuadraticIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64.one, QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Int, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Int, symbol1: QuadraticIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
 
-        operator fun invoke(coefficient: Double, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
-            QuadraticMonomial(Flt64(coefficient), QuadraticMonomialSymbol(symbol1, symbol2))
-
-        operator fun invoke(coefficient: Flt64, symbol1: QuadraticIntermediateSymbol, symbol2: QuadraticIntermediateSymbol): QuadraticMonomial =
+        operator fun invoke(coefficient: Flt64, symbol1: QuadraticIntermediateSymbol<*>, symbol2: QuadraticIntermediateSymbol<*>): QuadraticMonomial =
             QuadraticMonomial(coefficient, QuadraticMonomialSymbol(symbol1, symbol2))
 
         operator fun invoke(monomial: LinearMonomial): QuadraticMonomial =
@@ -796,7 +768,7 @@ class QuadraticMonomial(
 
     override val discrete by lazy { (coefficient.round() eq coefficient) && symbol.discrete }
 
-    override val cells: List<QuadraticMonomialCell>
+    override val cells: List<QuadraticMonomialCellF64>
         get() = flattenedMonomials.toQuadraticMonomialCells()
 
     override val cached: Boolean get() = symbol.cached
@@ -823,7 +795,7 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: LinearIntermediateSymbol): QuadraticMonomial {
+    operator fun times(rhs: LinearIntermediateSymbol<*>): QuadraticMonomial {
         if (this.category == Quadratic) throw IllegalArgumentException("Over quadratic.")
         assert(this.symbol.symbol2 == null)
         return when (val s = this.symbol.symbol1) {
@@ -834,7 +806,7 @@ class QuadraticMonomial(
     }
 
     @Throws(IllegalArgumentException::class)
-    operator fun times(rhs: QuadraticIntermediateSymbol): QuadraticMonomial {
+    operator fun times(rhs: QuadraticIntermediateSymbol<*>): QuadraticMonomial {
         if (this.category == Quadratic || rhs.category == Quadratic) throw IllegalArgumentException("Over quadratic.")
         assert(this.symbol.symbol2 == null)
         return when (val s = this.symbol.symbol1) {
@@ -890,10 +862,10 @@ class QuadraticMonomial(
 
     override fun div(rhs: Flt64): QuadraticMonomial = QuadraticMonomial(coefficient / rhs, symbol.copy())
 
-    val flattenedMonomials: QuadraticFlattenData
+    val flattenedMonomials: QuadraticFlattenDataF64
         get() {
             val symFlatten = symbol.flattenedMonomials
-            return QuadraticFlattenData(
+            return QuadraticFlattenDataF64(
                 monomials = symFlatten.monomials.map {
                     UtilsQuadraticMonomial(it.coefficient * coefficient, it.symbol1, it.symbol2)
                 },
@@ -942,9 +914,6 @@ class QuadraticMonomial(
 // ========== Scalar * QuadraticMonomial operators ==========
 
 operator fun Int.times(rhs: QuadraticMonomial): QuadraticMonomial =
-    QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol.copy())
-
-operator fun Double.times(rhs: QuadraticMonomial): QuadraticMonomial =
     QuadraticMonomial(Flt64(this) * rhs.coefficient, rhs.symbol.copy())
 
 operator fun <T : RealNumber<T>> T.times(rhs: QuadraticMonomial): QuadraticMonomial =

@@ -3,37 +3,86 @@ package fuookami.ospf.kotlin.core.intermediate_model
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Flt64MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf as MathQuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 
+// ========== Polynomial Kind Marker Types ==========
+
 /**
- * Generic constraint interface skeleton - C2-2.6 declaration layer.
- * Phantom type parameter V for API signature; numerical kernel remains Flt64.
+ * Type parameter for Constraint<V, P> tracking polynomial kind.
  */
-interface ConstraintOf<V : RealNumber<V>> {
-    val lhs: List<CellOf<V>>
-    val sign: Sign
-    val rhs: Flt64
+sealed interface PolynomialKind
+
+/**
+ * Marker for linear constraints: Constraint<V, Linear> holds SymbolicLinearInequality<V>.
+ */
+object Linear : PolynomialKind
+
+/**
+ * Marker for quadratic constraints: Constraint<V, Quadratic> holds SymbolicQuadraticInequality<V>.
+ */
+object Quadratic : PolynomialKind
+
+// ========== Symbolic Inequality Wrapper Types ==========
+
+/**
+ * Symbolic wrapper for a math-layer LinearInequality<V>.
+ * Holds the inequality without flattening, preserving the symbolic form.
+ */
+class SymbolicLinearInequality<V : Ring<V>>(val inequality: MathLinearInequality<V>)
+
+typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<Flt64>
+
+/**
+ * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
+ * Holds the inequality without flattening, preserving the symbolic form.
+ */
+class SymbolicQuadraticInequality<V : RealNumber<V>>(val inequality: MathQuadraticInequalityOf<V>)
+
+typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<Flt64>
+
+// ========== Constraint<V, P> ==========
+
+/**
+ * Generic constraint interface.
+ * V is a real type parameter.
+ * P is a type parameter tracking polynomial kind (Linear vs Quadratic).
+ *
+ * Dual-view pattern:
+ *   - Flt64 view: `rhsF64` (solver-compatible, internal)
+ *   - V-typed view: `rhs` (type-safe, public API)
+ */
+interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
+    val lhs: List<Cell<V>>
+    val sign: ConstraintRelation
+    /** V-typed rhs (primary public API). */
+    val rhs: V
+    /** Flt64 view of rhs (solver-compatible, internal). */
+    val rhsF64: Flt64
     val lazy: Boolean
     val name: String
     val origin: MetaConstraint<*>?
-    val from: Pair<IntermediateSymbol, Boolean>?
+    val from: Pair<IntermediateSymbol<*>, Boolean>?
 }
 
-typealias DualSolution = Map<Constraint, Flt64>
+typealias ConstraintF64<P> = Constraint<Flt64, P>
+
+typealias DualSolution<P> = Map<ConstraintF64<P>, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>
 typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
 
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
-    val symbols: Map<IntermediateSymbol, List<Pair<Constraint, Flt64>>>
+    val symbols: Map<IntermediateSymbol<*>, List<Pair<ConstraintF64<*>, Flt64>>>
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
@@ -64,66 +113,90 @@ fun QuadraticDualSolution.toMeta(): MetaDualSolution {
     )
 }
 
-sealed class Constraint(
-    open val lhs: List<Cell>,
-    val sign: Sign,
-    val rhs: Flt64,
-    val lazy: Boolean,
-    val name: String = "",
-    open val origin: MetaConstraint<*>? = null,
-    open val from: Pair<IntermediateSymbol, Boolean>? = null
-) {
+sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
+    override val lhs: List<Cell<V>>,
+    override val sign: ConstraintRelation,
+    private val _rhs: V,
+    private val _rhsF64: Flt64,
+    override val lazy: Boolean,
+    override val name: String = "",
+    override val origin: MetaConstraint<*>? = null,
+    override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
+) : Constraint<V, P> {
+    override val rhs: V get() = _rhs
+    override val rhsF64: Flt64 get() = _rhsF64
+
     fun isTrue(): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.evaluate() ?: return null
+            lhsValue += cell.evaluateF64() ?: return null
         }
-        return sign(lhsValue, rhs)
+        return sign(lhsValue, _rhsF64)
     }
 
     fun isTrue(results: Solution): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.evaluate(results) ?: return null
+            lhsValue += cell.evaluateF64(results) ?: return null
         }
-        return sign(lhsValue, rhs)
+        return sign(lhsValue, _rhsF64)
     }
 }
 
-class LinearConstraint(
-    override val lhs: List<LinearCell>,
-    sign: Sign,
+class LinearConstraintImpl(
+    override val lhs: List<LinearCellF64>,
+    sign: ConstraintRelation,
     rhs: Flt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
-    from: Pair<IntermediateSymbol, Boolean>? = null,
-) : Constraint(
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+) : ConstraintImpl<Flt64, Linear>(
     lhs = lhs,
     sign = sign,
-    rhs = rhs,
+    _rhs = rhs,
+    _rhsF64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,
     from = from
 ) {
     companion object {
-        /**
-         * Create LinearConstraint from math LinearInequality
-         */
         operator fun invoke(
-            relation: MathLinearInequality,
-            tokens: AbstractTokenTable,
+            relation: LinearRelation,
+            tokens: LegacyAbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
             origin: MetaConstraint<*>? = null,
-            from: Pair<IntermediateSymbol, Boolean>? = null,
-        ): LinearConstraint {
+            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+        ): LinearConstraintImpl {
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, tokens)
-            return LinearConstraint(
+            return LinearConstraintImpl(
                 lhs = lhs,
-                sign = Sign(relation.comparison),
+                sign = relation.constraintRelation,
+                rhs = -flattenData.constant,
+                lazy = lazy,
+                name = name ?: relation.name,
+                origin = origin,
+                from = from
+            )
+        }
+
+        @Deprecated("Use LinearRelation overload instead", level = DeprecationLevel.WARNING)
+        operator fun invoke(
+            relation: Flt64MathLinearInequality,
+            tokens: LegacyAbstractTokenTable,
+            lazy: Boolean = false,
+            name: String = "",
+            origin: MetaConstraint<*>? = null,
+            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+        ): LinearConstraintImpl {
+            val flattenData = relation.flattenData
+            val lhs = createLinearCells(flattenData.monomials, tokens)
+            return LinearConstraintImpl(
+                lhs = lhs,
+                sign = ConstraintRelation(relation.comparison),
                 rhs = -flattenData.constant,
                 lazy = lazy,
                 name = name,
@@ -134,40 +207,60 @@ class LinearConstraint(
     }
 }
 
-class QuadraticConstraint(
-    override val lhs: List<QuadraticCell>,
-    sign: Sign,
+class QuadraticConstraintImpl(
+    override val lhs: List<QuadraticCellF64>,
+    sign: ConstraintRelation,
     rhs: Flt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MetaConstraint<*>? = null,
-    from: Pair<IntermediateSymbol, Boolean>? = null
-) : Constraint(
+    from: Pair<IntermediateSymbol<*>, Boolean>? = null
+) : ConstraintImpl<Flt64, Quadratic>(
     lhs = lhs,
     sign = sign,
-    rhs = rhs,
+    _rhs = rhs,
+    _rhsF64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,
     from = from
 ) {
     companion object {
-        /**
-         * Create QuadraticConstraint from math QuadraticInequality
-         */
         operator fun invoke(
-            relation: MathQuadraticInequality,
-            tokens: AbstractTokenTable,
+            relation: QuadraticRelation,
+            tokens: LegacyAbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
             origin: MetaConstraint<*>? = null,
-            from: Pair<IntermediateSymbol, Boolean>? = null,
-        ): QuadraticConstraint {
+            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+        ): QuadraticConstraintImpl {
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, tokens)
-            return QuadraticConstraint(
+            return QuadraticConstraintImpl(
                 lhs = lhs,
-                sign = Sign(relation.comparison),
+                sign = relation.constraintRelation,
+                rhs = -flattenData.constant,
+                lazy = lazy,
+                name = name ?: relation.name,
+                origin = origin,
+                from = from
+            )
+        }
+
+        @Deprecated("Use QuadraticRelation overload instead", level = DeprecationLevel.WARNING)
+        operator fun invoke(
+            relation: MathQuadraticInequality,
+            tokens: LegacyAbstractTokenTable,
+            lazy: Boolean = false,
+            name: String = "",
+            origin: MetaConstraint<*>? = null,
+            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
+        ): QuadraticConstraintImpl {
+            val flattenData = relation.flattenData
+            val lhs = createQuadraticCells(flattenData.monomials, tokens)
+            return QuadraticConstraintImpl(
+                lhs = lhs,
+                sign = ConstraintRelation(relation.comparison),
                 rhs = -flattenData.constant,
                 lazy = lazy,
                 name = name,
@@ -178,43 +271,30 @@ class QuadraticConstraint(
     }
 }
 
-/**
- * Internal factory: create LinearCell ArrayList from linear monomials.
- * 内部工厂函数：从线性单项式创建 LinearCell ArrayList。
- *
- * Preserves filtering: token != null && coefficient != zero.
- * 保留过滤条件：token != null && coefficient != zero。
- */
+// Type aliases for Constraint<V, P> with specific polynomial kinds
+typealias LinearConstraint = Constraint<Flt64, Linear>
+typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
+
 internal fun createLinearCells(
     monomials: List<UtilsLinearMonomial<Flt64>>,
-    tokens: AbstractTokenTable
-): ArrayList<LinearCell> {
-    val cells = ArrayList<LinearCell>()
+    tokens: LegacyAbstractTokenTable
+): ArrayList<LinearCellF64> {
+    val cells = ArrayList<LinearCellF64>()
     for (monomial in monomials) {
         val variable = monomial.symbol as AbstractVariableItem<*, *>
         val token = tokens.find(variable)
         if (token != null && monomial.coefficient neq Flt64.zero) {
-            cells.add(LinearCell(tokens, monomial.coefficient, token))
+            cells.add(LinearCellImpl(tokens, monomial.coefficient, token))
         }
     }
     return cells
 }
 
-/**
- * Internal factory: create QuadraticCell ArrayList from quadratic monomials.
- * 内部工厂函数：从二次单项式创建 QuadraticCell ArrayList。
- *
- * Preserves filtering: token1 != null && coefficient != zero.
- * 保留过滤条件：token1 != null && coefficient != zero。
- *
- * Skips monomial when token2 lookup fails (continue behavior).
- * 当 token2 查找失败时跳过该单项式（continue 行为）。
- */
 internal fun createQuadraticCells(
     monomials: List<UtilsQuadraticMonomial<Flt64>>,
-    tokens: AbstractTokenTable
-): ArrayList<QuadraticCell> {
-    val cells = ArrayList<QuadraticCell>()
+    tokens: LegacyAbstractTokenTable
+): ArrayList<QuadraticCellF64> {
+    val cells = ArrayList<QuadraticCellF64>()
     for (monomial in monomials) {
         val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
         val token1 = tokens.find(variable1)
@@ -224,7 +304,7 @@ internal fun createQuadraticCells(
             null
         }
         if (token1 != null && monomial.coefficient neq Flt64.zero) {
-            cells.add(QuadraticCell(tokens, monomial.coefficient, token1, token2))
+            cells.add(QuadraticCellImpl(tokens, monomial.coefficient, token1, token2))
         }
     }
     return cells

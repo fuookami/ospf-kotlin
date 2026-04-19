@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * Constraint pattern:
+ * ConstraintF64 pattern:
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM constraints link each flag to its inequality
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)
@@ -60,6 +60,10 @@ class SameAsFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + satisfactionFlags
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     @Suppress("UNCHECKED_CAST")
     override fun evaluate(values: Map<Symbol, T>): T? {
         val flt64Values = values.mapValues { it.value.asFlt64() }
@@ -80,8 +84,8 @@ class SameAsFunction<T : Field<T>>(
         return if (allSame) oneOf<T>() else zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

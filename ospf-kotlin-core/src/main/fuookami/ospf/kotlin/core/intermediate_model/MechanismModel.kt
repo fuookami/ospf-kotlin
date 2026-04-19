@@ -13,6 +13,9 @@ import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
@@ -22,34 +25,61 @@ import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
-sealed interface MechanismModelOf<V> : AutoCloseable {
+sealed interface MechanismModel<V : RealNumber<V>> : AutoCloseable {
     val name: String
-    val constraints: List<Constraint>
+    val constraints: List<Constraint<V, *>>
     val objectFunction: Object
-    val tokens: AbstractTokenTable
+    val tokens: LegacyAbstractTokenTable
 
     override fun close() {
         tokens.close()
     }
 }
 
-// Backward compatibility: typealias aliases (Phase 1)
-typealias MechanismModel = MechanismModelOf<Flt64>
+/**
+ * Convert a generic [MechanismModel]<V> to a Flt64-specific [MechanismModelF64].
+ *
+ * Validates that V is compatible with Flt64 by verifying the model is an instance
+ * of a concrete MechanismModel subclass. Since all internal numerical data is
+ * already Flt64, the conversion is safe when the model is a concrete
+ * [LinearMechanismModel] or [QuadraticMechanismModel].
+ * Returns [Failed] for unexpected model types.
+ *
+ * This function is intended to replace inlined V-to-Flt64 conversion logic in
+ * invoke() methods.
+ */
+@Suppress("UNCHECKED_CAST")
+fun <V : RealNumber<V>> convertMechanismModelToF64(model: MechanismModel<V>): Ret<MechanismModelF64> {
+    return when (model) {
+        is LinearMechanismModel<*> -> {
+            Ok(model as LinearMechanismModelF64)
+        }
+        is QuadraticMechanismModel<*> -> {
+            Ok(model as QuadraticMechanismModelF64)
+        }
+        else -> {
+            Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to F64: unexpected model type ${model::class.simpleName}"))
+        }
+    }
+}
 
-interface AbstractLinearMechanismModelOf<V> : MechanismModelOf<V> {
+// Backward compatibility: typealias aliases
+typealias MechanismModelF64 = MechanismModel<Flt64>
+
+interface AbstractLinearMechanismModel<V : RealNumber<V>> : MechanismModel<V> {
     /**
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
         relation: MathLinearInequality,
         name: String? = null,
-        from: Pair<IntermediateSymbol, Boolean>? = null,
+        from: Pair<IntermediateSymbol<*>, Boolean>? = null,
     ): Try
 
     fun addConstraint(
         relation: MathLinearInequality,
         name: String? = null,
-        from: IntermediateSymbol?,
+        from: IntermediateSymbol<*>?,
     ): Try {
         return addConstraint(
             relation = relation,
@@ -59,20 +89,20 @@ interface AbstractLinearMechanismModelOf<V> : MechanismModelOf<V> {
     }
 }
 
-interface AbstractQuadraticMechanismModelOf<V> : AbstractLinearMechanismModelOf<V> {
+interface AbstractQuadraticMechanismModel<V : RealNumber<V>> : AbstractLinearMechanismModel<V> {
     /**
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
         relation: MathQuadraticInequality,
         name: String? = null,
-        from: Pair<IntermediateSymbol, Boolean>? = null
+        from: Pair<IntermediateSymbol<*>, Boolean>? = null
     ): Try
 
     fun addConstraint(
         relation: MathQuadraticInequality,
         name: String? = null,
-        from: IntermediateSymbol?
+        from: IntermediateSymbol<*>?
     ): Try {
         return addConstraint(
             relation = relation,
@@ -82,15 +112,15 @@ interface AbstractQuadraticMechanismModelOf<V> : AbstractLinearMechanismModelOf<
     }
 }
 
-// Backward compatibility: typealias aliases (Phase 1)
-typealias AbstractLinearMechanismModel = AbstractLinearMechanismModelOf<Flt64>
-typealias AbstractQuadraticMechanismModel = AbstractQuadraticMechanismModelOf<Flt64>
+// Backward compatibility: typealias aliases
+typealias AbstractLinearMechanismModelF64 = AbstractLinearMechanismModel<Flt64>
+typealias AbstractQuadraticMechanismModelF64 = AbstractQuadraticMechanismModel<Flt64>
 
-interface SingleObjectMechanismModelOf<V> : MechanismModelOf<V> {
+interface SingleObjectMechanismModel<V : RealNumber<V>> : MechanismModel<V> {
     override val objectFunction: SingleObject<*>
 }
 
-typealias SingleObjectMechanismModel = SingleObjectMechanismModelOf<Flt64>
+typealias SingleObjectMechanismModelF64 = SingleObjectMechanismModel<Flt64>
 
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,
@@ -159,7 +189,7 @@ private suspend fun <T, R> dumpItemsAsync(
 }
 
 private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
-    metaModel: MetaModel,
+    metaModel: MetaModelF64,
     relationConstraints: List<RC>,
     subObjects: List<SO>,
     scope: CoroutineScope,
@@ -203,28 +233,38 @@ private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
     return constraints to dumpedSubObjects
 }
 
-class LinearMechanismModelOf<V>(
-    internal val parent: LinearMetaModelOf<V>,
+class LinearMechanismModel<V : RealNumber<V>>(
+    internal val parent: LinearMetaModel<V>,
     override var name: String,
-    constraints: List<LinearConstraint>,
-    override val objectFunction: SingleObject<LinearSubObject>,
-    override val tokens: AbstractTokenTable
-) : AbstractLinearMechanismModelOf<V>, SingleObjectMechanismModelOf<V> {
+    constraints: List<LinearConstraintImpl>,
+    override val objectFunction: SingleObject<LinearSubObject<Flt64>>,
+    override val tokens: LegacyAbstractTokenTable
+) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V> {
     private val logger = logger()
+
+    /**
+     * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
+     */
+    private val _constraints = constraints.toMutableList()
+    internal val concurrent by parent.configuration::concurrent
+    @Suppress("UNCHECKED_CAST")
+    override val constraints: List<Constraint<V, *>> get() = _constraints as List<Constraint<V, *>>
+    /** Directly typed access to the underlying linear constraints. */
+    internal val linearConstraints: List<LinearConstraintImpl> get() = _constraints
 
     companion object {
         private val logger = logger()
 
         @Suppress("DEPRECATION")
         suspend operator fun invoke(
-            metaModel: LinearMetaModel,
+            metaModel: LinearMetaModelF64,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null,
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<LinearMechanismModel> {
-            logger.info { "Creating LinearMechanismModel for $metaModel" }
+        ): Ret<LinearMechanismModelF64> {
+            logger.info { "Creating LinearMechanismModelF64 for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -259,11 +299,11 @@ class LinearMechanismModelOf<V>(
                     }
                 }
             } else {
-                LinearMechanismModel(
+                LinearMechanismModelF64(
                     parent = metaModel,
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
-                        LinearConstraint(
+                        LinearConstraintImpl(
                             relation = it.inequality,
                             tokens = tokens
                         )
@@ -271,7 +311,7 @@ class LinearMechanismModelOf<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
+                            flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant),
                             tokens = tokens,
                             name = it.name
                         )
@@ -310,18 +350,18 @@ class LinearMechanismModelOf<V>(
             }
             logger.trace { "Symbols registered for $metaModel" }
 
-            logger.info { "LinearMechanismModel created for $metaModel" }
+            logger.info { "LinearMechanismModelF64 created for $metaModel" }
             System.gc()
             return Ok(model)
         }
 
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
-            metaModel: LinearMetaModel,
-            tokens: AbstractTokenTable,
+            metaModel: LinearMetaModelF64,
+            tokens: LegacyAbstractTokenTable,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): LinearMechanismModel {
+        ): LinearMechanismModelF64 {
             val (constraints, subObjects) = dumpMechanismPartsAsync(
                 metaModel = metaModel,
                 relationConstraints = metaModel._relationConstraints,
@@ -330,7 +370,7 @@ class LinearMechanismModelOf<V>(
                 callBack = callBack,
                 memoryCheckInSingleTask = true,
                 createConstraint = {
-                    LinearConstraint(
+                    LinearConstraintImpl(
                         relation = it.inequality,
                         tokens = tokens
                     )
@@ -338,14 +378,14 @@ class LinearMechanismModelOf<V>(
                 createSubObject = {
                     LinearSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant),
+                        flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant),
                         tokens = tokens,
                         name = it.name
                     )
                 }
             )
 
-            return LinearMechanismModel(
+            return LinearMechanismModelF64(
                 parent = metaModel,
                 name = metaModel.name,
                 constraints = constraints.toMutableList(),
@@ -355,13 +395,13 @@ class LinearMechanismModelOf<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTable,
+            tokens: LegacyAbstractMutableTokenTable,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable> {
+        ): Ret<LegacyAbstractTokenTable> {
             return when (tokens) {
-                is MutableTokenTable -> {
-                    val temp = tokens.copy() as MutableTokenTable
+                is MutableTokenTableF64 -> {
+                    val temp = tokens.copy() as MutableTokenTableF64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -381,8 +421,8 @@ class LinearMechanismModelOf<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTable -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                is ConcurrentMutableTokenTableF64 -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTableF64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -405,17 +445,13 @@ class LinearMechanismModelOf<V>(
         }
     }
 
-    private val _constraints = constraints.toMutableList()
-    internal val concurrent by parent.configuration::concurrent
-    override val constraints by ::_constraints
-
     override fun addConstraint(
         relation: MathLinearInequality,
         name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
+        from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
         _constraints.add(
-            LinearConstraint(
+            LinearConstraintImpl(
                 relation = relation,
                 tokens = tokens,
                 lazy = false,
@@ -432,11 +468,11 @@ class LinearMechanismModelOf<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: LinearDualSolution
     ): List<MathLinearInequality> {
-        val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
+        val constants = linearConstraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in constraints) {
+        for (constraint in linearConstraints) {
             val dual = dualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -475,7 +511,7 @@ class LinearMechanismModelOf<V>(
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in constraints) {
+        for (constraint in linearConstraints) {
             val dual = farkasDualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -506,8 +542,9 @@ class LinearMechanismModelOf<V>(
         return listOf((lhs le Flt64.zero).normalize())
     }
 
+    val numConstraints: Int get() = _constraints.size
+
     override fun close() {
-        _constraints.clear()
         tokens.close()
     }
 
@@ -516,31 +553,41 @@ class LinearMechanismModelOf<V>(
     }
 }
 
-// Backward compatibility: typealias aliases (Phase 1)
-typealias LinearMechanismModel = LinearMechanismModelOf<Flt64>
+// Backward compatibility: typealias aliases
+typealias LinearMechanismModelF64 = LinearMechanismModel<Flt64>
 
-class QuadraticMechanismModelOf<V>(
-    internal val parent: QuadraticMetaModelOf<V>,
+class QuadraticMechanismModel<V : RealNumber<V>>(
+    internal val parent: QuadraticMetaModel<V>,
     override var name: String,
-    constraints: List<QuadraticConstraint>,
-    override val objectFunction: SingleObject<QuadraticSubObject>,
-    override val tokens: AbstractTokenTable
-) : AbstractQuadraticMechanismModelOf<V>, SingleObjectMechanismModelOf<V> {
+    constraints: List<QuadraticConstraintImpl>,
+    override val objectFunction: SingleObject<QuadraticSubObject<Flt64>>,
+    override val tokens: LegacyAbstractTokenTable
+) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V> {
     private val logger = logger()
+
+    /**
+     * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
+     */
+    private val _constraints = constraints.toMutableList()
+    internal val concurrent by parent.configuration::concurrent
+    @Suppress("UNCHECKED_CAST")
+    override val constraints: List<Constraint<V, *>> get() = _constraints as List<Constraint<V, *>>
+    /** Directly typed access to the underlying quadratic constraints. */
+    internal val quadraticConstraints: List<QuadraticConstraintImpl> get() = _constraints
 
     companion object {
         private val logger = logger()
 
         @Suppress("DEPRECATION")
         suspend operator fun invoke(
-            metaModel: QuadraticMetaModel,
+            metaModel: QuadraticMetaModelF64,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null,
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<QuadraticMechanismModel> {
-            logger.info { "Creating QuadraticMechanismModel for $metaModel" }
+        ): Ret<QuadraticMechanismModelF64> {
+            logger.info { "Creating QuadraticMechanismModelF64 for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -575,11 +622,11 @@ class QuadraticMechanismModelOf<V>(
                     }
                 }
             } else {
-                QuadraticMechanismModel(
+                QuadraticMechanismModelF64(
                     parent = metaModel,
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
-                        QuadraticConstraint(
+                        QuadraticConstraintImpl(
                             relation = it.inequality,
                             tokens = tokens
                         )
@@ -587,7 +634,7 @@ class QuadraticMechanismModelOf<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                            flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                             tokens = tokens,
                             name = it.name
                         )
@@ -633,18 +680,18 @@ class QuadraticMechanismModelOf<V>(
             }
             logger.trace { "Symbols registered for $metaModel" }
 
-            logger.info { "QuadraticMechanismModel created for $metaModel" }
+            logger.info { "QuadraticMechanismModelF64 created for $metaModel" }
             System.gc()
             return Ok(model)
         }
 
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
-            metaModel: QuadraticMetaModel,
-            tokens: AbstractTokenTable,
+            metaModel: QuadraticMetaModelF64,
+            tokens: LegacyAbstractTokenTable,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): QuadraticMechanismModel {
+        ): QuadraticMechanismModelF64 {
             val (constraints, subObjects) = dumpMechanismPartsAsync(
                 metaModel = metaModel,
                 relationConstraints = metaModel._relationConstraints,
@@ -653,7 +700,7 @@ class QuadraticMechanismModelOf<V>(
                 callBack = callBack,
                 memoryCheckInSingleTask = false,
                 createConstraint = {
-                    QuadraticConstraint(
+                    QuadraticConstraintImpl(
                         relation = it.inequality,
                         tokens = tokens
                     )
@@ -661,14 +708,14 @@ class QuadraticMechanismModelOf<V>(
                 createSubObject = {
                     QuadraticSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenData(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                        flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                         tokens = tokens,
                         name = it.name
                     )
                 }
             )
 
-            return QuadraticMechanismModel(
+            return QuadraticMechanismModelF64(
                 parent = metaModel,
                 name = metaModel.name,
                 constraints = constraints.toMutableList(),
@@ -678,13 +725,13 @@ class QuadraticMechanismModelOf<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTable,
+            tokens: LegacyAbstractMutableTokenTable,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable> {
+        ): Ret<LegacyAbstractTokenTable> {
             return when (tokens) {
-                is MutableTokenTable -> {
-                    val temp = tokens.copy() as MutableTokenTable
+                is MutableTokenTableF64 -> {
+                    val temp = tokens.copy() as MutableTokenTableF64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -704,8 +751,8 @@ class QuadraticMechanismModelOf<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTable -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTable
+                is ConcurrentMutableTokenTableF64 -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTableF64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -728,14 +775,10 @@ class QuadraticMechanismModelOf<V>(
         }
     }
 
-    private val _constraints = constraints.toMutableList()
-    internal val concurrent by parent.configuration::concurrent
-    override val constraints by ::_constraints
-
     override fun addConstraint(
         relation: MathLinearInequality,
         name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
+        from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
         _constraints.add(
             relation.toQuadraticConstraint(
@@ -751,10 +794,10 @@ class QuadraticMechanismModelOf<V>(
     override fun addConstraint(
         relation: MathQuadraticInequality,
         name: String?,
-        from: Pair<IntermediateSymbol, Boolean>?
+        from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
         _constraints.add(
-            QuadraticConstraint(
+            QuadraticConstraintImpl(
                 relation = relation,
                 tokens = tokens,
                 lazy = false,
@@ -772,12 +815,12 @@ class QuadraticMechanismModelOf<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: QuadraticDualSolution,
     ): Ret<List<Any>> {
-        val constants = constraints.fold(Flt64.zero) { acc, constraint ->
+        val constants = quadraticConstraints.fold(Flt64.zero) { acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
         val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in constraints) {
+        for (constraint in quadraticConstraints) {
             val dual = dualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -861,7 +904,7 @@ class QuadraticMechanismModelOf<V>(
         var constants = Flt64.zero
         val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
         val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in constraints) {
+        for (constraint in quadraticConstraints) {
             val dual = farkasDualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -921,8 +964,9 @@ class QuadraticMechanismModelOf<V>(
         return Ok(listOf((lhs le rhs).normalize()))
     }
 
+    val numConstraints: Int get() = _constraints.size
+
     override fun close() {
-        _constraints.clear()
         tokens.close()
     }
 
@@ -931,8 +975,8 @@ class QuadraticMechanismModelOf<V>(
     }
 }
 
-// Backward compatibility: typealias aliases (Phase 1)
-typealias QuadraticMechanismModel = QuadraticMechanismModelOf<Flt64>
+// Backward compatibility: typealias aliases
+typealias QuadraticMechanismModelF64 = QuadraticMechanismModel<Flt64>
 
 
 

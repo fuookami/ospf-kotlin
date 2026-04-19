@@ -17,7 +17,7 @@ interface AbstractSymbolCombination<S : Shape> {
     val shape: Shape
 }
 
-class SymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
+class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     val name: String,
     shape: S,
     ctor: (Int, IntArray) -> Sym
@@ -27,7 +27,12 @@ class SymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     init {
         for ((i, sym) in this.withIndex()) {
             when (sym) {
-                is ExpressionSymbol -> {
+                is LinearExpressionSymbol -> {
+                    sym._group = this
+                    sym._index = i
+                }
+
+                is QuadraticExpressionSymbol -> {
                     sym._group = this
                     sym._index = i
                 }
@@ -48,7 +53,7 @@ class SymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     }
 }
 
-class QuantitySymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
+class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     val name: String,
     shape: S,
     ctor: (Int, IntArray) -> Quantity<Sym>
@@ -58,7 +63,12 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     init {
         for ((i, qsym) in this.withIndex()) {
             when (val sym = qsym.value) {
-                is ExpressionSymbol -> {
+                is LinearExpressionSymbol -> {
+                    sym._group = this
+                    sym._index = i
+                }
+
+                is QuadraticExpressionSymbol -> {
                     sym._group = this
                     sym._index = i
                 }
@@ -79,18 +89,18 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol, S : Shape>(
     }
 }
 
-typealias IntermediateSymbols = MultiArray<IntermediateSymbol, *>
-typealias IntermediateSymbols1 = MultiArray<IntermediateSymbol, Shape1>
-typealias IntermediateSymbols2 = MultiArray<IntermediateSymbol, Shape2>
-typealias IntermediateSymbols3 = MultiArray<IntermediateSymbol, Shape3>
-typealias IntermediateSymbols4 = MultiArray<IntermediateSymbol, Shape4>
-typealias DynIntermediateSymbols = MultiArray<IntermediateSymbol, DynShape>
-typealias IntermediateSymbolView = MultiArrayView<IntermediateSymbol, *>
-typealias IntermediateSymbolView1 = MultiArrayView<IntermediateSymbol, Shape1>
-typealias IntermediateSymbolView2 = MultiArrayView<IntermediateSymbol, Shape2>
-typealias IntermediateSymbolView3 = MultiArrayView<IntermediateSymbol, Shape3>
-typealias IntermediateSymbolView4 = MultiArrayView<IntermediateSymbol, Shape4>
-typealias DynIntermediateSymbolView = MultiArrayView<IntermediateSymbol, DynShape>
+typealias IntermediateSymbols = MultiArray<IntermediateSymbol<*>, *>
+typealias IntermediateSymbols1 = MultiArray<IntermediateSymbol<*>, Shape1>
+typealias IntermediateSymbols2 = MultiArray<IntermediateSymbol<*>, Shape2>
+typealias IntermediateSymbols3 = MultiArray<IntermediateSymbol<*>, Shape3>
+typealias IntermediateSymbols4 = MultiArray<IntermediateSymbol<*>, Shape4>
+typealias DynIntermediateSymbols = MultiArray<IntermediateSymbol<*>, DynShape>
+typealias IntermediateSymbolView = MultiArrayView<IntermediateSymbol<*>, *>
+typealias IntermediateSymbolView1 = MultiArrayView<IntermediateSymbol<*>, Shape1>
+typealias IntermediateSymbolView2 = MultiArrayView<IntermediateSymbol<*>, Shape2>
+typealias IntermediateSymbolView3 = MultiArrayView<IntermediateSymbol<*>, Shape3>
+typealias IntermediateSymbolView4 = MultiArrayView<IntermediateSymbol<*>, Shape4>
+typealias DynIntermediateSymbolView = MultiArrayView<IntermediateSymbol<*>, DynShape>
 
 typealias QuantityIntermediateSymbols1 = MultiArray<QuantityIntermediateSymbol, Shape1>
 typealias QuantityIntermediateSymbols2 = MultiArray<QuantityIntermediateSymbol, Shape2>
@@ -103,29 +113,29 @@ typealias QuantityIntermediateSymbolView3 = MultiArrayView<QuantityIntermediateS
 typealias QuantityIntermediateSymbolView4 = MultiArrayView<QuantityIntermediateSymbol, Shape4>
 typealias DynQuantityIntermediateSymbolView = MultiArrayView<QuantityIntermediateSymbol, DynShape>
 
-typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbol, Shape1>
-typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbol, Shape2>
-typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbol, Shape3>
-typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbol, Shape4>
-typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbol, DynShape>
+typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbol<*>, Shape1>
+typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbol<*>, Shape2>
+typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbol<*>, Shape3>
+typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbol<*>, Shape4>
+typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbol<*>, DynShape>
 
-typealias QuantityLinearIntermediateSymbols1 = QuantitySymbolCombination<LinearIntermediateSymbol, Shape1>
-typealias QuantityLinearIntermediateSymbols2 = QuantitySymbolCombination<LinearIntermediateSymbol, Shape2>
-typealias QuantityLinearIntermediateSymbols3 = QuantitySymbolCombination<LinearIntermediateSymbol, Shape3>
-typealias QuantityLinearIntermediateSymbols4 = QuantitySymbolCombination<LinearIntermediateSymbol, Shape4>
-typealias DynQuantityLinearIntermediateSymbols = QuantitySymbolCombination<LinearIntermediateSymbol, DynShape>
+typealias QuantityLinearIntermediateSymbols1 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape1>
+typealias QuantityLinearIntermediateSymbols2 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape2>
+typealias QuantityLinearIntermediateSymbols3 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape3>
+typealias QuantityLinearIntermediateSymbols4 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape4>
+typealias DynQuantityLinearIntermediateSymbols = QuantitySymbolCombination<LinearIntermediateSymbol<*>, DynShape>
 
-typealias QuadraticIntermediateSymbols1 = SymbolCombination<QuadraticIntermediateSymbol, Shape1>
-typealias QuadraticIntermediateSymbols2 = SymbolCombination<QuadraticIntermediateSymbol, Shape2>
-typealias QuadraticIntermediateSymbols3 = SymbolCombination<QuadraticIntermediateSymbol, Shape3>
-typealias QuadraticIntermediateSymbols4 = SymbolCombination<QuadraticIntermediateSymbol, Shape4>
-typealias DynQuadraticIntermediateSymbols = SymbolCombination<QuadraticIntermediateSymbol, DynShape>
+typealias QuadraticIntermediateSymbols1 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape1>
+typealias QuadraticIntermediateSymbols2 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape2>
+typealias QuadraticIntermediateSymbols3 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape3>
+typealias QuadraticIntermediateSymbols4 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape4>
+typealias DynQuadraticIntermediateSymbols = SymbolCombination<QuadraticIntermediateSymbol<*>, DynShape>
 
-typealias QuantityQuadraticIntermediateSymbols1 = QuantitySymbolCombination<QuadraticIntermediateSymbol, Shape1>
-typealias QuantityQuadraticIntermediateSymbols2 = QuantitySymbolCombination<QuadraticIntermediateSymbol, Shape2>
-typealias QuantityQuadraticIntermediateSymbols3 = QuantitySymbolCombination<QuadraticIntermediateSymbol, Shape3>
-typealias QuantityQuadraticIntermediateSymbols4 = QuantitySymbolCombination<QuadraticIntermediateSymbol, Shape4>
-typealias DynQuantityQuadraticIntermediateSymbols = QuantitySymbolCombination<QuadraticIntermediateSymbol, DynShape>
+typealias QuantityQuadraticIntermediateSymbols1 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape1>
+typealias QuantityQuadraticIntermediateSymbols2 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape2>
+typealias QuantityQuadraticIntermediateSymbols3 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape3>
+typealias QuantityQuadraticIntermediateSymbols4 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape4>
+typealias DynQuantityQuadraticIntermediateSymbols = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, DynShape>
 
 typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, Shape1>
 typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, Shape2>
@@ -175,11 +185,11 @@ typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<Quadrati
 typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticFunctionSymbol, Shape4>
 typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticFunctionSymbol, DynShape>
 
-typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol, Shape1>
-typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol, Shape2>
-typealias LinearIntermediateSymbolView3 = MultiArrayView<LinearIntermediateSymbol, Shape3>
-typealias LinearIntermediateSymbolView4 = MultiArrayView<LinearIntermediateSymbol, Shape4>
-typealias DynLinearIntermediateSymbolView = MultiArrayView<LinearIntermediateSymbol, DynShape>
+typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol<*>, Shape1>
+typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol<*>, Shape2>
+typealias LinearIntermediateSymbolView3 = MultiArrayView<LinearIntermediateSymbol<*>, Shape3>
+typealias LinearIntermediateSymbolView4 = MultiArrayView<LinearIntermediateSymbol<*>, Shape4>
+typealias DynLinearIntermediateSymbolView = MultiArrayView<LinearIntermediateSymbol<*>, DynShape>
 
 typealias QuantityLinearIntermediateSymbolView1 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape1>
 typealias QuantityLinearIntermediateSymbolView2 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape2>
@@ -187,11 +197,11 @@ typealias QuantityLinearIntermediateSymbolView3 = MultiArrayView<QuantityLinearI
 typealias QuantityLinearIntermediateSymbolView4 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape4>
 typealias DynQuantityLinearIntermediateSymbolView = MultiArrayView<QuantityLinearIntermediateSymbol, DynShape>
 
-typealias QuadraticIntermediateSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol, Shape1>
-typealias QuadraticIntermediateSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol, Shape2>
-typealias QuadraticIntermediateSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol, Shape3>
-typealias QuadraticIntermediateSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol, Shape4>
-typealias DynQuadraticIntermediateSymbolView = MultiArrayView<QuadraticIntermediateSymbol, DynShape>
+typealias QuadraticIntermediateSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape1>
+typealias QuadraticIntermediateSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape2>
+typealias QuadraticIntermediateSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape3>
+typealias QuadraticIntermediateSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape4>
+typealias DynQuadraticIntermediateSymbolView = MultiArrayView<QuadraticIntermediateSymbol<*>, DynShape>
 
 typealias QuantityQuadraticIntermediateSymbolView1 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape1>
 typealias QuantityQuadraticIntermediateSymbolView2 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape2>

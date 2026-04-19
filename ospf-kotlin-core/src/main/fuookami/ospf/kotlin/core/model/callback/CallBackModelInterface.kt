@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.model.Model
 import fuookami.ospf.kotlin.core.model.MulObj
 import fuookami.ospf.kotlin.core.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.functional.sumOf
@@ -15,7 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Order
 interface AbstractCallBackModelInterface<Obj, V> : Model, AutoCloseable {
     val defaultObjective: V
 
-    val tokens: AbstractMutableTokenTable
+    val tokens: LegacyAbstractMutableTokenTable
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>

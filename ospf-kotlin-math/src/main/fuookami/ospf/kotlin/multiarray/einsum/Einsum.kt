@@ -34,7 +34,7 @@
  * val c3 = einsteinDouble(a, b).matmul()
  * ```
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 // ============================================================================
 // 模块导出 / Module Exports

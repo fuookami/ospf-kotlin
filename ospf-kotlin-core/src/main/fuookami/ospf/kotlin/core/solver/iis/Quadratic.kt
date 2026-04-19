@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.core.solver.iis
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -177,9 +177,9 @@ private fun getRelatedVariables(
         }
     }
     relatedConstraints.forEach { rowIndex ->
-        model.constraints.lhs[rowIndex].forEach { cell ->
-            markVariable(marks, cell.colIndex1, lowerBound = false, upperBound = false)
-            cell.colIndex2?.let {
+        model.constraints.sparseLhs.forEachEntry(rowIndex) { colIndex1, colIndex2, _ ->
+            markVariable(marks, colIndex1, lowerBound = false, upperBound = false)
+            colIndex2?.let {
                 markVariable(marks, it, lowerBound = false, upperBound = false)
             }
         }
@@ -213,20 +213,31 @@ private fun filterConstraintByRowIndex(
 ): QuadraticConstraintBatch {
     val relatedRows = rows.distinct().sorted()
 
-    return QuadraticConstraintBatch(
-        lhs = relatedRows.mapIndexed { newRowIndex, rowIndex ->
-            constraints.lhs[rowIndex].mapNotNull { cell ->
-                val newColIndex1 = oldToNewVariableIndexMap[cell.colIndex1] ?: return@mapNotNull null
-                val newColIndex2 = cell.colIndex2?.let { oldToNewVariableIndexMap[it] ?: return@mapNotNull null }
+    @Suppress("DEPRECATION")
+    val lhs = relatedRows.mapIndexed { newRowIndex, rowIndex ->
+        constraints.lhs[rowIndex].mapNotNull { cell ->
+            val newColIndex1 = oldToNewVariableIndexMap[cell.colIndex1] ?: return@mapNotNull null
+            val newColIndex2 = cell.colIndex2?.let { oldToNewVariableIndexMap[it] ?: return@mapNotNull null }
 
-                QuadraticConstraintCell(
-                    rowIndex = newRowIndex,
-                    colIndex1 = newColIndex1,
-                    colIndex2 = newColIndex2,
-                    coefficient = cell.coefficient.copy()
-                )
+            QuadraticConstraintCell(
+                rowIndex = newRowIndex,
+                colIndex1 = newColIndex1,
+                colIndex2 = newColIndex2,
+                coefficient = cell.coefficient.copy()
+            )
+        }
+    }
+    val sparseLhs = SparseQuadraticMatrix().also { mat ->
+        for (row in lhs) {
+            val sv = SparseQuadraticVector()
+            for (cell in row) {
+                sv.add(cell.colIndex1, cell.colIndex2, cell.coefficient)
             }
-        },
+            mat.addRow(sv)
+        }
+    }
+    return QuadraticConstraintBatch(
+        sparseLhs = sparseLhs,
         signs = relatedRows.map { constraints.signs[it] },
         rhs = relatedRows.map { constraints.rhs[it].copy() },
         names = relatedRows.map { constraints.names[it] },
@@ -349,7 +360,7 @@ private suspend fun performElasticFiltering(
         tolerance = config.slackTolerance
     ) { variable ->
         when (variable.slack?.constraint?.sign) {
-            Sign.LessEqual, Sign.GreaterEqual -> {
+            ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
                 true
             }
 

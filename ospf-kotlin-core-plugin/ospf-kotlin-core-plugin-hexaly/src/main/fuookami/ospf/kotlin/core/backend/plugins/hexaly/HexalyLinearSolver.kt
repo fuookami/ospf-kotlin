@@ -151,9 +151,9 @@ private class HexalyLinearSolverImpl(
                         val constraints = async(Dispatchers.Default) {
                             ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = hexalyModel.sum()
-                                for (cell in model.constraints.lhs[ii]) {
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
                                     lhs.addOperands(
-                                        hexalyModel.prod(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"), hexalyVars[cell.colIndex])
+                                        hexalyModel.prod(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"), hexalyVars[colIndex])
                                     )
                                 }
                                 ii to lhs
@@ -190,9 +190,9 @@ private class HexalyLinearSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = hexalyModel.sum()
-                        for (cell in model.constraints.lhs[i]) {
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
                             lhs.addOperands(
-                                hexalyModel.prod(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"), hexalyVars[cell.colIndex])
+                                hexalyModel.prod(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"), hexalyVars[colIndex])
                             )
                         }
                         val constraint = when (model.constraints.signs[i]) {

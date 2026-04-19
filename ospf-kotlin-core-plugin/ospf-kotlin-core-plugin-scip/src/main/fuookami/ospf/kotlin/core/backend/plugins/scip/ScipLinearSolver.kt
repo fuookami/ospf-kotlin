@@ -219,9 +219,9 @@ private class ScipLinearSolverImpl(
                             }
                             val vars = ArrayList<jscip.Variable>()
                             val coefficients = ArrayList<Double>()
-                            for (cell in model.constraints.lhs[ii]) {
-                                vars.add(scipVars[cell.colIndex])
-                                coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"))
+                            model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                vars.add(scipVars[colIndex])
+                                coefficients.add(coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"))
                             }
                             ii to Triple(lb, coefficients to vars, ub)
                         }
@@ -270,9 +270,9 @@ private class ScipLinearSolverImpl(
                     }
                     val vars = ArrayList<jscip.Variable>()
                     val coefficients = ArrayList<Double>()
-                    for (cell in model.constraints.lhs[i]) {
-                        vars.add(scipVars[cell.colIndex])
-                        coefficients.add(cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"))
+                    model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                        vars.add(scipVars[colIndex])
+                        coefficients.add(coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"))
                     }
                     val constraint = scip.createConsLinear(
                         model.constraints.names[i],

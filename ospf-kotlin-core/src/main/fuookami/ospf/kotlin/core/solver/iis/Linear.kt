@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.core.solver.iis
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -151,6 +151,7 @@ private fun getRelatedVariables(
             null
         }
     } + relatedConstraints.flatMap { i ->
+        @Suppress("DEPRECATION")
         model.constraints.lhs[i].map { cell ->
             Triple(model.variables[cell.colIndex], false, false)
         }
@@ -273,7 +274,7 @@ private suspend fun performElasticFiltering(
         tolerance = config.slackTolerance
     ) { variable ->
         when (variable.slack?.constraint?.sign) {
-            Sign.LessEqual, Sign.GreaterEqual -> {
+            ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
                 true
             }
 

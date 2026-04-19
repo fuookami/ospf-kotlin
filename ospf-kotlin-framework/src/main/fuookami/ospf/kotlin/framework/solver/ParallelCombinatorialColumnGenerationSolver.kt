@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -41,7 +41,7 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -155,7 +155,7 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

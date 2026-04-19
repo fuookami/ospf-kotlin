@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-18（整理归档）
+日期：2026-04-19（P0 全量完成归档）
 
 ---
 
@@ -16,18 +16,49 @@
 | C3 | 缓存上收：remove 解绑、同步/并发对齐、双写策略、15 个回归测试 | 2026-04-18 |
 | C4 | MechanismModel 边界收口：toQuadraticConstraint()、DumpHelpers.kt、clampCoefficient() | 2026-04-18 |
 | C5 | Quadratic cut 对齐 Rust：generateOptimalCut/generateFeasibleCut 双路径实现 | 2026-04-17 |
-| C6 | 删库：Polynomial.kt、Expression.kt 物理删除，引用迁移至 math.symbol | 2026-04-17 |
+| C6 | 主链路切流：Polynomial.kt 物理删除；Expression.kt / ToPolynomial.kt / intermediate_model.monomial 兼容层过渡保留 | 2026-04-17 |
 | C7 | 阶段化回归：run-c7-regression.ps1 脚本 | 2026-04-17 |
 | C8 | 门禁：Abstract*Polynomial 拦截、.cells 拦截、Double 固化拦截 | 2026-04-17 |
 
-### P0~P2 待办项完成
+### P0 全量完成（2026-04-19）
+
+| 项目 | 内容 | 完成方式 | 关键代码证据 |
+|------|------|----------|-------------|
+| P0-7 | C2 第二段泛型化：V 真实贯通全链路 | 双视图模式（V-typed 访问器 + Flt64 内部视图 via IntoValue\<V\>） | Token.kt, Cell.kt, Constraint.kt, SubObject.kt, IntermediateSymbol.kt |
+| P0-8 | BasicModel\<V\> / BasicMechanismModel\<V\> 上层分离 | 继承链贯通 + RealNumber\<V\> 约束 | BasicModel.kt, BasicMechanismModel.kt, MetaModel.kt, MechanismModel.kt |
+| P0-9 | ConstraintRelation + mechanism 层 Inequality 体系 | Constraint\<V, P : PolynomialKind\> + SymbolicLinearInequality\<V\> + SymbolicQuadraticInequality\<V\> + LinearConstraintImpl / QuadraticConstraintImpl | Constraint.kt |
+| P0-10 | ProductFunction\<V\> 补齐 | register() 通过 addConstraint() 注册约束 | Product.kt |
+| P0-11 | registerAuxiliaryTokens 钩子 | 37 处显式覆写 + MathFunctionSymbol 默认实现通过 helperVariables | FunctionSymbol.kt, TokenTable.kt |
+| P0-12 | SparseVector\<V\> / SparseMatrix\<V\> | sparseLhs 主表示，lhs 为 @Deprecated 派生 | LinearTriadModel.kt, QuadraticTetradModel.kt |
+| P0-13 | convertMechanismModelToF64\<V\>() | 边界函数 + SolverExt 泛型 solve() | MechanismModel.kt, SolverExt.kt |
+
+### P0 验收结果（2026-04-19）
+
+| 命令 | 结果 |
+|------|------|
+| `mvn -pl ospf-kotlin-core -am test` | 通过，121 tests, 0 failures |
+| `mvn compile -pl ospf-kotlin-framework -am` | 通过 |
+| `check-c8-guards.ps1` | 通过 |
+| `grep phantom/Phase\ 1` | 0 残留 |
+
+### C2 第二段泛型化子步骤完成
+
+| 子步骤 | 内容 | 状态 |
+|--------|------|------|
+| C2-2.1 | IntoValue\<V\> / SolveValue\<V\> trait | 完成 |
+| C2-2.2 | AnyVariable\<V\> 泛型化 | 完成 |
+| C2-2.3 | Token\<V\> 泛型化 | 完成 |
+| C2-2.4 | Cell\<V\> 泛型化 | 完成 |
+| C2-2.5 | Constraint\<V, P\> / SubObject\<V\> 泛型化 | 完成 |
+| C2-2.6 | QuadraticInequality DSL 泛型化 | 完成 |
+| C2-2.7 | IntermediateSymbol\<V\> sealed interface 泛型化 | 完成 |
+| C2-2.8 | convertMechanismModelToF64\<V\>() 提取 | 完成 |
+| C2-2.9 | 全量编译 + 测试通过 | 完成 |
+
+### P1~P2 前期完成项
 
 | 项目 | 内容 | 完成方式 |
 |------|------|----------|
-| P0-1 | core 对外符号类型清退 | C1 完成 |
-| P0-2 | MetaModel 主链路切换到 math.symbol | C1 完成 |
-| P0-5 | 缓存机制上收到 MetaModel contexts | C3 + C6 完成 |
-| P0-6 | 对外接口兼容保持 | ApiCompatibilityTest.kt（8 个测试） |
 | P1-1 | Quadratic MechanismModel cut 对齐 Rust | C5 完成 |
 | P1-2 | 显式符号依赖图 | TokenTable: symbolDependencies, addSymbolDependency, validateNoCycles |
 | P1-3 | .cells 主路径清退 | C8 守卫阻止新使用 |
@@ -40,69 +71,145 @@
 - `DumpHelpers.kt` — 共享 dump 工具（clampCoefficient）
 - `ApiCompatibilityTest.kt` — 8 个 API 兼容测试
 - `QuadraticMechanismModelCutTest.kt` — 二次 cut 回归测试
+- `ProductFunctionTest.kt` — ProductFunction.register() 测试
+- `ConstraintRelationTest.kt` — ConstraintRelation 双向映射测试
+- `ConvertMechanismModelTest.kt` — V→F64 转换测试
 - `scripts/check-c8-guards.ps1` — 增量门禁脚本
 - `scripts/run-c7-regression.ps1` — 阶段化回归脚本
 - `.github/workflows/core-refactor-guards.yml` — CI 门禁
 
-### 验证状态
+### C6 保留项说明
 
-- `mvn -pl ospf-kotlin-core -am test`：111 tests, 0 failures
-- `check-c8-guards.ps1`：全部通过
-- C2 第二段延期（见下方）
+- `Expression.kt`：暂保留。当前仍被 `IntermediateSymbol`、`Monomial`、`CallBackModel` 的 deprecated 兼容入口直接依赖。
+- `ToPolynomial.kt`：暂保留。`ToLinearPolynomial`/`ToQuadraticPolynomial` 仍在 core 与 framework 跨模块建模入口中使用。
+- `intermediate_model/monomial/`：暂保留。变量运算符、不等式 DSL、flatten/cell 兼容路径仍以该包为输入类型。
+- 删除门槛：完成对 `Expression`、`To*Polynomial`、`monomial` 的外部调用迁移后，再统一物理删除。
 
----
+### C6 兼容层后续删除计划（D0~D4）
 
-## 延期项
+| 阶段 | 目标 | 主要动作 | 退出条件 | 目标日期 |
+|------|------|----------|----------|----------|
+| D0 | 现状冻结 | 固定保留清单（`Expression.kt`、`ToPolynomial.kt`、`intermediate_model/monomial`）并标注所有入口为兼容层 | 保留项与引用说明在 daily.md 可追踪 | 2026-04-19 |
+| D1 | 去除 `To*Polynomial` 外部依赖 | framework/core 调用方改为直接使用 `math.symbol` 多项式或 `flattenData`；`ToLinearPolynomial`/`ToQuadraticPolynomial` 仅保留内部过渡 | framework 不再 import `core.intermediate_model.To*Polynomial` | 2026-04-23 |
+| D2 | 去除 `Expression` 外部依赖 | 回调与目标函数入口从 `Expression` 迁移到 `MathLinearPolynomial<Flt64>` / `LinearFlattenDataF64`；保留 deprecated 桥接但主路径禁用 | core 对外 API 不再暴露 `Expression` 参数（仅 deprecated 适配层可见） | 2026-04-25 |
+| D3 | 去除 `intermediate_model.monomial` 主路径依赖 | 变量运算符、不等式 DSL、SubObject/Constraint 桥接统一切到 `math.symbol` + flatten；`monomial` 包仅用于短期兼容 | 主链路文件（Model/MetaModel/MathInequalityDsl/IntermediateSymbol）不再 import `intermediate_model.monomial.*` | 2026-04-27 |
+| D4 | 物理删除与门禁收口 | 删除 `Expression.kt`、`ToPolynomial.kt`、`intermediate_model/monomial/`；更新 C8 门禁与回归脚本，补齐 ReplaceWith 迁移指引 | `mvn -pl ospf-kotlin-core -am test`、`mvn -pl ospf-kotlin-framework -am compile`、`check-c8-guards.ps1` 全通过 | 2026-04-28 |
 
-### C2 第二段：数值内核泛型化专项
+#### D0~D4 执行规则
 
-**状态**：设计完成，实现延期
+1. 先迁移 framework 调用点，再迁移 core 兼容入口，最后物理删除文件。
+2. 每阶段必须先补测试（语义等价回归）再切实现，避免“先删后补”。
+3. 任一阶段失败时不进入下一阶段，回滚到上一阶段完成态。
 
-**理由**：V 在所有 `*Of<V>` 类型中为 phantom（从未实际使用，内部均为 Flt64）。真正泛型化需改 math 库、sealed interface、Token/Cell/Constraint 内部字段，预估 15-20h 高风险工作，无当前使用场景。
+#### D0~D4 完成定义（Done）
 
-**何时恢复**：出现需要 V ≠ Flt64 的具体使用场景时重新评估。
-
-**已完成设计产物**：
-- `docs/refactor-baseline/generic-boundary.md`
-- C2-2.1~C2-2.9 声明层骨架（接口泛型、typealias 兼容）
-- C2-2.10 全量测试通过
-
----
-
-## 未完成项
-
-### 1. QuadraticTetradModel dual/farkasDual（P1）
-
-- `QuadraticTetradModel.kt` 的 `dual()` 和 `farkasDual()` 仍为 `TODO("not implemented yet")`
-- Rust 无此公共 API，属于 Kotlin 扩展能力
-- 需决策：实现为扩展能力，或显式标注为不支持
-
-### 2. MonomialCell 非线性分支（P2）
-
-- `Monomial.kt` 的 `MonomialCell.invoke(..., category)` 对非线性分支仍为 `TODO("NOT IMPLEMENT YET")`
-- 影响后续类别扩展的一致性
-
-### 3. FunctionSymbol 上下文一体化（P1）
-
-- Rust 统一 `register_auxiliary_tokens` + `evaluate_from_tokens`，且 `add_symbol` 触发 context 重绑
-- Kotlin 符号注册与求值路径仍分散在 registration scope/prepare 链路，尚未完全对齐为单一钩子模型
-
-### 4. 主链路语义等价回归（P1）
-
-- `Abstract*Polynomial` 到 `math.symbol` 切流后，缺少成套"旧入口 vs 新入口"语义等价回归
-- 泛型 V 与 plugin 边界 Double 转换缺少专项回归覆盖
-
-### 5. 泛型化链路闭环（P0，与 C2 第二段同）
-
-- core 主链路仍存在 Flt64 固化路径，未完全收敛到"plugin 边界才转 Double"
-- 与 C2 第二段延期项合并，恢复时一并处理
+1. 仓库内不存在 `import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial` / `ToQuadraticPolynomial`（测试兼容样例除外）。
+2. 仓库内不存在 `core.intermediate_model.Expression` 作为对外 API 参数类型。
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_model/monomial/`、`Expression.kt`、`ToPolynomial.kt` 已物理删除。
+4. C8 门禁新增对应拦截规则并在 CI 稳定通过。
 
 ---
 
-## 转换边界标记
+## 待办事项
 
-- `LinearTriadModel.invoke()` — MechanismModel\<V\> 到 IntermediateModel 的 V→Flt64 实例化入口
-- `QuadraticTetradModel.invoke()` — 同上，二次路径的 V→Flt64 实例化入口
+### P1 — 本期尽量完成
+
+| # | 项目 | 内容 | 风险 | 预估 |
+|---|------|------|------|------|
+| P1-10 | **主链路语义等价回归** | 成套"旧入口 vs 新入口"端到端语义等价回归；泛型 V 与 plugin 边界 Double 转换专项回归。作为后续迁移的门禁：P1-8/P1-12 完成前必须先有此回归基线 | 低 | 3h |
+| P1-8 | **Benders cut 完整套件** | by_id / from_output 公共 API 变体。当前插件侧已有各自 tidyDualSolution(...) 提取路径，from_output 是"公共 API 缺失"而非"能力完全没有" | 低 | 2h |
+| P1-11 | **BasicLinearTriadModel/BasicQuadraticTetradModel 独立公开入口规范化** | 类已存在且公开（LinearTriadModel.kt:183, QuadraticTetradModel.kt:168），测试也直接使用（SolverExtIISOptionsTest.kt）。缺的是：独立主入口 API 的产品化定义（命名规范、KDoc、工厂示例、独立测试） | 低 | 1h |
+| P1-9 | **QuadraticTetradModel dual/farkasDual 决策** | 当前为 TODO 存根（运行时抛异常），solveDual/solveFarkasDual 会调用它们。DoD 二选一：(A) 实现版：补齐 dual/farkasDual + 回归测试；(B) 不支持版：改为显式 Failed(ErrorCode.UnsupportedOperation) + API 注释 @Deprecated("Quadratic dual not supported") + 测试验证返回 Failed，禁止保留 TODO | 中 | 0.5h (B) / 4h (A) |
+| P1-12 | **C6 兼容层删除流程（D0~D4）** | 按 D0→D4 执行兼容层迁移与删除，分阶段验收。To*Polynomial、monomial 仍是高耦合面，每阶段可能触发级联编译修复 | 中 | 10~14h |
+
+#### P1 执行顺序
+
+```
+P1-10 (语义等价回归基线 — 作为迁移门禁)
+  → P1-8 (Benders cut by_id/from_output 公共 API)
+  → P1-11 (Basic*Model 独立公开入口规范化)
+  → P1-9 (Quadratic dual/farkasDual 决策，建议选 B: 不支持版)
+  → P1-12 (C6 兼容层删除 D0~D4)
+```
+
+#### P1-9 DoD（不支持版 B）
+
+1. `QuadraticTetradModel.dual()` 改为返回 `Failed(ErrorCode.UnsupportedOperation, "Quadratic dual is not supported")` 而非 `TODO`。
+2. `QuadraticTetradModel.farkasDual()` 同上。
+3. `solveDual()`/`solveFarkasDual()` 调用方已处理 Failed 返回值（验证）。
+4. 添加 `@Deprecated("Quadratic dual not supported — Rust has no public API for this")` 注解。
+5. 测试：调用 dual()/farkasDual() 断言返回 Failed。
+
+### P2 — 后续迭代
+
+| # | 项目 | 内容 | 风险 | 预估 |
+|---|------|------|------|------|
+| P2-3 | **PSO 求解器** | 对齐 Rust `pso` 模块 | 中 | 8h |
+| P2-4 | **LP 导出** | 对齐 Rust `lp_export` / `LPExportableModel` trait | 低 | 2h |
+| P2-5 | **结构化错误类型** | 对齐 Rust `model::Error` 枚举，替换当前散落的异常抛出 | 低 | 3h |
+| P2-6 | **MonomialCell 非线性分支** | `Monomial.kt` 的 `MonomialCell.invoke(..., category)` 非线性分支仍为 TODO | 低 | 1h |
+
+---
+
+## 功能差异矩阵（Rust ← Kotlin 双向对照）
+
+### Rust 有 / Kotlin 缺 — 需补齐
+
+| # | Rust 组件 | 说明 | 优先级 | 状态 |
+|---|----------|------|--------|------|
+| G1 | `BasicModel<V>` | 变量+约束基础层 | P0 | 已实现 |
+| G2 | `BasicMechanismModel<V>` | 展开后变量+约束层 | P0 | 已实现 |
+| G3 | `IntoValue<V>` trait | 值类型转换 trait | P0 | 已实现 |
+| G4 | `SolveValue<V>` trait | 求解值类型 trait | P0 | 已实现 |
+| G5 | `AnyVariable<V>` | 类型擦除变量包装 | P0 | 已实现 |
+| G6 | `ProductFunction<V>` | 两个线性多项式乘积 | P0 | 已实现 |
+| G7 | `SymbolicLinearInequality<V>` | 符号化线性不等式 | P0 | 已实现 |
+| G8 | `SymbolicQuadraticInequality<V>` | 符号化二次不等式 | P0 | 已实现 |
+| G9 | `SparseVector<V>` / `SparseMatrix<V>` | 稀疏约束矩阵表示 | P0 | 已实现 |
+| G10 | `register_auxiliary_tokens` 钩子 | 统一符号注册钩子 | P0 | 已实现 |
+| G11 | `evaluate_from_tokens` 钩子 | 统一符号求值钩子 | P0 | 已实现 |
+| G12 | `convert_mechanism_model_to_f64<V>()` | V→f64 转换边界 | P0 | 已实现 |
+| G13 | `ConstraintRelation` enum | LessEqual/Equal/GreaterEqual 枚举 | P0 | 已实现 |
+| G14 | `LinearInequality<V>` (mechanism 层) | mechanism 层线性不等式 | P0 | 已实现 |
+| G15 | `QuadraticInequality<V>` (mechanism 层) | mechanism 层二次不等式 | P0 | 已实现 |
+| G16 | `Constraint<V, P>` (mechanism 层) | 泛型约束包装 | P0 | 已实现 |
+| G17 | `BasicLinearTriadModel<V>` | 无目标线性中间模型 | P1 | 已存在（公开类），缺独立入口规范化 |
+| G18 | `BasicQuadraticTetradModel<V>` | 无目标二次中间模型 | P1 | 已存在（公开类），缺独立入口规范化 |
+| G19 | `LPExportableModel` trait | LP 导出能力 | P2 | 待实现 |
+| G20 | PSO 求解器 | 粒子群优化 | P2 | 待实现 |
+| G21 | 结构化错误类型 `model::Error` | 替代散落异常抛出 | P2 | 待实现 |
+
+### Kotlin 有 / Rust 无 — 需保留
+
+| # | Kotlin 组件 | 位置 | 说明 | 保留策略 |
+|---|------------|------|------|----------|
+| K1 | `QuadraticTetradModel.dual()` | QuadraticTetradModel.kt | Rust 无此公共 API | 保留，决策实现或标注不支持 |
+| K2 | `QuadraticTetradModel.farkasDual()` | QuadraticTetradModel.kt | 同上 | 保留，决策实现或标注不支持 |
+| K3 | `ConcurrentMutableTokenTable` | TokenTable.kt | Kotlin 并发安全注册路径 | 保留 |
+| K4 | `TokenCacheContexts` 四类缓存 | TokenCacheContext.kt | value/linearFlatten/quadraticFlatten/range | 保留 |
+| K5 | `MechanismModelDumpingStatus` | MechanismModelDumpingStatus.kt | 调试转储状态回调 | 保留 |
+| K6 | `RegistrationStatus` 回调 | RegistrationStatus.kt | 注册状态通知 | 保留 |
+| K7 | `ConstraintPriority` | ConstraintPriority.kt | 约束优先级枚举 | 保留 |
+| K8 | `Cross<V>` / `Mutation<V>` 接口 | solver/heuristic/ | 启发式交叉/变异接口 | 保留 |
+| K9 | 8 种 Migration 实现 | solver/heuristic/Migration.kt | Kotlin 侧完整迁移策略 | 保留 |
+| K10 | `SolveValue` + `SolveValueConversionContext` | solver/value/ | 求解值转换体系 | 保留 |
+
+### 双方共有 — 对齐状态
+
+| # | 组件 | 对齐状态 |
+|---|------|----------|
+| B1 | MetaModel\<V\> extends BasicModel\<V\> | 已对齐 |
+| B2 | MechanismModel\<V\> extends BasicMechanismModel\<V\> | 已对齐 |
+| B3 | Token\<V\> 泛型 | 已对齐 |
+| B4 | Cell\<V\> 泛型 | 已对齐 |
+| B5 | Constraint\<V, P\> 双泛型 | 已对齐 |
+| B6 | IntermediateSymbol\<V\> 泛型 | 已对齐 |
+| B7 | FunctionSymbol\<V\> 泛型 | 已对齐 |
+| B8 | ProductFunction\<V\> | 已对齐 |
+| B9 | Flatten 上下文 | 已对齐 |
+| B10 | Benders cut | P1: 补齐 by_id/from_output |
+| B11 | IIS | 已对齐 |
+| B12 | Solver 配置 | 已对齐 |
 
 ---
 
@@ -111,8 +218,8 @@
 1. core 不再保留任何"对外可见"的符号运算类型（单项式/多项式/不等式）。
 2. core 对外只保留两类建模实体：变量体系（variable）、用于封装约束生成的 functional symbol。
 3. MetaModel 主链路全部使用 math.symbol 的单项式、多项式、不等式与 relation。
-4. MechanismModel 保持泛型化 \<V\>，内部使用 Token + Cell 体系承载约束。IntermediateModel 作为求解器标准形式，允许直接使用 f64。
-5. 旧 core 单项式/多项式上的缓存机制全部上收为 MetaModel 上下文（flatten/value/range context）。
+4. MechanismModel 保持泛型化 \<V\>，内部使用 Token + Cell 体系承载约束。
+5. 旧 core 单项式/多项式上的缓存机制全部上收为 MetaModel 上下文。
 6. 对外使用者接口"基本不变"：历史高频入口需保留，签名调整必须提供 Deprecated + ReplaceWith 兼容通道。
 7. 泛型化边界固定（对齐 Rust）：
    - `MetaModel -> MechanismModel` 必须保持泛型值类型 `V` 贯通。
@@ -122,16 +229,22 @@
 
 ---
 
-## Rust 对齐基线
+## 验收标准
 
-- 模块结构：model / solver / symbol / token / variable（与 Kotlin 一致）
-- 关键能力：IntermediateSymbol trait、FunctionSymbol、symbol_dependencies、MetaModel→MechanismModel→Triad/Tetrad 链路、线性 dual/farkas、线性+二次 Benders cut、SolveOptions + IIS
-- 口径注意：Rust quadratic_tetrad_model.rs 无 to_dual()/to_farkas_dual() 公共 API
+### 构建与门禁
 
----
+1. `mvn -pl ospf-kotlin-core -am test` — 全量测试通过
+2. `mvn compile -pl ospf-kotlin-framework -am` — 框架层编译通过
+3. `powershell -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1` — 门禁通过
 
-## 验收命令
+### 差异矩阵清零检查
 
-1. `mvn -pl ospf-kotlin-core -am test`
-2. `mvn compile -pl ospf-kotlin-framework -am`
-3. `powershell -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1`
+4. G1~G16（P0 级 Rust-only 项）全部实现
+5. K1~K10（Kotlin-only 保留项）全部保留且有测试覆盖
+6. B1~B12（双方共有对齐项）全部泛型化完成
+
+### 命名兼容检查
+
+7. 原版 Kotlin 对外名全部可通过 typealias 或 @Deprecated 兼容层访问
+8. `ApiCompatibilityTest.kt` 覆盖所有原版对外名的兼容性断言
+9. 新增类型命名与 Rust 一致（Kotlin 驼峰风格）

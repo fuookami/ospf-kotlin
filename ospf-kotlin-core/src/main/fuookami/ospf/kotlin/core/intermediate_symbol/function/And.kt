@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -37,6 +37,10 @@ class AndFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         for (poly in polynomials) {
             val v = poly.evaluate(values) ?: return null
@@ -45,8 +49,8 @@ class AndFunction<T : Field<T>>(
         return oneOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -130,6 +134,10 @@ class OrFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         for (poly in polynomials) {
             val v = poly.evaluate(values) ?: return null
@@ -138,8 +146,8 @@ class OrFunction<T : Field<T>>(
         return zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -190,7 +198,7 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol>,
+            polynomials: List<LinearIntermediateSymbol<*>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -241,13 +249,17 @@ class NotFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar, indicatorVar, sideVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         val v = polynomial.evaluate(values) ?: return null
         return if (v.isNearZero()) oneOf<T>() else zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -299,6 +311,10 @@ class XorFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         var hasZero = false
         var hasNonZero = false
@@ -310,8 +326,8 @@ class XorFunction<T : Field<T>>(
         return zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

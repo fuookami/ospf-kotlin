@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -10,8 +10,12 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldKeepPriorityThroughCopyAndFilter() {
         val constraint = LinearConstraintBatch(
-            lhs = listOf(listOf(LinearConstraintCell(rowIndex = 0, colIndex = 0, coefficient = Flt64.one))),
-            signs = listOf(Sign.LessEqual),
+            sparseLhs = SparseMatrixF64().also { mat ->
+                val sv = SparseVectorF64()
+                sv.add(0, Flt64.one)
+                mat.addRow(sv)
+            },
+            signs = listOf(ConstraintRelation.LessEqual),
             rhs = listOf(Flt64.one),
             names = listOf("c0"),
             sources = listOf(ConstraintSource.Origin),
@@ -26,8 +30,12 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldUseNullPriorityAsDefault() {
         val constraint = LinearConstraintBatch(
-            lhs = listOf(listOf(LinearConstraintCell(rowIndex = 0, colIndex = 0, coefficient = Flt64.one))),
-            signs = listOf(Sign.LessEqual),
+            sparseLhs = SparseMatrixF64().also { mat ->
+                val sv = SparseVectorF64()
+                sv.add(0, Flt64.one)
+                mat.addRow(sv)
+            },
+            signs = listOf(ConstraintRelation.LessEqual),
             rhs = listOf(Flt64.one),
             names = listOf("c0"),
             sources = listOf(ConstraintSource.Origin)
@@ -39,17 +47,12 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun quadraticConstraintShouldKeepPriorityThroughCopy() {
         val constraint = QuadraticConstraintBatch(
-            lhs = listOf(
-                listOf(
-                    QuadraticConstraintCell(
-                        rowIndex = 0,
-                        colIndex1 = 0,
-                        colIndex2 = null,
-                        coefficient = Flt64.one
-                    )
-                )
-            ),
-            signs = listOf(Sign.LessEqual),
+            sparseLhs = SparseQuadraticMatrix().also { mat ->
+                val sv = SparseQuadraticVector()
+                sv.add(0, null, Flt64.one)
+                mat.addRow(sv)
+            },
+            signs = listOf(ConstraintRelation.LessEqual),
             rhs = listOf(Flt64.one),
             names = listOf("qc0"),
             sources = listOf(ConstraintSource.Origin),
@@ -60,4 +63,3 @@ class ConstraintPriorityPropagationTest {
         assertEquals(11, constraint.copy().priorities.first())
     }
 }
-

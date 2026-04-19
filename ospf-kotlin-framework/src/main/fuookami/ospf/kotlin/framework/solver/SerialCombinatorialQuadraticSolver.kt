@@ -57,8 +57,8 @@ class SerialCombinatorialQuadraticSolver(
                     }
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
+                is Fatal<*, *> -> {
+                    return Fatal(ErrorCode.OREngineSolvingException, result.errors.joinToString("; ") { it.message ?: "" })
                 }
             }
         }
@@ -84,8 +84,8 @@ class SerialCombinatorialQuadraticSolver(
                     }
                 }
 
-                is Fatal -> {
-                    return Fatal(result.errors)
+                is Fatal<*, *> -> {
+                    return Fatal(ErrorCode.OREngineSolvingException, result.errors.joinToString("; ") { it.message ?: "" })
                 }
             }
         }

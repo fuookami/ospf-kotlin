@@ -23,7 +23,7 @@ interface LinearBendersDecompositionSolver {
 
     suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -32,7 +32,7 @@ interface LinearBendersDecompositionSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -77,7 +77,7 @@ interface LinearBendersDecompositionSolver {
 
     suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -88,7 +88,7 @@ interface LinearBendersDecompositionSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -112,7 +112,7 @@ interface LinearBendersDecompositionSolver {
 interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver {
     suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -121,7 +121,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -170,7 +170,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -181,7 +181,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,

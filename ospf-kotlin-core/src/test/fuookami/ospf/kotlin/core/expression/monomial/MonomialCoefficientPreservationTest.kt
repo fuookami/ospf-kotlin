@@ -4,8 +4,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
-import fuookami.ospf.kotlin.core.variable.AbstractTokenListOf
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.Token
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
@@ -36,7 +35,7 @@ class MonomialCoefficientPreservationTest {
         // Evaluate with values map containing variable value 2.0
         val values = mapOf<Symbol, Flt64>(variable to Flt64(2.0))
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 3.0 * 2.0 = 6.0
         assertEquals(Flt64(6.0), result)
@@ -49,7 +48,7 @@ class MonomialCoefficientPreservationTest {
 
         val values = mapOf<Symbol, Flt64>(variable to Flt64(3.0))
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: -2.0 * 3.0 = -6.0
         assertEquals(Flt64(-6.0), result)
@@ -65,7 +64,7 @@ class MonomialCoefficientPreservationTest {
 
         val values = mapOf<Symbol, Flt64>(variable to Flt64(2.0))
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 7.0 * 2.0 = 14.0
         assertEquals(Flt64(14.0), result)
@@ -82,7 +81,7 @@ class MonomialCoefficientPreservationTest {
             y to Flt64(5.0)
         )
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 3.0 * 2.0 * 5.0 = 30.0
         assertEquals(Flt64(30.0), result)
@@ -99,7 +98,7 @@ class MonomialCoefficientPreservationTest {
             y to Flt64(4.0)
         )
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: -1.5 * 2.0 * 4.0 = -12.0
         assertEquals(Flt64(-12.0), result)
@@ -113,7 +112,7 @@ class MonomialCoefficientPreservationTest {
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
 
-        val result = cell.evaluate(values, null as AbstractTokenList?, false)
+        val result = cell.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 4.0 * 3.0 * 3.0 = 36.0
         assertEquals(Flt64(36.0), result)
@@ -170,7 +169,7 @@ class MonomialCoefficientPreservationTest {
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
 
-        val result = monomial.evaluate(values, null as AbstractTokenListOf<Flt64>?, false)
+        val result = monomial.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 5.0 * 3.0 = 15.0
         assertEquals(Flt64(15.0), result)
@@ -190,7 +189,7 @@ class MonomialCoefficientPreservationTest {
             y to Flt64(3.0)
         )
 
-        val result = monomial.evaluate(values, null as AbstractTokenListOf<Flt64>?, false)
+        val result = monomial.evaluate(values, null as AbstractTokenListF64?, false)
 
         // Expected: 2.0 * 4.0 * 3.0 = 24.0
         assertEquals(Flt64(24.0), result)

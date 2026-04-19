@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -39,7 +39,7 @@ data class OneOfBranch<T : Field<T>>(
  * When a branch is active, its polynomial value contributes to the output.
  * When a branch is inactive, its contribution is zero.
  *
- * Constraint pattern:
+ * ConstraintF64 pattern:
  * - Each branch has a binary activation variable `u[i]`
  * - `sum(u[i]) <= 1` (at most one branch active)
  * - Each branch's polynomial is masked via MaskingFunction: z[i] = polynomial[i] * u[i]
@@ -75,6 +75,10 @@ class OneOfFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectionVars + maskedVars
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /** Linear polynomial representing the output y. */
     val y: LinearPolynomial<T> by lazy {
         LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), resultVar)), zeroOf<T>())
@@ -93,8 +97,8 @@ class OneOfFunction<T : Field<T>>(
         return zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

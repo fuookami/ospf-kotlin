@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.Field
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -58,6 +58,10 @@ class InStepRangeFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = floorFunc.helperVariables
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /**
      * The result: `y = lb + q * step` where `q = floor((ub - lb) / step)`.
      */
@@ -85,7 +89,7 @@ class InStepRangeFunction<T : Field<T>>(
         return (lbValue.asFlt64() + Flt64(qDouble * stepDouble)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         return floorFunc.register(model)
     }
 

@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.Model
 import fuookami.ospf.kotlin.core.intermediate_model.MetaConstraintGroup
 import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModelOf
+import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.functional.sum
 
 interface Pipeline<in M : Model> : MetaConstraintGroup {
     fun register(model: M) {
-        if (model is MetaModelOf<*>) {
+        if (model is MetaModel<*>) {
             model.registerConstraintGroup(this)
         }
     }
@@ -36,12 +36,12 @@ interface Pipeline<in M : Model> : MetaConstraintGroup {
 
 interface CGPipeline<
         in Args : Any,
-        in Model : MetaModelOf<*>,
+        in Model : MetaModel<*>,
         in Map : AbstractShadowPriceMap<Args, Map>
         > : Pipeline<Model> {
     companion object {
         fun <
-                Model : MetaModelOf<*>,
+                Model : MetaModel<*>,
                 Map : AbstractShadowPriceMap<*, Map>
                 > refreshByKeyAsArgs(
             pipeline: CGPipeline<*, Model, Map>,

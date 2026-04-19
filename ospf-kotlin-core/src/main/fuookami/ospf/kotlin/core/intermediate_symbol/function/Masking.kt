@@ -4,12 +4,12 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractTokenTable
-import fuookami.ospf.kotlin.core.variable.AbstractTokenList
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -50,6 +50,10 @@ class MaskingFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         val maskValue = values[mask] ?: return zeroOf<T>()
         val maskD = maskValue.asFlt64().toDouble()
@@ -57,9 +61,8 @@ class MaskingFunction<T : Field<T>>(
         return input.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        val vars = listOf(resultVar)
-        when (val result = model.add(vars)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
@@ -146,7 +149,7 @@ class MaskingFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
@@ -195,7 +198,7 @@ class MaskingWithPolyMaskFunction(
     bigM: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbol, MathFunctionSymbol<Flt64> {
+) : LinearIntermediateSymbol<Flt64>, MathFunctionSymbol<Flt64> {
     private val bigM: Flt64 = bigM ?: Flt64(BIG_M_DEFAULT)
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
@@ -203,21 +206,26 @@ class MaskingWithPolyMaskFunction(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(maskVar, resultVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        val vars = helperVariables
+        return if (vars.isNotEmpty()) tokens.add(vars) else ok
+    }
+
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = Linear
     override val cached: Boolean get() = false
-    override val dependencies: Set<IntermediateSymbol> get() = emptySet()
+    override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     @Deprecated("Use flattenedMonomials instead. cells is transitional compatibility layer.", level = DeprecationLevel.WARNING)
-    override val cells: List<LinearMonomialCell> get() = emptyList()
-    override val flattenedMonomials: LinearFlattenData get() = LinearFlattenData(emptyList(), Flt64.zero)
+    override val cells: List<LinearMonomialCellF64> get() = emptyList()
+    override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
 
     override fun toLinearPolynomial(): MathLinearPolynomial<Flt64> {
         return MathLinearPolynomial(emptyList(), Flt64.zero)
@@ -227,9 +235,9 @@ class MaskingWithPolyMaskFunction(
         return fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero)
     }
 
-    override fun evaluate(tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList?, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
         (this as MathFunctionSymbol<Flt64>).evaluate(values)
 
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
@@ -239,8 +247,8 @@ class MaskingWithPolyMaskFunction(
         return input.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val result = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
@@ -334,6 +342,10 @@ class MaskingRangeFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         val maskValue = mask.evaluate(values) ?: return zeroOf<T>()
         val maskD = maskValue.asFlt64().toDouble()
@@ -345,9 +357,8 @@ class MaskingRangeFunction<T : Field<T>>(
         return Flt64(yVal.coerceIn(lb, ub)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        val vars = listOf(resultVar)
-        when (val result = model.add(vars)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)

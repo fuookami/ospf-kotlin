@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
@@ -14,7 +14,7 @@ class QuadraticElasticModelTest {
             impl = BasicQuadraticTetradModel(
                 variables = emptyList(),
                 constraints = QuadraticConstraintBatch(
-                    lhs = emptyList(),
+                    sparseLhs = SparseQuadraticMatrix(),
                     signs = emptyList(),
                     rhs = emptyList(),
                     names = emptyList(),
@@ -47,17 +47,12 @@ class QuadraticElasticModelTest {
             name = "x"
         )
         val constraints = QuadraticConstraintBatch(
-            lhs = listOf(
-                listOf(
-                    QuadraticConstraintCell(
-                        rowIndex = 0,
-                        colIndex1 = 0,
-                        colIndex2 = null,
-                        coefficient = Flt64.one
-                    )
-                )
-            ),
-            signs = listOf(Sign.LessEqual),
+            sparseLhs = SparseQuadraticMatrix().also { mat ->
+                val sv = SparseQuadraticVector()
+                sv.add(0, null, Flt64.one)
+                mat.addRow(sv)
+            },
+            signs = listOf(ConstraintRelation.LessEqual),
             rhs = listOf(Flt64.zero),
             names = listOf("c0"),
             sources = listOf(ConstraintSource.Origin)

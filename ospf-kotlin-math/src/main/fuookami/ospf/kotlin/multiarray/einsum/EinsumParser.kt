@@ -5,7 +5,7 @@
  * 提供基于字符串表示法的爱因斯坦求和。
  * Provides Einstein summation based on string notation.
  */
-package fuookami.ospf.kotlin.math.multiarray.einsum
+package fuookami.ospf.kotlin.multiarray.einsum
 
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.concept.Ring

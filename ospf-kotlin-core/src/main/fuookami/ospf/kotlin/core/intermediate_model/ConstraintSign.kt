@@ -10,7 +10,7 @@ class InvalidConstraintSignFromComparison(
     override val message: String = "No matched constraint sign for comparison: $sign."
 }
 
-enum class Sign {
+enum class ConstraintRelation {
     LessEqual {
         override val reverse get() = GreaterEqual
         override fun <T : Ord<T>> operator(): Comparator<T> = { lhs, rhs -> lhs.compareTo(rhs) <= 0 }
@@ -28,18 +28,27 @@ enum class Sign {
 
     companion object {
         @Throws(InvalidConstraintSignFromComparison::class)
-        operator fun invoke(sign: Comparison) = when (sign) {
+        operator fun invoke(comparison: Comparison) = when (comparison) {
             Comparison.LT -> LessEqual
             Comparison.LE -> LessEqual
             Comparison.EQ -> Equal
-            Comparison.NE -> throw InvalidConstraintSignFromComparison(sign)
+            Comparison.NE -> throw InvalidConstraintSignFromComparison(comparison)
             Comparison.GT -> GreaterEqual
             Comparison.GE -> GreaterEqual
         }
     }
 
-    open val reverse: Sign get() = this
+    open val reverse: ConstraintRelation get() = this
 
     abstract fun <T : Ord<T>> operator(): Comparator<T>
     operator fun <T : Ord<T>> invoke(lhs: T, rhs: T) = this.operator<T>()(lhs, rhs)
+
+    fun toComparison(): Comparison = when (this) {
+        LessEqual -> Comparison.LE
+        Equal -> Comparison.EQ
+        GreaterEqual -> Comparison.GE
+    }
 }
+
+@Deprecated("Use ConstraintRelation instead", ReplaceWith("ConstraintRelation"))
+typealias Sign = ConstraintRelation

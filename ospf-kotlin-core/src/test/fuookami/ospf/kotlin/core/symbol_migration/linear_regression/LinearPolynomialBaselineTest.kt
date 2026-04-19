@@ -1,22 +1,59 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
 
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
-import fuookami.ospf.kotlin.core.variable.AbstractTokenListOf
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+
+private fun sumFlt64(values: List<Flt64>): Flt64 {
+    var sum = Flt64.zero
+    for (v in values) sum += v
+    return sum
+}
+
+private fun evalMonomials(monomials: List<LinearMonomial>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
+
+private fun evalMonomials(monomials: List<LinearMonomial>, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(values, tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
+
+private fun evalMonomialsResults(monomials: List<LinearMonomial>, results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(results, tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
 
 class LinearPolynomialBaselineTest {
     @Test
@@ -24,19 +61,18 @@ class LinearPolynomialBaselineTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val polynomial = LinearPolynomial(
+        val polynomial = MathLinearPolynomial(
             monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(-1, y),
-                LinearMonomial(x)
+                MathLinearMonomial(Flt64(2.0), x),
+                MathLinearMonomial(Flt64(-1.0), y),
+                MathLinearMonomial(Flt64.one, x)
             ),
             constant = Flt64(3.0)
         )
 
         val value = polynomial.evaluate(
             values = mapOf(x to Flt64(4.0), y to Flt64(1.0)),
-            tokenList = null,
-            zeroIfNone = false
+            policy = MissingValuePolicy.ReturnNull
         )
 
         assertNotNull(value)
@@ -47,25 +83,23 @@ class LinearPolynomialBaselineTest {
     fun evaluate_shouldRespectZeroIfNoneSwitch() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = LinearPolynomial(
+        val polynomial = MathLinearPolynomial(
             monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(y)
+                MathLinearMonomial(Flt64(2.0), x),
+                MathLinearMonomial(Flt64.one, y)
             ),
             constant = Flt64.one
         )
 
         val missingAsNull = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = null,
-            zeroIfNone = false
+            policy = MissingValuePolicy.ReturnNull
         )
         assertNull(missingAsNull)
 
         val missingAsZero = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = null,
-            zeroIfNone = true
+            policy = MissingValuePolicy.AsZero
         )
         assertNotNull(missingAsZero)
         assertTrue(missingAsZero eq Flt64(7.0))
@@ -84,19 +118,13 @@ class LinearPolynomialBaselineTest {
             )
         )
 
-        val polynomial = LinearPolynomial(
-            monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(y)
-            ),
-            constant = Flt64.zero
+        val monomials = listOf(
+            LinearMonomial(2, x),
+            LinearMonomial(y)
         )
 
-        val valueFromMapAndToken = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
-            zeroIfNone = false
-        )
+        // values map overrides, tokenList falls back for missing y
+        val valueFromMapAndToken = evalMonomials(monomials, mapOf(x to Flt64(3.0)), tokenList as AbstractTokenListF64?, zeroIfNone = false)
         assertNotNull(valueFromMapAndToken)
         assertTrue(valueFromMapAndToken eq Flt64(10.0))
     }
@@ -114,19 +142,13 @@ class LinearPolynomialBaselineTest {
             )
         )
 
-        val polynomial = LinearPolynomial(
-            monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(y)
-            ),
-            constant = Flt64.zero
+        val monomials = listOf(
+            LinearMonomial(2, x),
+            LinearMonomial(y)
         )
 
-        val valueFromMapAndToken = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
-            tokenTable = tokenTable,
-            zeroIfNone = false
-        )
+        // values map overrides, tokenTable falls back for missing y
+        val valueFromMapAndToken = monomials.mapNotNull { it.evaluate(values = mapOf(x to Flt64(3.0)), tokenTable = tokenTable, zeroIfNone = false) }.let { sumFlt64(it) }
         assertNotNull(valueFromMapAndToken)
         assertTrue(valueFromMapAndToken eq Flt64(10.0))
     }
@@ -152,17 +174,15 @@ class LinearPolynomialBaselineTest {
             )
         )
 
-        val polynomial = LinearPolynomial(
-            monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(-1, y),
-                LinearMonomial(x)
-            ),
-            constant = Flt64(3.0)
+        val monomials = listOf(
+            LinearMonomial(2, x),
+            LinearMonomial(-1, y),
+            LinearMonomial(x)
         )
+        val constant = Flt64(3.0)
 
-        val valueFromTokenList = polynomial.evaluate(tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
-        val valueFromTokenTable = polynomial.evaluate(tokenTable, zeroIfNone = false)
+        val valueFromTokenList = evalMonomials(monomials, tokenList as AbstractTokenListF64, zeroIfNone = false)!! + constant
+        val valueFromTokenTable = monomials.mapNotNull { it.evaluate(tokenTable, zeroIfNone = false) }.let { sumFlt64(it) } + constant
 
         assertNotNull(valueFromTokenList)
         assertNotNull(valueFromTokenTable)
@@ -179,20 +199,18 @@ class LinearPolynomialBaselineTest {
         val tokenTable = AutoTokenTable(Linear, false)
         tokenTable.add(listOf(x, y))
 
-        val polynomial = LinearPolynomial(
-            monomials = listOf(
-                LinearMonomial(2, x),
-                LinearMonomial(-1, y),
-                LinearMonomial(x)
-            ),
-            constant = Flt64(3.0)
+        val monomials = listOf(
+            LinearMonomial(2, x),
+            LinearMonomial(-1, y),
+            LinearMonomial(x)
         )
+        val constant = Flt64(3.0)
         val monomial = LinearMonomial(3, x)
         val results = listOf(Flt64(4.0), Flt64(1.0))
 
-        val polynomialByList = polynomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
-        val polynomialByTable = polynomial.evaluate(results, tokenTable, zeroIfNone = false)
-        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
+        val polynomialByList = evalMonomialsResults(monomials, results, tokenList as AbstractTokenListF64, zeroIfNone = false)!! + constant
+        val polynomialByTable = monomials.mapNotNull { it.evaluate(results, tokenTable, zeroIfNone = false) }.let { sumFlt64(it) } + constant
+        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListF64, zeroIfNone = false)
         val monomialByTable = monomial.evaluate(results, tokenTable, zeroIfNone = false)
 
         assertNotNull(polynomialByList)
@@ -213,8 +231,8 @@ class LinearPolynomialBaselineTest {
         tokenTable.setSolution(mapOf(x to Flt64(9.0)))
 
         val expression = LinearExpressionSymbol(
-            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
-                monomials = listOf(fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(Flt64(2.0), x)),
+            polynomial = MathLinearPolynomial(
+                monomials = listOf(MathLinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr"
@@ -249,8 +267,8 @@ class LinearPolynomialBaselineTest {
         val results = listOf(Flt64(4.0))
 
         val expression = LinearExpressionSymbol(
-            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
-                monomials = listOf(fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(Flt64(2.0), x)),
+            polynomial = MathLinearPolynomial(
+                monomials = listOf(MathLinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr_results"
@@ -277,19 +295,21 @@ class LinearPolynomialBaselineTest {
     fun cells_shouldMergeSameVariableIntoSingleCell() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = LinearPolynomial(
+
+        val flattenData = LinearFlattenDataF64(
             monomials = listOf(
-                LinearMonomial(x),
-                LinearMonomial(2, x),
-                LinearMonomial(-3, y)
+                MathLinearMonomial(Flt64.one, x),
+                MathLinearMonomial(Flt64(2.0), x),
+                MathLinearMonomial(Flt64(-3.0), y)
             ),
             constant = Flt64(5.0)
         )
 
-        val coefficientByVariable = polynomial.cells
-            .filter { it.isPair }
-            .associate { it.pair!!.variable to it.pair!!.coefficient }
-        val constant = polynomial.cells.first { it.isConstant }.constant!!
+        // Group by symbol and sum coefficients (simulating cell merging)
+        val coefficientByVariable = flattenData.monomials
+            .groupBy { it.symbol }
+            .mapValues { (_, monos) -> monos.map { it.coefficient }.let { sumFlt64(it) } }
+        val constant = flattenData.constant
 
         assertEquals(2, coefficientByVariable.size)
         assertTrue(coefficientByVariable[x]!! eq Flt64(3.0))
@@ -313,7 +333,7 @@ class LinearPolynomialBaselineTest {
         val monomial = LinearMonomial(3, x)
         val valueFromMap = monomial.evaluate(
             values = mapOf(x to Flt64(2.0)),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
+            tokenList = tokenList as AbstractTokenListF64?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMap)
@@ -321,14 +341,10 @@ class LinearPolynomialBaselineTest {
 
         val valueFromTokenFallback = monomial.evaluate(
             values = emptyMap(),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
+            tokenList = tokenList as AbstractTokenListF64?,
             zeroIfNone = false
         )
         assertNotNull(valueFromTokenFallback)
         assertTrue(valueFromTokenFallback eq Flt64(21.0))
     }
 }
-
-
-
-

@@ -15,10 +15,10 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQu
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.AddableTokenCollection
+import fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 typealias Solution = List<Flt64>
 
-interface Model : AddableTokenCollection {
+interface Model : AddableTokenCollectionF64 {
     val objectCategory: ObjectCategory
 
     fun remove(item: AbstractVariableItem<*, *>)
@@ -226,7 +226,7 @@ interface LinearModel : Model {
         )
     )
     fun addConstraint(
-        constraint: LinearIntermediateSymbol,
+        constraint: LinearIntermediateSymbol<Flt64>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -286,7 +286,7 @@ interface LinearModel : Model {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
-        symbols: Iterable<LinearIntermediateSymbol>,
+        symbols: Iterable<LinearIntermediateSymbol<*>>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
@@ -329,7 +329,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenData(listOf(MathLinearMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = LinearFlattenDataF64(listOf(MathLinearMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -343,18 +343,18 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenData(emptyList(), constant.toFlt64()),
+            flattenData = LinearFlattenDataF64(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = LinearFlattenData(listOf(MathLinearMonomial(Flt64.one, monomial)), Flt64.zero), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData"
+            "addObject(category = category, flattenData = LinearFlattenDataF64(listOf(MathLinearMonomial(Flt64.one, monomial)), Flt64.zero), name, displayName)",
+            "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64"
         )
     )
     fun addObject(
@@ -372,12 +372,12 @@ interface LinearModel : Model {
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     fun addObject(
         category: ObjectCategory,
-        symbol: LinearIntermediateSymbol,
+        symbol: LinearIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -390,11 +390,11 @@ interface LinearModel : Model {
     }
 
     /**
-     * Add objective using LinearFlattenData (new API)
+     * Add objective using LinearFlattenDataF64 (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: LinearFlattenData,
+        flattenData: LinearFlattenDataF64,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -438,7 +438,7 @@ interface LinearModel : Model {
         level = DeprecationLevel.WARNING
     )
     fun minimize(
-        symbol: LinearIntermediateSymbol,
+        symbol: LinearIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -455,7 +455,7 @@ interface LinearModel : Model {
         level = DeprecationLevel.WARNING
     )
     fun maximize(
-        symbol: LinearIntermediateSymbol,
+        symbol: LinearIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -476,7 +476,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenDataF64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -489,7 +489,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenDataF64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -502,7 +502,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenData(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenDataF64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -515,7 +515,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenData(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenDataF64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -568,7 +568,7 @@ interface QuadraticModel : LinearModel {
         level = DeprecationLevel.WARNING
     )
     fun addConstraint(
-        constraint: QuadraticIntermediateSymbol,
+        constraint: QuadraticIntermediateSymbol<Flt64>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -634,7 +634,7 @@ interface QuadraticModel : LinearModel {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
-        symbols: Iterable<QuadraticIntermediateSymbol>,
+        symbols: Iterable<QuadraticIntermediateSymbol<*>>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null
@@ -656,7 +656,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenData(listOf(MathQuadraticMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = QuadraticFlattenDataF64(listOf(MathQuadraticMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -670,18 +670,18 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenData(emptyList(), constant.toFlt64()),
+            flattenData = QuadraticFlattenDataF64(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = QuadraticFlattenData(monomial.toQuadraticMonomialCells(), Flt64.zero), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData"
+            "addObject(category = category, flattenData = QuadraticFlattenDataF64(monomial.toQuadraticMonomialCells(), Flt64.zero), name, displayName)",
+            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64"
         )
     )
     override fun addObject(
@@ -699,12 +699,12 @@ interface QuadraticModel : LinearModel {
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     override fun addObject(
         category: ObjectCategory,
-        symbol: LinearIntermediateSymbol,
+        symbol: LinearIntermediateSymbol<Flt64>,
         name: String?,
         displayName: String?
     ): Try {
@@ -717,11 +717,11 @@ interface QuadraticModel : LinearModel {
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING,
         replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = QuadraticFlattenData(listOf(MathQuadraticMonomial(monomial.coefficient, monomial.symbol)), monomial.constant), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData"
+            "addObject(category = category, flattenData = QuadraticFlattenDataF64(listOf(MathQuadraticMonomial(monomial.coefficient, monomial.symbol)), monomial.constant), name, displayName)",
+            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64"
         )
     )
     fun addObject(
@@ -739,12 +739,12 @@ interface QuadraticModel : LinearModel {
     }
 
     @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenData) instead. Will be removed in E7.",
+        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     fun addObject(
         category: ObjectCategory,
-        symbol: QuadraticIntermediateSymbol,
+        symbol: QuadraticIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -757,11 +757,11 @@ interface QuadraticModel : LinearModel {
     }
 
     /**
-     * Add objective using QuadraticFlattenData (new API)
+     * Add objective using QuadraticFlattenDataF64 (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: QuadraticFlattenData,
+        flattenData: QuadraticFlattenDataF64,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -805,7 +805,7 @@ interface QuadraticModel : LinearModel {
         level = DeprecationLevel.WARNING
     )
     fun minimize(
-        symbol: QuadraticIntermediateSymbol,
+        symbol: QuadraticIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -822,7 +822,7 @@ interface QuadraticModel : LinearModel {
         level = DeprecationLevel.WARNING
     )
     fun maximize(
-        symbol: QuadraticIntermediateSymbol,
+        symbol: QuadraticIntermediateSymbol<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -843,7 +843,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenDataF64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -856,7 +856,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenDataF64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -869,7 +869,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenData(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenDataF64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -882,7 +882,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenData(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenDataF64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )

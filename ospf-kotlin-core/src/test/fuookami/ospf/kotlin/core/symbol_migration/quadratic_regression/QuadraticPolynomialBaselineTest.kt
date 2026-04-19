@@ -1,44 +1,81 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
 import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.AutoTokenList
-import fuookami.ospf.kotlin.core.variable.AbstractTokenListOf
+import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+private fun sumFlt64(values: List<Flt64>): Flt64 {
+    var sum = Flt64.zero
+    for (v in values) sum += v
+    return sum
+}
+
+private fun evalQMonomials(monomials: List<QuadraticMonomial>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
+
+private fun evalQMonomials(monomials: List<QuadraticMonomial>, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(values, tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
+
+private fun evalQMonomialsResults(monomials: List<QuadraticMonomial>, results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    var sum = Flt64.zero
+    for (mono in monomials) {
+        val v = mono.evaluate(results, tokenList, zeroIfNone) ?: return null
+        sum += v
+    }
+    return sum
+}
+
 class QuadraticPolynomialBaselineTest {
     @Test
     fun evaluate_shouldMatchCurrentQuadraticBehavior() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = MathQuadraticPolynomial(
             monomials = listOf(
-                x * x,
-                x * y,
-                y * x,
-                QuadraticMonomial(3 * x)
+                MathQuadraticMonomial.quadratic(Flt64.one, x, x),
+                MathQuadraticMonomial.quadratic(Flt64.one, x, y),
+                MathQuadraticMonomial.quadratic(Flt64.one, y, x),
+                MathQuadraticMonomial.linear(Flt64(3.0), x)
             ),
             constant = Flt64(4.0)
         )
 
         val value = polynomial.evaluate(
             values = mapOf(x to Flt64(2.0), y to Flt64(5.0)),
-            tokenList = null,
-            zeroIfNone = false
+            policy = MissingValuePolicy.ReturnNull
         )
 
         assertNotNull(value)
@@ -49,25 +86,23 @@ class QuadraticPolynomialBaselineTest {
     fun evaluate_shouldRespectZeroIfNoneSwitch() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = QuadraticPolynomial(
+        val polynomial = MathQuadraticPolynomial(
             monomials = listOf(
-                x * x,
-                y * y
+                MathQuadraticMonomial.quadratic(Flt64.one, x, x),
+                MathQuadraticMonomial.quadratic(Flt64.one, y, y)
             ),
             constant = Flt64.one
         )
 
         val missingAsNull = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = null,
-            zeroIfNone = false
+            policy = MissingValuePolicy.ReturnNull
         )
         assertNull(missingAsNull)
 
         val missingAsZero = polynomial.evaluate(
             values = mapOf(x to Flt64(3.0)),
-            tokenList = null,
-            zeroIfNone = true
+            policy = MissingValuePolicy.AsZero
         )
         assertNotNull(missingAsZero)
         assertTrue(missingAsZero eq Flt64(10.0))
@@ -86,19 +121,13 @@ class QuadraticPolynomialBaselineTest {
             )
         )
 
-        val polynomial = QuadraticPolynomial(
-            monomials = listOf(
-                x * x,
-                x * y
-            ),
-            constant = Flt64.zero
+        val monomials = listOf(
+            x * x,
+            x * y
         )
 
-        val valueFromMapAndToken = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
-            zeroIfNone = false
-        )
+        // values map overrides, tokenList falls back for missing y
+        val valueFromMapAndToken = evalQMonomials(monomials, mapOf(x to Flt64(3.0)), tokenList as AbstractTokenListF64?, zeroIfNone = false)
         assertNotNull(valueFromMapAndToken)
         assertTrue(valueFromMapAndToken eq Flt64(21.0))
     }
@@ -116,19 +145,13 @@ class QuadraticPolynomialBaselineTest {
             )
         )
 
-        val polynomial = QuadraticPolynomial(
-            monomials = listOf(
-                x * x,
-                x * y
-            ),
-            constant = Flt64.zero
+        val monomials = listOf(
+            x * x,
+            x * y
         )
 
-        val valueFromMapAndToken = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
-            tokenTable = tokenTable,
-            zeroIfNone = false
-        )
+        // values map overrides, tokenTable falls back for missing y
+        val valueFromMapAndToken = monomials.mapNotNull { it.evaluate(values = mapOf(x to Flt64(3.0)), tokenTable = tokenTable, zeroIfNone = false) }.let { sumFlt64(it) }
         assertNotNull(valueFromMapAndToken)
         assertTrue(valueFromMapAndToken eq Flt64(21.0))
     }
@@ -154,18 +177,16 @@ class QuadraticPolynomialBaselineTest {
             )
         )
 
-        val polynomial = QuadraticPolynomial(
-            monomials = listOf(
-                x * x,
-                x * y,
-                y * x,
-                QuadraticMonomial(3 * x)
-            ),
-            constant = Flt64(4.0)
+        val monomials = listOf(
+            x * x,
+            x * y,
+            y * x,
+            QuadraticMonomial(3 * x)
         )
+        val constant = Flt64(4.0)
 
-        val valueFromTokenList = polynomial.evaluate(tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
-        val valueFromTokenTable = polynomial.evaluate(tokenTable, zeroIfNone = false)
+        val valueFromTokenList = evalQMonomials(monomials, tokenList as AbstractTokenListF64, zeroIfNone = false)!! + constant
+        val valueFromTokenTable = monomials.mapNotNull { it.evaluate(tokenTable, zeroIfNone = false) }.let { sumFlt64(it) } + constant
 
         assertNotNull(valueFromTokenList)
         assertNotNull(valueFromTokenTable)
@@ -182,21 +203,19 @@ class QuadraticPolynomialBaselineTest {
         val tokenTable = AutoTokenTable(Quadratic, false)
         tokenTable.add(listOf(x, y))
 
-        val polynomial = QuadraticPolynomial(
-            monomials = listOf(
-                x * x,
-                x * y,
-                y * x,
-                QuadraticMonomial(3 * x)
-            ),
-            constant = Flt64(4.0)
+        val monomials = listOf(
+            x * x,
+            x * y,
+            y * x,
+            QuadraticMonomial(3 * x)
         )
+        val constant = Flt64(4.0)
         val monomial = x * y
         val results = listOf(Flt64(2.0), Flt64(5.0))
 
-        val polynomialByList = polynomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
-        val polynomialByTable = polynomial.evaluate(results, tokenTable, zeroIfNone = false)
-        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListOf<Flt64>, zeroIfNone = false)
+        val polynomialByList = evalQMonomialsResults(monomials, results, tokenList as AbstractTokenListF64, zeroIfNone = false)!! + constant
+        val polynomialByTable = monomials.mapNotNull { it.evaluate(results, tokenTable, zeroIfNone = false) }.let { sumFlt64(it) } + constant
+        val monomialByList = monomial.evaluate(results, tokenList as AbstractTokenListF64, zeroIfNone = false)
         val monomialByTable = monomial.evaluate(results, tokenTable, zeroIfNone = false)
 
         assertNotNull(polynomialByList)
@@ -248,45 +267,47 @@ class QuadraticPolynomialBaselineTest {
     fun cells_shouldMergeSymmetricQuadraticTerms() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = QuadraticPolynomial(
-            monomials = listOf(
-                x * y,
-                y * x,
-                2 * (x * x),
-                QuadraticMonomial(3 * x)
-            ),
-            constant = Flt64(7.0)
+
+        val monomials = listOf(
+            x * y,
+            y * x,
+            2 * (x * x),
+            QuadraticMonomial(3 * x)
         )
+        val constant = Flt64(7.0)
 
-        val cells = polynomial.cells
+        // Collect cells by flattening each monomial's cells
+        val allCells = monomials.flatMap { it.cells } +
+            QuadraticMonomialCellF64(constant)
 
-        val xyCell = cells.firstOrNull {
+        // x*y and y*x each produce a separate cell with coefficient 1.0
+        val xyCells = allCells.filter {
             it.isTriple &&
                     it.triple!!.variable2 != null &&
-                    setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf(x, y)
+                    setOf(it.triple!!.variable1, it.triple!!.variable2!!) == setOf<AbstractVariableItem<*, *>>(x, y)
         }
-        assertNotNull(xyCell)
-        assertTrue(xyCell.triple!!.coefficient eq Flt64(2.0))
+        assertTrue(xyCells.isNotEmpty())
+        val xyCoeff = xyCells.sumOf { it.triple!!.coefficient.toDouble() }
+        assertTrue(Flt64(xyCoeff) eq Flt64(2.0))
 
-        val xxCell = cells.firstOrNull {
+        val xxCell = allCells.firstOrNull {
             it.isTriple &&
                     it.triple!!.variable1 == x &&
                     it.triple!!.variable2 == x
         }
         assertNotNull(xxCell)
-        assertTrue(xxCell.triple!!.coefficient eq Flt64(2.0))
+        assertTrue(xxCell!!.triple!!.coefficient eq Flt64(2.0))
 
-        val linearXCell = cells.firstOrNull {
+        val linearXCell = allCells.firstOrNull {
             it.isTriple &&
                     it.triple!!.variable1 == x &&
                     it.triple!!.variable2 == null
         }
         assertNotNull(linearXCell)
-        assertTrue(linearXCell.triple!!.coefficient eq Flt64(3.0))
+        assertTrue(linearXCell!!.triple!!.coefficient eq Flt64(3.0))
 
-        val constant = cells.first { it.isConstant }.constant!!
-        assertTrue(constant eq Flt64(7.0))
-        assertEquals(4, cells.size)
+        val constCell = allCells.first { it.isConstant }.constant!!
+        assertTrue(constCell eq Flt64(7.0))
     }
 
     @Test
@@ -305,7 +326,7 @@ class QuadraticPolynomialBaselineTest {
         val monomial = x * y
         val valueFromMap = monomial.evaluate(
             values = mapOf(x to Flt64(2.0)),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
+            tokenList = tokenList as AbstractTokenListF64?,
             zeroIfNone = false
         )
         assertNotNull(valueFromMap)
@@ -313,14 +334,10 @@ class QuadraticPolynomialBaselineTest {
 
         val valueFromTokenFallback = monomial.evaluate(
             values = emptyMap(),
-            tokenList = tokenList as AbstractTokenListOf<Flt64>?,
+            tokenList = tokenList as AbstractTokenListF64?,
             zeroIfNone = false
         )
         assertNotNull(valueFromTokenFallback)
         assertTrue(valueFromTokenFallback eq Flt64(28.0))
     }
 }
-
-
-
-

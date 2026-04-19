@@ -162,11 +162,11 @@ private class MindOPTQuadraticSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = MDOQuadExpr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    if (cell.colIndex2 != null) {
-                                        lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                    if (colIndex2 != null) {
+                                        lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"), mindoptVars[colIndex1], mindoptVars[colIndex2])
                                     } else {
-                                        lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), mindoptVars[cell.colIndex1])
+                                        lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"), mindoptVars[colIndex1])
                                     }
                                 }
                                 ii to lhs
@@ -194,11 +194,11 @@ private class MindOPTQuadraticSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = MDOQuadExpr()
-                        for (cell in model.constraints.lhs[i]) {
-                            if (cell.colIndex2 != null) {
-                                lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), mindoptVars[cell.colIndex1], mindoptVars[cell.colIndex2!!])
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                            if (colIndex2 != null) {
+                                lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"), mindoptVars[colIndex1], mindoptVars[colIndex2])
                             } else {
-                                lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), mindoptVars[cell.colIndex1])
+                                lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"), mindoptVars[colIndex1])
                             }
                         }
                         mindoptModel.addQConstr(

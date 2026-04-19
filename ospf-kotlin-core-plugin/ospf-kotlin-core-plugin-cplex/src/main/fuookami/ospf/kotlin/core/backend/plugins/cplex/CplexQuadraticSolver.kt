@@ -196,11 +196,11 @@ private class CplexQuadraticSolverImpl(
                                 }
                             }
                             val lhs = cplex.lqNumExpr()
-                            for (cell in model.constraints.lhs[ii]) {
-                                if (cell.colIndex2 == null) {
-                                    lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"), cplexVars[cell.colIndex1])
+                            model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                if (colIndex2 == null) {
+                                    lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"), cplexVars[colIndex1])
                                 } else {
-                                    lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
+                                    lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"), cplexVars[colIndex1], cplexVars[colIndex2])
                                 }
                             }
                             ii to Triple(lb, lhs, ub)
@@ -247,11 +247,11 @@ private class CplexQuadraticSolverImpl(
                         }
                     }
                     val lhs = cplex.lqNumExpr()
-                    for (cell in model.constraints.lhs[i]) {
-                        if (cell.colIndex2 == null) {
-                            lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"), cplexVars[cell.colIndex1])
+                    model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                        if (colIndex2 == null) {
+                            lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"), cplexVars[colIndex1])
                         } else {
-                            lhs.addTerm(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"), cplexVars[cell.colIndex1], cplexVars[cell.colIndex2!!])
+                            lhs.addTerm(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"), cplexVars[colIndex1], cplexVars[colIndex2])
                         }
                     }
                     val cplexConstraint = cplex.range(

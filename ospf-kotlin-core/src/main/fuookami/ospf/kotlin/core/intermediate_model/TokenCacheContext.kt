@@ -4,9 +4,9 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCell
+import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -21,46 +21,46 @@ import java.util.WeakHashMap
  * Generic linear flatten data - monomials + constant.
  * T is the numeric type (e.g., Flt64).
  */
-data class LinearFlattenDataOf<T : RealNumber<T>>(
+data class LinearFlattenData<T : RealNumber<T>>(
     val monomials: List<UtilsLinearMonomial<T>>,
     val constant: T
 )
 
 /**
- * Legacy typealias for Flt64-specific LinearFlattenData.
+ * Legacy typealias for Flt64-specific LinearFlattenDataF64.
  */
-typealias LinearFlattenData = LinearFlattenDataOf<Flt64>
+typealias LinearFlattenDataF64 = LinearFlattenData<Flt64>
 
 /**
  * Generic quadratic flatten data - monomials + constant.
  * T is the numeric type (e.g., Flt64).
  */
-data class QuadraticFlattenDataOf<T : RealNumber<T>>(
+data class QuadraticFlattenData<T : RealNumber<T>>(
     val monomials: List<UtilsQuadraticMonomial<T>>,
     val constant: T
 )
 
 /**
- * Legacy typealias for Flt64-specific QuadraticFlattenData.
+ * Legacy typealias for Flt64-specific QuadraticFlattenDataF64.
  */
-typealias QuadraticFlattenData = QuadraticFlattenDataOf<Flt64>
+typealias QuadraticFlattenDataF64 = QuadraticFlattenData<Flt64>
 
 class LinearFlattenContext(
-    private val cache: MutableMap<Any, LinearFlattenData?> = HashMap()
+    private val cache: MutableMap<Any, LinearFlattenDataF64?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
 
-    fun get(cacheKey: Any): LinearFlattenData? {
+    fun get(cacheKey: Any): LinearFlattenDataF64? {
         return cache[cacheKey]
     }
 
-    fun put(cacheKey: Any, value: LinearFlattenData?) {
+    fun put(cacheKey: Any, value: LinearFlattenDataF64?) {
         cache[cacheKey] = value
     }
 
-    fun remove(cacheKey: Any): LinearFlattenData? {
+    fun remove(cacheKey: Any): LinearFlattenDataF64? {
         return cache.remove(cacheKey)
     }
 
@@ -74,21 +74,21 @@ class LinearFlattenContext(
 }
 
 class QuadraticFlattenContext(
-    private val cache: MutableMap<Any, QuadraticFlattenData?> = HashMap()
+    private val cache: MutableMap<Any, QuadraticFlattenDataF64?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
 
-    fun get(cacheKey: Any): QuadraticFlattenData? {
+    fun get(cacheKey: Any): QuadraticFlattenDataF64? {
         return cache[cacheKey]
     }
 
-    fun put(cacheKey: Any, value: QuadraticFlattenData?) {
+    fun put(cacheKey: Any, value: QuadraticFlattenDataF64?) {
         cache[cacheKey] = value
     }
 
-    fun remove(cacheKey: Any): QuadraticFlattenData? {
+    fun remove(cacheKey: Any): QuadraticFlattenDataF64? {
         return cache.remove(cacheKey)
     }
 
@@ -237,8 +237,8 @@ data class TokenCacheContexts(
         return linearFlatten.keys() + quadraticFlatten.keys() + range.keys()
     }
 
-    fun boundIntermediateSymbols(): Set<IntermediateSymbol> {
-        return boundSymbols().mapNotNull { it as? IntermediateSymbol }.toSet()
+    fun boundIntermediateSymbols(): Set<IntermediateSymbol<*>> {
+        return boundSymbols().mapNotNull { it as? IntermediateSymbol<*> }.toSet()
     }
 
     fun clearLinearFlatten() {
@@ -270,10 +270,10 @@ data class TokenCacheContexts(
 }
 
 private val symbolTokenTableContext = Collections.synchronizedMap(
-    WeakHashMap<IntermediateSymbol, AbstractTokenTable>()
+    WeakHashMap<IntermediateSymbol<*>, LegacyAbstractTokenTable>()
 )
 
-internal fun bindTokenTableContext(symbol: IntermediateSymbol, tokenTable: AbstractTokenTable) {
+internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: LegacyAbstractTokenTable) {
     val oldTokenTable = symbolTokenTableContext[symbol]
     if (oldTokenTable != null && oldTokenTable != tokenTable) {
         oldTokenTable.clearLinearFlatten(symbol)
@@ -284,26 +284,26 @@ internal fun bindTokenTableContext(symbol: IntermediateSymbol, tokenTable: Abstr
     symbolTokenTableContext[symbol] = tokenTable
 }
 
-internal fun unbindTokenTableContext(symbol: IntermediateSymbol, tokenTable: AbstractTokenTable) {
+internal fun unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: LegacyAbstractTokenTable) {
     if (symbolTokenTableContext[symbol] == tokenTable) {
         symbolTokenTableContext.remove(symbol)
     }
 }
 
-internal fun boundTokenTableContext(symbol: IntermediateSymbol): AbstractTokenTable? {
+internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): LegacyAbstractTokenTable? {
     return symbolTokenTableContext[symbol]
 }
 
 /**
- * 将旧 Cell 列表转换为 LinearFlattenData。
- * 已废弃：调用方应直接使用 FlattenData 主路径，而非通过 Cell 中转。
+ * 将旧 CellF64 列表转换为 LinearFlattenDataF64。
+ * 已废弃：调用方应直接使用 FlattenData 主路径，而非通过 CellF64 中转。
  */
 @Deprecated(
-    message = "Use LinearFlattenData directly. Cell-based conversion will be removed in M9.",
+    message = "Use LinearFlattenDataF64 directly. CellF64-based conversion will be removed in M9.",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData")
+    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64")
 )
-internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
+internal fun List<LinearMonomialCellF64>.toLinearFlattenData(): LinearFlattenDataF64 {
     var constant = Flt64.zero
     val monomials = mapNotNull { cell ->
         if (cell.isConstant) {
@@ -316,35 +316,35 @@ internal fun List<LinearMonomialCell>.toLinearFlattenData(): LinearFlattenData {
             )
         }
     }
-    return LinearFlattenData(
+    return LinearFlattenDataF64(
         monomials = monomials,
         constant = constant
     )
 }
 
 /**
- * 将 LinearFlattenData 转换为旧 Cell 列表。
+ * 将 LinearFlattenDataF64 转换为旧 CellF64 列表。
  * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
  */
 @Deprecated(
     message = "Only for deprecated cells property compatibility. Will be removed in M9.",
     level = DeprecationLevel.WARNING
 )
-internal fun LinearFlattenData.toLinearMonomialCells(): List<LinearMonomialCell> {
+internal fun LinearFlattenDataF64.toLinearMonomialCells(): List<LinearMonomialCellF64> {
     val cells = monomials.map { m ->
-        LinearMonomialCell.invoke<Flt64>(m.coefficient, m.symbol as AbstractVariableItem<*, *>)
+        LinearMonomialCellF64.invoke<Flt64>(m.coefficient, m.symbol as AbstractVariableItem<*, *>)
     }.toMutableList()
     if (constant != Flt64.zero) {
-        cells.add(LinearMonomialCell.invoke<Flt64>(constant))
+        cells.add(LinearMonomialCellF64.invoke<Flt64>(constant))
     }
     return cells
 }
 
 /**
- * 将 LinearFlattenData 转换为 QuadraticFlattenData。
+ * 将 LinearFlattenDataF64 转换为 QuadraticFlattenDataF64。
  * 用于 Linear → Quadratic 升级场景。
  */
-internal fun LinearFlattenData.toQuadraticFlattenData(): QuadraticFlattenData {
+internal fun LinearFlattenDataF64.toQuadraticFlattenData(): QuadraticFlattenDataF64 {
     val monomials = this.monomials.map {
         UtilsQuadraticMonomial(
             coefficient = it.coefficient,
@@ -352,22 +352,22 @@ internal fun LinearFlattenData.toQuadraticFlattenData(): QuadraticFlattenData {
             symbol2 = null
         )
     }
-    return QuadraticFlattenData(
+    return QuadraticFlattenDataF64(
         monomials = monomials,
         constant = this.constant
     )
 }
 
 /**
- * 将旧 QuadraticMonomialCell 列表转换为 QuadraticFlattenData。
+ * 将旧 QuadraticMonomialCellF64 列表转换为 QuadraticFlattenDataF64。
  * 已废弃：调用方应直接使用 FlattenData 主路径。
  */
 @Deprecated(
-    message = "Use QuadraticFlattenData directly. Cell-based conversion will be removed in M9.",
+    message = "Use QuadraticFlattenDataF64 directly. CellF64-based conversion will be removed in M9.",
     level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenData")
+    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64")
 )
-internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlattenData {
+internal fun List<QuadraticMonomialCellF64>.toQuadraticFlattenData(): QuadraticFlattenDataF64 {
     var constant = Flt64.zero
     val monomials = mapNotNull { cell ->
         if (cell.isConstant) {
@@ -381,30 +381,30 @@ internal fun List<QuadraticMonomialCell>.toQuadraticFlattenData(): QuadraticFlat
             )
         }
     }
-    return QuadraticFlattenData(
+    return QuadraticFlattenDataF64(
         monomials = monomials,
         constant = constant
     )
 }
 
 /**
- * 将 QuadraticFlattenData 转换为旧 Cell 列表。
+ * 将 QuadraticFlattenDataF64 转换为旧 CellF64 列表。
  * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
  */
 @Deprecated(
     message = "Only for deprecated cells property compatibility. Will be removed in M9.",
     level = DeprecationLevel.WARNING
 )
-internal fun QuadraticFlattenData.toQuadraticMonomialCells(): List<QuadraticMonomialCell> {
+internal fun QuadraticFlattenDataF64.toQuadraticMonomialCells(): List<QuadraticMonomialCellF64> {
     val cells = monomials.map {
-        QuadraticMonomialCell.invoke<Flt64>(
+        QuadraticMonomialCellF64.invoke<Flt64>(
             coefficient = it.coefficient,
             variable1 = it.symbol1 as AbstractVariableItem<*, *>,
             variable2 = it.symbol2 as AbstractVariableItem<*, *>?
         )
     }.toMutableList()
     if (constant != Flt64.zero) {
-        cells.add(QuadraticMonomialCell.invoke<Flt64>(constant))
+        cells.add(QuadraticMonomialCellF64.invoke<Flt64>(constant))
     }
     return cells
 }

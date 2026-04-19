@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IntVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variables: `q` (IntVar for quotient) and `r` (URealVar for remainder, 0 <= r < d)
- * - Constraint: `x = d * q + r`
+ * - ConstraintF64: `x = d * q + r`
  * - The modulo result is `r`
  *
  * @param x the input linear polynomial
@@ -46,6 +46,10 @@ class ModFunction<T : Field<T>>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(qVar, rVar)
+
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
 
     /**
      * Linear polynomial representing the modulo result (remainder): `r`.
@@ -71,21 +75,18 @@ class ModFunction<T : Field<T>>(
         return Flt64(doubleVal % dVal) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Add helper variables to the model
-        val varsToAdd = listOf(qVar, rVar)
-        if (varsToAdd.isNotEmpty()) {
-            when (val result = model.add(varsToAdd)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+        when (val result = registerAuxiliaryTokens(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val xPoly = x.asFlt64Poly()
         val dVal = d
 
-        // Constraint: x = d * q + r  =>  x eq (d*q + r)
+        // ConstraintF64: x = d * q + r  =>  x eq (d*q + r)
         val dqPoly = LinearPolynomial(listOf(LinearMonomial(dVal, qVar)), Flt64.zero)
         val rPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
         val rhs = LinearPolynomial(dqPoly.monomials + rPoly.monomials, dqPoly.constant + rPoly.constant)

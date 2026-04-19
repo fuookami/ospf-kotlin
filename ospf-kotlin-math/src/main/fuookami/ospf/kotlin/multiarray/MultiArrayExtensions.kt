@@ -13,7 +13,7 @@
  * - UInt64 形状工厂方法 / UInt64 shape factory methods
  * - Map 扩展支持 / Map extension support
  */
-package fuookami.ospf.kotlin.math.multiarray
+package fuookami.ospf.kotlin.multiarray
 
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

@@ -29,7 +29,7 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -107,7 +107,7 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         amount: UInt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -215,7 +215,7 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

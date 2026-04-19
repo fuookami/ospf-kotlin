@@ -21,21 +21,21 @@ interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
 
-    fun MetaModel.registerConstraintGroup() {
+    fun MetaModelF64.registerConstraintGroup() {
         this.registerConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModel.indicesOfConstraintGroup(): IntRange? {
+    fun MetaModelF64.indicesOfConstraintGroup(): IntRange? {
         return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModel.constraintsOfGroup(): List<MathConstraint> {
+    fun MetaModelF64.constraintsOfGroup(): List<MathConstraint> {
         return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
             indices.map { constraints[it] }
         } ?: emptyList()
     }
 
-    fun AbstractLinearMetaModel.addConstraint(
+    fun AbstractLinearMetaModelF64.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -54,7 +54,7 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractLinearMetaModel.addConstraint(
+    fun AbstractLinearMetaModelF64.addConstraint(
         constraint: LinearMonomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -77,7 +77,7 @@ interface MetaConstraintGroup {
         message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
-    fun AbstractLinearMetaModel.addConstraint(
+    fun AbstractLinearMetaModelF64.addConstraint(
         constraint: ToLinearPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -96,8 +96,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractLinearMetaModel.addConstraint(
-        constraint: LinearIntermediateSymbol,
+    fun AbstractLinearMetaModelF64.addConstraint(
+        constraint: LinearIntermediateSymbol<*>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -117,7 +117,7 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
-    fun AbstractLinearMetaModel.partition(
+    fun AbstractLinearMetaModelF64.partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -139,8 +139,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
-    fun AbstractLinearMetaModel.partition(
-        symbols: Iterable<LinearIntermediateSymbol>,
+    fun AbstractLinearMetaModelF64.partition(
+        symbols: Iterable<LinearIntermediateSymbol<*>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -161,7 +161,7 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearMonomials")
-    fun AbstractLinearMetaModel.partition(
+    fun AbstractLinearMetaModelF64.partition(
         monomials: Iterable<LinearMonomial>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -185,7 +185,7 @@ interface MetaConstraintGroup {
         message = "Use partition with MathLinearInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
-    fun AbstractLinearMetaModel.partition(
+    fun AbstractLinearMetaModelF64.partition(
         polynomial: ToLinearPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -202,7 +202,7 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractQuadraticMetaModel.addConstraint(
+    fun AbstractQuadraticMetaModelF64.addConstraint(
         constraint: QuadraticMonomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -224,7 +224,7 @@ interface MetaConstraintGroup {
         message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
-    fun AbstractQuadraticMetaModel.addConstraint(
+    fun AbstractQuadraticMetaModelF64.addConstraint(
         constraint: ToQuadraticPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -242,8 +242,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractQuadraticMetaModel.addConstraint(
-        constraint: QuadraticIntermediateSymbol,
+    fun AbstractQuadraticMetaModelF64.addConstraint(
+        constraint: QuadraticIntermediateSymbol<*>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -262,7 +262,7 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticMonomials")
-    fun AbstractQuadraticMetaModel.partition(
+    fun AbstractQuadraticMetaModelF64.partition(
         monomials: Iterable<QuadraticMonomial>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -284,8 +284,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
-    fun AbstractQuadraticMetaModel.partition(
-        symbols: Iterable<QuadraticIntermediateSymbol>,
+    fun AbstractQuadraticMetaModelF64.partition(
+        symbols: Iterable<QuadraticIntermediateSymbol<*>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -308,7 +308,7 @@ interface MetaConstraintGroup {
         message = "Use partition with MathQuadraticInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
-    fun AbstractQuadraticMetaModel.partition(
+    fun AbstractQuadraticMetaModelF64.partition(
         polynomial: ToQuadraticPolynomial,
         lazy: Boolean? = null,
         name: String? = null,
@@ -330,7 +330,7 @@ interface MetaConstraintGroup {
     /**
      * Add constraint using math LinearInequality
      */
-    fun AbstractLinearMetaModel.addConstraint(
+    fun AbstractLinearMetaModelF64.addConstraint(
         relation: MathLinearInequality,
         lazy: Boolean? = null,
         name: String? = null,
@@ -352,7 +352,7 @@ interface MetaConstraintGroup {
     /**
      * Add constraint using math QuadraticInequality
      */
-    fun AbstractQuadraticMetaModel.addConstraint(
+    fun AbstractQuadraticMetaModelF64.addConstraint(
         relation: MathQuadraticInequality,
         lazy: Boolean? = null,
         name: String? = null,
@@ -380,7 +380,7 @@ data class MetaConstraint<Ineq>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint {
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+    override fun isTrue(solution: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Boolean? {
         @Suppress("UNCHECKED_CAST")
         val c = constraint as? MathConstraint ?: return null
         return c.isTrue(solution, tokenTable, zeroIfNone)
@@ -391,7 +391,7 @@ data class MetaConstraint<Ineq>(
     }
 }
 
-// ========== Math Inequality-based Constraint Types ==========
+// ========== Math Inequality-based ConstraintF64 Types ==========
 
 /**
  * Common interface for math-based constraints.
@@ -405,13 +405,13 @@ interface MathConstraint {
     /**
      * Evaluate whether this constraint is satisfied given solution values.
      */
-    fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean = false): Boolean?
+    fun isTrue(solution: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Boolean?
 }
 
 /**
- * LinearInequalityConstraint - Constraint using math LinearInequality
+ * LinearInequalityConstraint - ConstraintF64 using math LinearInequality
  *
- * This type uses LinearFlattenData directly, avoiding dependency on frontend/inequality.
+ * This type uses LinearFlattenDataF64 directly, avoiding dependency on frontend/inequality.
  */
 data class LinearInequalityConstraint(
     val inequality: MathLinearInequality,
@@ -420,12 +420,12 @@ data class LinearInequalityConstraint(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint {
-    val flattenData: LinearFlattenData get() = inequality.flattenData
+    val flattenData: LinearFlattenDataF64 get() = inequality.flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+    override fun isTrue(solution: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Boolean? {
         val lhsValue = evaluateFlattenData(flattenData, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -437,9 +437,9 @@ data class LinearInequalityConstraint(
 }
 
 /**
- * QuadraticInequalityConstraint - Constraint using math QuadraticInequality
+ * QuadraticInequalityConstraint - ConstraintF64 using math QuadraticInequality
  *
- * This type uses QuadraticFlattenData directly, avoiding dependency on frontend/inequality.
+ * This type uses QuadraticFlattenDataF64 directly, avoiding dependency on frontend/inequality.
  */
 data class QuadraticInequalityConstraint(
     val inequality: MathQuadraticInequality,
@@ -448,12 +448,12 @@ data class QuadraticInequalityConstraint(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint {
-    val flattenData: QuadraticFlattenData get() = inequality.flattenData
+    val flattenData: QuadraticFlattenDataF64 get() = inequality.flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable, zeroIfNone: Boolean): Boolean? {
+    override fun isTrue(solution: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Boolean? {
         val lhsValue = evaluateQuadraticFlattenData(flattenData, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -478,27 +478,27 @@ typealias QuadraticRelationConstraint = QuadraticInequalityConstraint
 // ========== NEW FlattenData-based SubObject Types ==========
 
 /**
- * LinearFlattenSubObject - SubObject using LinearFlattenData (new API)
+ * LinearFlattenSubObject - SubObject using LinearFlattenDataF64 (new API)
  *
- * This type uses LinearFlattenData directly for objective functions,
+ * This type uses LinearFlattenDataF64 directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class LinearFlattenSubObject(
     val category: ObjectCategory,
-    val flattenData: LinearFlattenData,
+    val flattenData: LinearFlattenDataF64,
     val name: String = "",
     val displayName: String? = null
 )
 
 /**
- * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData (new API)
+ * QuadraticFlattenSubObject - SubObject using QuadraticFlattenDataF64 (new API)
  *
- * This type uses QuadraticFlattenData directly for objective functions,
+ * This type uses QuadraticFlattenDataF64 directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class QuadraticFlattenSubObject(
     val category: ObjectCategory,
-    val flattenData: QuadraticFlattenData,
+    val flattenData: QuadraticFlattenDataF64,
     val name: String = "",
     val displayName: String? = null
 )

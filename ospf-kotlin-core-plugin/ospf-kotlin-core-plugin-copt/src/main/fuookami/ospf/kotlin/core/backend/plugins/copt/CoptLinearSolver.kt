@@ -187,8 +187,8 @@ private class CoptLinearSolverImpl(
                         async(Dispatchers.Default) {
                             val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
                                 val lhs = Expr()
-                                for (cell in model.constraints.lhs[ii]) {
-                                    lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.constraints.lhs[$ii][${cell.colIndex}].coefficient"))
+                                model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
+                                    lhs.addTerm(coptVars[colIndex], coefficient.toSolverDouble("linear.constraints.lhs[$ii][$colIndex].coefficient"))
                                 }
                                 ii to lhs
                             }
@@ -215,8 +215,8 @@ private class CoptLinearSolverImpl(
                 } else {
                     model.constraints.indices.map { i ->
                         val lhs = Expr()
-                        for (cell in model.constraints.lhs[i]) {
-                            lhs.addTerm(coptVars[cell.colIndex], cell.coefficient.toSolverDouble("linear.constraints.lhs[$i][${cell.colIndex}].coefficient"))
+                        model.constraints.sparseLhs.forEachEntry(i) { colIndex, coefficient ->
+                            lhs.addTerm(coptVars[colIndex], coefficient.toSolverDouble("linear.constraints.lhs[$i][$colIndex].coefficient"))
                         }
                         coptModel.addConstr(
                             lhs,

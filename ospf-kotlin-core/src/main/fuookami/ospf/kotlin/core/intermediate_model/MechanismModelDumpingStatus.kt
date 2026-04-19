@@ -28,7 +28,7 @@ data class MechanismModelDumpingStatus(
         }
 
     companion object {
-        fun dumpingConstrains(ready: UInt64, model: MetaModel): MechanismModelDumpingStatus {
+        fun dumpingConstrains(ready: UInt64, model: MetaModelF64): MechanismModelDumpingStatus {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = ready,
                 totalConstraintAmount = model.constraints.usize,
@@ -37,7 +37,7 @@ data class MechanismModelDumpingStatus(
             )
         }
 
-        fun dumpingSymbols(ready: UInt64, model: MetaModel): MechanismModelDumpingStatus {
+        fun dumpingSymbols(ready: UInt64, model: MetaModelF64): MechanismModelDumpingStatus {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = model.constraints.usize,
                 totalConstraintAmount = model.constraints.usize,

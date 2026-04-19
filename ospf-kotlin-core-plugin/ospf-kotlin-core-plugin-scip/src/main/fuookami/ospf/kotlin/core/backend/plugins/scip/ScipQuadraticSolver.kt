@@ -231,14 +231,14 @@ private class ScipQuadraticSolverImpl(
                             val quadraticVars2 = ArrayList<jscip.Variable>()
                             val linerCoefficients = ArrayList<Double>()
                             val quadraticCoefficients = ArrayList<Double>()
-                            for (cell in model.constraints.lhs[ii]) {
-                                if (cell.colIndex2 == null) {
-                                    linearVars.add(scipVars[cell.colIndex1])
-                                    linerCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1}].coefficient"))
+                            model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
+                                if (colIndex2 == null) {
+                                    linearVars.add(scipVars[colIndex1])
+                                    linerCoefficients.add(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1].coefficient"))
                                 } else {
-                                    quadraticVars1.add(scipVars[cell.colIndex1])
-                                    quadraticVars2.add(scipVars[cell.colIndex2!!])
-                                    quadraticCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][${cell.colIndex1},${cell.colIndex2}].coefficient"))
+                                    quadraticVars1.add(scipVars[colIndex1])
+                                    quadraticVars2.add(scipVars[colIndex2])
+                                    quadraticCoefficients.add(coefficient.toSolverDouble("quadratic.constraints.lhs[$ii][$colIndex1,$colIndex2].coefficient"))
                                 }
                             }
                             ii to Triple(lb to ub, linerCoefficients to linearVars, Triple(quadraticCoefficients, quadraticVars1, quadraticVars2))
@@ -296,14 +296,14 @@ private class ScipQuadraticSolverImpl(
                     val quadraticVars2 = ArrayList<jscip.Variable>()
                     val linerCoefficients = ArrayList<Double>()
                     val quadraticCoefficients = ArrayList<Double>()
-                    for (cell in model.constraints.lhs[i]) {
-                        if (cell.colIndex2 == null) {
-                            linearVars.add(scipVars[cell.colIndex1])
-                            linerCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1}].coefficient"))
+                    model.constraints.sparseLhs.forEachEntry(i) { colIndex1, colIndex2, coefficient ->
+                        if (colIndex2 == null) {
+                            linearVars.add(scipVars[colIndex1])
+                            linerCoefficients.add(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1].coefficient"))
                         } else {
-                            quadraticVars1.add(scipVars[cell.colIndex1])
-                            quadraticVars2.add(scipVars[cell.colIndex2!!])
-                            quadraticCoefficients.add(cell.coefficient.toSolverDouble("quadratic.constraints.lhs[$i][${cell.colIndex1},${cell.colIndex2}].coefficient"))
+                            quadraticVars1.add(scipVars[colIndex1])
+                            quadraticVars2.add(scipVars[colIndex2])
+                            quadraticCoefficients.add(coefficient.toSolverDouble("quadratic.constraints.lhs[$i][$colIndex1,$colIndex2].coefficient"))
                         }
                     }
                     val constraint = scip.createConsQuadratic(

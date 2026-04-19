@@ -1,7 +1,6 @@
 ﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableType
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -13,10 +12,10 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
-typealias OriginConstraint = fuookami.ospf.kotlin.core.intermediate_model.Constraint
+typealias OriginConstraint<P> = fuookami.ospf.kotlin.core.intermediate_model.ConstraintF64<P>
 
 data class VariableSlack(
-    val constraint: OriginConstraint? = null,
+    val constraint: OriginConstraint<*>? = null,
     val lowerBound: Variable? = null,
     val upperBound: Variable? = null
 )
@@ -27,7 +26,7 @@ class Variable(
     upperBound: Flt64,
     type: VariableType<*>,
     val origin: AbstractVariableItem<*, *>?,
-    val dualOrigin: OriginConstraint? = null,
+    val dualOrigin: OriginConstraint<*>? = null,
     val slack: VariableSlack? = null,
     val name: String,
     val initialResult: Flt64? = null
@@ -101,21 +100,21 @@ enum class ConstraintSource {
 }
 
 abstract class ModelConstraint<ConCell>(
-    lhs: List<List<ConCell>>,
-    signs: List<Sign>,
+    val constraintCount: Int,
+    signs: List<ConstraintRelation>,
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>
 ) : Cloneable, Copyable<ModelConstraint<ConCell>>, AutoCloseable
         where ConCell : ConstraintCell<ConCell>, ConCell : Copyable<ConCell> {
-    internal val _lhs = lhs.toMutableList()
     internal val _signs = signs.toMutableList()
     internal val _rhs = rhs.toMutableList()
     internal val _names = names.toMutableList()
     internal val _sources = sources.toMutableList()
 
-    val lhs: List<List<ConCell>> by ::_lhs
-    val signs: List<Sign> by ::_signs
+    @Deprecated("Use sparseLhs on LinearConstraintBatch or QuadraticConstraintBatch instead.", level = DeprecationLevel.WARNING)
+    abstract val lhs: List<List<ConCell>>
+    val signs: List<ConstraintRelation> by ::_signs
     val rhs: List<Flt64> by ::_rhs
     val names: List<String> by ::_names
     val sources: List<ConstraintSource> by ::_sources
@@ -126,7 +125,6 @@ abstract class ModelConstraint<ConCell>(
     override fun clone() = copy()
 
     override fun close() {
-        _lhs.clear()
         _signs.clear()
         _rhs.clear()
         _names.clear()
@@ -134,11 +132,11 @@ abstract class ModelConstraint<ConCell>(
     }
 }
 
-class Objective<Cell : Copyable<Cell>>(
+class Objective<CellF64 : Copyable<CellF64>>(
     val category: ObjectCategory,
-    val objective: List<Cell>,
+    val objective: List<CellF64>,
     val constant: Flt64 = Flt64(0.0)
-) : Cloneable, Copyable<Objective<Cell>> {
+) : Cloneable, Copyable<Objective<CellF64>> {
     override fun copy() = Objective(category, objective.toList())
     override fun clone() = copy()
 }

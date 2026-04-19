@@ -2,9 +2,9 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenData
+import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.compare
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -69,6 +69,10 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         }
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /**
      * Result: sum of satisfied constraint flags.
      * If amount is specified, this is a binary indicator (0 or 1).
@@ -121,7 +125,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         return input.sign.compare(lhsValue, Flt64.zero)
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Register flag variables
         when (val result = model.add(flagVars)) {
             is Ok -> {}
@@ -154,7 +158,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
                     val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
 
-                    // Convert LinearFlattenData to LinearPolynomial<Flt64>
+                    // Convert LinearFlattenDataF64 to LinearPolynomial<Flt64>
                     val polyFlt64 = LinearPolynomial(
                         input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
                         input.flattenData.constant

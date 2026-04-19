@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.PctVar
@@ -75,6 +75,10 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = lambdas + zBins
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     /**
      * The output polynomial y = sum(y_i * lambda_i).
      * Exposed for use in objectives or further constraints.
@@ -126,20 +130,17 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
         return Flt64(pts.last().second) as T
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
         // Add all helper variables
-        val varsToAdd = lambdas + zBins
-        if (varsToAdd.isNotEmpty()) {
-            when (val result = model.add(varsToAdd)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+        when (val result = registerAuxiliaryTokens(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val xPoly = x.asFlt64Poly()
 
-        // Constraint: x = sum(x_i * lambda_i)
+        // ConstraintF64: x = sum(x_i * lambda_i)
         val xLhs = lambdas.mapIndexed { i, lambda ->
             LinearMonomial(points[i].x, lambda)
         }.toMutableList()
@@ -155,7 +156,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // Constraint: sum(lambda_i) = 1
+        // ConstraintF64: sum(lambda_i) = 1
         val sumLambdaLhs = lambdas.map { lambda ->
             LinearMonomial(Flt64.one, lambda)
         }.toMutableList()

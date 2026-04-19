@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -57,6 +57,10 @@ class BinaryzationFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+        return super.registerAuxiliaryTokens(tokens)
+    }
+
     override fun evaluate(values: Map<Symbol, T>): T? {
         val inputVal = evalInput(values) ?: return null
         val thresh = threshold.asFlt64().toDouble()
@@ -69,8 +73,8 @@ class BinaryzationFunction<T : Field<T>>(
         return if (isTrue) oneOf() else zeroOf()
     }
 
-    override fun register(model: AbstractLinearMetaModel): Try {
-        when (val r = model.add(helperVariables)) {
+    override fun register(model: AbstractLinearMetaModelF64): Try {
+        when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -171,7 +175,7 @@ class BinaryzationFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbol,
+            x: LinearIntermediateSymbol<*>,
             threshold: Flt64 = Flt64.zero,
             bigM: Flt64? = null,
             method: BinaryzationMethod = BinaryzationMethod.BigM,

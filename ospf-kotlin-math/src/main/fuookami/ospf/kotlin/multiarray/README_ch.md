@@ -1,6 +1,6 @@
 # ospf-kotlin-math/multiarray
 
-[English Documentation (README.md)](./README.md)
+[English Documentation (README.md)](README.md)
 
 OSPF Kotlin 的多维数组运算，包括快速求和与爱因斯坦求和（einsum）。
 
@@ -67,5 +67,5 @@ val batchC = einsumDouble(batchA, batchB, "bij,bjk->bik")
 ## 相关链接
 
 - [主 README](../../README.md)
-- [Functional 模块](../functional/README_ch.md)
-- [Algebra 模块](../algebra/README_ch.md)
+- [Functional 模块](../math/functional/README_ch.md)
+- [Algebra 模块](../math/algebra/README_ch.md)
