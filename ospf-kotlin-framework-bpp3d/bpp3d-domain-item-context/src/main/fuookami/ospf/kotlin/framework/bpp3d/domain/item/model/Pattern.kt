@@ -53,7 +53,7 @@ abstract class Pattern {
             return Placement2(projection, point)
         }
 
-        fun generateMultiPileProjection(items: List<Item>): Result<MultipleItemProjection<Bottom>?, Error> {
+        fun generateMultiPileProjection(items: List<Item>): Result<MultipleItemProjection<Bottom>?, ErrorCode, Error<ErrorCode>> {
             var projection: MultipleItemProjection<Bottom>? = null
             val views = ArrayList<ItemView>()
             for (item in items) {
@@ -80,7 +80,7 @@ abstract class Pattern {
             return Ok(projection)
         }
 
-        fun getPatternView(item: Item): Result<ItemView?, Error> {
+        fun getPatternView(item: Item): Result<ItemView?, ErrorCode, Error<ErrorCode>> {
             for (orientation in item.enabledOrientations) {
                 val view = item.view(orientation)
                 when (lengthOrientation) {
@@ -197,7 +197,7 @@ abstract class Pattern {
         pattern: List<Step>,
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, Error> {
+    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = binType,
@@ -215,7 +215,7 @@ abstract class Pattern {
         patterns: List<List<Step>> = emptyList(),
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, Error> {
+    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = binType,
@@ -234,7 +234,7 @@ abstract class Pattern {
         pattern: List<Step>,
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, Error> {
+    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
         return this(
             originItems = originItems,
             space = space,
@@ -253,7 +253,7 @@ abstract class Pattern {
         patterns: List<List<Step>> = emptyList(),
         predicate: ((Item) -> Boolean)? = null,
         config: Config = Config(),
-    ): Result<List<List<ItemPlacement3>>, Error> {
+    ): Result<List<List<ItemPlacement3>>, ErrorCode, Error<ErrorCode>> {
         val items = originItems
             .asSequence()
             .filter {
@@ -342,8 +342,8 @@ abstract class Pattern {
         patterns: List<List<Step>>,
         config: Config,
         scope: CoroutineScope = GlobalScope
-    ): ChannelGuard<Result<List<ItemPlacement2<Bottom>>, Error>> {
-        val promise = Channel<Result<List<ItemPlacement2<Bottom>>, Error>>(Channel.UNLIMITED)
+    ): ChannelGuard<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>> {
+        val promise = Channel<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>>(Channel.UNLIMITED)
         for (pattern in patterns) {
             scope.launch(Dispatchers.Default) {
                 try {
@@ -380,7 +380,7 @@ abstract class Pattern {
         restWeight: Flt64,
         pattern: List<Step>,
         config: Config,
-        promise: Channel<Result<List<ItemPlacement2<Bottom>>, Error>>,
+        promise: Channel<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>>,
     ) {
         val items = originItems.map { it.copy() }
         while (true) {
@@ -628,7 +628,6 @@ abstract class Pattern {
         }
     }
 }
-
 
 
 

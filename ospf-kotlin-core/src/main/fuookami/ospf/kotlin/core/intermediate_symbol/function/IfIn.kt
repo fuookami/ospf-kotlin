@@ -138,7 +138,7 @@ class IfInFunction<T : Field<T>>(
         )
 
         when (val r = addConstraints(model, allConstraints)) {
-            null, is Ok<*, *> -> {}
+            null, is Ok<*, *, *> -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
         }

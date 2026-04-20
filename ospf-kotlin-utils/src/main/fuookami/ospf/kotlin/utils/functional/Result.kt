@@ -24,35 +24,32 @@
  */
 package fuookami.ospf.kotlin.utils.functional
 
-import fuookami.ospf.kotlin.utils.error.Err
-import fuookami.ospf.kotlin.utils.error.Error
-import fuookami.ospf.kotlin.utils.error.ErrorCode
-import fuookami.ospf.kotlin.utils.error.ExErr
+import fuookami.ospf.kotlin.utils.error.*
 
 // Result: Basic result type with Ok and Failed states / 基础结果类型，包含 Ok 和 Failed 两种状态
-sealed interface Result<out T, out E : Error> {
+sealed interface Result<out T, C : Any, out E : Error<C>> {
     val ok: Boolean get() = false
     val failed: Boolean get() = false
     val value: T? get() = null
 
-    fun <U> map(transform: (T) -> U): Result<U, E>
+    fun <U> map(transform: (T) -> U): Result<U, C, E>
 }
 
 // ExResult: Extended result type with Ok, Failed, and Warn states / 扩展结果类型，包含 Ok、Failed 和 Warn 三种状态
-sealed interface ExResult<out T, out E : Error> {
+sealed interface ExResult<out T, C : Any, out E : Error<C>> {
     val ok: Boolean get() = false
     val failed: Boolean get() = false
     val warned: Boolean get() = false
     val value: T? get() = null
 
-    fun <U> map(transform: (T) -> U): ExResult<U, E>
+    fun <U> map(transform: (T) -> U): ExResult<U, C, E>
 }
 
 // Ok: Success result with value / 成功结果，包含值
 // Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
-class Ok<out T, out E : Error>(
+class Ok<out T, C : Any, out E : Error<C>>(
     override val value: T
-) : Result<T, E>, ExResult<T, E> {
+) : Result<T, C, E>, ExResult<T, C, E> {
     override val ok: Boolean get() = true
     override val failed: Boolean get() = false
 
@@ -60,26 +57,38 @@ class Ok<out T, out E : Error>(
         return value as? U
     }
 
-    override fun <U> map(transform: (T) -> U): Ok<U, E> {
+    override fun <U> map(transform: (T) -> U): Ok<U, C, E> {
         return Ok(transform(value))
     }
 }
 
 // Failed: Failed result with error / 失败结果，包含错误
 // Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
-class Failed<out T, out E : Error>(
+class Failed<out T, C : Any, out E : Error<C>>(
     val error: E
-) : Result<T, E>, ExResult<T, E> {
+) : Result<T, C, E>, ExResult<T, C, E> {
     companion object {
-        operator fun <T> invoke(code: ErrorCode, message: String? = null): Failed<T, Error> {
+        operator fun <T> invoke(code: ErrorCode, message: String? = null): Failed<T, ErrorCode, Error<ErrorCode>> {
             return Failed(Err(code, message))
         }
 
-        operator fun <T, E> invoke(code: ErrorCode, value: E): Failed<T, Error> {
+        operator fun <T, E> invoke(code: ErrorCode, value: E): Failed<T, ErrorCode, Error<ErrorCode>> {
             return Failed(ExErr(code, value))
         }
 
-        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Failed<T, Error> {
+        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Failed<T, ErrorCode, Error<ErrorCode>> {
+            return Failed(ExErr(code, message, value))
+        }
+
+        operator fun <T, C : Any> invoke(code: C, message: String? = null): Failed<T, C, Error<C>> {
+            return Failed(Err(code, message))
+        }
+
+        operator fun <T, C : Any, E> invoke(code: C, value: E): Failed<T, C, Error<C>> {
+            return Failed(ExErr(code, value))
+        }
+
+        operator fun <T, C : Any, E> invoke(code: C, message: String, value: E): Failed<T, C, Error<C>> {
             return Failed(ExErr(code, message, value))
         }
     }
@@ -94,30 +103,42 @@ class Failed<out T, out E : Error>(
     val withValue by error::withValue
     val errValue by error::value
 
-    override fun <U> map(transform: (T) -> U): Failed<U, E> {
+    override fun <U> map(transform: (T) -> U): Failed<U, C, E> {
         return Failed(error)
     }
 }
 
 // Fatal: Fatal result with multiple errors / 致命结果，包含多个错误
 // Implements both Result and ExResult for code reuse / 同时实现 Result 和 ExResult 以实现代码复用
-class Fatal<out T, out E : Error>(
+class Fatal<out T, C : Any, out E : Error<C>>(
     val errors: List<E>
-) : Result<T, E>, ExResult<T, E> {
+) : Result<T, C, E>, ExResult<T, C, E> {
     companion object {
-        operator fun <T> invoke(vararg errors: Error): Fatal<T, Error> {
+        operator fun <T, C : Any> invoke(vararg errors: Error<C>): Fatal<T, C, Error<C>> {
             return Fatal(errors.toList())
         }
 
-        operator fun <T> invoke(code: ErrorCode, message: String? = null): Fatal<T, Error> {
+        operator fun <T> invoke(code: ErrorCode, message: String? = null): Fatal<T, ErrorCode, Error<ErrorCode>> {
             return Fatal(listOf(Err(code, message)))
         }
 
-        operator fun <T, E> invoke(code: ErrorCode, value: E): Fatal<T, Error> {
+        operator fun <T, E> invoke(code: ErrorCode, value: E): Fatal<T, ErrorCode, Error<ErrorCode>> {
             return Fatal(listOf(ExErr(code, value)))
         }
 
-        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Fatal<T, Error> {
+        operator fun <T, E> invoke(code: ErrorCode, message: String, value: E): Fatal<T, ErrorCode, Error<ErrorCode>> {
+            return Fatal(listOf(ExErr(code, message, value)))
+        }
+
+        operator fun <T, C : Any> invoke(code: C, message: String? = null): Fatal<T, C, Error<C>> {
+            return Fatal(listOf(Err(code, message)))
+        }
+
+        operator fun <T, C : Any, E> invoke(code: C, value: E): Fatal<T, C, Error<C>> {
+            return Fatal(listOf(ExErr(code, value)))
+        }
+
+        operator fun <T, C : Any, E> invoke(code: C, message: String, value: E): Fatal<T, C, Error<C>> {
             return Fatal(listOf(ExErr(code, message, value)))
         }
     }
@@ -130,11 +151,11 @@ class Fatal<out T, out E : Error>(
     val size: Int get() = errors.size
     val isEmpty: Boolean get() = errors.isEmpty()
 
-    override fun <U> map(transform: (T) -> U): Fatal<U, E> {
+    override fun <U> map(transform: (T) -> U): Fatal<U, C, E> {
         return Fatal(errors)
     }
 
-    fun <U : Error> merge(other: Fatal<*, U>): Fatal<T, Error> {
+    fun <U : Error<C>> merge(other: Fatal<*, C, U>): Fatal<T, C, Error<C>> {
         return Fatal(errors + other.errors)
     }
 
@@ -145,20 +166,32 @@ class Fatal<out T, out E : Error>(
 
 // Warn: Warning result with both value and warning error / 警告结果，包含值和警告错误
 // Only implements ExResult / 仅实现 ExResult
-class Warn<out T, out E : Error>(
+class Warn<out T, C : Any, out E : Error<C>>(
     override val value: T,
     val warnings: List<E>
-) : ExResult<T, E> {
+) : ExResult<T, C, E> {
     companion object {
-        operator fun <T> invoke(value: T, code: ErrorCode, message: String? = null): Warn<T, Error> {
+        operator fun <T> invoke(value: T, code: ErrorCode, message: String? = null): Warn<T, ErrorCode, Error<ErrorCode>> {
             return Warn(value, listOf(Err(code, message)))
         }
 
-        operator fun <T, E> invoke(value: T, code: ErrorCode, warningValue: E): Warn<T, Error> {
+        operator fun <T, E> invoke(value: T, code: ErrorCode, warningValue: E): Warn<T, ErrorCode, Error<ErrorCode>> {
             return Warn(value, listOf(ExErr(code, warningValue)))
         }
 
-        operator fun <T, E> invoke(value: T, code: ErrorCode, message: String, warningValue: E): Warn<T, Error> {
+        operator fun <T, E> invoke(value: T, code: ErrorCode, message: String, warningValue: E): Warn<T, ErrorCode, Error<ErrorCode>> {
+            return Warn(value, listOf(ExErr(code, message, warningValue)))
+        }
+
+        operator fun <T, C : Any> invoke(value: T, code: C, message: String? = null): Warn<T, C, Error<C>> {
+            return Warn(value, listOf(Err(code, message)))
+        }
+
+        operator fun <T, C : Any, E> invoke(value: T, code: C, warningValue: E): Warn<T, C, Error<C>> {
+            return Warn(value, listOf(ExErr(code, warningValue)))
+        }
+
+        operator fun <T, C : Any, E> invoke(value: T, code: C, message: String, warningValue: E): Warn<T, C, Error<C>> {
             return Warn(value, listOf(ExErr(code, message, warningValue)))
         }
     }
@@ -181,7 +214,7 @@ class Warn<out T, out E : Error>(
         return value as? U
     }
 
-    override fun <U> map(transform: (T) -> U): Warn<U, E> {
+    override fun <U> map(transform: (T) -> U): Warn<U, C, E> {
         return Warn(transform(value), warnings)
     }
 }
@@ -213,7 +246,7 @@ val success = Success()
  * @param func Ok 结果的处理函数 / The handler function for Ok result
  * @return 未改变的结果 / The unchanged result
  */
-inline fun <T, E : Error> Result<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Unit): Result<T, E> {
+inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifOk(crossinline func: Ok<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Ok) func(this)
     return this
 }
@@ -229,7 +262,7 @@ inline fun <T, E : Error> Result<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Uni
  * @param func Failed 结果的处理函数 / The handler function for Failed result
  * @return 未改变的结果 / The unchanged result
  */
-inline fun <T, E : Error> Result<T, E>.ifFailed(crossinline func: Failed<T, E>.() -> Unit): Result<T, E> {
+inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFailed(crossinline func: Failed<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Failed) func(this)
     return this
 }
@@ -245,7 +278,7 @@ inline fun <T, E : Error> Result<T, E>.ifFailed(crossinline func: Failed<T, E>.(
  * @param func Fatal 结果的处理函数 / The handler function for Fatal result
  * @return 未改变的结果 / The unchanged result
  */
-inline fun <T, E : Error> Result<T, E>.ifFatal(crossinline func: Fatal<T, E>.() -> Unit): Result<T, E> {
+inline fun <T, C : Any, E : Error<C>> Result<T, C, E>.ifFatal(crossinline func: Fatal<T, C, E>.() -> Unit): Result<T, C, E> {
     if (this is Fatal) func(this)
     return this
 }
@@ -257,7 +290,7 @@ inline fun <T, E : Error> Result<T, E>.ifFatal(crossinline func: Fatal<T, E>.() 
  * Executes the given function if this ExResult is Ok, then returns the result unchanged.
  * 如果 ExResult 是 Ok 则执行给定函数，然后返回未改变的结果。
  */
-inline fun <T, E : Error> ExResult<T, E>.ifOk(crossinline func: Ok<T, E>.() -> Unit): ExResult<T, E> {
+inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifOk(crossinline func: Ok<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Ok) func(this)
     return this
 }
@@ -268,7 +301,7 @@ inline fun <T, E : Error> ExResult<T, E>.ifOk(crossinline func: Ok<T, E>.() -> U
  * Executes the given function if this ExResult is Failed, then returns the result unchanged.
  * 如果 ExResult 是 Failed 则执行给定函数，然后返回未改变的结果。
  */
-inline fun <T, E : Error> ExResult<T, E>.ifFailed(crossinline func: Failed<T, E>.() -> Unit): ExResult<T, E> {
+inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFailed(crossinline func: Failed<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Failed) func(this)
     return this
 }
@@ -279,7 +312,7 @@ inline fun <T, E : Error> ExResult<T, E>.ifFailed(crossinline func: Failed<T, E>
  * Executes the given function if this ExResult is Fatal, then returns the result unchanged.
  * 如果 ExResult 是 Fatal 则执行给定函数，然后返回未改变的结果。
  */
-inline fun <T, E : Error> ExResult<T, E>.ifFatal(crossinline func: Fatal<T, E>.() -> Unit): ExResult<T, E> {
+inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifFatal(crossinline func: Fatal<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Fatal) func(this)
     return this
 }
@@ -295,7 +328,7 @@ inline fun <T, E : Error> ExResult<T, E>.ifFatal(crossinline func: Fatal<T, E>.(
  * @param func Warn 结果的处理函数 / The handler function for Warn result
  * @return 未改变的结果 / The unchanged result
  */
-inline fun <T, E : Error> ExResult<T, E>.ifWarned(crossinline func: Warn<T, E>.() -> Unit): ExResult<T, E> {
+inline fun <T, C : Any, E : Error<C>> ExResult<T, C, E>.ifWarned(crossinline func: Warn<T, C, E>.() -> Unit): ExResult<T, C, E> {
     if (this is Warn) func(this)
     return this
 }
@@ -306,7 +339,8 @@ inline fun <T, E : Error> ExResult<T, E>.ifWarned(crossinline func: Warn<T, E>.(
  * Type alias for Result without a meaningful return value.
  * 无有意义返回值的 Result 类型别名。
  */
-typealias Try = Result<Success, Error>
+typealias Try = Result<Success, ErrorCode, Error<ErrorCode>>
+typealias TryOf<C> = Result<Success, C, Error<C>>
 
 /**
  * 自定义错误类型的 Try 类型别名
@@ -314,7 +348,8 @@ typealias Try = Result<Success, Error>
  * Type alias for Try with a custom error type.
  * 自定义错误类型的 Try 类型别名。
  */
-typealias TryWith<E> = Result<Success, E>
+typealias TryWith<E> = Result<Success, ErrorCode, E>
+typealias TryWithOf<C, E> = Result<Success, C, E>
 
 /**
  * 带返回值的 Result 类型别名
@@ -322,7 +357,8 @@ typealias TryWith<E> = Result<Success, E>
  * Type alias for Result with a return value type.
  * 带返回值类型的 Result 类型别名。
  */
-typealias Ret<T> = Result<T, Error>
+typealias Ret<T> = Result<T, ErrorCode, Error<ErrorCode>>
+typealias RetOf<T, C> = Result<T, C, Error<C>>
 
 /**
  * 全局 Ok 实例
@@ -330,7 +366,7 @@ typealias Ret<T> = Result<T, Error>
  * Global Ok instance for Try results.
  * 用于 Try 结果的全局 Ok 实例。
  */
-val ok = Ok<Success, Error>(success)
+val ok = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
  * 创建 Ok 实例的工厂函数
@@ -338,7 +374,7 @@ val ok = Ok<Success, Error>(success)
  * Factory function to create an Ok instance with custom error type.
  * 创建自定义错误类型 Ok 实例的工厂函数。
  */
-fun <E : Error> ok(): Result<Success, E> = Ok(success)
+fun <E : Error<ErrorCode>> ok(): Result<Success, ErrorCode, E> = Ok(success)
 
 /**
  * 顺序执行多个操作块
@@ -525,7 +561,8 @@ suspend fun <T> syncRun(
  * Type alias for ExResult without a meaningful return value.
  * 无有意义返回值的 ExResult 类型别名。
  */
-typealias ExTry = ExResult<Success, Error>
+typealias ExTry = ExResult<Success, ErrorCode, Error<ErrorCode>>
+typealias ExTryWithCode<C> = ExResult<Success, C, Error<C>>
 
 /**
  * 自定义错误类型的 ExTry 类型别名
@@ -533,7 +570,7 @@ typealias ExTry = ExResult<Success, Error>
  * Type alias for ExTry with a custom error type.
  * 自定义错误类型的 ExTry 类型别名。
  */
-typealias ExTryWith<E> = ExResult<Success, E>
+typealias ExTryWith<E> = ExResult<Success, ErrorCode, E>
 
 /**
  * 带返回值的 ExResult 类型别名
@@ -541,7 +578,8 @@ typealias ExTryWith<E> = ExResult<Success, E>
  * Type alias for ExResult with a return value type.
  * 带返回值类型的 ExResult 类型别名。
  */
-typealias ExRet<T> = ExResult<T, Error>
+typealias ExRet<T> = ExResult<T, ErrorCode, Error<ErrorCode>>
+typealias ExRetWithCode<T, C> = ExResult<T, C, Error<C>>
 
 /**
  * 全局 ExOk 实例
@@ -549,7 +587,7 @@ typealias ExRet<T> = ExResult<T, Error>
  * Global Ok instance for ExTry results.
  * 用于 ExTry 结果的全局 Ok 实例。
  */
-val exOk = Ok<Success, Error>(success)
+val exOk = Ok<Success, ErrorCode, Error<ErrorCode>>(success)
 
 /**
  * 创建 ExOk 实例的工厂函数
@@ -557,7 +595,7 @@ val exOk = Ok<Success, Error>(success)
  * Factory function to create an Ok instance with custom error type for ExResult.
  * 创建自定义错误类型 ExOk 实例的工厂函数。
  */
-fun <E : Error> exOk(): ExResult<Success, E> = Ok(success)
+fun <E : Error<ErrorCode>> exOk(): ExResult<Success, ErrorCode, E> = Ok(success)
 
 /**
  * 顺序执行多个扩展操作块

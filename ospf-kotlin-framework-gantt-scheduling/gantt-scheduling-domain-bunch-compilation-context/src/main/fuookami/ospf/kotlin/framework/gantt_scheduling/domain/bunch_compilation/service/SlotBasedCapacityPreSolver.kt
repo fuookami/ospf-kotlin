@@ -207,9 +207,9 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
         // Solve the model
         // 求解模型
         when (val result = solver(model)) {
-            is Ok<*, *> -> {}
-            is Failed<*, *> -> return Failed(result.error)
-            is Fatal<*, *> -> return Fatal(result.errors)
+            is Ok<*, *, *> -> {}
+            is Failed<*, *, *> -> return Failed(result.error)
+            is Fatal<*, *, *> -> return Fatal(result.errors)
         }
 
         // Extract intermediate values

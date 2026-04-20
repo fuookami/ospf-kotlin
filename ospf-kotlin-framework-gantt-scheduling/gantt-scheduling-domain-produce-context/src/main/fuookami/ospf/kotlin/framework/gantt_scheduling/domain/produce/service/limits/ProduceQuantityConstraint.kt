@@ -50,9 +50,9 @@ class ProduceQuantityConstraint<
                                 name = "${name}_ub_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -69,9 +69,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok<*, *> -> {}
+                            is Ok<*, *, *> -> {}
 
-                            is Failed<*, *> -> {
+                            is Failed<*, *, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -87,9 +87,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok<*, *> -> {}
+                    is Ok<*, *, *> -> {}
 
-                    is Failed<*, *> -> {
+                    is Failed<*, *, *> -> {
                         return Failed(result.error)
                     }
 
@@ -108,9 +108,9 @@ class ProduceQuantityConstraint<
                                 name = "${name}_lb_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -127,9 +127,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok<*, *> -> {}
+                            is Ok<*, *, *> -> {}
 
-                            is Failed<*, *> -> {
+                            is Failed<*, *, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -145,9 +145,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok<*, *> -> {}
+                    is Ok<*, *, *> -> {}
 
-                    is Failed<*, *> -> {
+                    is Failed<*, *, *> -> {
                         return Failed(result.error)
                     }
 

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.solver
+package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
@@ -57,7 +57,7 @@ class SerialCombinatorialQuadraticSolver(
                     }
                 }
 
-                is Fatal<*, *> -> {
+                is Fatal<*, *, *> -> {
                     return Fatal(ErrorCode.OREngineSolvingException, result.errors.joinToString("; ") { it.message ?: "" })
                 }
             }
@@ -84,7 +84,7 @@ class SerialCombinatorialQuadraticSolver(
                     }
                 }
 
-                is Fatal<*, *> -> {
+                is Fatal<*, *, *> -> {
                     return Fatal(ErrorCode.OREngineSolvingException, result.errors.joinToString("; ") { it.message ?: "" })
                 }
             }

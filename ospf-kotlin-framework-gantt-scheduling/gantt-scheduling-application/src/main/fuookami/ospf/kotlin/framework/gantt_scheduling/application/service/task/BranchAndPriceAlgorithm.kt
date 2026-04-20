@@ -523,7 +523,7 @@ class BranchAndPriceAlgorithm<
         iteration: Iteration<IT, E, A>,
         model: LinearMetaModel,
         withKeeping: Boolean
-    ): Result<Map, Error> {
+    ): Result<Map, ErrorCode, Error<ErrorCode>> {
         val lpRet = when (val result = solver.solveLP("${id}_${iteration}_lp", model)) {
             is Ok -> {
                 model.setSolution(result.value.solution)
@@ -577,7 +577,7 @@ class BranchAndPriceAlgorithm<
         iteration: Iteration<IT, E, A>,
         executors: List<E>,
         shadowPriceMap: Map
-    ): Result<List<IT>, Error> {
+    ): Result<List<IT>, ErrorCode, Error<ErrorCode>> {
         val beginTime = Clock.System.now()
         val newTasks = when (val results = policy.taskGenerator(iteration.iteration, executors, shadowPriceMap)) {
             is Ok -> {
@@ -666,7 +666,7 @@ class BranchAndPriceAlgorithm<
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
         model: AbstractLinearMetaModel
-    ): Result<Flt64, Error> {
+    ): Result<Flt64, ErrorCode, Error<ErrorCode>> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
             maximumColumnAmount,
@@ -835,7 +835,7 @@ class BranchAndPriceAlgorithm<
     private fun analyzeSolution(
         iteration: UInt64,
         model: AbstractLinearMetaModel
-    ): Result<TaskSolution<T, E, A>, Error> {
+    ): Result<TaskSolution<T, E, A>, ErrorCode, Error<ErrorCode>> {
         return when (val result = context.analyzeSolution(iteration, tasks, model)) {
             is Ok -> {
                 Ok(result.value)

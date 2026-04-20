@@ -5,6 +5,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.yield
+import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -204,7 +206,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldParallelly(
     val segmentSize = normalizeSegment(segment)
     var segmentCounter = 0
     var accumulator = initial
-    val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+    val errors = ArrayList<Error<ErrorCode>>()
     for (element in this) {
         when (val ret = operation(accumulator, element)) {
             is Ok -> accumulator = ret.value
@@ -347,7 +349,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldIndexedParallelly(
     val segmentSize = normalizeSegment(segment)
     var segmentCounter = 0
     var accumulator = initial
-    val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+    val errors = ArrayList<Error<ErrorCode>>()
     for ((index, element) in withIndex()) {
         when (val ret = operation(index, accumulator, element)) {
             is Ok -> accumulator = ret.value
@@ -490,7 +492,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightParallelly(
     val segmentSize = normalizeSegment(segment)
     var segmentCounter = 0
     var accumulator = initial
-    val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+    val errors = ArrayList<Error<ErrorCode>>()
     for (element in toList().asReversed()) {
         when (val ret = operation(accumulator, element)) {
             is Ok -> accumulator = ret.value
@@ -635,7 +637,7 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
     val segmentSize = normalizeSegment(segment)
     var segmentCounter = 0
     var accumulator = initial
-    val errors = ArrayList<fuookami.ospf.kotlin.utils.error.Error>()
+    val errors = ArrayList<Error<ErrorCode>>()
     val elements = toList()
     for (index in elements.indices.reversed()) {
         when (val ret = operation(index, accumulator, elements[index])) {

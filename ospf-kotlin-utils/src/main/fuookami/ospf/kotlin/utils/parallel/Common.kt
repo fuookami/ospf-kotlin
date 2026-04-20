@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -376,7 +377,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
         // 顺序执行
         // Sequential execution
         val results = mutableListOf<R>()
-        val errors = mutableListOf<Error>()
+        val errors = mutableListOf<Error<ErrorCode>>()
         for ((index, element) in elementList.withIndex()) {
             when (val ret = extractor(index, element)) {
                 is Ok -> results.add(ret.value)
@@ -422,7 +423,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
         // 处理结果（按索引还原顺序）
         // Process results (restore original order by index)
         val orderedResults = arrayOfNulls<Any?>(elementList.size)
-        val errors = mutableListOf<Error>()
+        val errors = mutableListOf<Error<ErrorCode>>()
         for (resultWrapper in resultChannel) {
             when (val ret = resultWrapper.result) {
                 is Ok -> orderedResults[resultWrapper.index] = ret.value
@@ -443,7 +444,7 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
  * @param ret 结果对象 / Result object
  */
 @PublishedApi
-internal fun MutableList<Error>.appendFrom(ret: Ret<*>) {
+internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
     when (ret) {
         is Ok -> {}
         is Failed -> add(ret.error)
@@ -461,11 +462,11 @@ internal fun MutableList<Error>.appendFrom(ret: Ret<*>) {
  * @return 如果无错误返回 Ok，否则返回 Fatal / Ok if no errors, Fatal otherwise
  */
 @PublishedApi
-internal fun <T> exResultOf(value: T, errors: List<Error>): ExRet<T> {
+internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): ExRet<T> {
     return if (errors.isEmpty()) {
-        Ok(value)
+        Ok<T, ErrorCode, Error<ErrorCode>>(value)
     } else {
-        Fatal(errors)
+        Fatal<T, ErrorCode, Error<ErrorCode>>(errors)
     }
 }
 

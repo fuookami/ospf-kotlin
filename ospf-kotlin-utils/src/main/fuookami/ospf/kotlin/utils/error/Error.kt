@@ -22,7 +22,7 @@ package fuookami.ospf.kotlin.utils.error
  * 此类为错误处理提供了通用接口，
  * 包含错误代码、消息和可选值。
  */
-sealed class Error {
+sealed class Error<out C : Any> {
     companion object {
         /**
          * 创建错误实例
@@ -34,7 +34,7 @@ sealed class Error {
          * @param message 错误消息 / The error message
          * @return 新的 Err 实例 / A new Err instance
          */
-        operator fun invoke(code: ErrorCode, message: String): Err {
+        operator fun <C : Any> invoke(code: C, message: String): Err<C> {
             return Err(code, message)
         }
     }
@@ -45,7 +45,7 @@ sealed class Error {
      * The error code identifying the type of error.
      * 标识错误类型的错误代码。
      */
-    abstract val code: ErrorCode
+    abstract val code: C
 
     /**
      * 错误消息
@@ -97,10 +97,10 @@ sealed class Error {
  * @property code 错误代码 / The error code
  * @property message 错误消息 / The error message
  */
-open class Err(
-    override val code: ErrorCode,
+open class Err<out C : Any>(
+    override val code: C,
     override val message: String
-) : Error() {
+) : Error<C>() {
     companion object {
         /**
          * 创建错误实例
@@ -113,7 +113,7 @@ open class Err(
          *                Optional error message, defaults to code's string representation
          * @return 新的 Err 实例 / A new Err instance
          */
-        operator fun invoke(code: ErrorCode, message: String? = null): Err {
+        operator fun <C : Any> invoke(code: C, message: String? = null): Err<C> {
             return if (message == null) {
                 Err(code, code.toString())
             } else {
@@ -139,11 +139,11 @@ open class Err(
  * @property message 错误消息 / The error message
  * @property value 与错误关联的值 / The value associated with the error
  */
-open class ExErr<T>(
-    override val code: ErrorCode,
+open class ExErr<out C : Any, out T>(
+    override val code: C,
     override val message: String,
     override val value: T
-) : Error() {
+) : Error<C>() {
     /**
      * 创建只带代码和值的实例
      *
@@ -153,7 +153,7 @@ open class ExErr<T>(
      * @param code 错误代码 / The error code
      * @param value 与错误关联的值 / The value associated with the error
      */
-    constructor(code: ErrorCode, value: T) : this(code, code.toString(), value)
+    constructor(code: C, value: T) : this(code, code.toString(), value)
 }
 
 /**
@@ -165,7 +165,7 @@ open class ExErr<T>(
  * @property error 包装的错误实例 / The wrapped error instance
  */
 data class ApplicationException(
-    val error: Error
+    val error: Error<ErrorCode>
 ) : Throwable() {
     /**
      * 异常消息

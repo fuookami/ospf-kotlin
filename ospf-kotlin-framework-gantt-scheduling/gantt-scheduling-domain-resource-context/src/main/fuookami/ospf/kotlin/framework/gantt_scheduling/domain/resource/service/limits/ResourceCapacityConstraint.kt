@@ -50,9 +50,9 @@ class ResourceCapacityConstraint<
                                 name = "${name}_ub_$slot",
                                 args = ResourceCapacityShadowPriceKey(slot)
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -87,9 +87,9 @@ class ResourceCapacityConstraint<
                     name = "${usage.name}_${name}_ub_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
-                    is Ok<*, *> -> {}
+                    is Ok<*, *, *> -> {}
 
-                    is Failed<*, *> -> {
+                    is Failed<*, *, *> -> {
                         return Failed(result.error)
                     }
 
@@ -108,9 +108,9 @@ class ResourceCapacityConstraint<
                                 name = "${name}_lb_$slot",
                                 args = ResourceCapacityShadowPriceKey(slot)
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -145,9 +145,9 @@ class ResourceCapacityConstraint<
                     name = "${name}_lb_$slot",
                     args = ResourceCapacityShadowPriceKey(slot)
                 )) {
-                    is Ok<*, *> -> {}
+                    is Ok<*, *, *> -> {}
 
-                    is Failed<*, *> -> {
+                    is Failed<*, *, *> -> {
                         return Failed(result.error)
                     }
 

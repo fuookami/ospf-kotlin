@@ -40,9 +40,9 @@ class ItemDemandConstraint<
                                 polyX leq demandRange.upperBound.value.unwrap(),
                                 name = "${name}_ub_${item}"
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -58,9 +58,9 @@ class ItemDemandConstraint<
                             load.load[item] leq demandRange.upperBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok<*, *> -> {}
+                            is Ok<*, *, *> -> {}
 
-                            is Failed<*, *> -> {
+                            is Failed<*, *, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -95,9 +95,9 @@ class ItemDemandConstraint<
                                 polyX geq demandRange.lowerBound.value.unwrap(),
                                 name = "${name}_lb_${item}"
                             )) {
-                                is Ok<*, *> -> {}
+                                is Ok<*, *, *> -> {}
 
-                                is Failed<*, *> -> {
+                                is Failed<*, *, *> -> {
                                     return Failed(result.error)
                                 }
 
@@ -113,9 +113,9 @@ class ItemDemandConstraint<
                             load.load[item] geq demandRange.lowerBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok<*, *> -> {}
+                            is Ok<*, *, *> -> {}
 
-                            is Failed<*, *> -> {
+                            is Failed<*, *, *> -> {
                                 return Failed(result.error)
                             }
 
@@ -130,9 +130,9 @@ class ItemDemandConstraint<
                     load.load[item] geq demand,
                     name = "${name}_ub_${item}"
                 )) {
-                    is Ok<*, *> -> {}
+                    is Ok<*, *, *> -> {}
 
-                    is Failed<*, *> -> {
+                    is Failed<*, *, *> -> {
                         return Failed(result.error)
                     }
 
