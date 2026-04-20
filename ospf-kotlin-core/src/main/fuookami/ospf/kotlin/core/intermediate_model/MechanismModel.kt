@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -139,6 +140,31 @@ private data class OrderedVariablePair(
             } else {
                 OrderedVariablePair(rhs, lhs)
             }
+        }
+    }
+}
+
+private fun <C : Constraint<Flt64, *>> validateDualById(
+    constraints: List<C>,
+    dualById: Map<String, Flt64>,
+    log: org.apache.logging.log4j.kotlin.KotlinLogger
+) {
+    // Detect duplicate constraint names — multiple constraints sharing the same name
+    // would silently reuse the same dual value from the by-id map.
+    val nameCounts = HashMap<String, Int>()
+    for (c in constraints) {
+        nameCounts[c.name] = (nameCounts[c.name] ?: 0) + 1
+    }
+    for ((name, count) in nameCounts) {
+        if (count > 1) {
+            log.warn { "Duplicate constraint name '$name' appears $count times in model; by_id lookup will use the same dual value for all" }
+        }
+    }
+    // Detect names in dualById that don't match any constraint — likely a caller error.
+    val constraintNames = nameCounts.keys
+    for (name in dualById.keys) {
+        if (name !in constraintNames) {
+            log.warn { "dualSolutionById contains name '$name' which does not match any constraint in the model; it will be ignored" }
         }
     }
 }
@@ -540,6 +566,105 @@ class LinearMechanismModel<V : RealNumber<V>>(
             constant = constants
         )
         return listOf((lhs le Flt64.zero).normalize())
+    }
+
+    /**
+     * Generate optimal Benders cut using constraint-name-based dual solution lookup.
+     *
+     * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
+     * (constraint name → dual value) instead of `Map<LinearConstraint, Flt64>`.
+     * Use when the caller has dual values keyed by constraint name (e.g., from
+     * serialized results, cross-process communication, or log output) rather than
+     * direct Constraint object references.
+     *
+     * @param objectVariable  the objective variable (theta) to project onto
+     * @param fixedVariables  variables fixed in the sub-problem and their values
+     * @param dualSolutionById  constraint name → dual value mapping
+     * @return list of linear cuts
+     */
+    fun generateOptimalCutById(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualSolutionById: Map<String, Flt64>
+    ): List<MathLinearInequality> {
+        validateDualById(linearConstraints, dualSolutionById, logger)
+        val dualSolution: LinearDualSolution = buildMap {
+            for (c in linearConstraints) {
+                val v = dualSolutionById[c.name]
+                if (v != null && v neq Flt64.zero) put(c, v)
+            }
+        }
+        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
+    }
+
+    /**
+     * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
+     *
+     * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
+     * (constraint name → Farkas dual value) instead of `Map<LinearConstraint, Flt64>`.
+     *
+     * @param fixedVariables  variables fixed in the sub-problem and their values
+     * @param farkasDualSolutionById  constraint name → Farkas dual value mapping
+     * @return list of linear cuts
+     */
+    fun generateFeasibleCutById(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolutionById: Map<String, Flt64>
+    ): List<MathLinearInequality> {
+        validateDualById(linearConstraints, farkasDualSolutionById, logger)
+        val farkasDualSolution: LinearDualSolution = buildMap {
+            for (c in linearConstraints) {
+                val v = farkasDualSolutionById[c.name]
+                if (v != null && v neq Flt64.zero) put(c, v)
+            }
+        }
+        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+    }
+
+    /**
+     * Generate optimal Benders cut from raw solver dual output.
+     *
+     * Convenience overload that accepts raw dual values ([Solution]) and a
+     * [LinearTriadModelView] for origin resolution, delegating to
+     * [LinearTriadModelView.tidyDualSolution] to map raw values back to
+     * Constraint objects, then calling [generateOptimalCut].
+     *
+     * @param objectVariable  the objective variable (theta) to project onto
+     * @param fixedVariables  variables fixed in the sub-problem and their values
+     * @param dualValues      raw dual values from the solver output
+     * @param triadModel      the LinearTriadModel containing origin mapping
+     * @return list of linear cuts
+     */
+    fun generateOptimalCutFromOutput(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualValues: Solution,
+        triadModel: LinearTriadModelView
+    ): List<MathLinearInequality> {
+        val dualSolution = triadModel.tidyDualSolution(dualValues)
+        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
+    }
+
+    /**
+     * Generate feasible Benders cut from raw solver Farkas dual output.
+     *
+     * Convenience overload that accepts raw Farkas dual values ([Solution]) and a
+     * [LinearTriadModelView] for origin resolution, delegating to
+     * [LinearTriadModelView.tidyDualSolution] to map raw values back to
+     * Constraint objects, then calling [generateFeasibleCut].
+     *
+     * @param fixedVariables  variables fixed in the sub-problem and their values
+     * @param farkasDualValues raw Farkas dual values from the solver output
+     * @param triadModel      the LinearTriadModel containing origin mapping
+     * @return list of linear cuts
+     */
+    fun generateFeasibleCutFromOutput(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualValues: Solution,
+        triadModel: LinearTriadModelView
+    ): List<MathLinearInequality> {
+        val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
+        return generateFeasibleCut(fixedVariables, farkasDualSolution)
     }
 
     val numConstraints: Int get() = _constraints.size
@@ -962,6 +1087,109 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
         )
         val rhs = MathQuadraticPolynomial<Flt64>(emptyList(), Flt64.zero)
         return Ok(listOf((lhs le rhs).normalize()))
+    }
+
+    /**
+     * Generate optimal Benders cut using constraint-name-based dual solution lookup.
+     *
+     * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
+     * (constraint name → dual value) instead of `Map<QuadraticConstraint, Flt64>`.
+     * Use when the caller has dual values keyed by constraint name (e.g., from
+     * serialized results, cross-process communication, or log output) rather than
+     * direct Constraint object references.
+     *
+     * @param objective        the objective value of the sub-problem solution
+     * @param objectVariable   the objective variable (theta) to project onto
+     * @param fixedVariables   variables fixed in the sub-problem and their values
+     * @param dualSolutionById constraint name → dual value mapping
+     * @return list of cuts (linear or quadratic inequalities)
+     */
+    fun generateOptimalCutById(
+        objective: Flt64,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualSolutionById: Map<String, Flt64>
+    ): Ret<List<Any>> {
+        validateDualById(quadraticConstraints, dualSolutionById, logger)
+        val dualSolution: QuadraticDualSolution = buildMap {
+            for (c in quadraticConstraints) {
+                val v = dualSolutionById[c.name]
+                if (v != null && v neq Flt64.zero) put(c, v)
+            }
+        }
+        return generateOptimalCut(objective, objectVariable, fixedVariables, dualSolution)
+    }
+
+    /**
+     * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
+     *
+     * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
+     * (constraint name → Farkas dual value) instead of `Map<QuadraticConstraint, Flt64>`.
+     *
+     * @param fixedVariables         variables fixed in the sub-problem and their values
+     * @param farkasDualSolutionById constraint name → Farkas dual value mapping
+     * @return list of cuts (linear or quadratic inequalities)
+     */
+    fun generateFeasibleCutById(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualSolutionById: Map<String, Flt64>
+    ): Ret<List<Any>> {
+        validateDualById(quadraticConstraints, farkasDualSolutionById, logger)
+        val farkasDualSolution: QuadraticDualSolution = buildMap {
+            for (c in quadraticConstraints) {
+                val v = farkasDualSolutionById[c.name]
+                if (v != null && v neq Flt64.zero) put(c, v)
+            }
+        }
+        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+    }
+
+    /**
+     * Generate optimal Benders cut from raw solver dual output.
+     *
+     * Convenience overload that accepts raw dual values ([Solution]) and a
+     * [QuadraticTetradModelView] for origin resolution, delegating to
+     * [QuadraticTetradModelView.tidyDualSolution] to map raw values back to
+     * Constraint objects, then calling [generateOptimalCut].
+     *
+     * @param objective       the objective value of the sub-problem solution
+     * @param objectVariable  the objective variable (theta) to project onto
+     * @param fixedVariables  variables fixed in the sub-problem and their values
+     * @param dualValues      raw dual values from the solver output
+     * @param tetradModel     the QuadraticTetradModel containing origin mapping
+     * @return list of cuts (linear or quadratic inequalities)
+     */
+    fun generateOptimalCutFromOutput(
+        objective: Flt64,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        dualValues: Solution,
+        tetradModel: QuadraticTetradModelView
+    ): Ret<List<Any>> {
+        val dualSolution = tetradModel.tidyDualSolution(dualValues)
+        return generateOptimalCut(objective, objectVariable, fixedVariables, dualSolution)
+    }
+
+    /**
+     * Generate feasible Benders cut from raw solver Farkas dual output.
+     *
+     * Convenience overload that accepts raw Farkas dual values ([Solution]) and a
+     * [QuadraticTetradModelView] for origin resolution, delegating to
+     * [QuadraticTetradModelView.tidyDualSolution] to map raw values back to
+     * Constraint objects, then calling [generateFeasibleCut].
+     *
+     * @param fixedVariables    variables fixed in the sub-problem and their values
+     * @param farkasDualValues  raw Farkas dual values from the solver output
+     * @param tetradModel       the QuadraticTetradModel containing origin mapping
+     * @return list of cuts (linear or quadratic inequalities)
+     */
+    fun generateFeasibleCutFromOutput(
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        farkasDualValues: Solution,
+        tetradModel: QuadraticTetradModelView
+    ): Ret<List<Any>> {
+        val farkasDualSolution = tetradModel.tidyDualSolution(farkasDualValues)
+        return generateFeasibleCut(fixedVariables, farkasDualSolution)
     }
 
     val numConstraints: Int get() = _constraints.size

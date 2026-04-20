@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework
 
 import fuookami.ospf.kotlin.utils.error.Error
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.datetime.LocalDateTime
@@ -49,7 +50,7 @@ data class FinnishHeartBeat(
             )
         }
 
-        operator fun invoke(id: String, runTime: Duration, error: Error): FinnishHeartBeat {
+        operator fun invoke(id: String, runTime: Duration, error: Error<ErrorCode>): FinnishHeartBeat {
             return FinnishHeartBeat(
                 id = id,
                 runTime = runTime,
@@ -58,7 +59,7 @@ data class FinnishHeartBeat(
             )
         }
 
-        operator fun invoke(id: String, error: Error): FinnishHeartBeat {
+        operator fun invoke(id: String, error: Error<ErrorCode>): FinnishHeartBeat {
             return FinnishHeartBeat(
                 id = id,
                 runTime = Duration.ZERO,
@@ -68,5 +69,4 @@ data class FinnishHeartBeat(
         }
     }
 }
-
 

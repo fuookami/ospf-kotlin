@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
@@ -12,6 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadra
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -26,47 +28,36 @@ import kotlin.test.assertTrue
 class SemanticEquivalenceTest {
 
     /**
-     * Test 1: Linear model equivalence
+     * Test 1: Linear model equivalence — old monomial entry vs new math.symbol entry
      *
-     * Creates a LinearMetaModel<Flt64> with variables x, y, adds the constraint
-     * 2x + 3y <= 10 via MathLinearInequality (new entry), and also via the DSL
-     * (MathInequalityDsl `le` extension). Verifies both produce the same number
-     * of constraints and that both constraints have the same rhs, sign, and lhs
-     * cell coefficients.
+     * Model A uses the deprecated addConstraint(constraint: LinearMonomial) which
+     * internally creates (constraint eq true), i.e. x = 1.
+     * Model B uses the new addConstraint(relation: MathLinearInequality) with
+     * the equivalent (x eq Flt64.one).
+     * Verifies both produce the same constraint sign and flattenData.
      */
     @Test
-    fun linearModelEquivalenceViaNewEntryAndDsl() {
+    @Suppress("DEPRECATION")
+    fun linearModelEquivalenceOldMonomialVsNewMathSymbol() {
         val x = RealVar("x")
-        val y = RealVar("y")
 
-        // === Model A: New entry via MathLinearInequality constructed from LinearPolynomial ===
+        // === Model A: Old entry via addConstraint(constraint: LinearMonomial) → x eq true ===
         val metaModelA = LinearMetaModel<Flt64>(name = "test-linear-equiv-a")
-        metaModelA.add(listOf(x, y))
+        metaModelA.add(x)
 
-        val lhsA = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64(2.0), x), MathLinearMonomial(Flt64(3.0), y)),
-            constant = Flt64.zero
-        )
-        val rhsA = MathLinearPolynomial(emptyList(), Flt64(10.0))
-        val inequalityA: MathLinearInequality = (lhsA le rhsA)
-
+        val oldMonomial = fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(x)
         metaModelA.addConstraint(
-            relation = inequalityA,
+            constraint = oldMonomial,
             group = null,
             lazy = false,
             name = "c1"
         )
 
-        // === Model B: DSL-based entry using `le` extension on LinearPolynomial ===
+        // === Model B: New entry via addConstraint(relation: MathLinearInequality) → x eq 1.0 ===
         val metaModelB = LinearMetaModel<Flt64>(name = "test-linear-equiv-b")
-        metaModelB.add(listOf(x, y))
+        metaModelB.add(x)
 
-        val lhsB = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64(2.0), x), MathLinearMonomial(Flt64(3.0), y)),
-            constant = Flt64.zero
-        )
-        val inequalityB: MathLinearInequality = (lhsB le Flt64(10.0))
-
+        val inequalityB: MathLinearInequality = (x eq Flt64.one)
         metaModelB.addConstraint(
             relation = inequalityB,
             group = null,
@@ -81,26 +72,28 @@ class SemanticEquivalenceTest {
         val constraintA = metaModelA.relationConstraints.first()
         val constraintB = metaModelB.relationConstraints.first()
 
-        // Verify both have the same sign (LE)
-        assertEquals(Comparison.LE, constraintA.sign, "Constraint A should have LE sign")
-        assertEquals(Comparison.LE, constraintB.sign, "Constraint B should have LE sign")
+        // Verify both have the same sign (EQ)
+        assertEquals(Comparison.EQ, constraintA.sign, "Constraint A should have EQ sign")
+        assertEquals(Comparison.EQ, constraintB.sign, "Constraint B should have EQ sign")
 
-        // Verify flattenData equivalence: both should produce the same flattened representation
+        // Verify flattenData equivalence
         val flattenA = constraintA.flattenData
         val flattenB = constraintB.flattenData
 
-        // The flattened constant should be -10.0 (lhs.constant - rhs.constant = 0 - 10 = -10)
-        assertEquals(Flt64(-10.0), flattenA.constant, "Flatten A constant should be -10")
-        assertEquals(Flt64(-10.0), flattenB.constant, "Flatten B constant should be -10")
+        // Both should have 1 monomial (1*x)
+        assertEquals(1, flattenA.monomials.size, "Flatten A should have 1 monomial")
+        assertEquals(1, flattenB.monomials.size, "Flatten B should have 1 monomial")
 
-        // Both should have 2 monomials (2x, 3y)
-        assertEquals(2, flattenA.monomials.size, "Flatten A should have 2 monomials")
-        assertEquals(2, flattenB.monomials.size, "Flatten B should have 2 monomials")
+        // Verify coefficients are equivalent (both should be 1.0)
+        assertEquals(
+            flattenA.monomials.first().coefficient.toDouble(),
+            flattenB.monomials.first().coefficient.toDouble(),
+            1e-10,
+            "Flatten coefficients should match between A and B"
+        )
 
-        // Verify coefficients are equivalent
-        val coeffsA = flattenA.monomials.map { it.coefficient.toDouble() }.sorted()
-        val coeffsB = flattenB.monomials.map { it.coefficient.toDouble() }.sorted()
-        assertEquals(coeffsA, coeffsB, "Flatten coefficients should match between A and B")
+        // Verify constants are equivalent (both should be -1.0, since lhs - rhs = 0 - 1 = -1)
+        assertEquals(flattenA.constant, flattenB.constant, "Flatten constants should match")
 
         metaModelA.close()
         metaModelB.close()
@@ -167,27 +160,60 @@ class SemanticEquivalenceTest {
     /**
      * Test 3: V-generic vs Flt64-specific path equivalence
      *
-     * Creates a LinearMechanismModel<Flt64> and verifies convertMechanismModelToF64
-     * returns Ok. Verifies the converted model has the same constraints as the original.
+     * Creates a LinearMetaModel<Flt64> with real constraints (2x + 3y <= 10) and
+     * objective (min x), then builds a LinearMechanismModel via invoke() and
+     * verifies convertMechanismModelToF64 preserves the constraints and objective.
      */
     @Test
-    fun vGenericPathEquivalentToFlt64Path() {
+    fun vGenericPathEquivalentToFlt64Path() = runBlocking {
         val x = RealVar("x")
-        val tokens = AutoTokenTable(Linear, false)
-        tokens.add(x)
+        val y = RealVar("y")
 
-        val metaModel = LinearMetaModel<Flt64>(name = "test-vgeneric-equiv")
-        val model = LinearMechanismModel<Flt64>(
-            parent = metaModel,
-            name = "test-mech-vgeneric",
-            constraints = emptyList(),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
-            tokens = tokens
+        val metaModel = LinearMetaModel<Flt64>(
+            name = "test-vgeneric-equiv",
+            configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
         )
+        metaModel.add(listOf(x, y))
 
-        val result = convertMechanismModelToF64(model)
-        assertTrue(result is Ok, "convertMechanismModelToF64 should return Ok for LinearMechanismModel<Flt64>")
-        assertEquals(0, result.value.constraints.size, "Converted model should have same number of constraints as original")
+        // Add real constraint: 2x + 3y <= 10
+        val lhs = MathLinearPolynomial(
+            monomials = listOf(MathLinearMonomial(Flt64(2.0), x), MathLinearMonomial(Flt64(3.0), y)),
+            constant = Flt64.zero
+        )
+        val inequality: MathLinearInequality = (lhs le Flt64(10.0))
+        metaModel.addConstraint(relation = inequality, group = null, lazy = false, name = "c1")
+
+        // Add real objective: minimize x
+        val objPoly = MathLinearPolynomial(
+            monomials = listOf(MathLinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        metaModel.addObject(ObjectCategory.Minimum, objPoly, "obj", null)
+
+        // Build MechanismModel via invoke() — this is the real MetaModel -> MechanismModel pipeline
+        val mechResult = LinearMechanismModel.invoke(metaModel, concurrent = false)
+        assertTrue(mechResult is Ok, "LinearMechanismModel.invoke should succeed")
+
+        val mechModel = mechResult.value
+        assertEquals(1, mechModel.constraints.size, "MechanismModel should have 1 constraint from MetaModel")
+
+        // Verify the constraint has correct sign and rhs
+        val constraint = mechModel.constraints.first()
+        assertEquals(ConstraintRelation.LessEqual, constraint.sign, "Constraint should be LE")
+        assertEquals(Flt64(10.0), constraint.rhsF64, "Constraint rhs should be 10")
+
+        // Verify objective is present
+        assertEquals(ObjectCategory.Minimum, mechModel.objectFunction.category, "Objective should be Minimum")
+        assertTrue(mechModel.objectFunction.subObjects.isNotEmpty(), "Objective should have sub-objects")
+
+        // Verify convertMechanismModelToF64 preserves everything
+        val f64Result = convertMechanismModelToF64(mechModel)
+        assertTrue(f64Result is Ok, "convertMechanismModelToF64 should return Ok")
+        assertEquals(1, f64Result.value.constraints.size, "F64 model should preserve constraint count")
+
+        val f64Constraint = f64Result.value.constraints.first()
+        assertEquals(constraint.sign, f64Constraint.sign, "F64 constraint sign should match")
+        assertEquals(constraint.rhsF64, f64Constraint.rhsF64, "F64 constraint rhs should match")
 
         metaModel.close()
     }
@@ -314,19 +340,25 @@ class SemanticEquivalenceTest {
     }
 
     /**
-     * Test 7: Full modeling→MechanismModel pipeline equivalence
+     * Test 7: Full MetaModel→MechanismModel pipeline equivalence
      *
-     * Creates two LinearMetaModel instances with identical variables and constraints
-     * using different entry points (MathLinearInequality + minimize vs addObject),
-     * then verifies the resulting MechanismModel constraints are equivalent.
+     * Verifies two aspects:
+     * - Constraint pipeline: two MetaModel instances with identical constraints built via
+     *   addConstraint(relation: MathLinearInequality), then MechanismModel via invoke(),
+     *   verify constraints are equivalent.
+     * - Objective equivalence: addObject(category, polynomial) vs addObject(category, flattenData)
+     *   produce equivalent representations at the MetaModel level (subObjects vs flattenSubObjects).
      */
     @Test
-    fun fullPipelineEquivalenceConstraintAndObjective() {
+    fun fullPipelineEquivalenceConstraintAndObjective() = runBlocking {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        // === Pipeline A: MathLinearInequality + minimize(polynomial) ===
-        val metaModelA = LinearMetaModel<Flt64>(name = "test-pipeline-a")
+        // === Constraint pipeline A: addConstraint(relation) + addObject(category, polynomial) ===
+        val metaModelA = LinearMetaModel<Flt64>(
+            name = "test-pipeline-a",
+            configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
+        )
         metaModelA.add(listOf(x, y))
 
         val lhsA = MathLinearPolynomial(
@@ -340,20 +372,18 @@ class SemanticEquivalenceTest {
             monomials = listOf(MathLinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        metaModelA.minimize(objPolyA)
+        metaModelA.addObject(ObjectCategory.Minimum, objPolyA, "obj", null)
 
-        val tokensA = AutoTokenTable(Linear, false)
-        tokensA.add(listOf(x, y))
-        val mechModelA = LinearMechanismModel<Flt64>(
-            parent = metaModelA,
-            name = "mech-a",
-            constraints = mutableListOf(),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
-            tokens = tokensA
+        // Build MechanismModel via invoke() — real pipeline
+        val mechResultA = LinearMechanismModel.invoke(metaModelA, concurrent = false)
+        assertTrue(mechResultA is Ok, "LinearMechanismModel.invoke should succeed for A")
+        val mechModelA = mechResultA.value
+
+        // === Constraint pipeline B: same constraint, but objective via addObject(category, flattenData) ===
+        val metaModelB = LinearMetaModel<Flt64>(
+            name = "test-pipeline-b",
+            configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
         )
-
-        // === Pipeline B: DSL le + addObject(flattenData) ===
-        val metaModelB = LinearMetaModel<Flt64>(name = "test-pipeline-b")
         metaModelB.add(listOf(x, y))
 
         val lhsB = MathLinearPolynomial(
@@ -363,101 +393,153 @@ class SemanticEquivalenceTest {
         val inequalityB: MathLinearInequality = (lhsB le Flt64(10.0))
         metaModelB.addConstraint(relation = inequalityB, group = null, lazy = false, name = "c1")
 
+        // B path: addObject via flattenData (new API) — writes to _flattenSubObjects
         val flattenData = LinearFlattenDataF64(objPolyA.monomials, objPolyA.constant)
         metaModelB.addObject(ObjectCategory.Minimum, flattenData)
 
-        val tokensB = AutoTokenTable(Linear, false)
-        tokensB.add(listOf(x, y))
-        val mechModelB = LinearMechanismModel<Flt64>(
-            parent = metaModelB,
-            name = "mech-b",
-            constraints = mutableListOf(),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
-            tokens = tokensB
-        )
+        // Also add via polynomial so invoke() can read the objective from _subObjects
+        metaModelB.addObject(ObjectCategory.Minimum, objPolyA, "obj", null)
 
-        // Verify both MechanismModels have same constraint count
+        // Build MechanismModel via invoke() — real pipeline
+        val mechResultB = LinearMechanismModel.invoke(metaModelB, concurrent = false)
+        assertTrue(mechResultB is Ok, "LinearMechanismModel.invoke should succeed for B")
+        val mechModelB = mechResultB.value
+
+        // === Verify constraint pipeline equivalence ===
         assertEquals(mechModelA.constraints.size, mechModelB.constraints.size,
             "Both MechanismModels should have same constraint count")
+        assertEquals(1, mechModelA.constraints.size, "Both should have 1 constraint from MetaModel")
 
-        // Verify convertMechanismModelToF64 works for both
-        val resultA = convertMechanismModelToF64(mechModelA)
-        val resultB = convertMechanismModelToF64(mechModelB)
-        assertTrue(resultA is Ok, "convertMechanismModelToF64 should succeed for A")
-        assertTrue(resultB is Ok, "convertMechanismModelToF64 should succeed for B")
+        val constraintA = mechModelA.constraints.first()
+        val constraintB = mechModelB.constraints.first()
+        assertEquals(constraintA.sign, constraintB.sign, "Constraint signs should match")
+        assertEquals(constraintA.rhsF64, constraintB.rhsF64, "Constraint rhs should match")
+
+        assertEquals(constraintA.lhs.size, constraintB.lhs.size, "LHS cell count should match")
+        val coeffsA = constraintA.lhs.map { (it as LinearCellF64).coefficientF64.toDouble() }.sorted()
+        val coeffsB = constraintB.lhs.map { (it as LinearCellF64).coefficientF64.toDouble() }.sorted()
+        assertEquals(coeffsA, coeffsB, "LHS coefficients should match")
+
+        // === Verify objective equivalence at MetaModel level ===
+        // A's _subObjects and B's _flattenSubObjects should represent the same objective
+        assertEquals(1, metaModelA.subObjects.size, "Model A should have 1 subObject")
+        assertEquals(1, metaModelB.flattenSubObjects.size, "Model B should have 1 flattenSubObject")
+
+        val subObjA = metaModelA.subObjects.first()
+        val flattenSubObjB = metaModelB.flattenSubObjects.first()
+        assertEquals(subObjA.category, flattenSubObjB.category, "Objective categories should match")
+        assertEquals(subObjA.polynomial.constant, flattenSubObjB.constantF64, "Objective constants should match")
+        assertEquals(subObjA.polynomial.monomials.size, flattenSubObjB.cells.size,
+            "Objective monomial/cell count should match")
+
+        // === Verify MechanismModel objectives ===
+        assertEquals(mechModelA.objectFunction.category, mechModelB.objectFunction.category,
+            "MechanismModel objective categories should match")
+        assertTrue(mechModelA.objectFunction.subObjects.isNotEmpty(), "MechanismModel A should have objective sub-objects")
+        assertTrue(mechModelB.objectFunction.subObjects.isNotEmpty(), "MechanismModel B should have objective sub-objects")
+
+        // === Verify convertMechanismModelToF64 preserves constraints ===
+        val f64ResultA = convertMechanismModelToF64(mechModelA)
+        val f64ResultB = convertMechanismModelToF64(mechModelB)
+        assertTrue(f64ResultA is Ok, "convertMechanismModelToF64 should succeed for A")
+        assertTrue(f64ResultB is Ok, "convertMechanismModelToF64 should succeed for B")
+
+        assertEquals(f64ResultA.value.constraints.size, f64ResultB.value.constraints.size,
+            "F64 models should have same constraint count")
 
         metaModelA.close()
         metaModelB.close()
     }
 
     /**
-     * Test 8: Plugin boundary Double conversion — V=Flt64 path vs direct Flt64 path
+     * Test 8: Plugin boundary Double conversion — quadratic constraints survive V→F64 boundary
      *
-     * Verifies that a QuadraticMechanismModel<Flt64> passes through
-     * convertMechanismModelToF64 correctly, and that the constraint
-     * representation is preserved across the V→F64 boundary.
+     * Creates a QuadraticMetaModel<Flt64> with a real quadratic constraint (x*y <= 5)
+     * and a linear constraint (x <= 3), builds QuadraticMechanismModel via invoke(),
+     * then verifies convertMechanismModelToF64 preserves ALL constraints including
+     * the quadratic one.
      */
     @Test
-    fun pluginBoundaryDoubleConversionPreservesConstraints() {
+    fun pluginBoundaryDoubleConversionPreservesConstraints() = runBlocking {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-boundary")
+        val metaModel = QuadraticMetaModel<Flt64>(
+            name = "test-boundary",
+            configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
+        )
         metaModel.add(listOf(x, y))
 
         // Add quadratic constraint: x*y <= 5
-        val lhsPoly = MathQuadraticPolynomial(
+        val quadLhs = MathQuadraticPolynomial(
             monomials = listOf(
                 MathQuadraticMonomial(Flt64.one, x, y)
             ),
             constant = Flt64.zero
         )
-        val inequality: MathQuadraticInequality = (lhsPoly le Flt64(5.0))
-        metaModel.addConstraint(relation = inequality, group = null, lazy = false, name = "qc1")
+        val quadInequality: MathQuadraticInequality = (quadLhs le Flt64(5.0))
+        metaModel.addConstraint(relation = quadInequality, group = null, lazy = false, name = "qc1")
+
+        // Add linear constraint: x <= 3 (converted to quadratic internally)
+        val linLhs = MathLinearPolynomial(
+            monomials = listOf(MathLinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val linInequality: MathLinearInequality = (linLhs le Flt64(3.0))
+        metaModel.addConstraint(relation = linInequality, group = null, lazy = false, name = "lc1")
 
         // Add quadratic objective: minimize x*y
         val objPoly = MathQuadraticPolynomial(
             monomials = listOf(MathQuadraticMonomial(Flt64.one, x, y)),
             constant = Flt64.zero
         )
-        metaModel.minimize(objPoly)
+        metaModel.addObject(ObjectCategory.Minimum, objPoly, "obj", null)
 
-        val tokens = AutoTokenTable(Quadratic, false)
-        tokens.add(listOf(x, y))
+        // Build MechanismModel via invoke() — real pipeline
+        val mechResult = QuadraticMechanismModel.invoke(metaModel, concurrent = false)
+        assertTrue(mechResult is Ok, "QuadraticMechanismModel.invoke should succeed")
+        val mechModel = mechResult.value
 
-        val mechModel = QuadraticMechanismModel<Flt64>(
-            parent = metaModel,
-            name = "mech-boundary",
-            constraints = mutableListOf(),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
-            tokens = tokens
-        )
+        // Verify both constraints are present in the MechanismModel
+        assertEquals(2, mechModel.constraints.size,
+            "MechanismModel should have 2 constraints (1 quadratic + 1 linear)")
 
-        // Add constraint via mechanism model API
-        val linearInequality: MathLinearInequality = (
-            MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64.one, x)),
-                constant = Flt64.zero
-            ) le Flt64(3.0)
-        )
-        mechModel.addConstraint(relation = linearInequality, name = "lc1")
+        // Verify the quadratic constraint has correct sign and rhs
+        val qcConstraint = mechModel.constraints[0]
+        assertEquals(ConstraintRelation.LessEqual, qcConstraint.sign, "Quadratic constraint should be LE")
+        assertEquals(Flt64(5.0), qcConstraint.rhsF64, "Quadratic constraint rhs should be 5")
 
-        // Verify convertMechanismModelToF64 succeeds
-        val result = convertMechanismModelToF64(mechModel)
-        assertTrue(result is Ok, "convertMechanismModelToF64 should succeed for QuadraticMechanismModel<Flt64>")
+        // Verify the linear constraint (converted to quadratic form) has correct sign and rhs
+        val lcConstraint = mechModel.constraints[1]
+        assertEquals(ConstraintRelation.LessEqual, lcConstraint.sign, "Linear constraint should be LE")
+        assertEquals(Flt64(3.0), lcConstraint.rhsF64, "Linear constraint rhs should be 3")
 
-        val f64Model = result.value
-        // The f64 model should have the same constraints
+        // Verify objective is present
+        assertEquals(ObjectCategory.Minimum, mechModel.objectFunction.category, "Objective should be Minimum")
+        assertTrue(mechModel.objectFunction.subObjects.isNotEmpty(), "Objective should have sub-objects")
+
+        // Verify convertMechanismModelToF64 preserves all constraints
+        val f64Result = convertMechanismModelToF64(mechModel)
+        assertTrue(f64Result is Ok, "convertMechanismModelToF64 should succeed for QuadraticMechanismModel<Flt64>")
+
+        val f64Model = f64Result.value
         assertEquals(mechModel.constraints.size, f64Model.constraints.size,
             "F64 model should have same constraint count as original")
 
-        // Verify each constraint's sign and rhs are preserved
+        // Verify each constraint's sign and rhs are preserved across the V→F64 boundary
         for (i in mechModel.constraints.indices) {
             val orig = mechModel.constraints[i]
             val f64 = f64Model.constraints[i]
-            assertEquals(orig.sign, f64.sign, "Constraint $i sign should match")
-            assertEquals(orig.rhsF64, f64.rhsF64, "Constraint $i rhsF64 should match")
+            assertEquals(orig.sign, f64.sign, "Constraint $i sign should match after F64 conversion")
+            assertEquals(orig.rhsF64, f64.rhsF64, "Constraint $i rhsF64 should match after F64 conversion")
         }
+
+        // Verify the quadratic constraint's lhs has a quadratic cell (token2 != null)
+        val f64QcConstraint = f64Model.constraints[0]
+        val hasQuadraticCell = f64QcConstraint.lhs.any { cell ->
+            (cell as? QuadraticCellF64)?.token2 != null
+        }
+        assertTrue(hasQuadraticCell, "Quadratic constraint should have at least one quadratic cell (token2 != null) after F64 conversion")
 
         metaModel.close()
     }

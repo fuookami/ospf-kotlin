@@ -117,7 +117,7 @@
 | # | 项目 | 状态 | 完成日期 |
 |---|------|------|----------|
 | P1-10 | 主链路语义等价回归 | 完成 | 2026-04-20 |
-| P1-8 | Benders cut by_id/from_output 公共 API | 待执行 | — |
+| P1-8 | Benders cut by_id/from_output 公共 API | 完成 | 2026-04-20 |
 | P1-11 | Basic*Model 独立公开入口规范化 | 待执行 | — |
 | P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 待执行 | — |
 | P1-12 | C6 兼容层删除流程（D0~D4） | 待执行 | — |
@@ -126,16 +126,38 @@
 
 新增 `SemanticEquivalenceTest.kt`，8 个测试用例覆盖：
 
-1. 线性模型等价（MathLinearInequality 构造 vs DSL `le`）
+1. 线性模型等价 — 旧入口 addConstraint(constraint: LinearMonomial) vs 新入口 addConstraint(relation: MathLinearInequality)
 2. 二次约束项正确性
-3. V 泛型路径 vs Flt64 路径（convertMechanismModelToF64）
+3. V 泛型路径 vs Flt64 路径 — 含非空约束+目标，经 invoke() 构建 MechanismModel 后验证 convertMechanismModelToF64 保留约束和目标
 4. ConstraintRelation 双射往返
 5. LinearRelation.from(MathLinearInequality) 语义保留
 6. 目标函数等价 — minimize(MathLinearPolynomial) vs addObject(LinearFlattenDataF64)
-7. 全流水线等价 — 两种入口点产生相同 MechanismModel
-8. 插件边界 Double 转换 — QuadraticMechanismModel<Flt64> 通过 convertMechanismModelToF64 后约束完整保留
+7. 全流水线等价 — 两种入口点经 invoke() 构建真实 MechanismModel，验证约束 sign/rhs/lhs 和目标均一致
+8. 插件边界 Double 转换 — QuadraticMechanismModel<Flt64> 经 invoke() 构建含二次约束，验证 convertMechanismModelToF64 后约束完整保留且二次项 token2 非空
 
-验收：`mvn -pl ospf-kotlin-core test` — 129 tests, 0 failures
+验收：`mvn -pl ospf-kotlin-core -am test` — 129 tests, 0 failures
+
+#### P1-8 完成详情
+
+新增 `by_id` 和 `from_output` 两套 Benders cut 公共 API 变体，覆盖 LinearMechanismModel 和 QuadraticMechanismModel：
+
+**by_id 变体**（约束名称→dual 值映射）：
+- `generateOptimalCutById(objectVariable, fixedVariables, dualSolutionById: Map<String, Flt64>)` — Linear
+- `generateFeasibleCutById(fixedVariables, farkasDualSolutionById: Map<String, Flt64>)` — Linear
+- `generateOptimalCutById(objective, objectVariable, fixedVariables, dualSolutionById: Map<String, Flt64>)` — Quadratic
+- `generateFeasibleCutById(fixedVariables, farkasDualSolutionById: Map<String, Flt64>)` — Quadratic
+
+**from_output 变体**（原始求解器 dual 值 + TriadModel/TetradModel 原点解析）：
+- `generateOptimalCutFromOutput(objectVariable, fixedVariables, dualValues: Solution, triadModel: LinearTriadModelView)` — Linear
+- `generateFeasibleCutFromOutput(fixedVariables, farkasDualValues: Solution, triadModel: LinearTriadModelView)` — Linear
+- `generateOptimalCutFromOutput(objective, objectVariable, fixedVariables, dualValues: Solution, tetradModel: QuadraticTetradModelView)` — Quadratic
+- `generateFeasibleCutFromOutput(fixedVariables, farkasDualValues: Solution, tetradModel: QuadraticTetradModelView)` — Quadratic
+
+新增 `BendersCutApiTest.kt`，8 个测试用例覆盖所有新 API 方法，验证与现有 `generateOptimalCut`/`generateFeasibleCut` 结果一致。
+
+关键代码证据：`MechanismModel.kt`（8 个新方法 + KDoc），`BendersCutApiTest.kt`（8 个测试）
+
+验收：`mvn -pl ospf-kotlin-core -am test` — 137 tests, 0 failures
 
 ---
 

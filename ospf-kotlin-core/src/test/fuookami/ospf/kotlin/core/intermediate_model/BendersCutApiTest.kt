@@ -1,0 +1,511 @@
+package fuookami.ospf.kotlin.core.intermediate_model
+
+import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import kotlin.test.Test
+import kotlin.test.assertEquals
+import kotlin.test.assertTrue
+
+class BendersCutApiTest {
+
+    // ── Linear by_id ──────────────────────────────────────────────
+
+    @Test
+    fun linearOptimalCutByIdShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val theta = RealVar("theta")
+
+        val tokens = AutoTokenTable(Linear, false)
+        assertTrue(tokens.add(x) is Ok)
+
+        val relation = MathLinearInequality(
+            lhs = MathLinearPolynomial(listOf(MathLinearMonomial(Flt64(2.0), x)), Flt64.zero),
+            rhs = MathLinearPolynomial(emptyList(), Flt64(6.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = LinearConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "lc-opt"
+        )
+        val mechanismModel = LinearMechanismModel<Flt64>(
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt"),
+            name = "cut-model-lin-opt",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(3.0))
+        val dualSolution: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val dualById = mapOf(constraint.name to Flt64.one)
+
+        val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+        val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+
+        assertEquals(direct.size, byId.size)
+        for (i in direct.indices) {
+            assertLinearInequalityEquals(direct[i], byId[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    @Test
+    fun linearFeasibleCutByIdShouldMatchDirectCall() {
+        val x = RealVar("x")
+
+        val tokens = AutoTokenTable(Linear, false)
+        assertTrue(tokens.add(x) is Ok)
+
+        val relation = MathLinearInequality(
+            lhs = MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, x)), Flt64.zero),
+            rhs = MathLinearPolynomial(emptyList(), Flt64(5.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = LinearConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "lc-feas"
+        )
+        val mechanismModel = LinearMechanismModel<Flt64>(
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas"),
+            name = "cut-model-lin-feas",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0))
+        val farkasDual: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val farkasDualById = mapOf(constraint.name to Flt64.one)
+
+        val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
+        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
+
+        assertEquals(direct.size, byId.size)
+        for (i in direct.indices) {
+            assertLinearInequalityEquals(direct[i], byId[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    // ── Quadratic by_id ───────────────────────────────────────────
+
+    @Test
+    fun quadraticOptimalCutByIdShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+        val theta = RealVar("theta")
+
+        val tokens = AutoTokenTable(Quadratic, false)
+        assertTrue(tokens.add(listOf(x, y)) is Ok)
+
+        val relation = MathQuadraticInequality(
+            lhs = MathQuadraticPolynomial(
+                monomials = listOf(
+                    MathQuadraticMonomial.quadratic(Flt64.one, x, y),
+                    MathQuadraticMonomial.linear(Flt64.one, x)
+                ),
+                constant = Flt64.zero
+            ),
+            rhs = MathQuadraticPolynomial(emptyList(), Flt64(6.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = QuadraticConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "qc-opt"
+        )
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt"),
+            name = "cut-model-qc-opt",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64.one, y to Flt64(2.0))
+        val dualSolution: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
+        val dualById = mapOf(constraint.name to Flt64(2.0))
+
+        val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
+        val byId = mechanismModel.generateOptimalCutById(Flt64.zero, theta, fixedVars, dualById)
+
+        assertTrue(direct is Ok)
+        assertTrue(byId is Ok)
+        assertEquals(direct.value.size, byId.value.size)
+        for (i in direct.value.indices) {
+            assertCutEquals(direct.value[i], byId.value[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    @Test
+    fun quadraticFeasibleCutByIdShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+
+        val tokens = AutoTokenTable(Quadratic, false)
+        assertTrue(tokens.add(listOf(x, y)) is Ok)
+
+        val relation = MathQuadraticInequality(
+            lhs = MathQuadraticPolynomial(
+                monomials = listOf(MathQuadraticMonomial.quadratic(Flt64.one, x, y)),
+                constant = Flt64.zero
+            ),
+            rhs = MathQuadraticPolynomial(emptyList(), Flt64.one),
+            comparison = Comparison.LE
+        )
+        val constraint = QuadraticConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "qc-feas"
+        )
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas"),
+            name = "cut-model-qc-feas",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0), y to Flt64(3.0))
+        val farkasDual: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
+        val farkasDualById = mapOf(constraint.name to Flt64.one)
+
+        val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
+        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
+
+        assertTrue(direct is Ok)
+        assertTrue(byId is Ok)
+        assertEquals(direct.value.size, byId.value.size)
+        for (i in direct.value.indices) {
+            assertCutEquals(direct.value[i], byId.value[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    // ── Linear from_output ────────────────────────────────────────
+
+    @Test
+    fun linearOptimalCutFromOutputShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val theta = RealVar("theta")
+
+        val tokens = AutoTokenTable(Linear, false)
+        assertTrue(tokens.add(x) is Ok)
+
+        val relation = MathLinearInequality(
+            lhs = MathLinearPolynomial(listOf(MathLinearMonomial(Flt64(2.0), x)), Flt64.zero),
+            rhs = MathLinearPolynomial(emptyList(), Flt64(6.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = LinearConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "lc-opt-out"
+        )
+        val mechanismModel = LinearMechanismModel<Flt64>(
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out"),
+            name = "cut-model-lin-opt-out",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(3.0))
+        val dualSolution: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val dualValues: Solution = listOf(Flt64.one)
+
+        val triadModel = RecordingLinearTriadModelView(dualSolution)
+
+        val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+        val fromOutput = mechanismModel.generateOptimalCutFromOutput(theta, fixedVars, dualValues, triadModel)
+
+        // Verify the stub received the exact dualValues we passed
+        assertEquals(dualValues, triadModel.lastSolution, "from_output must pass dualValues to tidyDualSolution")
+
+        assertEquals(direct.size, fromOutput.size)
+        for (i in direct.indices) {
+            assertLinearInequalityEquals(direct[i], fromOutput[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    @Test
+    fun linearFeasibleCutFromOutputShouldMatchDirectCall() {
+        val x = RealVar("x")
+
+        val tokens = AutoTokenTable(Linear, false)
+        assertTrue(tokens.add(x) is Ok)
+
+        val relation = MathLinearInequality(
+            lhs = MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, x)), Flt64.zero),
+            rhs = MathLinearPolynomial(emptyList(), Flt64(5.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = LinearConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "lc-feas-out"
+        )
+        val mechanismModel = LinearMechanismModel<Flt64>(
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out"),
+            name = "cut-model-lin-feas-out",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0))
+        val farkasDual: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val farkasDualValues: Solution = listOf(Flt64.one)
+
+        val triadModel = RecordingLinearTriadModelView(farkasDual)
+
+        val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
+        val fromOutput = mechanismModel.generateFeasibleCutFromOutput(fixedVars, farkasDualValues, triadModel)
+
+        // Verify the stub received the exact farkasDualValues we passed
+        assertEquals(farkasDualValues, triadModel.lastSolution, "from_output must pass farkasDualValues to tidyDualSolution")
+
+        assertEquals(direct.size, fromOutput.size)
+        for (i in direct.indices) {
+            assertLinearInequalityEquals(direct[i], fromOutput[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    // ── Quadratic from_output ─────────────────────────────────────
+
+    @Test
+    fun quadraticOptimalCutFromOutputShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+        val theta = RealVar("theta")
+
+        val tokens = AutoTokenTable(Quadratic, false)
+        assertTrue(tokens.add(listOf(x, y)) is Ok)
+
+        val relation = MathQuadraticInequality(
+            lhs = MathQuadraticPolynomial(
+                monomials = listOf(
+                    MathQuadraticMonomial.quadratic(Flt64.one, x, y),
+                    MathQuadraticMonomial.linear(Flt64.one, x)
+                ),
+                constant = Flt64.zero
+            ),
+            rhs = MathQuadraticPolynomial(emptyList(), Flt64(6.0)),
+            comparison = Comparison.LE
+        )
+        val constraint = QuadraticConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "qc-opt-out"
+        )
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out"),
+            name = "cut-model-qc-opt-out",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64.one, y to Flt64(2.0))
+        val dualSolution: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
+        val dualValues: Solution = listOf(Flt64(2.0))
+
+        val tetradModel = RecordingQuadraticTetradModelView(dualSolution)
+
+        val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
+        val fromOutput = mechanismModel.generateOptimalCutFromOutput(Flt64.zero, theta, fixedVars, dualValues, tetradModel)
+
+        // Verify the stub received the exact dualValues we passed
+        assertEquals(dualValues, tetradModel.lastSolution, "from_output must pass dualValues to tidyDualSolution")
+
+        assertTrue(direct is Ok)
+        assertTrue(fromOutput is Ok)
+        assertEquals(direct.value.size, fromOutput.value.size)
+        for (i in direct.value.indices) {
+            assertCutEquals(direct.value[i], fromOutput.value[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    @Test
+    fun quadraticFeasibleCutFromOutputShouldMatchDirectCall() {
+        val x = RealVar("x")
+        val y = RealVar("y")
+
+        val tokens = AutoTokenTable(Quadratic, false)
+        assertTrue(tokens.add(listOf(x, y)) is Ok)
+
+        val relation = MathQuadraticInequality(
+            lhs = MathQuadraticPolynomial(
+                monomials = listOf(MathQuadraticMonomial.quadratic(Flt64.one, x, y)),
+                constant = Flt64.zero
+            ),
+            rhs = MathQuadraticPolynomial(emptyList(), Flt64.one),
+            comparison = Comparison.LE
+        )
+        val constraint = QuadraticConstraintImpl(
+            relation = relation,
+            tokens = tokens,
+            name = "qc-feas-out"
+        )
+        val mechanismModel = QuadraticMechanismModel<Flt64>(
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out"),
+            name = "cut-model-qc-feas-out",
+            constraints = listOf(constraint),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
+            tokens = tokens
+        )
+
+        val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0), y to Flt64(3.0))
+        val farkasDual: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
+        val farkasDualValues: Solution = listOf(Flt64.one)
+
+        val tetradModel = RecordingQuadraticTetradModelView(farkasDual)
+
+        val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
+        val fromOutput = mechanismModel.generateFeasibleCutFromOutput(fixedVars, farkasDualValues, tetradModel)
+
+        // Verify the stub received the exact farkasDualValues we passed
+        assertEquals(farkasDualValues, tetradModel.lastSolution, "from_output must pass farkasDualValues to tidyDualSolution")
+
+        assertTrue(direct is Ok)
+        assertTrue(fromOutput is Ok)
+        assertEquals(direct.value.size, fromOutput.value.size)
+        for (i in direct.value.indices) {
+            assertCutEquals(direct.value[i], fromOutput.value[i])
+        }
+
+        mechanismModel.close()
+    }
+
+    // ── Helpers ───────────────────────────────────────────────────
+
+    private fun assertLinearInequalityEquals(
+        expected: MathLinearInequality,
+        actual: MathLinearInequality
+    ) {
+        val eFlat = expected.flattenData
+        val aFlat = actual.flattenData
+        assertEquals(expected.comparison, actual.comparison, "comparison mismatch")
+        assertTrue(eFlat.constant eq aFlat.constant,
+            "constant mismatch: expected ${eFlat.constant}, actual ${aFlat.constant}")
+        assertEquals(eFlat.monomials.size, aFlat.monomials.size, "monomial count mismatch")
+        for (em in eFlat.monomials) {
+            val am = aFlat.monomials.firstOrNull { it.symbol == em.symbol }
+            assertTrue(am != null && am.coefficient eq em.coefficient,
+                "monomial mismatch for ${em.symbol}: expected ${em.coefficient}, actual ${am?.coefficient}")
+        }
+    }
+
+    private fun assertQuadraticInequalityEquals(
+        expected: MathQuadraticInequality,
+        actual: MathQuadraticInequality
+    ) {
+        val eFlat = expected.flattenData
+        val aFlat = actual.flattenData
+        assertEquals(expected.comparison, actual.comparison, "comparison mismatch")
+        assertTrue(eFlat.constant eq aFlat.constant,
+            "constant mismatch: expected ${eFlat.constant}, actual ${aFlat.constant}")
+        assertEquals(eFlat.monomials.size, aFlat.monomials.size, "monomial count mismatch")
+        for (em in eFlat.monomials) {
+            val am = aFlat.monomials.firstOrNull {
+                (it.symbol1 == em.symbol1 && it.symbol2 == em.symbol2) ||
+                    (it.symbol1 == em.symbol2 && it.symbol2 == em.symbol1)
+            }
+            assertTrue(am != null && am.coefficient eq em.coefficient,
+                "monomial mismatch for (${em.symbol1}, ${em.symbol2}): expected ${em.coefficient}, actual ${am?.coefficient}")
+        }
+    }
+
+    /** Dispatch to the correct assertion based on cut type (linear or quadratic). */
+    @Suppress("UNCHECKED_CAST")
+    private fun assertCutEquals(expected: Any, actual: Any) {
+        val expectedClassName = expected::class.qualifiedName
+        val actualClassName = actual::class.qualifiedName
+        assertEquals(expectedClassName, actualClassName, "cut type mismatch")
+        when (expectedClassName) {
+            MathLinearInequality::class.qualifiedName ->
+                assertLinearInequalityEquals(expected as MathLinearInequality, actual as MathLinearInequality)
+            MathQuadraticInequality::class.qualifiedName ->
+                assertQuadraticInequalityEquals(expected as MathQuadraticInequality, actual as MathQuadraticInequality)
+            else -> assertTrue(false, "unexpected cut type: $expectedClassName")
+        }
+    }
+}
+
+/** Stub [LinearTriadModelView] that records the [Solution] passed to [tidyDualSolution] and returns a fixed result. */
+private class RecordingLinearTriadModelView(
+    private val fixedDualSolution: LinearDualSolution
+) : LinearTriadModelView {
+    var lastSolution: Solution = emptyList()
+        private set
+
+    override fun tidyDualSolution(solution: Solution): LinearDualSolution {
+        lastSolution = solution
+        return fixedDualSolution
+    }
+    override val name: String = "stub-triad"
+    override val dual: Boolean = false
+    override val constraints: LinearConstraintBatch get() = throw UnsupportedOperationException()
+    override val variables: List<Variable> get() = throw UnsupportedOperationException()
+    override val objective: LinearObjective get() = throw UnsupportedOperationException()
+    override fun linearRelax(): LinearTriadModelView = throw UnsupportedOperationException()
+    override fun linearRelaxed(): LinearTriadModelView = throw UnsupportedOperationException()
+    override suspend fun farkasDual(): LinearTriadModelView = throw UnsupportedOperationException()
+    override fun feasibility(): LinearTriadModelView = throw UnsupportedOperationException()
+    override fun elastic(minmaxSlack: Boolean, minSlackAmount: Pair<UInt64, Flt64>?): LinearTriadModelView = throw UnsupportedOperationException()
+    override fun exportLP(writer: java.io.OutputStreamWriter): Try = throw UnsupportedOperationException()
+    override fun close() {}
+}
+
+/** Stub [QuadraticTetradModelView] that records the [Solution] passed to [tidyDualSolution] and returns a fixed result. */
+private class RecordingQuadraticTetradModelView(
+    private val fixedDualSolution: QuadraticDualSolution
+) : QuadraticTetradModelView {
+    var lastSolution: Solution = emptyList()
+        private set
+
+    override fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
+        lastSolution = solution
+        return fixedDualSolution
+    }
+    override val name: String = "stub-tetrad"
+    override val dual: Boolean = false
+    override val constraints: QuadraticConstraintBatch get() = throw UnsupportedOperationException()
+    override val variables: List<Variable> get() = throw UnsupportedOperationException()
+    override val objective: QuadraticObjective get() = throw UnsupportedOperationException()
+    override fun linearRelax(): QuadraticTetradModelView = throw UnsupportedOperationException()
+    override fun linearRelaxed(): QuadraticTetradModelView = throw UnsupportedOperationException()
+    override suspend fun farkasDual(): QuadraticTetradModelView = throw UnsupportedOperationException()
+    override fun feasibility(): QuadraticTetradModelView = throw UnsupportedOperationException()
+    override fun elastic(): QuadraticTetradModelView = throw UnsupportedOperationException()
+    override fun exportLP(writer: java.io.OutputStreamWriter): Try = throw UnsupportedOperationException()
+    override fun close() {}
+}
