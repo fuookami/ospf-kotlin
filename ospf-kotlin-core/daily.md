@@ -118,9 +118,9 @@
 |---|------|------|----------|
 | P1-10 | 主链路语义等价回归 | 完成 | 2026-04-20 |
 | P1-8 | Benders cut by_id/from_output 公共 API | 完成 | 2026-04-20 |
-| P1-11 | Basic*Model 独立公开入口规范化 | 待执行 | — |
-| P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 待执行 | — |
-| P1-12 | C6 兼容层删除流程（D0~D4） | 待执行 | — |
+| P1-11 | Basic*Model 独立公开入口规范化 | 完成 | 2026-04-20 |
+| P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 完成 | 2026-04-20 |
+| P1-12 | C6 兼容层删除流程（D0~D4） | 执行中（D1 部分完成） | — |
 
 #### P1-10 完成详情
 
@@ -136,6 +136,70 @@
 8. 插件边界 Double 转换 — QuadraticMechanismModel<Flt64> 经 invoke() 构建含二次约束，验证 convertMechanismModelToF64 后约束完整保留且二次项 token2 非空
 
 验收：`mvn -pl ospf-kotlin-core -am test` — 129 tests, 0 failures
+
+#### P1-11 完成详情
+
+新增 KDoc + companion object `from()` 工厂方法：
+
+1. `BasicLinearTriadModel` — 类级 KDoc（用途、构造方式、与 LinearTriadModel 关系）、`from(model, tokenIndexMap, bounds, fixedVariables)` 工厂方法
+2. `BasicQuadraticTetradModel` — 类级 KDoc（用途、构造方式、与 QuadraticTetradModel 关系）、`from(model, tokenIndexMap, bounds, fixedVariables)` 工厂方法
+3. `BasicModelEntryTest.kt` — 6 个测试用例：直接构造、工厂方法从 MechanismModel 提取变量+约束、copy 等价性（线性+二次各 3 个）
+
+验收：`mvn -pl ospf-kotlin-core -am test` — 143 tests, 0 failures
+
+#### P1-12 执行进度（D0~D4）
+
+**D0: 现状冻结** — 已完成（2026-04-19）
+
+**D1: 去除 To\*Polynomial 外部依赖** — 部分完成（2026-04-20）
+
+已完成：
+1. **接口层次重构**（`MathInequalityBridge.kt`）：
+   - 新增 `ToMathLinearPolynomial` 接口（`toMathLinearPolynomial(): UtilsLinearPolynomial<Flt64>`）
+   - 新增 `ToMathQuadraticPolynomial` 接口（`toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64>`）
+   - `ToMathLinearInequality` 改为继承 `ToMathLinearPolynomial`，默认实现 `toMathLinearPolynomial() = toMathLinearInequality().lhs`
+   - `ToMathQuadraticInequality` 改为继承 `ToMathQuadraticPolynomial`，默认实现 `toMathQuadraticPolynomial() = toMathQuadraticInequality().lhs`
+
+2. **AbstractVariableItem.kt 迁移完成**：
+   - `AbstractVariableItem` 超类型从 `ToLinearPolynomial, ToQuadraticPolynomial` 改为 `ToMathLinearInequality, ToMathQuadraticInequality`
+   - 直接实现 `toMathLinearInequality()` 和 `toMathQuadraticInequality()`
+   - 移除 `ToLinearPolynomial` / `ToQuadraticPolynomial` 导入
+
+3. **核心编译通过**：上述变更后 `ospf-kotlin-core` 编译成功
+
+未完成（需继续）：
+- **D1.3**: IntermediateSymbol.kt 超类型迁移 — `LinearIntermediateSymbol : ToLinearPolynomial, ToQuadraticPolynomial` → `ToMathLinearInequality, ToMathQuadraticInequality`；`QuadraticIntermediateSymbol : ToQuadraticPolynomial` → `ToMathQuadraticInequality`
+- **Category A 调用点迁移**（`.toLinearPolynomial()` → `.toMathLinearPolynomial()`，`.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`）：
+  - `SubObject.kt:110` — `poly.toLinearPolynomial()` → `poly.toMathLinearPolynomial()`（poly 类型为 `ToLinearPolynomial`）
+  - `SubObject.kt:189` — `poly.toQuadraticPolynomial()` → `poly.toMathQuadraticPolynomial()`（poly 类型为 `ToQuadraticPolynomial`）
+  - `MetaConstraint.kt:296` — `it.toQuadraticPolynomial()` → `it.toMathQuadraticPolynomial()`（it 类型为 `QuadraticIntermediateSymbol<*>`）
+  - `MetaModel.kt:941` — `it.toQuadraticPolynomial()` → `it.toMathQuadraticPolynomial()`（it 类型为 `QuadraticIntermediateSymbol<*>`）
+  - `Model.kt:555,556` — `relation.lhs/rhs.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`（lhs/rhs 类型为 `UtilsLinearPolynomial<Flt64>`，此处调用的是 math 模块 ConvertOps.kt 的扩展方法，**属于 Category B，保持不变**）
+  - `intermediate_symbol/function/Bridge.kt:20` — `(this as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()` → `.toMathLinearPolynomial()`（this 类型为 `LinearIntermediateSymbol<*>`）
+  - `intermediate_symbol/function/And.kt:110,226` — `it.toLinearPolynomial()` → `it.toMathLinearPolynomial()`（it 类型为 `LinearIntermediateSymbol<*>`）
+  - `intermediate_symbol/function/Masking.kt:180,181` — `x.toLinearPolynomial()` / `mask.toLinearPolynomial()` → `.toMathLinearPolynomial()`（x/mask 类型为 `LinearIntermediateSymbol<*>`）
+  - 注意：Category B 调用点（math 模块方法）保持不变：
+    - `IntermediateSymbol.kt:614` — `MutableLinearPolynomial.toLinearPolynomial()`（math 模块方法）
+    - `IntermediateSymbol.kt:1178` — `MutableQuadraticPolynomial.toQuadraticPolynomial()`（math 模块方法）
+    - `Model.kt:555,556` — `UtilsLinearPolynomial<Flt64>.toQuadraticPolynomial()`（math 模块 ConvertOps.kt 扩展）
+    - `MathInequalityDsl.kt` 所有 `.toQuadraticPolynomial()` 调用均为 `UtilsLinearPolynomial<Flt64>` 上的 math 模块扩展方法
+- **D1.4**: 删除 `ToPolynomial.kt`
+- **D1.5**: 更新 monomial 文件（`LinearMonomial.kt`, `QuadraticMonomial.kt`）移除 `ToLinearPolynomial` / `ToQuadraticPolynomial` 超类型
+- **D1 验证**: 编译 + 测试
+
+**D2~D4**: 未开始
+
+#### P1-9 完成详情
+
+选择方案 B（不支持版）：
+
+1. `QuadraticTetradModel.dual()` 改为抛出 `UnsupportedOperationException("Quadratic dual is not supported")` 而非 `TODO`
+2. `QuadraticTetradModel.farkasDual()` 同上
+3. 两者均添加 `@Deprecated("Quadratic dual is not supported — Rust has no public API for this")` 注解
+4. `solveDual()`/`solveFarkasDual()` 调用方无需改动（异常传播行为与原 TODO 一致，仅异常类型从 NotImplementedError 变为 UnsupportedOperationException）
+5. `QuadraticDualUnsupportedTest.kt` — 2 个测试：调用 dual()/farkasDual() 断言抛出 UnsupportedOperationException
+
+验收：`mvn -pl ospf-kotlin-core -am test` — 145 tests, 0 failures
 
 #### P1-8 完成详情
 

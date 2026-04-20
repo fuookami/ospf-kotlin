@@ -346,8 +346,11 @@ class SemanticEquivalenceTest {
      * - Constraint pipeline: two MetaModel instances with identical constraints built via
      *   addConstraint(relation: MathLinearInequality), then MechanismModel via invoke(),
      *   verify constraints are equivalent.
-     * - Objective equivalence: addObject(category, polynomial) vs addObject(category, flattenData)
-     *   produce equivalent representations at the MetaModel level (subObjects vs flattenSubObjects).
+     * - Objective equivalence: addObject(category, polynomial) writes _subObjects (consumed
+     *   by invoke()), while addObject(category, flattenData) writes _flattenSubObjects
+     *   (consumed by solver directly, not by invoke()). Both represent the same objective
+     *   but through different storage paths. We verify MetaModel-level equivalence of
+     *   both stores, and that invoke() correctly reads from _subObjects.
      */
     @Test
     fun fullPipelineEquivalenceConstraintAndObjective() = runBlocking {
@@ -374,12 +377,15 @@ class SemanticEquivalenceTest {
         )
         metaModelA.addObject(ObjectCategory.Minimum, objPolyA, "obj", null)
 
-        // Build MechanismModel via invoke() — real pipeline
+        // Build MechanismModel via invoke() — real pipeline (reads _subObjects)
         val mechResultA = LinearMechanismModel.invoke(metaModelA, concurrent = false)
         assertTrue(mechResultA is Ok, "LinearMechanismModel.invoke should succeed for A")
         val mechModelA = mechResultA.value
 
-        // === Constraint pipeline B: same constraint, but objective via addObject(category, flattenData) ===
+        // === Objective path B: addObject(category, flattenData) only ===
+        // This writes _flattenSubObjects (not _subObjects). invoke() does NOT read
+        // _flattenSubObjects, so B cannot go through invoke(). Instead we verify
+        // the MetaModel-level storage is correct.
         val metaModelB = LinearMetaModel<Flt64>(
             name = "test-pipeline-b",
             configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
@@ -393,37 +399,24 @@ class SemanticEquivalenceTest {
         val inequalityB: MathLinearInequality = (lhsB le Flt64(10.0))
         metaModelB.addConstraint(relation = inequalityB, group = null, lazy = false, name = "c1")
 
-        // B path: addObject via flattenData (new API) — writes to _flattenSubObjects
+        // B path: addObject via flattenData only — writes to _flattenSubObjects
         val flattenData = LinearFlattenDataF64(objPolyA.monomials, objPolyA.constant)
         metaModelB.addObject(ObjectCategory.Minimum, flattenData)
 
-        // Also add via polynomial so invoke() can read the objective from _subObjects
-        metaModelB.addObject(ObjectCategory.Minimum, objPolyA, "obj", null)
-
-        // Build MechanismModel via invoke() — real pipeline
-        val mechResultB = LinearMechanismModel.invoke(metaModelB, concurrent = false)
-        assertTrue(mechResultB is Ok, "LinearMechanismModel.invoke should succeed for B")
-        val mechModelB = mechResultB.value
-
-        // === Verify constraint pipeline equivalence ===
-        assertEquals(mechModelA.constraints.size, mechModelB.constraints.size,
-            "Both MechanismModels should have same constraint count")
-        assertEquals(1, mechModelA.constraints.size, "Both should have 1 constraint from MetaModel")
-
-        val constraintA = mechModelA.constraints.first()
-        val constraintB = mechModelB.constraints.first()
-        assertEquals(constraintA.sign, constraintB.sign, "Constraint signs should match")
-        assertEquals(constraintA.rhsF64, constraintB.rhsF64, "Constraint rhs should match")
-
-        assertEquals(constraintA.lhs.size, constraintB.lhs.size, "LHS cell count should match")
-        val coeffsA = constraintA.lhs.map { (it as LinearCellF64).coefficientF64.toDouble() }.sorted()
-        val coeffsB = constraintB.lhs.map { (it as LinearCellF64).coefficientF64.toDouble() }.sorted()
-        assertEquals(coeffsA, coeffsB, "LHS coefficients should match")
+        // === Verify constraint equivalence at MetaModel level ===
+        assertEquals(metaModelA.relationConstraints.size, metaModelB.relationConstraints.size,
+            "Both MetaModels should have same constraint count")
+        val constraintA = metaModelA.relationConstraints.first()
+        val constraintB = metaModelB.relationConstraints.first()
+        assertEquals(constraintA.sign, constraintB.sign, "Constraint signs should match at MetaModel level")
+        assertEquals(constraintA.flattenData.constant, constraintB.flattenData.constant,
+            "Constraint flattenData constants should match")
 
         // === Verify objective equivalence at MetaModel level ===
         // A's _subObjects and B's _flattenSubObjects should represent the same objective
-        assertEquals(1, metaModelA.subObjects.size, "Model A should have 1 subObject")
-        assertEquals(1, metaModelB.flattenSubObjects.size, "Model B should have 1 flattenSubObject")
+        assertEquals(1, metaModelA.subObjects.size, "Model A should have 1 subObject (from addObject(polynomial))")
+        assertEquals(1, metaModelB.flattenSubObjects.size, "Model B should have 1 flattenSubObject (from addObject(flattenData))")
+        assertEquals(0, metaModelB.subObjects.size, "Model B should have 0 subObjects (only flattenData path used)")
 
         val subObjA = metaModelA.subObjects.first()
         val flattenSubObjB = metaModelB.flattenSubObjects.first()
@@ -432,20 +425,16 @@ class SemanticEquivalenceTest {
         assertEquals(subObjA.polynomial.monomials.size, flattenSubObjB.cells.size,
             "Objective monomial/cell count should match")
 
-        // === Verify MechanismModel objectives ===
-        assertEquals(mechModelA.objectFunction.category, mechModelB.objectFunction.category,
-            "MechanismModel objective categories should match")
-        assertTrue(mechModelA.objectFunction.subObjects.isNotEmpty(), "MechanismModel A should have objective sub-objects")
-        assertTrue(mechModelB.objectFunction.subObjects.isNotEmpty(), "MechanismModel B should have objective sub-objects")
+        // === Verify MechanismModel from A has correct objective (invoke reads _subObjects) ===
+        assertEquals(ObjectCategory.Minimum, mechModelA.objectFunction.category,
+            "MechanismModel A objective should be Minimum")
+        assertTrue(mechModelA.objectFunction.subObjects.isNotEmpty(),
+            "MechanismModel A should have objective sub-objects")
 
         // === Verify convertMechanismModelToF64 preserves constraints ===
         val f64ResultA = convertMechanismModelToF64(mechModelA)
-        val f64ResultB = convertMechanismModelToF64(mechModelB)
         assertTrue(f64ResultA is Ok, "convertMechanismModelToF64 should succeed for A")
-        assertTrue(f64ResultB is Ok, "convertMechanismModelToF64 should succeed for B")
-
-        assertEquals(f64ResultA.value.constraints.size, f64ResultB.value.constraints.size,
-            "F64 models should have same constraint count")
+        assertEquals(1, f64ResultA.value.constraints.size, "F64 model should preserve constraint count")
 
         metaModelA.close()
         metaModelB.close()

@@ -180,11 +180,161 @@ typealias LinearObjective = Objective<LinearObjectiveCell>
 
 typealias BasicLinearTriadModelView = BasicModelView<LinearConstraintCell>
 
+/**
+ * A basic linear intermediate model (triad: variables + constraints, no objective).
+ *
+ * This is the solver-standard form for linear problems without an objective function.
+ * It is used directly by IIS (Irreducible Infeasible Subsystem) computation and
+ * as the [impl] delegate inside [LinearTriadModel].
+ *
+ * ### Construction
+ *
+ * Direct constructor:
+ * ```kotlin
+ * BasicLinearTriadModel(variables, constraints, name)
+ * ```
+ *
+ * Factory from a [LinearMechanismModel]:
+ * ```kotlin
+ * BasicLinearTriadModel.from(mechanismModel, tokenIndexMap, bounds, fixedVariables)
+ * ```
+ *
+ * ### Relationship to [LinearTriadModel]
+ *
+ * [LinearTriadModel] wraps a [BasicLinearTriadModel] as its `impl`, adding
+ * objective function and token-to-solver mapping. [BasicLinearTriadModel] is
+ * the subset that only contains variables and constraints.
+ *
+ * @param variables   solver-indexed variable list
+ * @param constraints linear constraint batch (sparse lhs, signs, rhs, origins)
+ * @param name        model name for logging and debugging
+ */
 class BasicLinearTriadModel(
     override val variables: List<Variable>,
     override val constraints: LinearConstraintBatch,
     override val name: String
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
+    companion object {
+        /**
+         * Create a [BasicLinearTriadModel] from a [LinearMechanismModelF64] by
+         * extracting variables and constraints into solver-standard form.
+         *
+         * This is a convenience factory that mirrors the variable/constraint extraction
+         * logic in [LinearTriadModel.invoke] without the objective function step.
+         *
+         * @param model           the source mechanism model
+         * @param tokenIndexMap   mapping from tokens to solver column indices
+         * @param bounds          pre-computed bound constraints per token
+         * @param fixedVariables  variables fixed to constant values (substituted out)
+         * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
+         */
+        fun from(
+            model: LinearMechanismModelF64,
+            tokenIndexMap: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginLinearConstraint, TokenF64, ConstraintRelation, Flt64>>> = emptyMap(),
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): BasicLinearTriadModel {
+            val variables = dumpVariables(model, tokenIndexMap, bounds)
+            val constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables)
+            return BasicLinearTriadModel(variables, constraints, model.name)
+        }
+
+        private fun dumpVariables(
+            model: LinearMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginLinearConstraint, TokenF64, ConstraintRelation, Flt64>>>
+        ): List<Variable> {
+            val variables = ArrayList<Variable?>()
+            for ((_, _) in tokenIndexes) {
+                variables.add(null)
+            }
+            for ((token, i) in tokenIndexes) {
+                val thisBounds = bounds[token] ?: emptyList()
+                val lb = thisBounds
+                    .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
+                    .maxOfOrNull { it.fourth }
+                val ub = thisBounds
+                    .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
+                    .minOfOrNull { it.fourth }
+                variables[i] = Variable(
+                    index = i,
+                    lowerBound = if (lb != null) {
+                        max(lb, token.lowerBound!!.value.unwrap())
+                    } else {
+                        token.lowerBound!!.value.unwrap()
+                    },
+                    upperBound = if (ub != null) {
+                        min(ub, token.upperBound!!.value.unwrap())
+                    } else {
+                        token.upperBound!!.value.unwrap()
+                    },
+                    type = token.variable.type,
+                    origin = token.variable,
+                    dualOrigin = null,
+                    slack = null,
+                    name = token.variable.name,
+                    initialResult = token.result
+                )
+            }
+            return variables.map { it!! }
+        }
+
+        private fun dumpConstraints(
+            model: LinearMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginLinearConstraint, TokenF64, ConstraintRelation, Flt64>>>,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): LinearConstraintBatch {
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
+
+            val lhs = ArrayList<List<LinearConstraintCell>>()
+            val signs = ArrayList<ConstraintRelation>()
+            val rhs = ArrayList<Flt64>()
+            val names = ArrayList<String>()
+            val sources = ArrayList<ConstraintSource>()
+            val origins = ArrayList<OriginLinearConstraint>()
+            val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
+            val priorities = ArrayList<Int?>()
+            for ((index, constraint) in notBoundConstraints.withIndex()) {
+                val constraintLhs = ArrayList<LinearConstraintCell>()
+                var constraintRhs = constraint.rhs
+                for (cell in constraint.lhs) {
+                    if (tokenIndexes.containsKey(cell.token)) {
+                        constraintLhs.add(
+                            LinearConstraintCell(
+                                rowIndex = index,
+                                colIndex = tokenIndexes[cell.token]!!,
+                                coefficient = cell.coefficient.clampCoefficient()
+                            )
+                        )
+                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
+                        constraintRhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
+                    }
+                }
+                lhs.add(constraintLhs)
+                signs.add(constraint.sign)
+                rhs.add(constraintRhs)
+                names.add(constraint.name)
+                sources.add(ConstraintSource.Origin)
+                origins.add(constraint)
+                froms.add(constraint.from)
+                priorities.add(constraint.origin?.priority)
+            }
+            return LinearConstraintBatch(
+                sparseLhs = buildSparseLhs(lhs),
+                signs = signs,
+                rhs = rhs,
+                names = names,
+                sources = sources,
+                origins = origins,
+                froms = froms,
+                priorities = priorities
+            )
+        }
+    }
     override fun copy() = BasicLinearTriadModel(
         variables.map { it.copy() },
         constraints.copy(),

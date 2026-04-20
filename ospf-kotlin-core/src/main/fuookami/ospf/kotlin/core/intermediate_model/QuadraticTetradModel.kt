@@ -165,11 +165,180 @@ class QuadraticObjectiveCell(
 
 typealias QuadraticObjective = Objective<QuadraticObjectiveCell>
 
+/**
+ * A basic quadratic intermediate model (tetrad: variables + constraints, no objective).
+ *
+ * This is the solver-standard form for quadratic problems without an objective function.
+ * It is used directly by IIS (Irreducible Infeasible Subsystem) computation and
+ * as the [impl] delegate inside [QuadraticTetradModel].
+ *
+ * ### Construction
+ *
+ * Direct constructor:
+ * ```kotlin
+ * BasicQuadraticTetradModel(variables, constraints, name)
+ * ```
+ *
+ * Factory from a [QuadraticMechanismModel]:
+ * ```kotlin
+ * BasicQuadraticTetradModel.from(mechanismModel, tokenIndexMap, bounds, fixedVariables)
+ * ```
+ *
+ * ### Relationship to [QuadraticTetradModel]
+ *
+ * [QuadraticTetradModel] wraps a [BasicQuadraticTetradModel] as its `impl`, adding
+ * objective function and token-to-solver mapping. [BasicQuadraticTetradModel] is
+ * the subset that only contains variables and constraints.
+ *
+ * @param variables   solver-indexed variable list
+ * @param constraints quadratic constraint batch (sparse lhs, signs, rhs, origins)
+ * @param name        model name for logging and debugging
+ */
 class BasicQuadraticTetradModel(
     override val variables: List<Variable>,
     override val constraints: QuadraticConstraintBatch,
     override val name: String
 ) : BasicModelView<QuadraticConstraintCell>, Cloneable, Copyable<BasicQuadraticTetradModel> {
+    companion object {
+        /**
+         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModelF64] by
+         * extracting variables and constraints into solver-standard form.
+         *
+         * This is a convenience factory that mirrors the variable/constraint extraction
+         * logic in [QuadraticTetradModel.invoke] without the objective function step.
+         *
+         * @param model           the source mechanism model
+         * @param tokenIndexMap   mapping from tokens to solver column indices
+         * @param bounds          pre-computed bound constraints per token
+         * @param fixedVariables  variables fixed to constant values (substituted out)
+         * @return a [BasicQuadraticTetradModel] containing the extracted variables and constraints
+         */
+        fun from(
+            model: QuadraticMechanismModelF64,
+            tokenIndexMap: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>> = emptyMap(),
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): BasicQuadraticTetradModel {
+            val variables = dumpVariables(model, tokenIndexMap, bounds)
+            val constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables)
+            return BasicQuadraticTetradModel(variables, constraints, model.name)
+        }
+
+        private fun dumpVariables(
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>
+        ): List<Variable> {
+            val variables = ArrayList<Variable?>()
+            for ((_, _) in tokenIndexes) {
+                variables.add(null)
+            }
+            for ((token, i) in tokenIndexes) {
+                val thisBounds = bounds[token] ?: emptyList()
+                val lb = thisBounds
+                    .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
+                    .maxOfOrNull { it.fourth }
+                val ub = thisBounds
+                    .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
+                    .minOfOrNull { it.fourth }
+                variables[i] = Variable(
+                    index = i,
+                    lowerBound = if (lb != null) {
+                        max(lb, token.lowerBound!!.value.unwrap())
+                    } else {
+                        token.lowerBound!!.value.unwrap()
+                    },
+                    upperBound = if (ub != null) {
+                        min(ub, token.upperBound!!.value.unwrap())
+                    } else {
+                        token.upperBound!!.value.unwrap()
+                    },
+                    type = token.variable.type,
+                    origin = token.variable,
+                    dualOrigin = null,
+                    slack = null,
+                    name = token.variable.name,
+                    initialResult = token.result
+                )
+            }
+            return variables.map { it!! }
+        }
+
+        private fun dumpConstraints(
+            model: QuadraticMechanismModelF64,
+            tokenIndexes: Map<TokenF64, Int>,
+            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
+            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
+        ): QuadraticConstraintBatch {
+            val boundConstraints = bounds.values.flatMap { thisBounds ->
+                thisBounds.map { it.first }
+            }.distinct().toSet()
+            val notBoundConstraints = model.quadraticConstraints.filter { !boundConstraints.contains(it) }
+
+            val lhs = ArrayList<List<QuadraticConstraintCell>>()
+            val signs = ArrayList<ConstraintRelation>()
+            val rhs = ArrayList<Flt64>()
+            val names = ArrayList<String>()
+            val sources = ArrayList<ConstraintSource>()
+            val origins = ArrayList<OriginQuadraticConstraint>()
+            val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
+            val priorities = ArrayList<Int?>()
+            for ((index, constraint) in notBoundConstraints.withIndex()) {
+                val constraintLhs = ArrayList<QuadraticConstraintCell>()
+                var constraintRhs = constraint.rhs
+                for (cell in constraint.lhs) {
+                    if (tokenIndexes.containsKey(cell.token1) && (cell.token2 == null || tokenIndexes.containsKey(cell.token2))) {
+                        constraintLhs.add(
+                            QuadraticConstraintCell(
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                colIndex2 = cell.token2?.let { tokenIndexes[it]!! },
+                                coefficient = cell.coefficient.clampCoefficient()
+                            )
+                        )
+                    } else if (tokenIndexes.containsKey(cell.token1)) {
+                        constraintLhs.add(
+                            QuadraticConstraintCell(
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token1]!!,
+                                colIndex2 = null,
+                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token2!!.variable) ?: Flt64.one)).clampCoefficient()
+                            )
+                        )
+                    } else if (tokenIndexes.containsKey(cell.token2)) {
+                        constraintLhs.add(
+                            QuadraticConstraintCell(
+                                rowIndex = index,
+                                colIndex1 = tokenIndexes[cell.token2]!!,
+                                colIndex2 = null,
+                                coefficient = (cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one)).clampCoefficient()
+                            )
+                        )
+                    } else {
+                        constraintRhs -= cell.coefficient * (fixedVariables?.get(cell.token1.variable) ?: Flt64.one) * (fixedVariables?.get(cell.token2?.variable) ?: Flt64.one)
+                    }
+                }
+                lhs.add(constraintLhs)
+                signs.add(constraint.sign)
+                rhs.add(constraintRhs)
+                names.add(constraint.name)
+                sources.add(ConstraintSource.Origin)
+                origins.add(constraint)
+                froms.add(constraint.from)
+                priorities.add(constraint.origin?.priority)
+            }
+            return QuadraticConstraintBatch(
+                sparseLhs = buildSparseLhs(lhs),
+                signs = signs,
+                rhs = rhs,
+                names = names,
+                sources = sources,
+                origins = origins,
+                froms = froms,
+                priorities = priorities
+            )
+        }
+    }
     override fun copy() = BasicQuadraticTetradModel(
         variables.map { it.copy() },
         constraints.copy(),
@@ -856,12 +1025,14 @@ data class QuadraticTetradModel(
         )
     }
 
+    @Deprecated("Quadratic dual is not supported — Rust has no public API for this")
     suspend fun dual(): QuadraticTetradModel {
-        TODO("not implemented yet")
+        throw UnsupportedOperationException("Quadratic dual is not supported")
     }
 
+    @Deprecated("Quadratic farkas dual is not supported — Rust has no public API for this")
     override suspend fun farkasDual(): QuadraticTetradModel {
-        TODO("not implemented yet")
+        throw UnsupportedOperationException("Quadratic farkas dual is not supported")
     }
 
     @Suppress("DEPRECATION")

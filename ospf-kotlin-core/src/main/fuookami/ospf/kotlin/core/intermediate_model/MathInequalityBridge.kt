@@ -11,23 +11,49 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Math
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 
 // ========== Conversion interfaces (replacing frontend.inequality.ToLinearInequality etc.) ==========
 
 /**
- * Interface for types that can be converted to a MathLinearInequality.
- * Replaces the old frontend.inequality.ToLinearInequality interface.
+ * Interface for types that can be converted to a MathLinearPolynomial.
+ * Replaces the old ToLinearPolynomial interface.
  */
-interface ToMathLinearInequality {
+interface ToMathLinearPolynomial {
+    fun toMathLinearPolynomial(): UtilsLinearPolynomial<Flt64>
+}
+
+/**
+ * Interface for types that can be converted to a MathQuadraticPolynomial.
+ * Replaces the old ToQuadraticPolynomial interface.
+ */
+interface ToMathQuadraticPolynomial {
+    fun toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64>
+}
+
+/**
+ * Interface for types that can be converted to a MathLinearInequality.
+ * Extends ToMathLinearPolynomial by defaulting to an equality (lhs = 1).
+ */
+interface ToMathLinearInequality : ToMathLinearPolynomial {
     fun toMathLinearInequality(): MathLinearInequality
+
+    override fun toMathLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
+        return toMathLinearInequality().lhs
+    }
 }
 
 /**
  * Interface for types that can be converted to a MathQuadraticInequality.
- * Replaces the old frontend.inequality.ToQuadraticInequality interface.
+ * Extends ToMathQuadraticPolynomial by defaulting to an equality (lhs = 1).
  */
-interface ToMathQuadraticInequality {
+interface ToMathQuadraticInequality : ToMathQuadraticPolynomial {
     fun toMathQuadraticInequality(): MathQuadraticInequality
+
+    override fun toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
+        return toMathQuadraticInequality().lhs
+    }
 }
 
 // ========== Extension properties on math inequality types ==========
