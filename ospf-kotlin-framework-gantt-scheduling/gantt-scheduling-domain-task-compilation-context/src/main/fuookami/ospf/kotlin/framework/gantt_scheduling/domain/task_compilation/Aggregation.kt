@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingSwitch
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskSchedulingTaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 abstract class AbstractTaskSchedulingAggregation<
@@ -43,7 +44,7 @@ abstract class AbstractTaskSchedulingAggregation<
         compilation = compilation
     )
 
-    open fun register(model: MetaModel): Try {
+    open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
@@ -101,7 +102,7 @@ open class TaskCompilationAggregationWithTime<
     tasks: List<T>,
     executors: List<E>,
     lockCancelTasks: Set<T> = emptySet(),
-    estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
+    estimateEndTimeCalculator: (T, LinearPolynomial<Flt64>) -> LinearPolynomial<Flt64>,
     taskCancelEnabled: Boolean = false,
     withExecutorLeisure: Boolean = false,
     delayEnabled: Boolean = false,
@@ -138,7 +139,7 @@ open class TaskCompilationAggregationWithTime<
         extra = makespanExtra
     )
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
 

@@ -4,7 +4,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -30,11 +29,11 @@ class MakespanMinimization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: AbstractLinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
         val thresholdValue = with(timeWindow) { threshold.value }
         if (thresholdValue eq Flt64.zero) {
             when (val result = model.minimize(
-                monomial = coefficient * makespan.makespan,
+                polynomial = coefficient * makespan.makespan.toMathLinearPolynomial(),
                 name = "makespan"
             )) {
                 is Ok -> {}
@@ -70,7 +69,7 @@ class MakespanMinimization<
                 }
             }
             when (val result = model.minimize(
-                monomial = coefficient * slack,
+                polynomial = coefficient * slack.toMathLinearPolynomial(),
                 name = "makespan"
             )) {
                 is Ok -> {}

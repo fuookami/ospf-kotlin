@@ -269,33 +269,6 @@ class CallBackModel internal constructor(
         )
     }
 
-    @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    @Suppress("UNUSED_PARAMETER")
-    fun addObject(
-        category: ObjectCategory,
-        expression: Expression,
-        name: String?,
-        displayName: String?
-    ): Try {
-        _objectiveFunctions.add(
-            Pair(
-                { solution: Solution ->
-                    if (category == objectCategory) {
-                        expression.evaluate(solution, tokens)
-                    } else {
-                        expression.evaluate(solution, tokens)?.let { -it }
-                    }
-                },
-                name ?: String()
-            )
-        )
-        return ok
-    }
-
-
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -318,23 +291,6 @@ class CallBackModel internal constructor(
         return ok
     }
 
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun maximize(
-        expression: Expression,
-        name: String?,
-        displayName: String?
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            expression = expression,
-            name = name,
-            displayName = displayName
-        )
-    }
-
     fun maximize(
         func: Extractor<Flt64?, Solution>,
         name: String?,
@@ -343,23 +299,6 @@ class CallBackModel internal constructor(
         return addObject(
             category = ObjectCategory.Maximum,
             func = func,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun minimize(
-        expression: Expression,
-        name: String?,
-        displayName: String?
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            expression = expression,
             name = name,
             displayName = displayName
         )
@@ -545,26 +484,6 @@ class MultiObjectCallBackModel internal constructor(
         )
     }
 
-    @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    @Suppress("UNUSED_PARAMETER")
-    fun addObject(
-        category: ObjectCategory,
-        expression: Expression,
-        location: MultiObjectLocation,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = category,
-            func = { solution -> expression.evaluate(solution, tokens) },
-            location = location,
-            name = name
-        )
-    }
-
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
@@ -588,44 +507,6 @@ class MultiObjectCallBackModel internal constructor(
             )
         )
         return ok
-    }
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun maximize(
-        location: MultiObjectLocation,
-        expression: Expression,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            expression = expression,
-            location = location,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun minimize(
-        location: MultiObjectLocation,
-        expression: Expression,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            expression = expression,
-            location = location,
-            name = name,
-            displayName = displayName
-        )
     }
 
     override fun setSolution(solution: Solution) {

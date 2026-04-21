@@ -39,7 +39,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
         tasks.filter { it.earliestEndTime != null }
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.estimateEndTime[task] geq with(timeWindow) { task.earliestEndTime!!.value },
@@ -90,7 +90,7 @@ class TaskAdvanceEarliestEndTimeConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {

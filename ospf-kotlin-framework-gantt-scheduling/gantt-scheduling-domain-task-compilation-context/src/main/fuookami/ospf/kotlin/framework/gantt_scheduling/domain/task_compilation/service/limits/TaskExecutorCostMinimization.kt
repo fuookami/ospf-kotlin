@@ -2,8 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
@@ -22,12 +21,12 @@ class TaskExecutorCostMinimization<
     private val costCalculator: Extractor<Flt64?, Pair<T, E>> = { Flt64.one },
     override val name: String = "task_executor_cost"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         when (val result = model.minimize(
             polynomial = sum(tasks.flatMap { t ->
                 executors.map { e ->
                     val coefficient = costCalculator(Pair(t, e)) ?: Flt64.infinity
-                    coefficient * compilation.taskAssignment[t, e]
+                    coefficient * compilation.taskAssignment[t, e].toMathLinearPolynomial()
                 }
             }),
             name = "task executor"

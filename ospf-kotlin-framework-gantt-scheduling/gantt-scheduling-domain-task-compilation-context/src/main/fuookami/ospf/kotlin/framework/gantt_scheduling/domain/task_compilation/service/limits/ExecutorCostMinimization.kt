@@ -2,16 +2,15 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ExecutorCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -23,12 +22,12 @@ class ExecutorCostMinimization<
     private val coefficient: Extractor<Flt64?, E>? = null,
     override val name: String = "executor_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: AbstractLinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
         coefficient?.let {
             when (val result = model.minimize(
                 polynomial = sum(executors.map { e ->
                     val penalty = it(e) ?: Flt64.infinity
-                    penalty * compilation.executorCompilation[e]
+                    penalty * compilation.executorCompilation[e].toMathLinearPolynomial()
                 }),
                 name = "executor"
             )) {

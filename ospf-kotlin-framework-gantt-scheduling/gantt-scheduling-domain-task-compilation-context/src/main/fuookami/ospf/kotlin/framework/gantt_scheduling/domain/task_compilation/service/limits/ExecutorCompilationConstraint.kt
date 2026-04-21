@@ -27,7 +27,7 @@ class ExecutorCompilationConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "executor_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         for (executor in executors) {
             when (val result = model.addConstraint(
                 compilation.executorCompilation[executor] eq UInt64.one,
@@ -78,7 +78,7 @@ class ExecutorCompilationConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {

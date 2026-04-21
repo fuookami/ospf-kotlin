@@ -4,19 +4,19 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.minus
-import fuookami.ospf.kotlin.core.intermediate_model.sum
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -31,7 +31,7 @@ interface Switch {
     val switch: LinearIntermediateSymbols3
     val switchTime: LinearIntermediateSymbols2
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModel<Flt64>): Try
 }
 
 class TaskSchedulingSwitch<
@@ -50,7 +50,7 @@ class TaskSchedulingSwitch<
     override lateinit var switch: LinearIntermediateSymbols3
     override lateinit var switchTime: LinearIntermediateSymbols2
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
                 frontOf = LinearIntermediateSymbols2(
@@ -59,7 +59,7 @@ class TaskSchedulingSwitch<
                 ) { _, v ->
                     val task1 = tasks[v[0]]
                     val task2 = tasks[v[1]]
-                    val result: LinearIntermediateSymbol = if (task1 == task2) {
+                    val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                         LinearIntermediateSymbol.empty(
                             name = "front_of_${task1}_${task2}"
                         )
@@ -97,7 +97,7 @@ class TaskSchedulingSwitch<
                     val task1 = tasks[v[1]]
                     val task2 = tasks[v[2]]
                     val task3 = tasks[v[3]]
-                    val result: LinearIntermediateSymbol = if (task1 == task2 || task1 == task3 || task2 == task3) {
+                    val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2 || task1 == task3 || task2 == task3) {
                         LinearIntermediateSymbol.empty(
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
@@ -134,12 +134,12 @@ class TaskSchedulingSwitch<
                 val executor = executors[v[0]]
                 val task1 = tasks[v[1]]
                 val task2 = tasks[v[2]]
-                val result: LinearIntermediateSymbol = if (task1 == task2) {
+                val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                     LinearIntermediateSymbol.empty(
                         name = "front_of_${task1}_${task2}"
                     )
                 } else if (taskTime != null) {
-                    val conditions: MutableList<ToLinearPolynomial<*>> = mutableListOf(
+                    val conditions: MutableList<ToMathLinearPolynomial> = mutableListOf(
                         compilation.taskAssignment[executor, task1],
                         compilation.taskAssignment[executor, task2],
                         frontOf[task1, task2]
@@ -148,7 +148,10 @@ class TaskSchedulingSwitch<
                         if (task3 == task1 || task3 == task2) {
                             continue
                         }
-                        conditions.add(Flt64.one - betweenIn[task3, task1, task2])
+                        conditions.add(LinearExpressionSymbol(
+                            polynomial = LinearPolynomial(emptyList(), Flt64.one) - betweenIn[task3, task1, task2].toMathLinearPolynomial(),
+                            name = "not_between_${task3}_${task1}_${task2}"
+                        ))
                     }
                     AndFunction(
                         polynomials = conditions,
@@ -182,13 +185,22 @@ class TaskSchedulingSwitch<
             ) { _, v ->
                 val task1 = tasks[v[0]]
                 val task2 = tasks[v[1]]
-                val thisSwitch = sum(switch[_a, task1, task2])
+                val thisSwitchPoly = sum(switch[_a, task1, task2].map { it.toMathLinearPolynomial() })
+                val thisSwitch = LinearExpressionSymbol(
+                    polynomial = thisSwitchPoly,
+                    name = "this_switch_${task1}_$task2"
+                )
                 thisSwitch.range.leq(Flt64.one)
+                val xPoly = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
+                    ?: LinearPolynomial(
+                        emptyList(),
+                        with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }
+                    )
                 MaskingFunction(
-                    x = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
-                        ?: LinearPolynomial(
-                            with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }
-                        ),
+                    x = LinearExpressionSymbol(
+                        polynomial = xPoly,
+                        name = "switch_time_x_${task1}_$task2"
+                    ),
                     mask = thisSwitch,
                     name = "switch_time_${task1}_$task2"
                 )
@@ -209,6 +221,3 @@ class TaskSchedulingSwitch<
         return ok
     }
 }
-
-
-

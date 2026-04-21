@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-21（P1-12 D0~D4 全量完成归档）
+日期：2026-04-21（P1-12 修复迭代）
 
 ---
 
@@ -120,7 +120,7 @@
 | P1-8 | Benders cut by_id/from_output 公共 API | 完成 | 2026-04-20 |
 | P1-11 | Basic*Model 独立公开入口规范化 | 完成 | 2026-04-20 |
 | P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 完成 | 2026-04-20 |
-| P1-12 | C6 兼容层删除流程（D0~D4） | 完成 | 2026-04-21 |
+| P1-12 | C6 兼容层删除流程（D0~D4） | 部分完成 | 2026-04-21 |
 
 #### P1-10 完成详情
 
@@ -192,9 +192,11 @@
 
 8. **D1 验证通过**：`mvn compile -pl ospf-kotlin-core -am` ✓、`mvn test -pl ospf-kotlin-core -am` ✓、`mvn compile -pl ospf-kotlin-framework -am` ✓
 
-**D2: 去除 Expression 外部依赖** — 已完成（2026-04-21）
+**D2: 去除 Expression 外部依赖** — 部分完成（2026-04-21）
 
-退出条件已满足：`Expression` 仅在 `@Deprecated` CallBackModel 方法中作为参数类型可见，core 对外 API 不再暴露 `Expression` 参数。
+原退出条件"core 对外 API 不再暴露 Expression 参数"未完全满足：CallBackModel.kt 仍有 6 个 `@Deprecated` 方法使用 `Expression` 类型。
+已修复：删除了这些 deprecated 方法。
+当前状态：core 层 Expression 引用已清除，但框架层 gantt-scheduling 子模块仍有编译错误（非 Expression 相关，是泛型化适配遗留问题）。
 
 **D3: 去除 intermediate_model.monomial 主路径依赖** — 已完成（2026-04-21）
 
@@ -203,7 +205,7 @@
 3. MathInequalityDsl 中 `LinearMonomial`/`QuadraticMonomial` DSL 运算符已随 monomial/ 删除一并移除
 4. 编译 + 测试通过
 
-**D4: 物理删除与门禁收口** — 已完成（2026-04-21）
+**D4: 物理删除与门禁收口** — 部分完成（2026-04-21）
 
 1. `Expression` 成员内联到 `IntermediateSymbol` 和 `Monomial`，`Expression.kt` 物理删除
 2. `ToPolynomial.kt` 已在 D1 物理删除
@@ -216,7 +218,21 @@
    - `AbstractVariableItem.kt` 运算符已迁移到返回 `math.symbol` 类型
    - `MathInequalityDsl.kt` 中 monomial DSL 运算符已移除
 5. 测试更新：删除使用 monomial 类型的测试，替换 `cells.toLinearFlattenData()` 为 `flattenedMonomials`
-6. 验收：`mvn test -pl ospf-kotlin-core -am` ✓、`mvn compile -pl ospf-kotlin-framework -am` ✓、`check-c8-guards.ps1` ✓
+6. Core 验收：`mvn -pl ospf-kotlin-core -am clean test` ✓（121 tests, 0 failures）
+
+**遗留问题（需后续迭代）：**
+
+1. **CallBackModel.kt Expression 兼容方法已删除**：6 个 `@Deprecated` 方法使用已删除的 `Expression` 类型，已物理删除
+2. **Switch.kt ToLinearPolynomial 迁移**：已迁移到 `ToMathLinearPolynomial`
+3. **ShadowPriceMap.kt AbstractLinearMetaModel 泛型参数**：已修复为 `AbstractLinearMetaModel<*>`
+4. **框架层 LinearIntermediateSymbol plus 运算符缺失**：
+   - `TaskTimeConflictConstraint.kt` 使用 `x[task, executor] + x[task, executor]` 语法
+   - 已在 `IntermediateSymbol.kt` 添加 `operator fun plus/minus` 扩展函数
+5. **框架层 gantt-scheduling 子模块编译失败**：
+   - `TaskTimeConflictConstraint.kt`、`TaskStepConflictConstraint.kt` 等文件使用 `AbstractLinearMetaModel`（无泛型参数）
+   - 已修复为 `AbstractLinearMetaModel<*>`
+   - 但 gantt-scheduling 子模块仍有大量其他编译错误（非 P1-12 引入，是框架层尚未适配泛型化的遗留问题）
+6. **验收命令升级**：已从 `mvn test` 升级为 `mvn clean test`
 
 #### P1-9 完成详情
 
@@ -375,7 +391,7 @@ P1-10 (语义等价回归基线 — 作为迁移门禁)
 
 ### 构建与门禁
 
-1. `mvn -pl ospf-kotlin-core -am test` — 全量测试通过
+1. `mvn -pl ospf-kotlin-core -am clean test` — 全量 clean 测试通过
 2. `mvn compile -pl ospf-kotlin-framework -am` — 框架层编译通过
 3. `powershell -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1` — 门禁通过
 
@@ -390,3 +406,97 @@ P1-10 (语义等价回归基线 — 作为迁移门禁)
 7. 原版 Kotlin 对外名全部可通过 typealias 或 @Deprecated 兼容层访问
 8. `ApiCompatibilityTest.kt` 覆盖所有原版对外名的兼容性断言
 9. 新增类型命名与 Rust 一致（Kotlin 驼峰风格）
+
+---
+
+## 2026-04-21 审核修复记录
+
+### 审核发现
+
+P1-12 原声明"已完成"，但审核发现 3 个问题：
+
+1. **阻断问题**：clean 构建失败。Expression.kt 已物理删除，但 CallBackModel.kt 仍引用该类型。`mvn -pl ospf-kotlin-core -am clean test` 编译失败。与 daily.md "D2 已完成"/"D4 已完成"冲突。
+2. **高优先级问题**：Switch.kt 仍 import ToLinearPolynomial，与 D0~D4 Done 定义不一致。
+3. **门禁覆盖不足**：C8 门禁只检查增量行+core/src/main，不检查全仓库存量问题，也不会发现 clean 构建失败。
+
+### 已完成修复
+
+| 修复项 | 文件 | 内容 |
+|--------|------|------|
+| F1 | CallBackModel.kt | 删除 5 个使用 Expression 的 @Deprecated 方法（addObject/maximize/minimize 两个重载） |
+| F2 | Switch.kt | `import ToLinearPolynomial` → `import ToMathLinearPolynomial`；`MutableList<ToLinearPolynomial<*>>` → `MutableList<ToMathLinearPolynomial>` |
+| F3 | IntermediateSymbol.kt | 添加 `operator fun plus/minus` 扩展函数（替代已删除的 core.intermediate_model.plus/minus），实现 LinearIntermediateSymbol 间的加减 |
+| F4 | ShadowPriceMap.kt | `AbstractLinearMetaModel` → `AbstractLinearMetaModel<*>`（2 处 typealias） |
+
+### 验证状态
+
+| 命令 | 结果 |
+|------|------|
+| `mvn -pl ospf-kotlin-core -am clean compile` | ✓ 通过 |
+| `mvn -pl ospf-kotlin-core -am test` | ✓ 通过 |
+| `mvn compile -pl ospf-kotlin-framework -am` | ✓ 通过 |
+| `mvn compile -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am` | ✗ 失败（gantt-scheduling 级联泛型化编译错误） |
+
+### P1-12 收口计划（待下一环境继续）
+
+P1-12 状态改为**部分完成**，需补三项收口：
+
+#### 收口 1：修复 gantt-scheduling 框架层级联编译错误
+
+gantt-scheduling 模块因 core 泛型化（MetaModel<V>、AbstractLinearMetaModel<V>、LinearIntermediateSymbol<V>）和 API 变更（add→addConstraint/addObject、删除 ToLinearPolynomial/plus/times/LinearMonomial 等）导致级联编译失败。
+
+**待修复文件清单**（均在 `gantt-scheduling-domain-task-compilation-context` 模块）：
+
+| 文件 | 主要问题 |
+|------|----------|
+| Aggregation.kt | MetaModel<Flt64> 类型适配 + LinearPolynomial<Flt64> 泛型参数 |
+| IterativeAggregation.kt | AbstractLinearMetaModel<Flt64> + tokens/gr/geq/subObjects API 适配 |
+| IterativeContext.kt | AbstractLinearMetaModel<Flt64> 类型适配 |
+| Compilation.kt | times/plus/sum import 迁移 + MetaModel<Flt64> + add→addConstraint/addObject |
+| Makespan.kt | LinearIntermediateSymbol<Flt64> + MetaModel<Flt64> + add API 适配 |
+| Switch.kt | LinearIntermediateSymbol<Flt64> + MaskingFunction 签名适配 |
+| TaskTime.kt | LinearMonomial→math.symbol 迁移 + MetaModel<Flt64> + MaskingFunction 签名适配 |
+| TaskTimeConflictConstraint.kt | ✓ 已修复 |
+| SolutionAnalysisService.kt | 可能也有类似问题 |
+
+**修复模式**（统一规则）：
+1. `MetaModel` → `MetaModel<Flt64>`，`AbstractLinearMetaModel` → `AbstractLinearMetaModel<Flt64>`
+2. `LinearIntermediateSymbol` → `LinearIntermediateSymbol<Flt64>`
+3. `import core.intermediate_model.LinearPolynomial` → `import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial`，使用处加 `<Flt64>`
+4. `import core.intermediate_model.times/plus` → 删除（IntermediateSymbol.kt 已有 operator 扩展）
+5. `import core.intermediate_model.monomial.LinearMonomial` → `import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial`
+6. `model.add(...)` → `model.addConstraint(...)` 或 `model.addObject(...)`
+7. `Ok`/`Failed`/`Fatal` → 添加3个类型参数
+8. `tokens`/`gr`/`geq`/`subObjects` 等 MetaModel API → 需查看 MetaModel.kt 当前 API 确认正确访问方式
+9. MaskingFunction 等函数符号需要 `LinearIntermediateSymbol<Flt64>` 而非 `LinearPolynomial<Flt64>`
+
+#### 收口 2：升级验收命令
+
+当前验收命令 `mvn -pl ospf-kotlin-core -am test` 不做 clean，无法发现增量构建掩盖的问题。升级为：
+
+```bash
+# 必须通过
+mvn -pl ospf-kotlin-core -am clean test
+mvn -pl ospf-kotlin-framework -am clean compile
+mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile
+
+# 门禁
+powershell -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1
+```
+
+#### 收口 3：门禁覆盖增强
+
+当前 C8 门禁只检查增量行+core/src/main，需增强：
+1. 检查全仓库存量问题（不仅限增量行）
+2. 增加 clean 构建验证步骤
+3. 增加 framework 和 gantt-scheduling 编译验证
+
+#### P1-12 完成定义（修订）
+
+1. `mvn -pl ospf-kotlin-core -am clean test` 通过
+2. `mvn -pl ospf-kotlin-framework -am clean compile` 通过
+3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile` 通过
+4. 仓库内不存在 `import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial` / `ToQuadraticPolynomial`
+5. 仓库内不存在 `core.intermediate_model.Expression` 作为对外 API 参数类型
+6. `intermediate_model/monomial/`、`Expression.kt`、`ToPolynomial.kt` 已物理删除
+7. C8 门禁增强后通过

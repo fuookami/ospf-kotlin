@@ -116,10 +116,7 @@ class MultiIndexIterator(
         }
 
         // If not started yet, we have at least one element
-        val current = this.current
-        if (current == null) {
-            return true
-        }
+        val current = this.current ?: return true
 
         // Check if we can advance from current position
         val temp = current.copyOf()

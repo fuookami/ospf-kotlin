@@ -4,17 +4,14 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.plus
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.asCoreLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
@@ -22,6 +19,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -59,7 +57,7 @@ interface TaskTime {
     val onTime: LinearIntermediateSymbols1
     val notOnTime: LinearIntermediateSymbols1
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModel<Flt64>): Try
 }
 
 abstract class TaskTimeImpl<
@@ -89,7 +87,7 @@ abstract class TaskTimeImpl<
     private lateinit var notOnEarliestEndTime: LinearIntermediateSymbols1
     override lateinit var notOnTime: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (delayEnabled) {
             if (!::delayTime.isInitialized) {
                 delayTime = LinearIntermediateSymbols1(
@@ -99,19 +97,16 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is LinearFunctionSymbolAdapter -> {
-                            slack.pos ?: LinearPolynomial()
-                        }
-                        is SlackFunction<*> -> {
-                            LinearPolynomial(slack.pos!!.asCoreLinearPolynomial())
+                            slack.pos ?: LinearPolynomial(emptyList(), Flt64.zero)
                         }
                         else -> {
-                            LinearPolynomial()
+                            LinearPolynomial(emptyList(), Flt64.zero)
                         }
                     }
                     if (compilation.taskCancelEnabled) {
                         MaskingFunction(
-                            x = polynomial,
-                            mask = compilation.taskCompilation[task],
+                            x = LinearExpressionSymbol(polynomial),
+                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                             name = "delay_time_${task}"
                         )
                     } else {
@@ -165,19 +160,16 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     val polynomial = when (val slack = estSlack[task]) {
                         is LinearFunctionSymbolAdapter -> {
-                            slack.neg ?: LinearPolynomial()
-                        }
-                        is SlackFunction<*> -> {
-                            LinearPolynomial(slack.neg!!.asCoreLinearPolynomial())
+                            slack.neg ?: LinearPolynomial(emptyList(), Flt64.zero)
                         }
                         else -> {
-                            LinearPolynomial()
+                            LinearPolynomial(emptyList(), Flt64.zero)
                         }
                     }
                     if (compilation.taskCancelEnabled) {
                         MaskingFunction(
-                            x = polynomial,
-                            mask = compilation.taskCompilation[task],
+                            x = LinearExpressionSymbol(polynomial),
+                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                             name = "advance_time_${task}"
                         )
                     } else {
@@ -271,7 +263,7 @@ abstract class TaskTimeImpl<
                                         }
                                         MaskingFunction(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task],
+                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                                             name = "over_max_delay_time_${task}"
                                         )
                                     } else {
@@ -363,7 +355,7 @@ abstract class TaskTimeImpl<
                                         }
                                         MaskingFunction(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task],
+                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                                             name = "over_max_advance_time_${task}"
                                         )
                                     } else {
@@ -455,7 +447,7 @@ abstract class TaskTimeImpl<
                                         }
                                         MaskingFunction(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task],
+                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                                             name = "delay_last_end_time_${task}"
                                         )
                                     } else {
@@ -543,7 +535,7 @@ abstract class TaskTimeImpl<
                                         }
                                         MaskingFunction(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task],
+                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
                                             name = "advance_earliest_end_time_${task}"
                                         )
                                     } else {
@@ -687,13 +679,13 @@ abstract class TaskTimeImpl<
                     val task = tasks[t]
                     LinearExpressionSymbol(
                         polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
-                            onLastEndTime[t] + onEarliestEndTime[t]
+                            onLastEndTime[t].toMathLinearPolynomial() + onEarliestEndTime[t].toMathLinearPolynomial()
                         } else if (delayLastEndTimeEnabled) {
-                            LinearPolynomial(onLastEndTime[t])
+                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, onLastEndTime[t])), Flt64.zero)
                         } else if (advanceEarliestEndTimeEnabled) {
-                            LinearPolynomial(onEarliestEndTime[t])
+                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, onEarliestEndTime[t])), Flt64.zero)
                         } else {
-                            LinearPolynomial(1)
+                            LinearPolynomial(emptyList(), Flt64.one)
                         },
                         name = "on_time_${task}"
                     )
@@ -811,13 +803,13 @@ abstract class TaskTimeImpl<
                     val task = tasks[t]
                     LinearExpressionSymbol(
                         polynomial = if (delayLastEndTimeEnabled && advanceEarliestEndTimeEnabled) {
-                            notOnLastEndTime[t] + notOnEarliestEndTime[t]
+                            notOnLastEndTime[t].toMathLinearPolynomial() + notOnEarliestEndTime[t].toMathLinearPolynomial()
                         } else if (delayLastEndTimeEnabled) {
-                            LinearPolynomial(notOnLastEndTime[t])
+                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, notOnLastEndTime[t])), Flt64.zero)
                         } else if (advanceEarliestEndTimeEnabled) {
-                            LinearPolynomial(notOnEarliestEndTime[t])
+                            LinearPolynomial(listOf(LinearMonomial(Flt64.one, notOnEarliestEndTime[t])), Flt64.zero)
                         } else {
-                            LinearPolynomial()
+                            LinearPolynomial(emptyList(), Flt64.zero)
                         },
                         name = "not_on_time_${task}"
                     )
@@ -848,7 +840,7 @@ class TaskSchedulingTaskTime<
     timeWindow: TimeWindow,
     tasks: List<T>,
     override val compilation: TaskCompilation<T, E, A>,
-    private val estimateEndTimeCalculator: (T, LinearPolynomial) -> LinearPolynomial,
+    private val estimateEndTimeCalculator: (T, LinearPolynomial<Flt64>) -> LinearPolynomial<Flt64>,
     override val delayEnabled: Boolean = false,
     override val overMaxDelayEnabled: Boolean = false,
     override val advanceEnabled: Boolean = false,
@@ -862,7 +854,7 @@ class TaskSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearIntermediateSymbols1
     override lateinit var estimateEndTime: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::est.isInitialized) {
             est = if (timeWindow.continues) {
                 val est = URealVariable1("est", Shape1(tasks.size))
@@ -989,7 +981,7 @@ class TaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    monomial = LinearMonomial(est[t]),
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, est[t])), Flt64.zero),
                     name = "estimate_start_time_${task}"
                 )
             }
@@ -1028,7 +1020,7 @@ class TaskSchedulingTaskTime<
             ) { t, _ ->
                 val task = tasks[t]
                 LinearExpressionSymbol(
-                    estimateEndTimeCalculator(task, LinearPolynomial(estimateStartTime[t])),
+                    estimateEndTimeCalculator(task, LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[t])), Flt64.zero)),
                     name = "estimate_end_time_${task}"
                 )
             }
@@ -1097,7 +1089,7 @@ open class IterativeTaskSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             TODO("NOT IMPLEMENT YET")
         }
@@ -1110,9 +1102,9 @@ open class IterativeTaskSchedulingTaskTime<
                 val task = tasks[t]
                 LinearExpressionSymbol(
                     if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(estRedundancy[t])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[t])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "estimate_start_time_${task}"
                 )
@@ -1138,9 +1130,9 @@ open class IterativeTaskSchedulingTaskTime<
                 val task = tasks[t]
                 LinearExpressionSymbol(
                     if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(estRedundancy[t])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[t])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "estimate_end_time_${task}"
                 )
@@ -1182,9 +1174,9 @@ open class IterativeTaskSchedulingTaskTime<
                             } else {
                                 with(timeWindow) { time.start.value }.floor()
                             }
-                            val slack = SlackFunction(
-                                x = LinearPolynomial(estimateStartTime[task]),
-                                y = LinearPolynomial(y),
+                            val slack = LinearFunctionSymbolAdapter(SlackFunction(
+                                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[task])), Flt64.zero),
+                                y = LinearPolynomial(emptyList(), y),
                                 type = if (timeWindow.continues) {
                                     UContinuous
                                 } else {
@@ -1193,7 +1185,7 @@ open class IterativeTaskSchedulingTaskTime<
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_${task}"
-                            )
+                            ))
                             slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack
                         }
@@ -1219,7 +1211,7 @@ open class IterativeTaskSchedulingTaskTime<
     open fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Try {
         assert(tasks.isNotEmpty())
 
@@ -1239,8 +1231,8 @@ open class IterativeTaskSchedulingTaskTime<
 
                 for (newTask in thisNewTasks) {
                     val time = newTask.time!!
-                    est.asMutable() += with(timeWindow) { time.start.value } * xi[newTask]
-                    eet.asMutable() += with(timeWindow) { time.end.value } * xi[newTask]
+                    est.asMutable() += LinearMonomial(with(timeWindow) { time.start.value }, xi[newTask])
+                    eet.asMutable() += LinearMonomial(with(timeWindow) { time.end.value }, xi[newTask])
                 }
             }
         }

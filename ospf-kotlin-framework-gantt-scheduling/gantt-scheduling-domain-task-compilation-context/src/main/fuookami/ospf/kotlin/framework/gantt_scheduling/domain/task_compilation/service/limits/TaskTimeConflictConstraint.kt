@@ -4,7 +4,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.plus
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -24,12 +23,12 @@ class TaskTimeConflictConstraint<
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
     override val name: String = "task_time_conflict"
-) : Pipeline<AbstractLinearMetaModel> {
+) : Pipeline<AbstractLinearMetaModel<*>> {
     val tasks = tasks
         .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
         .sortedBy { it.time!!.start }
 
-    override operator fun invoke(model: AbstractLinearMetaModel): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
         val x = compilation.x
 
         for (executor in executors) {
@@ -37,7 +36,7 @@ class TaskTimeConflictConstraint<
                 for (j in (i + 1) until tasks.size) {
                     if (tasks[i].time!!.withIntersection(tasks[j].time!!)) {
                         when (val result = model.addConstraint(
-                            (x[tasks[i], executor] + x[tasks[j], executor]) leq Flt64.one,
+                            (x[tasks[i], executor].toMathLinearPolynomial() + x[tasks[j], executor].toMathLinearPolynomial()) leq Flt64.one,
                             name = "${name}_${tasks[i]}_${tasks[j]}"
                         )) {
                             is Ok -> {}

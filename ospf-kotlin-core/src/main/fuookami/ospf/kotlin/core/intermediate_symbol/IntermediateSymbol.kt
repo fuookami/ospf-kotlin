@@ -1713,6 +1713,18 @@ operator fun <V : RealNumber<V>> QuadraticIntermediateSymbol<V>.div(rhs: Physica
     return Quantity(this, rhs.reciprocal())
 }
 
+operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> {
+    val lhs = this.toMathLinearPolynomial()
+    val rhsPoly = rhs.toMathLinearPolynomial()
+    return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
+}
+
+operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> {
+    val lhs = this.toMathLinearPolynomial()
+    val rhsPoly = rhs.toMathLinearPolynomial()
+    return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
+}
+
 typealias IntermediateSymbolF64 = IntermediateSymbol<Flt64>
 typealias LinearIntermediateSymbolF64 = LinearIntermediateSymbol<Flt64>
 typealias QuadraticIntermediateSymbolF64 = QuadraticIntermediateSymbol<Flt64>

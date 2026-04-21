@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 class Makespan<
@@ -20,9 +21,9 @@ class Makespan<
     private val taskTime: TaskTime,
     private val extra: Boolean = false
 ) {
-    lateinit var makespan: LinearIntermediateSymbol
+    lateinit var makespan: LinearIntermediateSymbol<Flt64>
 
-    fun register(model: MetaModel): Try {
+    fun register(model: MetaModel<Flt64>): Try {
         if (!::makespan.isInitialized) {
             makespan = if (extra) {
                 MinMaxFunction(

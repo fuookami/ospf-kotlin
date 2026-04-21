@@ -2,9 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
-import fuookami.ospf.kotlin.core.intermediate_model.times
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UInteger
@@ -27,10 +25,10 @@ class TaskOnTimeMaximization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "task_on_time_maximization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         if (threshold eq UInt64.zero) {
             when (val result = model.maximize(
-                polynomial = coefficient * sum(taskTime.onTime[_a]),
+                polynomial = coefficient * sum(taskTime.onTime[_a].map { it.toMathLinearPolynomial() }),
                 name = "task on time"
             )) {
                 is Ok -> {}
@@ -45,7 +43,7 @@ class TaskOnTimeMaximization<
             }
         } else {
             val slack = SlackFunction(
-                x = sum(taskTime.onTime[_a]),
+                x = sum(taskTime.onTime[_a].map { it.toMathLinearPolynomial() }),
                 threshold = threshold,
                 type = UInteger,
                 name = "task_on_time_threshold"
@@ -62,7 +60,7 @@ class TaskOnTimeMaximization<
                 }
             }
             when (val result = model.maximize(
-                monomial = coefficient * slack,
+                polynomial = coefficient * slack.toMathLinearPolynomial(),
                 name = "task on time"
             )) {
                 is Ok -> {}

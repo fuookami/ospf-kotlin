@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.plus
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -23,8 +22,8 @@ class TaskConflictConstraint<
     private val compilation: TaskCompilation<T, E, A>,
     private val conflict: (E, T, T) -> Boolean,
     override val name: String = "task_conflict"
-) : Pipeline<AbstractLinearMetaModel> {
-    override operator fun invoke(model: AbstractLinearMetaModel): Try {
+) : Pipeline<AbstractLinearMetaModel<*>> {
+    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
         val x = compilation.x
 
         for (executor in executors) {

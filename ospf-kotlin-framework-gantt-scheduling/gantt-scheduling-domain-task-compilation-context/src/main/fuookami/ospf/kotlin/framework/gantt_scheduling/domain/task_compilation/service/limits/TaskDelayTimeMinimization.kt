@@ -4,8 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -36,15 +35,15 @@ class TaskDelayTimeMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         if (taskTime.delayEnabled) {
-            val cost = MutableLinearPolynomial()
+            val cost = MutableLinearPolynomial<Flt64>()
             for (task in tasks) {
                 val delayTime = taskTime.delayTime[task]
                 val thisThreshold = threshold(task)?.let { with(timeWindow) { it.value } } ?: Flt64.zero
                 val thisCoefficient = coefficient(task) ?: Flt64.infinity
                 if (thisThreshold eq Flt64.zero) {
-                    cost += thisCoefficient * delayTime
+                    cost += thisCoefficient * delayTime.toMathLinearPolynomial()
                 } else {
                     val slack = SlackFunction(
                         x = delayTime,

@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.IterativeTaskCompilation
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class TaskCostMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -18,7 +19,7 @@ class TaskCostMinimization<
     private val compilation: IterativeTaskCompilation<*, *, E, A>,
     override val name: String = "task_cost_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         when (val result = model.minimize(
             symbol = compilation.taskCost,
             name = "task cost"

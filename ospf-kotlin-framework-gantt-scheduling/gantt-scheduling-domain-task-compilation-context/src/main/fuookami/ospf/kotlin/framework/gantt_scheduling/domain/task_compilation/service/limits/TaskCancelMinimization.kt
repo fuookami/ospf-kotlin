@@ -2,8 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.Compilation
@@ -27,12 +26,12 @@ class TaskCancelMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         if (compilation.taskCancelEnabled) {
             when (val result = model.minimize(
                 polynomial = sum(tasks.map { task ->
                     val thisCoefficient = coefficient(task) ?: Flt64.infinity
-                    thisCoefficient * compilation.y[task]
+                    thisCoefficient * compilation.y[task].toMathLinearPolynomial()
                 }),
                 name = "task cancel"
             )) {

@@ -2,16 +2,14 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.plus
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
 import fuookami.ospf.kotlin.core.intermediate_model.geq
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.BinVariable2
 import fuookami.ospf.kotlin.core.variable.eq
@@ -39,7 +37,7 @@ interface Compilation {
     val taskCompilation: LinearIntermediateSymbols1
     val executorCompilation: LinearIntermediateSymbols1
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModel<Flt64>): Try
 }
 
 class TaskCompilation<
@@ -61,7 +59,7 @@ class TaskCompilation<
     override lateinit var taskCompilation: LinearIntermediateSymbols1
     override lateinit var executorCompilation: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = BinVariable2(
                 "x",
@@ -167,9 +165,9 @@ class TaskCompilation<
             ) { t, _ ->
                 LinearExpressionSymbol(
                     polynomial = if (taskCancelEnabled) {
-                        y[t] + sum(x[t, _a])
+                        y[t].toMathLinearPolynomial() + sum(x[t, _a].map { it.toMathLinearPolynomial() })
                     } else {
-                        sum(x[t, _a])
+                        sum(x[t, _a].map { it.toMathLinearPolynomial() })
                     },
                     name = "task_compilation_${t}"
                 )
@@ -217,8 +215,9 @@ class TaskCompilation<
                     shape = Shape1(executors.size)
                 ) { i, _ ->
                     if (withExecutorLeisure) {
+                        val orPolynomials: List<ToMathLinearPolynomial> = tasks.map { x[it, executors[i]] }
                         val or = OrFunction(
-                            polynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                            polynomials = orPolynomials,
                             name = "executor_compilation_or_${executors[i]}"
                         )
                         when (val result = model.add(or)) {
@@ -233,12 +232,13 @@ class TaskCompilation<
                             }
                         }
                         LinearExpressionSymbol(
-                            polynomial = or + z[executors[i]],
+                            polynomial = or.toMathLinearPolynomial() + z[executors[i]].toMathLinearPolynomial(),
                             name = "executor_compilation_${executors[i]}"
                         )
                     } else {
+                        val orPolynomials: List<ToMathLinearPolynomial> = tasks.map { x[it, executors[i]] }
                         OrFunction(
-                            polynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) },
+                            polynomials = orPolynomials,
                             name = "executor_compilation_${executors[i]}"
                         )
                     }
@@ -309,7 +309,7 @@ open class IterativeTaskCompilation<
     private lateinit var xor: BinVariable1
     override lateinit var executorCompilation: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1(
                 name = "y",
@@ -436,9 +436,9 @@ open class IterativeTaskCompilation<
             ) { e, _ ->
                 LinearExpressionSymbol(
                     polynomial = if (withExecutorLeisure) {
-                        LinearPolynomial(xor[e] + z[e])
+                        xor[e].toMathLinearPolynomial() + z[e].toMathLinearPolynomial()
                     } else {
-                        LinearPolynomial(xor[e])
+                        xor[e].toMathLinearPolynomial()
                     },
                     name = "executor_compilation_${e}"
                 )
@@ -462,7 +462,7 @@ open class IterativeTaskCompilation<
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         cost: (IT) -> Cost,
         conflict: (IT, IT) -> Boolean
     ): Ret<List<IT>> {
@@ -487,7 +487,7 @@ open class IterativeTaskCompilation<
 
         taskCost.flush()
         for (task in unduplicatedTasks) {
-            taskCost.asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task]
+            taskCost.asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task].toMathLinearPolynomial()
         }
 
         for (originTask in originTasks) {
@@ -496,7 +496,7 @@ open class IterativeTaskCompilation<
                 if (thisTasks.isNotEmpty()) {
                     val assign = taskAssignment[originTask, executor]
                     assign.flush()
-                    assign.asMutable() += sum(thisTasks.map { xi[it] })
+                    assign.asMutable() += sum(thisTasks.map { xi[it].toMathLinearPolynomial() })
                 }
             }
         }
@@ -506,7 +506,7 @@ open class IterativeTaskCompilation<
             if (thisTasks.isNotEmpty()) {
                 val compilation = taskCompilation[originTask]
                 compilation.flush()
-                compilation.asMutable() += sum(thisTasks.map { xi[it] })
+                compilation.asMutable() += sum(thisTasks.map { xi[it].toMathLinearPolynomial() })
             }
         }
 
@@ -535,7 +535,7 @@ open class IterativeTaskCompilation<
                 for (task2 in otherTasks) {
                     if (task1 != task2 && conflict(task1, task2)) {
                         when (val result = model.addConstraint(
-                            xi[task1] + x[otherIteration][task2] leq Flt64.one,
+                            xi[task1].toMathLinearPolynomial() + x[otherIteration][task2].toMathLinearPolynomial() leq Flt64.one,
                             name = "task_conflict_${task1}_${otherIteration}_${task2}"
                         )) {
                             is Ok -> {}

@@ -339,7 +339,7 @@ sealed class MapIndex {
  * 全范围虚拟索引的便捷访问对象
  * Convenience access object for full range dummy index
  */
-val _a: DummyIndex get() = DummyIndex.All
+val _a: DummyIndex.All get() = DummyIndex.All
 
 /**
  * 虚拟向量类型别名

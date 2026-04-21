@@ -26,7 +26,7 @@ interface IterativeTaskCompilationContext<
 
     val columnAmount get() = UInt64(aggregation.tasks.size)
 
-    fun register(model: AbstractLinearMetaModel): Try {
+    fun register(model: AbstractLinearMetaModel<*>): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
 
@@ -57,7 +57,7 @@ interface IterativeTaskCompilationContext<
     suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Ret<List<AbstractTask<E, A>>> {
         val unduplicatedTasks = when (val result = aggregation.addColumns(
             iteration = iteration,
@@ -86,7 +86,7 @@ interface IterativeTaskCompilationContext<
         reducedCost: (IT) -> Flt64,
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Ret<Flt64> {
         return aggregation.removeColumns(
             maximumReducedCost = maximumReducedCost,
@@ -100,7 +100,7 @@ interface IterativeTaskCompilationContext<
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (pipeline in pipelineList) {
@@ -124,17 +124,17 @@ interface IterativeTaskCompilationContext<
         return ok
     }
 
-    fun extractFixedTasks(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<IT>> {
+    fun extractFixedTasks(iteration: UInt64, model: AbstractLinearMetaModel<*>): Ret<Set<IT>> {
         return aggregation.extractFixedTasks(iteration, model)
     }
 
-    fun extractKeptTasks(iteration: UInt64, model: AbstractLinearMetaModel): Ret<Set<IT>> {
+    fun extractKeptTasks(iteration: UInt64, model: AbstractLinearMetaModel<*>): Ret<Set<IT>> {
         return aggregation.extractKeptTasks(iteration, model)
     }
 
     fun extractHiddenExecutors(
         executors: List<E>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Ret<Set<E>> {
         return aggregation.extractHiddenExecutors(executors, model)
     }
@@ -143,7 +143,7 @@ interface IterativeTaskCompilationContext<
         fixedTasks: Set<IT>,
         hiddenExecutors: Set<E>,
         shadowPriceMap: Map,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
     ): Ret<Set<E>>
 
     fun globallyFix(fixedTasks: Set<IT>): Try {
@@ -154,7 +154,7 @@ interface IterativeTaskCompilationContext<
         iteration: UInt64,
         bar: Flt64,
         fixedTasks: Set<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Ret<Set<IT>> {
         return aggregation.locallyFix(
             iteration = iteration,
@@ -164,11 +164,11 @@ interface IterativeTaskCompilationContext<
         )
     }
 
-    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<*>): Try {
         return aggregation.logResult(iteration, model)
     }
 
-    fun logTaskCost(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logTaskCost(iteration: UInt64, model: AbstractLinearMetaModel<*>): Try {
         return aggregation.logTaskCost(iteration, model)
     }
 
@@ -179,7 +179,7 @@ interface IterativeTaskCompilationContext<
     fun analyzeSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         solution: Solution? = null
     ): Ret<TaskSolution<T, E, A>> {
         return SolutionAnalyzer(
@@ -202,21 +202,21 @@ interface ExtractIterativeTaskCompilationContext<
         > {
     val baseContext: IterativeTaskCompilationContext<Args, IT, T, E, A>
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModel<Flt64>): Try
 
     fun addColumns(
         iteration: UInt64,
         newTasks: List<T>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<*>
     ): Try
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         shadowPrices: MetaDualSolution
     ): Try
 
-    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<*>): Try {
         return ok
     }
 }
