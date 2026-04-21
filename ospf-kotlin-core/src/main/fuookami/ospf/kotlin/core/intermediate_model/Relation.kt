@@ -103,13 +103,8 @@ data class LinearRelationImpl(
         }
     }
 
-    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+    @Suppress("OVERRIDE_DEPRECATION")
     override fun toInequality(): MathLinearInequality {
-        val cells = flattenData.toLinearMonomialCells()
-        val nonConstantCells = cells.filter { !it.isConstant }
-        val constantCell = cells.find { it.isConstant }
-
-        val lhsCells = nonConstantCells + listOfNotNull(constantCell)
         throw NotImplementedError("toInequality() is deprecated and should not be used. Use LinearRelation directly.")
     }
 

@@ -1,6 +1,6 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-19（P0 全量完成归档）
+日期：2026-04-21（P1-12 D0~D4 全量完成归档）
 
 ---
 
@@ -120,7 +120,7 @@
 | P1-8 | Benders cut by_id/from_output 公共 API | 完成 | 2026-04-20 |
 | P1-11 | Basic*Model 独立公开入口规范化 | 完成 | 2026-04-20 |
 | P1-9 | QuadraticTetradModel dual/farkasDual 决策 | 完成 | 2026-04-20 |
-| P1-12 | C6 兼容层删除流程（D0~D4） | 执行中（D1 部分完成） | — |
+| P1-12 | C6 兼容层删除流程（D0~D4） | 完成 | 2026-04-21 |
 
 #### P1-10 完成详情
 
@@ -151,7 +151,7 @@
 
 **D0: 现状冻结** — 已完成（2026-04-19）
 
-**D1: 去除 To\*Polynomial 外部依赖** — 部分完成（2026-04-20）
+**D1: 去除 To\*Polynomial 外部依赖** — 已完成（2026-04-20）
 
 已完成：
 1. **接口层次重构**（`MathInequalityBridge.kt`）：
@@ -165,29 +165,58 @@
    - 直接实现 `toMathLinearInequality()` 和 `toMathQuadraticInequality()`
    - 移除 `ToLinearPolynomial` / `ToQuadraticPolynomial` 导入
 
-3. **核心编译通过**：上述变更后 `ospf-kotlin-core` 编译成功
+3. **IntermediateSymbol.kt 超类型迁移完成**（D1.3）：
+   - `LinearIntermediateSymbol` 超类型从 `ToLinearPolynomial, ToQuadraticPolynomial` 改为 `ToMathLinearInequality, ToMathQuadraticInequality`
+   - `QuadraticIntermediateSymbol` 超类型从 `ToQuadraticPolynomial` 改为 `ToMathQuadraticInequality`
+   - 实现方法从 `toLinearPolynomial()`/`toQuadraticPolynomial()` 改为 `toMathLinearInequality()`/`toMathQuadraticInequality()`
 
-未完成（需继续）：
-- **D1.3**: IntermediateSymbol.kt 超类型迁移 — `LinearIntermediateSymbol : ToLinearPolynomial, ToQuadraticPolynomial` → `ToMathLinearInequality, ToMathQuadraticInequality`；`QuadraticIntermediateSymbol : ToQuadraticPolynomial` → `ToMathQuadraticInequality`
-- **Category A 调用点迁移**（`.toLinearPolynomial()` → `.toMathLinearPolynomial()`，`.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`）：
-  - `SubObject.kt:110` — `poly.toLinearPolynomial()` → `poly.toMathLinearPolynomial()`（poly 类型为 `ToLinearPolynomial`）
-  - `SubObject.kt:189` — `poly.toQuadraticPolynomial()` → `poly.toMathQuadraticPolynomial()`（poly 类型为 `ToQuadraticPolynomial`）
-  - `MetaConstraint.kt:296` — `it.toQuadraticPolynomial()` → `it.toMathQuadraticPolynomial()`（it 类型为 `QuadraticIntermediateSymbol<*>`）
-  - `MetaModel.kt:941` — `it.toQuadraticPolynomial()` → `it.toMathQuadraticPolynomial()`（it 类型为 `QuadraticIntermediateSymbol<*>`）
-  - `Model.kt:555,556` — `relation.lhs/rhs.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`（lhs/rhs 类型为 `UtilsLinearPolynomial<Flt64>`，此处调用的是 math 模块 ConvertOps.kt 的扩展方法，**属于 Category B，保持不变**）
-  - `intermediate_symbol/function/Bridge.kt:20` — `(this as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()` → `.toMathLinearPolynomial()`（this 类型为 `LinearIntermediateSymbol<*>`）
-  - `intermediate_symbol/function/And.kt:110,226` — `it.toLinearPolynomial()` → `it.toMathLinearPolynomial()`（it 类型为 `LinearIntermediateSymbol<*>`）
-  - `intermediate_symbol/function/Masking.kt:180,181` — `x.toLinearPolynomial()` / `mask.toLinearPolynomial()` → `.toMathLinearPolynomial()`（x/mask 类型为 `LinearIntermediateSymbol<*>`）
-  - 注意：Category B 调用点（math 模块方法）保持不变：
-    - `IntermediateSymbol.kt:614` — `MutableLinearPolynomial.toLinearPolynomial()`（math 模块方法）
-    - `IntermediateSymbol.kt:1178` — `MutableQuadraticPolynomial.toQuadraticPolynomial()`（math 模块方法）
-    - `Model.kt:555,556` — `UtilsLinearPolynomial<Flt64>.toQuadraticPolynomial()`（math 模块 ConvertOps.kt 扩展）
-    - `MathInequalityDsl.kt` 所有 `.toQuadraticPolynomial()` 调用均为 `UtilsLinearPolynomial<Flt64>` 上的 math 模块扩展方法
-- **D1.4**: 删除 `ToPolynomial.kt`
-- **D1.5**: 更新 monomial 文件（`LinearMonomial.kt`, `QuadraticMonomial.kt`）移除 `ToLinearPolynomial` / `ToQuadraticPolynomial` 超类型
-- **D1 验证**: 编译 + 测试
+4. **Category A 调用点迁移完成**：
+   - `SubObject.kt` — 参数类型 `ToLinearPolynomial` → `ToMathLinearPolynomial`，`ToQuadraticPolynomial` → `ToMathQuadraticPolynomial`；调用 `.toMathLinearPolynomial()` / `.toMathQuadraticPolynomial()`
+   - `MetaConstraint.kt` — 参数类型 `ToLinearPolynomial` → `ToMathLinearInequality`，`ToQuadraticPolynomial` → `ToMathQuadraticInequality`；调用 `.toMathQuadraticPolynomial()`
+   - `MetaModel.kt` — `.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`
+   - `Model.kt` — `as ToQuadraticPolynomial` → `as ToMathQuadraticInequality`
+   - `Bridge.kt` — `.toLinearPolynomial()` → `.toMathLinearPolynomial()`
+   - `And.kt` — 参数类型 `ToLinearPolynomial` → `ToMathLinearPolynomial`；调用 `.toMathLinearPolynomial()`
+   - `Masking.kt` — 参数类型 `ToLinearPolynomial` → `ToMathLinearPolynomial`；调用 `.toMathLinearPolynomial()`
+   - `MathInequalityDsl.kt` — `QuadraticIntermediateSymbol<*>` 上 `.toQuadraticPolynomial()` → `.toMathQuadraticPolynomial()`
 
-**D2~D4**: 未开始
+5. **FunctionSymbol/If/Masking/Product override 迁移完成**：
+   - `LinearFunctionSymbolAdapter`、`IfFunction`、`MaskingWithPolyMaskFunction`：`toLinearPolynomial()`/`toQuadraticPolynomial()` → `toMathLinearInequality()`/`toMathQuadraticInequality()`
+   - `ProductFunction`：`toQuadraticPolynomial()` → `toMathQuadraticInequality()`；内部调用 `.toMathQuadraticPolynomial()`
+
+6. **Monomial 文件迁移完成**（D1.5）：
+   - `LinearMonomial` 超类型从 `ToLinearPolynomial, ToQuadraticPolynomial` 改为 `ToMathLinearPolynomial, ToMathQuadraticPolynomial`
+   - `QuadraticMonomial` 超类型从 `ToQuadraticPolynomial` 改为 `ToMathQuadraticPolynomial`
+
+7. **ToPolynomial.kt 物理删除**（D1.4）
+
+8. **D1 验证通过**：`mvn compile -pl ospf-kotlin-core -am` ✓、`mvn test -pl ospf-kotlin-core -am` ✓、`mvn compile -pl ospf-kotlin-framework -am` ✓
+
+**D2: 去除 Expression 外部依赖** — 已完成（2026-04-21）
+
+退出条件已满足：`Expression` 仅在 `@Deprecated` CallBackModel 方法中作为参数类型可见，core 对外 API 不再暴露 `Expression` 参数。
+
+**D3: 去除 intermediate_model.monomial 主路径依赖** — 已完成（2026-04-21）
+
+1. 移除所有未使用的 monomial 导入（MetaModel、IntermediateSymbol、TokenCacheContext、SubObject、MathInequalityBridge、Product）
+2. MetaModel/MetaConstraint 中 `LinearMonomial`/`QuadraticMonomial` 参数方法标注 `@Deprecated(WARNING)`
+3. MathInequalityDsl 中 `LinearMonomial`/`QuadraticMonomial` DSL 运算符已随 monomial/ 删除一并移除
+4. 编译 + 测试通过
+
+**D4: 物理删除与门禁收口** — 已完成（2026-04-21）
+
+1. `Expression` 成员内联到 `IntermediateSymbol` 和 `Monomial`，`Expression.kt` 物理删除
+2. `ToPolynomial.kt` 已在 D1 物理删除
+3. `intermediate_model/monomial/` 目录物理删除（4 文件：Monomial.kt、LinearMonomial.kt、QuadraticMonomial.kt、LinearMonomialSymbol.kt）
+4. 所有 monomial 调用点迁移完成：
+   - `@Deprecated` 方法（MetaModel/MetaConstraint/Model 中接受 monomial 参数的方法）已删除
+   - `@Deprecated cells` 属性（IntermediateSymbol/FunctionSymbol/If/Masking/Product）已删除
+   - `Bridge.kt` 中 `asCoreLinearMonomial()` 已删除
+   - `SymbolCombination.kt` 中 `map()` 工厂函数签名已更新
+   - `AbstractVariableItem.kt` 运算符已迁移到返回 `math.symbol` 类型
+   - `MathInequalityDsl.kt` 中 monomial DSL 运算符已移除
+5. 测试更新：删除使用 monomial 类型的测试，替换 `cells.toLinearFlattenData()` 为 `flattenedMonomials`
+6. 验收：`mvn test -pl ospf-kotlin-core -am` ✓、`mvn compile -pl ospf-kotlin-framework -am` ✓、`check-c8-guards.ps1` ✓
 
 #### P1-9 完成详情
 

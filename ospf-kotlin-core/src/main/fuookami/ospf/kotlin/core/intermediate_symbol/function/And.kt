@@ -101,13 +101,13 @@ class AndFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
             AndFunction<Flt64>(
-                polynomials = polynomials.map { it.toLinearPolynomial() },
+                polynomials = polynomials.map { it.toMathLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName
@@ -217,13 +217,13 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial>,
+            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
             OrFunction<Flt64>(
-                polynomials = polynomials.map { it.toLinearPolynomial() },
+                polynomials = polynomials.map { it.toMathLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName

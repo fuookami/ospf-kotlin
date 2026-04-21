@@ -22,8 +22,8 @@ class CacheKeyConflictTest {
 
         listOf(symbol).register(tokenTable)
 
-        val symbolFlatten = symbol.cells.toLinearFlattenData()
-        val privateFlatten = symbol.cells.toLinearFlattenData()
+        val symbolFlatten = symbol.flattenedMonomials
+        val privateFlatten = symbol.flattenedMonomials
 
         tokenTable.cacheLinearFlatten(symbol, symbolFlatten)
         tokenTable.cacheLinearFlatten(privateKey, privateFlatten)
@@ -94,7 +94,7 @@ class CacheKeyConflictTest {
         val tokenTable = AutoTokenTable(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
 
-        val privateFlatten = symbol.cells.toLinearFlattenData()
+        val privateFlatten = symbol.flattenedMonomials
         val privateRange = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
 
         tokenTable.cacheLinearFlatten(privateKey, privateFlatten)

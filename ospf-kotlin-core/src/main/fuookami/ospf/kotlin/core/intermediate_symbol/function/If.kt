@@ -1,10 +1,9 @@
-@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
@@ -23,6 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -126,16 +126,14 @@ class IfFunction<T : Field<T>>(
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
-    @Deprecated("Use flattenedMonomials instead. cells is transitional compatibility layer.", level = DeprecationLevel.WARNING)
-    override val cells: List<LinearMonomialCellF64> get() = emptyList()
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
 
-    override fun toLinearPolynomial(): MathLinearPolynomial<Flt64> {
-        return MathLinearPolynomial(emptyList(), Flt64.zero)
+    override fun toMathLinearInequality(): MathLinearInequality {
+        return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toQuadraticPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<Flt64> {
-        return fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero)
+    override fun toMathQuadraticInequality(): MathQuadraticInequality {
+        return MathQuadraticInequality(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null

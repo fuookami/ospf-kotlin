@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
+@file:Suppress("OVERRIDE_DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
@@ -12,24 +12,16 @@ import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialSymbol
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialCell
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
-import fuookami.ospf.kotlin.core.intermediate_model.ToLinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearInequality
+import fuookami.ospf.kotlin.core.intermediate_model.ToMathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMechanismModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticMechanismModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.toLinearFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticFlattenData
-import fuookami.ospf.kotlin.core.intermediate_model.toLinearMonomialCells
-import fuookami.ospf.kotlin.core.intermediate_model.toQuadraticMonomialCells
 import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64
@@ -49,7 +41,43 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
-interface IntermediateSymbol<V : RealNumber<V>> : Symbol, Expression {
+interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
+    override var name: String
+    override var displayName: String?
+
+    val discrete: Boolean get() = false
+
+    val range: ExpressionRange<Flt64>
+    val lowerBound get() = range.lowerBound?.toFlt64()
+    val upperBound get() = range.upperBound?.toFlt64()
+    val fixedValue get() = range.fixedValue
+
+    fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
+    }
+
+    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(
+            results = results,
+            tokenList = tokenTable.tokenList,
+            zeroIfNone = zeroIfNone
+        )
+    }
+
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64? = null, zeroIfNone: Boolean = false): Flt64?
+    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable? = null, zeroIfNone: Boolean = false): Flt64? {
+        return evaluate(
+            values = values,
+            tokenList = tokenTable?.tokenList,
+            zeroIfNone = zeroIfNone
+        )
+    }
+
     val category: Category
     val operationCategory: Category get() = category
 
@@ -152,7 +180,7 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol, Expression {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToLinearPolynomial, ToQuadraticPolynomial {
+interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToMathLinearInequality, ToMathQuadraticInequality {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
@@ -167,31 +195,31 @@ interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, T
         }
     }
 
-    @Deprecated(
-        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
-        level = DeprecationLevel.WARNING
-    )
-    val cells: List<LinearMonomialCellF64>
     @Suppress("DEPRECATION")
-    val flattenedMonomials: LinearFlattenDataF64 get() = cells.toLinearFlattenData()
+    val flattenedMonomials: LinearFlattenDataF64
 
-    override fun toLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
-        return UtilsLinearPolynomial(
+    override fun toMathLinearInequality(): MathLinearInequality {
+        val lhs = UtilsLinearPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(it.coefficient, it.symbol) },
             constant = flattenedMonomials.constant
         )
+        return MathLinearInequality(lhs, UtilsLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
-        val linearPoly = toLinearPolynomial()
-        return UtilsQuadraticPolynomial(
-            monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol, it.symbol) },
-            constant = linearPoly.constant
+    override fun toMathQuadraticInequality(): MathQuadraticInequality {
+        val linearPoly = toMathLinearPolynomial()
+        return MathQuadraticInequality(
+            UtilsQuadraticPolynomial(
+                monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol, it.symbol) },
+                constant = linearPoly.constant
+            ),
+            UtilsQuadraticPolynomial(emptyList(), Flt64.one),
+            Comparison.EQ
         )
     }
 }
 
-interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToQuadraticPolynomial {
+interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToMathQuadraticInequality {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
@@ -206,19 +234,15 @@ interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>
         }
     }
 
-    @Deprecated(
-        message = "Use flattenedMonomials instead. cells is transitional compatibility layer.",
-        level = DeprecationLevel.WARNING
-    )
-    val cells: List<QuadraticMonomialCellF64>
     @Suppress("DEPRECATION")
-    val flattenedMonomials: QuadraticFlattenDataF64 get() = cells.toQuadraticFlattenData()
+    val flattenedMonomials: QuadraticFlattenDataF64
 
-    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
-        return UtilsQuadraticPolynomial(
+    override fun toMathQuadraticInequality(): MathQuadraticInequality {
+        val lhs = UtilsQuadraticPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
             constant = flattenedMonomials.constant
         )
+        return MathQuadraticInequality(lhs, UtilsQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 }
 
@@ -449,24 +473,6 @@ class LinearExpressionSymbol(
         }
 
         operator fun invoke(
-            monomial: LinearMonomial,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
-                    monomials = listOf(monomial.toUtilsMonomial()),
-                    constant = Flt64.zero
-                ),
-                category = Linear,
-                parent = parent,
-                name = name.ifEmpty { monomial.name },
-                displayName = displayName ?: monomial.displayName
-            )
-        }
-
-        operator fun invoke(
             polynomial: UtilsLinearPolynomial<Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
@@ -619,10 +625,6 @@ class LinearExpressionSymbol(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
         )
-
-    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
-    override val cells: List<LinearMonomialCellF64>
-        get() = flattenedMonomials.toLinearMonomialCells()
 
     // asMutable returns UtilsMutableLinearPolynomial<Flt64>
     fun asMutable(): UtilsMutableLinearPolynomial<Flt64> {
@@ -997,58 +999,6 @@ class QuadraticExpressionSymbol(
         }
 
         operator fun invoke(
-            monomial: LinearMonomial,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            val utilsLinearMonomial = monomial.toUtilsMonomial()
-            return QuadraticExpressionSymbol(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = listOf(UtilsQuadraticMonomial.linear(utilsLinearMonomial.coefficient, utilsLinearMonomial.symbol)),
-                    constant = Flt64.zero
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name.ifEmpty { monomial.name },
-                displayName = displayName ?: monomial.displayName
-            )
-        }
-
-        operator fun invoke(
-            monomial: QuadraticMonomial,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            val sym1: Symbol = when (monomial.symbol.symbol1) {
-                is Variant3.V1 -> monomial.symbol.symbol1.value
-                is Variant3.V2 -> monomial.symbol.symbol1.value
-                is Variant3.V3 -> monomial.symbol.symbol1.value
-            }
-            val utilsMonomial = if (monomial.symbol.symbol2 == null) {
-                UtilsQuadraticMonomial.linear(monomial.coefficient, sym1)
-            } else {
-                val sym2: Symbol = when (monomial.symbol.symbol2!!) {
-                    is Variant3.V1 -> monomial.symbol.symbol2!!.value
-                    is Variant3.V2 -> monomial.symbol.symbol2!!.value
-                    is Variant3.V3 -> monomial.symbol.symbol2!!.value
-                }
-                UtilsQuadraticMonomial.quadratic(monomial.coefficient, sym1, sym2)
-            }
-            return QuadraticExpressionSymbol(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = listOf(utilsMonomial),
-                    constant = Flt64.zero
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name.ifEmpty { monomial.name },
-                displayName = displayName ?: monomial.displayName
-            )
-        }
-
-        operator fun invoke(
             constant: Int,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
@@ -1183,10 +1133,6 @@ class QuadraticExpressionSymbol(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
         )
-
-    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
-    override val cells: List<QuadraticMonomialCellF64>
-        get() = flattenedMonomials.toQuadraticMonomialCells()
 
     // asMutable returns UtilsMutableQuadraticPolynomial<Flt64>
     fun asMutable(): UtilsMutableQuadraticPolynomial<Flt64> {

@@ -3,10 +3,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -295,52 +291,6 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): LegacyAbstra
 }
 
 /**
- * 将旧 CellF64 列表转换为 LinearFlattenDataF64。
- * 已废弃：调用方应直接使用 FlattenData 主路径，而非通过 CellF64 中转。
- */
-@Deprecated(
-    message = "Use LinearFlattenDataF64 directly. CellF64-based conversion will be removed in M9.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64")
-)
-internal fun List<LinearMonomialCellF64>.toLinearFlattenData(): LinearFlattenDataF64 {
-    var constant = Flt64.zero
-    val monomials = mapNotNull { cell ->
-        if (cell.isConstant) {
-            constant += cell.constant!!
-            null
-        } else {
-            UtilsLinearMonomial(
-                coefficient = cell.pair!!.coefficient,
-                symbol = cell.pair!!.variable
-            )
-        }
-    }
-    return LinearFlattenDataF64(
-        monomials = monomials,
-        constant = constant
-    )
-}
-
-/**
- * 将 LinearFlattenDataF64 转换为旧 CellF64 列表。
- * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
- */
-@Deprecated(
-    message = "Only for deprecated cells property compatibility. Will be removed in M9.",
-    level = DeprecationLevel.WARNING
-)
-internal fun LinearFlattenDataF64.toLinearMonomialCells(): List<LinearMonomialCellF64> {
-    val cells = monomials.map { m ->
-        LinearMonomialCellF64.invoke<Flt64>(m.coefficient, m.symbol as AbstractVariableItem<*, *>)
-    }.toMutableList()
-    if (constant != Flt64.zero) {
-        cells.add(LinearMonomialCellF64.invoke<Flt64>(constant))
-    }
-    return cells
-}
-
-/**
  * 将 LinearFlattenDataF64 转换为 QuadraticFlattenDataF64。
  * 用于 Linear → Quadratic 升级场景。
  */
@@ -356,55 +306,4 @@ internal fun LinearFlattenDataF64.toQuadraticFlattenData(): QuadraticFlattenData
         monomials = monomials,
         constant = this.constant
     )
-}
-
-/**
- * 将旧 QuadraticMonomialCellF64 列表转换为 QuadraticFlattenDataF64。
- * 已废弃：调用方应直接使用 FlattenData 主路径。
- */
-@Deprecated(
-    message = "Use QuadraticFlattenDataF64 directly. CellF64-based conversion will be removed in M9.",
-    level = DeprecationLevel.WARNING,
-    replaceWith = ReplaceWith("polynomial.flattenedMonomials", "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64")
-)
-internal fun List<QuadraticMonomialCellF64>.toQuadraticFlattenData(): QuadraticFlattenDataF64 {
-    var constant = Flt64.zero
-    val monomials = mapNotNull { cell ->
-        if (cell.isConstant) {
-            constant += cell.constant!!
-            null
-        } else {
-            UtilsQuadraticMonomial(
-                coefficient = cell.triple!!.coefficient,
-                symbol1 = cell.triple!!.variable1,
-                symbol2 = cell.triple!!.variable2
-            )
-        }
-    }
-    return QuadraticFlattenDataF64(
-        monomials = monomials,
-        constant = constant
-    )
-}
-
-/**
- * 将 QuadraticFlattenDataF64 转换为旧 CellF64 列表。
- * 已废弃：仅用于 deprecated `cells` 属性的兼容层。
- */
-@Deprecated(
-    message = "Only for deprecated cells property compatibility. Will be removed in M9.",
-    level = DeprecationLevel.WARNING
-)
-internal fun QuadraticFlattenDataF64.toQuadraticMonomialCells(): List<QuadraticMonomialCellF64> {
-    val cells = monomials.map {
-        QuadraticMonomialCellF64.invoke<Flt64>(
-            coefficient = it.coefficient,
-            variable1 = it.symbol1 as AbstractVariableItem<*, *>,
-            variable2 = it.symbol2 as AbstractVariableItem<*, *>?
-        )
-    }.toMutableList()
-    if (constant != Flt64.zero) {
-        cells.add(QuadraticMonomialCellF64.invoke<Flt64>(constant))
-    }
-    return cells
 }

@@ -1,9 +1,8 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -356,7 +355,7 @@ data object QuadraticIntermediateSymbols {
 fun <T> map(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> LinearMonomial,
+    ctor: (T) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
 ): LinearExpressionSymbols1 {
     val l = objs.toList()
@@ -393,7 +392,7 @@ fun <T1, T2> map(
     name: String,
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
-    ctor: (T1, T2) -> LinearMonomial,
+    ctor: (T1, T2) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
 ): LinearExpressionSymbols2 {
     val l1 = objs1.toList()
@@ -434,7 +433,7 @@ fun <T1, T2, T3> map(
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
-    ctor: (T1, T2, T3) -> LinearMonomial,
+    ctor: (T1, T2, T3) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
 ): LinearExpressionSymbols3 {
     val l1 = objs1.toList()
@@ -491,7 +490,7 @@ fun <T1, T2, T3, T4> map(
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
     objs4: Iterable<T4>,
-    ctor: (T1, T2, T3, T4) -> LinearMonomial,
+    ctor: (T1, T2, T3, T4) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
 ): LinearExpressionSymbols4 {

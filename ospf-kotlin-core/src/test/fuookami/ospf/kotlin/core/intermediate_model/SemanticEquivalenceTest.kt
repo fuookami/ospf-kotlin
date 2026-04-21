@@ -21,83 +21,10 @@ import kotlin.test.assertTrue
 /**
  * P1-10 Semantic Equivalence Regression Test
  *
- * Verifies that the "new entry point" (math.symbol-based) and the
- * "old entry point" (deprecated core intermediate_model.monomial-based)
- * produce equivalent models.
+ * Verifies that the math.symbol-based API produces correct models
+ * and that the V-generic and Flt64-specific paths are equivalent.
  */
 class SemanticEquivalenceTest {
-
-    /**
-     * Test 1: Linear model equivalence — old monomial entry vs new math.symbol entry
-     *
-     * Model A uses the deprecated addConstraint(constraint: LinearMonomial) which
-     * internally creates (constraint eq true), i.e. x = 1.
-     * Model B uses the new addConstraint(relation: MathLinearInequality) with
-     * the equivalent (x eq Flt64.one).
-     * Verifies both produce the same constraint sign and flattenData.
-     */
-    @Test
-    @Suppress("DEPRECATION")
-    fun linearModelEquivalenceOldMonomialVsNewMathSymbol() {
-        val x = RealVar("x")
-
-        // === Model A: Old entry via addConstraint(constraint: LinearMonomial) → x eq true ===
-        val metaModelA = LinearMetaModel<Flt64>(name = "test-linear-equiv-a")
-        metaModelA.add(x)
-
-        val oldMonomial = fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial(x)
-        metaModelA.addConstraint(
-            constraint = oldMonomial,
-            group = null,
-            lazy = false,
-            name = "c1"
-        )
-
-        // === Model B: New entry via addConstraint(relation: MathLinearInequality) → x eq 1.0 ===
-        val metaModelB = LinearMetaModel<Flt64>(name = "test-linear-equiv-b")
-        metaModelB.add(x)
-
-        val inequalityB: MathLinearInequality = (x eq Flt64.one)
-        metaModelB.addConstraint(
-            relation = inequalityB,
-            group = null,
-            lazy = false,
-            name = "c1"
-        )
-
-        // Verify both produce the same number of constraints
-        assertEquals(1, metaModelA.relationConstraints.size, "Model A should have 1 constraint")
-        assertEquals(1, metaModelB.relationConstraints.size, "Model B should have 1 constraint")
-
-        val constraintA = metaModelA.relationConstraints.first()
-        val constraintB = metaModelB.relationConstraints.first()
-
-        // Verify both have the same sign (EQ)
-        assertEquals(Comparison.EQ, constraintA.sign, "Constraint A should have EQ sign")
-        assertEquals(Comparison.EQ, constraintB.sign, "Constraint B should have EQ sign")
-
-        // Verify flattenData equivalence
-        val flattenA = constraintA.flattenData
-        val flattenB = constraintB.flattenData
-
-        // Both should have 1 monomial (1*x)
-        assertEquals(1, flattenA.monomials.size, "Flatten A should have 1 monomial")
-        assertEquals(1, flattenB.monomials.size, "Flatten B should have 1 monomial")
-
-        // Verify coefficients are equivalent (both should be 1.0)
-        assertEquals(
-            flattenA.monomials.first().coefficient.toDouble(),
-            flattenB.monomials.first().coefficient.toDouble(),
-            1e-10,
-            "Flatten coefficients should match between A and B"
-        )
-
-        // Verify constants are equivalent (both should be -1.0, since lhs - rhs = 0 - 1 = -1)
-        assertEquals(flattenA.constant, flattenB.constant, "Flatten constants should match")
-
-        metaModelA.close()
-        metaModelB.close()
-    }
 
     /**
      * Test 2: Quadratic model equivalence

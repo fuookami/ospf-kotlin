@@ -1,12 +1,10 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
@@ -201,31 +199,6 @@ interface LinearModel : Model {
         )
     )
     fun addConstraint(
-        constraint: LinearMonomial,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        withRangeSet: Boolean? = false
-    ): Try {
-        return addConstraint(
-            relation = MathLinearPolynomial(constraint.flattenedMonomials.monomials, Flt64.zero) eq Flt64.one,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            withRangeSet = withRangeSet
-        )
-    }
-
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(constraint.toMathLinearInequality(), lazy, name, displayName, withRangeSet)",
-            "fuookami.ospf.kotlin.core.intermediate_model.MathInequalityDslKt"
-        )
-    )
-    fun addConstraint(
         constraint: LinearIntermediateSymbol<Flt64>,
         lazy: Boolean = false,
         name: String? = null,
@@ -300,27 +273,6 @@ interface LinearModel : Model {
         )
     }
 
-    @Deprecated(
-        message = "Use addConstraint(relation: MathLinearInequality) with math.symbol types instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionLinearMonomials")
-    fun partition(
-        monomials: Iterable<LinearMonomial>,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        val polynomial = MathLinearPolynomial(monomials.flatMap { it.flattenedMonomials.monomials }, Flt64.zero)
-        return addConstraint(
-            relation = polynomial le Flt64.one,
-            lazy = lazy,
-            name = name,
-            displayName = displayName
-        )
-    }
-
     override fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -344,28 +296,6 @@ interface LinearModel : Model {
         return addObject(
             category = category,
             flattenData = LinearFlattenDataF64(emptyList(), constant.toFlt64()),
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use addObject(flattenData: LinearFlattenDataF64) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = LinearFlattenDataF64(listOf(MathLinearMonomial(Flt64.one, monomial)), Flt64.zero), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64"
-        )
-    )
-    fun addObject(
-        category: ObjectCategory,
-        monomial: LinearMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = category,
-            flattenData = monomial.flattenedMonomials,
             name = name ?: "",
             displayName = displayName
         )
@@ -398,40 +328,6 @@ interface LinearModel : Model {
         name: String = "",
         displayName: String? = null
     ): Try
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun minimize(
-        monomial: LinearMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            monomial = monomial,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun maximize(
-        monomial: LinearMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            monomial = monomial,
-            name = name,
-            displayName = displayName
-        )
-    }
 
     @Deprecated(
         message = "Use minimize/maximize(polynomial: MathLinearPolynomial<Flt64>) instead. Will be removed in E7.",
@@ -528,46 +424,6 @@ interface QuadraticModel : LinearModel {
         level = DeprecationLevel.WARNING
     )
     fun addConstraint(
-        constraint: QuadraticMonomial,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        withRangeSet: Boolean? = null
-    ): Try {
-        return addConstraint(
-            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial).toMathQuadraticInequality(),
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    override fun addConstraint(
-        relation: MathLinearInequality,
-        lazy: Boolean,
-        name: String?,
-        displayName: String?,
-        withRangeSet: Boolean?
-    ): Try {
-        return addConstraint(
-            relation = MathQuadraticInequality(
-                lhs = relation.lhs.toQuadraticPolynomial(),
-                rhs = relation.rhs.toQuadraticPolynomial(),
-                comparison = relation.comparison
-            ),
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathQuadraticInequality) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun addConstraint(
         constraint: QuadraticIntermediateSymbol<Flt64>,
         lazy: Boolean = false,
         name: String? = null,
@@ -575,7 +431,7 @@ interface QuadraticModel : LinearModel {
         withRangeSet: Boolean? = null
     ): Try {
         return addConstraint(
-            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToQuadraticPolynomial).toMathQuadraticInequality(),
+            relation = (constraint as fuookami.ospf.kotlin.core.intermediate_model.ToMathQuadraticInequality).toMathQuadraticInequality(),
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -593,33 +449,6 @@ interface QuadraticModel : LinearModel {
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try
-
-    @Deprecated(
-        message = "Use addConstraint(relation: MathQuadraticInequality) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addConstraint(relation = monomials.map { MathQuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) }.sumOf { it }.le(Flt64.one), lazy, name, displayName)",
-            "fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial",
-            "fuookami.ospf.kotlin.math.symbol.inequality.le",
-            "fuookami.ospf.kotlin.math.algebra.number.Flt64"
-        )
-    )
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionQuadraticMonomials")
-    fun partition(
-        monomials: Iterable<QuadraticMonomial>,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        val polynomial = MathQuadraticPolynomial(monomials.flatMap { it.flattenedMonomials.monomials }, Flt64.zero)
-        return addConstraint(
-            relation = polynomial le Flt64.one,
-            lazy = lazy,
-            name = name,
-            displayName = displayName
-        )
-    }
 
     @Deprecated(
         message = "Use addConstraint(relation: MathQuadraticInequality) instead. Will be removed in E7.",
@@ -678,28 +507,6 @@ interface QuadraticModel : LinearModel {
 
     @Deprecated(
         message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = QuadraticFlattenDataF64(monomial.toQuadraticMonomialCells(), Flt64.zero), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64"
-        )
-    )
-    override fun addObject(
-        category: ObjectCategory,
-        monomial: LinearMonomial,
-        name: String?,
-        displayName: String?
-    ): Try {
-        return addObject(
-            category = category,
-            flattenData = monomial.flattenedMonomials.toQuadraticFlattenData(),
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     override fun addObject(
@@ -711,28 +518,6 @@ interface QuadraticModel : LinearModel {
         return addObject(
             category = category,
             flattenData = symbol.flattenedMonomials.toQuadraticFlattenData(),
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use addObject(flattenData: QuadraticFlattenDataF64) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith(
-            "addObject(category = category, flattenData = QuadraticFlattenDataF64(listOf(MathQuadraticMonomial(monomial.coefficient, monomial.symbol)), monomial.constant), name, displayName)",
-            "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64"
-        )
-    )
-    fun addObject(
-        category: ObjectCategory,
-        monomial: QuadraticMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = category,
-            flattenData = monomial.flattenedMonomials,
             name = name ?: "",
             displayName = displayName
         )
@@ -765,40 +550,6 @@ interface QuadraticModel : LinearModel {
         name: String = "",
         displayName: String? = null
     ): Try
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathQuadraticPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun minimize(
-        monomial: QuadraticMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            monomial = monomial,
-            name = name,
-            displayName = displayName
-        )
-    }
-
-    @Deprecated(
-        message = "Use minimize/maximize(polynomial: MathQuadraticPolynomial<Flt64>) instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun maximize(
-        monomial: QuadraticMonomial,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            monomial = monomial,
-            name = name,
-            displayName = displayName
-        )
-    }
 
     @Deprecated(
         message = "Use minimize/maximize(polynomial: MathQuadraticPolynomial<Flt64>) instead. Will be removed in E7.",

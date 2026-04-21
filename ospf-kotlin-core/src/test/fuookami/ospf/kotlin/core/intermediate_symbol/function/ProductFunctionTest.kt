@@ -66,7 +66,7 @@ class ProductFunctionTest {
         )
 
         val product = ProductFunction(left, right, name = "test")
-        val poly = product.toQuadraticPolynomial()
+        val poly = product.toMathQuadraticPolynomial()
 
         // (2x + 3)(5y + 7) = 10xy + 14x + 15y + 21
         assertEquals(21.0, poly.constant.toDouble(), 1e-10)

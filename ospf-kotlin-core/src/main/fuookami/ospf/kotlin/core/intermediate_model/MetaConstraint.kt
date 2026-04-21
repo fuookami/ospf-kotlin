@@ -1,11 +1,8 @@
-﻿@file:Suppress("DEPRECATION")
-
+﻿
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
@@ -45,48 +42,6 @@ interface MetaConstraintGroup {
     ): Try {
         return this.addConstraint(
             relation = constraint eq true,
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    fun AbstractLinearMetaModelF64.addConstraint(
-        constraint: LinearMonomial,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = false
-    ): Try {
-        return addConstraint(
-            relation = constraint eq true,
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    @Deprecated(
-        message = "Use addConstraint with MathLinearInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun AbstractLinearMetaModelF64.addConstraint(
-        constraint: ToLinearPolynomial,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = false
-    ): Try {
-        return addConstraint(
-            relation = constraint.toMathLinearInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -159,34 +114,12 @@ interface MetaConstraintGroup {
         )
     }
 
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionLinearMonomials")
-    fun AbstractLinearMetaModelF64.partition(
-        monomials: Iterable<LinearMonomial>,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return partition(
-            polynomial = UtilsLinearPolynomial(
-                monomials = monomials.map { it.toUtilsMonomial() }.toList(),
-                constant = Flt64.zero
-            ),
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
     @Deprecated(
         message = "Use partition with MathLinearInequality instead. Will be removed in E7.",
         level = DeprecationLevel.WARNING
     )
     fun AbstractLinearMetaModelF64.partition(
-        polynomial: ToLinearPolynomial,
+        polynomial: ToMathLinearInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -194,46 +127,6 @@ interface MetaConstraintGroup {
     ): Try {
         return addConstraint(
             relation = polynomial.toMathLinearInequality(),
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    fun AbstractQuadraticMetaModelF64.addConstraint(
-        constraint: QuadraticMonomial,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = null
-    ): Try {
-        return addConstraint(
-            relation = constraint eq true,
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    @Deprecated(
-        message = "Use addConstraint with MathQuadraticInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun AbstractQuadraticMetaModelF64.addConstraint(
-        constraint: ToQuadraticPolynomial,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = null
-    ): Try {
-        return addConstraint(
-            relation = constraint.toMathQuadraticInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -261,28 +154,6 @@ interface MetaConstraintGroup {
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionQuadraticMonomials")
-    fun AbstractQuadraticMetaModelF64.partition(
-        monomials: Iterable<QuadraticMonomial>,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return partition(
-            polynomial = UtilsQuadraticPolynomial(
-                monomials = monomials.map { UtilsQuadraticMonomial(it.coefficient, it.toUtilsMonomial().symbol1, it.toUtilsMonomial().symbol2) }.toList(),
-                constant = Flt64.zero
-            ),
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun AbstractQuadraticMetaModelF64.partition(
         symbols: Iterable<QuadraticIntermediateSymbol<*>>,
@@ -293,7 +164,7 @@ interface MetaConstraintGroup {
     ): Try {
         return partition(
             polynomial = UtilsQuadraticPolynomial(
-                monomials = symbols.flatMap { it.toQuadraticPolynomial().monomials }.toList(),
+                monomials = symbols.flatMap { it.toMathQuadraticPolynomial().monomials }.toList(),
                 constant = Flt64.zero
             ),
             group = this@MetaConstraintGroup,
@@ -309,7 +180,7 @@ interface MetaConstraintGroup {
         level = DeprecationLevel.WARNING
     )
     fun AbstractQuadraticMetaModelF64.partition(
-        polynomial: ToQuadraticPolynomial,
+        polynomial: ToMathQuadraticInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,

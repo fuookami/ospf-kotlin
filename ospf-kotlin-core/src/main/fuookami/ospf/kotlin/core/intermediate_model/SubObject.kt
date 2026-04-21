@@ -2,8 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -103,11 +101,11 @@ class LinearSubObject<V : RealNumber<V>>(
         @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
-            poly: ToLinearPolynomial,
+            poly: ToMathLinearPolynomial,
             tokens: LegacyAbstractTokenTable,
             name: String
         ): LinearSubObject<Flt64> {
-            val lp = poly.toLinearPolynomial()
+            val lp = poly.toMathLinearPolynomial()
             val flattenData = LinearFlattenDataF64(lp.monomials, lp.constant)
             val cells = createLinearCells(flattenData.monomials, tokens)
             return LinearSubObject(
@@ -182,11 +180,11 @@ class QuadraticSubObject<V : RealNumber<V>>(
         @Suppress("DEPRECATION")
         operator fun invoke(
             category: ObjectCategory,
-            poly: ToQuadraticPolynomial,
+            poly: ToMathQuadraticPolynomial,
             tokens: LegacyAbstractTokenTable,
             name: String
         ): QuadraticSubObject<Flt64> {
-            val qp = poly.toQuadraticPolynomial()
+            val qp = poly.toMathQuadraticPolynomial()
             val flattenData = QuadraticFlattenDataF64(qp.monomials, qp.constant)
             val cells = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticSubObject(

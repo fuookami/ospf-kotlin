@@ -1,6 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
-
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
@@ -17,12 +15,6 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.intermediate_model.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticInequalityConstraint
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.Monomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.MonomialCell
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomialCellF64
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenSubObject
 import fuookami.ospf.kotlin.core.model.LinearModel
 import fuookami.ospf.kotlin.core.model.Model
@@ -664,26 +656,6 @@ interface AbstractLinearMetaModel<V : RealNumber<V>> : MetaModel<V>, LinearModel
     }
 
     fun addConstraint(
-        constraint: LinearMonomial,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = false
-    ): Try {
-        return addConstraint(
-            relation =constraint eq true,
-            group = group,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            withRangeSet = withRangeSet
-        )
-    }
-
-    fun addConstraint(
         constraint: UtilsLinearPolynomial<Flt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
@@ -783,29 +755,6 @@ interface AbstractLinearMetaModel<V : RealNumber<V>> : MetaModel<V>, LinearModel
         )
     }
 
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionLinearMonomials")
-    fun partition(
-        monomials: Iterable<LinearMonomial>,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return partition(
-            polynomial = fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial(
-                monomials = monomials.map { it.toUtilsMonomial() }.toList(),
-                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
-            ),
-            group = group,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
     fun partition(
         polynomial: UtilsLinearPolynomial<Flt64>,
         group: MetaConstraintGroup?,
@@ -829,26 +778,6 @@ interface AbstractLinearMetaModel<V : RealNumber<V>> : MetaModel<V>, LinearModel
 typealias AbstractLinearMetaModelF64 = AbstractLinearMetaModel<Flt64>
 
 interface AbstractQuadraticMetaModel<V : RealNumber<V>> : MetaModel<V>, QuadraticModel {
-    fun addConstraint(
-        constraint: QuadraticMonomial,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null,
-        withRangeSet: Boolean? = null
-    ): Try {
-        return addConstraint(
-            relation =constraint eq true,
-            group = group,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            args = args,
-            withRangeSet = withRangeSet
-        )
-    }
-
     fun addConstraint(
         constraint: UtilsQuadraticPolynomial<Flt64>,
         group: MetaConstraintGroup?,
@@ -904,29 +833,6 @@ interface AbstractQuadraticMetaModel<V : RealNumber<V>> : MetaModel<V>, Quadrati
     ): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("partitionQuadraticMonomials")
-    fun partition(
-        monomials: Iterable<QuadraticMonomial>,
-        group: MetaConstraintGroup?,
-        lazy: Boolean = false,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return partition(
-            polynomial = UtilsQuadraticPolynomial(
-                monomials = monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.toUtilsMonomial().symbol1, it.toUtilsMonomial().symbol2) }.toList(),
-                constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
-            ),
-            group = group,
-            lazy = lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
         symbols: Iterable<QuadraticIntermediateSymbol<*>>,
@@ -938,7 +844,7 @@ interface AbstractQuadraticMetaModel<V : RealNumber<V>> : MetaModel<V>, Quadrati
     ): Try {
         return partition(
             polynomial = UtilsQuadraticPolynomial(
-                monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
+                monomials = symbols.map { it.toMathQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
                 constant = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
             ),
             group = group,

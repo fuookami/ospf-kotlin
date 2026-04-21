@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -17,14 +16,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinea
  */
 @Suppress("UNCHECKED_CAST")
 fun LinearIntermediateSymbol<*>.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    return (this as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
-}
-
-/**
- * Convert core expression LinearMonomial to math LinearMonomial<Flt64>.
- */
-fun LinearMonomial.asMathLinearMonomial(): MathLinearMonomial<Flt64> {
-    return MathLinearMonomial(this.coefficient, this.symbol as Symbol)
+    return (this as LinearIntermediateSymbol<Flt64>).toMathLinearPolynomial()
 }
 
 /**
@@ -46,14 +38,3 @@ fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): MathLinearPolynomial<Flt64
     return this as MathLinearPolynomial<Flt64>
 }
 
-/**
- * Convert math LinearMonomial<Flt64> to core expression LinearMonomial.
- */
-fun MathLinearMonomial<Flt64>.asCoreLinearMonomial(): LinearMonomial {
-    val coreSymbol = when (val sym = this.symbol) {
-        is AbstractVariableItem<*, *> -> LinearMonomial(sym).symbol
-        is LinearIntermediateSymbol<*> -> LinearMonomial(sym as LinearIntermediateSymbol<Flt64>).symbol
-        else -> throw IllegalArgumentException("Cannot convert symbol type ${sym::class} to core LinearMonomial")
-    }
-    return LinearMonomial(this.coefficient, coreSymbol)
-}

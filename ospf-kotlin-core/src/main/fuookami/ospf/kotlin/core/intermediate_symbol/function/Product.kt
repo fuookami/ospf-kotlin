@@ -1,7 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.monomial.LinearMonomial
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -97,7 +96,7 @@ class ProductFunction<V : RealNumber<V>>(
      * Expand left * right into a quadratic polynomial.
      * Aligns with Rust ProductFunction::to_quadratic_polynomial().
      */
-    override fun toQuadraticPolynomial(): MathQuadraticPolynomial<Flt64> {
+    override fun toMathQuadraticInequality(): MathQuadraticInequality {
         val leftConst = left.constant
         val rightConst = right.constant
 
@@ -128,16 +127,12 @@ class ProductFunction<V : RealNumber<V>>(
             ))
         }
 
-        return MathQuadraticPolynomial(monomials, leftConst * rightConst)
+        return MathQuadraticInequality(MathQuadraticPolynomial(monomials, leftConst * rightConst), MathQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
-
-    @Deprecated("Use flattenedMonomials instead.", level = DeprecationLevel.WARNING)
-    override val cells: List<fuookami.ospf.kotlin.core.intermediate_model.monomial.QuadraticMonomialCellF64>
-        get() = flattenedMonomials.toQuadraticMonomialCells()
 
     override val flattenedMonomials: QuadraticFlattenDataF64
         get() {
-            val poly = toQuadraticPolynomial()
+            val poly = toMathQuadraticPolynomial()
             return QuadraticFlattenDataF64(poly.monomials, poly.constant)
         }
 
@@ -198,7 +193,7 @@ class ProductFunction<V : RealNumber<V>>(
      * Adds the constraint to the model via addConstraint.
      */
     fun register(model: AbstractQuadraticMechanismModelF64): Try {
-        val poly = toQuadraticPolynomial()
+        val poly = toMathQuadraticPolynomial()
         val rhs = MathQuadraticPolynomial<Flt64>(constant = Flt64.zero)
         val inequality = MathQuadraticInequality(poly, rhs, Comparison.EQ)
         return model.addConstraint(inequality, name = name, from = this to true)
