@@ -39,7 +39,7 @@ class TaskOverMaxAdvanceTimeConstraint<
         tasks.filter { it.maxAdvance != null }
     }
 
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
             when (val result = model.addConstraint(
                 taskTime.advanceTime[task] leq with(timeWindow) { task.maxAdvance!!.value },
@@ -90,7 +90,7 @@ class TaskOverMaxAdvanceTimeConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {

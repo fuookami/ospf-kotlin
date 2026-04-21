@@ -29,7 +29,7 @@ class TaskCompilationConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
             when (val result = model.addConstraint(
                 compilation.taskCompilation[task] eq Flt64.one,
@@ -80,7 +80,7 @@ class TaskCompilationConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {

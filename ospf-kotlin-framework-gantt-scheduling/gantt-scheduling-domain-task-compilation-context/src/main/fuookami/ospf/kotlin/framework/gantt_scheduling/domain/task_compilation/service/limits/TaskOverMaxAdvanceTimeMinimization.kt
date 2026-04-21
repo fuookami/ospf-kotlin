@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -35,9 +35,9 @@ class TaskOverMaxAdvanceTimeMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (taskTime.overMaxAdvanceEnabled) {
-            val cost = MutableLinearPolynomial<Flt64>()
+            val cost = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)
             for (task in tasks) {
                 val overMaxAdvanceTime = taskTime.overMaxAdvanceTime[task]
                 val thisThreshold = threshold(task)?.let { with(timeWindow) { it.value } } ?: Flt64.zero
@@ -66,11 +66,11 @@ class TaskOverMaxAdvanceTimeMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += thisCoefficient * slack
+                    cost += thisCoefficient * slack.toMathLinearPolynomial()
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost,
+                polynomial = cost.toLinearPolynomial(),
                 name = "task over max advance time"
             )) {
                 is Ok -> {}

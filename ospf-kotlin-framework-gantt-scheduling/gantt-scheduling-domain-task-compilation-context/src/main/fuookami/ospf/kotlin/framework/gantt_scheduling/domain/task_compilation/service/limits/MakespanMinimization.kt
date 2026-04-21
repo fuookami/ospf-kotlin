@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import kotlin.time.Instant
 
 class MakespanMinimization<
@@ -29,7 +30,7 @@ class MakespanMinimization<
     private val coefficient: Flt64 = Flt64.one,
     override val name: String = "makespan_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val thresholdValue = with(timeWindow) { threshold.value }
         if (thresholdValue eq Flt64.zero) {
             when (val result = model.minimize(

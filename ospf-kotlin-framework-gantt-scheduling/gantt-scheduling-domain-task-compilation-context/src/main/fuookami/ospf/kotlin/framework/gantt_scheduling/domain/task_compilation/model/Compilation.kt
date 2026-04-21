@@ -462,7 +462,7 @@ open class IterativeTaskCompilation<
     open suspend fun addColumns(
         iteration: UInt64,
         newTasks: List<IT>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         cost: (IT) -> Cost,
         conflict: (IT, IT) -> Boolean
     ): Ret<List<IT>> {

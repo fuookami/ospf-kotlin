@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
@@ -25,7 +25,7 @@ class TaskStepConflictConstraint<
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val conflictTaskGroup: List<List<T>> = TODO("not implement yet")
 
-    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
             when (val result = model.addConstraint(
                 sum(tasks.map { t -> compilation.taskCompilation[t].toMathLinearPolynomial() }) leq Flt64.one,
@@ -52,7 +52,7 @@ class TaskStepConflictConstraint<
 
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         TODO("not implement yet")

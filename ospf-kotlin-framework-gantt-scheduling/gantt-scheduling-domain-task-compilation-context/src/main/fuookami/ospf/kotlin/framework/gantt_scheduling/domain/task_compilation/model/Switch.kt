@@ -8,15 +8,12 @@ import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
 import fuookami.ospf.kotlin.core.intermediate_model.leq
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols3
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -191,7 +188,7 @@ class TaskSchedulingSwitch<
                     name = "this_switch_${task1}_$task2"
                 )
                 thisSwitch.range.leq(Flt64.one)
-                val xPoly = taskTime?.let { it.estimateStartTime[task2] - it.estimateEndTime[task1] }
+                val xPoly = taskTime?.let { it.estimateStartTime[task2].toMathLinearPolynomial() - it.estimateEndTime[task1].toMathLinearPolynomial() }
                     ?: LinearPolynomial(
                         emptyList(),
                         with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }

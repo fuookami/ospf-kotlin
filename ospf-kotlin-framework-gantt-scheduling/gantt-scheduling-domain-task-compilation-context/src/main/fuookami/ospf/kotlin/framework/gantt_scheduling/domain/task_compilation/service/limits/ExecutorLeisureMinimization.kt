@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
@@ -22,7 +22,7 @@ class ExecutorLeisureMinimization<
     private val coefficient: Extractor<Flt64?, E>? = null,
     override val name: String = "executor_leisure_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (compilation.withExecutorLeisure) {
             coefficient?.let {
                 when (val result = model.minimize(

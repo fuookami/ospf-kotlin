@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -29,8 +29,8 @@ class SwitchTimeMinimization<
     private val coefficient: Extractor<Flt64?, Pair<T, T>> = { Flt64.one },
     override val name: String = "switch_time_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
-        val cost = MutableLinearPolynomial<Flt64>()
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
+        val cost = MutableLinearPolynomial<Flt64>(constant = Flt64.zero)
         for (task1 in tasks) {
             for (task2 in tasks) {
                 val switchTime = switch.switchTime[task1, task2]
@@ -60,12 +60,12 @@ class SwitchTimeMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += thisCoefficient * slack
+                    cost += thisCoefficient * slack.toMathLinearPolynomial()
                 }
             }
         }
         when (val result = model.minimize(
-            polynomial = cost,
+            polynomial = cost.toLinearPolynomial(),
             name = "switch time"
         )) {
             is Ok -> {}
@@ -82,6 +82,3 @@ class SwitchTimeMinimization<
         return ok
     }
 }
-
-
-

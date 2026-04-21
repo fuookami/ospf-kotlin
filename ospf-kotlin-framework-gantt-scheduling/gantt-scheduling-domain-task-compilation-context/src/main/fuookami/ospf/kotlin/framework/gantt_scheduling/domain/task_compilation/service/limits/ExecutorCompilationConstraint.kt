@@ -11,7 +11,6 @@ import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class ExecutorCompilationShadowPriceKey<E : Executor>(
     val executor: E
@@ -27,10 +26,10 @@ class ExecutorCompilationConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "executor_compilation"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (executor in executors) {
             when (val result = model.addConstraint(
-                compilation.executorCompilation[executor] eq UInt64.one,
+                compilation.executorCompilation[executor].toMathLinearPolynomial() eq Flt64.one,
                 name = "${name}_$executor",
                 args = ExecutorCompilationShadowPriceKey(executor)
             )) {
@@ -78,7 +77,7 @@ class ExecutorCompilationConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup()) {

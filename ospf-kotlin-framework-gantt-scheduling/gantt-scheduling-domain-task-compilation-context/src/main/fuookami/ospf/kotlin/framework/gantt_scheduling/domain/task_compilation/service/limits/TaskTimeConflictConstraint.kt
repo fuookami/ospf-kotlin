@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
 class TaskTimeConflictConstraint<
         T : AbstractTask<E, A>,
@@ -23,12 +24,12 @@ class TaskTimeConflictConstraint<
     private val executors: List<E>,
     private val compilation: TaskCompilation<T, E, A>,
     override val name: String = "task_time_conflict"
-) : Pipeline<AbstractLinearMetaModel<*>> {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     val tasks = tasks
         .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
         .sortedBy { it.time!!.start }
 
-    override operator fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val x = compilation.x
 
         for (executor in executors) {
