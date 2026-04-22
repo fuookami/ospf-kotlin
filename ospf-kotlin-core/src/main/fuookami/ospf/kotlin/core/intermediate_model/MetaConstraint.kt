@@ -114,27 +114,6 @@ interface MetaConstraintGroup {
         )
     }
 
-    @Deprecated(
-        message = "Use partition with MathLinearInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun AbstractLinearMetaModelF64.partition(
-        polynomial: ToMathLinearInequality,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return addConstraint(
-            relation = polynomial.toMathLinearInequality(),
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
     fun AbstractQuadraticMetaModelF64.addConstraint(
         constraint: QuadraticIntermediateSymbol<*>,
         lazy: Boolean? = null,
@@ -167,27 +146,6 @@ interface MetaConstraintGroup {
                 monomials = symbols.flatMap { it.toMathQuadraticPolynomial().monomials }.toList(),
                 constant = Flt64.zero
             ),
-            group = this@MetaConstraintGroup,
-            lazy = lazy ?: this@MetaConstraintGroup.lazy,
-            name = name,
-            displayName = displayName,
-            args = args
-        )
-    }
-
-    @Deprecated(
-        message = "Use partition with MathQuadraticInequality instead. Will be removed in E7.",
-        level = DeprecationLevel.WARNING
-    )
-    fun AbstractQuadraticMetaModelF64.partition(
-        polynomial: ToMathQuadraticInequality,
-        lazy: Boolean? = null,
-        name: String? = null,
-        displayName: String? = null,
-        args: Any? = null
-    ): Try {
-        return addConstraint(
-            relation = polynomial.toMathQuadraticInequality(),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -240,25 +198,6 @@ interface MetaConstraintGroup {
             args = args,
             withRangeSet = withRangeSet
         )
-    }
-}
-
-@Deprecated("Use MathConstraint instead", ReplaceWith("MathConstraint"))
-data class MetaConstraint<Ineq>(
-    val constraint: Ineq,
-    override val group: MetaConstraintGroup? = null,
-    override val lazy: Boolean = false,
-    override val args: Any? = null,
-    override val priority: Int? = null
-) : MathConstraint {
-    override fun isTrue(solution: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Boolean? {
-        @Suppress("UNCHECKED_CAST")
-        val c = constraint as? MathConstraint ?: return null
-        return c.isTrue(solution, tokenTable, zeroIfNone)
-    }
-
-    override fun toString(): String {
-        return constraint.toString()
     }
 }
 
@@ -334,17 +273,6 @@ data class QuadraticInequalityConstraint(
         return inequality.toString()
     }
 }
-
-// Deprecated type aliases for backward compatibility
-@Deprecated("Use LinearInequalityConstraint instead", ReplaceWith("LinearInequalityConstraint"))
-typealias LinearRelationConstraint = LinearInequalityConstraint
-
-@Deprecated("Use QuadraticInequalityConstraint instead", ReplaceWith("QuadraticInequalityConstraint"))
-typealias QuadraticRelationConstraint = QuadraticInequalityConstraint
-
-// ========== Deprecated adapters ==========
-// Removed: toRelationConstraint() functions and Sign.toComparison() - no longer needed
-// since frontend.inequality types are being deleted.
 
 // ========== NEW FlattenData-based SubObject Types ==========
 

@@ -1,9 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 
@@ -30,16 +27,6 @@ sealed interface LinearRelation {
      * Normalize to canonical form (<= or ==)
      */
     fun normalize(): LinearRelation
-
-    /**
-     * Convert to legacy LinearInequality for compatibility
-     */
-    @Deprecated(
-        message = "Use LinearRelation directly. This is for backward compatibility only. Will be removed in M9.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith("this", "fuookami.ospf.kotlin.core.intermediate_model.LinearRelation")
-    )
-    fun toInequality(): MathLinearInequality
 }
 
 /**
@@ -57,16 +44,6 @@ sealed interface QuadraticRelation {
      * Normalize to canonical form (<= or ==)
      */
     fun normalize(): QuadraticRelation
-
-    /**
-     * Convert to legacy QuadraticInequality for compatibility
-     */
-    @Deprecated(
-        message = "Use QuadraticRelation directly. This is for backward compatibility only. Will be removed in M9.",
-        level = DeprecationLevel.WARNING,
-        replaceWith = ReplaceWith("this", "fuookami.ospf.kotlin.core.intermediate_model.QuadraticRelation")
-    )
-    fun toInequality(): MathQuadraticInequality
 }
 
 /**
@@ -103,25 +80,6 @@ data class LinearRelationImpl(
         }
     }
 
-    @Suppress("OVERRIDE_DEPRECATION")
-    override fun toInequality(): MathLinearInequality {
-        throw NotImplementedError("toInequality() is deprecated and should not be used. Use LinearRelation directly.")
-    }
-
-    companion object {
-        /**
-         * Create LinearRelation from MathLinearInequality (adapter)
-         */
-        @Suppress("DEPRECATION")
-        fun from(inequality: MathLinearInequality): LinearRelationImpl {
-            return LinearRelationImpl(
-                flattenData = inequality.flattenData,
-                sign = inequality.comparison,
-                name = "",
-                displayName = null
-            )
-        }
-    }
 }
 
 /**
@@ -158,37 +116,4 @@ data class QuadraticRelationImpl(
         }
     }
 
-    @Suppress("DEPRECATION", "OVERRIDE_DEPRECATION")
-    override fun toInequality(): MathQuadraticInequality {
-        throw NotImplementedError("toInequality() is deprecated and should not be used. Use QuadraticRelation directly.")
-    }
-
-    companion object {
-        /**
-         * Create QuadraticRelation from MathQuadraticInequality (adapter)
-         */
-        @Suppress("DEPRECATION")
-        fun from(inequality: MathQuadraticInequality): QuadraticRelationImpl {
-            return QuadraticRelationImpl(
-                flattenData = inequality.flattenData,
-                sign = inequality.comparison,
-                name = "",
-                displayName = null
-            )
-        }
-    }
 }
-
-// ========== Extension functions for conversion ==========
-
-/**
- * Convert MathLinearInequality to LinearRelation
- */
-@Suppress("DEPRECATION")
-fun MathLinearInequality.toRelation(): LinearRelation = LinearRelationImpl.from(this)
-
-/**
- * Convert MathQuadraticInequality to QuadraticRelation
- */
-@Suppress("DEPRECATION")
-fun MathQuadraticInequality.toRelation(): QuadraticRelation = QuadraticRelationImpl.from(this)

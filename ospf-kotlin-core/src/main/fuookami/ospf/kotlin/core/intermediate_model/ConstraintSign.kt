@@ -49,6 +49,3 @@ enum class ConstraintRelation {
         GreaterEqual -> Comparison.GE
     }
 }
-
-@Deprecated("Use ConstraintRelation instead", ReplaceWith("ConstraintRelation"))
-typealias Sign = ConstraintRelation

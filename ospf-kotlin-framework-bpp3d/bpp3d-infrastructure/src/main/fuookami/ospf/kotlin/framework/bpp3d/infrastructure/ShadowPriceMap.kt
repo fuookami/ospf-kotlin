@@ -25,9 +25,9 @@ typealias AbstractBPP3DShadowPriceExtractor<Args, T> = ShadowPriceExtractor<
         >
 
 typealias AbstractBPP3DCGPipeline<Args, T> = CGPipeline<
-        Args, AbstractLinearMetaModel, AbstractBPP3DShadowPriceMap<Args, T>
+        Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>
         >
 
 typealias AbstractBPP3DCGPipelineList<Args, T> = List<
-        CGPipeline<Args, AbstractLinearMetaModel, AbstractBPP3DShadowPriceMap<Args, T>>
+        CGPipeline<Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>>
         >

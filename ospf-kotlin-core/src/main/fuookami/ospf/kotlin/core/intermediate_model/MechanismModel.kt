@@ -330,7 +330,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
                         LinearConstraintImpl(
-                            relation = it.inequality,
+                            relation = LinearRelationImpl(it.inequality.flattenData, it.inequality.comparison),
                             tokens = tokens
                         )
                     }.toMutableList(),
@@ -397,7 +397,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
                 memoryCheckInSingleTask = true,
                 createConstraint = {
                     LinearConstraintImpl(
-                        relation = it.inequality,
+                        relation = LinearRelationImpl(it.inequality.flattenData, it.inequality.comparison),
                         tokens = tokens
                     )
                 },
@@ -467,6 +467,10 @@ class LinearMechanismModel<V : RealNumber<V>>(
                         }
                     }
                 }
+
+                else -> {
+                    Failed(Err(ErrorCode.ApplicationError, "Unsupported token table type: ${tokens::class.simpleName}"))
+                }
             }
         }
     }
@@ -478,7 +482,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
     ): Try {
         _constraints.add(
             LinearConstraintImpl(
-                relation = relation,
+                relation = LinearRelationImpl(relation.flattenData, relation.comparison),
                 tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
@@ -752,7 +756,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
                         QuadraticConstraintImpl(
-                            relation = it.inequality,
+                            relation = QuadraticRelationImpl(it.inequality.flattenData, it.inequality.comparison),
                             tokens = tokens
                         )
                     }.toMutableList(),
@@ -826,7 +830,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
                 memoryCheckInSingleTask = false,
                 createConstraint = {
                     QuadraticConstraintImpl(
-                        relation = it.inequality,
+                        relation = QuadraticRelationImpl(it.inequality.flattenData, it.inequality.comparison),
                         tokens = tokens
                     )
                 },
@@ -896,6 +900,10 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
                         }
                     }
                 }
+
+                else -> {
+                    Failed(Err(ErrorCode.ApplicationError, "Unsupported token table type: ${tokens::class.simpleName}"))
+                }
             }
         }
     }
@@ -923,7 +931,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
     ): Try {
         _constraints.add(
             QuadraticConstraintImpl(
-                relation = relation,
+                relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
                 tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),

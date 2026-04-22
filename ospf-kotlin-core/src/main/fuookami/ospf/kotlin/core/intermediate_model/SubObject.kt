@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.Solution
@@ -87,36 +85,6 @@ class LinearSubObject<V : RealNumber<V>>(
 
     companion object {
         /**
-         * Create LinearSubObject from Polynomial (legacy API).
-         * Prefer the FlattenData-based constructor for new code.
-         */
-        @Deprecated(
-            message = "Use LinearSubObject(category, flattenData, tokens, name) instead. Will be removed in M9.",
-            level = DeprecationLevel.WARNING,
-            replaceWith = ReplaceWith(
-                "LinearSubObject(category, poly.flattenedMonomials, tokens, name)",
-                "fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64"
-            )
-        )
-        @Suppress("DEPRECATION")
-        operator fun invoke(
-            category: ObjectCategory,
-            poly: ToMathLinearPolynomial,
-            tokens: LegacyAbstractTokenTable,
-            name: String
-        ): LinearSubObject<Flt64> {
-            val lp = poly.toMathLinearPolynomial()
-            val flattenData = LinearFlattenDataF64(lp.monomials, lp.constant)
-            val cells = createLinearCells(flattenData.monomials, tokens)
-            return LinearSubObject(
-                category = category,
-                cells = cells,
-                _constant = flattenData.constant,
-                name = name
-            )
-        }
-
-        /**
          * Create LinearSubObject from LinearFlattenDataF64 (new API)
          */
         operator fun invoke(
@@ -165,36 +133,6 @@ class QuadraticSubObject<V : RealNumber<V>>(
     }
 
     companion object {
-        /**
-         * Create QuadraticSubObject from Polynomial (legacy API).
-         * Prefer the FlattenData-based constructor for new code.
-         */
-        @Deprecated(
-            message = "Use QuadraticSubObject(category, flattenData, tokens, name) instead. Will be removed in M9.",
-            level = DeprecationLevel.WARNING,
-            replaceWith = ReplaceWith(
-                "QuadraticSubObject(category, poly.flattenedMonomials, tokens, name)",
-                "fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64"
-            )
-        )
-        @Suppress("DEPRECATION")
-        operator fun invoke(
-            category: ObjectCategory,
-            poly: ToMathQuadraticPolynomial,
-            tokens: LegacyAbstractTokenTable,
-            name: String
-        ): QuadraticSubObject<Flt64> {
-            val qp = poly.toMathQuadraticPolynomial()
-            val flattenData = QuadraticFlattenDataF64(qp.monomials, qp.constant)
-            val cells = createQuadraticCells(flattenData.monomials, tokens)
-            return QuadraticSubObject(
-                category = category,
-                cells = cells,
-                _constant = flattenData.constant,
-                name = name
-            )
-        }
-
         /**
          * Create QuadraticSubObject from QuadraticFlattenDataF64 (new API)
          */

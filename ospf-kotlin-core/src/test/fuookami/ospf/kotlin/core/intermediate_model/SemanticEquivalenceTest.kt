@@ -204,7 +204,7 @@ class SemanticEquivalenceTest {
         val inequality: MathLinearInequality = (lhs le Flt64(5.0))
 
         // Convert to LinearRelation
-        val relation = inequality.toRelation()
+        val relation = LinearRelationImpl(inequality.flattenData, inequality.comparison)
 
         // Verify sign is preserved
         assertEquals(Comparison.LE, relation.sign, "LinearRelation should preserve LE sign")

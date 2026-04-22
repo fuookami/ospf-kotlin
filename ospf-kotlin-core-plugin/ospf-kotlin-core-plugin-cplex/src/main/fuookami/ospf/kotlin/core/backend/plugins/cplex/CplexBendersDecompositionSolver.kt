@@ -29,7 +29,7 @@ class CplexLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -107,7 +107,7 @@ class CplexLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -251,7 +251,7 @@ class CplexQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -268,7 +268,7 @@ class CplexQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -346,7 +346,7 @@ class CplexQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -367,7 +367,7 @@ class CplexQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModel,
+        metaModel: QuadraticMetaModelF64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,

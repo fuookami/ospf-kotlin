@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.intermediate_model.LinearDualSolution
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
@@ -26,7 +26,7 @@ class GurobiColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -104,7 +104,7 @@ class GurobiColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         amount: UInt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -203,7 +203,7 @@ class GurobiColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel,
+        metaModel: LinearMetaModelF64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

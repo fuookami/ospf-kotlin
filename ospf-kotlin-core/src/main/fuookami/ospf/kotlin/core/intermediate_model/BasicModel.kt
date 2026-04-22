@@ -22,13 +22,6 @@ open class BasicModel<V : RealNumber<V>>(
     /** Symbol table. */
     val symbols: MutableList<IntermediateSymbol<*>> = mutableListOf()
 
-    /**
-     * Legacy constraint storage (MetaConstraint-based).
-     * Not used by MetaModel which has its own MathConstraint-based constraints.
-     * Kept for backward compatibility with direct BasicModel usage.
-     */
-    val legacyConstraints: MutableList<MetaConstraint<*>> = mutableListOf()
-
     /** Symbol dependency graph, delegated to the token table where available. */
     open val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>>
         get() = tokens.symbolDependencies
@@ -74,13 +67,6 @@ open class BasicModel<V : RealNumber<V>>(
     fun removeSymbol(symbol: IntermediateSymbol<*>) {
         symbols.remove(symbol)
         tokens.remove(symbol)
-    }
-
-    // ── Legacy constraint management ─────────────────────────────────────
-
-    @Deprecated("Use MetaModel's addConstraint with MathInequality instead")
-    fun addConstraint(constraint: MetaConstraint<*>) {
-        legacyConstraints.add(constraint)
     }
 
     // ── Lifecycle ────────────────────────────────────────────────────────

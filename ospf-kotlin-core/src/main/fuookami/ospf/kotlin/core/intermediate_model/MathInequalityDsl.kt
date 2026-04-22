@@ -437,11 +437,11 @@ fun MathLinearInequality.toQuadraticConstraint(
     tokens: LegacyAbstractTokenTable,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): QuadraticConstraintImpl {
     return QuadraticConstraintImpl(
-        relation = toQuadraticInequality(),
+        relation = toQuadraticInequality().let { QuadraticRelationImpl(it.flattenData, it.comparison) },
         tokens = tokens,
         lazy = lazy,
         name = name,
@@ -456,7 +456,7 @@ fun LinearRelation.toConstraint(
     tokens: LegacyAbstractTokenTable,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): LinearConstraintImpl {
     return LinearConstraintImpl(this, tokens, lazy, name, origin, from)
@@ -466,7 +466,7 @@ fun QuadraticRelation.toConstraint(
     tokens: LegacyAbstractTokenTable,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): QuadraticConstraintImpl {
     return QuadraticConstraintImpl(this, tokens, lazy, name, origin, from)
@@ -476,7 +476,7 @@ fun LinearRelation.toQuadraticConstraint(
     tokens: LegacyAbstractTokenTable,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): QuadraticConstraintImpl {
     val normalized = normalize()

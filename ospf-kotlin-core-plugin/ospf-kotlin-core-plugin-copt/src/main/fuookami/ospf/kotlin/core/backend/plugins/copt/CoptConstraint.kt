@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_plugins.copt
 
 import copt.COPT
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
 
 enum class CoptConstraintSign {
     GreaterEqual {
@@ -21,17 +21,17 @@ enum class CoptConstraintSign {
     };
 
     companion object {
-        operator fun invoke(sign: Sign): CoptConstraintSign {
+        operator fun invoke(sign: ConstraintRelation): CoptConstraintSign {
             return when (sign) {
-                Sign.GreaterEqual -> {
+                ConstraintRelation.GreaterEqual -> {
                     GreaterEqual
                 }
 
-                Sign.Equal -> {
+                ConstraintRelation.Equal -> {
                     Equal
                 }
 
-                Sign.LessEqual -> {
+                ConstraintRelation.LessEqual -> {
                     LessEqual
                 }
             }

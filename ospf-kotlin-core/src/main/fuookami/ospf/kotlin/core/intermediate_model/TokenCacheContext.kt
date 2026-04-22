@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.intermediate_model
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -13,50 +14,36 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 import java.util.Collections
 import java.util.WeakHashMap
 
-/**
- * Generic linear flatten data - monomials + constant.
- * T is the numeric type (e.g., Flt64).
- */
 data class LinearFlattenData<T : RealNumber<T>>(
     val monomials: List<UtilsLinearMonomial<T>>,
     val constant: T
 )
 
-/**
- * Legacy typealias for Flt64-specific LinearFlattenDataF64.
- */
 typealias LinearFlattenDataF64 = LinearFlattenData<Flt64>
 
-/**
- * Generic quadratic flatten data - monomials + constant.
- * T is the numeric type (e.g., Flt64).
- */
 data class QuadraticFlattenData<T : RealNumber<T>>(
     val monomials: List<UtilsQuadraticMonomial<T>>,
     val constant: T
 )
 
-/**
- * Legacy typealias for Flt64-specific QuadraticFlattenDataF64.
- */
 typealias QuadraticFlattenDataF64 = QuadraticFlattenData<Flt64>
 
-class LinearFlattenContext(
-    private val cache: MutableMap<Any, LinearFlattenDataF64?> = HashMap()
+class LinearFlattenContext<V : RealNumber<V>>(
+    private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
 
-    fun get(cacheKey: Any): LinearFlattenDataF64? {
+    fun get(cacheKey: Any): LinearFlattenData<V>? {
         return cache[cacheKey]
     }
 
-    fun put(cacheKey: Any, value: LinearFlattenDataF64?) {
+    fun put(cacheKey: Any, value: LinearFlattenData<V>?) {
         cache[cacheKey] = value
     }
 
-    fun remove(cacheKey: Any): LinearFlattenDataF64? {
+    fun remove(cacheKey: Any): LinearFlattenData<V>? {
         return cache.remove(cacheKey)
     }
 
@@ -69,22 +56,24 @@ class LinearFlattenContext(
     }
 }
 
-class QuadraticFlattenContext(
-    private val cache: MutableMap<Any, QuadraticFlattenDataF64?> = HashMap()
+typealias LinearFlattenContextF64 = LinearFlattenContext<Flt64>
+
+class QuadraticFlattenContext<V : RealNumber<V>>(
+    private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
 
-    fun get(cacheKey: Any): QuadraticFlattenDataF64? {
+    fun get(cacheKey: Any): QuadraticFlattenData<V>? {
         return cache[cacheKey]
     }
 
-    fun put(cacheKey: Any, value: QuadraticFlattenDataF64?) {
+    fun put(cacheKey: Any, value: QuadraticFlattenData<V>?) {
         cache[cacheKey] = value
     }
 
-    fun remove(cacheKey: Any): QuadraticFlattenDataF64? {
+    fun remove(cacheKey: Any): QuadraticFlattenData<V>? {
         return cache.remove(cacheKey)
     }
 
@@ -97,9 +86,11 @@ class QuadraticFlattenContext(
     }
 }
 
-class ValueCacheContext(
-    private val solutionCache: MutableMap<Pair<Any, List<Flt64>?>, Flt64?> = HashMap(),
-    private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, Flt64>>, Flt64?> = HashMap()
+typealias QuadraticFlattenContextF64 = QuadraticFlattenContext<Flt64>
+
+class ValueCacheContext<V : RealNumber<V>>(
+    private val solutionCache: MutableMap<Pair<Any, List<Flt64>?>, V?> = HashMap(),
+    private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, Flt64>>, V?> = HashMap()
 ) {
     fun clear() {
         solutionCache.clear()
@@ -114,37 +105,37 @@ class ValueCacheContext(
         return fixedValueCache.containsKey(cacheKey to fixedValues)
     }
 
-    fun value(cacheKey: Any, solution: List<Flt64>? = null): Flt64? {
+    fun value(cacheKey: Any, solution: List<Flt64>? = null): V? {
         return solutionCache[cacheKey to solution]
     }
 
-    fun value(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): Flt64? {
+    fun value(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): V? {
         return fixedValueCache[cacheKey to fixedValues]
     }
 
-    fun put(cacheKey: Any, solution: List<Flt64>? = null, value: Flt64): Flt64 {
+    fun put(cacheKey: Any, solution: List<Flt64>? = null, value: V): V {
         solutionCache[cacheKey to solution] = value
         return value
     }
 
-    fun put(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: Flt64): Flt64 {
+    fun put(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V): V {
         fixedValueCache[cacheKey to fixedValues] = value
         return value
     }
 
-    fun putAll(symbols: Map<out Any, Flt64>, solution: List<Flt64>? = null) {
+    fun putAll(symbols: Map<out Any, V>, solution: List<Flt64>? = null) {
         solutionCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to solution) to value
         })
     }
 
-    fun putAll(symbols: Map<out Any, Flt64>, fixedValues: Map<Symbol, Flt64>) {
+    fun putAll(symbols: Map<out Any, V>, fixedValues: Map<Symbol, Flt64>) {
         fixedValueCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to fixedValues) to value
         })
     }
 
-    fun putAllLazy(symbols: Map<out Any, () -> Flt64?>, solution: List<Flt64>? = null) {
+    fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<Flt64>? = null) {
         solutionCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
                 (cacheKey to solution) to it
@@ -152,7 +143,7 @@ class ValueCacheContext(
         })
     }
 
-    fun putAllLazy(symbols: Map<out Any, () -> Flt64?>, fixedValues: Map<Symbol, Flt64>) {
+    fun putAllLazy(symbols: Map<out Any, () -> V?>, fixedValues: Map<Symbol, Flt64>) {
         fixedValueCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
                 (cacheKey to fixedValues) to it
@@ -160,7 +151,7 @@ class ValueCacheContext(
         })
     }
 
-    fun getOrPut(cacheKey: Any, solution: List<Flt64>? = null, value: () -> Flt64?): Flt64? {
+    fun getOrPut(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
         var cachedValue = solutionCache[cacheKey to solution]
         if (cachedValue == null) {
             value()?.let {
@@ -171,7 +162,7 @@ class ValueCacheContext(
         return cachedValue
     }
 
-    fun getOrPut(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> Flt64?): Flt64? {
+    fun getOrPut(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> V?): V? {
         var cachedValue = fixedValueCache[cacheKey to fixedValues]
         if (cachedValue == null) {
             value()?.let {
@@ -182,35 +173,30 @@ class ValueCacheContext(
         return cachedValue
     }
 
-    /**
-     * Remove all cache entries for a given cacheKey.
-     * 清除指定 cacheKey 的所有缓存条目。
-     *
-     * This removes entries from both solutionCache and fixedValueCache
-     * where the first element of the pair matches the cacheKey.
-     */
     fun remove(cacheKey: Any) {
         solutionCache.keys.removeAll { it.first == cacheKey }
         fixedValueCache.keys.removeAll { it.first == cacheKey }
     }
 }
 
-class RangeCacheContext(
-    private val cache: MutableMap<Any, ExpressionRange<Flt64>?> = HashMap()
-) {
+typealias ValueCacheContextF64 = ValueCacheContext<Flt64>
+
+class RangeCacheContext<V>(
+    private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
+) where V : RealNumber<V>, V : NumberField<V> {
     fun contains(cacheKey: Any): Boolean {
         return cache.containsKey(cacheKey)
     }
 
-    fun get(cacheKey: Any): ExpressionRange<Flt64>? {
+    fun get(cacheKey: Any): ExpressionRange<V>? {
         return cache[cacheKey]
     }
 
-    fun put(cacheKey: Any, value: ExpressionRange<Flt64>?) {
+    fun put(cacheKey: Any, value: ExpressionRange<V>?) {
         cache[cacheKey] = value
     }
 
-    fun remove(cacheKey: Any): ExpressionRange<Flt64>? {
+    fun remove(cacheKey: Any): ExpressionRange<V>? {
         return cache.remove(cacheKey)
     }
 
@@ -223,12 +209,14 @@ class RangeCacheContext(
     }
 }
 
-data class TokenCacheContexts(
-    val linearFlatten: LinearFlattenContext = LinearFlattenContext(),
-    val quadraticFlatten: QuadraticFlattenContext = QuadraticFlattenContext(),
-    val value: ValueCacheContext = ValueCacheContext(),
-    val range: RangeCacheContext = RangeCacheContext()
-) {
+typealias RangeCacheContextF64 = RangeCacheContext<Flt64>
+
+data class TokenCacheContexts<V>(
+    val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),
+    val quadraticFlatten: QuadraticFlattenContext<V> = QuadraticFlattenContext(),
+    val value: ValueCacheContext<V> = ValueCacheContext(),
+    val range: RangeCacheContext<V> = RangeCacheContext()
+) where V : RealNumber<V>, V : NumberField<V> {
     fun boundSymbols(): Set<Any> {
         return linearFlatten.keys() + quadraticFlatten.keys() + range.keys()
     }
@@ -265,11 +253,13 @@ data class TokenCacheContexts(
     }
 }
 
+typealias TokenCacheContextsF64 = TokenCacheContexts<Flt64>
+
 private val symbolTokenTableContext = Collections.synchronizedMap(
-    WeakHashMap<IntermediateSymbol<*>, LegacyAbstractTokenTable>()
+    WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<Flt64>>()
 )
 
-internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: LegacyAbstractTokenTable) {
+internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<Flt64>) {
     val oldTokenTable = symbolTokenTableContext[symbol]
     if (oldTokenTable != null && oldTokenTable != tokenTable) {
         oldTokenTable.clearLinearFlatten(symbol)
@@ -280,20 +270,16 @@ internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: Le
     symbolTokenTableContext[symbol] = tokenTable
 }
 
-internal fun unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: LegacyAbstractTokenTable) {
+internal fun unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<Flt64>) {
     if (symbolTokenTableContext[symbol] == tokenTable) {
         symbolTokenTableContext.remove(symbol)
     }
 }
 
-internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): LegacyAbstractTokenTable? {
+internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractTokenTable<Flt64>? {
     return symbolTokenTableContext[symbol]
 }
 
-/**
- * 将 LinearFlattenDataF64 转换为 QuadraticFlattenDataF64。
- * 用于 Linear → Quadratic 升级场景。
- */
 internal fun LinearFlattenDataF64.toQuadraticFlattenData(): QuadraticFlattenDataF64 {
     val monomials = this.monomials.map {
         UtilsQuadraticMonomial(

@@ -70,7 +70,7 @@ interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
     val rhsF64: Flt64
     val lazy: Boolean
     val name: String
-    val origin: MetaConstraint<*>?
+    val origin: MathConstraint?
     val from: Pair<IntermediateSymbol<*>, Boolean>?
 }
 
@@ -120,7 +120,7 @@ sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
     private val _rhsF64: Flt64,
     override val lazy: Boolean,
     override val name: String = "",
-    override val origin: MetaConstraint<*>? = null,
+    override val origin: MathConstraint? = null,
     override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
 ) : Constraint<V, P> {
     override val rhs: V get() = _rhs
@@ -149,7 +149,7 @@ class LinearConstraintImpl(
     rhs: Flt64,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ) : ConstraintImpl<Flt64, Linear>(
     lhs = lhs,
@@ -167,7 +167,7 @@ class LinearConstraintImpl(
             tokens: LegacyAbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
-            origin: MetaConstraint<*>? = null,
+            origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl {
             val flattenData = relation.flattenData
@@ -182,28 +182,6 @@ class LinearConstraintImpl(
                 from = from
             )
         }
-
-        @Deprecated("Use LinearRelation overload instead", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            relation: Flt64MathLinearInequality,
-            tokens: LegacyAbstractTokenTable,
-            lazy: Boolean = false,
-            name: String = "",
-            origin: MetaConstraint<*>? = null,
-            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): LinearConstraintImpl {
-            val flattenData = relation.flattenData
-            val lhs = createLinearCells(flattenData.monomials, tokens)
-            return LinearConstraintImpl(
-                lhs = lhs,
-                sign = ConstraintRelation(relation.comparison),
-                rhs = -flattenData.constant,
-                lazy = lazy,
-                name = name,
-                origin = origin,
-                from = from
-            )
-        }
     }
 }
 
@@ -213,7 +191,7 @@ class QuadraticConstraintImpl(
     rhs: Flt64,
     lazy: Boolean = false,
     name: String = "",
-    origin: MetaConstraint<*>? = null,
+    origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null
 ) : ConstraintImpl<Flt64, Quadratic>(
     lhs = lhs,
@@ -231,7 +209,7 @@ class QuadraticConstraintImpl(
             tokens: LegacyAbstractTokenTable,
             lazy: Boolean = false,
             name: String = "",
-            origin: MetaConstraint<*>? = null,
+            origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl {
             val flattenData = relation.flattenData
@@ -242,28 +220,6 @@ class QuadraticConstraintImpl(
                 rhs = -flattenData.constant,
                 lazy = lazy,
                 name = name ?: relation.name,
-                origin = origin,
-                from = from
-            )
-        }
-
-        @Deprecated("Use QuadraticRelation overload instead", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            relation: MathQuadraticInequality,
-            tokens: LegacyAbstractTokenTable,
-            lazy: Boolean = false,
-            name: String = "",
-            origin: MetaConstraint<*>? = null,
-            from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): QuadraticConstraintImpl {
-            val flattenData = relation.flattenData
-            val lhs = createQuadraticCells(flattenData.monomials, tokens)
-            return QuadraticConstraintImpl(
-                lhs = lhs,
-                sign = ConstraintRelation(relation.comparison),
-                rhs = -flattenData.constant,
-                lazy = lazy,
-                name = name,
                 origin = origin,
                 from = from
             )
