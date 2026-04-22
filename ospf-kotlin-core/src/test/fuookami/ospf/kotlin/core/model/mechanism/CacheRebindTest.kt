@@ -14,7 +14,7 @@ class CacheRebindTest {
             constant = Flt64.one,
             name = "remove_rebind_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
         tokenTable.cache(symbol, null, Flt64.one)
@@ -47,8 +47,8 @@ class CacheRebindTest {
             constant = Flt64.one,
             name = "dual_table_rebind_symbol"
         )
-        val oldTokenTable = AutoTokenTable(Linear, false)
-        val newTokenTable = AutoTokenTable(Linear, false)
+        val oldTokenTable = AutoTokenTable<Flt64>(Linear, false)
+        val newTokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(oldTokenTable)
         oldTokenTable.cache(symbol, null, Flt64.one)

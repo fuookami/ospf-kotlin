@@ -21,7 +21,7 @@ class QuadraticMechanismModelCutTest {
         val y = RealVar("y")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -36,7 +36,7 @@ class QuadraticMechanismModelCutTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-optimal"
         )
@@ -73,7 +73,7 @@ class QuadraticMechanismModelCutTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -85,7 +85,7 @@ class QuadraticMechanismModelCutTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-feasible"
         )
@@ -118,7 +118,7 @@ class QuadraticMechanismModelCutTest {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -130,7 +130,7 @@ class QuadraticMechanismModelCutTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-linear-fallback"
         )

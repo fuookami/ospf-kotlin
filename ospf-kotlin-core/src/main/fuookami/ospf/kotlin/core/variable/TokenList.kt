@@ -170,6 +170,7 @@ typealias AddableTokenCollectionF64 = AddableTokenCollection<Flt64>
 
 abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
     abstract fun remove(item: AbstractVariableItem<*, *>)
+    open fun flush() {}
 }
 
 /**
@@ -245,7 +246,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         }
     }
 
-    internal fun flush() {
+    override fun flush() {
         _tokensInSolver = ArrayList()
         clearSolution()
     }

@@ -256,10 +256,10 @@ data class TokenCacheContexts<V>(
 typealias TokenCacheContextsF64 = TokenCacheContexts<Flt64>
 
 private val symbolTokenTableContext = Collections.synchronizedMap(
-    WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<Flt64>>()
+    WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<*>>()
 )
 
-internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<Flt64>) {
+internal fun <V> bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<V>) where V : RealNumber<V>, V : NumberField<V> {
     val oldTokenTable = symbolTokenTableContext[symbol]
     if (oldTokenTable != null && oldTokenTable != tokenTable) {
         oldTokenTable.clearLinearFlatten(symbol)
@@ -270,13 +270,13 @@ internal fun bindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: Ab
     symbolTokenTableContext[symbol] = tokenTable
 }
 
-internal fun unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<Flt64>) {
+internal fun <V> unbindTokenTableContext(symbol: IntermediateSymbol<*>, tokenTable: AbstractTokenTable<V>) where V : RealNumber<V>, V : NumberField<V> {
     if (symbolTokenTableContext[symbol] == tokenTable) {
         symbolTokenTableContext.remove(symbol)
     }
 }
 
-internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractTokenTable<Flt64>? {
+internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractTokenTable<*>? {
     return symbolTokenTableContext[symbol]
 }
 

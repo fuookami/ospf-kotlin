@@ -18,7 +18,7 @@ class CacheKeyConflictTest {
             name = "flatten_conflict_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__flatten_private_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
 
@@ -43,7 +43,7 @@ class CacheKeyConflictTest {
             name = "range_conflict_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__range_private_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
 
@@ -68,7 +68,7 @@ class CacheKeyConflictTest {
             name = "value_conflict_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__value_private_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
 
         listOf(symbol).register(tokenTable)
@@ -91,7 +91,7 @@ class CacheKeyConflictTest {
             name = "cross_read_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__cross_read_private_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
 
         val privateFlatten = symbol.flattenedMonomials
@@ -119,7 +119,7 @@ class CacheKeyConflictTest {
             name = "reverse_cross_read_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__reverse_cross_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
 
@@ -136,7 +136,7 @@ class CacheKeyConflictTest {
     fun twoPrivateKeysShouldNotConflict() {
         val key1 = newTokenCacheKey(Linear, "__private_key_a__")
         val key2 = newTokenCacheKey(Linear, "__private_key_b__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
 
         val range1 = ExpressionRange(ValueRange(Flt64.zero, Flt64(1.0)).value!!)

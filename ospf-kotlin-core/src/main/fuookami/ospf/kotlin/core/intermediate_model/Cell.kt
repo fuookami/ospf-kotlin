@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.variable.TokenF64
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 
 /**
  * Generic Cell<V> - V is a real type parameter with dual-view access.
@@ -62,99 +63,125 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
 typealias QuadraticCellF64 = QuadraticCell<Flt64>
 typealias QuadraticCellI = QuadraticCell<Flt64>
 
-class LinearCellImpl(
-    private val tokenTable: LegacyAbstractTokenTable,
-    private val _coefficient: Flt64,
-    override val token: TokenF64
-) : LinearCell<Flt64> {
-    override val coefficientF64: Flt64 get() = _coefficient
+class LinearCellImpl<V>(
+    private val tokenTable: AbstractTokenTable<V>,
+    private val _coefficientF64: Flt64,
+    override val token: Token<V>,
+    private val converter: IntoValue<V>? = null
+) : LinearCell<V> where V : RealNumber<V>, V : NumberField<V> {
+    override val coefficientF64: Flt64 get() = _coefficientF64
     @Suppress("UNCHECKED_CAST")
-    override val coefficient: Flt64 get() = _coefficient
+    override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientF64) else _coefficientF64 as V
 
-    override fun evaluate(): Flt64? {
-        return token.resultF64?.let { _coefficient * it }
+    override fun evaluate(): V? {
+        return token.result?.let { coefficient * it }
     }
 
-    override fun evaluate(solution: List<Flt64>): Flt64? {
+    override fun evaluate(solution: List<Flt64>): V? {
+        return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
+    }
+
+    override fun evaluate(solution: Map<VariableItemKey, Flt64>): V? {
+        return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
+    }
+
+    override fun evaluateF64(): Flt64? {
+        return token.resultF64?.let { _coefficientF64 * it }
+    }
+
+    override fun evaluateF64(solution: List<Flt64>): Flt64? {
         return tokenTable.indexOf(token)?.let {
-            _coefficient * solution[it]
+            _coefficientF64 * solution[it]
         }
     }
 
-    override fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64? {
-        return solution[token.key]?.let { _coefficient * it }
+    override fun evaluateF64(solution: Map<VariableItemKey, Flt64>): Flt64? {
+        return solution[token.key]?.let { _coefficientF64 * it }
     }
 
-    override fun evaluateF64(): Flt64? = evaluate()
-    override fun evaluateF64(solution: List<Flt64>): Flt64? = evaluate(solution)
-    override fun evaluateF64(solution: Map<VariableItemKey, Flt64>): Flt64? = evaluate(solution)
-
     override fun toString(): String {
-        return if (_coefficient eq Flt64.one) {
+        return if (_coefficientF64 eq Flt64.one) {
             token.name
         } else {
-            "$_coefficient * ${token.name}"
+            "$_coefficientF64 * ${token.name}"
         }
     }
 }
 
-class QuadraticCellImpl(
-    private val tokenTable: LegacyAbstractTokenTable,
-    private val _coefficient: Flt64,
-    override val token1: TokenF64,
-    override val token2: TokenF64? = null
-) : QuadraticCell<Flt64> {
-    override val coefficientF64: Flt64 get() = _coefficient
-    @Suppress("UNCHECKED_CAST")
-    override val coefficient: Flt64 get() = _coefficient
+typealias LinearCellImplF64 = LinearCellImpl<Flt64>
 
-    override fun evaluate(): Flt64? {
+class QuadraticCellImpl<V>(
+    private val tokenTable: AbstractTokenTable<V>,
+    private val _coefficientF64: Flt64,
+    override val token1: Token<V>,
+    override val token2: Token<V>? = null,
+    private val converter: IntoValue<V>? = null
+) : QuadraticCell<V> where V : RealNumber<V>, V : NumberField<V> {
+    override val coefficientF64: Flt64 get() = _coefficientF64
+    @Suppress("UNCHECKED_CAST")
+    override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientF64) else _coefficientF64 as V
+
+    override fun evaluate(): V? {
         return if (token2 == null) {
-            token1.resultF64?.let { _coefficient * it }
+            token1.result?.let { coefficient * it }
         } else {
-            token1.resultF64?.let { result1 -> token2.resultF64?.let { result2 -> _coefficient * result1 * result2 } }
+            token1.result?.let { result1 -> token2.result?.let { result2 -> coefficient * result1 * result2 } }
         }
     }
 
-    override fun evaluate(solution: List<Flt64>): Flt64? {
+    override fun evaluate(solution: List<Flt64>): V? {
+        return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
+    }
+
+    override fun evaluate(solution: Map<VariableItemKey, Flt64>): V? {
+        return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
+    }
+
+    override fun evaluateF64(): Flt64? {
+        return if (token2 == null) {
+            token1.resultF64?.let { _coefficientF64 * it }
+        } else {
+            token1.resultF64?.let { result1 -> token2.resultF64?.let { result2 -> _coefficientF64 * result1 * result2 } }
+        }
+    }
+
+    override fun evaluateF64(solution: List<Flt64>): Flt64? {
         return if (token2 == null) {
             tokenTable.indexOf(token1)?.let {
-                _coefficient * solution[it]
+                _coefficientF64 * solution[it]
             }
         } else {
             tokenTable.indexOf(token1)?.let { index1 ->
                 tokenTable.indexOf(token2)?.let { index2 ->
-                    _coefficient * solution[index1] * solution[index2]
+                    _coefficientF64 * solution[index1] * solution[index2]
                 }
             }
         }
     }
 
-    override fun evaluate(solution: Map<VariableItemKey, Flt64>): Flt64? {
+    override fun evaluateF64(solution: Map<VariableItemKey, Flt64>): Flt64? {
         return if (token2 == null) {
-            solution[token1.key]?.let { _coefficient * it }
+            solution[token1.key]?.let { _coefficientF64 * it }
         } else {
-            solution[token1.key]?.let { result1 -> solution[token2.key]?.let { result2 -> _coefficient * result1 * result2 } }
+            solution[token1.key]?.let { result1 -> solution[token2.key]?.let { result2 -> _coefficientF64 * result1 * result2 } }
         }
     }
 
-    override fun evaluateF64(): Flt64? = evaluate()
-    override fun evaluateF64(solution: List<Flt64>): Flt64? = evaluate(solution)
-    override fun evaluateF64(solution: Map<VariableItemKey, Flt64>): Flt64? = evaluate(solution)
-
     override fun toString(): String {
         return if (token2 == null) {
-            if (_coefficient eq Flt64.one) {
+            if (_coefficientF64 eq Flt64.one) {
                 token1.name
             } else {
-                "$_coefficient * ${token1.name}"
+                "$_coefficientF64 * ${token1.name}"
             }
         } else {
-            if (_coefficient eq Flt64.one) {
+            if (_coefficientF64 eq Flt64.one) {
                 "${token1.name} * ${token2.name}"
             } else {
-                "$_coefficient * ${token1.name} * ${token2.name}"
+                "$_coefficientF64 * ${token1.name} * ${token2.name}"
             }
         }
     }
 }
+
+typealias QuadraticCellImplF64 = QuadraticCellImpl<Flt64>

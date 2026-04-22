@@ -752,11 +752,12 @@ class LinearExpressionSymbol(
         prefix = "__linear_expression_flatten_cache__"
     )
 
+    @Suppress("UNCHECKED_CAST")
     private fun cacheTokenTable(): LegacyAbstractTokenTable? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull()
+            .firstOrNull() as? LegacyAbstractTokenTable
     }
 
     override val cached: Boolean
@@ -1305,11 +1306,12 @@ class QuadraticExpressionSymbol(
         prefix = "__quadratic_expression_flatten_cache__"
     )
 
+    @Suppress("UNCHECKED_CAST")
     private fun cacheTokenTable(): LegacyAbstractTokenTable? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull()
+            .firstOrNull() as? LegacyAbstractTokenTable
     }
 
     override val cached: Boolean

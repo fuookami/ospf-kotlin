@@ -4,6 +4,8 @@ package fuookami.ospf.kotlin.core.model
 
 import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
@@ -289,6 +291,32 @@ interface LinearModel : Model {
             displayName = displayName
         )
     }
+
+    fun minimize(
+        symbol: LinearIntermediateSymbol<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = symbol.flattenedMonomials,
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        symbol: LinearIntermediateSymbol<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = symbol.flattenedMonomials,
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
 }
 
 interface QuadraticModel : LinearModel {
@@ -390,6 +418,32 @@ interface QuadraticModel : LinearModel {
         return addObject(
             category = ObjectCategory.Maximum,
             flattenData = QuadraticFlattenDataF64(listOf(monomial), Flt64.zero),
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun minimize(
+        symbol: QuadraticIntermediateSymbol<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Minimum,
+            flattenData = symbol.flattenedMonomials,
+            name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    fun maximize(
+        symbol: QuadraticIntermediateSymbol<*>,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return addObject(
+            category = ObjectCategory.Maximum,
+            flattenData = symbol.flattenedMonomials,
             name = name ?: "",
             displayName = displayName
         )

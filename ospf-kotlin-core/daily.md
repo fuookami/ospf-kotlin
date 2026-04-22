@@ -1,8 +1,8 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-22
+日期：2026-04-23
 
-状态：P1 收口完成，P3-2 执行中 — 接口层泛型化已完成，具体实现类（TokenTable/MutableTokenTable/Cell Impl）待泛型化
+状态：P3-2 完成 — TokenTable 具体类泛型化、Cell Impl 泛型化、minimize/maximize(symbol) 重载、Flt64 固化点审计、泛型回归测试均已完成
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -140,7 +140,7 @@
 |--------|----|------|------|----------|
 | P0 | P3-0 | 基线冻结与兼容面清单 | 新目标 | ✅ 已完成 |
 | P1 | P3-1 | example import 迁移清单与旧 `frontend` 引用清退 | 新目标 | ✅ 映射表已完成，执行待 P3-5 |
-| P2 | P3-2 | 完全泛型化补齐与 `Flt64` 固化点清退 | 新目标 | 执行中 — 接口层已泛型化，具体实现类待泛型化 |
+| P2 | P3-2 | 完全泛型化补齐与 `Flt64` 固化点清退 | 新目标 | 完成 — TokenTable/Cell Impl 泛型化，minimize(symbol) 重载，Flt64 审计文档，回归测试 |
 | P3 | P3-3 | `variable` / `token` 物理拆解 | 新目标 | 待执行 |
 | P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | 待执行 |
 | P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | 待执行 |
@@ -229,30 +229,21 @@ P3-0 基线冻结与兼容面清单
 |------|------|-----------|----------|--------|
 | `Token.kt` | 132 | 0 | ✅ 已泛型化 `Token<V>`，dual-view 模式 | 无需改动 |
 | `TokenList.kt` | 395 | 0 | ✅ 已泛型化 `TokenList<T>`，所有类均带 `<T>` | 无需改动 |
-| `TokenTable.kt` | 1578 | 95 | ⚠️ 接口 `AbstractTokenTable<V>` 已泛型化，但具体类 `TokenTable`/`MutableTokenTable`/`Concurrent*` 仍固化为 `Flt64` | **核心目标**：泛型化具体类，保留 `TokenTableF64` typealias |
-| `TokenCacheContext.kt` | 295 | 26 | ⚠️ `TokenCacheContexts<V>` 已泛型化，但 `ValueCacheContext` 的 solution/fixedValues 仍为 `Flt64`，`symbolTokenTableContext` 全局映射仍为 `AbstractTokenTable<Flt64>` | solution/fixedValues 属求解器边界保留；全局映射需随 TokenTable 泛型化一起调整 |
-| `Cell.kt` | 160 | 40 | ⚠️ 接口 `Cell<V>`/`LinearCell<V>`/`QuadraticCell<V>` 已泛型化，但 `LinearCellImpl`/`QuadraticCellImpl` 仍固化为 `Flt64` | Impl 类泛型化，或明确为 intermediate 边界保留 |
+| `TokenTable.kt` | 1578 | 95 | ✅ 6 个具体类已泛型化，`*F64` typealias 保留，`symbolTokenTableContext` 改为 `AbstractTokenTable<*>` | 无需进一步改动 |
+| `TokenCacheContext.kt` | 295 | 26 | ✅ `TokenCacheContexts<V>` 已泛型化，solution/fixedValues 属求解器边界保留，全局映射已调整 | 无需进一步改动 |
+| `Cell.kt` | 160 | 40 | ✅ `LinearCellImpl<V>` / `QuadraticCellImpl<V>` 已泛型化，dual-view 模式，`*F64` typealias 保留 | 无需进一步改动 |
 | `LinearTriadModel.kt` | 2352 | 188 | 求解器边界保留 | 确认边界保留，公共 API 泛型化 |
 | `QuadraticTetradModel.kt` | 1628 | 118 | 求解器边界保留 | 同上 |
 | `MechanismModel.kt` | 1219 | 104 | 已有 `<V>`，部分边界保留 | 确认边界保留点 |
 
-#### P3-2 剩余执行步骤（按优先级）
+#### P3-2 执行步骤完成情况（2026-04-23）
 
-1. **TokenTable 具体类泛型化**（最高优先，影响面最大）
-   - `TokenTable` -> `TokenTable<V>`，保留 `typealias TokenTableF64 = TokenTable<Flt64>`
-   - `MutableTokenTable` -> `MutableTokenTable<V>`，保留 `typealias MutableTokenTableF64 = MutableTokenTable<Flt64>`
-   - `ConcurrentTokenTable` / `ConcurrentMutableTokenTable` 同理
-   - 更新 `symbolTokenTableContext` 全局映射类型
-   - 更新 framework / gantt-scheduling 中对 `TokenTable` 的引用
-2. **Cell Impl 类泛型化**
-   - `LinearCellImpl` -> `LinearCellImpl<V>`，保留 Flt64 typealias
-   - `QuadraticCellImpl` -> `QuadraticCellImpl<V>`，保留 Flt64 typealias
-3. **Flt64 固化点分类归档**
-   - 将所有剩余 Flt64 引用归类为”边界保留”或”待迁移”
-   - 输出文档到 `docs/refactor-baseline/p3-flt64-audit.md`
-4. **泛型回归测试**
-   - 补充 TokenTable<V> 的泛型路径回归测试
-   - 验证 framework 调用面、token 注册链路、callback/model 主路径
+1. ✅ **TokenTable 具体类泛型化** — `TokenTable<V>` / `MutableTokenTable<V>` / `ConcurrentTokenTable<V>` / `ConcurrentMutableTokenTable<V>` / `AutoTokenTable<V>` / `ManualTokenTable<V>` / `ConcurrentAutoTokenTable<V>` / `ConcurrentManualAddTokenTable<V>` 全部泛型化，保留 `*F64` typealias；`symbolTokenTableContext` 全局映射改为 `AbstractTokenTable<*>`
+2. ✅ **Cell Impl 类泛型化** — `LinearCellImpl<V>` / `QuadraticCellImpl<V>` 泛型化，dual-view 模式（`converter: IntoValue<V>?`），保留 `LinearCellImplF64` / `QuadraticCellImplF64` typealias
+3. ✅ **minimize/maximize(symbol) 重载** — `LinearModel.minimize(symbol: LinearIntermediateSymbol<*>)` / `QuadraticModel.minimize(symbol: QuadraticIntermediateSymbol<*>)` 及对应 maximize 重载已添加，使用 `flattenedMonomials` 构建目标
+4. ✅ **Flt64 固化点分类归档** — 输出 `docs/refactor-baseline/p3-flt64-audit.md`，约 178 处 Flt64 引用分类为 A（求解器边界 ~87）/ B（待泛型化 ~58）/ C（向后兼容 ~33）
+5. ✅ **泛型回归测试** — `GenericTokenTableRegressionTest` 12 cases，覆盖 typealias、Cell 构造、缓存操作
+6. ✅ **gantt-scheduling 级联修复** — `TaskCostMinimization.kt` / `CapacityCostMinimization.kt` 改用 `minimize(symbol=)`
 
 #### 验收标准
 

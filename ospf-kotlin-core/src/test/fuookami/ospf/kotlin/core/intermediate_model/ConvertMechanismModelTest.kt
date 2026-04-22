@@ -13,7 +13,7 @@ class ConvertMechanismModelTest {
     @Test
     fun shouldConvertLinearMechanismModelToF64() {
         val x = RealVar("x")
-        val tokens = AutoTokenTable(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(x)
 
         val metaModel = LinearMetaModel<Flt64>(name = "test-linear")
@@ -35,7 +35,7 @@ class ConvertMechanismModelTest {
     @Test
     fun shouldConvertQuadraticMechanismModelToF64() {
         val x = RealVar("x")
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(x)
 
         val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic")

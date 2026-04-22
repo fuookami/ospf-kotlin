@@ -159,9 +159,9 @@ class CallBackModel internal constructor(
             concurrent: Boolean = true
         ): CallBackModel {
             val tokens = if (concurrent) {
-                ConcurrentManualAddTokenTable(model.tokens)
+                ConcurrentManualAddTokenTable<Flt64>(model.tokens.category)
             } else {
-                ManualTokenTable(model.tokens)
+                ManualTokenTable<Flt64>(model.tokens.category)
             }
             val constraints = model.constraints.map { constraint ->
                 Pair(

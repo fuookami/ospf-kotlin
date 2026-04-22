@@ -21,7 +21,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "value_context_symbol"
         )
-        val context = ValueCacheContext()
+        val context = ValueCacheContext<Flt64>()
         val fixedValues = mapOf<Symbol, Flt64>(symbol to Flt64(3.0))
 
         assertFalse(context.cached(symbol, null))
@@ -42,7 +42,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "context_flush_symbol"
         )
-        val contexts = TokenCacheContexts()
+        val contexts = TokenCacheContexts<Flt64>()
         val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
 
         contexts.linearFlatten.put(symbol, symbol.flattenedMonomials)
@@ -68,7 +68,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "table_context_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         tokenTable.cacheLinearFlatten(symbol, symbol.flattenedMonomials)
         tokenTable.cacheRange(symbol, symbol.range)
@@ -88,7 +88,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "register_context_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
 
@@ -102,7 +102,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "close_context_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
         assertEquals(tokenTable, boundTokenTableContext(symbol))
@@ -119,7 +119,7 @@ class TokenCacheContextsTest {
         )
         val monomialKey = newTokenCacheKey(Linear, "__monomial_cache_key__")
         val polynomialKey = newTokenCacheKey(Linear, "__polynomial_cache_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
         val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
         val flattened = symbol.flattenedMonomials
@@ -142,7 +142,7 @@ class TokenCacheContextsTest {
             constant = Flt64.one,
             name = "concurrent_register_context_symbol"
         )
-        val tokenTable = ConcurrentAutoTokenTable(Linear, false)
+        val tokenTable = ConcurrentAutoTokenTable<Flt64>(Linear, false)
 
         val result = listOf(symbol).register(tokenTable)
 

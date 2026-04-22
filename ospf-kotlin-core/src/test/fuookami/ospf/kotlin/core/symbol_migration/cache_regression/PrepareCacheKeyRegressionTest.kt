@@ -17,7 +17,7 @@ class PrepareCacheKeyRegressionTest {
             constant = Flt64.one,
             name = "cache_key_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val x = RealVar("x")
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
 
@@ -33,7 +33,7 @@ class PrepareCacheKeyRegressionTest {
             constant = Flt64.one,
             name = "cache_key_symbol_block"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val x = RealVar("x")
         val values = mapOf<Symbol, Flt64>(x to Flt64(1.0))
 

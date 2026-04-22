@@ -16,7 +16,7 @@ class ApiCompatibilityTest {
             name = "api_compat_symbol"
         )
         val privateKey = newTokenCacheKey(Linear, "__api_compat_key__")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
 
@@ -62,7 +62,7 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "dep_symbol_2"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol1, symbol2).register(tokenTable)
 
@@ -83,7 +83,7 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "explicit_dep_symbol_2"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol1, symbol2).register(tokenTable)
         tokenTable.addSymbolDependency(symbol1, symbol2)
@@ -105,7 +105,7 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "acyclic_symbol_2"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol1, symbol2).register(tokenTable)
         tokenTable.addSymbolDependency(symbol1, symbol2)
@@ -121,7 +121,7 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "quad_constraint_symbol"
         )
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         listOf(symbol).register(tokenTable)
 
         val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)

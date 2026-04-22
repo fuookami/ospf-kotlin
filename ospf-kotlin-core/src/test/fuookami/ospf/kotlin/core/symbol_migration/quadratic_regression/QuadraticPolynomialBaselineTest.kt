@@ -68,7 +68,7 @@ class QuadraticPolynomialBaselineTest {
     @Test
     fun quadraticExpressionSymbolEvaluate_shouldRespectSelfValueOverrideOnTokenTablePath() {
         val x = RealVar("x")
-        val tokenTable = AutoTokenTable(Quadratic, false)
+        val tokenTable = AutoTokenTable<Flt64>(Quadratic, false)
         tokenTable.add(x)
         tokenTable.setSolution(mapOf(x to Flt64(5.0)))
 

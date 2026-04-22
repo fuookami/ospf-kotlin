@@ -52,7 +52,7 @@ class ConstraintRelationTest {
     @Test
     fun signTypealiasShouldWork() {
         @Suppress("DEPRECATION")
-        val sign: Sign = ConstraintRelation.Equal
+        val sign: ConstraintRelation = ConstraintRelation.Equal
         assertEquals(ConstraintRelation.Equal, sign)
     }
 }

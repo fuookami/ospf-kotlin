@@ -18,8 +18,8 @@ import kotlin.test.assertTrue
  */
 class SubObjectTest {
 
-    private fun createTokenTable(): AutoTokenTable {
-        return AutoTokenTable(
+    private fun createTokenTable(): AutoTokenTable<Flt64> {
+        return AutoTokenTable<Flt64>(
             category = fuookami.ospf.kotlin.math.symbol.Linear,
             checkTokenExists = false
         )

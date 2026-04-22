@@ -76,7 +76,7 @@ class LinearPolynomialBaselineTest {
     @Test
     fun linearExpressionSymbolEvaluate_shouldRespectSelfValueOverrideOnTokenTablePath() {
         val x = RealVar("x")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         tokenTable.add(x)
         tokenTable.setSolution(mapOf(x to Flt64(9.0)))
 
@@ -111,7 +111,7 @@ class LinearPolynomialBaselineTest {
     @Test
     fun linearExpressionSymbolEvaluate_resultsTokenTableShouldMatchPolynomial() {
         val x = RealVar("x")
-        val tokenTable = AutoTokenTable(Linear, false)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         tokenTable.add(x)
         tokenTable.setSolution(mapOf(x to Flt64.zero))
         val results = listOf(Flt64(4.0))

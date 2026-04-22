@@ -30,7 +30,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = MathLinearInequality(
@@ -39,7 +39,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = relation,
+            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "lc-opt"
         )
@@ -70,7 +70,7 @@ class BendersCutApiTest {
     fun linearFeasibleCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
 
-        val tokens = AutoTokenTable(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = MathLinearInequality(
@@ -79,7 +79,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = relation,
+            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "lc-feas"
         )
@@ -114,7 +114,7 @@ class BendersCutApiTest {
         val y = RealVar("y")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -129,7 +129,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-opt"
         )
@@ -163,7 +163,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -175,7 +175,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-feas"
         )
@@ -211,7 +211,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = MathLinearInequality(
@@ -220,7 +220,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = relation,
+            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "lc-opt-out"
         )
@@ -256,7 +256,7 @@ class BendersCutApiTest {
     fun linearFeasibleCutFromOutputShouldMatchDirectCall() {
         val x = RealVar("x")
 
-        val tokens = AutoTokenTable(Linear, false)
+        val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
         val relation = MathLinearInequality(
@@ -265,7 +265,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = relation,
+            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "lc-feas-out"
         )
@@ -305,7 +305,7 @@ class BendersCutApiTest {
         val y = RealVar("y")
         val theta = RealVar("theta")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -320,7 +320,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-opt-out"
         )
@@ -359,7 +359,7 @@ class BendersCutApiTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
         val relation = MathQuadraticInequality(
@@ -371,7 +371,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(
-            relation = relation,
+            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
             name = "qc-feas-out"
         )

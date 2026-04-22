@@ -29,7 +29,7 @@ class ProductFunctionTest {
 
         val product = ProductFunction(left, right, name = "x_times_y")
 
-        val tokens = AutoTokenTable(Quadratic, false)
+        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
 
         val metaModel = QuadraticMetaModel<Flt64>(name = "test-product")
