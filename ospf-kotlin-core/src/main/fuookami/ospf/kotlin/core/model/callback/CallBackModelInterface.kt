@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.model.Model
 import fuookami.ospf.kotlin.core.model.MulObj
 import fuookami.ospf.kotlin.core.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.functional.sumOf

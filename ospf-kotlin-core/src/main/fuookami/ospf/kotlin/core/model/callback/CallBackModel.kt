@@ -2,11 +2,21 @@
 
 package fuookami.ospf.kotlin.core.model.callback
 
-import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.TokenTable
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.ManualTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.intermediate_model.AbstractMetaModelF64
+import fuookami.ospf.kotlin.core.intermediate_model.ConstraintImpl
+import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.intermediate_model.SingleObjectMechanismModelF64
 import fuookami.ospf.kotlin.core.model.MulObj
 import fuookami.ospf.kotlin.core.model.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -132,9 +142,11 @@ class CallBackModel internal constructor(
                 Pair(
                     { solution: Solution ->
                         if (objective.category == model.objectCategory) {
-                            objective.evaluate(solution, tokens)
+                            objective.evaluate(solution)
                         } else {
-                            -objective.evaluate(solution, tokens)!!
+                            objective.evaluate(solution)?.let {
+                                -it
+                            }
                         }
                     },
                     objective.name

@@ -2,6 +2,9 @@ package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_model.*
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
+import fuookami.ospf.kotlin.core.token.newTokenCacheKey
+import fuookami.ospf.kotlin.core.token.boundTokenTableContext
+import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -146,7 +149,7 @@ class TokenCacheContextsTest {
 
         val result = listOf(symbol).register(tokenTable)
 
-        assertTrue(result is Ok)
+        assertTrue(result is Ok<*, *, *>)
         assertEquals(true, tokenTable.cached(symbol, null))
         assertEquals(Flt64.one, tokenTable.cachedValue(symbol, null))
         assertEquals(true, tokenTable.cachedLinearFlatten(symbol))

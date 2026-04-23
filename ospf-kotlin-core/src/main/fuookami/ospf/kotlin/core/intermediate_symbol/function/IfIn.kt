@@ -62,7 +62,7 @@ class IfInFunction<T : Field<T>>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
         // Only register own auxiliary tokens; andFunc registers its own via andFunc.register()
         return tokens.add(listOf(lby, uby))
     }

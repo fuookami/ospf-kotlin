@@ -75,7 +75,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = lambdas + zBins
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 

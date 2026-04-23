@@ -1,8 +1,8 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-23
+日期：2026-04-24
 
-状态：P3-2 完成 + M2~M5 收口 — TokenTable 泛型化、Cell Impl 泛型化、minimize/maximize(symbol) 重载、Flt64 固化点审计、泛型回归测试、ToMathLinearPolynomial/ToMathQuadraticPolynomial deprecated、模型层统一入口、surefire 版本锁定均已完成
+状态：P3-3 完成 — variable/token 物理拆解已落地：`core.token` 独立包建立，Token/TokenList/TokenTable/TokenCacheContext/TokenCacheKey 迁入，旧位置留 @Deprecated typealias 过渡，全链路 import 更新，core test 143/0/0、framework compile、gantt-scheduling compile 均通过
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -141,7 +141,7 @@
 | P0 | P3-0 | 基线冻结与兼容面清单 | 新目标 | ✅ 已完成 |
 | P1 | P3-1 | example import 迁移清单与旧 `frontend` 引用清退 | 新目标 | ✅ 映射表已完成，执行待 P3-5 |
 | P2 | P3-2 | 完全泛型化补齐与 `Flt64` 固化点清退 | 新目标 | 完成 — TokenTable/Cell Impl 泛型化，minimize(symbol) 重载，Flt64 审计文档，回归测试 |
-| P3 | P3-3 | `variable` / `token` 物理拆解 | 新目标 | 待执行 |
+| P3 | P3-3 | `variable` / `token` 物理拆解 | 新目标 | ✅ 完成 — `core.token` 独立包，5 文件迁入，@Deprecated typealias 过渡，全链路 import 更新 |
 | P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | 待执行 |
 | P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | 待执行 |
 | P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | 待执行 |
@@ -309,6 +309,15 @@ P3-0 基线冻结与兼容面清单
 4. 在旧位置留 `@Deprecated` typealias 过渡。
 5. 更新 framework 10 文件 + gantt-scheduling 的 import。
 6. 验证 clean 构建。
+
+#### P3-3 执行完成情况（2026-04-24）
+
+1. ✅ **创建 `core.token` 包** — `fuookami.ospf.kotlin.core.token` 独立包已建立
+2. ✅ **物理移动 5 文件** — `Token.kt`/`TokenList.kt` 从 `variable` 迁入，`TokenTable.kt`/`TokenCacheContext.kt`/`TokenCacheKey.kt` 从 `intermediate_model` 迁入
+3. ✅ **包声明与 import 更新** — 5 文件包声明改为 `core.token`，跨包引用补齐 import（`AbstractVariableItem`、`ExpressionRange`、`RegistrationStatus` 等）
+4. ✅ **旧位置 @Deprecated typealias 过渡** — `variable/Token.kt`、`variable/TokenList.kt`、`intermediate_model/TokenTable.kt`、`intermediate_model/TokenCacheContext.kt` 均已留桥接 typealias，指向 `core.token` 新位置
+5. ✅ **全链路 import 更新** — `MechanismModel.kt`、`MetaModel.kt`、`IntermediateSymbol.kt`、`Cell.kt`、`LinearConstraintInput.kt`、`FunctionSymbol.kt`、`If.kt`、`Masking.kt`、`Product.kt`、`MVO.kt` 及 4 个测试文件均补齐 `core.token` import
+6. ✅ **clean 构建验证** — core test 143/0/0、framework compile、gantt-scheduling compile 均通过
 
 #### 验收标准
 

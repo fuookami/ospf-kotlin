@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.variable.Token
-import fuookami.ospf.kotlin.core.variable.TokenF64
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.token.TokenF64
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber

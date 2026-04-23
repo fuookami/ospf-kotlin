@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.MulObj
 import fuookami.ospf.kotlin.core.model.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.variable.Token
-import fuookami.ospf.kotlin.core.variable.TokenF64
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.token.TokenF64
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
 import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearInequality
 import fuookami.ospf.kotlin.core.intermediate_model.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -19,12 +19,14 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Math
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMechanismModelF64
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
-import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.newTokenCacheKey
+import fuookami.ospf.kotlin.core.token.boundTokenTableContext
+import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok

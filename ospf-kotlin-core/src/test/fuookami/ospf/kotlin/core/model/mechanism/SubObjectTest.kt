@@ -1,8 +1,14 @@
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
-import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.intermediate_model.SubObject
+import fuookami.ospf.kotlin.core.intermediate_model.LinearSubObject
+import fuookami.ospf.kotlin.core.intermediate_model.QuadraticSubObject
+import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
@@ -49,7 +55,7 @@ class SubObjectTest {
             name = "test_sub_object"
         )
 
-        assertEquals(2, subObject.cells.size, "Should have 2 cells")
+        assertEquals(2, subObject.cells.size)
         assertTrue(subObject.constant eq Flt64(5.0), "Constant should be 5.0")
     }
 
@@ -77,7 +83,7 @@ class SubObjectTest {
             name = "test_sub_object"
         )
 
-        assertEquals(2, subObject.cells.size, "Should have 2 cells")
+        assertEquals(2, subObject.cells.size)
         assertTrue(subObject.constant eq Flt64(5.0), "Constant should be 5.0")
     }
 
@@ -114,7 +120,7 @@ class SubObjectTest {
             name = "test"
         )
 
-        assertEquals(subObject1.cells.size, subObject2.cells.size, "Cell count should match")
+        assertEquals(subObject1.cells.size, subObject2.cells.size)
         assertTrue(subObject1.constant eq subObject2.constant, "Constants should match")
     }
 
@@ -151,7 +157,7 @@ class SubObjectTest {
             name = "test"
         )
 
-        assertEquals(subObject1.cells.size, subObject2.cells.size, "Cell count should match")
+        assertEquals(subObject1.cells.size, subObject2.cells.size)
         assertTrue(subObject1.constant eq subObject2.constant, "Constants should match")
     }
 }

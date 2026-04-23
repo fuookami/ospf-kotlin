@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.flatten
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial

@@ -2,8 +2,11 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.*
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -57,7 +60,7 @@ class BinaryzationFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 

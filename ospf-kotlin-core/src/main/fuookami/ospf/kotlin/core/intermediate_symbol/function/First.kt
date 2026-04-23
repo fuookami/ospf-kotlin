@@ -91,7 +91,7 @@ class FirstFunction<T : Field<T>>(
         return Flt64(n.toDouble()) as T
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
         // Register own auxiliary tokens (_yVars); binaryFunctions register their own via register()
         return tokens.add(_yVars.items)
     }

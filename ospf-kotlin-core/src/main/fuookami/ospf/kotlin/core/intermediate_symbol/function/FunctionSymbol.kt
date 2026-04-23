@@ -3,14 +3,13 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64
-import fuookami.ospf.kotlin.core.variable.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -167,7 +166,7 @@ class LinearFunctionSymbolAdapter(
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = delegate.evaluate(values)
     override fun register(model: AbstractLinearMetaModelF64): Try = delegate.register(model)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.variable.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
         return delegate.registerAuxiliaryTokens(tokens)
     }
 

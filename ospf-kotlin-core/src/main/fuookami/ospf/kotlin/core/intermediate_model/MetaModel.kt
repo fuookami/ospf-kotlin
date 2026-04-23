@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
+import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -102,7 +103,7 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         fun evaluate(solution: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = parent.tokens.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * solution[idx]
             }
@@ -112,7 +113,7 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 val tokenResult = tokenTable[idx].resultF64 ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * tokenResult
@@ -123,7 +124,7 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.variable.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * results[idx]
             }

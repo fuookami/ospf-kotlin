@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
 
-import fuookami.ospf.kotlin.core.intermediate_model.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
