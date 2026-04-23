@@ -131,44 +131,6 @@ fun <T> CanonicalMonomial<T>.toQuadraticMonomialOrNull(
 }
 
 /**
- * Convert a linear polynomial to a quadratic polynomial.
- */
-fun <T> LinearPolynomial<T>.toQuadraticPolynomial(): QuadraticPolynomial<T> where T : Ring<T> {
-    return QuadraticPolynomial(
-        monomials = monomials.map { it.toQuadraticMonomial() },
-        constant = constant
-    )
-}
-
-/**
- * Convert a linear polynomial to a canonical polynomial.
- */
-fun <T> LinearPolynomial<T>.toCanonicalPolynomial(): CanonicalPolynomial<T> where T : Ring<T> {
-    return CanonicalPolynomial(
-        monomials = monomials.map { it.toCanonicalMonomial() },
-        constant = constant
-    )
-}
-
-/**
- * Convert a quadratic polynomial to a linear polynomial if possible.
- */
-fun <T> QuadraticPolynomial<T>.toLinearPolynomialOrNull(): LinearPolynomial<T>? where T : Ring<T> {
-    if (monomials.any { it.isQuadratic }) {
-        return null
-    }
-    return LinearPolynomial(
-        monomials = monomials.map {
-            LinearMonomial(
-                coefficient = it.coefficient,
-                symbol = it.symbol1
-            )
-        },
-        constant = constant
-    )
-}
-
-/**
  * Convert a quadratic polynomial to a canonical polynomial.
  */
 fun <T> QuadraticPolynomial<T>.toCanonicalPolynomial(

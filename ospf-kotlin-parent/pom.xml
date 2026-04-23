@@ -21,6 +21,7 @@
         <maven-compiler-plugin.version>3.12.1</maven-compiler-plugin.version>
         <maven-release-plugin.version>3.0.0</maven-release-plugin.version>
         <maven-failsafe-plugin.version>2.22.2</maven-failsafe-plugin.version>
+        <maven-surefire-plugin.version>3.2.5</maven-surefire-plugin.version>
         <maven-deploy-plugin.version>3.1.1</maven-deploy-plugin.version>
         <maven-assembly-plugin.version>3.4.2</maven-assembly-plugin.version>
         <maven-source-plugin.version>3.3.0</maven-source-plugin.version>
@@ -189,6 +190,9 @@
                         </goals>
                         <configuration>
                             <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
+                            <args>
+                                <arg>-Xsuppress-version-warnings</arg>
+                            </args>
                         </configuration>
                     </execution>
                     <execution>
@@ -203,6 +207,9 @@
                     <compilerPlugins>
                         <plugin>kotlinx-serialization</plugin>
                     </compilerPlugins>
+                    <args>
+                        <arg>-Xsuppress-version-warnings</arg>
+                    </args>
                 </configuration>
                 <dependencies>
                     <dependency>
@@ -227,6 +234,12 @@
                     <source>${kotlin.compiler.jvmTarget}</source>
                     <target>${kotlin.compiler.jvmTarget}</target>
                 </configuration>
+            </plugin>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${maven-surefire-plugin.version}</version>
+                <inherited>true</inherited>
             </plugin>
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>

@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -22,7 +23,6 @@ import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.operation.evaluateOrdered
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 
 /**
  * 二次不等式
@@ -38,7 +38,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
  * @property rhs 右侧二次多项式 / Right-hand quadratic polynomial
  * @property comparison 比较运算符 / Comparison operator
  */
-data class QuadraticInequalityOf<T>(
+data class QuadraticInequalityOf<T : Ring<T>>(
     val lhs: QuadraticPolynomial<T>,
     val rhs: QuadraticPolynomial<T>,
     val comparison: Comparison,

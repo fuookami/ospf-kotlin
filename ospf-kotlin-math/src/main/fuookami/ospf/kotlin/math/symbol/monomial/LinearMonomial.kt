@@ -18,8 +18,12 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.operator.Abs
 import fuookami.ospf.kotlin.math.operator.abs
 
@@ -36,19 +40,20 @@ import fuookami.ospf.kotlin.math.operator.abs
  * @property coefficient 系数 / The coefficient
  * @property symbol 符号变量 / The symbol variable
  */
-data class LinearMonomial<T>(
+data class LinearMonomial<T : Ring<T>>(
     val coefficient: T,
     val symbol: Symbol
-) {
-    /**
-     * 表达式类型分类
-     * Expression type category
-     *
-     * 线性单项式总是属于线性类型。
-     * Linear monomials always belong to the Linear category.
-     */
+) : ToLinearPolynomial<T>, ToQuadraticPolynomial<T> {
     val category: Category
         get() = Linear
+
+    override fun toLinearPolynomial(): LinearPolynomial<T> {
+        return LinearPolynomial(listOf(this), coefficient - coefficient)
+    }
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
+        return QuadraticPolynomial(listOf(QuadraticMonomial.linear(coefficient, symbol)), coefficient - coefficient)
+    }
 }
 
 /**

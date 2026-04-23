@@ -23,6 +23,8 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 /**
  * 规范单项式
@@ -41,7 +43,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 data class CanonicalMonomial<T : Ring<T>>(
     val coefficient: T,
     val powers: Map<Symbol, Int32> = emptyMap()
-) {
+) : ToCanonicalPolynomial<T> {
     /**
      * 使用符号列表创建规范单项式
      * Creates a canonical monomial using a list of symbols
@@ -101,6 +103,10 @@ data class CanonicalMonomial<T : Ring<T>>(
             2 -> Quadratic
             else -> Nonlinear
         }
+
+    override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
+        return CanonicalPolynomial(listOf(this), coefficient - coefficient)
+    }
 }
 
 /**

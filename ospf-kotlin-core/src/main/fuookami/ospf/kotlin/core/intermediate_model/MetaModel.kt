@@ -27,7 +27,6 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope

@@ -1,4 +1,4 @@
-@file:Suppress("OVERRIDE_DEPRECATION")
+@file:Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
@@ -210,7 +210,7 @@ interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, T
         val linearPoly = toMathLinearPolynomial()
         return MathQuadraticInequality(
             UtilsQuadraticPolynomial(
-                monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol, it.symbol) },
+                monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.linear(it.coefficient, it.symbol) },
                 constant = linearPoly.constant
             ),
             UtilsQuadraticPolynomial(emptyList(), Flt64.one),

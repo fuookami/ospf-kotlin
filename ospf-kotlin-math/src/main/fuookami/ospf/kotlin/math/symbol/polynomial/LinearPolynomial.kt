@@ -21,6 +21,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.toCanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 import kotlin.jvm.JvmName
 
@@ -38,19 +47,22 @@ import kotlin.jvm.JvmName
  * @property monomials 线性单项式列表 / List of linear monomials
  * @property constant 常数项 / Constant term
  */
-data class LinearPolynomial<T>(
+data class LinearPolynomial<T : Ring<T>>(
     val monomials: List<LinearMonomial<T>> = emptyList(),
     val constant: T
-) {
-    /**
-     * 表达式类型分类
-     * Expression type category
-     *
-     * 线性多项式总是属于线性类型。
-     * Linear polynomials always belong to the Linear category.
-     */
+) : ToLinearPolynomial<T>, ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
     val category: Category
         get() = Linear
+
+    override fun toLinearPolynomial(): LinearPolynomial<T> = this
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
+        return QuadraticPolynomial(monomials.map { it.toQuadraticMonomial() }, constant)
+    }
+
+    override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
+        return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
+    }
 }
 
 /**
@@ -286,15 +298,4 @@ fun <T : Ring<T>, E> flatSum(
 }
 
 internal fun <T : Ring<T>> zeroOf(value: T): T = value - value
-
-/**
- * 将线性单项式转换为仅包含该单项式的线性多项式
- * Converts a linear monomial to a linear polynomial containing only that monomial
- *
- * @receiver 线性单项式 / Linear monomial
- * @return 仅包含该单项式的线性多项式 / Linear polynomial containing only this monomial
- */
-fun <T : Ring<T>> LinearMonomial<T>.toLinearPolynomial(): LinearPolynomial<T> {
-    return LinearPolynomial(listOf(this), zeroOf(coefficient))
-}
 

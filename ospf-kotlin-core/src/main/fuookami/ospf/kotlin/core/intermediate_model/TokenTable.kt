@@ -898,24 +898,40 @@ typealias ConcurrentTokenTableF64 = ConcurrentTokenTable<Flt64>
 
 class AutoTokenTable<V>(
     category: Category,
-    private val checkTokenExists: Boolean
-) : MutableTokenTable<V>(category, AutoTokenList(checkTokenExists)) where V : RealNumber<V>, V : NumberField<V> {
+    private val checkTokenExists: Boolean,
+    private val _tokenList: AutoTokenList<V>
+) : MutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(category: Category, checkTokenExists: Boolean) : this(
+        category = category,
+        checkTokenExists = checkTokenExists,
+        _tokenList = AutoTokenList(checkTokenExists)
+    )
+
     override fun copy(): MutableTokenTable<V> {
         return AutoTokenTable(
             category = category,
-            checkTokenExists = checkTokenExists
+            checkTokenExists = checkTokenExists,
+            _tokenList = _tokenList.copy() as AutoTokenList<V>
         )
     }
 }
 
 class ManualTokenTable<V>(
     category: Category,
-    private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
-) : MutableTokenTable<V>(category, ManualTokenList(checkTokenExists)) where V : RealNumber<V>, V : NumberField<V> {
+    private val checkTokenExists: Boolean,
+    private val _tokenList: ManualTokenList<V>
+) : MutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
+        category = category,
+        checkTokenExists = checkTokenExists,
+        _tokenList = ManualTokenList(checkTokenExists)
+    )
+
     override fun copy(): MutableTokenTable<V> {
         return ManualTokenTable(
             category = category,
-            checkTokenExists = checkTokenExists
+            checkTokenExists = checkTokenExists,
+            _tokenList = _tokenList.copy() as ManualTokenList<V>
         )
     }
 }
@@ -1444,24 +1460,40 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
 
 class ConcurrentAutoTokenTable<V>(
     category: Category,
-    private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
-) : ConcurrentMutableTokenTable<V>(category, AutoTokenList(checkTokenExists)) where V : RealNumber<V>, V : NumberField<V> {
+    private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
+    private val _tokenList: AutoTokenList<V>
+) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
+        category = category,
+        checkTokenExists = checkTokenExists,
+        _tokenList = AutoTokenList(checkTokenExists)
+    )
+
     override fun copy(): ConcurrentMutableTokenTable<V> {
         return ConcurrentAutoTokenTable(
             category = category,
-            checkTokenExists = checkTokenExists
+            checkTokenExists = checkTokenExists,
+            _tokenList = _tokenList.copy() as AutoTokenList<V>
         )
     }
 }
 
 class ConcurrentManualAddTokenTable<V>(
     category: Category,
-    private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
-) : ConcurrentMutableTokenTable<V>(category, ManualTokenList(checkTokenExists)) where V : RealNumber<V>, V : NumberField<V> {
+    private val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod",
+    private val _tokenList: ManualTokenList<V>
+) : ConcurrentMutableTokenTable<V>(category, _tokenList) where V : RealNumber<V>, V : NumberField<V> {
+    constructor(category: Category, checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod") : this(
+        category = category,
+        checkTokenExists = checkTokenExists,
+        _tokenList = ManualTokenList(checkTokenExists)
+    )
+
     override fun copy(): ConcurrentMutableTokenTable<V> {
         return ConcurrentManualAddTokenTable(
             category = category,
-            checkTokenExists = checkTokenExists
+            checkTokenExists = checkTokenExists,
+            _tokenList = _tokenList.copy() as ManualTokenList<V>
         )
     }
 }

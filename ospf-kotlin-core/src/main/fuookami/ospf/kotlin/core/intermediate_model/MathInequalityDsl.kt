@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQ
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 

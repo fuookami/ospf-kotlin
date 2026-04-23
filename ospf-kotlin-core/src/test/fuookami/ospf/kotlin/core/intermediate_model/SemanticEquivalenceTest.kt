@@ -382,7 +382,7 @@ class SemanticEquivalenceTest {
 
         val metaModel = QuadraticMetaModel<Flt64>(
             name = "test-boundary",
-            configuration = MetaModelConfiguration(manualTokenAddition = true, concurrent = false)
+            configuration = MetaModelConfiguration(manualTokenAddition = false, concurrent = false)
         )
         metaModel.add(listOf(x, y))
 
@@ -452,6 +452,7 @@ class SemanticEquivalenceTest {
 
         // Verify the quadratic constraint's lhs has a quadratic cell (token2 != null)
         val f64QcConstraint = f64Model.constraints[0]
+        assertTrue(f64QcConstraint.lhs.isNotEmpty(), "Quadratic constraint lhs should not be empty after F64 conversion")
         val hasQuadraticCell = f64QcConstraint.lhs.any { cell ->
             (cell as? QuadraticCellF64)?.token2 != null
         }

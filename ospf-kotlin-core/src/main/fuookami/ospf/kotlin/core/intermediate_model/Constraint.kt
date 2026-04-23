@@ -46,7 +46,7 @@ typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<Flt64>
  * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
  * Holds the inequality without flattening, preserving the symbolic form.
  */
-class SymbolicQuadraticInequality<V : RealNumber<V>>(val inequality: MathQuadraticInequalityOf<V>)
+class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: MathQuadraticInequalityOf<V>)
 
 typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<Flt64>
 

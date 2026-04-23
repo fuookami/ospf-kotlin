@@ -2,7 +2,7 @@
 
 日期：2026-04-23
 
-状态：P3-2 完成 — TokenTable 具体类泛型化、Cell Impl 泛型化、minimize/maximize(symbol) 重载、Flt64 固化点审计、泛型回归测试均已完成
+状态：P3-2 完成 + M2~M5 收口 — TokenTable 泛型化、Cell Impl 泛型化、minimize/maximize(symbol) 重载、Flt64 固化点审计、泛型回归测试、ToMathLinearPolynomial/ToMathQuadraticPolynomial deprecated、模型层统一入口、surefire 版本锁定均已完成
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -242,8 +242,31 @@ P3-0 基线冻结与兼容面清单
 2. ✅ **Cell Impl 类泛型化** — `LinearCellImpl<V>` / `QuadraticCellImpl<V>` 泛型化，dual-view 模式（`converter: IntoValue<V>?`），保留 `LinearCellImplF64` / `QuadraticCellImplF64` typealias
 3. ✅ **minimize/maximize(symbol) 重载** — `LinearModel.minimize(symbol: LinearIntermediateSymbol<*>)` / `QuadraticModel.minimize(symbol: QuadraticIntermediateSymbol<*>)` 及对应 maximize 重载已添加，使用 `flattenedMonomials` 构建目标
 4. ✅ **Flt64 固化点分类归档** — 输出 `docs/refactor-baseline/p3-flt64-audit.md`，约 178 处 Flt64 引用分类为 A（求解器边界 ~87）/ B（待泛型化 ~58）/ C（向后兼容 ~33）
-5. ✅ **泛型回归测试** — `GenericTokenTableRegressionTest` 12 cases，覆盖 typealias、Cell 构造、缓存操作
+5. ✅ **泛型回归测试（P3-2R 已收口）** — `GenericTokenTableRegressionTest` 现为 18 cases（原 12 + 新增 6 个 `copy()` 回归测试），已通过 `mvn -pl ospf-kotlin-core -Dtest=GenericTokenTableRegressionTest test` 验收（18/18）
 6. ✅ **gantt-scheduling 级联修复** — `TaskCostMinimization.kt` / `CapacityCostMinimization.kt` 改用 `minimize(symbol=)`
+
+#### P3-2 审阅意见（2026-04-23 初次复核）
+
+1. `P0` 阻断项：`GenericTokenTableRegressionTest` 当前无法通过编译，`tokenTable.find(symbol)` 调用与 `find(AbstractVariableItem<*, *>)` 签名不匹配（见测试文件第 68/80/81 行）。已通过 `mvn -pl ospf-kotlin-core -am -Dtest=GenericTokenTableRegressionTest "-Dsurefire.failIfNoSpecifiedTests=false" test` 复现。
+2. `P1` 语义风险：线性对象转二次形式时，当前多处使用 `QuadraticMonomial(..., symbol, symbol)`，这会被解释为平方项；按 `math.symbol` 语义，线性项应为 `QuadraticMonomial.linear(..., symbol)`（`symbol2 = null`）。
+3. `P2` 盘点口径偏差：本节“2026-04-22 盘点结果”中 `Token.kt` / `TokenList.kt` 的 `Flt64引用=0` 与现状不一致；应改为“存在求解器边界保留点（已分类）”，避免与审计文档和源码口径冲突。
+4. 已确认落地项：`TokenTable/Cell` 具体类泛型化与 `minimize/maximize(symbol)` 重载已在主干代码落地，方向正确。
+
+#### P3-2R 收口复核（2026-04-23 更新）
+
+1. ✅ `P0` 已关闭：`GenericTokenTableRegressionTest` 编译问题已修复，当前测试结果为 `Tests run: 18, Failures: 0, Errors: 0`。
+2. ✅ `P1` 已关闭：线性转二次项语义已统一为 `QuadraticMonomial.linear(..., symbol)`，不再误用平方项表示线性项。
+3. ✅ `copy()` 回归覆盖已补齐：`AutoTokenTable` / `ManualTokenTable` / `ConcurrentAutoTokenTable` / `ConcurrentManualAddTokenTable` 均新增“copy 保留 token 与 solverIndex”验证，并补充空表 copy 边界用例。
+4. ✅ 残余技术债已修复：`maven-surefire-plugin` 版本已锁定到 3.2.5，Kotlin 版本警告已通过 `-Xsuppress-version-warnings` 抑制；历史 deprecation / unchecked cast 警告仍存在但不阻断构建。
+
+#### P3-2 后续改进计划（含多项式转换接口统一）
+
+1. ✅ `P3-2R`（收口修复）已完成：`GenericTokenTableRegressionTest` 编译问题与 `copy()` 回归已闭环，`minimize/maximize(symbol=)` 基础回归已补齐，线性到二次转换语义已统一为 `symbol2 = null`。
+2. `M1`（math.symbol 新接口收口）：在已引入 `ToLinearPolynomial` / `ToQuadraticPolynomial` / `ToCanonicalPolynomial` 的基础上，继续补齐 variable/symbol 侧实现，做到 variable/symbol/monomial/polynomial 全覆盖。
+3. ✅ `M2`（兼容桥接）：`ToMathLinearPolynomial` / `ToMathQuadraticPolynomial` 已标记 `@Deprecated(WARNING)`，指向 `math.symbol.operation.ToPolynomial` 新接口；相关调用方已补 ``@Suppress("DEPRECATION")``。
+4. ✅ `M3`（模型层统一）：`LinearModel` 新增 `minimize`/`maximize`/`addConstraint` 接收 `ToMathLinearInequality` 的统一入口；现有重载保留。
+5. ✅ `M4`（二次型同理）：`QuadraticModel` 新增 `minimize`/`maximize`/`addConstraint` 接收 `ToMathQuadraticInequality` 的统一入口；现有重载保留。
+6. ✅ `M5`（验收与文档）：core test (143/0/0)、gantt-scheduling compile 均通过；`maven-surefire-plugin` 版本已锁定；daily.md 状态已更新。
 
 #### 验收标准
 

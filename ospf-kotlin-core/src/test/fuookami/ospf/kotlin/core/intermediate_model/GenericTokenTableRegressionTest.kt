@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import org.junit.jupiter.api.Assertions.*
@@ -63,9 +63,9 @@ class GenericTokenTableRegressionTest {
     @Test
     fun `LinearCellImplF64 is LinearCellImpl of Flt64`() {
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
-        val symbol = LinearExpressionSymbol(constant = Flt64.one, name = "cell_test_x")
-        listOf(symbol).register(tokenTable)
-        val token = tokenTable.find(symbol)!!
+        val x = RealVar("cell_test_x")
+        tokenTable.add(x)
+        val token = tokenTable.find(x)!!
         val cell: LinearCellImpl<Flt64> = LinearCellImplF64(tokenTable, Flt64.one, token)
         assertTrue(cell is LinearCellImplF64)
         assertEquals(Flt64.one, cell.coefficientF64)
@@ -74,11 +74,12 @@ class GenericTokenTableRegressionTest {
     @Test
     fun `QuadraticCellImplF64 is QuadraticCellImpl of Flt64`() {
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
-        val symbol1 = LinearExpressionSymbol(constant = Flt64.one, name = "cell_test_x1")
-        val symbol2 = LinearExpressionSymbol(constant = Flt64.one, name = "cell_test_x2")
-        listOf(symbol1, symbol2).register(tokenTable)
-        val token1 = tokenTable.find(symbol1)!!
-        val token2 = tokenTable.find(symbol2)!!
+        val x1 = RealVar("cell_test_x1")
+        val x2 = RealVar("cell_test_x2")
+        tokenTable.add(x1)
+        tokenTable.add(x2)
+        val token1 = tokenTable.find(x1)!!
+        val token2 = tokenTable.find(x2)!!
         val cell: QuadraticCellImpl<Flt64> = QuadraticCellImplF64(tokenTable, Flt64.one, token1, token2)
         assertTrue(cell is QuadraticCellImplF64)
         assertEquals(Flt64.one, cell.coefficientF64)
@@ -125,5 +126,93 @@ class GenericTokenTableRegressionTest {
         val bound = ctx.boundSymbols()
         assertTrue(bound.contains(key1))
         assertTrue(bound.contains(key2))
+    }
+
+    // ========== copy() regression: token contents and indices must survive copy ==========
+
+    @Test
+    fun `AutoTokenTable copy preserves tokens and indices`() {
+        val table = AutoTokenTable<Flt64>(Linear, false)
+        val x = RealVar("copy_auto_x")
+        val y = RealVar("copy_auto_y")
+        table.add(x)
+        table.add(y)
+
+        val copied = table.copy() as AutoTokenTable<Flt64>
+        val tokenX = copied.find(x)
+        val tokenY = copied.find(y)
+        assertNotNull(tokenX, "copied table should contain x")
+        assertNotNull(tokenY, "copied table should contain y")
+        assertEquals(2, copied.tokens.size, "copied table should have 2 tokens")
+        assertEquals(0, tokenX!!.solverIndex, "x should keep solverIndex 0")
+        assertEquals(1, tokenY!!.solverIndex, "y should keep solverIndex 1")
+    }
+
+    @Test
+    fun `ManualTokenTable copy preserves tokens and indices`() {
+        val table = ManualTokenTable<Flt64>(Linear, false)
+        val x = RealVar("copy_manual_x")
+        val y = RealVar("copy_manual_y")
+        table.add(x)
+        table.add(y)
+
+        val copied = table.copy() as ManualTokenTable<Flt64>
+        val tokenX = copied.find(x)
+        val tokenY = copied.find(y)
+        assertNotNull(tokenX, "copied table should contain x")
+        assertNotNull(tokenY, "copied table should contain y")
+        assertEquals(2, copied.tokens.size, "copied table should have 2 tokens")
+        assertEquals(0, tokenX!!.solverIndex, "x should keep solverIndex 0")
+        assertEquals(1, tokenY!!.solverIndex, "y should keep solverIndex 1")
+    }
+
+    @Test
+    fun `ConcurrentAutoTokenTable copy preserves tokens and indices`() {
+        val table = ConcurrentAutoTokenTable<Flt64>(Linear, false)
+        val x = RealVar("copy_conc_auto_x")
+        val y = RealVar("copy_conc_auto_y")
+        table.add(x)
+        table.add(y)
+
+        val copied = table.copy() as ConcurrentAutoTokenTable<Flt64>
+        val tokenX = copied.find(x)
+        val tokenY = copied.find(y)
+        assertNotNull(tokenX, "copied table should contain x")
+        assertNotNull(tokenY, "copied table should contain y")
+        assertEquals(2, copied.tokens.size, "copied table should have 2 tokens")
+        assertEquals(0, tokenX!!.solverIndex, "x should keep solverIndex 0")
+        assertEquals(1, tokenY!!.solverIndex, "y should keep solverIndex 1")
+    }
+
+    @Test
+    fun `ConcurrentManualAddTokenTable copy preserves tokens and indices`() {
+        val table = ConcurrentManualAddTokenTable<Flt64>(Linear, false)
+        val x = RealVar("copy_conc_manual_x")
+        val y = RealVar("copy_conc_manual_y")
+        table.add(x)
+        table.add(y)
+
+        val copied = table.copy() as ConcurrentManualAddTokenTable<Flt64>
+        val tokenX = copied.find(x)
+        val tokenY = copied.find(y)
+        assertNotNull(tokenX, "copied table should contain x")
+        assertNotNull(tokenY, "copied table should contain y")
+        assertEquals(2, copied.tokens.size, "copied table should have 2 tokens")
+        assertEquals(0, tokenX!!.solverIndex, "x should keep solverIndex 0")
+        assertEquals(1, tokenY!!.solverIndex, "y should keep solverIndex 1")
+    }
+
+    @Test
+    fun `copy of empty AutoTokenTable yields empty table`() {
+        val table = AutoTokenTable<Flt64>(Linear, false)
+        val copied = table.copy()
+        assertEquals(0, copied.tokens.size, "empty table copy should have 0 tokens")
+    }
+
+    @Test
+    fun `copy of empty ManualTokenTable yields empty table`() {
+        val table = ManualTokenTable<Flt64>(Linear, false)
+        val copied = table.copy()
+        assertEquals(0, copied.tokens.size, "empty table copy should have 0 tokens")
     }
 }

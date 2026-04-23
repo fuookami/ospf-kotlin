@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
@@ -14,21 +15,21 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
 import java.util.Collections
 import java.util.WeakHashMap
 
-data class LinearFlattenData<T : RealNumber<T>>(
+data class LinearFlattenData<T : Ring<T>>(
     val monomials: List<UtilsLinearMonomial<T>>,
     val constant: T
 )
 
 typealias LinearFlattenDataF64 = LinearFlattenData<Flt64>
 
-data class QuadraticFlattenData<T : RealNumber<T>>(
+data class QuadraticFlattenData<T : Ring<T>>(
     val monomials: List<UtilsQuadraticMonomial<T>>,
     val constant: T
 )
 
 typealias QuadraticFlattenDataF64 = QuadraticFlattenData<Flt64>
 
-class LinearFlattenContext<V : RealNumber<V>>(
+class LinearFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {
@@ -58,7 +59,7 @@ class LinearFlattenContext<V : RealNumber<V>>(
 
 typealias LinearFlattenContextF64 = LinearFlattenContext<Flt64>
 
-class QuadraticFlattenContext<V : RealNumber<V>>(
+class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
 ) {
     fun contains(cacheKey: Any): Boolean {

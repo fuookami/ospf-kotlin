@@ -23,6 +23,11 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.TryToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toCanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 /**
  * 二次多项式
@@ -38,10 +43,10 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
  * @property monomials 二次单项式列表 / List of quadratic monomials
  * @property constant 常数项 / Constant term
  */
-data class QuadraticPolynomial<T>(
+data class QuadraticPolynomial<T : Ring<T>>(
     val monomials: List<QuadraticMonomial<T>> = emptyList(),
     val constant: T
-) {
+) : ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T>, TryToLinearPolynomial<T> {
     /**
      * 表达式类型分类
      * Expression type category
@@ -51,6 +56,20 @@ data class QuadraticPolynomial<T>(
      */
     val category: Category
         get() = if (monomials.any { it.isQuadratic }) Quadratic else Linear
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial<T> = this
+
+    override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
+        return CanonicalPolynomial(monomials.map { it.toCanonicalMonomial() }, constant)
+    }
+
+    override fun toLinearPolynomialOrNull(): LinearPolynomial<T>? {
+        if (monomials.any { it.isQuadratic }) return null
+        return LinearPolynomial(
+            monomials = monomials.map { LinearMonomial(it.coefficient, it.symbol1) },
+            constant = constant
+        )
+    }
 }
 
 /**

@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.model
 
@@ -317,6 +317,34 @@ interface LinearModel : Model {
             displayName = displayName
         )
     }
+
+    // ========== Unified entry points ==========
+
+    fun minimize(
+        obj: ToMathLinearInequality,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return minimize(obj.toMathLinearPolynomial(), name, displayName)
+    }
+
+    fun maximize(
+        obj: ToMathLinearInequality,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return maximize(obj.toMathLinearPolynomial(), name, displayName)
+    }
+
+    fun addConstraint(
+        obj: ToMathLinearInequality,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        return addConstraint(obj.toMathLinearInequality(), lazy, name, displayName, withRangeSet)
+    }
 }
 
 interface QuadraticModel : LinearModel {
@@ -447,6 +475,34 @@ interface QuadraticModel : LinearModel {
             name = name ?: "",
             displayName = displayName
         )
+    }
+
+    // ========== Unified entry points ==========
+
+    fun minimize(
+        obj: ToMathQuadraticInequality,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return minimize(obj.toMathQuadraticPolynomial(), name, displayName)
+    }
+
+    fun maximize(
+        obj: ToMathQuadraticInequality,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return maximize(obj.toMathQuadraticPolynomial(), name, displayName)
+    }
+
+    fun addConstraint(
+        obj: ToMathQuadraticInequality,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        return addConstraint(obj.toMathQuadraticInequality(), lazy, name, displayName, withRangeSet)
     }
 }
 

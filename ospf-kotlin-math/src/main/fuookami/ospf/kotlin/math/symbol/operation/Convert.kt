@@ -42,13 +42,6 @@ private fun LinearPolynomial<Flt64>.minus(rhs: LinearPolynomial<Flt64>): LinearP
     )
 }
 
-fun CanonicalPolynomial<Flt64>.toLinearPolynomialOrNull(): LinearPolynomial<Flt64>? {
-    return toLinearPolynomialOrNull(
-        zero = Flt64.zero,
-        isZero = { it == Flt64.zero }
-    )
-}
-
 fun CanonicalPolynomial<Flt64>.toQuadraticPolynomialOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {

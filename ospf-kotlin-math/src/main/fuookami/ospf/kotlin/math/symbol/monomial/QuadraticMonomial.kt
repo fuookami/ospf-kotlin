@@ -22,8 +22,12 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.toCanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 /**
  * 二次单项式
@@ -41,11 +45,11 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
  * @property symbol1 第一个符号变量 / First symbol variable
  * @property symbol2 第二个符号变量（可选），null时表示线性项 / Second symbol variable (optional), null indicates linear term
  */
-data class QuadraticMonomial<T>(
+data class QuadraticMonomial<T : Ring<T>>(
     val coefficient: T,
     val symbol1: Symbol,
     val symbol2: Symbol? = null
-) {
+) : ToQuadraticPolynomial<T>, ToCanonicalPolynomial<T> {
     companion object {
         /**
          * 创建线性形式的二次单项式
@@ -58,7 +62,7 @@ data class QuadraticMonomial<T>(
          * @param symbol 符号变量 / Symbol variable
          * @return 线性形式的二次单项式 / Linear-form quadratic monomial
          */
-        fun <T> linear(coefficient: T, symbol: Symbol): QuadraticMonomial<T> {
+        fun <T : Ring<T>> linear(coefficient: T, symbol: Symbol): QuadraticMonomial<T> {
             return QuadraticMonomial(coefficient, symbol)
         }
 
@@ -74,7 +78,7 @@ data class QuadraticMonomial<T>(
          * @param symbol2 第二个符号变量 / Second symbol variable
          * @return 二次形式的二次单项式 / Quadratic-form quadratic monomial
          */
-        fun <T> quadratic(coefficient: T, symbol1: Symbol, symbol2: Symbol): QuadraticMonomial<T> {
+        fun <T : Ring<T>> quadratic(coefficient: T, symbol1: Symbol, symbol2: Symbol): QuadraticMonomial<T> {
             return QuadraticMonomial(coefficient, symbol1, symbol2)
         }
     }
@@ -98,6 +102,14 @@ data class QuadraticMonomial<T>(
      */
     val category: Category
         get() = if (isQuadratic) Quadratic else Linear
+
+    override fun toQuadraticPolynomial(): QuadraticPolynomial<T> {
+        return QuadraticPolynomial(listOf(this), coefficient - coefficient)
+    }
+
+    override fun toCanonicalPolynomial(): CanonicalPolynomial<T> {
+        return toCanonicalMonomial().toCanonicalPolynomial()
+    }
 }
 
 /**

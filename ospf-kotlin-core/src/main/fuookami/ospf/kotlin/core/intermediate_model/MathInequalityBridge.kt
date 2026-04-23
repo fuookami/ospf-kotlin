@@ -19,6 +19,10 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQ
  * Interface for types that can be converted to a MathLinearPolynomial.
  * Replaces the old ToLinearPolynomial interface.
  */
+@Deprecated(
+    message = "Use ToLinearPolynomial<T> from math.symbol.operation.ToPolynomial instead",
+    level = DeprecationLevel.WARNING
+)
 interface ToMathLinearPolynomial {
     fun toMathLinearPolynomial(): UtilsLinearPolynomial<Flt64>
 }
@@ -27,6 +31,10 @@ interface ToMathLinearPolynomial {
  * Interface for types that can be converted to a MathQuadraticPolynomial.
  * Replaces the old ToQuadraticPolynomial interface.
  */
+@Deprecated(
+    message = "Use ToQuadraticPolynomial<T> from math.symbol.operation.ToPolynomial instead",
+    level = DeprecationLevel.WARNING
+)
 interface ToMathQuadraticPolynomial {
     fun toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64>
 }
