@@ -34,6 +34,10 @@ value class SymbolId(val value: String) {
     override fun toString(): String = value
 }
 
+interface StableSymbol : Symbol {
+    val stableSymbolId: SymbolId
+}
+
 /**
  * 可标识符号接口
  * Identifiable Symbol Interface
@@ -44,8 +48,11 @@ value class SymbolId(val value: String) {
  *
  * @property symbolId 符号的唯一标识字符串 / Unique identifier string of the symbol
  */
-interface IdentifiedSymbol {
+interface IdentifiedSymbol : StableSymbol {
     val symbolId: String
+
+    override val stableSymbolId: SymbolId
+        get() = SymbolId(symbolId)
 }
 
 /**
@@ -57,8 +64,11 @@ interface IdentifiedSymbol {
  *
  * @property id 符号的唯一标识符 / Unique identifier of the symbol
  */
-interface OwnedSymbolLike : Symbol {
+interface OwnedSymbolLike : StableSymbol {
     val id: SymbolId
+
+    override val stableSymbolId: SymbolId
+        get() = id
 }
 
 /**
@@ -108,12 +118,21 @@ data class OwnedSymbol(
  *
  * @return 符号的稳定标识符 / Stable identifier of the symbol
  */
+fun Symbol.stableIdOrNull(): SymbolId? {
+    return (this as? StableSymbol)?.stableSymbolId
+}
+
+fun Symbol.hasStableId(): Boolean {
+    return stableIdOrNull() != null
+}
+
+fun Symbol.requireStableId(): SymbolId {
+    return stableIdOrNull()
+        ?: throw IllegalStateException("Symbol $name has no explicit stable identity.")
+}
+
 fun Symbol.stableId(): SymbolId {
-    return when (this) {
-        is OwnedSymbolLike -> id
-        is IdentifiedSymbol -> SymbolId(symbolId)
-        else -> SymbolId("${name}#${System.identityHashCode(this)}")
-    }
+    return stableIdOrNull() ?: SymbolId("${name}#${System.identityHashCode(this)}")
 }
 
 /**
@@ -150,6 +169,15 @@ val defaultSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
         byName
     } else {
         lhs.identity().compareTo(rhs.identity())
+    }
+}
+
+val defaultStableSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
+    val byName = lhs.name.compareTo(rhs.name)
+    if (byName != 0) {
+        byName
+    } else {
+        lhs.requireStableId().value.compareTo(rhs.requireStableId().value)
     }
 }
 

@@ -9,6 +9,7 @@
 package fuookami.ospf.kotlin.math.symbol.expression.operation
 
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.identity
 import fuookami.ospf.kotlin.math.symbol.expression.*
 
 /**
@@ -378,6 +379,7 @@ fun ScalarExpression<*>.structuralKey(): String {
     return when (this) {
         is ScalarConstant<*> -> "Const:$value"
         is ScalarReference<*> -> "Ref:$path"
+        is ScalarSymbolReference<*> -> "SymRef:${symbol.identity()}"
         is ScalarUnary<*> -> "Unary:$operator:${operand.structuralKey()}"
         is ScalarBinary<*> -> "Bin:$operator:${left.structuralKey()}:${right.structuralKey()}"
         is ScalarFunction<*> -> "Func:$name:${arguments.joinToString(",") { it.structuralKey() }}"

@@ -159,7 +159,9 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * @return 是否为正无穷
      * @return Whether the number is positive infinity
      */
-    fun isInfinity(): Boolean = this == constants.infinity
+    fun isInfinity(): Boolean = isPositiveInfinity()
+
+    fun isPositiveInfinity(): Boolean = positiveInfinity?.let { this == it } ?: false
 
     /**
      * 判断是否为负无穷
@@ -168,7 +170,31 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
      * @return 是否为负无穷
      * @return Whether the number is negative infinity
      */
-    fun isNegativeInfinity(): Boolean = this == constants.negativeInfinity
+    fun isNegativeInfinity(): Boolean = negativeInfinityValue?.let { this == it } ?: false
+
+    fun isInfinite(): Boolean = isPositiveInfinity() || isNegativeInfinity()
+
+    fun isFinite(): Boolean = !isInfinite()
+
+    override fun isWithinBounds(value: Self): Boolean {
+        val lowerOkay = minBound?.let { value >= it } ?: true
+        val upperOkay = maxBound?.let { value <= it } ?: true
+        return lowerOkay && upperOkay
+    }
+
+    override fun clampToBounds(value: Self): Self {
+        return when {
+            minBound != null && value < minBound!! -> minBound!!
+            maxBound != null && value > maxBound!! -> maxBound!!
+            else -> value
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    fun isSelfWithinBounds(): Boolean = isWithinBounds(this as Self)
+
+    @Suppress("UNCHECKED_CAST")
+    fun clampSelfToBounds(): Self = clampToBounds(this as Self)
 
     /**
      * 等价判断
@@ -743,6 +769,3 @@ interface NumericUIntegerNumber<Self : NumericUIntegerNumber<Self, I>, I : UInte
     IntDiv<Self, Self>,
     Rem<Self, Self>,
     Pow<RationalNumber<*, I>>
-
-
-

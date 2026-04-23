@@ -18,7 +18,22 @@ import fuookami.ospf.kotlin.math.operator.Minus
  * 定义全序关系，继承自 Ord 接口。
  * Defines total ordering relation, extending from Ord interface.
  */
-interface TotallyOrdered<in Self> : Ord<Self>
+interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
+    @Suppress("UNCHECKED_CAST")
+    private fun self(): Self = this as Self
+
+    fun minValue(rhs: Self): Self = if (self() <= rhs) self() else rhs
+
+    fun maxValue(rhs: Self): Self = if (self() >= rhs) self() else rhs
+
+    fun isBetween(lower: Self, upper: Self): Boolean = self() >= lower && self() <= upper
+
+    fun clampValue(lower: Self, upper: Self): Self = when {
+        self() < lower -> lower
+        self() > upper -> upper
+        else -> self()
+    }
+}
 
 /**
  * 向量空间接口
@@ -32,7 +47,7 @@ interface TotallyOrdered<in Self> : Ord<Self>
  * @param Scalar 标量类型
  * @param Scalar The scalar type
  */
-interface VectorSpace<Self, Scalar> : Plus<Self, Self>, Minus<Self, Self> {
+interface VectorSpace<Self : VectorSpace<Self, Scalar>, Scalar> : Plus<Self, Self>, Minus<Self, Self> {
     /**
      * 标量缩放运算
      * Scalar multiplication operation
@@ -57,7 +72,8 @@ interface VectorSpace<Self, Scalar> : Plus<Self, Self>, Minus<Self, Self> {
  * @param Scalar 标量类型
  * @param Scalar The scalar type
  */
-interface NormedSpace<Self, Scalar> : VectorSpace<Self, Scalar> {
+interface NormedSpace<Self : VectorSpace<Self, Scalar>, Scalar> : VectorSpace<Self, Scalar>
+        where Scalar : RealNumber<Scalar>, Scalar : NumberField<Scalar> {
     /**
      * 向量的范数
      * The norm of the vector
@@ -69,6 +85,18 @@ interface NormedSpace<Self, Scalar> : VectorSpace<Self, Scalar> {
      * The unit vector
      */
     val unit: Self
+
+    fun normSquared(): Scalar {
+        return norm * norm
+    }
+
+    fun normalize(): Self? {
+        return if (norm eq norm.constants.zero) {
+            null
+        } else {
+            scale(norm.constants.one / norm)
+        }
+    }
 }
 
 /**
@@ -83,7 +111,8 @@ interface NormedSpace<Self, Scalar> : VectorSpace<Self, Scalar> {
  * @param Scalar 标量类型
  * @param Scalar The scalar type
  */
-interface InnerProductSpace<Self, Scalar> : NormedSpace<Self, Scalar> {
+interface InnerProductSpace<Self : InnerProductSpace<Self, Scalar>, Scalar> : NormedSpace<Self, Scalar>
+        where Scalar : RealNumber<Scalar>, Scalar : NumberField<Scalar> {
     /**
      * 内积运算
      * Dot product operation
@@ -94,4 +123,42 @@ interface InnerProductSpace<Self, Scalar> : NormedSpace<Self, Scalar> {
      * @return The dot product value
      */
     infix fun dot(rhs: Self): Scalar
+
+    fun angle(rhs: Self): FloatingNumber<*>? {
+        val cosine = cosineSimilarity(rhs) ?: return null
+        val one = cosine.constants.one
+        val clamped = when {
+            cosine > one -> one
+            cosine < -one -> -one
+            else -> cosine
+        }
+        return clamped.acos()
+    }
+
+    fun isOrthogonal(rhs: Self, epsilon: Scalar): Boolean {
+        return (this dot rhs).abs() <= epsilon
+    }
+
+    fun cosineSimilarity(rhs: Self): Scalar? {
+        val denominator = norm * rhs.norm
+        return if (denominator eq denominator.constants.zero) {
+            null
+        } else {
+            (this dot rhs) / denominator
+        }
+    }
+
+    fun project(rhs: Self): Self? {
+        val denominator = rhs dot rhs
+        return if (denominator eq denominator.constants.zero) {
+            null
+        } else {
+            rhs.scale((this dot rhs) / denominator)
+        }
+    }
+
+    fun orthogonalComponent(rhs: Self): Self? {
+        val projection = project(rhs) ?: return null
+        return this - projection
+    }
 }

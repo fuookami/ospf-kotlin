@@ -4,11 +4,11 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.parser.parseSymbolExpression
-import fuookami.ospf.kotlin.math.symbol.serde.symbolExprFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toExpr
-import fuookami.ospf.kotlin.math.symbol.serde.toJsonString
+import fuookami.ospf.kotlin.math.symbol.parser.parseLegacySymbolExpression
+import fuookami.ospf.kotlin.math.symbol.serde.legacySymbolExprFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.toLegacyExpr
+import fuookami.ospf.kotlin.math.symbol.serde.toLegacyJsonString
 import org.junit.jupiter.api.Test
 import kotlin.random.Random
 import kotlin.test.assertTrue
@@ -67,14 +67,14 @@ class SymbolRoundTripTest {
     }
 
     private fun assertRoundTripEquivalent(expressionText: String) {
-        val parsed = parseSymbolExpression(expressionText)
-        val canonical = parsed.toCanonicalPolynomial { name ->
+        val parsed = parseLegacySymbolExpression(expressionText)
+        val canonical = parsed.legacyToCanonicalPolynomial { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }.combineTerms()
 
-        val json = canonical.toExpr().toJsonString()
-        val restoredExpr = symbolExprFromJson(json)
-        val restoredCanonical = restoredExpr.toCanonicalPolynomial { name ->
+        val json = canonical.toLegacyExpr().toLegacyJsonString()
+        val restoredExpr = legacySymbolExprFromJson(json)
+        val restoredCanonical = restoredExpr.legacyToCanonicalPolynomial { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }.combineTerms()
 

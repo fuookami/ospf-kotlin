@@ -4,12 +4,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.parser.Expr
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toExpr
-import fuookami.ospf.kotlin.math.symbol.serde.toJsonString
-import fuookami.ospf.kotlin.math.symbol.serde.symbolExprFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.toLinearPolynomialOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.legacySymbolExprFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.toLegacyExpr
+import fuookami.ospf.kotlin.math.symbol.serde.toLegacyJsonString
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToLinearPolynomialOrNull
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import kotlin.test.assertEquals
@@ -36,10 +36,10 @@ class DslTest {
             "y" to y
         )
 
-        val expression = symbolExpr {
+        val expression = legacySymbolExpr {
             num(2) * symbol("x") + num(3) * symbol("y") - num(1)
         }
-        val polynomial = expression.toLinearPolynomialOrNull { name ->
+        val polynomial = expression.legacyToLinearPolynomialOrNull { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }
 
@@ -59,10 +59,10 @@ class DslTest {
             "y" to y
         )
 
-        val expression = symbolExpr {
+        val expression = legacySymbolExpr {
             (symbol("x") pow 2) * (symbol("y") pow 3) + num(2) * symbol("x") - num(1)
         }
-        val polynomial = expression.toCanonicalPolynomial { name ->
+        val polynomial = expression.legacyToCanonicalPolynomial { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }
         val monomialByDegree = polynomial.monomials.associateBy { it.factors.size }
@@ -83,17 +83,17 @@ class DslTest {
             "y" to y
         )
 
-        val expression = symbolExpr {
+        val expression = legacySymbolExpr {
             (symbol("x") pow 2) + num(1) le (symbol("y") + num(3))
         }
         val inequality = (expression as Expr.Comparison)
-            .toCanonicalInequality { name ->
+            .legacyToCanonicalInequality { name ->
                 symbolByName[name] ?: error("Unknown symbol: $name")
             }
 
         assertEquals(
             inequality,
-            inequality.toExpr().toCanonicalInequality { name ->
+            inequality.toLegacyExpr().legacyToCanonicalInequality { name ->
                 symbolByName[name] ?: error("Unknown symbol: $name")
             }
         )
@@ -101,11 +101,11 @@ class DslTest {
 
     @Test
     fun dslExpressionShouldSupportJsonRoundTrip() {
-        val expression = symbolExpr {
+        val expression = legacySymbolExpr {
             call("max", symbol("x"), symbol("y") + num(1))
         }
 
-        val restored = symbolExprFromJson(expression.toJsonString())
+        val restored = legacySymbolExprFromJson(expression.toLegacyJsonString())
 
         assertEquals(expression, restored)
     }

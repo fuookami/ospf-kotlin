@@ -31,6 +31,10 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.minMaxOf
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Ret
 
 // ============================================================================
 // Delaunay 三角剖分结果 / Delaunay triangulation result
@@ -122,12 +126,16 @@ fun isDelaunay(triangles: List<Triangle2>, points: List<Point2>): Boolean {
                 continue
             }
 
-            if (circumcircle containsPointStrict point) {
+            if (pointInCircumcircle(point, triangle)) {
                 return false
             }
         }
     }
     return true
+}
+
+fun pointInCircumcircle(point: Point2, triangle: Triangle2): Boolean {
+    return triangle.circumcircle() containsPointStrict point
 }
 
 // ============================================================================
@@ -148,6 +156,13 @@ data object Delaunay {
     fun triangulate(points: List<Point2>): DelaunayTriangulation2 {
         val triangles = invoke(points)
         return DelaunayTriangulation2(triangles, points)
+    }
+
+    fun triangulateRet(points: List<Point2>): Ret<DelaunayTriangulation2> {
+        if (points.size < 3) {
+            return Failed(ErrorCode.IllegalArgument, "At least 3 points are required for triangulation.")
+        }
+        return Ok(triangulate(points))
     }
 
     /**
@@ -211,6 +226,13 @@ data object Delaunay {
             undeterminedTriangles = undeterminedTriangles
         )
         return triangles
+    }
+
+    fun invokeRet(points: List<Point2>): Ret<List<Triangle2>> {
+        if (points.size < 3) {
+            return Failed(ErrorCode.IllegalArgument, "At least 3 points are required for triangulation.")
+        }
+        return Ok(invoke(points))
     }
 
     private fun deleteDuplicateEdges(edges: List<Edge2>): List<Edge2> {
@@ -283,6 +305,11 @@ fun delaunayTriangulate(points: List<Point2>): DelaunayTriangulation2 {
     return Delaunay.triangulate(points)
 }
 
+@JvmName("delaunayTriangulate2Ret")
+fun delaunayTriangulateRet(points: List<Point2>): Ret<DelaunayTriangulation2> {
+    return Delaunay.triangulateRet(points)
+}
+
 /**
  * 执行 Delaunay 三角剖分（返回三角形列表，旧 API）
  * Perform Delaunay triangulation (returns triangle list, legacy API)
@@ -293,6 +320,11 @@ fun delaunayTriangulate(points: List<Point2>): DelaunayTriangulation2 {
 @JvmName("triangulate2")
 fun triangulate(points: List<Point2>): List<Triangle2> {
     return Delaunay(points)
+}
+
+@JvmName("triangulate2Ret")
+fun triangulateRet(points: List<Point2>): Ret<List<Triangle2>> {
+    return Delaunay.invokeRet(points)
 }
 
 @JvmName("triangulate3Points")

@@ -1,8 +1,14 @@
-# ospf-kotlin-utils/math/symbol
+# ospf-kotlin-math/symbol
 
 [中文文档 (README_ch.md)](./README_ch.md)
 
 Symbolic expression foundation and operations for OSPF Kotlin.
+
+The `symbol` package now exposes two expression layers:
+
+- `symbol.expression.*` is the preferred runtime stack for boolean/scalar expressions, property paths, evaluation, and normalization.
+- `symbol.dsl`, `symbol.parser`, and `symbol.serde` remain available as the legacy `Expr` compatibility stack for polynomial and inequality conversion.
+- When you need raw legacy AST entry points, use `legacySymbolExpr`, `parseLegacySymbolExpression`, `legacySymbolExprFromJson`, `toLegacyExpr`, and `legacyToCanonicalPolynomial`.
 
 ## Core Types
 
@@ -48,13 +54,14 @@ data class CanonicalInequality<T>(...)
 ### Polynomial Construction
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val x = symbolOfSerializedIdentifier("x")
+val y = symbolOfSerializedIdentifier("y")
 
 // Linear polynomial
 val linear = LinearPolynomial<Flt64>(
@@ -97,7 +104,7 @@ val divided = p1 / Flt64(2.0) // 0.5 + x
 ### Evaluation
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 
 // Direct evaluation
 val values = mapOf(x to Flt64(2.0), y to Flt64(3.0))
@@ -128,46 +135,45 @@ val grad = compiledGrad(listOf(Flt64(1.0), Flt64(2.0)))
 ### DSL Quick Entry
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val symbolOf = ::symbolOfSerializedIdentifier
 
 // Linear polynomial from DSL
 val lp = linearPolynomial(symbolOf) {
-    val x = symbol("x")
-    val y = symbol("y")
-    1.0 + 2.0 * x + 3.0 * y
+    num(1) + num(2) * symbol("x") + num(3) * symbol("y")
 }
 
 // Quadratic polynomial from DSL
 val qp = quadraticPolynomial(symbolOf) {
-    val x = symbol("x")
-    1.0 + 2.0 * x + 3.0 * x * x
+    num(1) + num(2) * symbol("x") + num(3) * symbol("x") * symbol("x")
 }
 
 // Canonical inequality from DSL
 val ineq = canonicalInequality(symbolOf) {
-    val x = symbol("x")
-    val y = symbol("y")
-    x * x + y * y le 1.0  // x^2 + y^2 <= 1
+    (symbol("x") * symbol("x")) + (symbol("y") * symbol("y")) le num(1)  // x^2 + y^2 <= 1
 }
 ```
 
 ### Serialization
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.serde.*
+import fuookami.ospf.kotlin.math.symbol.serde.*
 
 // To JSON
 val json = canonical.toJsonString()
 
 // From JSON
-val restored = canonicalPolynomialFromJson<Flt64>(json)
+val restored = canonicalPolynomialFromJson(json)
 
 // Inequality serialization
 val ineqJson = linearInequality.toJsonString()
-val restoredIneq = linearInequalityFromJson<Flt64>(ineqJson)
+val restoredIneq = linearInequalityFromJson(ineqJson)
+
+// Raw legacy Expr JSON round-trip
+val exprJson = canonical.toLegacyExpr().toLegacyJsonString()
+val restoredExpr = legacySymbolExprFromJson(exprJson)
 ```
 
 ### Matrix Form
@@ -191,11 +197,11 @@ Symbolic polynomials can be stored in MultiArray and efficiently summed using Fa
 #### Basic Usage
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.multi_array.FastSum
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val x = symbolOfSerializedIdentifier("x")
+val y = symbolOfSerializedIdentifier("y")
 
 // Create a 2D array of linear polynomials
 val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
@@ -226,8 +232,8 @@ val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
 For high-performance accumulation, use Mutable polynomials with delayed combining:
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 
 // FastSum pattern: accumulate without combining, then combine once
 val result = MutableLinearPolynomial.fromConstant(Flt64.zero)
@@ -346,7 +352,7 @@ val sumQ = quadraticEquations.sumAxis(
 Run tests:
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+mvn -pl ospf-kotlin-math -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
 ```
 
 ### MultiArray Tests
@@ -354,7 +360,7 @@ mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,Mutabl
 - `FastSumTest.kt`: MultiArray summation (14 tests)
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
+mvn -pl ospf-kotlin-math -Dtest=FastSumTest test
 ```
 
 ## Related
@@ -362,5 +368,5 @@ mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
 - [Main README](../README.md)
 - [Geometry Module](../geometry/README.md)
 - [Value Range Module](../algebra/value_range/README.md)
-- [MultiArray Module](../multi_array/README.md)
+- [MultiArray Module](../multiarray/README.md)
 - [Benchmark Report](../../benchmark/BENCHMARK_REPORT_TEMPLATE.md)

@@ -1,6 +1,9 @@
 ﻿package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -218,6 +221,34 @@ class TriangulationTest {
     }
 
     @Test
+    fun delaunayTriangulateRetShouldRejectInsufficientPoints() {
+        val ret = delaunayTriangulateRet(
+            listOf(
+                point2(Flt64.zero, Flt64.zero),
+                point2(Flt64.one, Flt64.zero)
+            )
+        )
+
+        assertTrue(ret is Failed)
+        assertEquals(ErrorCode.IllegalArgument, ret.code)
+    }
+
+    @Test
+    fun triangulateRetShouldReturnTriangleList() {
+        val ret = triangulateRet(
+            listOf(
+                point2(Flt64.zero, Flt64.zero),
+                point2(Flt64.one, Flt64.zero),
+                point2(Flt64.one, Flt64.one),
+                point2(Flt64.zero, Flt64.one)
+            )
+        )
+
+        assertTrue(ret is Ok)
+        assertEquals(2, ret.value.size)
+    }
+
+    @Test
     fun delaunayTriangulateEdgesUnique() {
         val points = listOf(
             point2(Flt64.zero, Flt64.zero),
@@ -293,6 +324,20 @@ class TriangulationTest {
     }
 
     @Test
+    fun pointInCircumcircleShouldDetectInteriorPoint() {
+        val triangle = Triangle(
+            point2(Flt64.zero, Flt64.zero),
+            point2(Flt64(4.0), Flt64.zero),
+            point2(Flt64(2.0), Flt64(3.0))
+        )
+        val inside = point2(Flt64(2.0), Flt64.one)
+        val outside = point2(Flt64(5.0), Flt64(5.0))
+
+        assertTrue(pointInCircumcircle(inside, triangle))
+        assertFalse(pointInCircumcircle(outside, triangle))
+    }
+
+    @Test
     fun isDelaunayWithMorePoints() {
         // 使用随机分布的点来测试 Delaunay 校验
         // Test Delaunay validation with randomly distributed points
@@ -314,6 +359,4 @@ class TriangulationTest {
         assertTrue(result.triangles.all { !it.illegal })
     }
 }
-
-
 

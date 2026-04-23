@@ -7,6 +7,9 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.adapter
 
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.SymbolId
 import fuookami.ospf.kotlin.math.symbol.parser.Expr
 import fuookami.ospf.kotlin.math.symbol.parser.BinaryOperator as LegacyBinaryOperator
 import fuookami.ospf.kotlin.math.symbol.parser.ComparisonOperator as LegacyComparisonOperator
@@ -16,6 +19,11 @@ import org.junit.jupiter.api.Assertions.*
 
 @DisplayName("LegacyExprBridge Tests / 旧表达式桥接测试")
 class LegacyExprBridgeTest {
+    private data class TestSymbol(
+        override val name: String,
+        override val displayName: String? = null
+    ) : Symbol
+
 
     @Nested
     @DisplayName("Expr to ScalarExpression Tests / Expr 到 ScalarExpression 测试")
@@ -41,6 +49,17 @@ class LegacyExprBridgeTest {
             assertNotNull(newExpr)
             assertTrue(newExpr is ScalarReference<*>)
             assertEquals("x", (newExpr as ScalarReference<*>).path.value)
+        }
+
+        @Test
+        @DisplayName("Invalid path identifier to symbol reference / 非路径标识符到符号引用")
+        fun testIdentifierToSymbolReference() {
+            val legacy = Expr.Identifier("x-y")
+            val newExpr = legacy.toScalarExpressionOrNull()
+
+            assertNotNull(newExpr)
+            assertTrue(newExpr is ScalarSymbolReference<*>)
+            assertEquals("x-y", (newExpr as ScalarSymbolReference<*>).symbol.name)
         }
 
         @Test
@@ -230,6 +249,18 @@ class LegacyExprBridgeTest {
             assertNotNull(legacy)
             assertTrue(legacy is Expr.Identifier)
             assertEquals("user.age", (legacy as Expr.Identifier).name)
+        }
+
+        @Test
+        @DisplayName("Symbol reference to identifier / 符号引用到标识符")
+        fun testSymbolReferenceToIdentifier() {
+            val symbol = OwnedSymbol(SymbolId("stable-x"), "x")
+            val newExpr: ScalarExpression<Int> = ScalarSymbolReference(symbol)
+            val legacy = newExpr.toLegacyExprOrNull()
+
+            assertNotNull(legacy)
+            assertTrue(legacy is Expr.Identifier)
+            assertEquals("stable-x", (legacy as Expr.Identifier).name)
         }
 
         @Test

@@ -32,8 +32,9 @@ import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
-import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.Error as OspfError
+import fuookami.ospf.kotlin.utils.functional.ExRet
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -46,7 +47,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.resolveArithmeticConstants
 import fuookami.ospf.kotlin.math.operator.Plus
 
 @PublishedApi
-internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
+internal fun MutableList<OspfError<ErrorCode>>.appendFrom(ret: Ret<*>) {
     when (ret) {
         is Ok -> {}
         is Failed -> add(ret.error)
@@ -55,11 +56,11 @@ internal fun MutableList<Error<ErrorCode>>.appendFrom(ret: Ret<*>) {
 }
 
 @PublishedApi
-internal fun <T> exResultOf(value: T, errors: List<Error<ErrorCode>>): fuookami.ospf.kotlin.utils.functional.ExRet<T> {
+internal fun <T> exResultOf(value: T, errors: List<OspfError<ErrorCode>>): ExRet<T> {
     return if (errors.isEmpty()) {
-        Ok<T, ErrorCode, Error<ErrorCode>>(value)
+        Ok(value)
     } else {
-        Fatal<T, ErrorCode, Error<ErrorCode>>(errors)
+        Fatal(errors)
     }
 }
 
@@ -141,15 +142,15 @@ suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
     constants: ArithmeticConstants<U>,
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>
-): fuookami.ospf.kotlin.utils.functional.ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
+): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return coroutineScope {
         val elements = this@exTrySumOfParallelly.toList()
         val chunks = elements.chunked(chunkSize)
 
-        val promises = ArrayList<Deferred<Pair<U, List<Error<ErrorCode>>>>>()
+        val promises = ArrayList<Deferred<Pair<U, List<OspfError<ErrorCode>>>>>()
         for (chunk in chunks) {
             promises.add(async(Dispatchers.Default) {
-                val errors = ArrayList<Error<ErrorCode>>()
+                val errors = ArrayList<OspfError<ErrorCode>>()
                 var sum = constants.zero
                 for (element in chunk) {
                     when (val ret = extractor(element)) {
@@ -161,7 +162,7 @@ suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
             })
         }
 
-        val errors = ArrayList<Error<ErrorCode>>()
+        val errors = ArrayList<OspfError<ErrorCode>>()
         var sum = constants.zero
         for (promise in promises) {
             val (chunkSum, chunkErrors) = promise.await()
@@ -175,6 +176,6 @@ suspend inline fun <T, U> Iterable<T>.exTrySumOfParallelly(
 suspend inline fun <T, reified U> Iterable<T>.exTrySumOfParallelly(
     chunkSize: Int = 100,
     crossinline extractor: SuspendTryExtractor<U, T>
-): fuookami.ospf.kotlin.utils.functional.ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
+): ExRet<U> where U : Arithmetic<U>, U : Plus<U, U> {
     return exTrySumOfParallelly(resolveArithmeticConstants<U>("Fold"), chunkSize, extractor)
 }

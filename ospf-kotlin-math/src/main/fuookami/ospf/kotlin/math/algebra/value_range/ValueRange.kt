@@ -27,6 +27,7 @@ import fuookami.ospf.kotlin.math.operator.Div
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
 import fuookami.ospf.kotlin.math.operator.Times
+import fuookami.ospf.kotlin.math.operator.Contains
 import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.Eq
@@ -168,7 +169,7 @@ data class ValueRange<T>(
     private val constants: RealNumberConstants<T>
 ) : Cloneable, Copyable<ValueRange<T>>, Eq<ValueRange<T>>,
     Plus<ValueRange<T>, ValueRange<T>>, Minus<ValueRange<T>, ValueRange<T>>,
-    Times<ValueRange<T>, ValueRange<T>?>, Div<T, ValueRange<T>?>
+    Times<ValueRange<T>, ValueRange<T>?>, Div<T, ValueRange<T>?>, Contains<T>
         where T : RealNumber<T>, T : NumberField<T> {
     companion object {
         /**
@@ -898,7 +899,7 @@ data class ValueRange<T>(
      * @param value 要判断的值
      * @return 是否在范围内
      */
-    infix operator fun contains(value: T): Boolean {
+    override infix operator fun contains(value: T): Boolean {
         return if (lowerBound.value.isNegativeInfinity && upperBound.value.isInfinity) {
             true
         } else if (lowerBound.value.isNegativeInfinity && !upperBound.value.isInfinityOrNegativeInfinity) {

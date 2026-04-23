@@ -38,6 +38,7 @@ sealed interface ScalarExpression<out T> {
     fun isConstant(): Boolean = when (this) {
         is ScalarConstant -> true
         is ScalarReference -> false
+        is ScalarSymbolReference -> false
         is ScalarUnary -> operand.isConstant()
         is ScalarBinary -> left.isConstant() && right.isConstant()
         is ScalarFunction -> arguments.all { it.isConstant() }
@@ -51,6 +52,7 @@ sealed interface ScalarExpression<out T> {
     fun containsReference(): Boolean = when (this) {
         is ScalarConstant -> false
         is ScalarReference -> true
+        is ScalarSymbolReference -> true
         is ScalarUnary -> operand.containsReference()
         is ScalarBinary -> left.containsReference() || right.containsReference()
         is ScalarFunction -> arguments.any { it.containsReference() }
@@ -74,6 +76,7 @@ sealed interface ScalarExpression<out T> {
     fun collectReferencesInto(refs: MutableSet<PropertyPath>) {
         when (this) {
             is ScalarReference -> refs.add(path)
+            is ScalarSymbolReference -> { }
             is ScalarUnary -> operand.collectReferencesInto(refs)
             is ScalarBinary -> {
                 left.collectReferencesInto(refs)
@@ -116,6 +119,15 @@ data class ScalarReference<T>(
     override val children: List<ScalarExpression<T>> = emptyList()
 
     override fun toString(): String = "Reference(${path.value})"
+}
+
+data class ScalarSymbolReference<T>(
+    val symbol: Symbol
+) : ScalarExpression<T> {
+    override val typeName: String = "SymbolReference"
+    override val children: List<ScalarExpression<T>> = emptyList()
+
+    override fun toString(): String = "SymbolReference(${symbol.name})"
 }
 
 /**
@@ -212,6 +224,8 @@ object ScalarExpressionFactory {
      * Create reference expression
      */
     fun <T> reference(path: String): ScalarExpression<T> = reference(PropertyPath.parse(path))
+
+    fun <T> reference(symbol: Symbol): ScalarExpression<T> = ScalarSymbolReference(symbol)
 
     /**
      * 创建一元操作表达式

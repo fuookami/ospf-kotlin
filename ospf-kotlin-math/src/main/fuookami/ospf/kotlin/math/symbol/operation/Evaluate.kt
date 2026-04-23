@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
-import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.Error as OspfError
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 // Helper Functions for Missing Value Handling
 // ============================================================================
 
-private fun missingValueFailed(symbol: Symbol): Failed<Flt64, ErrorCode, Error<ErrorCode>> {
+private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
 }
 
@@ -405,28 +405,28 @@ fun LinearPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
-    var failed: Failed<Flt64, ErrorCode, Error<ErrorCode>>? = null
-    var fatal: Fatal<Flt64, ErrorCode, Error<ErrorCode>>? = null
+    var failure: Ret<Flt64>? = null
     val value = evaluateLinear(
         values = emptyMap(),
         onMissing = { symbol ->
             when (val result = resolveValueRet(symbol, provider, policy)) {
                 is Ok -> result.value
                 is Failed -> {
-                    failed = result
+                    if (failure == null) {
+                        failure = result
+                    }
                     null
                 }
                 is Fatal -> {
-                    fatal = result
+                    failure = result
                     null
                 }
             }
         }
     )
     return when {
-        value != null -> Ok<Flt64, ErrorCode, Error<ErrorCode>>(value)
-        fatal != null -> Fatal(fatal!!.errors)
-        failed != null -> Failed(failed!!.error)
+        value != null -> Ok(value)
+        failure != null -> failure!!
         else -> Failed(ErrorCode.DataNotFound, "Missing value for one or more symbols.")
     }
 }
@@ -551,28 +551,28 @@ fun QuadraticPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
-    var failed: Failed<Flt64, ErrorCode, Error<ErrorCode>>? = null
-    var fatal: Fatal<Flt64, ErrorCode, Error<ErrorCode>>? = null
+    var failure: Ret<Flt64>? = null
     val value = evaluateQuadratic(
         values = emptyMap(),
         onMissing = { symbol ->
             when (val result = resolveValueRet(symbol, provider, policy)) {
                 is Ok -> result.value
                 is Failed -> {
-                    failed = result
+                    if (failure == null) {
+                        failure = result
+                    }
                     null
                 }
                 is Fatal -> {
-                    fatal = result
+                    failure = result
                     null
                 }
             }
         }
     )
     return when {
-        value != null -> Ok<Flt64, ErrorCode, Error<ErrorCode>>(value)
-        fatal != null -> Fatal(fatal!!.errors)
-        failed != null -> Failed(failed!!.error)
+        value != null -> Ok(value)
+        failure != null -> failure!!
         else -> Failed(ErrorCode.DataNotFound, "Missing value for one or more symbols.")
     }
 }
@@ -649,19 +649,20 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
 ): Ret<Flt64> {
-    var failed: Failed<Flt64, ErrorCode, Error<ErrorCode>>? = null
-    var fatal: Fatal<Flt64, ErrorCode, Error<ErrorCode>>? = null
+    var failure: Ret<Flt64>? = null
     val value = evaluateCanonical(
         values = emptyMap(),
         onMissing = { symbol ->
             when (val result = resolveValueRet(symbol, provider, policy)) {
                 is Ok -> result.value
                 is Failed -> {
-                    failed = result
+                    if (failure == null) {
+                        failure = result
+                    }
                     null
                 }
                 is Fatal -> {
-                    fatal = result
+                    failure = result
                     null
                 }
             }
@@ -669,9 +670,8 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
         one = Flt64.one
     )
     return when {
-        value != null -> Ok<Flt64, ErrorCode, Error<ErrorCode>>(value)
-        fatal != null -> Fatal(fatal!!.errors)
-        failed != null -> Failed(failed!!.error)
+        value != null -> Ok(value)
+        failure != null -> failure!!
         else -> Failed(ErrorCode.DataNotFound, "Missing value for one or more symbols.")
     }
 }

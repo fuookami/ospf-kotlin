@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.math.operator
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.orderOf
 import fuookami.ospf.kotlin.utils.functional.orderBetween
@@ -107,6 +108,23 @@ class OperatorCoreTest {
     fun absoluteToleranceShouldWrapValue() {
         val tolerance = AbsoluteTolerance(Flt64(0.001))
         assertEquals(Flt64(0.001), tolerance.tolerance)
+    }
+
+    @Test
+    fun containsContractShouldWorkForCoreRangeTypes() {
+        val intRange = Int64.zero..Int64(5L)
+        assertTrue(Int64(3L) in intRange)
+        assertFalse(Int64(8L) in intRange)
+
+        val valueRange = ValueRange(
+            Flt64.zero,
+            Flt64.one,
+            lbInterval = fuookami.ospf.kotlin.math.algebra.value_range.Interval.Closed,
+            ubInterval = fuookami.ospf.kotlin.math.algebra.value_range.Interval.Closed,
+            constants = Flt64
+        ).value!!
+        assertTrue(Flt64(0.5) in valueRange)
+        assertFalse(Flt64(2.0) in valueRange)
     }
 
     // ==================== Reciprocal Tests ====================

@@ -155,6 +155,8 @@ class PropertyPathPathSymbolTest {
         fun testPathSymbolEqualitySymmetry() {
             val pathSymbol = PathSymbol(PropertyPath.parse("user.address"))
             val foreignIdentified = object : fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol {
+                override val name: String = "user.address"
+                override val displayName: String? = null
                 override val symbolId: String = pathSymbol.symbolId
             }
 
@@ -258,6 +260,8 @@ class PropertyPathPathSymbolTest {
         @DisplayName("IdentifiedSymbol without path: prefix / 不带 path: 前缀的识别符号")
         fun testIdentifiedSymbolWithoutPathPrefix() {
             val nonPathIdentified = object : fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol {
+                override val name: String = "other.value"
+                override val displayName: String? = null
                 override val symbolId = "other:value"
             }
 

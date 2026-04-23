@@ -26,7 +26,6 @@ import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
-import kotlin.math.acos
 
 /**
  * 计算向量的范数（长度）
@@ -204,12 +203,8 @@ open class Vector<D : Dimension>(
      * @param rhs 另一个向量 / Another vector
      * @return 夹角（弧度），或 null / Angle (radians), or null
      */
-    fun angle(rhs: Vector<D>): Flt64? {
-        if (norm eq Flt64.zero || rhs.norm eq Flt64.zero) {
-            return null
-        }
-        val cosine = ((this dot rhs) / (norm * rhs.norm)).toDouble().coerceIn(-1.0, 1.0)
-        return Flt64(acos(cosine))
+    override fun angle(rhs: Vector<D>): Flt64? {
+        return super<InnerProductSpace>.angle(rhs) as? Flt64
     }
 
     /**
@@ -223,11 +218,11 @@ open class Vector<D : Dimension>(
      * @return 投影向量，或 null / Projection vector, or null
      */
     fun projectionOn(rhs: Vector<D>): Vector<D>? {
-        val denominator = rhs dot rhs
-        if (denominator eq Flt64.zero) {
-            return null
-        }
-        return rhs * ((this dot rhs) / denominator)
+        return project(rhs)
+    }
+
+    fun orthogonalComponentTo(rhs: Vector<D>): Vector<D>? {
+        return orthogonalComponent(rhs)
     }
 
     override fun toString() = vector.joinToString(",", "[", "]")

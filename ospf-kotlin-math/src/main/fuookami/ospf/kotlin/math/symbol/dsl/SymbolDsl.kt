@@ -24,12 +24,12 @@ import fuookami.ospf.kotlin.math.symbol.parser.Expr
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalInequality
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toLinearInequalityOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.toLinearPolynomialOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.toQuadraticInequalityOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.toQuadraticPolynomialOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToLinearInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToLinearPolynomialOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticPolynomialOrNull
 
 /**
  * 符号 DSL 作用域
@@ -85,8 +85,16 @@ class SymbolDslScope {
  * @param block DSL 构建块 / The DSL building block
  * @return 构建的符号表达式 / The built symbolic expression
  */
-fun symbolExpr(block: SymbolDslScope.() -> Expr): Expr {
+fun legacySymbolExpr(block: SymbolDslScope.() -> Expr): Expr {
     return SymbolDslScope().block()
+}
+
+@Deprecated(
+    message = "symbolExpr is the legacy Expr-based DSL entry. Prefer legacySymbolExpr for explicit legacy usage or symbol.expression.dsl for the new expression stack.",
+    replaceWith = ReplaceWith("legacySymbolExpr(block)")
+)
+fun symbolExpr(block: SymbolDslScope.() -> Expr): Expr {
+    return legacySymbolExpr(block)
 }
 
 /**
@@ -240,7 +248,7 @@ fun linearPolynomial(
     symbolOf: (String) -> Symbol,
     block: SymbolDslScope.() -> Expr
 ): LinearPolynomial<Flt64>? {
-    return symbolExpr(block).toLinearPolynomialOrNull(symbolOf)
+    return legacySymbolExpr(block).legacyToLinearPolynomialOrNull(symbolOf)
 }
 
 /**
@@ -257,7 +265,7 @@ fun quadraticPolynomial(
     symbolComparator: Comparator<Symbol>? = null,
     block: SymbolDslScope.() -> Expr
 ): QuadraticPolynomial<Flt64>? {
-    return symbolExpr(block).toQuadraticPolynomialOrNull(symbolOf, symbolComparator)
+    return legacySymbolExpr(block).legacyToQuadraticPolynomialOrNull(symbolOf, symbolComparator)
 }
 
 /**
@@ -272,7 +280,7 @@ fun canonicalPolynomial(
     symbolOf: (String) -> Symbol,
     block: SymbolDslScope.() -> Expr
 ): CanonicalPolynomial<Flt64> {
-    return symbolExpr(block).toCanonicalPolynomial(symbolOf)
+    return legacySymbolExpr(block).legacyToCanonicalPolynomial(symbolOf)
 }
 
 /**
@@ -287,7 +295,7 @@ fun linearInequality(
     symbolOf: (String) -> Symbol,
     block: SymbolDslScope.() -> Expr.Comparison
 ): LinearInequality<Flt64>? {
-    return (symbolExpr(block) as Expr.Comparison).toLinearInequalityOrNull(symbolOf)
+    return (legacySymbolExpr(block) as Expr.Comparison).legacyToLinearInequalityOrNull(symbolOf)
 }
 
 /**
@@ -304,7 +312,7 @@ fun quadraticInequality(
     symbolComparator: Comparator<Symbol>? = null,
     block: SymbolDslScope.() -> Expr.Comparison
 ): QuadraticInequality? {
-    return (symbolExpr(block) as Expr.Comparison).toQuadraticInequalityOrNull(symbolOf, symbolComparator)
+    return (legacySymbolExpr(block) as Expr.Comparison).legacyToQuadraticInequalityOrNull(symbolOf, symbolComparator)
 }
 
 /**
@@ -319,5 +327,5 @@ fun canonicalInequality(
     symbolOf: (String) -> Symbol,
     block: SymbolDslScope.() -> Expr.Comparison
 ): CanonicalInequality {
-    return (symbolExpr(block) as Expr.Comparison).toCanonicalInequality(symbolOf)
+    return (legacySymbolExpr(block) as Expr.Comparison).legacyToCanonicalInequality(symbolOf)
 }

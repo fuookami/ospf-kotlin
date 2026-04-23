@@ -31,8 +31,15 @@ A comprehensive mathematical algebra and symbol system for OSPF Kotlin. Provides
 | `ordinary` | Common math operations | `gcd`, `lcm`, `Prime`, `Factorization` |
 | `parallel` | Parallel computation | `parallelFold`, `chunked` |
 | `symbol` | Symbolic expression system | `Symbol`, `LinearPolynomial`, `CanonicalPolynomial`, `Inequality` |
-| `symbol/parser` | Expression parser with Ret errors | `parseLinear`, `parseQuadratic`, `ParseIssue`, `ParseResult` |
-| `symbol/serde` | Symbol serialization | `SymbolIdentityExpr`, `symbolOfSerializedIdentifier` |
+| `symbol/expression` | Preferred runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath`, `LegacyExprBridge` |
+| `symbol/parser` | Legacy `Expr` parser with Ret errors | `parseLegacySymbolExpression`, `parseLinear`, `ParseIssue`, `ParseResult` |
+| `symbol/serde` | Legacy `Expr` serialization and symbol identity | `LegacySymbolExpr`, `legacySymbolExprFromJson`, `SymbolIdentityExpr` |
+
+## Expression Entry Points
+
+- `symbol.expression.*` is the preferred stack for runtime boolean/scalar expressions, property-path evaluation, and bridge-based migration.
+- `symbol.dsl`, `symbol.parser`, and `symbol.serde` remain available as the legacy `Expr` compatibility stack, primarily for polynomial and inequality conversion.
+- When you need the raw legacy AST, use explicit legacy names: `legacySymbolExpr`, `parseLegacySymbolExpression`, `parseLegacySymbolInequality`, `parseLegacySymbolExpressionRet`, and `legacySymbolExprFromJson`.
 
 ## Architecture Design
 
@@ -276,7 +283,7 @@ import fuookami.ospf.kotlin.math.symbol.parser.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 // Parse with structured error handling
-val result: ParseResult<Expr> = parseSymbolExpressionRet("2*x + 3*y")
+val result: ParseResult<Expr> = parseLegacySymbolExpressionRet("2*x + 3*y")
 when (result) {
     is Ok -> println("Parsed: ${result.value}")
     is Failed -> println("Error: ${result.error}")
@@ -302,15 +309,14 @@ val inequalityResult = parseLinearInequality("2*x + y <= 5")
 ```kotlin
 import fuookami.ospf.kotlin.math.symbol.dsl.*
 
-val expr = symbolDsl {
+val expr = legacySymbolExpr {
     val x = symbol("x")
     val y = symbol("y")
-    
+
     // Build polynomial using DSL
     val poly = (x + y) * (x - y)  // x² - y²
-    
-    // Evaluate
-    poly.evaluate(x to Flt64(3.0), y to Flt64(2.0))
+
+    poly
 }
 ```
 

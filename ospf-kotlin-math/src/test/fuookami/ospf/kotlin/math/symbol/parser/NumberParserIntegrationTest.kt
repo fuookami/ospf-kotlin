@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomialTyped
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomialTyped
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
@@ -20,9 +20,9 @@ class NumberParserIntegrationTest {
     @Test
     fun int64NumberParserShouldBuildCanonicalPolynomialTyped() {
         val x = TestSymbol("x")
-        val expr = parseSymbolExpression("2*x + 3")
+        val expr = parseLegacySymbolExpression("2*x + 3")
 
-        val polynomial = expr.toCanonicalPolynomialTyped(
+        val polynomial = expr.legacyToCanonicalPolynomialTyped(
             numberParser = Int64NumberParser,
             zero = Int64.zero,
             one = Int64.one,
@@ -42,10 +42,10 @@ class NumberParserIntegrationTest {
 
     @Test
     fun int64NumberParserShouldRejectDecimalLiteral() {
-        val expr = parseSymbolExpression("1.5*x + 2")
+        val expr = parseLegacySymbolExpression("1.5*x + 2")
 
         assertFailsWith<IllegalArgumentException> {
-            expr.toCanonicalPolynomialTyped(
+            expr.legacyToCanonicalPolynomialTyped(
                 numberParser = Int64NumberParser,
                 zero = Int64.zero,
                 one = Int64.one
@@ -57,7 +57,7 @@ class NumberParserIntegrationTest {
     fun flt64DefaultPathShouldMatchTypedNumberParserPath() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val expr = parseSymbolExpression("x^2 + 2*x*y - 3")
+        val expr = parseLegacySymbolExpression("x^2 + 2*x*y - 3")
         val symbolOf: (String) -> Symbol = { symbolName ->
             when (symbolName) {
                 "x" -> x
@@ -66,8 +66,8 @@ class NumberParserIntegrationTest {
             }
         }
 
-        val direct = expr.toCanonicalPolynomial(symbolOf).combineTerms()
-        val typed = expr.toCanonicalPolynomialTyped(
+        val direct = expr.legacyToCanonicalPolynomial(symbolOf).combineTerms()
+        val typed = expr.legacyToCanonicalPolynomialTyped(
             numberParser = Flt64NumberParser,
             zero = Flt64.zero,
             one = Flt64.one,

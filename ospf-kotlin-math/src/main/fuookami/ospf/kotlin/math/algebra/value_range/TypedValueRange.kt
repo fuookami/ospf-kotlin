@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.concept.resolveRealNumberConstants
+import fuookami.ospf.kotlin.math.operator.Contains
 
 /**
  * 区间类型标记接口
@@ -142,7 +143,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
     private val valueRange: ValueRange<T>,
     val lowerKind: LB,
     val upperKind: UB
-) where T : RealNumber<T>, T : NumberField<T> {
+) : Contains<T> where T : RealNumber<T>, T : NumberField<T> {
     /**
      * 根据 Interval 枚举值获取对应的 IntervalKind
      * Gets corresponding IntervalKind from Interval enum value
@@ -562,7 +563,7 @@ class TypedValueRange<T, LB : IntervalKind, UB : IntervalKind> private construct
      * @param value 要判断的值
      * @return 是否在范围内
      */
-    infix operator fun contains(value: T): Boolean {
+    override infix operator fun contains(value: T): Boolean {
         return valueRange.contains(value)
     }
 

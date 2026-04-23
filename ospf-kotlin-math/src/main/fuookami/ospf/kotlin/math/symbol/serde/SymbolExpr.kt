@@ -55,7 +55,13 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.io.ByteArrayInputStream
 import java.math.BigDecimal
 
-typealias SymbolExpr = Expr
+typealias LegacySymbolExpr = Expr
+
+@Deprecated(
+    message = "SymbolExpr is the legacy Expr alias. Prefer LegacySymbolExpr for explicit legacy usage or symbol.expression.* for the new expression stack.",
+    replaceWith = ReplaceWith("LegacySymbolExpr")
+)
+typealias SymbolExpr = LegacySymbolExpr
 
 /**
  * 序列化符号标识符的前缀标记
@@ -411,15 +417,15 @@ private fun canonicalMonomialToExpr(monomial: CanonicalMonomial<Flt64>): Expr {
     return scaleExpr(absCoefficient, product)
 }
 
-fun LinearPolynomial<Flt64>.toExpr(): SymbolExpr {
-    return this.toCanonicalPolynomial().toExpr()
+fun LinearPolynomial<Flt64>.toLegacyExpr(): LegacySymbolExpr {
+    return this.toCanonicalPolynomial().toLegacyExpr()
 }
 
-fun QuadraticPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): SymbolExpr {
-    return this.toCanonicalPolynomial(symbolComparator).toExpr()
+fun QuadraticPolynomial<Flt64>.toLegacyExpr(symbolComparator: Comparator<Symbol>? = null): LegacySymbolExpr {
+    return this.toCanonicalPolynomial(symbolComparator).toLegacyExpr()
 }
 
-fun CanonicalPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): SymbolExpr {
+fun CanonicalPolynomial<Flt64>.toLegacyExpr(symbolComparator: Comparator<Symbol>? = null): LegacySymbolExpr {
     val source = this.combineTerms(symbolComparator)
     val terms = ArrayList<Pair<Boolean, Expr>>(source.monomials.size + 1)
     for (monomial in source.monomials) {
@@ -440,6 +446,30 @@ fun CanonicalPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = nu
         terms.add(negative to numberExpr(normalized))
     }
     return combineSignedTerms(terms)
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr()")
+)
+fun LinearPolynomial<Flt64>.toExpr(): LegacySymbolExpr {
+    return toLegacyExpr()
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr(symbolComparator) for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr(symbolComparator)")
+)
+fun QuadraticPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): LegacySymbolExpr {
+    return toLegacyExpr(symbolComparator)
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr(symbolComparator) for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr(symbolComparator)")
+)
+fun CanonicalPolynomial<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): LegacySymbolExpr {
+    return toLegacyExpr(symbolComparator)
 }
 
 private fun comparisonToExprOperator(comparison: Comparison): ComparisonOperator {
@@ -464,20 +494,44 @@ private fun exprOperatorToComparison(operator: ComparisonOperator): Comparison {
     }
 }
 
-fun LinearInequality<Flt64>.toExpr(): Expr.Comparison {
-    return this.toCanonicalInequality().toExpr()
+fun LinearInequality<Flt64>.toLegacyExpr(): Expr.Comparison {
+    return this.toCanonicalInequality().toLegacyExpr()
 }
 
-fun QuadraticInequalityOf<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
-    return this.toCanonicalInequality(symbolComparator).toExpr()
+fun QuadraticInequalityOf<Flt64>.toLegacyExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
+    return this.toCanonicalInequality(symbolComparator).toLegacyExpr()
 }
 
-fun CanonicalInequality.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
+fun CanonicalInequality.toLegacyExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
     return Expr.Comparison(
-        left = lhs.toExpr(symbolComparator),
+        left = lhs.toLegacyExpr(symbolComparator),
         operator = comparisonToExprOperator(comparison),
-        right = rhs.toExpr(symbolComparator)
+        right = rhs.toLegacyExpr(symbolComparator)
     )
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr()")
+)
+fun LinearInequality<Flt64>.toExpr(): Expr.Comparison {
+    return toLegacyExpr()
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr(symbolComparator) for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr(symbolComparator)")
+)
+fun QuadraticInequalityOf<Flt64>.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
+    return toLegacyExpr(symbolComparator)
+}
+
+@Deprecated(
+    message = "toExpr() builds the legacy Expr AST. Prefer toLegacyExpr(symbolComparator) for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyExpr(symbolComparator)")
+)
+fun CanonicalInequality.toExpr(symbolComparator: Comparator<Symbol>? = null): Expr.Comparison {
+    return toLegacyExpr(symbolComparator)
 }
 
 /**
@@ -649,7 +703,7 @@ private fun <T> powTypedCanonical(
     return result
 }
 
-fun <T> Expr.toCanonicalPolynomialTyped(
+fun <T> LegacySymbolExpr.legacyToCanonicalPolynomialTyped(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
@@ -678,7 +732,7 @@ fun <T> Expr.toCanonicalPolynomialTyped(
 
         is Expr.UnaryMinus -> {
             negateTypedCanonical(
-                operand.toCanonicalPolynomialTyped(
+                operand.legacyToCanonicalPolynomialTyped(
                     numberParser = numberParser,
                     zero = zero,
                     one = one,
@@ -690,7 +744,7 @@ fun <T> Expr.toCanonicalPolynomialTyped(
         }
 
         is Expr.Binary -> {
-            val leftPolynomial = left.toCanonicalPolynomialTyped(
+            val leftPolynomial = left.legacyToCanonicalPolynomialTyped(
                 numberParser = numberParser,
                 zero = zero,
                 one = one,
@@ -698,7 +752,7 @@ fun <T> Expr.toCanonicalPolynomialTyped(
                 isZero = isZero,
                 symbolComparator = symbolComparator
             )
-            val rightPolynomial = right.toCanonicalPolynomialTyped(
+            val rightPolynomial = right.legacyToCanonicalPolynomialTyped(
                 numberParser = numberParser,
                 zero = zero,
                 one = one,
@@ -730,13 +784,13 @@ fun <T> Expr.toCanonicalPolynomialTyped(
     }.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
 }
 
-fun <T> Expr.toLinearPolynomialTypedOrNull(
+fun <T> LegacySymbolExpr.legacyToLinearPolynomialTypedOrNull(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
-): LinearPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
+): LinearPolynomial<T>? where T : Ring<T> = legacyToCanonicalPolynomialTyped(
     numberParser = numberParser,
     zero = zero,
     one = one,
@@ -747,14 +801,14 @@ fun <T> Expr.toLinearPolynomialTypedOrNull(
     isZero = isZero
 )
 
-fun <T> Expr.toQuadraticPolynomialTypedOrNull(
+fun <T> LegacySymbolExpr.legacyToQuadraticPolynomialTypedOrNull(
     numberParser: NumberParser<T>,
     zero: T,
     one: T,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<T>? where T : Ring<T> = toCanonicalPolynomialTyped(
+): QuadraticPolynomial<T>? where T : Ring<T> = legacyToCanonicalPolynomialTyped(
     numberParser = numberParser,
     zero = zero,
     one = one,
@@ -781,10 +835,10 @@ private fun powCanonical(
     return result
 }
 
-fun Expr.toCanonicalPolynomial(
+fun LegacySymbolExpr.legacyToCanonicalPolynomial(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): CanonicalPolynomial<Flt64> {
-    return toCanonicalPolynomialTyped(
+    return legacyToCanonicalPolynomialTyped(
         numberParser = Flt64NumberParser,
         zero = Flt64.zero,
         one = Flt64.one,
@@ -793,48 +847,172 @@ fun Expr.toCanonicalPolynomial(
     ).combineTerms()
 }
 
-fun Expr.toLinearPolynomialOrNull(
+fun LegacySymbolExpr.legacyToLinearPolynomialOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): LinearPolynomial<Flt64>? {
-    return toCanonicalPolynomial(symbolOf).toLinearPolynomialOrNull()
+    return legacyToCanonicalPolynomial(symbolOf).toLinearPolynomialOrNull()
 }
 
-fun Expr.toQuadraticPolynomialOrNull(
+fun LegacySymbolExpr.legacyToQuadraticPolynomialOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
-    return toCanonicalPolynomial(symbolOf).toQuadraticPolynomialOrNull(symbolComparator)
+    return legacyToCanonicalPolynomial(symbolOf).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
-fun Expr.Comparison.toCanonicalInequality(
+fun Expr.Comparison.legacyToCanonicalInequality(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): CanonicalInequality {
     return CanonicalInequality(
-        lhs = left.toCanonicalPolynomial(symbolOf),
-        rhs = right.toCanonicalPolynomial(symbolOf),
+        lhs = left.legacyToCanonicalPolynomial(symbolOf),
+        rhs = right.legacyToCanonicalPolynomial(symbolOf),
         comparison = exprOperatorToComparison(operator)
     )
 }
 
-fun Expr.Comparison.toLinearInequalityOrNull(
+fun Expr.Comparison.legacyToLinearInequalityOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): LinearInequality<Flt64>? {
-    return toCanonicalInequality(symbolOf).toLinearInequalityOrNull()
+    return legacyToCanonicalInequality(symbolOf).toLinearInequalityOrNull()
 }
 
-fun Expr.Comparison.toQuadraticInequalityOrNull(
+fun Expr.Comparison.legacyToQuadraticInequalityOrNull(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticInequality? {
-    return toCanonicalInequality(symbolOf).toQuadraticInequalityOrNull(symbolComparator)
+    return legacyToCanonicalInequality(symbolOf).toQuadraticInequalityOrNull(symbolComparator)
 }
 
-fun SymbolExpr.toJsonString(): String {
+@Deprecated(
+    message = "toCanonicalPolynomialTyped() converts from the legacy Expr AST. Prefer legacyToCanonicalPolynomialTyped for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToCanonicalPolynomialTyped(numberParser, zero, one, symbolOf, isZero, symbolComparator)")
+)
+fun <T> Expr.toCanonicalPolynomialTyped(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): CanonicalPolynomial<T> where T : Ring<T> = legacyToCanonicalPolynomialTyped(
+    numberParser = numberParser,
+    zero = zero,
+    one = one,
+    symbolOf = symbolOf,
+    isZero = isZero,
+    symbolComparator = symbolComparator
+)
+
+@Deprecated(
+    message = "toLinearPolynomialTypedOrNull() converts from the legacy Expr AST. Prefer legacyToLinearPolynomialTypedOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToLinearPolynomialTypedOrNull(numberParser, zero, one, symbolOf, isZero)")
+)
+fun <T> Expr.toLinearPolynomialTypedOrNull(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearPolynomial<T>? where T : Ring<T> = legacyToLinearPolynomialTypedOrNull(
+    numberParser = numberParser,
+    zero = zero,
+    one = one,
+    symbolOf = symbolOf,
+    isZero = isZero
+)
+
+@Deprecated(
+    message = "toQuadraticPolynomialTypedOrNull() converts from the legacy Expr AST. Prefer legacyToQuadraticPolynomialTypedOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToQuadraticPolynomialTypedOrNull(numberParser, zero, one, symbolOf, isZero, symbolComparator)")
+)
+fun <T> Expr.toQuadraticPolynomialTypedOrNull(
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<T>? where T : Ring<T> = legacyToQuadraticPolynomialTypedOrNull(
+    numberParser = numberParser,
+    zero = zero,
+    one = one,
+    symbolOf = symbolOf,
+    isZero = isZero,
+    symbolComparator = symbolComparator
+)
+
+@Deprecated(
+    message = "toCanonicalPolynomial() converts from the legacy Expr AST. Prefer legacyToCanonicalPolynomial for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToCanonicalPolynomial(symbolOf)")
+)
+fun Expr.toCanonicalPolynomial(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
+): CanonicalPolynomial<Flt64> = legacyToCanonicalPolynomial(symbolOf)
+
+@Deprecated(
+    message = "toLinearPolynomialOrNull() converts from the legacy Expr AST. Prefer legacyToLinearPolynomialOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToLinearPolynomialOrNull(symbolOf)")
+)
+fun Expr.toLinearPolynomialOrNull(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
+): LinearPolynomial<Flt64>? = legacyToLinearPolynomialOrNull(symbolOf)
+
+@Deprecated(
+    message = "toQuadraticPolynomialOrNull() converts from the legacy Expr AST. Prefer legacyToQuadraticPolynomialOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToQuadraticPolynomialOrNull(symbolOf, symbolComparator)")
+)
+fun Expr.toQuadraticPolynomialOrNull(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<Flt64>? = legacyToQuadraticPolynomialOrNull(symbolOf, symbolComparator)
+
+@Deprecated(
+    message = "toCanonicalInequality() converts from the legacy Expr AST. Prefer legacyToCanonicalInequality for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToCanonicalInequality(symbolOf)")
+)
+fun Expr.Comparison.toCanonicalInequality(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
+): CanonicalInequality = legacyToCanonicalInequality(symbolOf)
+
+@Deprecated(
+    message = "toLinearInequalityOrNull() converts from the legacy Expr AST. Prefer legacyToLinearInequalityOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToLinearInequalityOrNull(symbolOf)")
+)
+fun Expr.Comparison.toLinearInequalityOrNull(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
+): LinearInequality<Flt64>? = legacyToLinearInequalityOrNull(symbolOf)
+
+@Deprecated(
+    message = "toQuadraticInequalityOrNull() converts from the legacy Expr AST. Prefer legacyToQuadraticInequalityOrNull for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacyToQuadraticInequalityOrNull(symbolOf, symbolComparator)")
+)
+fun Expr.Comparison.toQuadraticInequalityOrNull(
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticInequality? = legacyToQuadraticInequalityOrNull(symbolOf, symbolComparator)
+
+fun LegacySymbolExpr.toLegacyJsonString(): String {
     return writeJson(this)
 }
 
-fun symbolExprFromJson(json: String): SymbolExpr {
+@Deprecated(
+    message = "toJsonString() on Expr serializes the legacy Expr AST. Prefer toLegacyJsonString for explicit legacy usage.",
+    replaceWith = ReplaceWith("toLegacyJsonString()")
+)
+fun LegacySymbolExpr.toJsonString(): String {
+    return toLegacyJsonString()
+}
+
+fun legacySymbolExprFromJson(json: String): LegacySymbolExpr {
     return readFromJson(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
+}
+
+@Deprecated(
+    message = "symbolExprFromJson parses the legacy Expr AST. Prefer legacySymbolExprFromJson for explicit legacy usage.",
+    replaceWith = ReplaceWith("legacySymbolExprFromJson(json)")
+)
+fun symbolExprFromJson(json: String): LegacySymbolExpr {
+    return legacySymbolExprFromJson(json)
 }
 
 // ============================================================================
@@ -846,7 +1024,7 @@ fun symbolExprFromJson(json: String): SymbolExpr {
  * Serialize LinearPolynomial to JSON string
  */
 fun LinearPolynomial<Flt64>.toJsonString(): String {
-    return this.toExpr().toJsonString()
+    return this.toLegacyExpr().toLegacyJsonString()
 }
 
 /**
@@ -854,7 +1032,7 @@ fun LinearPolynomial<Flt64>.toJsonString(): String {
  * Serialize QuadraticPolynomial to JSON string
  */
 fun QuadraticPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
-    return this.toExpr(symbolComparator).toJsonString()
+    return this.toLegacyExpr(symbolComparator).toLegacyJsonString()
 }
 
 /**
@@ -862,7 +1040,7 @@ fun QuadraticPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>
  * Serialize CanonicalPolynomial to JSON string
  */
 fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
-    return this.toExpr(symbolComparator).toJsonString()
+    return this.toLegacyExpr(symbolComparator).toLegacyJsonString()
 }
 
 // ============================================================================
@@ -874,7 +1052,7 @@ fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>
  * Serialize LinearInequality to JSON string
  */
 fun LinearInequality<Flt64>.toJsonString(): String {
-    return this.toExpr().toJsonString()
+    return this.toLegacyExpr().toLegacyJsonString()
 }
 
 /**
@@ -882,7 +1060,7 @@ fun LinearInequality<Flt64>.toJsonString(): String {
  * Serialize QuadraticInequality to JSON string
  */
 fun QuadraticInequalityOf<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
-    return this.toExpr(symbolComparator).toJsonString()
+    return this.toLegacyExpr(symbolComparator).toLegacyJsonString()
 }
 
 /**
@@ -890,7 +1068,7 @@ fun QuadraticInequalityOf<Flt64>.toJsonString(symbolComparator: Comparator<Symbo
  * Serialize CanonicalInequality to JSON string
  */
 fun CanonicalInequality.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
-    return this.toExpr(symbolComparator).toJsonString()
+    return this.toLegacyExpr(symbolComparator).toLegacyJsonString()
 }
 
 // ============================================================================
@@ -902,7 +1080,7 @@ fun CanonicalInequality.toJsonString(symbolComparator: Comparator<Symbol>? = nul
  * Parse LinearPolynomial from JSON string
  */
 fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<Flt64>? {
-    return symbolExprFromJson(json).toLinearPolynomialOrNull(symbolOf)
+    return legacySymbolExprFromJson(json).legacyToLinearPolynomialOrNull(symbolOf)
 }
 
 /**
@@ -914,7 +1092,7 @@ fun quadraticPolynomialFromJson(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<Flt64>? {
-    return symbolExprFromJson(json).toQuadraticPolynomialOrNull(symbolOf, symbolComparator)
+    return legacySymbolExprFromJson(json).legacyToQuadraticPolynomialOrNull(symbolOf, symbolComparator)
 }
 
 /**
@@ -922,7 +1100,7 @@ fun quadraticPolynomialFromJson(
  * Parse CanonicalPolynomial from JSON string
  */
 fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<Flt64> {
-    return symbolExprFromJson(json).toCanonicalPolynomial(symbolOf)
+    return legacySymbolExprFromJson(json).legacyToCanonicalPolynomial(symbolOf)
 }
 
 /**
@@ -930,8 +1108,8 @@ fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::s
  * Parse LinearInequality from JSON string
  */
 fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<Flt64>? {
-    val expr = symbolExprFromJson(json)
-    return (expr as? Expr.Comparison)?.toLinearInequalityOrNull(symbolOf)
+    val expr = legacySymbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.legacyToLinearInequalityOrNull(symbolOf)
 }
 
 /**
@@ -943,8 +1121,8 @@ fun quadraticInequalityFromJson(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticInequality? {
-    val expr = symbolExprFromJson(json)
-    return (expr as? Expr.Comparison)?.toQuadraticInequalityOrNull(symbolOf, symbolComparator)
+    val expr = legacySymbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.legacyToQuadraticInequalityOrNull(symbolOf, symbolComparator)
 }
 
 /**
@@ -952,6 +1130,6 @@ fun quadraticInequalityFromJson(
  * Parse CanonicalInequality from JSON string
  */
 fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality? {
-    val expr = symbolExprFromJson(json)
-    return (expr as? Expr.Comparison)?.toCanonicalInequality(symbolOf)
+    val expr = legacySymbolExprFromJson(json)
+    return (expr as? Expr.Comparison)?.legacyToCanonicalInequality(symbolOf)
 }

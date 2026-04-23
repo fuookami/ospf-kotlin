@@ -262,6 +262,7 @@ private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext
     return when (expr) {
         is ScalarConstant<*> -> expr.value
         is ScalarReference<*> -> context[expr.path]
+        is ScalarSymbolReference<*> -> null
         is ScalarUnary<*> -> evaluateUnary(expr, context)
         is ScalarBinary<*> -> evaluateBinary(expr, context)
         is ScalarFunction<*> -> null  // 函数调用需要额外实现 / Function call needs extra implementation

@@ -26,11 +26,11 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomialTyped
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToLinearPolynomialTypedOrNull
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
-import fuookami.ospf.kotlin.math.symbol.serde.toCanonicalPolynomialTyped
-import fuookami.ospf.kotlin.math.symbol.serde.toLinearPolynomialTypedOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.toQuadraticInequalityOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.toQuadraticPolynomialTypedOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticPolynomialTypedOrNull
 
 class Parser(
     private val tokens: List<Token>
@@ -203,12 +203,28 @@ class Parser(
     }
 }
 
-fun parseSymbolExpression(input: String): Expr {
+fun parseLegacySymbolExpression(input: String): Expr {
     return Parser(lexSymbolExpression(input)).parseExpression()
 }
 
-fun parseSymbolInequality(input: String): Expr.Comparison {
+fun parseLegacySymbolInequality(input: String): Expr.Comparison {
     return Parser(lexSymbolExpression(input)).parseInequality()
+}
+
+@Deprecated(
+    message = "parseSymbolExpression parses the legacy Expr AST. Prefer parseLegacySymbolExpression for explicit legacy usage or symbol.expression.parser for the new expression stack.",
+    replaceWith = ReplaceWith("parseLegacySymbolExpression(input)")
+)
+fun parseSymbolExpression(input: String): Expr {
+    return parseLegacySymbolExpression(input)
+}
+
+@Deprecated(
+    message = "parseSymbolInequality parses the legacy Expr AST. Prefer parseLegacySymbolInequality for explicit legacy usage or symbol.expression.parser for the new expression stack.",
+    replaceWith = ReplaceWith("parseLegacySymbolInequality(input)")
+)
+fun parseSymbolInequality(input: String): Expr.Comparison {
+    return parseLegacySymbolInequality(input)
 }
 
 private fun parseIssueTypeOf(error: ParseError): ParseIssueType {
@@ -258,7 +274,7 @@ private inline fun <T> mapExpressionRet(
     input: String,
     crossinline transform: (Expr) -> T
 ): ParseResult<T> {
-    return when (val parsed = parseSymbolExpressionRet(input)) {
+    return when (val parsed = parseLegacySymbolExpressionRet(input)) {
         is Ok -> {
             try {
                 Ok(transform(parsed.value))
@@ -278,7 +294,7 @@ private inline fun <T> mapInequalityRet(
     input: String,
     crossinline transform: (Expr.Comparison) -> T
 ): ParseResult<T> {
-    return when (val parsed = parseSymbolInequalityRet(input)) {
+    return when (val parsed = parseLegacySymbolInequalityRet(input)) {
         is Ok -> {
             try {
                 Ok(transform(parsed.value))
@@ -309,9 +325,9 @@ private fun ComparisonOperator.toInequalityComparison(): Comparison {
  * 解析符号表达式并返回 Ret 封装的结果
  * Parse a symbol expression and return a Ret-wrapped result
  *
- * 与 [parseSymbolExpression] 不同，此函数不会抛出异常，而是通过 `Ret<Expr>` 返回解析结果。
+ * 与 [parseLegacySymbolExpression] 不同，此函数不会抛出异常，而是通过 `Ret<Expr>` 返回解析结果。
  * 词法错误和语法错误会被包装为 [ParseIssue]，语义错误会被单独分类。
- * Unlike [parseSymbolExpression], this function does not throw exceptions but returns
+ * Unlike [parseLegacySymbolExpression], this function does not throw exceptions but returns
  * the result wrapped in `Ret<Expr>`. Lexical and syntax errors are wrapped as [ParseIssue],
  * and semantic errors are categorized separately.
  *
@@ -319,9 +335,9 @@ private fun ComparisonOperator.toInequalityComparison(): Comparison {
  * @return 解析结果，成功时返回表达式，失败时包含错误详情
  *         Parse result: the expression on success, error details on failure
  */
-fun parseSymbolExpressionRet(input: String): ParseResult<Expr> {
+fun parseLegacySymbolExpressionRet(input: String): ParseResult<Expr> {
     return try {
-        Ok(parseSymbolExpression(input))
+        Ok(parseLegacySymbolExpression(input))
     } catch (error: ParseError) {
         parseFailed(parseIssueOf(error, input))
     } catch (error: IllegalArgumentException) {
@@ -341,17 +357,17 @@ fun parseSymbolExpressionRet(input: String): ParseResult<Expr> {
  * 解析符号不等式并返回 Ret 封装的结果
  * Parse a symbol inequality and return a Ret-wrapped result
  *
- * 与 [parseSymbolInequality] 不同，此函数不会抛出异常，而是通过 `Ret<Expr.Comparison>` 返回解析结果。
- * Unlike [parseSymbolInequality], this function does not throw exceptions but returns
+ * 与 [parseLegacySymbolInequality] 不同，此函数不会抛出异常，而是通过 `Ret<Expr.Comparison>` 返回解析结果。
+ * Unlike [parseLegacySymbolInequality], this function does not throw exceptions but returns
  * the result wrapped in `Ret<Expr.Comparison>`.
  *
  * @param input 要解析的不等式字符串 / Inequality string to parse
  * @return 解析结果，成功时返回比较表达式，失败时包含错误详情
  *         Parse result: the comparison expression on success, error details on failure
  */
-fun parseSymbolInequalityRet(input: String): ParseResult<Expr.Comparison> {
+fun parseLegacySymbolInequalityRet(input: String): ParseResult<Expr.Comparison> {
     return try {
-        Ok(parseSymbolInequality(input))
+        Ok(parseLegacySymbolInequality(input))
     } catch (error: ParseError) {
         parseFailed(parseIssueOf(error, input))
     } catch (error: IllegalArgumentException) {
@@ -365,6 +381,22 @@ fun parseSymbolInequalityRet(input: String): ParseResult<Expr.Comparison> {
     } catch (error: Exception) {
         parseUnknownFailed(input, error.message ?: "Unexpected parse error.")
     }
+}
+
+@Deprecated(
+    message = "parseSymbolExpressionRet parses the legacy Expr AST. Prefer parseLegacySymbolExpressionRet for explicit legacy usage or symbol.expression.parser for the new expression stack.",
+    replaceWith = ReplaceWith("parseLegacySymbolExpressionRet(input)")
+)
+fun parseSymbolExpressionRet(input: String): ParseResult<Expr> {
+    return parseLegacySymbolExpressionRet(input)
+}
+
+@Deprecated(
+    message = "parseSymbolInequalityRet parses the legacy Expr AST. Prefer parseLegacySymbolInequalityRet for explicit legacy usage or symbol.expression.parser for the new expression stack.",
+    replaceWith = ReplaceWith("parseLegacySymbolInequalityRet(input)")
+)
+fun parseSymbolInequalityRet(input: String): ParseResult<Expr.Comparison> {
+    return parseLegacySymbolInequalityRet(input)
 }
 
 /**
@@ -393,7 +425,7 @@ fun <T> parseCanonical(
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
     return mapExpressionRet(input) { expression ->
-        expression.toCanonicalPolynomialTyped(
+        expression.legacyToCanonicalPolynomialTyped(
             numberParser = numberParser,
             zero = zero,
             one = one,
@@ -449,7 +481,7 @@ fun <T> parseLinear(
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearPolynomial<T>> where T : Ring<T> {
     return mapExpressionRet(input) { expression ->
-        expression.toLinearPolynomialTypedOrNull(
+        expression.legacyToLinearPolynomialTypedOrNull(
             numberParser = numberParser,
             zero = zero,
             one = one,
@@ -499,7 +531,7 @@ fun <T> parseQuadratic(
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticPolynomial<T>> where T : Ring<T> {
     return mapExpressionRet(input) { expression ->
-        expression.toQuadraticPolynomialTypedOrNull(
+        expression.legacyToQuadraticPolynomialTypedOrNull(
             numberParser = numberParser,
             zero = zero,
             one = one,
@@ -550,14 +582,14 @@ fun <T> parseLinearInequality(
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearInequality<T>> where T : Ring<T> {
     return mapInequalityRet(input) { expression ->
-        val lhs = expression.left.toLinearPolynomialTypedOrNull(
+        val lhs = expression.left.legacyToLinearPolynomialTypedOrNull(
             numberParser = numberParser,
             zero = zero,
             one = one,
             symbolOf = symbolOf,
             isZero = isZero
         ) ?: throw IllegalArgumentException("Left side is not linear polynomial.")
-        val rhs = expression.right.toLinearPolynomialTypedOrNull(
+        val rhs = expression.right.legacyToLinearPolynomialTypedOrNull(
             numberParser = numberParser,
             zero = zero,
             one = one,
@@ -604,7 +636,7 @@ fun parseQuadraticInequality(
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticInequality> {
     return mapInequalityRet(input) { expression ->
-        expression.toQuadraticInequalityOrNull(
+        expression.legacyToQuadraticInequalityOrNull(
             symbolOf = symbolOf,
             symbolComparator = symbolComparator
         ) ?: throw IllegalArgumentException("Expression is not quadratic inequality.")

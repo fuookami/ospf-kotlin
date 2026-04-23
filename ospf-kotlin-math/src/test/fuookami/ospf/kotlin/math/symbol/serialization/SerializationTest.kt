@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.parser.Expr
-import fuookami.ospf.kotlin.math.symbol.parser.parseSymbolExpression
-import fuookami.ospf.kotlin.math.symbol.parser.parseSymbolInequality
+import fuookami.ospf.kotlin.math.symbol.parser.parseLegacySymbolExpression
+import fuookami.ospf.kotlin.math.symbol.parser.parseLegacySymbolInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -37,18 +37,18 @@ class SerializationTest {
 
     @Test
     fun parserExprShouldRoundTripThroughJson() {
-        val expression = parseSymbolExpression("x^2 * y + 2*x - 1")
-        val json = expression.toJsonString()
-        val restored = symbolExprFromJson(json)
+        val expression = parseLegacySymbolExpression("x^2 * y + 2*x - 1")
+        val json = expression.toLegacyJsonString()
+        val restored = legacySymbolExprFromJson(json)
 
         assertEquals(expression, restored)
     }
 
     @Test
     fun parserInequalityShouldRoundTripThroughJson() {
-        val inequality = parseSymbolInequality("x^2 + y != z + 1")
-        val json = inequality.toJsonString()
-        val restored = symbolExprFromJson(json)
+        val inequality = parseLegacySymbolInequality("x^2 + y != z + 1")
+        val json = inequality.toLegacyJsonString()
+        val restored = legacySymbolExprFromJson(json)
 
         assertEquals(inequality, restored)
     }
@@ -75,8 +75,8 @@ class SerializationTest {
             constant = Flt64.one
         )
 
-        val expr = polynomial.toExpr()
-        val restored = expr.toCanonicalPolynomial { name ->
+        val expr = polynomial.toLegacyExpr()
+        val restored = expr.legacyToCanonicalPolynomial { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }
 
@@ -240,8 +240,8 @@ class SerializationTest {
             comparison = Comparison.LE
         )
 
-        val expr = inequality.toExpr()
-        val restored = (expr as Expr.Comparison).toCanonicalInequality { name ->
+        val expr = inequality.toLegacyExpr()
+        val restored = (expr as Expr.Comparison).legacyToCanonicalInequality { name ->
             symbolByName[name] ?: error("Unknown symbol: $name")
         }
 
@@ -355,11 +355,11 @@ class SerializationTest {
     @Test
     fun nonPolynomialExprShouldReturnNullForLinear() {
         // x^2 不是线性多项式
-        val expr = parseSymbolExpression("x^2")
+        val expr = parseLegacySymbolExpression("x^2")
         val x = TestSymbol("x")
         val symbolByName = mapOf("x" to x)
 
-        val result = expr.toLinearPolynomialOrNull(
+        val result = expr.legacyToLinearPolynomialOrNull(
             symbolOf = { name -> symbolByName[name] ?: error("Unknown symbol: $name") }
         )
 
@@ -369,11 +369,11 @@ class SerializationTest {
     @Test
     fun nonPolynomialExprShouldReturnNullForQuadratic() {
         // x^3 不是二次多项式
-        val expr = parseSymbolExpression("x^3")
+        val expr = parseLegacySymbolExpression("x^3")
         val x = TestSymbol("x")
         val symbolByName = mapOf("x" to x)
 
-        val result = expr.toQuadraticPolynomialOrNull(
+        val result = expr.legacyToQuadraticPolynomialOrNull(
             symbolOf = { name -> symbolByName[name] ?: error("Unknown symbol: $name") }
         )
 
@@ -382,10 +382,10 @@ class SerializationTest {
 
     @Test
     fun functionCallCannotConvertToPolynomial() {
-        val expr = parseSymbolExpression("sin(x)")
+        val expr = parseLegacySymbolExpression("sin(x)")
 
         assertThrows<IllegalArgumentException> {
-            expr.toCanonicalPolynomial()
+            expr.legacyToCanonicalPolynomial()
         }
     }
 

@@ -9,6 +9,12 @@
  * Supports number literals, identifiers, unary minus, binary operations,
  * function calls, and comparison expressions.
  * Used for expression parsing, serialization, and deserialization.
+ *
+ * 此 AST 为 legacy 兼容层，主要服务多项式/不等式解析与 JSON round-trip。
+ * 运行时 boolean/scalar expression 推荐使用 `symbol.expression.*`。
+ * This AST is the legacy compatibility layer, primarily used for
+ * polynomial/inequality parsing and JSON round-tripping.
+ * Prefer `symbol.expression.*` for runtime boolean/scalar expressions.
  */
 package fuookami.ospf.kotlin.math.symbol.parser
 

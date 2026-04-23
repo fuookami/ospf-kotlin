@@ -8,6 +8,9 @@
 package fuookami.ospf.kotlin.math.symbol.expression.serde
 
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
+import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
+import fuookami.ospf.kotlin.math.symbol.SymbolId
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
@@ -53,6 +56,22 @@ class ExpressionSerdeTest {
 
             assertTrue(restored is ScalarReference<*>)
             assertEquals("user.age", (restored as ScalarReference<*>).path.value)
+        }
+
+        @Test
+        @DisplayName("Symbol reference round-trip / 符号引用往返测试")
+        fun testSymbolReferenceRoundTrip() {
+            val original: ScalarExpression<Int> = ScalarSymbolReference(
+                OwnedSymbol(SymbolId("stable-x"), "x")
+            )
+
+            val json = original.toJsonString()
+            val restored = scalarExpressionFromJson(json)
+
+            assertTrue(restored is ScalarSymbolReference<*>)
+            val restoredSymbol = (restored as ScalarSymbolReference<*>).symbol
+            assertTrue(restoredSymbol is OwnedSymbolLike)
+            assertEquals("stable-x", (restoredSymbol as OwnedSymbolLike).id.value)
         }
 
         @Test

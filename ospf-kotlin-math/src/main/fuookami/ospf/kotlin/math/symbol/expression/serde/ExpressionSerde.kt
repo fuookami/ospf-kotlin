@@ -14,6 +14,9 @@ import kotlinx.serialization.*
 import kotlinx.serialization.json.*
 import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.Trivalent
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
+import fuookami.ospf.kotlin.math.symbol.serde.toSymbolIdentityExpr
+import fuookami.ospf.kotlin.math.symbol.serde.toSerializedIdentifier
 
 // ========== 序列化模型 / Serialization Models ==========
 
@@ -31,6 +34,12 @@ internal sealed interface ScalarExpressionData {
     @SerialName("Reference")
     data class Reference(val path: String) : ScalarExpressionData {
         override val typeName = "Reference"
+    }
+
+    @Serializable
+    @SerialName("SymbolReference")
+    data class SymbolReference(val identifier: String) : ScalarExpressionData {
+        override val typeName = "SymbolReference"
     }
 
     @Serializable
@@ -177,6 +186,7 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
         }
     )
     is ScalarReference<*> -> ScalarExpressionData.Reference(path.value)
+    is ScalarSymbolReference<*> -> ScalarExpressionData.SymbolReference(symbol.toSymbolIdentityExpr().toSerializedIdentifier())
     is ScalarUnary<*> -> ScalarExpressionData.Unary(
         operator = operator.name,
         operand = operand.toData()
@@ -215,6 +225,7 @@ internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = 
         ScalarConstant(v) as ScalarExpression<Any>
     }
     is ScalarExpressionData.Reference -> ScalarReference<Any>(PropertyPath.parse(path))
+    is ScalarExpressionData.SymbolReference -> ScalarSymbolReference<Any>(symbolOfSerializedIdentifier(identifier))
     is ScalarExpressionData.Unary -> ScalarUnary(
         UnaryOperator.valueOf(operator),
         operand.toScalarExpression()

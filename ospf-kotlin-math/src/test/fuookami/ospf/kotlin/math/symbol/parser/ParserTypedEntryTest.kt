@@ -9,7 +9,7 @@ import kotlin.test.assertTrue
 class ParserTypedEntryTest {
     @Test
     fun parseSymbolExpressionRetShouldReturnStructuredFailure() {
-        val result = parseSymbolExpressionRet("x + )")
+        val result = parseLegacySymbolExpressionRet("x + )")
         assertTrue(result is Failed<*, *, *>)
         val issue = (result as Failed<*, *, *>).errValue as? ParseIssue
         assertEquals(ParseIssueType.Syntax, issue?.type)
@@ -17,7 +17,7 @@ class ParserTypedEntryTest {
 
     @Test
     fun parseSymbolInequalityRetShouldReturnStructuredFailure() {
-        val result = parseSymbolInequalityRet("x <=")
+        val result = parseLegacySymbolInequalityRet("x <=")
         assertTrue(result is Failed<*, *, *>)
         val issue = (result as Failed<*, *, *>).errValue as? ParseIssue
         assertEquals(ParseIssueType.Syntax, issue?.type)

@@ -39,15 +39,15 @@ private fun Expr.renderInequality(): String {
 class ParserInequalityTest {
     @Test
     fun parserShouldHandleAllComparisonOperators() {
-        assertEquals("((x + 1) <= y)", parseSymbolInequality("x + 1 <= y").renderInequality())
-        assertEquals("((x ^ 2) >= 0)", parseSymbolInequality("x^2 >= 0").renderInequality())
-        assertEquals("((x * y) = 1)", parseSymbolInequality("x*y = 1").renderInequality())
-        assertEquals("((x + y) != 0)", parseSymbolInequality("x + y != 0").renderInequality())
+        assertEquals("((x + 1) <= y)", parseLegacySymbolInequality("x + 1 <= y").renderInequality())
+        assertEquals("((x ^ 2) >= 0)", parseLegacySymbolInequality("x^2 >= 0").renderInequality())
+        assertEquals("((x * y) = 1)", parseLegacySymbolInequality("x*y = 1").renderInequality())
+        assertEquals("((x + y) != 0)", parseLegacySymbolInequality("x + y != 0").renderInequality())
     }
 
     @Test
     fun parserShouldHandleCanonicalHighOrderTermsAndMixedConstants() {
-        val rendered = parseSymbolInequality("x^2 * y^3 + 2*x - 1 != z^4 + 3").renderInequality()
+        val rendered = parseLegacySymbolInequality("x^2 * y^3 + 2*x - 1 != z^4 + 3").renderInequality()
         assertEquals("(((((x ^ 2) * (y ^ 3)) + (2 * x)) - 1) != ((z ^ 4) + 3))", rendered)
     }
 }

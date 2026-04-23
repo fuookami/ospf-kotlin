@@ -12,10 +12,12 @@
  */
 package fuookami.ospf.kotlin.math.symbol.expression.adapter
 
+import fuookami.ospf.kotlin.math.symbol.expression.*
 import fuookami.ospf.kotlin.math.symbol.parser.Expr
 import fuookami.ospf.kotlin.math.symbol.parser.BinaryOperator as LegacyBinaryOperator
 import fuookami.ospf.kotlin.math.symbol.parser.ComparisonOperator as LegacyComparisonOperator
-import fuookami.ospf.kotlin.math.symbol.expression.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
+import fuookami.ospf.kotlin.math.symbol.stableIdOrNull
 
 // ========== 旧 Expr -> 新 Expression 转换 / Legacy Expr -> New Expression Conversion ==========
 
@@ -35,7 +37,14 @@ fun Expr.toScalarExpressionOrNull(): ScalarExpression<*>? = when (this) {
         ScalarConstant(value)
     }
 
-    is Expr.Identifier -> ScalarReference<Any>(PropertyPath.parse(name))
+    is Expr.Identifier -> {
+        val path = PropertyPath.parseOrNull(name)
+        if (path != null) {
+            ScalarReference<Any>(path)
+        } else {
+            ScalarSymbolReference(symbolOfSerializedIdentifier(name))
+        }
+    }
 
     is Expr.UnaryMinus -> {
         val operand = operand.toScalarExpressionOrNull()
@@ -132,6 +141,8 @@ fun ScalarExpression<*>.toLegacyExprOrNull(): Expr? = when (this) {
     }
 
     is ScalarReference<*> -> Expr.Identifier(path.value)
+
+    is ScalarSymbolReference<*> -> Expr.Identifier(symbol.stableIdOrNull()?.value ?: symbol.name)
 
     is ScalarUnary<*> -> {
         if (operator == UnaryOperator.Negate) {

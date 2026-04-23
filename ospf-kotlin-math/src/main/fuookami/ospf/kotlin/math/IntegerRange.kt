@@ -9,6 +9,7 @@ package fuookami.ospf.kotlin.math
 
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.operator.Contains
 import fuookami.ospf.kotlin.math.operator.Rem
 
 /**
@@ -100,7 +101,7 @@ class IntegerRange<I>(
     override val endInclusive: I,
     val step: I,
     private val constants: RealNumberConstants<I>
-) : Iterable<I>, ClosedRange<I> where I : Integer<I>, I : PlusGroup<I>, I : Rem<I, I> {
+) : Iterable<I>, ClosedRange<I>, Contains<I> where I : Integer<I>, I : PlusGroup<I>, I : Rem<I, I> {
     init {
         if (step == step.constants.zero) {
             throw IllegalArgumentException("Step must be non-zero.")
@@ -199,7 +200,7 @@ class NumericUIntegerRange<NI, I>(
     private val constants: RealNumberConstants<I>,
     private val ctor: (I) -> NI,
     private val converter: (NI) -> I
-) : Iterable<NI>, ClosedRange<NI>
+) : Iterable<NI>, ClosedRange<NI>, Contains<NI>
         where NI : NumericUIntegerNumber<NI, I>, I : UIntegerNumber<I>, I : PlusGroup<I>, I : Rem<I, I> {
     val step: I by lazy { converter(_step) }
 

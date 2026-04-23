@@ -1,8 +1,14 @@
-# ospf-kotlin-utils/math/symbol
+# ospf-kotlin-math/symbol
 
 [English Documentation (README.md)](./README.md)
 
 OSPF Kotlin 的符号表达式基础与操作。
+
+当前 `symbol` 包有两层表达式体系：
+
+- `symbol.expression.*` 是推荐入口，适合运行时 boolean/scalar expression、`PropertyPath`、求值与规范化。
+- `symbol.dsl`、`symbol.parser`、`symbol.serde` 保留为 legacy `Expr` 兼容层，主要服务多项式和不等式转换。
+- 需要直接操作旧 AST 时，请显式使用 `legacySymbolExpr`、`parseLegacySymbolExpression`、`legacySymbolExprFromJson`、`toLegacyExpr`、`legacyToCanonicalPolynomial`。
 
 ## 核心类型
 
@@ -48,13 +54,14 @@ data class CanonicalInequality<T>(...)
 ### 多项式构造
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.*
-import fuookami.ospf.kotlin.utils.math.symbol.monomial.*
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.utils.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.*
+import fuookami.ospf.kotlin.math.symbol.monomial.*
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val x = symbolOfSerializedIdentifier("x")
+val y = symbolOfSerializedIdentifier("y")
 
 // 线性多项式
 val linear = LinearPolynomial<Flt64>(
@@ -97,7 +104,7 @@ val divided = p1 / Flt64(2.0) // 0.5 + x
 ### 求值
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.operation.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 
 // 直接求值
 val values = mapOf(x to Flt64(2.0), y to Flt64(3.0))
@@ -128,46 +135,45 @@ val grad = compiledGrad(listOf(Flt64(1.0), Flt64(2.0)))
 ### DSL 快捷入口
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val symbolOf = ::symbolOfSerializedIdentifier
 
 // 从 DSL 构造线性多项式
 val lp = linearPolynomial(symbolOf) {
-    val x = symbol("x")
-    val y = symbol("y")
-    1.0 + 2.0 * x + 3.0 * y
+    num(1) + num(2) * symbol("x") + num(3) * symbol("y")
 }
 
 // 从 DSL 构造二次多项式
 val qp = quadraticPolynomial(symbolOf) {
-    val x = symbol("x")
-    1.0 + 2.0 * x + 3.0 * x * x
+    num(1) + num(2) * symbol("x") + num(3) * symbol("x") * symbol("x")
 }
 
 // 从 DSL 构造规范不等式
 val ineq = canonicalInequality(symbolOf) {
-    val x = symbol("x")
-    val y = symbol("y")
-    x * x + y * y le 1.0  // x^2 + y^2 <= 1
+    (symbol("x") * symbol("x")) + (symbol("y") * symbol("y")) le num(1)  // x^2 + y^2 <= 1
 }
 ```
 
 ### 序列化
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.serde.*
+import fuookami.ospf.kotlin.math.symbol.serde.*
 
 // 转 JSON
 val json = canonical.toJsonString()
 
 // 从 JSON 恢复
-val restored = canonicalPolynomialFromJson<Flt64>(json)
+val restored = canonicalPolynomialFromJson(json)
 
 // 不等式序列化
 val ineqJson = linearInequality.toJsonString()
-val restoredIneq = linearInequalityFromJson<Flt64>(ineqJson)
+val restoredIneq = linearInequalityFromJson(ineqJson)
+
+// legacy Expr 的 JSON round-trip
+val exprJson = canonical.toLegacyExpr().toLegacyJsonString()
+val restoredExpr = legacySymbolExprFromJson(exprJson)
 ```
 
 ### 矩阵形式
@@ -191,11 +197,11 @@ val form = canonical.toMatrixForm(order)
 #### 基本用法
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.multi_array.*
-import fuookami.ospf.kotlin.utils.multi_array.FastSum
+import fuookami.ospf.kotlin.multiarray.*
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
-val x = symbolOf("x")
-val y = symbolOf("y")
+val x = symbolOfSerializedIdentifier("x")
+val y = symbolOfSerializedIdentifier("y")
 
 // 创建线性多项式的二维数组
 val equations = MultiArray.newBy(Shape2(3, 4)) { i, _ ->
@@ -226,8 +232,8 @@ val cumsum = equations.cumsumAxis(1, LinearPolynomial.fromConstant(Flt64.zero))
 高性能累加时，使用 Mutable 多项式延迟合并：
 
 ```kotlin
-import fuookami.ospf.kotlin.utils.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.utils.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 
 // FastSum 模式：先累加不合并，最后一次性合并
 val result = MutableLinearPolynomial.fromConstant(Flt64.zero)
@@ -346,7 +352,7 @@ val sumQ = quadraticEquations.sumAxis(
 运行测试：
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+mvn -pl ospf-kotlin-math -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
 ```
 
 ### MultiArray 测试
@@ -354,7 +360,7 @@ mvn -pl ospf-kotlin-utils -Dtest=SerializationTest,DslTest,PolynomialTest,Mutabl
 - `FastSumTest.kt`：MultiArray 求和（14 个测试）
 
 ```powershell
-mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
+mvn -pl ospf-kotlin-math -Dtest=FastSumTest test
 ```
 
 ## 相关链接
@@ -362,5 +368,5 @@ mvn -pl ospf-kotlin-utils -Dtest=FastSumTest test
 - [主 README](../README.md)
 - [Geometry 模块](../geometry/README.md)
 - [Value Range 模块](../algebra/value_range/README.md)
-- [MultiArray 模块](../multi_array/README.md)
+- [MultiArray 模块](../multiarray/README.md)
 - [基准报告](../../benchmark/BENCHMARK_REPORT_TEMPLATE.md)

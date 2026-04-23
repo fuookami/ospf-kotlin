@@ -40,32 +40,32 @@ private fun Expr.render(): String {
 class ParserPolynomialTest {
     @Test
     fun parserShouldHandleLinearPolynomialExpression() {
-        val expr = parseSymbolExpression("2*x + 3*y - 1")
+        val expr = parseLegacySymbolExpression("2*x + 3*y - 1")
         assertEquals("(((2 * x) + (3 * y)) - 1)", expr.render())
     }
 
     @Test
     fun parserShouldHandleQuadraticPolynomialExpression() {
-        val expr = parseSymbolExpression("x*x + 2*x*y + 1")
+        val expr = parseLegacySymbolExpression("x*x + 2*x*y + 1")
         assertEquals("(((x * x) + ((2 * x) * y)) + 1)", expr.render())
     }
 
     @Test
     fun parserShouldHandleParenthesesAndUnaryMinus() {
-        val expr = parseSymbolExpression("-(x + 2) * y")
+        val expr = parseLegacySymbolExpression("-(x + 2) * y")
         assertEquals("((-(x + 2)) * y)", expr.render())
     }
 
     @Test
     fun parserShouldHandleFunctionSymbolExpression() {
-        val expr = parseSymbolExpression("max(x, y + 1)")
+        val expr = parseLegacySymbolExpression("max(x, y + 1)")
         assertEquals("max(x, (y + 1))", expr.render())
     }
 
     @Test
     fun parserShouldFailForUnexpectedToken() {
         assertFailsWith<ParseError> {
-            parseSymbolExpression("x + )")
+            parseLegacySymbolExpression("x + )")
         }
     }
 }
