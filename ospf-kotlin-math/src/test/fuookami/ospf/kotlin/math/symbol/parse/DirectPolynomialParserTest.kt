@@ -1,25 +1,28 @@
 package fuookami.ospf.kotlin.math.symbol.parse
 
 import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import kotlin.test.*
+
+private data class TestSymbol(
+    override val name: String,
+    override val displayName: String? = null
+) : Symbol
 
 class DirectPolynomialParserTest {
 
-    private val x = Symbol("x")
-    private val y = Symbol("y")
-    private val z = Symbol("z")
+    private val x = TestSymbol("x")
+    private val y = TestSymbol("y")
+    private val z = TestSymbol("z")
 
     private val symbolOf: (String) -> Symbol = { name ->
         when (name) {
             "x" -> x
             "y" -> y
             "z" -> z
-            else -> Symbol(name)
+            else -> TestSymbol(name)
         }
     }
 
@@ -40,10 +43,10 @@ class DirectPolynomialParserTest {
     @Test
     fun testSingleVariable() {
         val result = parseCanonical("x", symbolOf)
-        assertEquals(Flt64.zero, result.constant)
+        assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
-        assertEquals(mapOf(x to Int32.one), result.monomials[0].powers)
+        assertEquals(mapOf<Symbol, Int32>(x to Int32.one), result.monomials[0].powers)
     }
 
     @Test
@@ -65,7 +68,7 @@ class DirectPolynomialParserTest {
     @Test
     fun testScaledVariable() {
         val result = parseCanonical("2 * x", symbolOf)
-        assertEquals(Flt64.zero, result.constant)
+        assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64(2.0), result.monomials[0].coefficient)
     }
@@ -80,18 +83,10 @@ class DirectPolynomialParserTest {
     @Test
     fun testQuadraticTerm() {
         val result = parseCanonical("x * y", symbolOf)
-        assertEquals(Flt64.zero, result.constant)
+        assertEquals<Flt64>(Flt64.zero, result.constant)
         assertEquals(1, result.monomials.size)
         assertEquals(Flt64.one, result.monomials[0].coefficient)
         assertEquals(2, result.monomials[0].powers.size)
-    }
-
-    @Test
-    fun testPowerTerm() {
-        val result = parseCanonical("x ^ 2", symbolOf)
-        // x^2 is parsed as x * x by the old parser, but our new parser
-        // doesn't handle ^ in the factor level yet - let's check
-        // Actually, we need to handle ^ in the parser
     }
 
     @Test

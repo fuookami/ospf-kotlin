@@ -25,8 +25,8 @@ import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.parser.BinaryOperator
 import fuookami.ospf.kotlin.math.symbol.parser.ComparisonOperator
 import fuookami.ospf.kotlin.math.symbol.parser.Expr
-import fuookami.ospf.kotlin.math.symbol.parser.Flt64NumberParser
-import fuookami.ospf.kotlin.math.symbol.parser.NumberParser
+import fuookami.ospf.kotlin.math.symbol.parse.Flt64NumberParser
+import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial

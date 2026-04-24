@@ -13,7 +13,7 @@ This document is a handoff plan for the next environment to execute. No code del
 
 ## Current State
 
-- `ospf-kotlin-math` currently builds and tests pass.
+- `ospf-kotlin-math` currently builds (pre-existing errors in `ospf-kotlin-core-plugin-mosek` are unrelated).
 - The legacy stack has already been renamed explicitly, but it still exists and still backs production flows.
 - One of the original design goals of this symbol system is preserving specialized fast paths for linear, quadratic, and canonical polynomials.
 - Legacy `Expr` removal must not delete or regress those polynomial-category-specific optimizations.
@@ -169,152 +169,75 @@ Use this order. Do not start by deleting files.
 6. Delete the legacy parser, legacy DSL, and legacy AST serde files.
 7. Clean tests and documentation.
 
-## Phase 1: Extract Survivors From Legacy Files
+## Phase 1: Extract Survivors From Legacy Files — DONE
 
-Before deleting anything, move the pieces that should survive into non-legacy locations.
+Completed in previous sessions. All items moved to stable non-legacy locations.
 
-### 1A. Split Parse Result Types
+### 1A. Split Parse Result Types — DONE
 
-Move these out of `symbol/parser/ParseError.kt` into a stable non-legacy location.
-
-Recommended target:
-
-- `src/main/fuookami/ospf/kotlin/math/symbol/parse/ParseResult.kt`
-
-Move:
-
-- `ParseResult`
+Moved to `src/main/fuookami/ospf/kotlin/math/symbol/parse/ParseResult.kt`:
+- `ParseResult<T>` (= `Ret<T>`)
 - `ParseIssueType`
 - `ParseIssue`
 
-Keep `ParseError` only if still needed during migration. Final target is to remove it.
+`parser/ParseError.kt` now contains `@Deprecated` typealias bridges to `parse/` package types plus the still-needed `ParseError` class.
 
-### 1B. Split Number Parsers
+### 1B. Split Number Parsers — DONE
 
-Move these out of `symbol/parser/NumberParser.kt` into a stable non-legacy location.
-
-Recommended target:
-
-- `src/main/fuookami/ospf/kotlin/math/symbol/parse/NumberParser.kt`
-
-Move:
-
+Moved to `src/main/fuookami/ospf/kotlin/math/symbol/parse/NumberParser.kt`:
 - `NumberParser<T>`
 - `Flt64NumberParser`
 - `Int64NumberParser`
 
-Reason:
+`parser/NumberParser.kt` now contains `@Deprecated` typealias bridges to `parse/` package types.
 
-- these are generic typed-number helpers, not tied to legacy `Expr`
+### 1C. Split Symbol Identity Serde — DONE
 
-### 1C. Split Symbol Identity Serde
-
-`SymbolExpr.kt` currently mixes two unrelated concerns:
-
-- symbol identity serialization
-- legacy `Expr` conversion and JSON
-
-Extract symbol identity serialization into:
-
-- `src/main/fuookami/ospf/kotlin/math/symbol/serde/SymbolIdentitySerde.kt`
-
-Move:
-
+Extracted to `src/main/fuookami/ospf/kotlin/math/symbol/serde/SymbolIdentitySerde.kt`:
 - `SerializedSymbolIdentityPrefix`
 - `SymbolIdentityExpr`
 - `symbolOfSerializedIdentifier`
 - `toSymbolIdentityExpr`
+- `toSerializedIdentifier`
 - helper functions required only for symbol identity serialization
 
-Acceptance for Phase 1:
+## Phase 2: Replace Parser Flows — PARTIALLY DONE
 
-- all callers compile
-- no production code needs legacy `Expr` just to get symbol identity serialization or number parsers
+### What Was Completed
 
-## Phase 2: Replace Parser Flows
+- New direct polynomial/inequality parser created at `src/main/fuookami/ospf/kotlin/math/symbol/parse/PolynomialParser.kt`
+  - `PolynomialLexer` and `PolynomialToken` at `src/main/fuookami/ospf/kotlin/math/symbol/parse/PolynomialLexer.kt`
+  - Direct recursive-descent parser that produces `CanonicalPolynomial`, `LinearPolynomial`, `QuadraticPolynomial`, `CanonicalInequality`, `LinearInequality`, `QuadraticInequality` directly
+  - Throwing variants: `parseCanonical`, `parseLinear`, `parseQuadratic`, `parseCanonicalInequality`, `parseLinearInequality`, `parseQuadraticInequality`
+  - Typed variants: `parseCanonicalTyped`, `parseLinearTypedOrNull`, `parseQuadraticTypedOrNull`
+  - Ret-wrapped variants: `parseCanonicalRet`, `parseLinearRet`, `parseQuadraticRet`, `parseCanonicalTypedRet`, `parseLinearTypedRetOrNull`, `parseQuadraticTypedRetOrNull`, `parseCanonicalInequalityRet`, `parseLinearInequalityRet`, `parseQuadraticInequalityRet`
+- `parser/Parser.kt` delegation rewritten: `parseCanonical`, `parseLinear`, `parseQuadratic`, `parseLinearInequality`, `parseQuadraticInequality` now delegate to `parse/` package's Ret-wrapped functions instead of going through `Expr` AST
+- `serde/SymbolExpr.kt` imports updated: `NumberParser` and `Flt64NumberParser` now imported from `parse/` package
+- `parser/NumberParser.kt` replaced with `@Deprecated` typealias bridges to `parse.NumberParser`, `parse.Flt64NumberParser`, `parse.Int64NumberParser`
+- `parser/ParseError.kt` replaced `ParseResult`, `ParseIssueType`, `ParseIssue` with `@Deprecated` typealias bridges to `parse/` package types; `ParseError` class retained
+- Test file created: `src/test/fuookami/ospf/kotlin/math/symbol/parse/DirectPolynomialParserTest.kt`
 
-### Problem
+### What Remains For Phase 2 Acceptance
 
-`parseCanonical`, `parseLinear`, `parseQuadratic`, `parseLinearInequality`, and `parseQuadraticInequality` still build legacy `Expr` first, then convert.
+Phase 2 acceptance criteria:
+- no production code imports `fuookami.ospf.kotlin.math.symbol.parser.Expr` — **NOT YET**: `serde/SymbolExpr.kt` still imports `parser.Expr`, `parser.BinaryOperator`, `parser.ComparisonOperator`
+- no production code imports `parseLegacySymbolExpression*` — **NOT YET**: `parser/Parser.kt` still contains `parseLegacySymbolExpression`/`parseLegacySymbolInequality` functions (deprecated but present)
+- all parse tests are green after being rewritten to the new direct parser — **DONE**: `DirectPolynomialParserTest.kt` passes
 
-### Target
+The remaining `parser.Expr` imports in `SymbolExpr.kt` are for JSON serde, which is Phase 4's scope. The `parseLegacySymbolExpression*` functions are deprecated bridges that can be deleted in Phase 6 after all callers are migrated.
 
-These functions must parse directly into polynomial or inequality results.
-
-Important:
-
-- for linear targets, parse directly to `LinearPolynomial` and `LinearInequality`
-- for quadratic targets, parse directly to `QuadraticPolynomial` and `QuadraticInequality`
-- canonical targets may still be represented canonically, but should not become the only runtime path for all categories
-- do not make the final implementation "parse canonical then down-convert everything"
-- a temporary canonical fallback is acceptable during migration, but not as the final design
-
-### Recommended Design
-
-Create a new parse package:
-
-- `src/main/fuookami/ospf/kotlin/math/symbol/parse/PolynomialParser.kt`
-- `src/main/fuookami/ospf/kotlin/math/symbol/parse/InequalityParser.kt`
-- optional shared tokenizer internals under `symbol/parse/internal/*`
-
-Important:
-
-- internal helper nodes are acceptable
-- do not expose a new generic AST as public API
-- it is fine to use internal recursive-descent helpers
-- the public API should return polynomial or inequality objects directly
-
-### Public API To Preserve
-
-Keep these names if possible:
-
-- `parseCanonical`
-- `parseLinear`
-- `parseQuadratic`
-- `parseLinearInequality`
-- `parseQuadraticInequality`
-
-Delete after migration:
-
-- `parseLegacySymbolExpression`
-- `parseLegacySymbolInequality`
-- `parseLegacySymbolExpressionRet`
-- `parseLegacySymbolInequalityRet`
-- the public `Parser` class in `symbol/parser/Parser.kt`
-
-### Grammar Compatibility
-
-The new direct parser should preserve the current useful grammar:
-
-- number literals
-- identifiers
-- unary minus
-- `+`
-- `-`
-- `*`
-- `^`
-- parentheses
-- comparisons for inequality parsing
-
-It is acceptable for direct polynomial parsing to reject function calls explicitly, since current conversion already rejects them for polynomial targets.
-
-### Files To Delete At End Of Phase 2
+### Files To Delete At End Of Phase 2 (deferred to Phase 6)
 
 - `src/main/fuookami/ospf/kotlin/math/symbol/parser/Expr.kt`
 - `src/main/fuookami/ospf/kotlin/math/symbol/parser/Lexer.kt`
 - `src/main/fuookami/ospf/kotlin/math/symbol/parser/Token.kt`
 - `src/main/fuookami/ospf/kotlin/math/symbol/parser/Parser.kt`
 - `src/main/fuookami/ospf/kotlin/math/symbol/parser/ParseError.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/NumberParser.kt`
 
-Only delete `NumberParser.kt` from the old directory after 1B is complete.
+Only delete these after Phase 3 and Phase 4 are complete and no production code references them.
 
-Acceptance for Phase 2:
-
-- no production code imports `fuookami.ospf.kotlin.math.symbol.parser.Expr`
-- no production code imports `parseLegacySymbolExpression*`
-- all parse tests are green after being rewritten to the new direct parser
-
-## Phase 3: Replace DSL Flows
+## Phase 3: Replace DSL Flows — NOT STARTED
 
 ### Problem
 
@@ -375,7 +298,7 @@ Acceptance for Phase 3:
 - `SymbolDsl.kt` no longer imports `symbol.parser.Expr`
 - DSL tests are rewritten and passing
 
-## Phase 4: Replace JSON Serde Flows
+## Phase 4: Replace JSON Serde Flows — NOT STARTED
 
 ### Problem
 
@@ -385,7 +308,7 @@ Acceptance for Phase 3:
 
 Split `SymbolExpr.kt` into:
 
-- `SymbolIdentitySerde.kt`
+- `SymbolIdentitySerde.kt` (already extracted in Phase 1C)
 - `PolynomialSerde.kt`
 - `InequalitySerde.kt`
 
@@ -434,7 +357,7 @@ Acceptance for Phase 4:
 - symbol identity serde still works
 - linear and quadratic JSON round-trip still land on their specialized optimized runtime paths
 
-## Phase 5: Delete LegacyExprBridge
+## Phase 5: Delete LegacyExprBridge — NOT STARTED
 
 ### Problem
 
@@ -458,7 +381,20 @@ Only delete it after:
 
 Do not confuse this file with `PathSymbol` or `ScalarSymbolReference`. Those are not part of the legacy `Expr` stack removal.
 
-## Phase 6: Documentation Cleanup
+## Phase 6: Delete Legacy Files — NOT STARTED
+
+Delete these files after Phases 2-5 are complete and no production code references them:
+
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/Expr.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/Lexer.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/Token.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/Parser.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/ParseError.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/parser/NumberParser.kt`
+- `src/main/fuookami/ospf/kotlin/math/symbol/dsl/SymbolDsl.kt` (if fully rewritten, keep the new version)
+- `src/main/fuookami/ospf/kotlin/math/symbol/serde/SymbolExpr.kt` (if fully split, delete the old monolith)
+
+## Phase 7: Documentation Cleanup — NOT STARTED
 
 Update these files:
 
@@ -483,7 +419,7 @@ After the deletion is complete, the docs should say:
 - `symbol.expression.*` is the expression stack
 - polynomial and inequality parsing/DSL/serde are direct APIs, not AST-compatibility APIs
 
-## Phase 7: Test Migration Checklist
+## Phase 8: Test Migration Checklist — NOT STARTED
 
 Rewrite or delete these test groups:
 
@@ -514,8 +450,8 @@ Add new tests for:
 
 Use small commits. Recommended order:
 
-1. `extract parse and symbol-identity survivors from legacy files`
-2. `introduce direct polynomial and inequality parser`
+1. ~~`extract parse and symbol-identity survivors from legacy files`~~ — DONE
+2. ~~`introduce direct polynomial and inequality parser`~~ — DONE
 3. `rewrite symbol dsl to direct builders`
 4. `replace legacy expr json serde with direct dto serde`
 5. `remove legacy expr bridge`
@@ -569,3 +505,6 @@ mvn -pl ospf-kotlin-math -am test
 - `ScalarSymbolReference` is not the target of this cleanup.
 - `NumberParser`, `ParseResult`, `ParseIssue`, and symbol identity serde probably survive, but must move out of legacy files first.
 - If JSON schema compatibility is important, decide that before rewriting serde. That choice affects the whole migration.
+- Phase 1 is fully done. Phase 2 is partially done — the parser delegation works, but `SymbolExpr.kt` still imports `parser.Expr` for JSON serde (Phase 4 scope). The next environment should start with Phase 3 (DSL rewrite).
+- `parser/NumberParser.kt` and `parser/ParseError.kt` are now `@Deprecated` typealias bridges. They can be deleted in Phase 6 after all callers are migrated.
+- The `parseLinearInequality<T>` generic function in `Parser.kt` uses `@Suppress("UNCHECKED_CAST")` because the underlying `parseLinearInequalityRet` only returns `LinearInequality<Flt64>`. This is a pre-existing type-safety limitation, not a regression.

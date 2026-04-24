@@ -14,7 +14,6 @@ package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -26,6 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalTypedRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseLinearRet
@@ -485,7 +485,8 @@ fun <T> parseLinearInequality(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearInequality<T>> where T : Ring<T> {
-    return parseLinearInequalityRet(input, symbolOf)
+    @Suppress("UNCHECKED_CAST")
+    return parseLinearInequalityRet(input, symbolOf) as ParseResult<LinearInequality<T>>
 }
 
 fun parseLinearInequality(

@@ -10,22 +10,20 @@
  */
 package fuookami.ospf.kotlin.math.symbol.parser
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int64
+@Deprecated(
+    message = "Use fuookami.ospf.kotlin.math.symbol.parse.NumberParser instead.",
+    replaceWith = ReplaceWith("fuookami.ospf.kotlin.math.symbol.parse.NumberParser", "fuookami.ospf.kotlin.math.symbol.parse")
+)
+typealias NumberParser<T> = fuookami.ospf.kotlin.math.symbol.parse.NumberParser<T>
 
-fun interface NumberParser<T> {
-    fun parse(text: String): T?
-}
+@Deprecated(
+    message = "Use fuookami.ospf.kotlin.math.symbol.parse.Flt64NumberParser instead.",
+    replaceWith = ReplaceWith("fuookami.ospf.kotlin.math.symbol.parse.Flt64NumberParser", "fuookami.ospf.kotlin.math.symbol.parse")
+)
+typealias Flt64NumberParser = fuookami.ospf.kotlin.math.symbol.parse.Flt64NumberParser
 
-data object Flt64NumberParser : NumberParser<Flt64> {
-    override fun parse(text: String): Flt64? {
-        return text.toDoubleOrNull()?.let(::Flt64)
-    }
-}
-
-data object Int64NumberParser : NumberParser<Int64> {
-    override fun parse(text: String): Int64? {
-        return text.toLongOrNull()?.let(::Int64)
-    }
-}
-
+@Deprecated(
+    message = "Use fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser instead.",
+    replaceWith = ReplaceWith("fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser", "fuookami.ospf.kotlin.math.symbol.parse")
+)
+typealias Int64NumberParser = fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser
