@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.toMeta
+import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.ExtractBunchCompilationContext

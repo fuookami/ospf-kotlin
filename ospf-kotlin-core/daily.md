@@ -2,7 +2,7 @@
 
 日期：2026-04-24
 
-状态：P3-3 完成 — variable/token 物理拆解已落地：`core.token` 独立包建立，Token/TokenList/TokenTable/TokenCacheContext/TokenCacheKey 迁入，旧位置留 @Deprecated typealias 过渡，全链路 import 更新，core test 143/0/0、framework compile、gantt-scheduling compile 均通过
+状态：P3-4 完成 — model 层四分包重排已落地：`model.basic`（11 文件）、`model.mechanism`（12 文件）、`model.intermediate`（7 文件）、`model.callback`（保留原位）已建立，旧位置留 @Deprecated typealias 过渡，全链路 import 更新，core test 140/0/0、framework compile、gantt-scheduling compile 均通过；`-am` 全链路 clean 构建受 `ospf-kotlin-math` 重构未完成阻断（Parser.kt / PolynomialParser.kt 编译错误），待 math 重构完成后做集成修复
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -20,12 +20,13 @@
 
 ### 1.2 当前主要缺口
 
-1. `variable` 与 `token` 仍未按 Rust 风格物理拆分。
-2. `basic / mechanism / intermediate / callback` 四层职责尚未按 Rust 风格重排到独立分包。
-3. 当前仍存在未完全泛型化路径，部分 model / token / framework / helper API 仍固化为 `Flt64` 或依赖 `Flt64` 视图。
-4. `ospf-kotlin-example` 仍大量依赖旧 `frontend` 包路径，但当前策略已调整为“直接改 import，不做桥接”，相应迁移清单尚未落地。
-5. `ospf-kotlin-example` 尚未迁入本仓库，也未纳入持续构建门禁。
-6. C8 门禁仍偏向增量检查，尚未覆盖全仓库存量问题与全链路 clean 构建验证。
+1. `variable` 与 `token` 已按 Rust 风格物理拆分（P3-3 完成）。
+2. `basic / mechanism / intermediate / callback` 四层职责已按 Rust 风格重排到独立分包（P3-4 完成）。
+3. `ospf-kotlin-math` 重构未完成，`-am` clean 构建受阻断，待 math 重构完成后做集成修复。
+4. 当前仍存在未完全泛型化路径，部分 model / token / framework / helper API 仍固化为 `Flt64` 或依赖 `Flt64` 视图。
+5. `ospf-kotlin-example` 仍大量依赖旧 `frontend` 包路径，但当前策略已调整为”直接改 import，不做桥接”，相应迁移清单尚未落地。
+6. `ospf-kotlin-example` 尚未迁入本仓库，也未纳入持续构建门禁。
+7. C8 门禁仍偏向增量检查，尚未覆盖全仓库存量问题与全链路 clean 构建验证。
 
 ### 1.3 当前工作重心
 
@@ -107,9 +108,10 @@
 
 ### 2.6 最近一次已验证基线
 
-1. `mvn -pl ospf-kotlin-core -am clean test` 通过
-2. `mvn -pl ospf-kotlin-framework -am clean compile` 通过
-3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile` 通过
+1. `mvn -pl ospf-kotlin-core clean test` 通过（140/0/0）
+2. `mvn -pl ospf-kotlin-framework clean compile` 通过
+3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context clean compile` 通过（需先 install core+framework）
+4. `mvn -pl ospf-kotlin-core -am clean test` 受 `ospf-kotlin-math` 编译错误阻断，待 math 重构完成后集成修复
 
 ---
 
@@ -142,7 +144,7 @@
 | P1 | P3-1 | example import 迁移清单与旧 `frontend` 引用清退 | 新目标 | ✅ 映射表已完成，执行待 P3-5 |
 | P2 | P3-2 | 完全泛型化补齐与 `Flt64` 固化点清退 | 新目标 | 完成 — TokenTable/Cell Impl 泛型化，minimize(symbol) 重载，Flt64 审计文档，回归测试 |
 | P3 | P3-3 | `variable` / `token` 物理拆解 | 新目标 | ✅ 完成 — `core.token` 独立包，5 文件迁入，@Deprecated typealias 过渡，全链路 import 更新 |
-| P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | 待执行 |
+| P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | ✅ 完成 — 四分包建立，@Deprecated typealias 过渡，全链路 import 更新；`-am` clean 构建受 math 重构阻断待集成修复 |
 | P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | 待执行 |
 | P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | 待执行 |
 | P7 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
@@ -376,6 +378,17 @@ P3-0 基线冻结与兼容面清单
 5. 更新 framework + gantt-scheduling import。
 6. 删除空 `intermediate_model` 包。
 7. 验证 clean 构建。
+
+#### P3-4 执行完成情况（2026-04-24）
+
+1. ✅ **创建四个子包** — `model.basic`、`model.mechanism`、`model.intermediate`、`model.callback`（callback 保留原位）
+2. ✅ **`model.basic` 迁入 11 文件** — `ModelView.kt`（Variable/ModelCell/ConstraintCell 等）、`Model.kt`（Model/LinearModel/QuadraticModel）、`ObjectCategory.kt`、`ConstraintSign.kt`、`ConstraintPriority.kt`、`RegistrationStatus.kt`、`ExpressionRange.kt`、`ModelFileFormat.kt`、`ModelBuildingStage.kt`、`ModelBuildingStatus.kt`、`MultiObject.kt`
+3. ✅ **`model.mechanism` 迁入 12 文件** — `MetaModel.kt`、`MechanismModel.kt`、`BasicModel.kt`、`BasicMechanismModel.kt`、`Constraint.kt`、`MetaConstraint.kt`、`Object.kt`、`SubObject.kt`、`Relation.kt`、`MathInequalityDsl.kt`、`MathInequalityBridge.kt`、`LinearConstraintInput.kt`
+4. ✅ **`model.intermediate` 迁入 7 文件** — `LinearTriadModel.kt`、`QuadraticTetradModel.kt`、`SparseMatrix.kt`、`Cell.kt`、`DumpHelpers.kt`、`IntermediateModelDumpingStatus.kt`、`MechanismModelDumpingStatus.kt`
+5. ✅ **旧位置 @Deprecated typealias 过渡** — `intermediate_model/` 和 `model/` 旧位置均留桥接 typealias，指向新包
+6. ✅ **全链路 import 更新** — core 内部（solver/iis、intermediate_symbol、model/callback）、framework（6 文件）、gantt-scheduling（29 文件）均完成 import 迁移；star import 全部替换为显式 import
+7. ✅ **构建验证** — core test 140/0/0、framework compile、gantt-scheduling compile 均通过
+8. ⚠️ **`-am` clean 构建阻断** — `ospf-kotlin-math` 的 `Parser.kt` / `PolynomialParser.kt` 存在编译错误（`Int32Range` 未定义、`symbolOfSerializedIdentifier` 未解析），属于 math 模块自身重构未完成，与 P3-4 无关；待 math 重构完成后做集成修复
 
 #### 验收标准
 

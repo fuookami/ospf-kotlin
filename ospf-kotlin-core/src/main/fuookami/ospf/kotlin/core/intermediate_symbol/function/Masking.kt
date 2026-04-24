@@ -2,11 +2,13 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -171,8 +173,8 @@ class MaskingFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            x: fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial,
-            mask: fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial,
+            x: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
+            mask: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

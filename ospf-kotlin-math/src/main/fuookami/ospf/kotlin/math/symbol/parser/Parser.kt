@@ -26,11 +26,15 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomialTyped
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToLinearPolynomialTypedOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticInequalityOrNull
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToQuadraticPolynomialTypedOrNull
+import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalTypedRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseLinearRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseLinearTypedRetOrNull
+import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticTypedRetOrNull
+import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalInequalityRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseLinearInequalityRet
+import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticInequalityRet
 
 class Parser(
     private val tokens: List<Token>
@@ -424,54 +428,17 @@ fun <T> parseCanonical(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalPolynomial<T>> where T : Ring<T> {
-    return mapExpressionRet(input) { expression ->
-        expression.legacyToCanonicalPolynomialTyped(
-            numberParser = numberParser,
-            zero = zero,
-            one = one,
-            symbolOf = symbolOf,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        )
-    }
+    return parseCanonicalTypedRet(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }
 
-/**
- * 解析规范多项式表达式（Flt64 便捷版本）
- * Parse a canonical polynomial expression (Flt64 convenience overload)
- */
 fun parseCanonical(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<CanonicalPolynomial<Flt64>> {
-    return parseCanonical(
-        input = input,
-        numberParser = Flt64NumberParser,
-        zero = Flt64.zero,
-        one = Flt64.one,
-        symbolOf = symbolOf,
-        isZero = { it == Flt64.zero },
-        symbolComparator = symbolComparator
-    )
+    return parseCanonicalRet(input, symbolOf, symbolComparator)
 }
 
-/**
- * 解析线性多项式表达式
- * Parse a linear polynomial expression
- *
- * 将字符串解析为 LinearPolynomial。如果表达式包含二次项或更高次项，解析将失败。
- * Parses a string into a LinearPolynomial. Parsing fails if the expression contains
- * quadratic or higher-degree terms.
- *
- * @param input 要解析的表达式字符串 / Expression string to parse
- * @param numberParser 数字解析器 / Number parser for the target ring type
- * @param zero 零元 / Zero element
- * @param one 单位元 / One element
- * @param symbolOf 符号工厂函数 / Symbol factory function
- * @param isZero 零值判断函数 / Zero check function
- * @return 解析结果 / Parse result
- */
 fun <T> parseLinear(
     input: String,
     numberParser: NumberParser<T>,
@@ -480,47 +447,16 @@ fun <T> parseLinear(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearPolynomial<T>> where T : Ring<T> {
-    return mapExpressionRet(input) { expression ->
-        expression.legacyToLinearPolynomialTypedOrNull(
-            numberParser = numberParser,
-            zero = zero,
-            one = one,
-            symbolOf = symbolOf,
-            isZero = isZero
-        ) ?: throw IllegalArgumentException("Expression is not linear polynomial.")
-    }
+    return parseLinearTypedRetOrNull(input, numberParser, zero, one, symbolOf, isZero)
 }
 
 fun parseLinear(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): ParseResult<LinearPolynomial<Flt64>> {
-    return parseLinear(
-        input = input,
-        numberParser = Flt64NumberParser,
-        zero = Flt64.zero,
-        one = Flt64.one,
-        symbolOf = symbolOf,
-        isZero = { it == Flt64.zero }
-    )
+    return parseLinearRet(input, symbolOf)
 }
 
-/**
- * 解析二次多项式表达式
- * Parse a quadratic polynomial expression
- *
- * 将字符串解析为 QuadraticPolynomial。支持最高二次项的表达式。
- * Parses a string into a QuadraticPolynomial. Supports expressions with up to quadratic terms.
- *
- * @param input 要解析的表达式字符串 / Expression string to parse
- * @param numberParser 数字解析器 / Number parser for the target ring type
- * @param zero 零元 / Zero element
- * @param one 单位元 / One element
- * @param symbolOf 符号工厂函数 / Symbol factory function
- * @param isZero 零值判断函数 / Zero check function
- * @param symbolComparator 符号比较器（用于项合并，可选）/ Symbol comparator for term combining (optional)
- * @return 解析结果 / Parse result
- */
 fun <T> parseQuadratic(
     input: String,
     numberParser: NumberParser<T>,
@@ -530,16 +466,7 @@ fun <T> parseQuadratic(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticPolynomial<T>> where T : Ring<T> {
-    return mapExpressionRet(input) { expression ->
-        expression.legacyToQuadraticPolynomialTypedOrNull(
-            numberParser = numberParser,
-            zero = zero,
-            one = one,
-            symbolOf = symbolOf,
-            isZero = isZero,
-            symbolComparator = symbolComparator
-        ) ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
-    }
+    return parseQuadraticTypedRetOrNull(input, numberParser, zero, one, symbolOf, isZero, symbolComparator)
 }
 
 fun parseQuadratic(
@@ -547,32 +474,9 @@ fun parseQuadratic(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticPolynomial<Flt64>> {
-    return parseQuadratic(
-        input = input,
-        numberParser = Flt64NumberParser,
-        zero = Flt64.zero,
-        one = Flt64.one,
-        symbolOf = symbolOf,
-        isZero = { it == Flt64.zero },
-        symbolComparator = symbolComparator
-    )
+    return parseQuadraticRet(input, symbolOf, symbolComparator)
 }
 
-/**
- * 解析线性不等式
- * Parse a linear inequality
- *
- * 将字符串解析为 LinearInequality。不等式两侧必须均为线性多项式。
- * Parses a string into a LinearInequality. Both sides of the inequality must be linear polynomials.
- *
- * @param input 要解析的不等式字符串 / Inequality string to parse
- * @param numberParser 数字解析器 / Number parser for the target ring type
- * @param zero 零元 / Zero element
- * @param one 单位元 / One element
- * @param symbolOf 符号工厂函数 / Symbol factory function
- * @param isZero 零值判断函数 / Zero check function
- * @return 解析结果 / Parse result
- */
 fun <T> parseLinearInequality(
     input: String,
     numberParser: NumberParser<T>,
@@ -581,65 +485,21 @@ fun <T> parseLinearInequality(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearInequality<T>> where T : Ring<T> {
-    return mapInequalityRet(input) { expression ->
-        val lhs = expression.left.legacyToLinearPolynomialTypedOrNull(
-            numberParser = numberParser,
-            zero = zero,
-            one = one,
-            symbolOf = symbolOf,
-            isZero = isZero
-        ) ?: throw IllegalArgumentException("Left side is not linear polynomial.")
-        val rhs = expression.right.legacyToLinearPolynomialTypedOrNull(
-            numberParser = numberParser,
-            zero = zero,
-            one = one,
-            symbolOf = symbolOf,
-            isZero = isZero
-        ) ?: throw IllegalArgumentException("Right side is not linear polynomial.")
-        LinearInequality(
-            lhs = lhs,
-            rhs = rhs,
-            comparison = expression.operator.toInequalityComparison()
-        )
-    }
+    return parseLinearInequalityRet(input, symbolOf)
 }
 
 fun parseLinearInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): ParseResult<LinearInequality<Flt64>> {
-    return parseLinearInequality(
-        input = input,
-        numberParser = Flt64NumberParser,
-        zero = Flt64.zero,
-        one = Flt64.one,
-        symbolOf = symbolOf,
-        isZero = { it == Flt64.zero }
-    )
+    return parseLinearInequalityRet(input, symbolOf)
 }
 
-/**
- * 解析二次不等式
- * Parse a quadratic inequality
- *
- * 将字符串解析为 QuadraticInequality。支持最高二次项的不等式。
- * Parses a string into a QuadraticInequality. Supports inequalities with up to quadratic terms.
- *
- * @param input 要解析的不等式字符串 / Inequality string to parse
- * @param symbolOf 符号工厂函数 / Symbol factory function
- * @param symbolComparator 符号比较器（用于项合并，可选）/ Symbol comparator for term combining (optional)
- * @return 解析结果 / Parse result
- */
 fun parseQuadraticInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
 ): ParseResult<QuadraticInequality> {
-    return mapInequalityRet(input) { expression ->
-        expression.legacyToQuadraticInequalityOrNull(
-            symbolOf = symbolOf,
-            symbolComparator = symbolComparator
-        ) ?: throw IllegalArgumentException("Expression is not quadratic inequality.")
-    }
+    return parseQuadraticInequalityRet(input, symbolOf, symbolComparator)
 }
 

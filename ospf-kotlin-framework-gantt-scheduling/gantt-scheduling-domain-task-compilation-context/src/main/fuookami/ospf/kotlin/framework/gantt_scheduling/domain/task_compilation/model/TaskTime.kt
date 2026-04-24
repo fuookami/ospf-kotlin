@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymb
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
-import fuookami.ospf.kotlin.core.intermediate_model.geq
-import fuookami.ospf.kotlin.core.intermediate_model.leq
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
 import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial

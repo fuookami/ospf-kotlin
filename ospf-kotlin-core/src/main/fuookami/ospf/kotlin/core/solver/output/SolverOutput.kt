@@ -2,9 +2,9 @@
 
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.core.intermediate_model.BasicLinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration

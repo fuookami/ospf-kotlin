@@ -2,10 +2,10 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.intermediate_model.compare
+import fuookami.ospf.kotlin.core.model.mechanism.compare
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field

@@ -1,8 +1,10 @@
 ﻿package fuookami.ospf.kotlin.core.variable
 
-import fuookami.ospf.kotlin.core.intermediate_model.*
-import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearInequality
-import fuookami.ospf.kotlin.core.intermediate_model.ToMathQuadraticInequality
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.mechanism.eq
+import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
+import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial

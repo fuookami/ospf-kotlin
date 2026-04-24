@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -101,7 +101,7 @@ class AndFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial>,
+            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -217,7 +217,7 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromToLinearPolynomials")
         operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial>,
+            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

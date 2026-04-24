@@ -2,9 +2,17 @@
 
 package fuookami.ospf.kotlin.core.solver.iis
 
-import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
+import fuookami.ospf.kotlin.core.model.basic.Variable
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

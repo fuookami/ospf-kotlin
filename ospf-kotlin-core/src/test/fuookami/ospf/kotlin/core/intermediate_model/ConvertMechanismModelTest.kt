@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToF64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -26,8 +26,8 @@ class ConvertMechanismModelTest {
         )
 
         val result = convertMechanismModelToF64(model)
-        assertTrue(result is Ok)
-        assertEquals(0, result.value.constraints.size)
+        assertTrue(result.ok)
+        assertEquals(0, result.value!!.constraints.size)
 
         metaModel.close()
     }
@@ -48,8 +48,8 @@ class ConvertMechanismModelTest {
         )
 
         val result = convertMechanismModelToF64(model)
-        assertTrue(result is Ok)
-        assertEquals(0, result.value.constraints.size)
+        assertTrue(result.ok)
+        assertEquals(0, result.value!!.constraints.size)
 
         metaModel.close()
     }

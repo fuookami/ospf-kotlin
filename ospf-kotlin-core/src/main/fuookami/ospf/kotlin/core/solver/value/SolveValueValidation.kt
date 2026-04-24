@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.solver.value
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.computeIIS
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
@@ -13,16 +13,17 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
-import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.MechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMetaModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.intermediate_model.convertMechanismModelToF64
-import fuookami.ospf.kotlin.core.intermediate_model.toModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelF64
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToF64
+import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal

@@ -2,9 +2,9 @@
 
 package fuookami.ospf.kotlin.core.solver.output
 
-import fuookami.ospf.kotlin.core.intermediate_model.ModelView
+import fuookami.ospf.kotlin.core.model.basic.ModelView
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.ExpressionRange
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractQuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
 import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64

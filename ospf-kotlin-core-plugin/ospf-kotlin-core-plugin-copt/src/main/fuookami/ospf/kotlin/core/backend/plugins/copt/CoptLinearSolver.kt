@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_plugins.copt
 
 import copt.*
 import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig

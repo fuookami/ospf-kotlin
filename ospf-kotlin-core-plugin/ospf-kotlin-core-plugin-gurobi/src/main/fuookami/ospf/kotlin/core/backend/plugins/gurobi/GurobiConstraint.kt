@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_plugins.gurobi
 
-import fuookami.ospf.kotlin.core.intermediate_model.Sign
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import gurobi.GRB
 
 enum class GurobiConstraintSign {

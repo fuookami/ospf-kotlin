@@ -1,10 +1,10 @@
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal

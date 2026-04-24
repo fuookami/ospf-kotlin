@@ -3,7 +3,7 @@
 import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModel
 import fuookami.ospf.kotlin.core.intermediate_model.ModelFileFormat
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.intermediate_model.solveFarkasDual
+import fuookami.ospf.kotlin.core.model.mechanism.solveFarkasDual
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus

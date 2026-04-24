@@ -1,17 +1,17 @@
 ﻿package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticMetaModelF64
-import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelF64
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok

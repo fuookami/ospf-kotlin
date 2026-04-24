@@ -1,18 +1,25 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelConfiguration
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToF64
+import fuookami.ospf.kotlin.core.model.mechanism.flattenData
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.eq
+import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
-import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -119,9 +126,9 @@ class SemanticEquivalenceTest {
 
         // Build MechanismModel via invoke() — this is the real MetaModel -> MechanismModel pipeline
         val mechResult = LinearMechanismModel.invoke(metaModel, concurrent = false)
-        assertTrue(mechResult is Ok, "LinearMechanismModel.invoke should succeed")
+        assertTrue(mechResult.ok, "LinearMechanismModel.invoke should succeed")
 
-        val mechModel = mechResult.value
+        val mechModel = mechResult.value!!
         assertEquals(1, mechModel.constraints.size, "MechanismModel should have 1 constraint from MetaModel")
 
         // Verify the constraint has correct sign and rhs
@@ -135,10 +142,10 @@ class SemanticEquivalenceTest {
 
         // Verify convertMechanismModelToF64 preserves everything
         val f64Result = convertMechanismModelToF64(mechModel)
-        assertTrue(f64Result is Ok, "convertMechanismModelToF64 should return Ok")
-        assertEquals(1, f64Result.value.constraints.size, "F64 model should preserve constraint count")
+        assertTrue(f64Result.ok, "convertMechanismModelToF64 should return Ok")
+        assertEquals(1, f64Result.value!!.constraints.size, "F64 model should preserve constraint count")
 
-        val f64Constraint = f64Result.value.constraints.first()
+        val f64Constraint = f64Result.value!!.constraints.first()
         assertEquals(constraint.sign, f64Constraint.sign, "F64 constraint sign should match")
         assertEquals(constraint.rhsF64, f64Constraint.rhsF64, "F64 constraint rhs should match")
 
@@ -267,7 +274,7 @@ class SemanticEquivalenceTest {
     }
 
     /**
-     * Test 7: Full MetaModel→MechanismModel pipeline equivalence
+     * Test 7: Full MetaModel->MechanismModel pipeline equivalence
      *
      * Verifies two aspects:
      * - Constraint pipeline: two MetaModel instances with identical constraints built via
@@ -306,8 +313,8 @@ class SemanticEquivalenceTest {
 
         // Build MechanismModel via invoke() — real pipeline (reads _subObjects)
         val mechResultA = LinearMechanismModel.invoke(metaModelA, concurrent = false)
-        assertTrue(mechResultA is Ok, "LinearMechanismModel.invoke should succeed for A")
-        val mechModelA = mechResultA.value
+        assertTrue(mechResultA.ok, "LinearMechanismModel.invoke should succeed for A")
+        val mechModelA = mechResultA.value!!
 
         // === Objective path B: addObject(category, flattenData) only ===
         // This writes _flattenSubObjects (not _subObjects). invoke() does NOT read
@@ -360,15 +367,15 @@ class SemanticEquivalenceTest {
 
         // === Verify convertMechanismModelToF64 preserves constraints ===
         val f64ResultA = convertMechanismModelToF64(mechModelA)
-        assertTrue(f64ResultA is Ok, "convertMechanismModelToF64 should succeed for A")
-        assertEquals(1, f64ResultA.value.constraints.size, "F64 model should preserve constraint count")
+        assertTrue(f64ResultA.ok, "convertMechanismModelToF64 should succeed for A")
+        assertEquals(1, f64ResultA.value!!.constraints.size, "F64 model should preserve constraint count")
 
         metaModelA.close()
         metaModelB.close()
     }
 
     /**
-     * Test 8: Plugin boundary Double conversion — quadratic constraints survive V→F64 boundary
+     * Test 8: Plugin boundary Double conversion — quadratic constraints survive V->F64 boundary
      *
      * Creates a QuadraticMetaModel<Flt64> with a real quadratic constraint (x*y <= 5)
      * and a linear constraint (x <= 3), builds QuadraticMechanismModel via invoke(),
@@ -413,8 +420,8 @@ class SemanticEquivalenceTest {
 
         // Build MechanismModel via invoke() — real pipeline
         val mechResult = QuadraticMechanismModel.invoke(metaModel, concurrent = false)
-        assertTrue(mechResult is Ok, "QuadraticMechanismModel.invoke should succeed")
-        val mechModel = mechResult.value
+        assertTrue(mechResult.ok, "QuadraticMechanismModel.invoke should succeed")
+        val mechModel = mechResult.value!!
 
         // Verify both constraints are present in the MechanismModel
         assertEquals(2, mechModel.constraints.size,
@@ -436,13 +443,13 @@ class SemanticEquivalenceTest {
 
         // Verify convertMechanismModelToF64 preserves all constraints
         val f64Result = convertMechanismModelToF64(mechModel)
-        assertTrue(f64Result is Ok, "convertMechanismModelToF64 should succeed for QuadraticMechanismModel<Flt64>")
+        assertTrue(f64Result.ok, "convertMechanismModelToF64 should succeed for QuadraticMechanismModel<Flt64>")
 
-        val f64Model = f64Result.value
+        val f64Model = f64Result.value!!
         assertEquals(mechModel.constraints.size, f64Model.constraints.size,
             "F64 model should have same constraint count as original")
 
-        // Verify each constraint's sign and rhs are preserved across the V→F64 boundary
+        // Verify each constraint's sign and rhs are preserved across the V->F64 boundary
         for (i in mechModel.constraints.indices) {
             val orig = mechModel.constraints[i]
             val f64 = f64Model.constraints[i]

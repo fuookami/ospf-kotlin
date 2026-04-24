@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.core.model.status
 
-import fuookami.ospf.kotlin.core.intermediate_model.IntermediateModelDumpingStatus
-import fuookami.ospf.kotlin.core.intermediate_model.toModelBuildingStatus
-import fuookami.ospf.kotlin.core.intermediate_model.MechanismModelDumpingStatus
-import fuookami.ospf.kotlin.core.intermediate_model.RegistrationStatus
-import fuookami.ospf.kotlin.core.intermediate_model.toModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.basic.RegistrationStatus
+import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.IntermediateModelDumpingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
+import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
 import com.alibaba.damo.mindopt.*
 import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority

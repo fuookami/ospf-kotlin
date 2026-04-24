@@ -1,11 +1,11 @@
 ﻿package fuookami.ospf.kotlin.framework.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.model.Model
-import fuookami.ospf.kotlin.core.intermediate_model.MetaConstraintGroup
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.basic.Model
+import fuookami.ospf.kotlin.core.model.mechanism.MetaConstraintGroup
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*

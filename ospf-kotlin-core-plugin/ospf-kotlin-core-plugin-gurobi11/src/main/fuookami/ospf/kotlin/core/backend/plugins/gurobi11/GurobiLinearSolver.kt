@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
 import com.gurobi.gurobi.*
 import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.nonNullConstraintPriorityAmount
+import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
