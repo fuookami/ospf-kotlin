@@ -1,17 +1,27 @@
-﻿package fuookami.ospf.kotlin.math.symbol.roundtrip
+package fuookami.ospf.kotlin.math.symbol.roundtrip
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.parser.parseLegacySymbolExpression
-import fuookami.ospf.kotlin.math.symbol.serde.legacySymbolExprFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.toLegacyExpr
-import fuookami.ospf.kotlin.math.symbol.serde.toLegacyJsonString
+import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.serde.canonicalInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.canonicalPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.linearInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.linearPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.quadraticInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.quadraticPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.serde.toJsonString
 import org.junit.jupiter.api.Test
-import kotlin.random.Random
-import kotlin.test.assertTrue
+import kotlin.test.assertEquals
 
 class SymbolRoundTripTest {
     private data class TestSymbol(
@@ -21,86 +31,123 @@ class SymbolRoundTripTest {
 
     private val x = TestSymbol("x")
     private val y = TestSymbol("y")
-    private val z = TestSymbol("z")
-    private val symbolByName = mapOf(
-        "x" to x,
-        "y" to y,
-        "z" to z
-    )
 
-    private fun randomTerm(random: Random): String {
-        val coefficient = sequence {
-            while (true) {
-                val c = random.nextInt(-5, 6)
-                if (c != 0) {
-                    yield(c)
-                }
-            }
-        }.first()
-
-        val exponents = listOf(
-            "x" to random.nextInt(0, 4),
-            "y" to random.nextInt(0, 4),
-            "z" to random.nextInt(0, 4)
-        )
-
-        val factors = mutableListOf<String>()
-        for ((name, exp) in exponents) {
-            if (exp == 1) {
-                factors.add(name)
-            } else if (exp > 1) {
-                factors.add("$name^$exp")
-            }
+    private fun assertLinearPolynomialEquals(expected: LinearPolynomial<Flt64>, actual: LinearPolynomial<Flt64>) {
+        assertEquals(expected.monomials.size, actual.monomials.size)
+        for (i in expected.monomials.indices) {
+            assertEquals(expected.monomials[i].coefficient, actual.monomials[i].coefficient)
+            assertEquals(expected.monomials[i].symbol.name, actual.monomials[i].symbol.name)
         }
-
-        return if (factors.isEmpty()) {
-            coefficient.toString()
-        } else {
-            "${coefficient}*${factors.joinToString("*")}"
-        }
+        assertEquals(expected.constant, actual.constant)
     }
 
-    private fun randomPolynomialExpression(seed: Int, termCount: Int): String {
-        val random = Random(seed)
-        val terms = (0 until termCount).map { randomTerm(random) }
-        return terms.joinToString(" + ")
+    private fun assertQuadraticPolynomialEquals(expected: QuadraticPolynomial<Flt64>, actual: QuadraticPolynomial<Flt64>) {
+        assertEquals(expected.monomials.size, actual.monomials.size)
+        for (i in expected.monomials.indices) {
+            assertEquals(expected.monomials[i].coefficient, actual.monomials[i].coefficient)
+            assertEquals(expected.monomials[i].symbol1.name, actual.monomials[i].symbol1.name)
+            assertEquals(expected.monomials[i].symbol2?.name, actual.monomials[i].symbol2?.name)
+        }
+        assertEquals(expected.constant, actual.constant)
     }
 
-    private fun assertRoundTripEquivalent(expressionText: String) {
-        val parsed = parseLegacySymbolExpression(expressionText)
-        val canonical = parsed.legacyToCanonicalPolynomial { name ->
-            symbolByName[name] ?: error("Unknown symbol: $name")
-        }.combineTerms()
-
-        val json = canonical.toLegacyExpr().toLegacyJsonString()
-        val restoredExpr = legacySymbolExprFromJson(json)
-        val restoredCanonical = restoredExpr.legacyToCanonicalPolynomial { name ->
-            symbolByName[name] ?: error("Unknown symbol: $name")
-        }.combineTerms()
-
-        val samples = listOf(
-            mapOf<Symbol, Flt64>(x to Flt64(2.0), y to Flt64(-1.0), z to Flt64(0.5)),
-            mapOf<Symbol, Flt64>(x to Flt64(-3.0), y to Flt64(4.0), z to Flt64(2.0)),
-            mapOf<Symbol, Flt64>(x to Flt64.one, y to Flt64.one, z to Flt64.one)
-        )
-
-        for (values in samples) {
-            val lhs = canonical.evaluate(values)!!
-            val rhs = restoredCanonical.evaluate(values)!!
-            assertTrue((lhs - rhs).abs() <= Flt64(1e-9))
+    private fun assertCanonicalPolynomialEquals(expected: CanonicalPolynomial<Flt64>, actual: CanonicalPolynomial<Flt64>) {
+        val e = expected.combineTerms()
+        val a = actual.combineTerms()
+        assertEquals(e.monomials.size, a.monomials.size)
+        for (i in e.monomials.indices) {
+            assertEquals(e.monomials[i].coefficient, a.monomials[i].coefficient)
+            assertEquals(e.monomials[i].powers.mapKeys { it.key.name }, a.monomials[i].powers.mapKeys { it.key.name })
         }
+        assertEquals(e.constant, a.constant)
     }
 
     @Test
-    fun randomPolynomialRoundTripShouldPreserveSemantics() {
-        for (seed in 0 until 20) {
-            val expression = randomPolynomialExpression(seed = seed, termCount = 6)
-            assertRoundTripEquivalent(expression)
-        }
+    fun linearPolynomialJsonRoundTrip() {
+        val original = LinearPolynomial<Flt64>(
+            monomials = listOf(
+                LinearMonomial(Flt64(2.5), x),
+                LinearMonomial(Flt64(-1.0), y)
+            ),
+            constant = Flt64(10.0)
+        )
+        val json = original.toJsonString()
+        val restored = linearPolynomialFromJson(json)!!
+        assertLinearPolynomialEquals(original, restored)
     }
 
     @Test
-    fun highOrderPolynomialRoundTripShouldPreserveSemantics() {
-        assertRoundTripEquivalent("2*x^5*y^2 - 3*x^2*y^3 + 4*z^4 - 7*x*y*z + 11")
+    fun quadraticPolynomialJsonRoundTrip() {
+        val original = QuadraticPolynomial<Flt64>(
+            monomials = listOf(
+                QuadraticMonomial(Flt64(1.0), x, x),
+                QuadraticMonomial(Flt64(-0.5), x, y)
+            ),
+            constant = Flt64(0.0)
+        )
+        val json = original.toJsonString()
+        val restored = quadraticPolynomialFromJson(json)!!
+        assertQuadraticPolynomialEquals(original, restored)
+    }
+
+    @Test
+    fun canonicalPolynomialJsonRoundTrip() {
+        val original = CanonicalPolynomial<Flt64>(
+            monomials = listOf(
+                CanonicalMonomial(Flt64(3.0), mapOf(x to Int32(2), y to Int32(1)))
+            ),
+            constant = Flt64(-7.0)
+        )
+        val json = original.toJsonString()
+        val restored = canonicalPolynomialFromJson(json)
+        assertCanonicalPolynomialEquals(original, restored)
+    }
+
+    @Test
+    fun linearInequalityJsonRoundTrip() {
+        val original = LinearInequality(
+            lhs = LinearPolynomial(listOf(LinearMonomial(Flt64(1.0), x)), Flt64(0.0)),
+            rhs = LinearPolynomial(listOf(LinearMonomial(Flt64(1.0), y)), Flt64(5.0)),
+            comparison = Comparison.LE
+        )
+        val json = original.toJsonString()
+        val restored = linearInequalityFromJson(json)
+        assertLinearPolynomialEquals(original.lhs, restored.lhs)
+        assertLinearPolynomialEquals(original.rhs, restored.rhs)
+        assertEquals(original.comparison, restored.comparison)
+    }
+
+    @Test
+    fun canonicalInequalityJsonRoundTrip() {
+        val original = CanonicalInequality(
+            lhs = CanonicalPolynomial(
+                listOf(CanonicalMonomial(Flt64(1.0), mapOf(x to Int32(1)))),
+                Flt64(0.0)
+            ),
+            rhs = CanonicalPolynomial(emptyList(), Flt64(10.0)),
+            comparison = Comparison.GE
+        )
+        val json = original.toJsonString()
+        val restored = canonicalInequalityFromJson(json)
+        assertCanonicalPolynomialEquals(original.lhs, restored.lhs)
+        assertCanonicalPolynomialEquals(original.rhs, restored.rhs)
+        assertEquals(original.comparison, restored.comparison)
+    }
+
+    @Test
+    fun quadraticInequalityJsonRoundTrip() {
+        val original = fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf(
+            lhs = QuadraticPolynomial(
+                listOf(QuadraticMonomial(Flt64(1.0), x, x)),
+                Flt64(0.0)
+            ),
+            rhs = QuadraticPolynomial(emptyList(), Flt64(25.0)),
+            comparison = Comparison.LE
+        )
+        val json = original.toJsonString()
+        val restored = quadraticInequalityFromJson(json)
+        assertQuadraticPolynomialEquals(original.lhs, restored.lhs)
+        assertQuadraticPolynomialEquals(original.rhs, restored.rhs)
+        assertEquals(original.comparison, restored.comparison)
     }
 }

@@ -4,11 +4,11 @@
 
 Symbolic expression foundation and operations for OSPF Kotlin.
 
-The `symbol` package now exposes two expression layers:
-
-- `symbol.expression.*` is the preferred runtime stack for boolean/scalar expressions, property paths, evaluation, and normalization.
-- `symbol.dsl`, `symbol.parser`, and `symbol.serde` remain available as the legacy `Expr` compatibility stack for polynomial and inequality conversion.
-- When you need raw legacy AST entry points, use `legacySymbolExpr`, `parseLegacySymbolExpression`, `legacySymbolExprFromJson`, `toLegacyExpr`, and `legacyToCanonicalPolynomial`.
+The `symbol` package provides:
+- `symbol.expression.*` for runtime boolean/scalar expressions, property paths, evaluation, and normalization.
+- `symbol.parse` for direct polynomial and inequality parsing.
+- `symbol.serde` for direct polynomial and inequality JSON serialization.
+- `symbol.parser` for backward-compatible parse entry points that delegate to `symbol.parse`.
 
 ## Core Types
 
@@ -132,28 +132,22 @@ val grad = compiledGrad(listOf(Flt64(1.0), Flt64(2.0)))
 // List<Flt64> - partial derivatives
 ```
 
-### DSL Quick Entry
+### Parsing
 
 ```kotlin
-import fuookami.ospf.kotlin.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.parse.*
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
 val symbolOf = ::symbolOfSerializedIdentifier
 
-// Linear polynomial from DSL
-val lp = linearPolynomial(symbolOf) {
-    num(1) + num(2) * symbol("x") + num(3) * symbol("y")
-}
+// Parse linear polynomial
+val lp = parseLinear("2*x + 3*y + 1", symbolOf)
 
-// Quadratic polynomial from DSL
-val qp = quadraticPolynomial(symbolOf) {
-    num(1) + num(2) * symbol("x") + num(3) * symbol("x") * symbol("x")
-}
+// Parse quadratic polynomial
+val qp = parseQuadratic("x^2 + 2*x + 1", symbolOf)
 
-// Canonical inequality from DSL
-val ineq = canonicalInequality(symbolOf) {
-    (symbol("x") * symbol("x")) + (symbol("y") * symbol("y")) le num(1)  // x^2 + y^2 <= 1
-}
+// Parse canonical inequality
+val ineq = parseCanonicalInequality("x^2 + y^2 <= 1", symbolOf)
 ```
 
 ### Serialization
@@ -170,10 +164,6 @@ val restored = canonicalPolynomialFromJson(json)
 // Inequality serialization
 val ineqJson = linearInequality.toJsonString()
 val restoredIneq = linearInequalityFromJson(ineqJson)
-
-// Raw legacy Expr JSON round-trip
-val exprJson = canonical.toLegacyExpr().toLegacyJsonString()
-val restoredExpr = legacySymbolExprFromJson(exprJson)
 ```
 
 ### Matrix Form
@@ -341,7 +331,7 @@ val sumQ = quadraticEquations.sumAxis(
 
 - `PolynomialTest.kt`: Arithmetic operations
 - `SerializationTest.kt`: JSON round-trip (17 tests)
-- `DslTest.kt`: DSL quick entry (17 tests)
+- `DirectPolynomialParserTest.kt`: Direct polynomial parsing
 - `CompileTest.kt`: Compilation and invocation
 - `MatrixFormTest.kt`: Quadratic form extraction
 - `CombineTermsTest.kt`: Like-term merging
@@ -352,7 +342,7 @@ val sumQ = quadraticEquations.sumAxis(
 Run tests:
 
 ```powershell
-mvn -pl ospf-kotlin-math -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+mvn -pl ospf-kotlin-math -Dtest=SerializationTest,PolynomialTest,MutableCombineTest test
 ```
 
 ### MultiArray Tests

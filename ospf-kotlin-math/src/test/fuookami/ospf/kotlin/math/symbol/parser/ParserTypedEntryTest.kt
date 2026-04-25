@@ -1,28 +1,14 @@
 package fuookami.ospf.kotlin.math.symbol.parser
 
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
+import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
-import kotlin.test.assertEquals
+import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 
 class ParserTypedEntryTest {
-    @Test
-    fun parseSymbolExpressionRetShouldReturnStructuredFailure() {
-        val result = parseLegacySymbolExpressionRet("x + )")
-        assertTrue(result is Failed<*, *, *>)
-        val issue = (result as Failed<*, *, *>).errValue as? ParseIssue
-        assertEquals(ParseIssueType.Syntax, issue?.type)
-    }
-
-    @Test
-    fun parseSymbolInequalityRetShouldReturnStructuredFailure() {
-        val result = parseLegacySymbolInequalityRet("x <=")
-        assertTrue(result is Failed<*, *, *>)
-        val issue = (result as Failed<*, *, *>).errValue as? ParseIssue
-        assertEquals(ParseIssueType.Syntax, issue?.type)
-    }
-
     @Test
     fun parseTypedPolynomialEntriesShouldReturnRet() {
         val linear = parseLinear("2*x + 3")

@@ -31,15 +31,15 @@ A comprehensive mathematical algebra and symbol system for OSPF Kotlin. Provides
 | `ordinary` | Common math operations | `gcd`, `lcm`, `Prime`, `Factorization` |
 | `parallel` | Parallel computation | `parallelFold`, `chunked` |
 | `symbol` | Symbolic expression system | `Symbol`, `LinearPolynomial`, `CanonicalPolynomial`, `Inequality` |
-| `symbol/expression` | Preferred runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath`, `LegacyExprBridge` |
-| `symbol/parser` | Legacy `Expr` parser with Ret errors | `parseLegacySymbolExpression`, `parseLinear`, `ParseIssue`, `ParseResult` |
-| `symbol/serde` | Legacy `Expr` serialization and symbol identity | `LegacySymbolExpr`, `legacySymbolExprFromJson`, `SymbolIdentityExpr` |
+| `symbol/expression` | Runtime expression AST | `ScalarExpression`, `BooleanExpression`, `PropertyPath` |
+| `symbol/parse` | Direct polynomial/inequality parser | `parseLinear`, `parseQuadratic`, `parseCanonical`, `ParseResult` |
+| `symbol/serde` | Polynomial/inequality JSON serde and symbol identity | `linearPolynomialFromJson`, `SymbolIdentityExpr` |
 
 ## Expression Entry Points
 
-- `symbol.expression.*` is the preferred stack for runtime boolean/scalar expressions, property-path evaluation, and bridge-based migration.
-- `symbol.dsl`, `symbol.parser`, and `symbol.serde` remain available as the legacy `Expr` compatibility stack, primarily for polynomial and inequality conversion.
-- When you need the raw legacy AST, use explicit legacy names: `legacySymbolExpr`, `parseLegacySymbolExpression`, `parseLegacySymbolInequality`, `parseLegacySymbolExpressionRet`, and `legacySymbolExprFromJson`.
+- `symbol.expression.*` is the preferred stack for runtime boolean/scalar expressions and property-path evaluation.
+- `symbol.parse` provides direct polynomial and inequality parsing (linear, quadratic, canonical).
+- `symbol.serde` provides JSON serialization/deserialization for polynomials and inequalities.
 
 ## Architecture Design
 
@@ -283,7 +283,7 @@ import fuookami.ospf.kotlin.math.symbol.parser.*
 import fuookami.ospf.kotlin.utils.functional.*
 
 // Parse with structured error handling
-val result: ParseResult<Expr> = parseLegacySymbolExpressionRet("2*x + 3*y")
+val result = parseLinear("2*x + 3*y")
 when (result) {
     is Ok -> println("Parsed: ${result.value}")
     is Failed -> println("Error: ${result.error}")
@@ -291,7 +291,7 @@ when (result) {
 }
 
 // Parse with error classification
-val linearResult = parseLinear("2*x + 3*y - 5 <= 0")
+val linearResult = parseLinearInequality("2*x + 3*y - 5 <= 0")
 if (linearResult is Failed) {
     val issue = linearResult.error.context as? ParseIssue
     println("Issue type: ${issue?.type}") // Lexical, Syntax, Conversion, Semantic, Unknown
@@ -307,17 +307,10 @@ val inequalityResult = parseLinearInequality("2*x + y <= 5")
 ### Expression DSL
 
 ```kotlin
-import fuookami.ospf.kotlin.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.expression.dsl.*
 
-val expr = legacySymbolExpr {
-    val x = symbol("x")
-    val y = symbol("y")
-
-    // Build polynomial using DSL
-    val poly = (x + y) * (x - y)  // x² - y²
-
-    poly
-}
+// Build boolean expressions with DSL
+val expr = path("a").gt(5) and path("b").isNotNull()
 ```
 
 ### Geometric Primitives

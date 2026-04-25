@@ -1,79 +1,68 @@
 package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.legacyToCanonicalPolynomialTyped
+import fuookami.ospf.kotlin.math.symbol.parse.Flt64NumberParser
+import fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser
+import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertFailsWith
+import kotlin.test.assertNull
 
 class NumberParserIntegrationTest {
-    private data class TestSymbol(
-        override val name: String,
-        override val displayName: String? = null
-    ) : Symbol
-
     @Test
-    fun int64NumberParserShouldBuildCanonicalPolynomialTyped() {
-        val x = TestSymbol("x")
-        val expr = parseLegacySymbolExpression("2*x + 3")
-
-        val polynomial = expr.legacyToCanonicalPolynomialTyped(
-            numberParser = Int64NumberParser,
-            zero = Int64.zero,
-            one = Int64.one,
-            symbolOf = { symbolName ->
-                when (symbolName) {
-                    "x" -> x
-                    else -> error("Unknown symbol: $symbolName")
-                }
-            }
-        )
-
-        assertEquals(Int64(3L), polynomial.constant)
-        assertEquals(1, polynomial.monomials.size)
-        assertEquals(Int64(2L), polynomial.monomials.first().coefficient)
-        assertEquals(mapOf<Symbol, Int32>(x to Int32.one), polynomial.monomials.first().powers)
+    fun flt64ParserParsesInteger() {
+        val parser = Flt64NumberParser
+        val result = parser.parse("42")
+        assertEquals(Flt64(42.0), result)
     }
 
     @Test
-    fun int64NumberParserShouldRejectDecimalLiteral() {
-        val expr = parseLegacySymbolExpression("1.5*x + 2")
-
-        assertFailsWith<IllegalArgumentException> {
-            expr.legacyToCanonicalPolynomialTyped(
-                numberParser = Int64NumberParser,
-                zero = Int64.zero,
-                one = Int64.one
-            )
-        }
+    fun flt64ParserParsesDecimal() {
+        val parser = Flt64NumberParser
+        val result = parser.parse("3.14")
+        assertEquals(Flt64(3.14), result)
     }
 
     @Test
-    fun flt64DefaultPathShouldMatchTypedNumberParserPath() {
-        val x = TestSymbol("x")
-        val y = TestSymbol("y")
-        val expr = parseLegacySymbolExpression("x^2 + 2*x*y - 3")
-        val symbolOf: (String) -> Symbol = { symbolName ->
-            when (symbolName) {
-                "x" -> x
-                "y" -> y
-                else -> error("Unknown symbol: $symbolName")
-            }
-        }
+    fun flt64ParserParsesNegative() {
+        val parser = Flt64NumberParser
+        val result = parser.parse("-7.5")
+        assertEquals(Flt64(-7.5), result)
+    }
 
-        val direct = expr.legacyToCanonicalPolynomial(symbolOf).combineTerms()
-        val typed = expr.legacyToCanonicalPolynomialTyped(
-            numberParser = Flt64NumberParser,
-            zero = Flt64.zero,
-            one = Flt64.one,
-            symbolOf = symbolOf
-        ).combineTerms()
+    @Test
+    fun flt64ParserReturnsNullForInvalid() {
+        val parser = Flt64NumberParser
+        val result = parser.parse("abc")
+        assertNull(result)
+    }
 
-        assertEquals(direct, typed)
+    @Test
+    fun int64ParserParsesInteger() {
+        val parser = Int64NumberParser
+        val result = parser.parse("42")
+        assertEquals(Int64(42), result)
+    }
+
+    @Test
+    fun int64ParserParsesNegative() {
+        val parser = Int64NumberParser
+        val result = parser.parse("-7")
+        assertEquals(Int64(-7), result)
+    }
+
+    @Test
+    fun int64ParserReturnsNullForDecimal() {
+        val parser = Int64NumberParser
+        val result = parser.parse("3.14")
+        assertNull(result)
+    }
+
+    @Test
+    fun int64ParserReturnsNullForInvalid() {
+        val parser = Int64NumberParser
+        val result = parser.parse("abc")
+        assertNull(result)
     }
 }

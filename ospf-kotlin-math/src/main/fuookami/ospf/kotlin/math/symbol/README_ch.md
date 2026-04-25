@@ -4,11 +4,11 @@
 
 OSPF Kotlin 的符号表达式基础与操作。
 
-当前 `symbol` 包有两层表达式体系：
-
-- `symbol.expression.*` 是推荐入口，适合运行时 boolean/scalar expression、`PropertyPath`、求值与规范化。
-- `symbol.dsl`、`symbol.parser`、`symbol.serde` 保留为 legacy `Expr` 兼容层，主要服务多项式和不等式转换。
-- 需要直接操作旧 AST 时，请显式使用 `legacySymbolExpr`、`parseLegacySymbolExpression`、`legacySymbolExprFromJson`、`toLegacyExpr`、`legacyToCanonicalPolynomial`。
+`symbol` 包提供：
+- `symbol.expression.*` 用于运行时布尔/标量表达式、属性路径、求值和规范化。
+- `symbol.parse` 用于直接多项式和不等式解析。
+- `symbol.serde` 用于直接多项式和不等式 JSON 序列化。
+- `symbol.parser` 用于向后兼容的解析入口点，委托给 `symbol.parse`。
 
 ## 核心类型
 
@@ -132,28 +132,22 @@ val grad = compiledGrad(listOf(Flt64(1.0), Flt64(2.0)))
 // List<Flt64> - 偏导数
 ```
 
-### DSL 快捷入口
+### 解析
 
 ```kotlin
-import fuookami.ospf.kotlin.math.symbol.dsl.*
+import fuookami.ospf.kotlin.math.symbol.parse.*
 import fuookami.ospf.kotlin.math.symbol.serde.symbolOfSerializedIdentifier
 
 val symbolOf = ::symbolOfSerializedIdentifier
 
-// 从 DSL 构造线性多项式
-val lp = linearPolynomial(symbolOf) {
-    num(1) + num(2) * symbol("x") + num(3) * symbol("y")
-}
+// 解析线性多项式
+val lp = parseLinear("2*x + 3*y + 1", symbolOf)
 
-// 从 DSL 构造二次多项式
-val qp = quadraticPolynomial(symbolOf) {
-    num(1) + num(2) * symbol("x") + num(3) * symbol("x") * symbol("x")
-}
+// 解析二次多项式
+val qp = parseQuadratic("x^2 + 2*x + 1", symbolOf)
 
-// 从 DSL 构造规范不等式
-val ineq = canonicalInequality(symbolOf) {
-    (symbol("x") * symbol("x")) + (symbol("y") * symbol("y")) le num(1)  // x^2 + y^2 <= 1
-}
+// 解析规范不等式
+val ineq = parseCanonicalInequality("x^2 + y^2 <= 1", symbolOf)
 ```
 
 ### 序列化
@@ -171,9 +165,6 @@ val restored = canonicalPolynomialFromJson(json)
 val ineqJson = linearInequality.toJsonString()
 val restoredIneq = linearInequalityFromJson(ineqJson)
 
-// legacy Expr 的 JSON round-trip
-val exprJson = canonical.toLegacyExpr().toLegacyJsonString()
-val restoredExpr = legacySymbolExprFromJson(exprJson)
 ```
 
 ### 矩阵形式
@@ -341,7 +332,7 @@ val sumQ = quadraticEquations.sumAxis(
 
 - `PolynomialTest.kt`：算术操作
 - `SerializationTest.kt`：JSON 往返（17 个测试）
-- `DslTest.kt`：DSL 快捷入口（17 个测试）
+- `DirectPolynomialParserTest.kt`：直接多项式解析
 - `CompileTest.kt`：编译与调用
 - `MatrixFormTest.kt`：二次型提取
 - `CombineTermsTest.kt`：同类项合并
@@ -352,7 +343,7 @@ val sumQ = quadraticEquations.sumAxis(
 运行测试：
 
 ```powershell
-mvn -pl ospf-kotlin-math -Dtest=SerializationTest,DslTest,PolynomialTest,MutableCombineTest test
+mvn -pl ospf-kotlin-math -Dtest=SerializationTest,DirectPolynomialParserTest,PolynomialTest,MutableCombineTest test
 ```
 
 ### MultiArray 测试

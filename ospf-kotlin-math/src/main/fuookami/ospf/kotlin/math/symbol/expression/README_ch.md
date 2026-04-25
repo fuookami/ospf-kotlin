@@ -2,7 +2,7 @@
 
 [English Documentation (README.md)](./README.md)
 
-通用表达式 AST，用于 SQL 风格的布尔和标量表达式。提供与旧版 `symbol.parser.Expr` 并行的新系统，增强逻辑运算能力。
+通用表达式 AST，用于 SQL 风格的布尔和标量表达式。提供与 `symbol.parse` 多项式/不等式解析器并行的新系统，增强逻辑运算能力。
 
 ## 架构概览
 
@@ -32,39 +32,12 @@ expression/
 └── operation/            # 规范化、求值
 ```
 
-## 并存迁移策略
+## 与多项式/不等式解析器的关系
 
-### 与旧版 `Expr` 并存
+`expression` 包处理 SQL 风格的布尔和标量表达式，而 `symbol.parse` 包处理多项式和不等式解析：
 
-新 `expression` 包与旧版 `symbol.parser.Expr` 并存：
-
-1. **旧版 `Expr`** - 保留向后兼容，服务 polynomial/inequality 场景
-2. **新版 `BooleanExpression`** - 增强逻辑运算，支持 SQL 表达式
-3. **桥接层** - `adapter/LegacyExprBridge` 提供系统间转换
-
-### 迁移路径
-
-```kotlin
-// 旧版 (parser.Expr) - 算术和比较为主
-val legacyExpr = Expr.parse("x > 5")
-
-// 新版 (BooleanExpression) - 完整布尔逻辑支持
-val newExpr = BooleanExpression.parse("x > 5 and y is not null")
-
-// 桥接转换 (Phase M4)
-val converted = LegacyExprBridge.toBooleanExpression(legacyExpr)
-```
-
-### 迁移时间线
-
-| 阶段 | 状态 | 描述 |
-|------|------|------|
-| M0 | 已完成 | 脚手架与包结构 |
-| M1 | 已完成 | 核心 AST（PropertyPath, ScalarExpression, BooleanExpression） |
-| M2 | 已完成 | DSL 与解析器 |
-| M3 | 已完成 | 序列化、规范化、求值 |
-| M4 | 已完成 | 旧版桥接和兼容层 |
-| M5 | 进行中 | 文档 |
+1. **`symbol.parse`** - 直接多项式/不等式解析（线性、二次、规范型）
+2. **`BooleanExpression`** - 完整布尔逻辑，支持 SQL 表达式
 
 ## 使用示例
 
@@ -113,30 +86,22 @@ val restored = booleanExpressionFromJson(json)
 
 ### 旧版桥接
 
-```kotlin
-import fuookami.ospf.kotlin.math.symbol.expression.adapter.*
+旧版 `Expr` AST 和 `LegacyExprBridge` 已移除。SQL 风格表达式请直接使用 `BooleanExpression`，多项式/不等式解析请使用 `symbol.parse` 函数。
 
-// 将旧版 Expr 转换为新版 BooleanExpression
-val legacyExpr: Expr = Expr.Comparison(...)
-val newExpr = legacyExpr.toBooleanExpressionOrNull()
+## 与多项式/不等式解析器的主要差异
 
-// 将新表达式转换回旧版
-val backToLegacy = newExpr?.toLegacyExprOrNull()
-```
-
-## 与旧版 Expr 的主要差异
-
-| 功能 | 旧版 `Expr` | 新版 `Expression` |
-|------|-------------|-------------------|
-| 布尔逻辑 | 有限 | 完整 `and/or/not` 支持 |
+| 功能 | `symbol.parse` | `expression` |
+|------|----------------|--------------|
+| 侧重点 | 多项式/不等式 | SQL 布尔/标量 |
+| 布尔逻辑 | 无 | 完整 `and/or/not` 支持 |
 | 空值处理 | 无 | `isNull/isNotNull` 操作符 |
 | 模式匹配 | 无 | 带模式的 `PatternMatch` |
 | In 操作符 | 无 | `In` 集合成员判断 |
-| 路径引用 | 基础 | `PropertyPath` 分段支持 |
-| 序列化 | 自定义 | `kotlinx.serialization` JSON |
+| 路径引用 | 基于符号 | `PropertyPath` 分段支持 |
+| 序列化 | 直接 DTO | `kotlinx.serialization` JSON |
 | 规范化 | 无 | 扁平化、常量折叠、德摩根 |
 
 ## 相关链接
 
 - [symbol/README_ch.md](../README_ch.md) - 主符号模块文档
-- [symbol/parser/README_ch.md](../parser/README_ch.md) - 旧版解析器文档
+- [symbol/parse/](../parse/) - 多项式/不等式解析器
