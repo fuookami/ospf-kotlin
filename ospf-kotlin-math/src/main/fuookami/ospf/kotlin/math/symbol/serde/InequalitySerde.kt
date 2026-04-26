@@ -12,8 +12,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
-import fuookami.ospf.kotlin.math.symbol.operation.toLinearInequalityOrNull
-import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequalityOrNull
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -192,16 +190,26 @@ private fun QuadraticInequalityData.toDomain(symbolOf: (String) -> Symbol): Quad
 // Public API: toJsonString
 // ============================================================================
 
-fun CanonicalInequality.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+fun CanonicalInequality.toJsonString(): String {
     return writeJson(toDto())
+}
+
+@Deprecated("`symbolComparator` 参数未生效，已废弃；请改用 toJsonString()")
+fun CanonicalInequality.toJsonString(_symbolComparator: Comparator<Symbol>?): String {
+    return toJsonString()
 }
 
 fun LinearInequality<Flt64>.toJsonString(): String {
     return writeJson(toDto())
 }
 
-fun QuadraticInequalityOf<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+fun QuadraticInequalityOf<Flt64>.toJsonString(): String {
     return writeJson(toDto())
+}
+
+@Deprecated("`symbolComparator` 参数未生效，已废弃；请改用 toJsonString()")
+fun QuadraticInequalityOf<Flt64>.toJsonString(_symbolComparator: Comparator<Symbol>?): String {
+    return toJsonString()
 }
 
 // ============================================================================
@@ -220,9 +228,17 @@ fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 
 fun quadraticInequalityFromJson(
     json: String,
-    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
-    symbolComparator: Comparator<Symbol>? = null
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
 ): QuadraticInequality {
     val dto = readFromJson<QuadraticInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toDomain(symbolOf)
+}
+
+@Deprecated("`symbolComparator` 参数未生效，已废弃；请改用 quadraticInequalityFromJson(json, symbolOf)")
+fun quadraticInequalityFromJson(
+    json: String,
+    symbolOf: (String) -> Symbol,
+    _symbolComparator: Comparator<Symbol>?
+): QuadraticInequality {
+    return quadraticInequalityFromJson(json, symbolOf)
 }

@@ -4,10 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
@@ -19,6 +17,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
 class ResourceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -39,14 +39,14 @@ class ResourceOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModelF64): Try {
         if (slots.isNotEmpty()) {
-            val cost = MutableLinearPolynomial()
+            val cost = MutableLinearPolynomial(constant = Flt64.zero)
             for (slot in slots) {
                 val thresholdValue = threshold(slot)
                 val thisCoefficient = coefficient(slot)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += thisCoefficient * quantity.overQuantity[slot]
+                    cost += LinearMonomial(thisCoefficient, quantity.overQuantity[slot])
                 } else {
                     val slack = SlackFunction(
                         x = quantity.overQuantity[slot],
@@ -65,11 +65,11 @@ class ResourceOverQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += thisCoefficient * slack
+                    cost += LinearMonomial(thisCoefficient, slack)
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost,
+                polynomial = cost.toLinearPolynomial(),
                 name = "${quantity.name} over quantity"
             )) {
                 is Ok -> {}
@@ -87,6 +87,3 @@ class ResourceOverQuantityMinimization<
         return ok
     }
 }
-
-
-

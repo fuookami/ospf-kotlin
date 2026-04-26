@@ -25,7 +25,6 @@ class BooleanDslTest {
         fun testStringComparison() {
             val expr = path("status") eq "active"
 
-            assertTrue(expr is Comparison<*>)
             assertEquals(ComparisonOperator.Eq, expr.operator)
         }
 
@@ -34,7 +33,6 @@ class BooleanDslTest {
         fun testNumberComparison() {
             val expr = path("age") gt 18
 
-            assertTrue(expr is Comparison<*>)
             assertEquals(ComparisonOperator.Gt, expr.operator)
         }
 
@@ -54,7 +52,6 @@ class BooleanDslTest {
         fun testInExpression() {
             val expr = path("status").inValues("active", "pending", "processing")
 
-            assertTrue(expr is InExpression<*>)
             assertFalse(expr.negated)
             assertEquals(3, expr.candidates.size)
         }
@@ -64,7 +61,6 @@ class BooleanDslTest {
         fun testNotInExpression() {
             val expr = path("status").notInValues("deleted", "archived")
 
-            assertTrue(expr is InExpression<*>)
             assertTrue(expr.negated)
             assertEquals(2, expr.candidates.size)
         }
@@ -74,7 +70,6 @@ class BooleanDslTest {
         fun testIsNull() {
             val expr = path("name").isNull()
 
-            assertTrue(expr is NullCheck)
             assertTrue(expr.isNull)
         }
 
@@ -83,7 +78,6 @@ class BooleanDslTest {
         fun testIsNotNull() {
             val expr = path("email").isNotNull()
 
-            assertTrue(expr is NullCheck)
             assertTrue(expr.isNotNull)
         }
 
@@ -92,7 +86,6 @@ class BooleanDslTest {
         fun testLikePatternMatch() {
             val expr = path("name") like "John%"
 
-            assertTrue(expr is PatternMatch<*>)
             assertEquals(PatternMatchMode.Like, expr.mode)
         }
     }
@@ -106,7 +99,6 @@ class BooleanDslTest {
         fun testAndOperator() {
             val expr = (path("age") gt 18) and (path("status") eq "active")
 
-            assertTrue(expr is AndExpression)
             assertEquals(2, expr.operands.size)
         }
 
@@ -115,7 +107,6 @@ class BooleanDslTest {
         fun testOrOperator() {
             val expr = (path("age") lt 18) or (path("age") gt 65)
 
-            assertTrue(expr is OrExpression)
             assertEquals(2, expr.operands.size)
         }
 
@@ -124,7 +115,7 @@ class BooleanDslTest {
         fun testNotOperator() {
             val expr = !((path("status") eq "deleted"))
 
-            assertTrue(expr is NotExpression)
+            assertEquals("Not", expr.typeName)
         }
 
         @Test
@@ -133,8 +124,7 @@ class BooleanDslTest {
             val expr = ((path("age") gt 18) and (path("status") eq "active")) or
                     !((path("status") eq "deleted"))
 
-            assertTrue(expr is OrExpression)
-            val or = expr as OrExpression
+            val or = expr
             assertTrue(or.operands[0] is AndExpression)
             assertTrue(or.operands[1] is NotExpression)
         }
@@ -144,7 +134,6 @@ class BooleanDslTest {
         fun testFlattenedAnd() {
             val expr = (path("a") eq 1) and (path("b") eq 2) and (path("c") eq 3)
 
-            assertTrue(expr is AndExpression)
             assertEquals(3, expr.operands.size)
         }
     }
@@ -158,7 +147,6 @@ class BooleanDslTest {
         fun testQuickCompare() {
             val expr = compare("age", ComparisonOperator.Gt, 18)
 
-            assertTrue(expr is Comparison<*>)
             assertEquals(ComparisonOperator.Gt, expr.operator)
         }
 
@@ -221,10 +209,9 @@ class BooleanDslTest {
             val parserExpr = parseBooleanExpression("age > 18")
 
             // 验证结构相同 / Verify same structure
-            assertTrue(dslExpr is Comparison<*>)
             assertTrue(parserExpr is Comparison<*>)
 
-            val dslComp = dslExpr as Comparison<*>
+            val dslComp = dslExpr
             val parserComp = parserExpr as Comparison<*>
 
             assertEquals(dslComp.operator, parserComp.operator)
@@ -239,10 +226,9 @@ class BooleanDslTest {
             // Parser
             val parserExpr = parseBooleanExpression("age > 18 and status = 'active'")
 
-            assertTrue(dslExpr is AndExpression)
             assertTrue(parserExpr is AndExpression)
 
-            val dslAnd = dslExpr as AndExpression
+            val dslAnd = dslExpr
             val parserAnd = parserExpr as AndExpression
 
             assertEquals(dslAnd.operands.size, parserAnd.operands.size)
@@ -261,7 +247,6 @@ class BooleanDslTest {
                 "(age > 18 and status = 'active') or not status = 'deleted'"
             )
 
-            assertTrue(dslExpr is OrExpression)
             assertTrue(parserExpr is OrExpression)
         }
 
@@ -274,10 +259,9 @@ class BooleanDslTest {
             // Parser
             val parserExpr = parseBooleanExpression("status in ('active', 'pending')")
 
-            assertTrue(dslExpr is InExpression<*>)
             assertTrue(parserExpr is InExpression<*>)
 
-            val dslIn = dslExpr as InExpression<*>
+            val dslIn = dslExpr
             val parserIn = parserExpr as InExpression<*>
 
             assertEquals(dslIn.negated, parserIn.negated)
@@ -293,10 +277,9 @@ class BooleanDslTest {
             // Parser
             val parserExpr = parseBooleanExpression("name is not null")
 
-            assertTrue(dslExpr is NullCheck)
             assertTrue(parserExpr is NullCheck)
 
-            val dslNull = dslExpr as NullCheck
+            val dslNull = dslExpr
             val parserNull = parserExpr as NullCheck
 
             assertEquals(dslNull.isNull, parserNull.isNull)
@@ -312,10 +295,9 @@ class BooleanDslTest {
             // Parser
             val parserExpr = parseBooleanExpression("user.address.city = 'Beijing'")
 
-            assertTrue(dslExpr is Comparison<*>)
             assertTrue(parserExpr is Comparison<*>)
 
-            val dslComp = dslExpr as Comparison<*>
+            val dslComp = dslExpr
             val parserComp = parserExpr as Comparison<*>
 
             val dslRef = dslComp.left as? ScalarReference<*>

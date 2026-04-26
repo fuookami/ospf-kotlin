@@ -2,10 +2,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
@@ -27,7 +27,7 @@ class ConsumptionOverQuantityMinimization<
     private val consumption: Consumption,
     private val threshold: (C) -> Flt64 = { Flt64.zero },
     private val coefficient: (C) -> Flt64 = { Flt64.one },
-    override val name: String = "consumption_less_quantity_minimization"
+    override val name: String = "consumption_over_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
     private val materials = if (consumption.overEnabled) {
         products.filter { it.second?.overEnabled == true }
@@ -35,13 +35,13 @@ class ConsumptionOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModelF64): Try {
         if (materials.isNotEmpty()) {
-            val cost = MutableLinearPolynomial()
+            val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
             for ((material, _) in materials) {
                 val thresholdValue = threshold(material)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += coefficient(material) * consumption.overQuantity[material]
+                    cost += LinearMonomial(coefficient(material), consumption.overQuantity[material])
                 } else {
                     val slack = SlackFunction(
                         x = consumption.overQuantity[material],
@@ -60,11 +60,11 @@ class ConsumptionOverQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += coefficient(material) * slack
+                    cost += LinearMonomial(coefficient(material), slack)
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost,
+                polynomial = cost.toLinearPolynomial(),
                 name = "consumption over quantity"
             )) {
                 is Ok -> {}
@@ -81,6 +81,3 @@ class ConsumptionOverQuantityMinimization<
         return ok
     }
 }
-
-
-

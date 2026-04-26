@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableCombinationItem
+import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.utils.functional.*

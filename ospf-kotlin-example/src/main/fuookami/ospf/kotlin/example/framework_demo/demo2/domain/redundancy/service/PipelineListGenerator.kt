@@ -1,0 +1,44 @@
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.service
+
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.framework.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.service.limits.*
+
+class PipelineListGenerator(
+    private val aggregation: Aggregation
+) {
+    operator fun invoke(
+        stowageMode: StowageMode,
+        parameter: Parameter
+    ): Ret<PipelineList<AbstractLinearMetaModelF64>> {
+        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModelF64>>()
+
+        pipelines.add(
+            ExperimentalLongitudinalBalanceLimit(
+                aircraftModel = aggregation.aircraftModel,
+                longitudinalBalance = aggregation.experimentalLongitudinalBalance,
+                coefficient = {
+                    TODO("not implemented yet")
+                }
+            )
+        )
+
+        pipelines.add(
+            RedundancyLimit(
+                redundancy = aggregation.redundancy,
+                coefficient = {
+                    TODO("not implemented yet")
+                }
+            )
+        )
+
+        return Ok(pipelines)
+    }
+}
+

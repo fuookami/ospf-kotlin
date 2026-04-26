@@ -4,15 +4,16 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -56,7 +57,7 @@ open class BunchSchedulingTaskTime<
     override lateinit var estimateStartTime: LinearExpressionSymbols1
     override lateinit var estimateEndTime: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
             if (!::estRedundancy.isInitialized) {
                 estRedundancy = if (timeWindow.continues) {
@@ -120,9 +121,9 @@ open class BunchSchedulingTaskTime<
                 val task = tasks[i]
                 LinearExpressionSymbol(
                     polynomial = if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(estRedundancy[task])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[task])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "estimate_start_time_${task}"
                 )
@@ -148,9 +149,9 @@ open class BunchSchedulingTaskTime<
                 val task = tasks[i]
                 LinearExpressionSymbol(
                     polynomial = if (::estRedundancy.isInitialized) {
-                        LinearPolynomial(estRedundancy[task])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, estRedundancy[task])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "estimate_end_time_${task}"
                 )
@@ -229,7 +230,7 @@ open class BunchSchedulingTaskTime<
     open fun addColumns(
         iteration: UInt64,
         bunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         assert(bunches.isNotEmpty())
 
@@ -250,8 +251,8 @@ open class BunchSchedulingTaskTime<
                 for (bunch in thisBunches) {
                     val actualTask = bunch.get(task) ?: continue
                     val time = actualTask.time!!
-                    est.asMutable() += with(timeWindow) { time.start.value } * xi[bunch]
-                    eet.asMutable() += with(timeWindow) { time.end.value } * xi[bunch]
+                    est.asMutable() += LinearMonomial(with(timeWindow) { time.start.value }, xi[bunch])
+                    eet.asMutable() += LinearMonomial(with(timeWindow) { time.end.value }, xi[bunch])
                 }
             }
         }

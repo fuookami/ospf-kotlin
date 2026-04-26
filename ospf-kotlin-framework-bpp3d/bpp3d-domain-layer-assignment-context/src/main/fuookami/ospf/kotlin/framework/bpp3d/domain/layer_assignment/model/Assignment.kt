@@ -2,14 +2,12 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
@@ -17,7 +15,12 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
@@ -34,7 +37,7 @@ class ImpreciseAssignment(
 
     lateinit var volume: LinearExpressionSymbol
 
-    fun register(model: MetaModel): Try {
+    fun register(model: MetaModelF64): Try {
         if (!::volume.isInitialized) {
             volume = LinearExpressionSymbol(name = "volume")
         }
@@ -56,7 +59,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -91,7 +94,9 @@ class ImpreciseAssignment(
         }
 
         volume.flush()
-        volume.asMutable() += sum(unduplicatedLayers.map { it.volume * xi[it] })
+        volume.asMutable() += sum(unduplicatedLayers.map {
+            LinearMonomial(it.volume.toFlt64(), xi[it])
+        })
 
         return Ok(unduplicatedLayers)
     }
@@ -107,7 +112,7 @@ class PreciseAssignment(
     lateinit var v: LinearIntermediateSymbols1
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModel): Try {
+    fun register(model: MetaModelF64): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -147,7 +152,7 @@ class PreciseAssignment(
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
                 BinaryzationFunction(
-                    x[v[0], v[1]].toLinearPolynomial(),
+                    input = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
                     name = "u_$v",
                 )
             }
@@ -170,7 +175,7 @@ class PreciseAssignment(
                 shape = Shape1(bins.size)
             ) { i, _ ->
                 BinaryzationFunction(
-                    x = sum(x[i, _a]),
+                    input = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
                     name = "v_$i",
                 )
             }
@@ -208,6 +213,3 @@ class PreciseAssignment(
         return ok
     }
 }
-
-
-

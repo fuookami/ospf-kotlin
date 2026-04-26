@@ -4,11 +4,12 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -222,7 +223,7 @@ class TaskSchedulingConnectionResourceUsage<
 
     override lateinit var quantity: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -273,7 +274,7 @@ class BunchSchedulingConnectionResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = LinearExpressionSymbols1(
@@ -333,10 +334,10 @@ class BunchSchedulingConnectionResourceUsage<
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(
-                        bunch,
-                        slot.time
-                    ) * xi[bunch]
+                    quantity[slot].asMutable() += LinearMonomial(
+                        slot.resource.usedQuantity(bunch, slot.time),
+                        xi[bunch]
+                    )
                 }
             }
         }
@@ -344,7 +345,3 @@ class BunchSchedulingConnectionResourceUsage<
         return ok
     }
 }
-
-
-
-

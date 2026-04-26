@@ -1,13 +1,10 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
-import fuookami.ospf.kotlin.core.intermediate_model.geq
-import fuookami.ospf.kotlin.core.intermediate_model.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Load
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
@@ -30,19 +27,19 @@ class ItemDemandConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "item_demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         for ((item, demand, demandRange) in items) {
             if (load.overEnabled && !demandRange.fixed && demandRange.upperBound.value.unwrap() neq demand) {
                 when (val overLoad = load.overLoad[item]) {
                     is LinearFunctionSymbolAdapter -> {
                         overLoad.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX leq demandRange.upperBound.value.unwrap(),
+                                polyX leq demandRange.upperBound.value.unwrap().toFlt64(),
                                 name = "${name}_ub_${item}"
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -58,9 +55,9 @@ class ItemDemandConstraint<
                             load.load[item] leq demandRange.upperBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -92,12 +89,12 @@ class ItemDemandConstraint<
                     is LinearFunctionSymbolAdapter -> {
                         lessLoad.polyX?.let { polyX ->
                             when (val result = model.addConstraint(
-                                polyX geq demandRange.lowerBound.value.unwrap(),
+                                polyX geq demandRange.lowerBound.value.unwrap().toFlt64(),
                                 name = "${name}_lb_${item}"
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -113,9 +110,9 @@ class ItemDemandConstraint<
                             load.load[item] geq demandRange.lowerBound.value.unwrap(),
                             name = "${name}_ub_${item}"
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -130,9 +127,9 @@ class ItemDemandConstraint<
                     load.load[item] geq demand,
                     name = "${name}_ub_${item}"
                 )) {
-                    is Ok<*, *, *> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, *, *> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
@@ -152,13 +149,9 @@ class ItemDemandConstraint<
 
     override fun refresh(
         map: AbstractBPP3DShadowPriceMap<Args, T>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<*>,
         shadowPrices: MetaDualSolution
     ): Try {
         TODO("Not yet implemented")
     }
 }
-
-
-
-

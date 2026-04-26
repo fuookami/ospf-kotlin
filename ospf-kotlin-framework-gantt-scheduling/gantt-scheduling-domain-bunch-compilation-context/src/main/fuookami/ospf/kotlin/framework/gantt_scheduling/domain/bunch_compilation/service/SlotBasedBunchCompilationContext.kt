@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedBunch
@@ -68,7 +68,7 @@ interface SlotBasedBunchCompilationContext<
      * @return Intermediate values / 中间�?
      */
     suspend fun preSolveCapacity(
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver
     ): Ret<CapacityIntermediateValues<Action, M, R>>
 
@@ -109,7 +109,7 @@ interface SlotBasedBunchCompilationContext<
     suspend fun addColumnsBySlot(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<TimeSlot, List<B>>>
 
     /**

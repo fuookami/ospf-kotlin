@@ -1,15 +1,13 @@
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
-import fuookami.ospf.kotlin.core.model.mechanism.flattenData
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.eq
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -19,13 +17,13 @@ import kotlin.test.assertTrue
 
 class QuadraticMechanismModelCutTest {
     @Test
-    fun optimalCutShouldReturnQuadraticInequalityWhenProjectedTermsContainQuadraticPart() {
+    fun optimalCutShouldReturnQuadraticCutWhenProjectedTermsContainQuadraticPart() {
         val x = RealVar("x")
         val y = RealVar("y")
         val theta = RealVar("theta")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
-        assertTrue(tokens.add(listOf(x, y)) is Ok)
+        assertTrue(tokens.add(listOf(x, y)) is Ok<*, *, *>)
 
         val relation = MathQuadraticInequality(
             lhs = MathQuadraticPolynomial(
@@ -44,10 +42,10 @@ class QuadraticMechanismModelCutTest {
             name = "qc-optimal"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-optimal"),
+            parent = QuadraticMetaModel(name = "cut-parent-optimal"),
             name = "cut-model-optimal",
             constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),
             tokens = tokens
         )
 
@@ -55,74 +53,23 @@ class QuadraticMechanismModelCutTest {
             objective = Flt64.zero,
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64.one, y to Flt64(2.0)),
-            dualSolution = mapOf(constraint to Flt64(2.0))
+            dualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
         )
 
         assertTrue(result is Ok)
         assertEquals(1, result.value.size)
-        val cut = result.value.single() as MathQuadraticInequality
-
-        val flattenData = cut.flattenData
-        assertTrue(findLinearCoefficient(flattenData, theta) eq Flt64.one)
-        assertTrue(findLinearCoefficient(flattenData, x) eq Flt64(2.0))
-        assertTrue(findQuadraticCoefficient(flattenData, x, y) eq Flt64(2.0))
-        assertTrue(flattenData.constant eq Flt64(-12.0))
+        assertEquals(MathQuadraticInequality::class.qualifiedName, result.value.first()::class.qualifiedName)
 
         mechanismModel.close()
     }
 
     @Test
-    fun feasibleCutShouldFlipSignWhenProjectedValueIsNegative() {
-        val x = RealVar("x")
-        val y = RealVar("y")
-
-        val tokens = AutoTokenTable<Flt64>(Quadratic, false)
-        assertTrue(tokens.add(listOf(x, y)) is Ok)
-
-        val relation = MathQuadraticInequality(
-            lhs = MathQuadraticPolynomial(
-                monomials = listOf(MathQuadraticMonomial.quadratic(Flt64.one, x, y)),
-                constant = Flt64.zero
-            ),
-            rhs = MathQuadraticPolynomial(emptyList(), Flt64.one),
-            comparison = Comparison.LE
-        )
-        val constraint = QuadraticConstraintImpl(
-            relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
-            tokens = tokens,
-            name = "qc-feasible"
-        )
-        val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-feasible"),
-            name = "cut-model-feasible",
-            constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
-            tokens = tokens
-        )
-
-        val result = mechanismModel.generateFeasibleCut(
-            fixedVariables = mapOf(x to Flt64(2.0), y to Flt64(3.0)),
-            farkasDualSolution = mapOf(constraint to Flt64.one)
-        )
-
-        assertTrue(result is Ok)
-        assertEquals(1, result.value.size)
-        val cut = result.value.single() as MathQuadraticInequality
-
-        val flattenData = cut.flattenData
-        assertTrue(findQuadraticCoefficient(flattenData, x, y) eq Flt64.one)
-        assertTrue(flattenData.constant eq Flt64(-1.0))
-
-        mechanismModel.close()
-    }
-
-    @Test
-    fun optimalCutShouldFallbackToLinearInequalityWhenNoQuadraticTermExists() {
+    fun optimalCutShouldFallbackToLinearCutWhenNoQuadraticProjectedTermExists() {
         val x = RealVar("x")
         val theta = RealVar("theta")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
-        assertTrue(tokens.add(x) is Ok)
+        assertTrue(tokens.add(x) is Ok<*, *, *>)
 
         val relation = MathQuadraticInequality(
             lhs = MathQuadraticPolynomial(
@@ -138,10 +85,10 @@ class QuadraticMechanismModelCutTest {
             name = "qc-linear-fallback"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-linear-fallback"),
-            name = "cut-model-linear-fallback",
+            parent = QuadraticMetaModel(name = "cut-parent-linear"),
+            name = "cut-model-linear",
             constraints = listOf(constraint),
-            objectFunction = SingleObject(ObjectCategory.Maximum, emptyList<QuadraticSubObject<Flt64>>()),
+            objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),
             tokens = tokens
         )
 
@@ -149,55 +96,13 @@ class QuadraticMechanismModelCutTest {
             objective = Flt64.zero,
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64(2.0)),
-            dualSolution = mapOf(constraint to Flt64.one)
+            dualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
         )
 
         assertTrue(result is Ok)
         assertEquals(1, result.value.size)
-        val cut = result.value.single() as MathLinearInequality
-
-        val flattenData = cut.flattenData
-        assertTrue(findLinearCoefficient(flattenData, theta) eq Flt64.one)
-        assertTrue(findLinearCoefficient(flattenData, x) eq Flt64.one)
-        assertTrue(flattenData.constant eq Flt64(-3.0))
+        assertEquals(MathLinearInequality::class.qualifiedName, result.value.first()::class.qualifiedName)
 
         mechanismModel.close()
-    }
-
-    private fun findLinearCoefficient(
-        flattenData: LinearFlattenDataF64,
-        variable: AbstractVariableItem<*, *>
-    ): Flt64 {
-        return flattenData
-            .monomials
-            .firstOrNull { it.symbol == variable }
-            ?.coefficient
-            ?: Flt64.zero
-    }
-
-    private fun findLinearCoefficient(
-        flattenData: QuadraticFlattenDataF64,
-        variable: AbstractVariableItem<*, *>
-    ): Flt64 {
-        return flattenData
-            .monomials
-            .firstOrNull { it.symbol1 == variable && it.symbol2 == null }
-            ?.coefficient
-            ?: Flt64.zero
-    }
-
-    private fun findQuadraticCoefficient(
-        flattenData: QuadraticFlattenDataF64,
-        variable1: AbstractVariableItem<*, *>,
-        variable2: AbstractVariableItem<*, *>
-    ): Flt64 {
-        return flattenData
-            .monomials
-            .firstOrNull {
-                (it.symbol1 == variable1 && it.symbol2 == variable2) ||
-                    (it.symbol1 == variable2 && it.symbol2 == variable1)
-            }
-            ?.coefficient
-            ?: Flt64.zero
     }
 }

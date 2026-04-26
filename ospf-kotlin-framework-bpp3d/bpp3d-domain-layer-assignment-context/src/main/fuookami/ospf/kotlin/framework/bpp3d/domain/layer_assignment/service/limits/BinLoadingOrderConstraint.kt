@@ -1,9 +1,7 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.geq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.geq
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
@@ -16,8 +14,8 @@ class BinLoadingOrderConstraint(
     private val assignment: PreciseAssignment,
     private val capacity: Capacity,
     override val name: String = "bin_loading_order_constraint"
-) : Pipeline<AbstractLinearMetaModel> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+) : Pipeline<AbstractLinearMetaModel<*>> {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         for (i in bins.indices) {
             if (i == 0) {
                 continue

@@ -304,6 +304,4 @@ typealias QuantityURealVariableView3 = QuantityVariableCombinationView3<Flt64, U
 typealias QuantityURealVariableView4 = QuantityVariableCombinationView4<Flt64, UContinuous>
 typealias DynQuantityURealVariableView = DynQuantityVariableCombinationView<Flt64, UContinuous>
 
-@Deprecated("Use CombinationVariableItem instead", ReplaceWith("CombinationVariableItem"))
-typealias VariableCombinationItem<T, Type> = CombinationVariableItem<T, Type>
 

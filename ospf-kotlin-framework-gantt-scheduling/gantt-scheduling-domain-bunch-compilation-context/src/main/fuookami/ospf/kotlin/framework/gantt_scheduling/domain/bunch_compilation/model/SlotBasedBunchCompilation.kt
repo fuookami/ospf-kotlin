@@ -4,10 +4,11 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -74,7 +75,7 @@ open class SlotBasedBunchCompilation<
     open suspend fun addColumnsBySlot(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<TimeSlot, List<B>>> {
         // First add columns using parent method
         // 首先使用父类方法添加�?

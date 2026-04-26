@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.intermediate_model.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

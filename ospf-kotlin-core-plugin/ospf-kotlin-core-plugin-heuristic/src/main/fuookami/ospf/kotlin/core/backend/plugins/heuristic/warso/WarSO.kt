@@ -1,3 +1,0 @@
-package fuookami.ospf.kotlin.core.intermediate_plugins.heuristic.warso
-
-class WarStrategyOptimizationAlgorithm

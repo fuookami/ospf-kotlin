@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymb
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
@@ -39,7 +39,7 @@ class ProduceQuantityConstraint<
         .filter { it.second != null }
         .filterIsInstance<Pair<P, MaterialDemand>>()
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModelF64): Try {
         for ((product, demand) in products) {
             if (produce.overEnabled && demand.overEnabled) {
                 when (val overQuantity = produce.overQuantity[product]) {
@@ -50,9 +50,9 @@ class ProduceQuantityConstraint<
                                 name = "${name}_ub_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -69,9 +69,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_ub_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -87,9 +87,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_ub_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok<*, *, *> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, *, *> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
@@ -108,9 +108,9 @@ class ProduceQuantityConstraint<
                                 name = "${name}_lb_${product}",
                                 args = ProduceQuantityShadowPriceKey(product)
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -127,9 +127,9 @@ class ProduceQuantityConstraint<
                             name = "${name}_lb_${product}",
                             args = ProduceQuantityShadowPriceKey(product)
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -145,9 +145,9 @@ class ProduceQuantityConstraint<
                     name = "${name}_lb_${product}",
                     args = ProduceQuantityShadowPriceKey(product)
                 )) {
-                    is Ok<*, *, *> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, *, *> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
@@ -199,11 +199,11 @@ class ProduceQuantityConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModelF64,
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<P, Flt64>()
-        for (constraint in model.constraintsOfGroup()) {
+        for (constraint in model.constraintsOfGroup(this)) {
             val product = (constraint.args as? ProduceQuantityShadowPriceKey<P>)?.product ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price
@@ -216,6 +216,3 @@ class ProduceQuantityConstraint<
         return ok
     }
 }
-
-
-

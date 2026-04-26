@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.solver.value.SolveValueConversionPolicy
-import fuookami.ospf.kotlin.core.model.status.ModelBuildingStatusCallBack
+import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatusCallBack
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data class SolveOptions(

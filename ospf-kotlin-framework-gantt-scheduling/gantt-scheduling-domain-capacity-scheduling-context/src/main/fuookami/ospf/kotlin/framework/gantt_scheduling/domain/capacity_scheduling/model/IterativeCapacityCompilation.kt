@@ -4,13 +4,13 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -26,19 +26,19 @@ import kotlin.time.Duration
  * 迭代产能编译决策对象（列生成主问题）
  * Iterative Capacity Compilation Decision Object (Column Generation Master Problem)
  *
- * 用于列生�?迭代求解场景�?
+ * 用于列生成迭代求解场景。
  * Used for column generation/iterative solving scenarios.
  *
  * 变量结构：每台设备的二维整型变量
  * Variable structure: 2D integer variable per executor
  * x[executor][iteration, columnIndex] -> amount
  *
- * @param E 执行器类�?/ Executor type
+ * @param E 执行器类型 / Executor type
  * @param A 生产动作类型 / Production action type
  */
 class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     /**
-     * 执行器列�?
+     * 执行器列表
      * List of executors
      */
     override val executors: List<E>,
@@ -64,7 +64,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
 
     init {
         // Index actions if they implement ManualIndexed
-        // 如果动作实现�?ManualIndexed，则进行索引
+        // 如果动作实现了 ManualIndexed，则进行索引
         for (action in actions.filterIsInstance<ManualIndexed>()) {
             if (!action.indexed) {
                 action.setIndexed()
@@ -73,7 +73,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 每台设备的列聚合（按迭代分组�?
+     * 每台设备的列聚合（按迭代分组）
      * Column aggregation per executor (grouped by iteration)
      */
     internal val columnsByExecutor: Map<E, CapacityColumnAggregation<E, A>> =
@@ -81,7 +81,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     private val executorByRef: Map<Executor, E> = executors.associateBy { it }
 
     /**
-     * 每台设备的二维整型变�?
+     * 每台设备的二维整型变量
      * 2D integer variables per executor
      * x[executor][iteration, columnIndexInIteration] -> amount
      */
@@ -90,7 +90,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         get() = _x.toMap()
 
     /**
-     * 成本表达�?
+     * 成本表达式
      * Cost expression
      */
     private var _cost: LinearExpressionSymbol? = null
@@ -104,12 +104,12 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         private set
 
     /**
-     * 注册到模�?
+     * 注册到模型
      * Register to model
      */
-    fun register(model: LinearMetaModel): Try {
+    fun register(model: LinearMetaModelF64): Try {
         // Initialize variables for each executor
-        // 为每个执行器初始化变�?
+        // 为每个执行器初始化变量
         for (executor in executors) {
             if (!_x.containsKey(executor)) {
                 val executorActions = actions.filter { it.executor == executor }
@@ -124,10 +124,9 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         }
 
         // Register cost expression
-        // 注册成本表达�?
+        // 注册成本表达式
         if (_cost == null) {
-            val costPoly = MutableLinearPolynomial(name = "cost")
-            _cost = LinearExpressionSymbol(costPoly, name = "cost")
+            _cost = LinearExpressionSymbol(name = "cost")
         }
         when (val result = model.add(_cost!!)) {
             is Ok -> {}
@@ -158,7 +157,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                         }
                         // Sum over all columns for this action's slot
                         // 对该动作时隙的所有列求和
-                        val poly = MutableLinearPolynomial()
+                        val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
                         val columnAgg = if (executor != null) {
                             columnsByExecutor[executor]
                         } else {
@@ -171,15 +170,15 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                                         val amount = column.amountFor(action)
                                         if (amount > UInt64.zero) {
                                             val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
-                                            poly += coefficient * executorVar[iterIdx, colIdx]
+                                            poly += LinearMonomial(coefficient, executorVar[iterIdx, colIdx])
                                         }
                                     }
                                 }
                             }
                         }
-                        poly
+                        poly.toLinearPolynomial()
                     } else {
-                        MutableLinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     }
                 }
             )
@@ -200,12 +199,12 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                 ctor = { executor, slot ->
                     val s = slots.indexOf(slot)
                     val executorActions = actions.filter { it.executor == executor }
-                    val poly = MutableLinearPolynomial()
+                    val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
                     for (action in executorActions) {
                         val a = actions.indexOf(action)
-                        poly += operationTime[a, s].toLinearPolynomial()
+                        poly += operationTime[a, s].polynomial
                     }
-                    poly
+                    poly.toLinearPolynomial()
                 }
             )
         }
@@ -222,10 +221,10 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 添加新列
      * Add new columns
      *
-     * 将新生成的列添加到主问题中�?
+     * 将新生成的列添加到主问题中。
      * Adds newly generated columns to the master problem.
      *
-     * @param iteration Current iteration number / 当前迭代�?
+     * @param iteration Current iteration number / 当前迭代号
      * @param newColumns New columns to add / 要添加的新列
      * @param model Linear meta model / 线性元模型
      * @return Added columns (deduplicated) / 已添加的列（去重后）
@@ -233,10 +232,10 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     suspend fun addColumns(
         iteration: UInt64,
         newColumns: List<CapacityColumn<E, A>>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<List<CapacityColumn<E, A>>> {
         // Group columns by executor
-        // 按执行器分组�?
+        // 按执行器分组
         val columnsByExec = newColumns.groupBy { it.executor }
         val allAddedColumns = mutableListOf<CapacityColumn<E, A>>()
 
@@ -268,7 +267,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                 UIntVariable2("x_${executor.id}_v${columnAggregation.columns.size}", varShape)
             } else {
                 // Resize variable to accommodate new columns
-                // 调整变量大小以容纳新�?
+                // 调整变量大小以容纳新列
                 val newShape = Shape2(
                     columnAggregation.columnsIteration.size,
                     columnAggregation.columnsIteration.maxOfOrNull { it.size } ?: 0
@@ -287,7 +286,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
             }
 
             // Set bounds for new columns
-            // 为新列设置边�?
+            // 为新列设置边界
             for (column in addedColumns) {
                 val iterIdx = iteration.toInt()
                 val colIdx = columnAggregation.columnsIteration[iterIdx].indexOf(column)
@@ -346,7 +345,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 计算列变量上�?
+     * 计算列变量上界
      * Calculate upper bound for a column decision variable
      */
     private fun columnUpperBound(column: CapacityColumn<E, A>): UInt64 {
@@ -361,7 +360,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
             }
             val unitOperationTime = if (action.discrete && action.batchDuration != null) {
                 timeWindow.valueOf(action.batchDuration!!)
-            } else {
+} else {
                 timeWindow.valueOf(timeWindow.interval)
             }
             columnOperationTime += unitOperationTime * amount.toFlt64()
@@ -389,10 +388,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
 
         for ((a, _) in actions.withIndex()) {
             for ((s, _) in slots.withIndex()) {
-                operationTime[a, s].asMutable().let {
-                    it.monomials.clear()
-                    it.constant = Flt64.zero
-                }
+                operationTime[a, s].flush()
             }
         }
 
@@ -418,7 +414,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                             timeWindow.valueOf(timeWindow.interval)
                         }
                         val coefficient = unitOperationTime * Flt64(amount.toLong().toDouble())
-                        operationTime[actionIndex, column.slotIndex].asMutable() += coefficient * variable
+                        operationTime[actionIndex, column.slotIndex].asMutable() += LinearMonomial(coefficient, variable)
                     }
                 }
             }
@@ -426,22 +422,16 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
 
         for ((e, executor) in executors.withIndex()) {
             for ((s, _) in slots.withIndex()) {
-                capacity[e, s].asMutable().let {
-                    it.monomials.clear()
-                    it.constant = Flt64.zero
-                }
+                capacity[e, s].flush()
                 for ((a, action) in actions.withIndex()) {
                     if (action.executor == executor) {
-                        capacity[e, s].asMutable() += operationTime[a, s].toLinearPolynomial()
+                        capacity[e, s].asMutable() += operationTime[a, s].polynomial
                     }
                 }
             }
         }
 
-        _cost!!.asMutable().let {
-            it.monomials.clear()
-            it.constant = Flt64.zero
-        }
+        _cost!!.flush()
         for ((executor, columnAgg) in columnsByExecutor) {
             val executorVar = _x[executor] ?: continue
             for ((iterIdx, columns) in columnAgg.columnsIteration.withIndex()) {
@@ -449,7 +439,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    _cost!!.asMutable() += column.cost * executorVar[iterIdx, colIdx]
+                    _cost!!.asMutable() += LinearMonomial(column.cost, executorVar[iterIdx, colIdx])
                 }
             }
         }
@@ -458,10 +448,10 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     }
 
     /**
-     * 解析�?
+     * 解析解
      * Extract solution from model
      */
-    override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
+    override fun extractSolution(model: AbstractLinearMetaModelF64): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()
 
@@ -482,7 +472,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                             continue
                         }
                         // Create action allocations from this column
-                        // 从该列创建动作分�?
+                        // 从该列创建动作分配
                         for ((action, amount) in column.allocations) {
                             if (amount > UInt64.zero) {
                                 val actualAmount = amount * value
@@ -510,7 +500,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         }
 
         // Calculate executor capacities from operationTime
-        // �?operationTime 计算执行器产�?
+        // 从 operationTime 计算执行器产能
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
                 val capValue = capacity[e, s].evaluate(model.tokens)
@@ -542,6 +532,3 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         )
     }
 }
-
-
-

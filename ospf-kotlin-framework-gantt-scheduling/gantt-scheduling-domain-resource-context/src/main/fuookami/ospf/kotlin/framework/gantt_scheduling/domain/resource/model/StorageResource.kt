@@ -4,11 +4,11 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.plus
-import fuookami.ospf.kotlin.core.model.mechanism.sum
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -251,7 +251,7 @@ abstract class AbstractStorageResourceUsage<
         this.timeSlots = timeSlots
     }
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (!::supply.isInitialized) {
             supply = LinearIntermediateSymbols2(
                 name = "${name}_supply",
@@ -263,8 +263,12 @@ abstract class AbstractStorageResourceUsage<
                 val fixedSupply = resource.fixedSupplyIn(time)
                 val r = resources.indexOf(resource)
                 val t = timeWindow.timeSlots.indexOfFirst { it.end == time.end }
+                @Suppress("UNCHECKED_CAST")
+                val executorSum = executorSupply[_a, r, t].fold(LinearPolynomial<Flt64>(emptyList(), Flt64.zero)) { acc, elem ->
+                    acc + (elem as LinearExpressionSymbol).polynomial
+                }
                 LinearExpressionSymbol(
-                    polynomial = fixedSupply + sum(executorSupply[_a, r, t]),
+                    polynomial = LinearPolynomial(emptyList(), fixedSupply) + executorSum,
                     name = "${name}_supply_${resource}_${slot}"
                 )
             }
@@ -290,8 +294,11 @@ abstract class AbstractStorageResourceUsage<
                     val slot = timeSlots[s]
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
+                    val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity) +
+                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearExpressionSymbol)).polynomial -
+                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearExpressionSymbol)).polynomial
                     LinearExpressionSymbol(
-                        polynomial = slot.resource.initialQuantity + supply[r, t] - cost[r, t],
+                        polynomial = quantityPoly,
                         name = "${name}_quantity_${slot}"
                     )
                 }
@@ -382,7 +389,7 @@ class TaskSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearIntermediateSymbols3
     override lateinit var cost: LinearIntermediateSymbols2
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -441,7 +448,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3(
                 name = "${name}_executor_supply",
@@ -529,7 +536,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                             if (thisTasks.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((task, supplyQuantity) in thisTasks) {
-                                    executorSupply[e, r, t].asMutable() += xi[task] * supplyQuantity
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity, xi[task])
                                 }
                             }
                         }
@@ -553,7 +560,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                         if (thisTasks.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((task, costQuantity) in thisTasks) {
-                                cost[r, t].asMutable() += xi[task] * costQuantity
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity, xi[task])
                             }
                         }
                     }
@@ -618,7 +625,7 @@ class BunchSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearExpressionSymbols3
     override lateinit var cost: LinearExpressionSymbols2
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3(
                 name = "${name}_executor_supply",
@@ -711,7 +718,7 @@ class BunchSchedulingStorageResourceUsage<
                             if (thisBunches.isNotEmpty()) {
                                 executorSupply[e, r, t].flush()
                                 for ((bunch, supplyQuantity) in thisBunches) {
-                                    executorSupply[e, r, t].asMutable() += xi[bunch] * supplyQuantity
+                                    executorSupply[e, r, t].asMutable() += LinearMonomial(supplyQuantity, xi[bunch])
                                 }
                             }
                         }
@@ -736,7 +743,7 @@ class BunchSchedulingStorageResourceUsage<
                         if (thisBunches.isNotEmpty()) {
                             cost[r, t].flush()
                             for ((bunch, costQuantity) in thisBunches) {
-                                cost[r, t].asMutable() += xi[bunch] * costQuantity
+                                cost[r, t].asMutable() += LinearMonomial(costQuantity, xi[bunch])
                             }
                         }
                     }

@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <parent>
+        <groupId>io.github.fuookami.ospf.kotlin</groupId>
+        <artifactId>ospf-kotlin-parent</artifactId>
+        <version>1.1.0</version>
+        <relativePath>../ospf-kotlin-parent</relativePath>
+    </parent>
+    <modelVersion>4.0.0</modelVersion>
+
+    <artifactId>ospf-kotlin-example</artifactId>
+
+    <properties>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+    </properties>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-starter</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-starter-gantt-scheduling</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin</groupId>
+            <artifactId>ospf-kotlin-starter-csp1d</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-gurobi</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-scip</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+        <dependency>
+            <groupId>io.github.fuookami.ospf.kotlin.core.plugin</groupId>
+            <artifactId>ospf-kotlin-core-plugin-heuristic</artifactId>
+            <version>${project.version}</version>
+        </dependency>
+<!--        <dependency>-->
+<!--             <groupId>scip</groupId>-->
+<!--             <artifactId>jscip</artifactId>-->
+<!--             <version>1.0.0</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+<!--        <dependency>-->
+<!--            <groupId>gurobi</groupId>-->
+<!--            <artifactId>gurobi</artifactId>-->
+<!--            <version>1.0.0</version>-->
+<!--            <scope>provided</scope>-->
+<!--        </dependency>-->
+    </dependencies>
+
+    <build>
+        <sourceDirectory>src/main</sourceDirectory>
+        <testSourceDirectory>src/test</testSourceDirectory>
+        <plugins>
+            <plugin>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <configuration>
+                    <systemPropertyVariables>
+                        <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+</project>

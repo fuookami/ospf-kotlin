@@ -1,0 +1,176 @@
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security
+
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+
+class Aggregation(
+    internal val aircraftModel: AircraftModel,
+    internal val fuselage: Fuselage,
+    internal val positions: List<Position>,
+    linearDensityLimitZones: List<LinearDensity.LimitZone>,
+    surfaceDensityLimitZones: List<SurfaceDensity.LimitZone>,
+    val maxZoneLoadWeight: MaxZoneLoadWeight,
+    val maxCumulativeLoadWeight: MaxCumulativeLoadWeight,
+    val maxUnsymmetricalLinearDensity: MaxUnsymmetricalLinearDensity?,
+    maxCLIMPoints: List<MaxCLIM.Point>?,
+    minLowPayloadPoints: List<MinLowPayload.Point>,
+    envelopeBuilders: (FlightPhase, TotalWeight) -> List<AbstractEnvelope>,
+    internal val load: Load,
+    internal val payload: Payload,
+    internal val totalWeight: TotalWeight,
+    internal val ballast: Ballast?,
+    internal val torque: Torque,
+    internal val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>
+) {
+    val linearDensity = LinearDensity(
+        aircraftModel = aircraftModel,
+        limitZones = linearDensityLimitZones,
+        load = load,
+        positions = positions
+    )
+
+    val surfaceDensity = SurfaceDensity(
+        aircraftModel = aircraftModel,
+        limitsZones = surfaceDensityLimitZones,
+        load = load,
+        positions = positions
+    )
+
+    val maxCLIM = if (aircraftModel.wideBody && !maxCLIMPoints.isNullOrEmpty()) {
+        MaxCLIM(
+            aircraftModel = aircraftModel,
+            points = maxCLIMPoints,
+            totalWeight = totalWeight
+        )
+    } else {
+        null
+    }
+
+    val minLowPayload = MinLowPayload(
+        aircraftModel = aircraftModel,
+        points = minLowPayloadPoints,
+        totalWeight = totalWeight
+    )
+
+    val envelopes = FlightPhase.entries.associateWith { phase ->
+        envelopeBuilders(phase, totalWeight)
+    }
+
+    fun register(
+        stowageMode: StowageMode,
+        model: AbstractLinearMetaModelF64
+    ): Try {
+        when (val result = linearDensity.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+        }
+
+        when (val result = surfaceDensity.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+        }
+
+        if (maxCLIM != null) {
+            when (val result = maxCLIM.register(model)) {
+                is Ok -> {}
+
+                is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+            }
+        }
+
+        when (val result = minLowPayload.register(model)) {
+            is Ok -> {}
+
+            is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+        }
+
+        envelopes.values.forEach { envelopes ->
+            envelopes.forEach { envelope ->
+                when (val result = envelope.register(model)) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                    return Failed(result.error)
+                }
+
+                is Fatal -> {
+                    return Fatal(result.errors)
+                }
+                }
+            }
+        }
+
+        return ok
+    }
+
+    fun registerForBendersMP(
+        model: AbstractLinearMetaModelF64
+    ): Try {
+        TODO("not implemented yet")
+    }
+
+    fun registerForBendersSP(
+        model: AbstractLinearMetaModelF64,
+        solution: List<Flt64>
+    ): Try {
+        TODO("not implemented yet")
+    }
+
+    private fun flushForBendersSP(
+        model: AbstractLinearMetaModelF64,
+        solution: List<Flt64>
+    ): Try {
+        TODO("not implemented yet")
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+
+

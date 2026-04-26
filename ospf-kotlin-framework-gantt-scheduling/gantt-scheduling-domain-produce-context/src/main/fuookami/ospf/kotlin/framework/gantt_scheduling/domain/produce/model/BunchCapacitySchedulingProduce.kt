@@ -4,8 +4,9 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -36,7 +37,7 @@ class BunchCapacitySchedulingProduce<
     timeWindow: TimeWindow
 ) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: LinearMetaModelF64): Try {
         return addQuantityToModel(model)
     }
 
@@ -62,8 +63,8 @@ class BunchCapacitySchedulingProduce<
         // 基于 operationTime 重建，避免迭代扩容后 x 变量重建导致的表达式引用失配�?
         for ((product, _) in products) {
             quantity[product].asMutable().let {
-                it.monomials.clear()
-                it.constant = Flt64.zero
+                it.clear()
+                it.setConstant(Flt64.zero)
             }
             for ((actionIndex, action) in actions.withIndex()) {
                 if (action !is CapacityActionProduce<*, *>) {
@@ -75,7 +76,7 @@ class BunchCapacitySchedulingProduce<
                     continue
                 }
                 for ((slotIndex, _) in slots.withIndex()) {
-                    quantity[product].asMutable() += unitProduce * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
+                    quantity[product].asMutable() += LinearMonomial(unitProduce, compilation.operationTime[actionIndex, slotIndex])
                 }
             }
         }

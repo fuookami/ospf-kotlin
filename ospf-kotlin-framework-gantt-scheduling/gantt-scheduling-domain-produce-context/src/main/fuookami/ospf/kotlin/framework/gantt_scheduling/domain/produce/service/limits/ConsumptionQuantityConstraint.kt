@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymb
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
@@ -39,7 +39,7 @@ class ConsumptionQuantityConstraint<
         .filter { it.second != null }
         .filterIsInstance<Pair<C, MaterialReserves>>()
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModelF64): Try {
         for ((material, reserve) in materials) {
             if (consumption.overEnabled && reserve.overEnabled) {
                 when (val overQuantity = consumption.overQuantity[material]) {
@@ -50,9 +50,9 @@ class ConsumptionQuantityConstraint<
                                 name = "${name}_ub_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -69,9 +69,9 @@ class ConsumptionQuantityConstraint<
                             name = "${name}_ub_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -87,9 +87,9 @@ class ConsumptionQuantityConstraint<
                     name = "${name}_ub_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
-                    is Ok<*, *, *> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, *, *> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
@@ -108,9 +108,9 @@ class ConsumptionQuantityConstraint<
                                 name = "${name}_lb_$material",
                                 args = ConsumptionQuantityShadowPriceKey(material)
                             )) {
-                                is Ok<*, *, *> -> {}
+                                is Ok -> {}
 
-                                is Failed<*, *, *> -> {
+                                is Failed -> {
                                     return Failed(result.error)
                                 }
 
@@ -127,9 +127,9 @@ class ConsumptionQuantityConstraint<
                             name = "${name}_lb_$material",
                             args = ConsumptionQuantityShadowPriceKey(material)
                         )) {
-                            is Ok<*, *, *> -> {}
+                            is Ok -> {}
 
-                            is Failed<*, *, *> -> {
+                            is Failed -> {
                                 return Failed(result.error)
                             }
 
@@ -145,9 +145,9 @@ class ConsumptionQuantityConstraint<
                     name = "${name}_lb_$material",
                     args = ConsumptionQuantityShadowPriceKey(material)
                 )) {
-                    is Ok<*, *, *> -> {}
+                    is Ok -> {}
 
-                    is Failed<*, *, *> -> {
+                    is Failed -> {
                         return Failed(result.error)
                     }
 
@@ -200,11 +200,11 @@ class ConsumptionQuantityConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModelF64,
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<C, Flt64>()
-        for (constraint in model.constraintsOfGroup()) {
+        for (constraint in model.constraintsOfGroup(this)) {
             val material = (constraint.args as? ConsumptionQuantityShadowPriceKey<C>)?.material ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 thisShadowPrices[material] = (thisShadowPrices[material] ?: Flt64.zero) + price
@@ -217,6 +217,3 @@ class ConsumptionQuantityConstraint<
         return ok
     }
 }
-
-
-

@@ -82,6 +82,10 @@ object NumericDispatcher {
 
     /** 执行一元运算 / Execute unary operation */
     fun evaluateUnary(operator: UnaryOperator, operand: Any): Any? {
+        if (operator == UnaryOperator.Positive) {
+            return operand
+        }
+
         @Suppress("UNCHECKED_CAST")
         val ops = registry[operand::class] as NumericOps<Any>? ?: return null
 

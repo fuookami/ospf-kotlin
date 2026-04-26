@@ -88,156 +88,130 @@ data class Scale(
         }.stripTrailingZeros()
     }
 
-    operator fun times(other: FltX): Scale {
-        if (other eq FltX.zero) {
-            return Scale(FltX.zero, FltX.one)
-        }
-        val index = scales.indexOfFirst {
-            when (val base = it.first) {
-                is Either.Left -> base.value eq other
-                else -> false
+    private fun ScaleBase.matches(other: ScaleBase): Boolean {
+        return when (this) {
+            is Either.Left -> when (other) {
+                is Either.Left -> this.value eq other.value
+                is Either.Right -> false
+            }
+
+            is Either.Right -> when (other) {
+                is Either.Left -> false
+                is Either.Right -> this.value eq other.value
             }
         }
+    }
+
+    private fun ScaleBase.cacheKey(): String {
+        return when (this) {
+            is Either.Left -> "L:${value.stripTrailingZeros().toPlainString()}"
+            is Either.Right -> "R:$value"
+        }
+    }
+
+    private fun updateSingleBase(base: ScaleBase, delta: FltX): Scale {
+        val index = scales.indexOfFirst { it.first.matches(base) }
         val newScales = if (index == -1) {
-            val newBase: ScaleBase = Either.Left(other)
-            scales + listOf(newBase to FltX.one)
+            scales + listOf(base to delta)
         } else {
-            scales.mapIndexed { i, it ->
-                if (index == i) {
-                    it.first to (it.second + FltX.one)
+            scales.mapIndexed { i, pair ->
+                if (i == index) {
+                    pair.first to (pair.second + delta)
                 } else {
-                    it
+                    pair
                 }
             }
         }
         return Scale(newScales.tidy())
+    }
+
+    private fun mergeWithScale(other: Scale, subtract: Boolean): Scale {
+        if (other.scales.isEmpty()) {
+            return this
+        }
+
+        val merged = scales.toMutableList()
+        val indexBuckets = HashMap<String, MutableList<Int>>(merged.size + other.scales.size)
+
+        fun indexBase(index: Int) {
+            val key = merged[index].first.cacheKey()
+            indexBuckets.getOrPut(key) { mutableListOf() }.add(index)
+        }
+
+        fun findExistingIndex(base: ScaleBase): Int {
+            val key = base.cacheKey()
+            indexBuckets[key]?.forEach { idx ->
+                if (merged[idx].first.matches(base)) {
+                    return idx
+                }
+            }
+
+            for (idx in merged.indices) {
+                if (merged[idx].first.matches(base)) {
+                    return idx
+                }
+            }
+
+            return -1
+        }
+
+        for (i in merged.indices) {
+            indexBase(i)
+        }
+
+        for ((base, index) in other.scales) {
+            val delta = if (subtract) -index else index
+            val existingIndex = findExistingIndex(base)
+            if (existingIndex == -1) {
+                merged.add(base to delta)
+                indexBase(merged.lastIndex)
+            } else {
+                val existing = merged[existingIndex]
+                merged[existingIndex] = existing.first to (existing.second + delta)
+            }
+        }
+
+        return Scale(merged.tidy())
+    }
+
+    operator fun times(other: FltX): Scale {
+        if (other eq FltX.zero) {
+            return Scale(FltX.zero, FltX.one)
+        }
+        val base: ScaleBase = Either.Left(other)
+        return updateSingleBase(base, FltX.one)
     }
 
     operator fun times(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             return Scale(FltX.zero, FltX.one)
         }
-        val index = scales.indexOfFirst {
-            when (val base = it.first) {
-                is Either.Right -> base.value eq other
-                else -> false
-            }
-        }
-        val newScales = if (index == -1) {
-            val newBase: ScaleBase = Either.Right(other)
-            scales + listOf(newBase to FltX.one)
-        } else {
-            scales.mapIndexed { i, it ->
-                if (index == i) {
-                    it.first to (it.second + FltX.one)
-                } else {
-                    it
-                }
-            }
-        }
-        return Scale(newScales.tidy())
+        val base: ScaleBase = Either.Right(other)
+        return updateSingleBase(base, FltX.one)
     }
 
     operator fun div(other: FltX): Scale {
         if (other eq FltX.zero) {
             throw ArithmeticException("Cannot divide by zero")
         }
-        val scale = scales.find {
-            when (val base = it.first) {
-                is Either.Left -> base.value eq other
-                else -> false
-            }
-        }
-        val newScales = if (scale != null) {
-            scales.map {
-                if (scale == it) {
-                    it.first to (it.second - FltX.one)
-                } else {
-                    it
-                }
-            }
-        } else {
-            val newBase: ScaleBase = Either.Left(other)
-            scales + listOf(newBase to -FltX.one)
-        }
-        return Scale(newScales.tidy())
+        val base: ScaleBase = Either.Left(other)
+        return updateSingleBase(base, -FltX.one)
     }
 
     operator fun div(other: RtnX): Scale {
         if (other eq RtnX.zero) {
             throw ArithmeticException("Cannot divide by zero")
         }
-        val scale = scales.find {
-            when (val base = it.first) {
-                is Either.Right -> base.value eq other
-                else -> false
-            }
-        }
-        val newScales = if (scale != null) {
-            scales.map {
-                if (scale == it) {
-                    it.first to (it.second - FltX.one)
-                } else {
-                    it
-                }
-            }
-        } else {
-            val newBase: ScaleBase = Either.Right(other)
-            scales + listOf(newBase to -FltX.one)
-        }
-        return Scale(newScales.tidy())
+        val base: ScaleBase = Either.Right(other)
+        return updateSingleBase(base, -FltX.one)
     }
 
     operator fun times(other: Scale): Scale {
-        val newScales = this.scales.toMutableList()
-        // todo: binary search and merge insert
-        for (scale in other.scales) {
-            val index = newScales.indexOfFirst {
-                when (val lBase = it.first) {
-                    is Either.Left -> when (val rBase = scale.first) {
-                        is Either.Left -> lBase.value eq rBase.value
-                        is Either.Right -> false
-                    }
-
-                    is Either.Right -> when (val rBase = scale.first) {
-                        is Either.Left -> false
-                        is Either.Right -> lBase.value eq rBase.value
-                    }
-                }
-            }
-            if (index == -1) {
-                newScales.add(scale)
-            } else {
-                newScales[index] = scale.first to (newScales[index].second + scale.second)
-            }
-        }
-        return Scale(newScales.tidy())
+        return mergeWithScale(other, subtract = false)
     }
 
     operator fun div(other: Scale): Scale {
-        val newScales = this.scales.toMutableList()
-        // todo: binary search and merge insert
-        for (scale in other.scales) {
-            val index = newScales.indexOfFirst {
-                when (val lBase = it.first) {
-                    is Either.Left -> when (val rBase = scale.first) {
-                        is Either.Left -> lBase.value eq rBase.value
-                        is Either.Right -> false
-                    }
-
-                    is Either.Right -> when (val rBase = scale.first) {
-                        is Either.Left -> false
-                        is Either.Right -> lBase.value eq rBase.value
-                    }
-                }
-            }
-            if (index == -1) {
-                newScales.add(scale.first to -scale.second)
-            } else {
-                newScales[index] = scale.first to (newScales[index].second - scale.second)
-            }
-        }
-        return Scale(newScales.tidy())
+        return mergeWithScale(other, subtract = true)
     }
 }
 

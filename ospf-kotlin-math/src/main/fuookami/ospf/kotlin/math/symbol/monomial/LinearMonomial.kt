@@ -281,8 +281,8 @@ operator fun <T : Ring<T>> T.minus(rhs: LinearMonomial<T>): LinearPolynomial<T> 
  * @receiver 线性单项式 / Linear monomial
  * @return 系数取绝对值后的线性单项式 / Linear monomial with absolute coefficient
  */
-fun <T> LinearMonomial<T>.abs(): LinearMonomial<T> where T : NumberField<T> {
-    return LinearMonomial(abs(coefficient as Abs<T>), symbol)
+fun <T> LinearMonomial<T>.abs(): LinearMonomial<T> where T : NumberField<T>, T : Abs<T> {
+    return LinearMonomial(abs(coefficient), symbol)
 }
 
 /**
@@ -310,4 +310,3 @@ fun <T> LinearMonomial<T>.reciprocal(): CanonicalMonomial<T> where T : Field<T>,
 operator fun <T : Ring<T>> T.times(rhs: LinearMonomial<T>): LinearMonomial<T> {
     return LinearMonomial(this * rhs.coefficient, rhs.symbol)
 }
-

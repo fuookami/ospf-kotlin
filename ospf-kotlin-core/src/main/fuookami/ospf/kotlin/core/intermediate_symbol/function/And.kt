@@ -385,5 +385,43 @@ class XorFunction<T : Field<T>>(
             name: String,
             displayName: String? = null
         ): XorFunction<Flt64> = XorFunction(polynomials, bigM, name, displayName)
+
+        /**
+         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
+         */
+        @JvmStatic
+        @JvmName("fromSymbols")
+        operator fun invoke(
+            polynomials: List<LinearIntermediateSymbol<*>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            XorFunction(
+                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
+        )
+
+        /**
+         * Factory: accept List<ToLinearPolynomial> for mixed-type inputs.
+         */
+        @JvmStatic
+        @JvmName("fromToLinearPolynomials")
+        operator fun invoke(
+            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+            XorFunction<Flt64>(
+                polynomials = polynomials.map { it.toMathLinearPolynomial() },
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
+        )
     }
 }

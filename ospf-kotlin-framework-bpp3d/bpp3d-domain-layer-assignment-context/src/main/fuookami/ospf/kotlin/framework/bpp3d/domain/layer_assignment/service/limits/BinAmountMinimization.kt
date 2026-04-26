@@ -1,10 +1,8 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
@@ -17,11 +15,11 @@ class BinAmountMinimization(
     private val assignment: PreciseAssignment,
     private val coefficient: (Bin<BinLayer>) -> Flt64,
     override val name: String = "bin_amount_minimization"
-) : Pipeline<AbstractLinearMetaModel> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+) : Pipeline<AbstractLinearMetaModel<*>> {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         when (val result = model.minimize(
             polynomial = sum(bins.mapIndexed { i, bin ->
-                coefficient(bin) * assignment.v[i]
+                LinearMonomial(coefficient(bin), assignment.v[i])
             }),
             name = "bin amount"
         )) {

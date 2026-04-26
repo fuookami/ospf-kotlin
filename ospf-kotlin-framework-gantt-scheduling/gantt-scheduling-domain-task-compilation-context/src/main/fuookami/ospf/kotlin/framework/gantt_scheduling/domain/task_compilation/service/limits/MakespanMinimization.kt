@@ -5,7 +5,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline

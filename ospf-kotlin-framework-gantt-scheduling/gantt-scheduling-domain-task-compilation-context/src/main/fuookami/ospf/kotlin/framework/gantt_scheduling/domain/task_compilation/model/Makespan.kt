@@ -5,7 +5,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MinMaxFunction
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor

@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.CapacityIntermediateValues
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.SlotBasedCapacityResult
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ActionAllocation
@@ -18,11 +18,12 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
-typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel) -> Ret<*>
+typealias CapacityPreSolveSolver = suspend (AbstractLinearMetaModel<Flt64>) -> Ret<*>
 
 /**
  * 分时隙产能预求解服务
@@ -145,7 +146,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
      */
-    fun register(model: LinearMetaModel): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         return if (useColumnGeneration) {
             iterativeCompilation!!.register(model)
         } else {
@@ -165,7 +166,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
     suspend fun addColumns(
         iteration: UInt64,
         columns: List<CapacityColumn<E, A>>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<CapacityColumn<E, A>>> {
         if (!useColumnGeneration) {
             return Failed(
@@ -189,7 +190,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * @return Intermediate values / 中间�?
      */
     suspend fun solve(
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         solver: CapacityPreSolveSolver,
         initialColumnsByIteration: Map<UInt64, List<CapacityColumn<E, A>>> = emptyMap()
     ): Ret<CapacityIntermediateValues<A, M, R>> {
@@ -206,10 +207,11 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
 
         // Solve the model
         // 求解模型
+        @Suppress("UNCHECKED_CAST")
         when (val result = solver(model)) {
             is Ok<*, *, *> -> {}
-            is Failed<*, *, *> -> return Failed(result.error)
-            is Fatal<*, *, *> -> return Fatal(result.errors)
+            is Failed<*, *, *> -> return Failed<CapacityIntermediateValues<A, M, R>, ErrorCode, Error<ErrorCode>>(result.error as Error<ErrorCode>)
+            is Fatal<*, *, *> -> return Fatal<CapacityIntermediateValues<A, M, R>, ErrorCode, Error<ErrorCode>>(result.errors as List<Error<ErrorCode>>)
         }
 
         // Extract intermediate values
@@ -228,7 +230,7 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
      * @return Intermediate values / 中间�?
      */
     fun extractIntermediateValues(
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<CapacityIntermediateValues<A, M, R>> {
         val results = HashMap<TimeSlot, SlotBasedCapacityResult<A, M, R>>()
 

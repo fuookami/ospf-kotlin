@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy

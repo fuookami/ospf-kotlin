@@ -1,8 +1,8 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-24
+日期：2026-04-27
 
-状态：P3-4 完成 — model 层四分包重排已落地：`model.basic`（11 文件）、`model.mechanism`（12 文件）、`model.intermediate`（7 文件）、`model.callback`（保留原位）已建立，旧位置留 @Deprecated typealias 过渡，全链路 import 更新，core test 140/0/0、framework compile、gantt-scheduling compile 均通过；`-am` 全链路 clean 构建受 `ospf-kotlin-math` 重构未完成阻断（Parser.kt / PolynomialParser.kt 编译错误），待 math 重构完成后做集成修复
+状态：P3-6 完成 — `ospf-kotlin-example` 已迁入并接入 reactor，P3-5 “迁入 + import 迁移 + 构建接线”完成；全仓 `mvn clean test`（68 模块）已通过。下一阶段为 P4-1：`intermediate_symbol` 包实际类（如 `LinearExpressionSymbol`、`FunctionSymbol`）彻底迁移，计划 2026-04-28 启动，预计 2026-05-02 ~ 2026-05-04 完成
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -22,18 +22,16 @@
 
 1. `variable` 与 `token` 已按 Rust 风格物理拆分（P3-3 完成）。
 2. `basic / mechanism / intermediate / callback` 四层职责已按 Rust 风格重排到独立分包（P3-4 完成）。
-3. `ospf-kotlin-math` 重构未完成，`-am` clean 构建受阻断，待 math 重构完成后做集成修复。
+3. `ospf-kotlin-math` 重构已完成，`-am` clean 构建已通过。
 4. 当前仍存在未完全泛型化路径，部分 model / token / framework / helper API 仍固化为 `Flt64` 或依赖 `Flt64` 视图。
-5. `ospf-kotlin-example` 仍大量依赖旧 `frontend` 包路径，但当前策略已调整为”直接改 import，不做桥接”，相应迁移清单尚未落地。
-6. `ospf-kotlin-example` 尚未迁入本仓库，也未纳入持续构建门禁。
-7. C8 门禁仍偏向增量检查，尚未覆盖全仓库存量问题与全链路 clean 构建验证。
+5. `intermediate_symbol` 包中的实际类（如 `LinearExpressionSymbol`、`QuadraticExpressionSymbol`、`FunctionSymbol`）仍为历史兼容形态，尚未完成彻底迁移与清退。
+6. 仍需把上述 `intermediate_symbol` 实际类迁移纳入统一门禁，避免仅靠人工回归。
 
 ### 1.3 当前工作重心
 
-1. 先稳住旧 Kotlin 类型名与接口语义兼容面，并明确 example 的 import 迁移边界。
-2. 先补齐“未完全泛型化”的主链路缺口，尤其是 `Token` / `TokenList` / `TokenTable` 相关路径，再做更大范围结构迁移。
-3. 再做内部架构重排，避免“边拆边破外部调用”。
-4. 尽早把 `ospf-kotlin-example` 迁入并变成持续门禁。
+1. 启动并完成 `intermediate_symbol` 实际类迁移（P4-1），从“兼容保留”进入“彻底收口”。
+2. 继续稳住旧 Kotlin 类型名与接口语义兼容面，优先保证外部调用行为不回退。
+3. 把 `intermediate_symbol` 迁移结果纳入全仓 clean test 与门禁，确保可持续守护。
 
 ---
 
@@ -111,7 +109,7 @@
 1. `mvn -pl ospf-kotlin-core clean test` 通过（140/0/0）
 2. `mvn -pl ospf-kotlin-framework clean compile` 通过
 3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context clean compile` 通过（需先 install core+framework）
-4. `mvn -pl ospf-kotlin-core -am clean test` 受 `ospf-kotlin-math` 编译错误阻断，待 math 重构完成后集成修复
+4. `mvn -pl ospf-kotlin-core -am clean test` 通过（140/0/0）
 
 ---
 
@@ -144,13 +142,14 @@
 | P1 | P3-1 | example import 迁移清单与旧 `frontend` 引用清退 | 新目标 | ✅ 映射表已完成，执行待 P3-5 |
 | P2 | P3-2 | 完全泛型化补齐与 `Flt64` 固化点清退 | 新目标 | 完成 — TokenTable/Cell Impl 泛型化，minimize(symbol) 重载，Flt64 审计文档，回归测试 |
 | P3 | P3-3 | `variable` / `token` 物理拆解 | 新目标 | ✅ 完成 — `core.token` 独立包，5 文件迁入，@Deprecated typealias 过渡，全链路 import 更新 |
-| P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | ✅ 完成 — 四分包建立，@Deprecated typealias 过渡，全链路 import 更新；`-am` clean 构建受 math 重构阻断待集成修复 |
-| P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | 待执行 |
-| P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | 待执行 |
-| P7 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
-| P8 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
-| P9 | P2-3 | PSO 求解器对齐 Rust | 历史待办 | 待执行 |
-| P10 | P2-6 | 非线性残留 TODO 复核 | 历史待办 | 待确认 |
+| P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | ✅ 完成 — 四分包建立，@Deprecated typealias 过渡，全链路 import 更新；`-am` clean 构建已通过 |
+| P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | ✅ 已完成 — example 迁入、import 迁移、reactor 接线与不 install/deploy 配置已落地 |
+| P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | ✅ 已完成 — 全仓 `mvn clean test` 已通过 |
+| P7 | P4-1 | `intermediate_symbol` 包实际类彻底迁移 | 新目标 | 计划中 — 2026-04-28 启动，预计 2026-05-02 ~ 2026-05-04 完成 |
+| P8 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
+| P9 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
+| P10 | P2-3 | PSO 求解器对齐 Rust | 历史待办 | 待执行 |
+| P11 | P2-6 | 非线性残留 TODO 复核 | 历史待办 | 待确认 |
 
 ### 4.2 统一执行顺序
 
@@ -162,6 +161,7 @@ P3-0 基线冻结与兼容面清单
   -> P3-4 拆 basic / mechanism / intermediate / callback
   -> P3-5 迁入 ospf-kotlin-example
   -> P3-6 增强门禁并做全链路验收
+  -> P4-1 intermediate_symbol 实际类彻底迁移
   -> P2-4 / P2-5 / P2-3 / P2-6 进入后续迭代
 ```
 
@@ -388,7 +388,7 @@ P3-0 基线冻结与兼容面清单
 5. ✅ **旧位置 @Deprecated typealias 过渡** — `intermediate_model/` 和 `model/` 旧位置均留桥接 typealias，指向新包
 6. ✅ **全链路 import 更新** — core 内部（solver/iis、intermediate_symbol、model/callback）、framework（6 文件）、gantt-scheduling（29 文件）均完成 import 迁移；star import 全部替换为显式 import
 7. ✅ **构建验证** — core test 140/0/0、framework compile、gantt-scheduling compile 均通过
-8. ⚠️ **`-am` clean 构建阻断** — `ospf-kotlin-math` 的 `Parser.kt` / `PolynomialParser.kt` 存在编译错误（`Int32Range` 未定义、`symbolOfSerializedIdentifier` 未解析），属于 math 模块自身重构未完成，与 P3-4 无关；待 math 重构完成后做集成修复
+8. ✅ **`-am` clean 构建已通过** — math 重构完成后，`MetaDualSolution` typealias 过渡已补齐，`mvn -pl ospf-kotlin-core -am clean test`、framework compile、gantt-scheduling 全子模块 compile 均通过
 
 #### 验收标准
 
@@ -442,6 +442,29 @@ P3-0 基线冻结与兼容面清单
 3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile` 通过。
 4. `mvn -pl ospf-kotlin-example -am clean compile` 通过。
 5. `pwsh.exe -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1` 通过。
+
+### P4-1 `intermediate_symbol` 包实际类彻底迁移
+
+目标：完成 `intermediate_symbol` 包中历史兼容实际类（如 `LinearExpressionSymbol`、`QuadraticExpressionSymbol`、`FunctionSymbol`）的迁移收口，减少长期桥接负担。
+
+#### 计划时间
+
+1. 启动日期：2026-04-28
+2. 预计完成：2026-05-02 ~ 2026-05-04
+
+#### 执行步骤
+
+1. 盘点 `intermediate_symbol` 包内“实际类 vs typealias/桥接”清单，按调用热度排序。
+2. 分模块迁移调用方到 `math.symbol` 与 `core.intermediate_symbol.function` 主路径，禁止新增转接。
+3. 对缺失的快捷接口，优先在 `math.symbol` 层补齐等价快捷接口，再回填调用方。
+4. 清理可删除的 `@Deprecated` 过渡代码，并补齐回归测试。
+5. 完成全仓 `clean test` 验收并更新门禁脚本检查项。
+
+#### 验收标准
+
+1. `intermediate_symbol` 包中目标实际类完成迁移或明确保留原因，不存在“未说明保留”。
+2. 调用方主路径不再依赖历史桥接类型。
+3. 全仓 `mvn clean test` 通过。
 
 ### P2-4 LP 导出能力对齐 Rust
 
@@ -549,7 +572,8 @@ P3-0 基线冻结与兼容面清单
 Week 1: P3-0 (1d) -> P3-1 (1-2d) -> P3-2 开始
 Week 2: P3-2 完成 (3-5d total) -> P3-3 开始
 Week 3: P3-3 完成 (2-3d) -> P3-4 开始
-Week 4: P3-4 完成 (3-5d) -> P3-5 (1-2d) -> P3-6 (1-2d)
+Week 4: P3-4 完成 (3-5d) -> P3-5 (1-2d) -> P3-6 (1-2d)（已完成）
+Week 5: P4-1（2026-04-28 启动，预计 2026-05-02 ~ 2026-05-04 完成）
 ```
 
 ### 8.2 关键风险

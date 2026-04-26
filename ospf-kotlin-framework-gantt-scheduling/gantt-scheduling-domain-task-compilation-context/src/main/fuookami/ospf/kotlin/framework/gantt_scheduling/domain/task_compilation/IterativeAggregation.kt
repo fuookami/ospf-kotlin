@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.variable.Binary
 import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*

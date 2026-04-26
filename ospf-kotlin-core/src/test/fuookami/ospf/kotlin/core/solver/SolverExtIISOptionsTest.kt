@@ -2,20 +2,20 @@
 
 package fuookami.ospf.kotlin.core.solver
 
-import fuookami.ospf.kotlin.core.intermediate_model.BasicLinearTriadModel
-import fuookami.ospf.kotlin.core.intermediate_model.BasicQuadraticTetradModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintBatch
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.intermediate_model.SparseMatrixF64
-import fuookami.ospf.kotlin.core.intermediate_model.SparseQuadraticMatrix
-import fuookami.ospf.kotlin.core.intermediate_model.LinearObjective
-import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearTriadModelView
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticConstraint
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticObjective
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModel
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.intermediate_model.Variable
+import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrixF64
+import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
+import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraint
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
+import fuookami.ospf.kotlin.core.model.basic.Variable
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
@@ -25,8 +25,8 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret

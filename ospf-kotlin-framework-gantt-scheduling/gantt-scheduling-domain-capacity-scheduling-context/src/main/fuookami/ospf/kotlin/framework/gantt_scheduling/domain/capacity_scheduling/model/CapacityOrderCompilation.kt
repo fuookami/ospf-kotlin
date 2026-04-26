@@ -4,13 +4,13 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.BinVariable3
 import fuookami.ospf.kotlin.core.variable.UIntVariable3
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -84,7 +84,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
      * 注册到模�?
      * Register to model
      */
-    fun register(model: LinearMetaModel): Try {
+    fun register(model: LinearMetaModelF64): Try {
         // Register x variable
         // 注册 x 变量
         if (!::x.isInitialized) {
@@ -125,16 +125,16 @@ class CapacityOrderCompilation<A : ProductionAction>(
         // Register cost expression
         // 注册成本表达�?
         if (!::cost.isInitialized) {
-            val costPoly = MutableLinearPolynomial(name = "cost")
+            val costPoly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
             for ((a, action) in actions.withIndex()) {
                 for ((s, slot) in slots.withIndex()) {
                     val unitCost = action.unitCost(slot.time.start)
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        costPoly += unitCost * x[a, s, o]
+                        costPoly += LinearMonomial(unitCost, x[a, s, o])
                     }
                 }
             }
-            cost = LinearExpressionSymbol(costPoly, name = "cost")
+            cost = LinearExpressionSymbol(polynomial = costPoly.toLinearPolynomial(), name = "cost")
         }
         when (val result = model.add(cost)) {
             is Ok -> {}
@@ -157,11 +157,11 @@ class CapacityOrderCompilation<A : ProductionAction>(
                     } else {
                         timeWindow.valueOf(timeWindow.interval)
                     }
-                    val poly = MutableLinearPolynomial()
+                    val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
                     for (o in 0 until maxOrderPerSlot.toInt()) {
-                        poly += unitOperationTime * x[a, s, o]
+                        poly += LinearMonomial(unitOperationTime, x[a, s, o])
                     }
-                    poly
+                    poly.toLinearPolynomial()
                 }
             )
         }
@@ -181,12 +181,12 @@ class CapacityOrderCompilation<A : ProductionAction>(
                 ctor = { executor, slot ->
                     val s = slots.indexOf(slot)
                     val executorActions = actions.filter { it.executor == executor }
-                    val poly = MutableLinearPolynomial()
+                    val poly = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
                     for (action in executorActions) {
                         val a = actions.indexOf(action)
-                        poly += operationTime[a, s].toLinearPolynomial()
+                        poly += operationTime[a, s].polynomial
                     }
-                    poly
+                    poly.toLinearPolynomial()
                 }
             )
         }
@@ -203,7 +203,7 @@ class CapacityOrderCompilation<A : ProductionAction>(
      * 解析�?
      * Extract solution from model
      */
-    override fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>> {
+    override fun extractSolution(model: AbstractLinearMetaModelF64): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
 
         for ((a, action) in actions.withIndex()) {

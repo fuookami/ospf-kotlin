@@ -1,0 +1,55 @@
+package fuookami.ospf.kotlin.core.solver.cplex
+
+import fuookami.ospf.kotlin.core.solver.output.SolverStatus
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
+import ilog.cplex.IloCplex
+
+abstract class CplexSolver : AutoCloseable {
+    protected lateinit var cplex: IloCplex
+    protected lateinit var status: SolverStatus
+
+    override fun close() {
+        cplex.endModel()
+        cplex.end()
+    }
+
+    protected suspend fun init(name: String): Try {
+        cplex = IloCplex()
+        cplex.name = name
+        return ok
+    }
+
+    protected suspend fun analyzeStatus(): Try {
+        status = when (cplex.status) {
+            IloCplex.Status.Optimal -> {
+                SolverStatus.Optimal
+            }
+
+            IloCplex.Status.Feasible -> {
+                SolverStatus.Feasible
+            }
+
+            IloCplex.Status.Unbounded -> {
+                SolverStatus.Unbounded
+            }
+
+            IloCplex.Status.Infeasible -> {
+                SolverStatus.Infeasible
+            }
+
+            IloCplex.Status.InfeasibleOrUnbounded -> {
+                SolverStatus.InfeasibleOrUnbounded
+            }
+
+            else -> {
+                if (cplex.solnPoolNsolns > 0) {
+                    SolverStatus.Feasible
+                } else {
+                    SolverStatus.SolvingException
+                }
+            }
+        }
+        return ok
+    }
+}

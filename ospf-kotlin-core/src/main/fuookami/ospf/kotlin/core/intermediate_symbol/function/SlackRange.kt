@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.variable.VariableType
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -185,5 +186,42 @@ class SlackRangeFunction<T : Field<T>>(
             name = name,
             displayName = displayName
         )
+
+        @JvmStatic
+        @JvmName("legacyWithVariableTypeAndPolynomialBounds")
+        operator fun invoke(
+            type: VariableType<*>,
+            x: LinearPolynomial<Flt64>,
+            lb: LinearPolynomial<Flt64>,
+            ub: LinearPolynomial<Flt64>,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter {
+            val zero = Flt64.zero
+            val shiftedX = subtract(x, lb)
+            val shiftedUb = subtract(ub, lb)
+            val mapped = SlackRangeFunction(
+                x = shiftedX,
+                lb = zero,
+                ub = shiftedUb.constant,
+                constraint = true,
+                name = name,
+                displayName = displayName
+            )
+            return LinearFunctionSymbolAdapter(mapped)
+        }
+
+        private fun subtract(
+            lhs: LinearPolynomial<Flt64>,
+            rhs: LinearPolynomial<Flt64>
+        ): LinearPolynomial<Flt64> {
+            val negatedRhs = rhs.monomials.map { monomial ->
+                LinearMonomial(-monomial.coefficient, monomial.symbol)
+            }
+            return LinearPolynomial(
+                lhs.monomials + negatedRhs,
+                lhs.constant - rhs.constant
+            )
+        }
     }
 }

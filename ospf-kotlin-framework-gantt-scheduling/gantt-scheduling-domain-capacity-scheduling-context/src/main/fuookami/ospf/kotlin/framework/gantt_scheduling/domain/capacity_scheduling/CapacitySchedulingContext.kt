@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacitySchedulingSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -55,7 +55,7 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
      */
-    fun register(model: LinearMetaModel): Try
+    fun register(model: LinearMetaModelF64): Try
 
     /**
      * 从模型解析解
@@ -64,5 +64,5 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * @param model Abstract linear meta model / 抽象线性元模型
      * @return Capacity scheduling solution / 产能调度解
      */
-    fun extractSolution(model: AbstractLinearMetaModel): Ret<CapacitySchedulingSolution<A>>
+    fun extractSolution(model: AbstractLinearMetaModelF64): Ret<CapacitySchedulingSolution<A>>
 }

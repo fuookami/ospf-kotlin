@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusC
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearFunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticFunctionSymbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial

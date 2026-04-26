@@ -10,6 +10,8 @@ package fuookami.ospf.kotlin.math.symbol.expression.operation
 
 import fuookami.ospf.kotlin.math.Trivalent
 import fuookami.ospf.kotlin.math.symbol.expression.*
+import java.math.BigDecimal
+import java.math.BigInteger
 
 /**
  * 求值上下文
@@ -136,9 +138,14 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
 private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Trivalent {
     val value = evaluateScalar(expr.value, context) ?: return Trivalent.Unknown
 
-    val candidates = expr.candidates.mapNotNull { evaluateScalar(it, context) }
-
-    val isIn = candidates.any { valuesEqual(value, it) }
+    var isIn = false
+    for (candidateExpr in expr.candidates) {
+        val candidate = evaluateScalar(candidateExpr, context) ?: continue
+        if (valuesEqual(value, candidate)) {
+            isIn = true
+            break
+        }
+    }
 
     return Trivalent(if (expr.negated) !isIn else isIn)
 }
@@ -191,27 +198,17 @@ private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Triv
  * Evaluate And expression
  */
 private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trivalent {
-    // 如果有任何操作数是 False，结果是 False
-    // If any operand is False, result is False
+    var hasUnknown = false
     for (operand in expr.operands) {
         val result = evaluateBoolean(operand, context)
         if (result == Trivalent.False) {
             return Trivalent.False
         }
-    }
-
-    // 如果有任何操作数是 Unknown，结果是 Unknown
-    // If any operand is Unknown, result is Unknown
-    for (operand in expr.operands) {
-        val result = evaluateBoolean(operand, context)
         if (result == Trivalent.Unknown) {
-            return Trivalent.Unknown
+            hasUnknown = true
         }
     }
-
-    // 所有操作数都是 True
-    // All operands are True
-    return Trivalent.True
+    return if (hasUnknown) Trivalent.Unknown else Trivalent.True
 }
 
 /**
@@ -219,27 +216,17 @@ private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trival
  * Evaluate Or expression
  */
 private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalent {
-    // 如果有任何操作数是 True，结果是 True
-    // If any operand is True, result is True
+    var hasUnknown = false
     for (operand in expr.operands) {
         val result = evaluateBoolean(operand, context)
         if (result == Trivalent.True) {
             return Trivalent.True
         }
-    }
-
-    // 如果有任何操作数是 Unknown，结果是 Unknown
-    // If any operand is Unknown, result is Unknown
-    for (operand in expr.operands) {
-        val result = evaluateBoolean(operand, context)
         if (result == Trivalent.Unknown) {
-            return Trivalent.Unknown
+            hasUnknown = true
         }
     }
-
-    // 所有操作数都是 False
-    // All operands are False
-    return Trivalent.False
+    return if (hasUnknown) Trivalent.Unknown else Trivalent.False
 }
 
 /**
@@ -276,24 +263,7 @@ private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext
  */
 private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext): Any? {
     val operand = evaluateScalar(expr.operand, context) ?: return null
-
-    return when (expr.operator) {
-        UnaryOperator.Negate -> when (operand) {
-            is Int -> -operand
-            is Long -> -operand
-            is Double -> -operand
-            is Float -> -operand
-            else -> null
-        }
-        UnaryOperator.Positive -> operand
-        UnaryOperator.Abs -> when (operand) {
-            is Int -> kotlin.math.abs(operand)
-            is Long -> kotlin.math.abs(operand)
-            is Double -> kotlin.math.abs(operand)
-            is Float -> kotlin.math.abs(operand)
-            else -> null
-        }
-    }
+    return NumericDispatcher.evaluateUnary(expr.operator, operand)
 }
 
 // 使用类型别名避免与表达式类冲突
@@ -308,44 +278,7 @@ private typealias BinaryExpression<T> = ScalarBinary<T>
 private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext): Any? {
     val left = evaluateScalar(expr.left, context) ?: return null
     val right = evaluateScalar(expr.right, context) ?: return null
-
-    return when (expr.operator) {
-        BinaryOperator.Add -> when {
-            left is Int && right is Int -> left + right
-            left is Long && right is Long -> left + right
-            left is Double && right is Double -> left + right
-            else -> null
-        }
-        BinaryOperator.Subtract -> when {
-            left is Int && right is Int -> left - right
-            left is Long && right is Long -> left - right
-            left is Double && right is Double -> left - right
-            else -> null
-        }
-        BinaryOperator.Multiply -> when {
-            left is Int && right is Int -> left * right
-            left is Long && right is Long -> left * right
-            left is Double && right is Double -> left * right
-            else -> null
-        }
-        BinaryOperator.Divide -> when {
-            left is Int && right is Int && right != 0 -> left / right
-            left is Long && right is Long && right != 0L -> left / right
-            left is Double && right is Double && right != 0.0 -> left / right
-            else -> null
-        }
-        BinaryOperator.Modulo -> when {
-            left is Int && right is Int && right != 0 -> left % right
-            left is Long && right is Long && right != 0L -> left % right
-            left is Double && right is Double && right != 0.0 -> left % right
-            else -> null
-        }
-        BinaryOperator.Power -> when {
-            left is Double && right is Double -> Math.pow(left, right)
-            left is Int && right is Int -> Math.pow(left.toDouble(), right.toDouble()).toInt()
-            else -> null
-        }
-    }
+    return NumericDispatcher.evaluateBinary(expr.operator, left, right)
 }
 
 // ========== 辅助函数 / Helper Functions ==========
@@ -374,11 +307,9 @@ private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator)
 @Suppress("UNCHECKED_CAST")
 private fun compareOrder(left: Any, right: Any): Int? {
     return when {
+        left is Number && right is Number -> compareNumbers(left, right)
         left is Comparable<*> && right::class == left::class -> {
             (left as Comparable<Any>).compareTo(right)
-        }
-        left is Number && right is Number -> {
-            left.toDouble().compareTo(right.toDouble())
         }
         left is String && right is String -> left.compareTo(right)
         else -> null
@@ -394,8 +325,25 @@ private fun valuesEqual(left: Any?, right: Any?): Boolean {
     if (left == null || right == null) return false
 
     return when {
-        left is Number && right is Number -> left.toDouble() == right.toDouble()
+        left is Number && right is Number -> compareNumbers(left, right) == 0
         else -> left == right
+    }
+}
+
+private fun compareNumbers(left: Number, right: Number): Int? {
+    val leftDecimal = left.toBigDecimalOrNull() ?: return null
+    val rightDecimal = right.toBigDecimalOrNull() ?: return null
+    return leftDecimal.compareTo(rightDecimal)
+}
+
+private fun Number.toBigDecimalOrNull(): BigDecimal? {
+    return when (this) {
+        is BigDecimal -> this
+        is BigInteger -> BigDecimal(this)
+        is Byte, is Short, is Int, is Long -> BigDecimal.valueOf(this.toLong())
+        is Float -> if (this.isFinite()) BigDecimal(this.toString()) else null
+        is Double -> if (this.isFinite()) BigDecimal(this.toString()) else null
+        else -> this.toString().toBigDecimalOrNull()
     }
 }
 

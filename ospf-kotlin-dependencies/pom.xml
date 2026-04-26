@@ -505,6 +505,11 @@
                 <artifactId>ospf-kotlin-starter-network-scheduling</artifactId>
                 <version>${project.version}</version>
             </dependency>
+            <dependency>
+                <groupId>io.github.fuookami.ospf.kotlin</groupId>
+                <artifactId>ospf-kotlin-example</artifactId>
+                <version>${project.version}</version>
+            </dependency>
         </dependencies>
     </dependencyManagement>
 </project>

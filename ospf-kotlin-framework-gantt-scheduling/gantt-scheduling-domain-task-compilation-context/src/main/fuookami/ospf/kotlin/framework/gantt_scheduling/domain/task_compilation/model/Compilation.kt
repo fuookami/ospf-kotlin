@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.BinVariable2
 import fuookami.ospf.kotlin.core.variable.eq

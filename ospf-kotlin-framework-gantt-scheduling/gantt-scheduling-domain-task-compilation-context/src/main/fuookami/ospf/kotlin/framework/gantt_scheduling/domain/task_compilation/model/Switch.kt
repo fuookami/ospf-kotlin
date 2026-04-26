@@ -4,10 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
-import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
@@ -62,7 +62,7 @@ class TaskSchedulingSwitch<
                         )
                     } else {
                         IfFunction(
-                            input = LinearConstraintInput.from(
+                            inequality = LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!
                             ),

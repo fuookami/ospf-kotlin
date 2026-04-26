@@ -1,6 +1,9 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.intermediate_model.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.token.boundTokenTableContext
 import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol

@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.VariableCombinationItem
+import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 

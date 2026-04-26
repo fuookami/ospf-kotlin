@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.core.variable.Percentage
 import fuookami.ospf.kotlin.core.variable.Ternary
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.UInteger
-import fuookami.ospf.kotlin.core.variable.VariableCombinationItem
+import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.utils.concept.Copyable
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

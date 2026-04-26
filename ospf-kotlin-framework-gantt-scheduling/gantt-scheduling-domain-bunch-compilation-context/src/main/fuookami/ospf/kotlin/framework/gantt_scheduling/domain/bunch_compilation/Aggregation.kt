@@ -4,8 +4,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.variable.Binary
 import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
@@ -46,7 +46,7 @@ abstract class AbstractBunchCompilationAggregation<
     val removedBunches: Set<B> by compilation::removedBunches
     val lastIterationBunches: List<B> by compilation::lastIterationBunches
 
-    open fun register(model: MetaModel): Try {
+    open fun register(model: MetaModel<Flt64>): Try {
         when (val result = compilation.register(model)) {
             is Ok -> {}
 
@@ -65,7 +65,7 @@ abstract class AbstractBunchCompilationAggregation<
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = compilation.addColumns(
             iteration = iteration,
@@ -94,7 +94,7 @@ abstract class AbstractBunchCompilationAggregation<
         reducedCost: (B) -> Flt64,
         fixedBunches: Set<B>,
         keptBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Flt64> {
         for (bunch in bunches) {
             if (removedBunches.contains(bunch)) {
@@ -130,7 +130,7 @@ abstract class AbstractBunchCompilationAggregation<
 
     open fun extractFixedBunches(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it eq Flt64.one }
             .map { it.keys }
@@ -138,7 +138,7 @@ abstract class AbstractBunchCompilationAggregation<
 
     open fun extractKeptBunches(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<B>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
             .map { it.keys }
@@ -146,19 +146,19 @@ abstract class AbstractBunchCompilationAggregation<
 
     open fun extractKeptBunchesWithRatio(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<B, Flt64>> {
         return extractBunches(iteration, model) { it gr Flt64.zero }
     }
 
     open fun extractHiddenExecutors(
         executors: List<E>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<E>> {
         val z = compilation.z
         val ret = HashSet<E>()
         for (token in model.tokens.tokens) {
-            if (token.belongsTo(z)) {
+            if (token belongsTo z) {
                 if (token.result!! gr Flt64.zero) {
                     ret.add(executors[token.variable.index])
                 }
@@ -180,7 +180,7 @@ abstract class AbstractBunchCompilationAggregation<
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<B>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         withFixNot: Boolean = false
     ): Ret<Set<B>> {
         var flag = true
@@ -192,16 +192,16 @@ abstract class AbstractBunchCompilationAggregation<
 
         val y = compilation.y
         for (token in model.tokens.tokens) {
-            if (token.belongsTo(y) && (token.result!! gr bar)) {
+            if (token belongsTo y && (token.result!! gr bar)) {
                 y[token.variable.index].range.eq(true)
                 flag = false
             }
 
             for (i in UInt64.zero..iteration) {
-                if (token.belongsTo(compilation.x[i.toInt()])) {
+                if (token belongsTo compilation.x[i.toInt()]) {
                     val xi = compilation.x[i.toInt()]
 
-                    if (token.belongsTo(xi)) {
+                    if (token belongsTo xi) {
                         val bunch = bunchesIteration[i.toInt()][token.variable.index]
                         assert(!removedBunches.contains(bunch))
 
@@ -245,7 +245,7 @@ abstract class AbstractBunchCompilationAggregation<
 
     open fun logResult(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         for (token in model.tokens.tokens) {
             if (token.result!! gr Flt64.zero) {
@@ -262,14 +262,14 @@ abstract class AbstractBunchCompilationAggregation<
 
     open fun logBunchCost(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         for (token in model.tokens.tokens) {
             if ((token.result!! eq Flt64.one) && token.name.startsWith("x")) {
                 for (i in UInt64.zero..iteration) {
                     val xi = compilation.x[i.toInt()]
 
-                    if (token.variable.belongsTo(xi)) {
+                    if (token.variable belongsTo xi) {
                         val bunch = bunchesIteration[i.toInt()][token.variable.index]
                         logger.debug { "${bunch.executor} cost: ${bunch.cost.sum!!}" }
                         break
@@ -315,7 +315,7 @@ abstract class AbstractBunchCompilationAggregation<
 
     private fun extractBunches(
         iteration: UInt64,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         predicate: (Flt64) -> Boolean
     ): Ret<Map<B, Flt64>> {
         val ret = HashMap<B, Flt64>()
@@ -327,7 +327,7 @@ abstract class AbstractBunchCompilationAggregation<
             for (i in 0..iteration.toInt()) {
                 val xi = compilation.x[i]
 
-                if (token.belongsTo(xi)) {
+                if (token belongsTo xi) {
                     val bunch = bunchesIteration[i][token.variable.index]
                     assert(!removedBunches.contains(bunch))
                     ret[bunch] = token.result!!
@@ -387,7 +387,7 @@ open class BunchCompilationAggregationWithTime<
         extra = makespanExtra
     )
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         when (val result = super.register(model)) {
             is Ok -> {}
 
@@ -430,7 +430,7 @@ open class BunchCompilationAggregationWithTime<
     override suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = super.addColumns(
             iteration = iteration,
@@ -471,7 +471,3 @@ open class BunchCompilationAggregationWithTime<
         return Ok(unduplicatedBunches)
     }
 }
-
-
-
-

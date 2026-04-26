@@ -1,9 +1,9 @@
 @file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
-import fuookami.ospf.kotlin.core.intermediate_model.SubObject
-import fuookami.ospf.kotlin.core.intermediate_model.LinearSubObject
-import fuookami.ospf.kotlin.core.intermediate_model.QuadraticSubObject
-import fuookami.ospf.kotlin.core.intermediate_model.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.SubObject
+import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64

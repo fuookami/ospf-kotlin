@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.model.Solution
+import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl

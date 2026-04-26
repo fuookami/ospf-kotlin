@@ -493,6 +493,39 @@ class LinearExpressionSymbol(
         }
 
         operator fun invoke(
+            monomial: UtilsLinearMonomial<Flt64>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = listOf(monomial),
+                    constant = Flt64.zero
+                ),
+                category = Linear,
+                parent = parent,
+                name = name.ifEmpty { monomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
+            polynomial: UtilsMutableLinearPolynomial<Flt64>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): LinearExpressionSymbol {
+            return LinearExpressionSymbol(
+                _utilsPolynomial = polynomial,
+                category = Linear,
+                parent = parent,
+                name = name.ifEmpty { polynomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun invoke(
             constant: Int,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",

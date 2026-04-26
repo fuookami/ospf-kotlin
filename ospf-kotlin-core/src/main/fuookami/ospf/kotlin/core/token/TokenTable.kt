@@ -1,8 +1,8 @@
 ﻿package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbolRegistrationScope
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol

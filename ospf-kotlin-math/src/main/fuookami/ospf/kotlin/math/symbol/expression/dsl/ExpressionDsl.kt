@@ -276,9 +276,9 @@ fun booleanExpression(block: BooleanExpressionBuilder.() -> BooleanExpression): 
  * 快速创建比较表达式
  * Quick create comparison expression
  */
-fun compare(path: String, op: ComparisonOperator, value: Any): Comparison<Any> {
-    val ref: ScalarExpression<Any> = ScalarReference(PropertyPath.parse(path))
-    val const: ScalarExpression<Any> = ScalarConstant(value)
+fun <T> compare(path: String, op: ComparisonOperator, value: T): Comparison<T> {
+    val ref: ScalarExpression<T> = ScalarReference(PropertyPath.parse(path))
+    val const: ScalarExpression<T> = ScalarConstant(value)
     return Comparison(op, ref, const)
 }
 
@@ -286,37 +286,37 @@ fun compare(path: String, op: ComparisonOperator, value: Any): Comparison<Any> {
  * 快速创建等于表达式
  * Quick create equals expression
  */
-fun eq(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Eq, value)
+fun <T> eq(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Eq, value)
 
 /**
  * 快速创建不等于表达式
  * Quick create not equals expression
  */
-fun ne(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Ne, value)
+fun <T> ne(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Ne, value)
 
 /**
  * 快速创建小于表达式
  * Quick create less than expression
  */
-fun lt(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Lt, value)
+fun <T> lt(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Lt, value)
 
 /**
  * 快速创建小于等于表达式
  * Quick create less than or equal expression
  */
-fun le(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Le, value)
+fun <T> le(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Le, value)
 
 /**
  * 快速创建大于表达式
  * Quick create greater than expression
  */
-fun gt(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Gt, value)
+fun <T> gt(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Gt, value)
 
 /**
  * 快速创建大于等于表达式
  * Quick create greater than or equal expression
  */
-fun ge(path: String, value: Any): Comparison<*> = compare(path, ComparisonOperator.Ge, value)
+fun <T> ge(path: String, value: T): Comparison<T> = compare(path, ComparisonOperator.Ge, value)
 
 /**
  * 快速创建 in 表达式

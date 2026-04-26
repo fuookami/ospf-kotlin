@@ -2,10 +2,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
@@ -35,13 +35,13 @@ class ProduceLessQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+    override fun invoke(model: AbstractLinearMetaModelF64): Try {
         if (products.isNotEmpty()) {
-            val cost = MutableLinearPolynomial()
+            val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
             for ((product, _) in products) {
                 val thresholdValue = threshold(product)
                 if (thresholdValue eq Flt64.zero) {
-                    cost += coefficient(product) * produce.lessQuantity[product]
+                    cost += LinearMonomial(coefficient(product), produce.lessQuantity[product])
                 } else {
                     val slack = SlackFunction(
                         x = produce.lessQuantity[product],
@@ -60,11 +60,11 @@ class ProduceLessQuantityMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += coefficient(product) * slack
+                    cost += LinearMonomial(coefficient(product), slack)
                 }
             }
             when (val result = model.minimize(
-                polynomial = cost,
+                polynomial = cost.toLinearPolynomial(),
                 name = "produce less quantity"
             )) {
                 is Ok -> {}
@@ -81,6 +81,3 @@ class ProduceLessQuantityMinimization<
         return ok
     }
 }
-
-
-

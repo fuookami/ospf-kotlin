@@ -1,15 +1,16 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.ImpreciseAssignment
-import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DCGPipeline
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceArguments
+import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.AbstractBPP3DShadowPriceMap
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.Cuboid
+import fuookami.ospf.kotlin.framework.model.CGPipeline
+import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 
 class VolumeMinimization<
         Args : AbstractBPP3DShadowPriceArguments<T>,
@@ -18,10 +19,10 @@ class VolumeMinimization<
     private val assignment: ImpreciseAssignment,
     private val coefficient: Flt64,
     override val name: String = "volume_minimization",
-) : AbstractBPP3DCGPipeline<Args, T> {
-    override fun invoke(model: AbstractLinearMetaModel): Try {
+) : CGPipeline<Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>> {
+    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
         when (val result = model.minimize(
-            monomial = coefficient * assignment.volume,
+            monomial = LinearMonomial(coefficient, assignment.volume),
             name = "volume"
         )) {
             is Ok -> {}
@@ -38,6 +39,3 @@ class VolumeMinimization<
         return ok
     }
 }
-
-
-

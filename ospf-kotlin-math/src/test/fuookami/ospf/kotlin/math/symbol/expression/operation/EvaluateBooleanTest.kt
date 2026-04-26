@@ -48,6 +48,27 @@ class EvaluateBooleanTest {
         }
 
         @Test
+        @DisplayName("Large integer comparison keeps precision / 大整数比较保持精度")
+        fun testEvaluateLargeIntegerPrecision() {
+            val larger = 9007199254740993L
+            val smaller = 9007199254740992L
+
+            val eqExpr = Comparison(
+                ComparisonOperator.Eq,
+                ScalarReference<Long>(PropertyPath.parse("value")),
+                ScalarConstant(smaller)
+            )
+            val gtExpr = Comparison(
+                ComparisonOperator.Gt,
+                ScalarReference<Long>(PropertyPath.parse("value")),
+                ScalarConstant(smaller)
+            )
+
+            assertEquals(Trivalent.False, eqExpr.evaluateWith(mapOf("value" to larger)))
+            assertEquals(Trivalent.True, gtExpr.evaluateWith(mapOf("value" to larger)))
+        }
+
+        @Test
         @DisplayName("Evaluate with path / 路径求值")
         fun testEvaluateWithPath() {
             val expr = Comparison(ComparisonOperator.Eq, ScalarReference(PropertyPath.parse("user.address.city")), ScalarConstant("Beijing"))

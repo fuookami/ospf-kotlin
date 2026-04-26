@@ -168,18 +168,18 @@ class IfFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            input: fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput,
+            inequality: fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): IfFunction<Flt64> {
             // LinearConstraintInput.sign is already math.symbol.inequality.Comparison
-            val comp = input.sign
+            val comp = inequality.sign
             // Reconstruct linear inequality from flattenData
-            val monos = input.flattenData.monomials.map {
+            val monos = inequality.flattenData.monomials.map {
                 MathLinearMonomial(it.coefficient, it.symbol)
             }
-            val lhs = MathLinearPolynomial(monos, input.flattenData.constant)
+            val lhs = MathLinearPolynomial(monos, inequality.flattenData.constant)
             val rhs = MathLinearPolynomial(emptyList(), Flt64.zero)
             val premiseIneq = MathLinearInequality(lhs, rhs, comp, "${name}_premise")
             // Vacuous consequence: 0 <= 0 (always true)
@@ -191,6 +191,24 @@ class IfFunction<T : Field<T>>(
             )
             return IfFunction(premiseIneq, consequenceIneq, bigM, constraintMode = true, name, displayName)
         }
+
+        @JvmStatic
+        @JvmName("fromMathLinearInequality")
+        operator fun invoke(
+            inequality: MathLinearInequality,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): IfFunction<Flt64> {
+            val consequenceIneq = MathLinearInequality(
+                MathLinearPolynomial(emptyList(), Flt64.zero),
+                MathLinearPolynomial(emptyList(), Flt64.zero),
+                Comparison.LE,
+                "${name}_consequence"
+            )
+            return IfFunction(inequality, consequenceIneq, bigM, constraintMode = true, name, displayName)
+        }
+
     }
 }
 

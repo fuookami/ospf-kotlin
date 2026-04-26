@@ -1,0 +1,65 @@
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+
+package fuookami.ospf.kotlin.example.framework_demo.demo4.infrastructure
+
+import java.util.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.solver.config.*
+import fuookami.ospf.kotlin.core.solver.gurobi.*
+import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.framework.solver.*
+
+data object LinearSolverBuilder {
+    operator fun invoke(
+        solver: String? = null,
+        config: SolverConfig = SolverConfig(),
+        callBack: Any? = null
+    ): ColumnGenerationSolver {
+        return (if (callBack != null) {
+            when (callBack) {
+                is GurobiLinearSolverCallBack -> {
+                    GurobiColumnGenerationSolver(
+                        config = config,
+                        callBack = callBack
+                    )
+                }
+
+                is ScipSolverCallBack -> {
+                    ScipColumnGenerationSolver(
+                        config = config,
+                        callBack = callBack
+                    )
+                }
+
+                else -> {
+                    null
+                }
+            }
+        } else if (solver != null) {
+            when (solver) {
+                "gurobi" -> {
+                    GurobiColumnGenerationSolver(config = config)
+                }
+
+                "scip" -> {
+                    ScipColumnGenerationSolver(config = config)
+                }
+
+                else -> {
+                    null
+                }
+            }
+        } else {
+            null
+        }) ?: if (System.getProperty("os.name").lowercase(Locale.getDefault()).contains("win")) {
+            GurobiColumnGenerationSolver(
+                config = config
+            )
+        } else {
+            GurobiColumnGenerationSolver(
+                config = config
+            )
+        }
+    }
+}
+

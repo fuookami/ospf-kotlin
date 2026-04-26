@@ -4,9 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeRange
@@ -114,14 +115,14 @@ class PlanCapacitySchedulingResourceUsage<
                     val actionIndex = actions.indexOf(action)
                     val slotIndex = resolveCapacitySlotIndex(slot)
                     if (actionIndex >= 0 && slotIndex >= 0 && slotIndex < compilation.operationTime.shape[1]) {
-                        quantity[slot].asMutable() += unitUsage * compilation.operationTime[actionIndex, slotIndex].toLinearPolynomial()
+                        quantity[slot].asMutable() += LinearMonomial(unitUsage, compilation.operationTime[actionIndex, slotIndex])
                     }
                 }
             }
         }
     }
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: LinearMetaModelF64): Try {
         return addQuantityToModel(model, timeSlots)
     }
 

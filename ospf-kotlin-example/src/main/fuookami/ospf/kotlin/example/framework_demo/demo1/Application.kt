@@ -1,0 +1,184 @@
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo1
+
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.basic.*
+import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.*
+import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
+
+/**
+ * @see     https://fuookami.github.io/ospf/examples/framework-example1.html
+ */
+class SSP {
+    lateinit var routeContext: RouteContext
+    lateinit var bandwidthContext: BandwidthContext
+
+    suspend operator fun invoke(input: Input): Ret<Output> {
+        when (val result = init(input)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        val model = LinearMetaModelF64("demo1")
+        when (val result = construct(model)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        val result = solve(model)
+        when (result) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        val solution = bandwidthContext.analyze(model, result.value)
+        when (solution) {
+            is Failed -> {
+                return Failed(solution.error)
+            }
+
+            is Fatal -> {
+                return Fatal(solution.errors)
+            }
+
+            is Ok -> {}
+        }
+
+        return Ok(Output(solution.value.map { list -> list.map { it.id } }))
+    }
+
+    private fun init(input: Input): Try {
+        routeContext = RouteContext()
+        bandwidthContext = BandwidthContext(routeContext)
+
+        when (val result = routeContext.init(input)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        when (val result = bandwidthContext.init(input)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+
+        return ok
+    }
+
+    private fun construct(model: LinearMetaModelF64): Try {
+        when (val result = routeContext.register(model)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        when (val result = bandwidthContext.register(model)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+
+        when (val result = routeContext.construct(model)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+        when (val result = bandwidthContext.construct(model)) {
+            is Failed -> {
+                return Failed(result.error)
+            }
+
+            is Fatal -> {
+                return Fatal(result.errors)
+            }
+
+            is Ok -> {}
+        }
+
+        return ok
+    }
+
+    private suspend fun solve(metaModel: LinearMetaModelF64): Ret<List<Flt64>> {
+        val solver = ScipLinearSolver()
+        return when (val ret = solver(metaModel)) {
+            is Ok -> {
+                metaModel.tokens.setSolution(ret.value.solution)
+                Ok(ret.value.solution)
+            }
+
+            is Failed -> {
+                Failed(ret.error)
+            }
+
+            is Fatal -> {
+                Fatal(ret.errors)
+            }
+        }
+    }
+}
+
+
+
+
+
+
+
+
+
+
+
+

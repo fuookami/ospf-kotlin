@@ -2,12 +2,15 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.div
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.utils.functional.*
@@ -34,7 +37,7 @@ class PreciseLoadCapacity(
     override lateinit var loadingRate: LinearIntermediateSymbols1
     override lateinit var tailLoadingRate: LinearIntermediateSymbols1
 
-    fun register(model: MetaModel): Try {
+    fun register(model: MetaModelF64): Try {
         if (!::loadWeight.isInitialized) {
             loadWeight = LinearIntermediateSymbols1(
                 name = "load_weight",
@@ -42,7 +45,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.weight * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(layer.weight.toFlt64(), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_weight_${i}"
                 )
@@ -67,7 +70,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.volume * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(layer.volume.toFlt64(), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_volume_${i}"
                 )
@@ -92,7 +95,7 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.depth * assignment.x[i, j]
+                        LinearPolynomial(listOf(LinearMonomial(layer.depth.toFlt64(), assignment.x[i, j])), Flt64.zero)
                     }),
                     name = "load_depth_${i}"
                 )
@@ -117,8 +120,8 @@ class PreciseLoadCapacity(
             ) { i, _ ->
                 LinearExpressionSymbol(
                     polynomial = sum(layers.mapIndexed { j, layer ->
-                        layer.volume * assignment.x[i, j]
-                    }) / bins[i].volume,
+                        LinearPolynomial(listOf(LinearMonomial(layer.volume.toFlt64(), assignment.x[i, j])), Flt64.zero)
+                    }) / bins[i].volume.toFlt64(),
                     name = "loading_rate_${i}"
                 )
             }

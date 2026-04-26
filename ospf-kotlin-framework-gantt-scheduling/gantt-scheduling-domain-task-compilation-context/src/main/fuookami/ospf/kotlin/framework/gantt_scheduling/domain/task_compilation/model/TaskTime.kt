@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
@@ -14,12 +15,12 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.intermediate_model.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.ToMathLinearPolynomial
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -601,7 +602,7 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    input = LinearConstraintInput.from(
+                                    inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
@@ -646,7 +647,7 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    input = LinearConstraintInput.from(
+                                    inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
@@ -725,7 +726,7 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    input = LinearConstraintInput.from(
+                                    inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
@@ -770,7 +771,7 @@ abstract class TaskTimeImpl<
 
                             else -> {
                                 IfFunction(
-                                    input = LinearConstraintInput.from(
+                                    inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),

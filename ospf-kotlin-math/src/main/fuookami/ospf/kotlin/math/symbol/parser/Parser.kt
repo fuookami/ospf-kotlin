@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseCanonicalTypedRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseLinearRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseLinearTypedRetOrNull
+import fuookami.ospf.kotlin.math.symbol.parse.parseLinearInequalityTypedRetOrNull
 import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticRet
 import fuookami.ospf.kotlin.math.symbol.parse.parseQuadraticTypedRetOrNull
 import fuookami.ospf.kotlin.math.symbol.parse.parseLinearInequalityRet
@@ -86,8 +87,7 @@ fun <T> parseLinearInequality(
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     isZero: (T) -> Boolean = { it == zero }
 ): ParseResult<LinearInequality<T>> where T : Ring<T> {
-    @Suppress("UNCHECKED_CAST")
-    return parseLinearInequalityRet(input, symbolOf) as ParseResult<LinearInequality<T>>
+    return parseLinearInequalityTypedRetOrNull(input, numberParser, zero, one, symbolOf, isZero)
 }
 
 fun parseLinearInequality(

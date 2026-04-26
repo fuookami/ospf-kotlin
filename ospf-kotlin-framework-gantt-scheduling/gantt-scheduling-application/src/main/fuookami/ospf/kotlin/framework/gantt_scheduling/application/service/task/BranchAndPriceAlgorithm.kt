@@ -1,12 +1,13 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "UNCHECKED_CAST")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.task
 
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.task.Iteration
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
@@ -96,7 +97,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: TaskSolution<T, E, A>
-        return LinearMetaModel(id).use { model ->
+        return LinearMetaModelF64(id).use { model ->
             try {
                 var iteration = Iteration<IT, E, A>()
                 when (val result = register(model)) {
@@ -476,7 +477,7 @@ class BranchAndPriceAlgorithm<
         logger.info { "Heart beat, current optimal rate: ${String.format("%.2f", (optimalRate * Flt64(100.0)).toDouble())}%" }
     }
 
-    private suspend fun register(model: AbstractLinearMetaModel): Try {
+    private suspend fun register(model: AbstractLinearMetaModelF64): Try {
         when (val result = context.register(model)) {
             is Ok -> {}
 
@@ -521,7 +522,7 @@ class BranchAndPriceAlgorithm<
     private suspend fun solveRMP(
         id: String,
         iteration: Iteration<IT, E, A>,
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         withKeeping: Boolean
     ): Result<Map, ErrorCode, Error<ErrorCode>> {
         val lpRet = when (val result = solver.solveLP("${id}_${iteration}_lp", model)) {
@@ -600,7 +601,7 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun extractShadowPrice(
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModelF64,
         shadowPrices: MetaDualSolution
     ): Ret<Map> {
         val map = policy.shadowPriceMap()
@@ -634,7 +635,7 @@ class BranchAndPriceAlgorithm<
         return Ok(map)
     }
 
-    private suspend fun addColumns(iteration: UInt64, newTasks: List<IT>, model: AbstractLinearMetaModel): Try {
+    private suspend fun addColumns(iteration: UInt64, newTasks: List<IT>, model: AbstractLinearMetaModelF64): Try {
         val beginTime = Clock.System.now()
 
         val unduplicatedPlans = when (val result = context.addColumns(iteration, newTasks, model)) {
@@ -652,7 +653,7 @@ class BranchAndPriceAlgorithm<
         }
 
         if (unduplicatedPlans.isNotEmpty()) {
-            model.flush()
+            (model as AbstractMetaModel<Flt64>).flush()
         }
 
         mainProblemModelingTime += Clock.System.now() - beginTime
@@ -665,7 +666,7 @@ class BranchAndPriceAlgorithm<
         shadowPriceMap: Map,
         fixedTasks: Set<IT>,
         keptTasks: Set<IT>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Result<Flt64, ErrorCode, Error<ErrorCode>> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
@@ -693,7 +694,7 @@ class BranchAndPriceAlgorithm<
 
     private fun fixTasks(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Try {
         return when (val result = context.extractFixedTasks(iteration, model)) {
             is Ok -> {
@@ -713,7 +714,7 @@ class BranchAndPriceAlgorithm<
 
     private fun keepTasks(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Try {
         return when (val result = context.extractKeptTasks(iteration, model)) {
             is Ok -> {
@@ -731,7 +732,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun hideExecutors(model: AbstractLinearMetaModel): Try {
+    private fun hideExecutors(model: AbstractLinearMetaModelF64): Try {
         return when (val result = context.extractHiddenExecutors(
             executors,
             model
@@ -753,7 +754,7 @@ class BranchAndPriceAlgorithm<
 
     private fun selectFreeExecutors(
         shadowPriceMap: Map,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<Set<E>> {
         return when (val result = context.selectFreeExecutors(
             fixedTasks,
@@ -797,7 +798,7 @@ class BranchAndPriceAlgorithm<
         return Ok(fixedTasks)
     }
 
-    private fun locallyFix(iteration: UInt64, fixedTasks: Set<IT>, model: AbstractLinearMetaModel): Ret<Set<IT>> {
+    private fun locallyFix(iteration: UInt64, fixedTasks: Set<IT>, model: AbstractLinearMetaModelF64): Ret<Set<IT>> {
         val fixBar = Flt64(0.9)
         return when (val ret = context.locallyFix(iteration, fixBar, fixedTasks, model)) {
             is Ok -> {
@@ -834,7 +835,7 @@ class BranchAndPriceAlgorithm<
 
     private fun analyzeSolution(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Result<TaskSolution<T, E, A>, ErrorCode, Error<ErrorCode>> {
         return when (val result = context.analyzeSolution(iteration, tasks, model)) {
             is Ok -> {
@@ -851,7 +852,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun logLPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    private fun logLPResults(iteration: UInt64, model: AbstractLinearMetaModelF64): Try {
         if (System.getProperty("env", "prod") != "prod") {
             when (val result = context.logResult(iteration, model)) {
                 is Ok -> {}
@@ -868,7 +869,7 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 
-    private fun logMILPResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    private fun logMILPResults(iteration: UInt64, model: AbstractLinearMetaModelF64): Try {
         if (System.getProperty("env", "prod") != "prod") {
             when (val result = logLPResults(iteration, model)) {
                 is Ok -> {}

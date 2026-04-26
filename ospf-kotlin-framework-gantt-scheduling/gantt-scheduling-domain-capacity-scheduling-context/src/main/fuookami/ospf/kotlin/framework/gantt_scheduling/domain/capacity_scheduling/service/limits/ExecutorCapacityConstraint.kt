@@ -5,7 +5,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -29,13 +29,13 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
      * 应用约束到模型
      * Apply constraint to model
      */
-    operator fun invoke(model: LinearMetaModel): Try {
+    operator fun invoke(model: LinearMetaModelF64): Try {
         for ((e, executor) in capacity.executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
                 // capacity[executor, slot] <= availableDuration
                 // capacity[executor, slot] <= 可用时长
                 val availableDuration = timeWindow.valueOf(slot.duration)
-                val constraint = capacity.capacity[e, s].toLinearPolynomial() leq availableDuration
+                val constraint = capacity.capacity[e, s].polynomial leq availableDuration
                 when (val result = model.addConstraint(constraint, name = "${name}_${executor.id}_$s")) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)

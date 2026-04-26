@@ -4,8 +4,9 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -47,7 +48,7 @@ class PlanCapacitySchedulingProduce<
                         for ((s, _) in slots.withIndex()) {
                             val actionIndex = actions.indexOf(action)
                             if (actionIndex >= 0) {
-                                quantity[product].asMutable() += unitProduce * compilation.operationTime[actionIndex, s].toLinearPolynomial()
+                                quantity[product].asMutable() += LinearMonomial(unitProduce, compilation.operationTime[actionIndex, s])
                             }
                         }
                     }
@@ -56,7 +57,7 @@ class PlanCapacitySchedulingProduce<
         }
     }
 
-    override fun register(model: LinearMetaModel): Try {
+    override fun register(model: LinearMetaModelF64): Try {
         return addQuantityToModel(model)
     }
 }

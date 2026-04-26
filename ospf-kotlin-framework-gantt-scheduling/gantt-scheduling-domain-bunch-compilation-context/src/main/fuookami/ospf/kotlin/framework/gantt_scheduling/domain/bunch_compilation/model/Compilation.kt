@@ -2,14 +2,14 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.sum
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.eq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -70,7 +70,7 @@ open class BunchCompilation<
     override lateinit var taskCompilation: LinearExpressionSymbols1
     override lateinit var executorCompilation: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = BinVariable1("y", Shape1(tasks.size))
             for (task in tasks) {
@@ -181,9 +181,9 @@ open class BunchCompilation<
                 val executor = executors[i]
                 LinearExpressionSymbol(
                     polynomial = if (withExecutorLeisure) {
-                        LinearPolynomial(z[i])
+                        LinearPolynomial(listOf(LinearMonomial(Flt64.one, z[i])), Flt64.zero)
                     } else {
-                        LinearPolynomial()
+                        LinearPolynomial(emptyList(), Flt64.zero)
                     },
                     name = "executor_compilation_${executor}"
                 )
@@ -207,7 +207,7 @@ open class BunchCompilation<
     open suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<B>> {
         val unduplicatedBunches = aggregation.addColumns(newBunches)
 
@@ -229,7 +229,7 @@ open class BunchCompilation<
         _x.add(xi)
 
         for (bunch in unduplicatedBunches) {
-            bunchCost.asMutable() += (bunch.cost.sum ?: Flt64.infinity) * xi[bunch]
+            bunchCost.asMutable() += LinearMonomial(bunch.cost.sum ?: Flt64.infinity, xi[bunch])
         }
 
         for (task in tasks) {
@@ -237,7 +237,7 @@ open class BunchCompilation<
                 val thisBunches = unduplicatedBunches.filter { it.contains(task) && it.executor == executor }
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
-                    assign.asMutable() += sum(thisBunches.map { xi[it] })
+                    assign.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
                 }
             }
         }
@@ -246,7 +246,7 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.contains(task) }
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
-                compilation.asMutable() += sum(thisBunches.map { xi[it] })
+                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }
 
@@ -254,13 +254,10 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.executor == executor }
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
-                compilation.asMutable() += sum(thisBunches.map { xi[it] })
+                compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }
 
         return Ok(unduplicatedBunches)
     }
 }
-
-
-

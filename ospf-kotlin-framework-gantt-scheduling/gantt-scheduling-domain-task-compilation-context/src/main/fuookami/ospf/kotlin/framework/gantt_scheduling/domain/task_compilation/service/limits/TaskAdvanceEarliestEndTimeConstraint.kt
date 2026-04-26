@@ -6,8 +6,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model.TaskTime
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow

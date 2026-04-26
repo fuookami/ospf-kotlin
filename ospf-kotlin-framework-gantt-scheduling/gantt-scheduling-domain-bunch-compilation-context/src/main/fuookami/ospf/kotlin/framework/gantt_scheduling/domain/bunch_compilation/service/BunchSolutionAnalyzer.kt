@@ -2,8 +2,8 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executo
 import fuookami.ospf.kotlin.utils.concept.findOrGet
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 
 data object BunchSolutionAnalyzer {
@@ -26,7 +27,7 @@ data object BunchSolutionAnalyzer {
         tasks: List<T>,
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: Solution? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         val assignedBunches = ArrayList<B>()
@@ -67,6 +68,3 @@ data object BunchSolutionAnalyzer {
         return Ok(BunchSolution(assignedBunches, canceledTasks))
     }
 }
-
-
-

@@ -378,6 +378,22 @@ fun <T> parseQuadraticTypedOrNull(
         .toQuadraticPolynomialOrNull(zero, isZero, symbolComparator)
 }
 
+fun <T> parseLinearInequalityTypedOrNull(
+    input: String,
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearInequality<T>? where T : Ring<T> {
+    val tokens = PolynomialLexer(input).lex()
+    val parser = DirectTypedPolynomialParser(tokens, numberParser, zero, one, symbolOf, isZero)
+    val parsed = parser.parseInequality()
+    val lhs = parsed.lhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
+    val rhs = parsed.rhs.toCanonicalPolynomial(zero, isZero).toLinearPolynomialOrNull(zero, isZero) ?: return null
+    return LinearInequality(lhs = lhs, rhs = rhs, comparison = parsed.comparison)
+}
+
 // ============================================================================
 // Internal typed polynomial term and parser
 // ============================================================================
@@ -390,6 +406,12 @@ private data class TypedParsedTerm<T>(
 private data class TypedParsedPolynomial<T>(
     val terms: List<TypedParsedTerm<T>>,
     val constant: T
+)
+
+private data class TypedParsedInequality<T>(
+    val lhs: TypedParsedPolynomial<T>,
+    val rhs: TypedParsedPolynomial<T>,
+    val comparison: Comparison
 )
 
 private class DirectTypedPolynomialParser<T>(
@@ -406,6 +428,24 @@ private class DirectTypedPolynomialParser<T>(
         val result = parseExpression()
         expect(PolynomialTokenType.End)
         return result
+    }
+
+    fun parseInequality(): TypedParsedInequality<T> {
+        val lhs = parseExpression()
+        val comparisonToken = current()
+        val comparison = when (comparisonToken.type) {
+            PolynomialTokenType.Less -> Comparison.LT
+            PolynomialTokenType.LessEqual -> Comparison.LE
+            PolynomialTokenType.Equal -> Comparison.EQ
+            PolynomialTokenType.NotEqual -> Comparison.NE
+            PolynomialTokenType.GreaterEqual -> Comparison.GE
+            PolynomialTokenType.Greater -> Comparison.GT
+            else -> throw DirectParseError("Expected comparison operator", comparisonToken.position)
+        }
+        advance()
+        val rhs = parseExpression()
+        expect(PolynomialTokenType.End)
+        return TypedParsedInequality(lhs = lhs, rhs = rhs, comparison = comparison)
     }
 
     private fun parseExpression(): TypedParsedPolynomial<T> {
@@ -711,6 +751,20 @@ fun <T> parseLinearTypedRetOrNull(
     return wrapRet(input) {
         parseLinearTypedOrNull(input, numberParser, zero, one, symbolOf, isZero)
             ?: throw IllegalArgumentException("Expression is not linear polynomial.")
+    }
+}
+
+fun <T> parseLinearInequalityTypedRetOrNull(
+    input: String,
+    numberParser: NumberParser<T>,
+    zero: T,
+    one: T,
+    symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
+    isZero: (T) -> Boolean = { it == zero }
+): ParseResult<LinearInequality<T>> where T : Ring<T> {
+    return wrapRet(input) {
+        parseLinearInequalityTypedOrNull(input, numberParser, zero, one, symbolOf, isZero)
+            ?: throw IllegalArgumentException("Inequality is not linear.")
     }
 }
 

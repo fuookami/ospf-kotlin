@@ -2,10 +2,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.core.model.Solution
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.BunchSolutionAnalyzer
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service.TaskSolutionAnalyzer
@@ -28,7 +28,7 @@ interface BunchCompilationContext<
 
     val columnAmount get() = UInt64(aggregation.bunches.size)
 
-    fun register(model: AbstractLinearMetaModel): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
 
@@ -59,7 +59,7 @@ interface BunchCompilationContext<
     suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<B>> {
         val unduplicatedBunches = when (val result = aggregation.addColumns(
             iteration = iteration,
@@ -88,7 +88,7 @@ interface BunchCompilationContext<
         reducedCost: (B) -> Flt64,
         fixedBunches: Set<B>,
         keptBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Flt64> {
         return aggregation.removeColumns(
             maximumReducedCost,
@@ -102,7 +102,7 @@ interface BunchCompilationContext<
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (pipeline in pipelineList) {
@@ -124,28 +124,28 @@ interface BunchCompilationContext<
 
     fun extractFixedBunches(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<B>> {
         return aggregation.extractFixedBunches(iteration, model)
     }
 
     fun extractKeptBunches(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<B>> {
         return aggregation.extractKeptBunches(iteration, model)
     }
 
     fun extractKeptBunchesWithRatio(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Map<B, Flt64>> {
         return aggregation.extractKeptBunchesWithRatio(iteration, model)
     }
 
     fun extractHiddenExecutors(
         executors: List<E>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<E>> {
         return aggregation.extractHiddenExecutors(executors, model)
     }
@@ -154,7 +154,7 @@ interface BunchCompilationContext<
         fixedBunches: Set<B>,
         hiddenExecutors: Set<E>,
         shadowPriceMap: Map,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
     ): Ret<Set<E>>
 
     fun globallyFix(fixedBunches: Set<B>): Try {
@@ -165,7 +165,7 @@ interface BunchCompilationContext<
         iteration: UInt64,
         bar: Flt64,
         fixedBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<B>> {
         return aggregation.locallyFix(
             iteration = iteration,
@@ -175,14 +175,14 @@ interface BunchCompilationContext<
         )
     }
 
-    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logResult(
             iteration = iteration,
             model = model
         )
     }
 
-    fun logBunchCost(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logBunchCost(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return aggregation.logBunchCost(
             iteration = iteration,
             model = model
@@ -199,7 +199,7 @@ interface BunchCompilationContext<
     fun analyzeTaskSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: Solution? = null
     ): Ret<TaskSolution<T, E, A>> {
         return TaskSolutionAnalyzer(
@@ -215,7 +215,7 @@ interface BunchCompilationContext<
     fun analyzeBunchSolution(
         iteration: UInt64,
         tasks: List<T>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: Solution? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         return BunchSolutionAnalyzer(
@@ -238,24 +238,21 @@ interface ExtractBunchCompilationContext<
         > {
     val baseContext: BunchCompilationContext<Args, B, T, E, A>
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModel<Flt64>): Try
 
     fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModel<Flt64>
     ): Try
 
     fun extractShadowPrice(
         shadowPriceMap: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try
 
-    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    fun logResult(iteration: UInt64, model: AbstractLinearMetaModel<Flt64>): Try {
         return ok
     }
 }
-
-
-

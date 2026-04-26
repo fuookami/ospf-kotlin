@@ -428,7 +428,7 @@ class EinsumTest {
 
         // Verify shape
         assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<Flt64, *>
+        val resultArray = result as MultiArray<*, *>
         assertEquals(2, resultArray.shape[0])
         assertEquals(4, resultArray.shape[1])
     }
@@ -456,7 +456,7 @@ class EinsumTest {
 
         // Verify shape
         assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<Flt64, *>
+        val resultArray = result as MultiArray<*, *>
         assertEquals(2, resultArray.shape[0])
         assertEquals(3, resultArray.shape[1])
     }
@@ -482,7 +482,7 @@ class EinsumTest {
 
         // Verify shape
         assertTrue(result is MultiArray<*, *>)
-        val resultArray = result as MultiArray<Flt64, *>
+        val resultArray = result as MultiArray<*, *>
         assertEquals(3, resultArray.shape[0])
         assertEquals(2, resultArray.shape[1])
     }

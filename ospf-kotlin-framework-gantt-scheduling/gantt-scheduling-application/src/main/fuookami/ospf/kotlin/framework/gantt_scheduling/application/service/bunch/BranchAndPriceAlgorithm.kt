@@ -1,13 +1,14 @@
-@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION", "UNCHECKED_CAST")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch
 
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext
@@ -101,7 +102,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: BunchSolution<B, T, E, A>
-        return LinearMetaModel(id).use { model ->
+        return LinearMetaModelF64(id).use { model ->
             try {
 
                 var iteration = Iteration<T, E, A>()
@@ -497,7 +498,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private suspend fun register(model: AbstractLinearMetaModel): Try {
+    private suspend fun register(model: AbstractLinearMetaModelF64): Try {
         when (val result = context.register(model)) {
             is Ok -> {}
 
@@ -558,7 +559,7 @@ class BranchAndPriceAlgorithm<
     private suspend fun solveRMP(
         id: String,
         iteration: Iteration<T, E, A>,
-        model: LinearMetaModel,
+        model: LinearMetaModelF64,
         withKeeping: Boolean
     ): Ret<Map> {
         val lpRet = when (val result = solver.solveLP("${id}_${iteration}_lp", model)) {
@@ -636,7 +637,7 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun extractShadowPrice(
-        model: AbstractLinearMetaModel,
+        model: AbstractLinearMetaModelF64,
         shadowPrices: MetaDualSolution
     ): Ret<Map> {
         val map = policy.shadowPriceMap()
@@ -673,7 +674,7 @@ class BranchAndPriceAlgorithm<
     private suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Try {
         val beginTime = Clock.System.now()
 
@@ -692,7 +693,7 @@ class BranchAndPriceAlgorithm<
         }
 
         if (unduplicatedBunches.isNotEmpty()) {
-            model.flush()
+            (model as AbstractMetaModel<Flt64>).flush()
         }
 
         for (extractContext in extractContexts) {
@@ -719,7 +720,7 @@ class BranchAndPriceAlgorithm<
         shadowPriceMap: Map,
         fixedBunches: Set<B>,
         keptBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<Flt64> {
         val newMaximumReducedCost = when (val result = context.removeColumns(
             maximumReducedCost,
@@ -747,7 +748,7 @@ class BranchAndPriceAlgorithm<
 
     private fun fixBunch(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Try {
         return when (val result = context.extractFixedBunches(iteration, model)) {
             is Ok -> {
@@ -767,7 +768,7 @@ class BranchAndPriceAlgorithm<
 
     private fun keepBunch(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Try {
         when (val result = context.extractKeptBunches(iteration, model)) {
             is Ok -> {
@@ -800,7 +801,7 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 
-    private fun hideExecutors(model: AbstractLinearMetaModel): Try {
+    private fun hideExecutors(model: AbstractLinearMetaModelF64): Try {
         return when (val result = context.extractHiddenExecutors(executors, model)) {
             is Ok -> {
                 hiddenExecutors.addAll(result.value)
@@ -818,7 +819,7 @@ class BranchAndPriceAlgorithm<
     }
 
     private fun selectFreeExecutors(
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<Set<E>> {
         return when (val result = context.selectFreeExecutors(
             fixedBunches,
@@ -877,7 +878,7 @@ class BranchAndPriceAlgorithm<
     private fun locallyFix(
         iteration: UInt64,
         fixedBunches: Set<B>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<Set<B>> {
         val fixBar = Flt64(0.9)
         return when (val ret = context.locallyFix(iteration, fixBar, fixedBunches, model)) {
@@ -915,7 +916,7 @@ class BranchAndPriceAlgorithm<
 
     private fun analyzeSolution(
         iteration: UInt64,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<BunchSolution<B, T, E, A>> {
         return when (val result = context.analyzeBunchSolution(iteration, tasks, model)) {
             is Ok -> {
@@ -932,7 +933,7 @@ class BranchAndPriceAlgorithm<
         }
     }
 
-    private fun logLpResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    private fun logLpResults(iteration: UInt64, model: AbstractLinearMetaModelF64): Try {
         when (val result = context.logResult(iteration, model)) {
             is Ok -> {}
 
@@ -962,7 +963,7 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 
-    private fun logIpResults(iteration: UInt64, model: AbstractLinearMetaModel): Try {
+    private fun logIpResults(iteration: UInt64, model: AbstractLinearMetaModelF64): Try {
         when (val result = logLpResults(iteration, model)) {
             is Ok -> {}
 

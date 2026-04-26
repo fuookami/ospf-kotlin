@@ -4,12 +4,12 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.times
-import fuookami.ospf.kotlin.core.intermediate_model.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -34,8 +34,8 @@ abstract class ExecutionResource<out C : AbstractResourceCapacity>(
     override val capacities: List<C>,
     override val initialQuantity: Flt64 = Flt64.zero
 ) : Resource<C>() {
-    abstract fun <T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>> usedBy(
-        task: T,
+    abstract fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
+        task: AbstractTask<E, A>,
         time: TimeRange
     ): Flt64
 
@@ -44,8 +44,8 @@ abstract class ExecutionResource<out C : AbstractResourceCapacity>(
         time: TimeRange
     ): Flt64 {
         var counter = Flt64.zero
-        for (i in bunch.tasks.indices) {
-            counter += usedBy(bunch[i], time)
+        for (task in bunch.tasks) {
+            counter += usedBy(task, time)
         }
         return counter
     }
@@ -60,9 +60,7 @@ data class ExecutionResourceTimeSlot<
     override val resourceCapacity: C,
     override val indexInRule: UInt64,
 ) : ResourceTimeSlot<R, C>, AutoIndexed(ExecutionResourceTimeSlot::class) {
-    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(
-        task: AbstractTask<E, A>
-    ): Flt64 {
+    fun <E : Executor, A : AssignmentPolicy<E>> usedBy(task: AbstractTask<E, A>): Flt64 {
         return resource.usedBy(task, time)
     }
 
@@ -209,7 +207,7 @@ class TaskSchedulingExecutionResourceUsage<
 
     override lateinit var quantity: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -260,7 +258,7 @@ class BunchSchedulingExecutionResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = LinearExpressionSymbols1(
@@ -269,17 +267,15 @@ class BunchSchedulingExecutionResourceUsage<
                 ) { s, _ ->
                     val slot = timeSlots[s]
                     LinearExpressionSymbol(
-                        polynomial = LinearPolynomial(slot.resource.initialQuantity),
+                        constant = slot.resource.initialQuantity,
                         name = "${name}_quantity_${slot}"
                     )
                 }
                 for (slot in timeSlots) {
                     quantity[slot].range.set(
                         ValueRange(
-                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity
-                                ?: Flt64.zero),
-                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity
-                                ?: Flt64.zero)
+                            slot.resourceCapacity.quantity.lowerBound.value.unwrap() - (slot.resourceCapacity.lessQuantity ?: Flt64.zero),
+                            slot.resourceCapacity.quantity.upperBound.value.unwrap() + (slot.resourceCapacity.overQuantity ?: Flt64.zero)
                         ).value!!
                     )
                 }
@@ -322,10 +318,10 @@ class BunchSchedulingExecutionResourceUsage<
             if (thisBunches.isNotEmpty()) {
                 quantity[slot].flush()
                 for (bunch in thisBunches) {
-                    quantity[slot].asMutable() += slot.resource.usedQuantity(
-                        bunch,
-                        slot.time
-                    ) * xi[bunch]
+                    quantity[slot].asMutable() += LinearMonomial(
+                        slot.resource.usedQuantity(bunch, slot.time),
+                        xi[bunch]
+                    )
                 }
             }
         }
@@ -333,7 +329,3 @@ class BunchSchedulingExecutionResourceUsage<
         return ok
     }
 }
-
-
-
-

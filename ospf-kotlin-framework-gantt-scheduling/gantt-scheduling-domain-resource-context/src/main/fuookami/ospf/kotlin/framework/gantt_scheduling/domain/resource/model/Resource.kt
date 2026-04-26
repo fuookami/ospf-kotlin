@@ -7,8 +7,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.intermediate_model.MetaDualSolution
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -107,7 +108,7 @@ interface ResourceUsage<
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: MetaModel): Try
+    fun register(model: MetaModelF64): Try
 }
 
 abstract class AbstractResourceUsage<
@@ -118,7 +119,7 @@ abstract class AbstractResourceUsage<
     override lateinit var overQuantity: LinearIntermediateSymbols1
     override lateinit var lessQuantity: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {
@@ -136,7 +137,8 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_over_quantity_$slot"
                             )
                             slot.resourceCapacity.overQuantity?.let {
-                                slack.pos!!.range.leq(it)
+                                @Suppress("UNCHECKED_CAST")
+                                (slack.helperVariables.last().range as ExpressionRange<Flt64>).setUb(it)
                             }
                             slack
                         } else {
@@ -175,7 +177,8 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_less_quantity_$slot"
                             )
                             slot.resourceCapacity.lessQuantity?.let {
-                                slack.neg!!.range.leq(it)
+                                @Suppress("UNCHECKED_CAST")
+                                (slack.helperVariables.first().range as ExpressionRange<Flt64>).setUb(it)
                             }
                             slack
                         } else {

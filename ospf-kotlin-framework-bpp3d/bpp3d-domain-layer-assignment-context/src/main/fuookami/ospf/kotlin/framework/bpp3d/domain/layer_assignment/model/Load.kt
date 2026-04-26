@@ -2,16 +2,19 @@
 
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
-import fuookami.ospf.kotlin.core.intermediate_model.times
-import fuookami.ospf.kotlin.core.intermediate_model.sum
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.sum
+import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_model.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_model.MetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape1
 
@@ -28,7 +31,7 @@ abstract class AbstractLoad : Load {
     override lateinit var overLoad: LinearIntermediateSymbols1
     override lateinit var lessLoad: LinearIntermediateSymbols1
 
-    open fun register(model: MetaModel): Try {
+    open fun register(model: MetaModelF64): Try {
         TODO("not implemented yet")
     }
 }
@@ -41,7 +44,7 @@ class ImpreciseLoad(
 ) : AbstractLoad() {
     override lateinit var load: LinearExpressionSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (!::load.isInitialized) {
             load = LinearExpressionSymbols1(
                 "load",
@@ -68,7 +71,7 @@ class ImpreciseLoad(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModel
+        model: AbstractLinearMetaModelF64
     ): Ret<List<BinLayer>> {
         assert(newLayers.isNotEmpty())
 
@@ -79,7 +82,9 @@ class ImpreciseLoad(
             if (thisLayers.isNotEmpty()) {
                 val thisLoad = load[i]
                 thisLoad.flush()
-                thisLoad.asMutable() += sum(thisLayers.map { it.amount(item.first) * xi[it] })
+                thisLoad.asMutable() += sum(thisLayers.map {
+                    LinearMonomial(it.amount(item.first).toFlt64(), xi[it])
+                })
             }
         }
 
@@ -96,14 +101,16 @@ class PreciseLoad(
 ) : AbstractLoad() {
     override lateinit var load: LinearIntermediateSymbols1
 
-    override fun register(model: MetaModel): Try {
+    override fun register(model: MetaModelF64): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1(
+            load = LinearIntermediateSymbols1(
                 "load",
                 Shape1(items.size)
             ) { i, _ ->
                 LinearExpressionSymbol(
-                    sum(layers.map { it.amount(items[i].first) * assignment.x[it] }),
+                    sum(layers.map {
+                        LinearMonomial(it.amount(items[i].first).toFlt64(), assignment.x[it])
+                    }),
                     name = "load_$i"
                 )
             }
