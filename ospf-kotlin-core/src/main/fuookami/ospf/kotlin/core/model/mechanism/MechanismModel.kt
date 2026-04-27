@@ -14,9 +14,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusC
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearFunctionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticFunctionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
@@ -365,12 +363,8 @@ class LinearMechanismModel<V : RealNumber<V>>(
 
             logger.trace { "Registering symbols for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? LinearFunctionSymbol)?.let { sym ->
-                    if (fixedVariables.isNullOrEmpty()) {
-                        sym.register(model)
-                    } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key })
-                    }
+                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
+                    sym.register(metaModel)
                 }
 
                 if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -791,19 +785,8 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
 
             logger.trace { "Registering symbols for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? LinearFunctionSymbol)?.let { sym ->
-                    if (fixedVariables.isNullOrEmpty()) {
-                        sym.register(model)
-                    } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key })
-                    }
-                }
-                (symbol as? QuadraticFunctionSymbol)?.let { sym ->
-                    if (fixedVariables.isNullOrEmpty()) {
-                        sym.register(model)
-                    } else {
-                        sym.register(model, fixedVariables.mapKeys { it.key })
-                    }
+                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
+                    sym.register(metaModel)
                 }
 
                 if (dumpingStatusCallBack != null && i % 100 == 0) {

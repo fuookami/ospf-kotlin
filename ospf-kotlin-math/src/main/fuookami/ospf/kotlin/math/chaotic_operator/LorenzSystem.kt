@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 洛伦兹系统
+ * Lorenz System
+ */
 data class LorenzSystem(
     val a: Flt64 = Flt64(10.0),
     val b: Flt64 = Flt64(28.0),
@@ -42,6 +46,10 @@ data class LorenzSystem(
     }
 }
 
+/**
+ * 洛伦兹系统生成器
+ * Lorenz System Generator
+ */
 data class LorenzSystemGenerator(
     val lorenzSystem: LorenzSystem = LorenzSystem(),
     private var _x: Point3 = point3(

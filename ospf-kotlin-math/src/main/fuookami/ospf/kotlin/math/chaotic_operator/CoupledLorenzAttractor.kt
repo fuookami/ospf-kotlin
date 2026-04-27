@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 耦合洛伦兹吸引子
+ * Coupled Lorenz Attractor
+ */
 data class CoupledLorenzAttractor(
     val beta: Flt64 = Flt64(8.0 / 3.0),
     val gamma1: Flt64 = Flt64(35.0),
@@ -60,6 +64,10 @@ data class CoupledLorenzAttractor(
     }
 }
 
+/**
+ * 耦合洛伦兹吸引子生成器
+ * Coupled Lorenz Attractor Generator
+ */
 data class CoupledLorenzAttractorGenerator(
     val coupledLorenzAttractor: CoupledLorenzAttractor = CoupledLorenzAttractor(),
     private var _x: Point3 = point3(

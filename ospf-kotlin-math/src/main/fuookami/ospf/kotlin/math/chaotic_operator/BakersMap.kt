@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 面包师映射
+ * Baker's Map
+ */
 data object BakersMap : Extractor<Point2, Point2> {
     override operator fun invoke(x: Point2): Point2 {
         return point2(
@@ -33,6 +37,10 @@ data object BakersMap : Extractor<Point2, Point2> {
     }
 }
 
+/**
+ * 面包师映射生成器
+ * Baker's Map Generator
+ */
 data class BakersMapGenerator(
     val bakersMap: BakersMap = BakersMap,
     private var _x: Point2 = point2(

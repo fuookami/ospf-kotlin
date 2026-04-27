@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
@@ -439,7 +440,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
                     if (iterIdx >= executorVar.shape[0] || colIdx >= executorVar.shape[1]) {
                         continue
                     }
-                    _cost!!.asMutable() += LinearMonomial(column.cost, executorVar[iterIdx, colIdx])
+                    (_cost as LinearExpressionSymbol).asMutable() += LinearMonomial(column.cost, executorVar[iterIdx, colIdx])
                 }
             }
         }

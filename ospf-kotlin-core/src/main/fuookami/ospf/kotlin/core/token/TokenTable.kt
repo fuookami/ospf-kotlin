@@ -1,7 +1,6 @@
 ﻿package fuookami.ospf.kotlin.core.token
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbolRegistrationScope
+
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
@@ -173,7 +172,6 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
     override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
     fun remove(item: AbstractVariableItem<*, *>)
 
-    fun add(scope: FunctionSymbolRegistrationScope): Try = add(scope.tokens)
     fun add(symbol: IntermediateSymbol<*>): Try
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -614,47 +612,14 @@ fun Collection<IntermediateSymbol<*>>.register(
     var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
     dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
     while (readySymbols.isNotEmpty()) {
-        val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
         for (symbol in readySymbols) {
-            when (val result = (symbol as? FunctionSymbol)?.let {
-                if (fixedValues.isNullOrEmpty()) {
-                    it.register(scope)
-                } else {
-                    it.register(scope, fixedValues)
-                }
-            }) {
-                null -> {}
-
-                is Ok -> {
-                    // Value cache is written once by the batch cache(symbols=...) below.
-                    // No per-symbol prepareAndCache here to avoid duplicate value computation.
-                }
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-            // Allow symbols to register auxiliary tokens (e.g. slack variables, binaryzation helpers).
-            // Default is no-op, so this is backward compatible.
-            when (val result = symbol.registerAuxiliaryTokens(scope)) {
+            // Register auxiliary tokens (helper variables) for function symbols.
+            // Constraint registration (MathFunctionSymbol.register) is handled by MetaModel/MechanismModel,
+            // not by the token registration phase.
+            when (val result = symbol.registerAuxiliaryTokens(tokenTable)) {
                 is Ok -> {}
                 is Failed -> { return Failed(result.error) }
                 is Fatal -> { return Fatal(result.errors) }
-            }
-        }
-        when (val result = tokenTable.add(scope)) {
-            is Ok -> {}
-
-            is Failed -> {
-                return Failed(result.error)
-            }
-
-            is Fatal -> {
-                return Fatal(result.errors)
             }
         }
         // Batch write value cache for all ready symbols (single computation, aligned with concurrent path)
@@ -1281,44 +1246,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
         var readySymbols = dependencies.filter { it.value.isEmpty() }.keys
         dependencies = dependencies.filterValues { it.isNotEmpty() }.toMap()
         while (readySymbols.isNotEmpty()) {
-            val scope = FunctionSymbolRegistrationScope(origin = tokenTable)
             for (symbol in readySymbols) {
-                when (val result = (symbol as? FunctionSymbol)?.let {
-                    if (fixedValues.isNullOrEmpty()) {
-                        it.register(scope)
-                    } else {
-                        it.register(scope, fixedValues)
-                    }
-                }) {
-                    null -> {}
-
-                    is Ok -> {}
-
-                    is Failed -> {
-                        return@coroutineScope Failed(result.error)
-                    }
-
-                    is Fatal -> {
-                        return@coroutineScope Fatal(result.errors)
-                    }
-                }
-                // Allow symbols to register auxiliary tokens (e.g. slack variables, binaryzation helpers).
-                // Default is no-op, so this is backward compatible.
-                when (val result = symbol.registerAuxiliaryTokens(scope)) {
+                // Register auxiliary tokens (helper variables) for function symbols.
+                // Constraint registration (MathFunctionSymbol.register) is handled by MetaModel/MechanismModel,
+                // not by the token registration phase.
+                when (val result = symbol.registerAuxiliaryTokens(tokenTable)) {
                     is Ok -> {}
                     is Failed -> { return@coroutineScope Failed(result.error) }
                     is Fatal -> { return@coroutineScope Fatal(result.errors) }
-                }
-            }
-            when (val result = tokenTable.add(scope)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return@coroutineScope Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return@coroutineScope Fatal(result.errors)
                 }
             }
             if (memoryUseOver()) {

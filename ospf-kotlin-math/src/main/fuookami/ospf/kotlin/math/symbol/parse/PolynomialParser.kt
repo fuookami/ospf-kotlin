@@ -1,3 +1,10 @@
+/**
+ * 多项式解析器
+ * Polynomial Parser
+ *
+ * 提供多项式和不等式的递归下降解析功能，支持 Flt64 和泛型 Ring<T> 类型。
+ * Provides recursive descent parsing for polynomials and inequalities, supporting Flt64 and generic Ring<T> types.
+ */
 package fuookami.ospf.kotlin.math.symbol.parse
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring

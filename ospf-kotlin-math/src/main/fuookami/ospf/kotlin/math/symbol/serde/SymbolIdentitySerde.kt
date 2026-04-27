@@ -1,3 +1,10 @@
+/**
+ * 符号标识序列化与反序列化
+ * Symbol Identity Serialization and Deserialization
+ *
+ * 提供符号标识的序列化与反序列化功能，支持简单符号、带 ID 符号和复合符号的表达式。
+ * Provides serialization and deserialization for symbol identities, supporting simple, ID-bearing, and composite symbol expressions.
+ */
 package fuookami.ospf.kotlin.math.symbol.serde
 
 import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
@@ -24,17 +31,32 @@ private fun defaultSymbolOf(name: String): Symbol {
     return DefaultSymbol(name)
 }
 
+/**
+ * 符号标识表达式
+ * Symbol identity expression
+ *
+ * 表示符号标识的序列化表达式，支持简单、带 ID 和复合形式。
+ * Represents serialized expressions for symbol identities, supporting simple, ID-bearing, and composite forms.
+ */
 @Serializable
 sealed interface SymbolIdentityExpr {
     val name: String
     val displayName: String?
 
+    /**
+     * 简单符号标识
+     * Simple symbol identity
+     */
     @Serializable
     data class Simple(
         override val name: String,
         override val displayName: String? = null
     ) : SymbolIdentityExpr
 
+    /**
+     * 带 ID 符号标识
+     * ID-bearing symbol identity
+     */
     @Serializable
     data class WithId(
         override val name: String,
@@ -42,6 +64,10 @@ sealed interface SymbolIdentityExpr {
         override val displayName: String? = null
     ) : SymbolIdentityExpr
 
+    /**
+     * 复合符号标识
+     * Composite symbol identity
+     */
     @Serializable
     data class Composite(
         val operator: String,
@@ -50,6 +76,10 @@ sealed interface SymbolIdentityExpr {
         override val displayName: String? = null
     ) : SymbolIdentityExpr
 
+    /**
+     * 多参数复合符号标识
+     * Multi-argument composite symbol identity
+     */
     @Serializable
     data class CompositeMulti(
         val operator: String,

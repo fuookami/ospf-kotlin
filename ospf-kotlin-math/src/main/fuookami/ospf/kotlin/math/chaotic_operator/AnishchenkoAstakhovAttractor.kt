@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Anishchenko-Astakhov 吸引子
+ * Anishchenko-Astakhov Attractor
+ */
 data class AnishchenkoAstakhovAttractor(
     val mu: Flt64 = Flt64(1.2),
     val eta: Flt64 = Flt64(0.5),
@@ -46,6 +50,10 @@ data class AnishchenkoAstakhovAttractor(
     }
 }
 
+/**
+ * Anishchenko-Astakhov 吸引子生成器
+ * Anishchenko-Astakhov Attractor Generator
+ */
 data class AnishchenkoAstakhovAttractorGenerator(
     val anishchenkoAstakhovAttractor: AnishchenkoAstakhovAttractor = AnishchenkoAstakhovAttractor(),
     private var _x: Point3 = point3(

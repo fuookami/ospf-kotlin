@@ -22,6 +22,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 切比雪夫映射
+ * Chebyshev Map
+ */
 data class ChebyshevMap(
     val a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten),
 ) : Extractor<Flt64, Flt64> {
@@ -34,6 +38,10 @@ data class ChebyshevMap(
     }
 }
 
+/**
+ * 切比雪夫映射生成器
+ * Chebyshev Map Generator
+ */
 data class ChebyshevMapGenerator(
     val chebyshevMap: ChebyshevMap = ChebyshevMap(),
     private var _x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)

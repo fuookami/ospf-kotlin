@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
@@ -38,16 +39,6 @@ class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
                     sym._index = i
                 }
 
-                is LinearFunctionSymbol -> {
-                    sym._group = this
-                    sym._index = i
-                }
-
-                is QuadraticFunctionSymbol -> {
-                    sym._group = this
-                    sym._index = i
-                }
-
                 else -> {}
             }
         }
@@ -70,16 +61,6 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
                 }
 
                 is QuadraticExpressionSymbol -> {
-                    sym._group = this
-                    sym._index = i
-                }
-
-                is LinearFunctionSymbol -> {
-                    sym._group = this
-                    sym._index = i
-                }
-
-                is QuadraticFunctionSymbol -> {
                     sym._group = this
                     sym._index = i
                 }
@@ -162,29 +143,49 @@ typealias QuantityQuadraticExpressionSymbols3 = QuantitySymbolCombination<Quadra
 typealias QuantityQuadraticExpressionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape4>
 typealias DynQuantityQuadraticExpressionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbol, DynShape>
 
-typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbol, Shape1>
-typealias LinearFunctionSymbols2 = SymbolCombination<LinearFunctionSymbol, Shape2>
-typealias LinearFunctionSymbols3 = SymbolCombination<LinearFunctionSymbol, Shape3>
-typealias LinearFunctionSymbols4 = SymbolCombination<LinearFunctionSymbol, Shape4>
-typealias DynLinearFunctionSymbols = SymbolCombination<LinearFunctionSymbol, DynShape>
+@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape1> directly", level = DeprecationLevel.WARNING)
+typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbolAdapter, Shape1>
+@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape2> directly", level = DeprecationLevel.WARNING)
+typealias LinearFunctionSymbols2 = SymbolCombination<LinearFunctionSymbolAdapter, Shape2>
+@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape3> directly", level = DeprecationLevel.WARNING)
+typealias LinearFunctionSymbols3 = SymbolCombination<LinearFunctionSymbolAdapter, Shape3>
+@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape4> directly", level = DeprecationLevel.WARNING)
+typealias LinearFunctionSymbols4 = SymbolCombination<LinearFunctionSymbolAdapter, Shape4>
+@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, DynShape> directly", level = DeprecationLevel.WARNING)
+typealias DynLinearFunctionSymbols = SymbolCombination<LinearFunctionSymbolAdapter, DynShape>
 
-typealias QuantityLinearFunctionSymbols1 = QuantitySymbolCombination<LinearFunctionSymbol, Shape1>
-typealias QuantityLinearFunctionSymbols2 = QuantitySymbolCombination<LinearFunctionSymbol, Shape2>
-typealias QuantityLinearFunctionSymbols3 = QuantitySymbolCombination<LinearFunctionSymbol, Shape3>
-typealias QuantityLinearFunctionSymbols4 = QuantitySymbolCombination<LinearFunctionSymbol, Shape4>
-typealias DynQuantityLinearFunctionSymbols = QuantitySymbolCombination<LinearFunctionSymbol, DynShape>
+@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape1> directly", level = DeprecationLevel.WARNING)
+typealias QuantityLinearFunctionSymbols1 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape1>
+@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape2> directly", level = DeprecationLevel.WARNING)
+typealias QuantityLinearFunctionSymbols2 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape2>
+@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape3> directly", level = DeprecationLevel.WARNING)
+typealias QuantityLinearFunctionSymbols3 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape3>
+@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape4> directly", level = DeprecationLevel.WARNING)
+typealias QuantityLinearFunctionSymbols4 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape4>
+@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, DynShape> directly", level = DeprecationLevel.WARNING)
+typealias DynQuantityLinearFunctionSymbols = QuantitySymbolCombination<LinearFunctionSymbolAdapter, DynShape>
 
-typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticFunctionSymbol, Shape1>
-typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticFunctionSymbol, Shape2>
-typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticFunctionSymbol, Shape3>
-typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticFunctionSymbol, Shape4>
-typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticFunctionSymbol, DynShape>
+@Deprecated("Use QuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
+typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticExpressionSymbol, Shape1>
+@Deprecated("Use QuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
+typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticExpressionSymbol, Shape2>
+@Deprecated("Use QuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
+typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticExpressionSymbol, Shape3>
+@Deprecated("Use QuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
+typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticExpressionSymbol, Shape4>
+@Deprecated("Use DynQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
+typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticExpressionSymbol, DynShape>
 
-typealias QuantityQuadraticFunctionSymbols1 = QuantitySymbolCombination<QuadraticFunctionSymbol, Shape1>
-typealias QuantityQuadraticFunctionSymbols2 = QuantitySymbolCombination<QuadraticFunctionSymbol, Shape2>
-typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<QuadraticFunctionSymbol, Shape3>
-typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticFunctionSymbol, Shape4>
-typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticFunctionSymbol, DynShape>
+@Deprecated("Use QuantityQuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
+typealias QuantityQuadraticFunctionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape1>
+@Deprecated("Use QuantityQuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
+typealias QuantityQuadraticFunctionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape2>
+@Deprecated("Use QuantityQuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
+typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape3>
+@Deprecated("Use QuantityQuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
+typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape4>
+@Deprecated("Use DynQuantityQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
+typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbol, DynShape>
 
 typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol<*>, Shape1>
 typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol<*>, Shape2>

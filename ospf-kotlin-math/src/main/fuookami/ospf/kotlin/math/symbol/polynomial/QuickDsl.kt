@@ -1,3 +1,10 @@
+/**
+ * 多项式快捷 DSL
+ * Polynomial Quick DSL
+ *
+ * 提供多项式构建的 DSL 扩展函数，用于快速创建和操作多项式。
+ * Provides DSL extension functions for polynomial construction, enabling quick creation and manipulation of polynomials.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.polynomial

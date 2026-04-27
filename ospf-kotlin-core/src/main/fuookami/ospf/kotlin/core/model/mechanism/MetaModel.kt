@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
@@ -580,8 +580,8 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         }
 
         for (symbol in tokens.symbols) {
-            if (symbol is FunctionSymbol) {
-                when (val result = symbol.register(temp)) {
+            if (symbol is MathFunctionSymbol<*>) {
+                when (val result = symbol.registerAuxiliaryTokens(temp)) {
                     is Ok -> {}
                     is Failed -> {
                         return Failed(result.error)

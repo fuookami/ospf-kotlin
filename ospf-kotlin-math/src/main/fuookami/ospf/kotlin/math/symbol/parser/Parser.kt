@@ -1,3 +1,10 @@
+/**
+ * 多项式与不等式解析 API
+ * Polynomial and Inequality Parsing API
+ *
+ * 提供 Ret 包装的多项式和不等式解析函数，支持 Flt64 和泛型 Ring<T> 类型。
+ * Provides Ret-wrapped parsing functions for polynomials and inequalities, supporting Flt64 and generic Ring<T> types.
+ */
 package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

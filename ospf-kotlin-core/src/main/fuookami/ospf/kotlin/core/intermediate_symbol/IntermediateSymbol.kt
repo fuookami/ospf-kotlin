@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Math
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelF64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
@@ -42,6 +43,7 @@ import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 
 interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
     override var name: String
@@ -55,29 +57,24 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
     val fixedValue get() = range.fixedValue
 
     fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            tokenList = tokenTable.tokenList,
-            zeroIfNone = zeroIfNone
-        )
+    fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
+        return evaluate(tokenList = tt.tokenList, zeroIfNone = zeroIfNone)
     }
 
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            results = results,
-            tokenList = tokenTable.tokenList,
-            zeroIfNone = zeroIfNone
-        )
+    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
+        return evaluate(results = results, tokenList = tt.tokenList, zeroIfNone = zeroIfNone)
     }
 
     fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64? = null, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable? = null, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(
-            values = values,
-            tokenList = tokenTable?.tokenList,
-            zeroIfNone = zeroIfNone
-        )
+    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean = false): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as? AbstractTokenTable<Flt64>
+        return evaluate(values = values, tokenList = tt?.tokenList, zeroIfNone = zeroIfNone)
     }
 
     val category: Category
@@ -94,26 +91,20 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
     fun flush(force: Boolean = false)
 
     /**
-     * Prepare (Flt64 view - solver-compatible, internal).
-     * Dual-view pattern: this is the Flt64 view; use prepareAsV() for V-typed view.
+     * Prepare (generic-first view).
+     * Accepts any AbstractTokenTable regardless of V, since the return is Flt64.
      */
-    fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64?
-    fun prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable) {
+    fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64?
+    fun prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>) {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
         if (values.isNullOrEmpty()) {
             prepare(null, tokenTable)?.let {
-                tokenTable.cache(
-                    cacheKey = this,
-                    solution = null,
-                    value = it
-                )
+                tt.cache(cacheKey = this, solution = null, value = it)
             }
         } else {
             prepare(values, tokenTable)?.let {
-                tokenTable.cache(
-                    cacheKey = this,
-                    fixedValues = values,
-                    value = it
-                )
+                tt.cache(cacheKey = this, fixedValues = values, value = it)
             }
         }
     }
@@ -159,12 +150,12 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
      * Aligns with Rust IntermediateSymbol::evaluate_from_tokens.
      * Default: delegates to evaluate(tokenTable, zeroIfNone=false).
      */
-    fun evaluateFromTokens(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+    fun evaluateFromTokens(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
         return evaluate(tokenTable, zeroIfNone)
     }
 
     /** V-typed prepare via IntoValue<V> conversion. */
-    fun prepareAsV(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>): V? =
+    fun prepareAsV(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>): V? =
         prepare(values, tokenTable)?.let { converter.intoValue(it) }
 
     /** V-typed evaluate via IntoValue<V> conversion. */
@@ -172,11 +163,11 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
         evaluate(tokenList, zeroIfNone)?.let { converter.intoValue(it) }
 
     /** V-typed evaluate via IntoValue<V> conversion. */
-    fun evaluateAsV(tokenTable: LegacyAbstractTokenTable, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
+    fun evaluateAsV(tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
         evaluate(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
 
     /** V-typed evaluate from tokens via IntoValue<V> conversion. */
-    fun evaluateFromTokensAsV(tokenTable: LegacyAbstractTokenTable, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
+    fun evaluateFromTokensAsV(tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
         evaluateFromTokens(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
 
     fun toRawString(unfold: UInt64 = UInt64.zero): String
@@ -677,11 +668,13 @@ class LinearExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                val token = tokenTable.find(symbol)
-                token?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+                val token = tt.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
             else -> null
@@ -722,10 +715,12 @@ class LinearExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as? AbstractTokenTable<Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+                values[symbol] ?: tt?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
@@ -816,7 +811,7 @@ class LinearExpressionSymbol(
     }
 
     // prepare: using math.evaluate + ValueProvider
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 
@@ -1186,11 +1181,13 @@ class QuadraticExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                val token = tokenTable.find(symbol)
-                token?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+                val token = tt.find(symbol)
+                token?.result ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
             is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
@@ -1235,10 +1232,12 @@ class QuadraticExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as? AbstractTokenTable<Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
+                values[symbol] ?: tt?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
             is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
@@ -1369,7 +1368,7 @@ class QuadraticExpressionSymbol(
     }
 
     // prepare: using math.evaluate + ValueProvider
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 

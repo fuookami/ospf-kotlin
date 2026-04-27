@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 陈氏系统
+ * Chen System
+ */
 data class ChenSystem(
     val a: Flt64 = Flt64(10.0),
     val b: Flt64 = Flt64(8.0 / 3.0),
@@ -42,6 +46,10 @@ data class ChenSystem(
     }
 }
 
+/**
+ * 陈氏系统生成器
+ * Chen System Generator
+ */
 data class ChenSystemGenerator(
     val chenSystem: ChenSystem = ChenSystem(),
     private var _x: Point3 = point3(

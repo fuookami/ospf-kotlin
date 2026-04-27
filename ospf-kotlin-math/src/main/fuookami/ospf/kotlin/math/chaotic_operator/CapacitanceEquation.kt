@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 电容方程
+ * Capacitance Equation
+ */
 data class CapacitanceEquation(
     val a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -51,6 +55,10 @@ data class CapacitanceEquation(
     }
 }
 
+/**
+ * 电容方程生成器
+ * Capacitance Equation Generator
+ */
 data class CapacitanceEquationGenerator(
     val capacitanceEquation: CapacitanceEquation = CapacitanceEquation(),
     private var _x: Point3 = point3(

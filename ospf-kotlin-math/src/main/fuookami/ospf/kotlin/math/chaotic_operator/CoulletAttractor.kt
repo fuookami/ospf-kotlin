@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Coullet 吸引子
+ * Coullet Attractor
+ */
 data class CoulletAttractor(
     val alpha: Flt64 = Flt64(0.8),
     val beta: Flt64 = Flt64(-1.1),
@@ -43,6 +47,10 @@ data class CoulletAttractor(
     }
 }
 
+/**
+ * Coullet 吸引子生成器
+ * Coullet Attractor Generator
+ */
 data class CoulletAttractorGenerator(
     val coulletAttractor: CoulletAttractor = CoulletAttractor(),
     private var _x: Point3 = point3(

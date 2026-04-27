@@ -1,3 +1,10 @@
+/**
+ * 不等式序列化与反序列化
+ * Inequality Serialization and Deserialization
+ *
+ * 提供不等式对象与 JSON 之间的双向转换功能。
+ * Provides bidirectional conversion between inequality objects and JSON.
+ */
 package fuookami.ospf.kotlin.math.symbol.serde
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -24,6 +31,10 @@ import java.io.ByteArrayInputStream
 // DTO data classes for inequality JSON serialization
 // ============================================================================
 
+/**
+ * 规范不等式 DTO
+ * Canonical inequality DTO
+ */
 @Serializable
 data class CanonicalInequalityData(
     val lhs: CanonicalPolynomialData,
@@ -31,6 +42,10 @@ data class CanonicalInequalityData(
     val comparison: String
 )
 
+/**
+ * 线性不等式 DTO
+ * Linear inequality DTO
+ */
 @Serializable
 data class LinearInequalityData(
     val lhs: LinearPolynomialData,
@@ -40,6 +55,10 @@ data class LinearInequalityData(
     val displayName: String = ""
 )
 
+/**
+ * 二次不等式 DTO
+ * Quadratic inequality DTO
+ */
 @Serializable
 data class QuadraticInequalityData(
     val lhs: QuadraticPolynomialData,

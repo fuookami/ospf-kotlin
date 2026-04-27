@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Bogdanov 映射
+ * Bogdanov Map
+ */
 data class BogdanovMap(
     val epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -38,6 +42,10 @@ data class BogdanovMap(
     }
 }
 
+/**
+ * Bogdanov 映射生成器
+ * Bogdanov Map Generator
+ */
 data class BogdanovMapGenerator(
     val bogdanovMap: BogdanovMap = BogdanovMap(),
     private var _x: Point2 = point2(

@@ -487,7 +487,7 @@ open class IterativeTaskCompilation<
 
         taskCost.flush()
         for (task in unduplicatedTasks) {
-            taskCost.asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task].toMathLinearPolynomial()
+            (taskCost as LinearExpressionSymbol).asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task].toMathLinearPolynomial()
         }
 
         for (originTask in originTasks) {

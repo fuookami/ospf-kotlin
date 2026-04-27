@@ -22,6 +22,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 高斯映射
+ * Gauss Map
+ */
 data class GaussMap(
     val mu: Flt64 = Random.nextFlt64(Flt64.one, Flt64.ten)
 ) : Extractor<Flt64, Flt64> {
@@ -34,6 +38,10 @@ data class GaussMap(
     }
 }
 
+/**
+ * 高斯映射生成器
+ * Gauss Map Generator
+ */
 data class GaussMapGenerator(
     val gaussMap: GaussMap = GaussMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -78,17 +78,20 @@ class ProductFunction<V : RealNumber<V>>(
         }
     }
 
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: LegacyAbstractTokenTable): Flt64? {
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tt = tokenTable as AbstractTokenTable<Flt64>
+        val tokenList = tt.tokenList
         val leftValue = if (values.isNullOrEmpty()) {
-            evaluateLinear(left, tokenTable, false)
+            evaluateLinear(left, tokenList, false)
         } else {
-            evaluateLinearFromValues(left, values, tokenTable, false)
+            evaluateLinearFromValues(left, values, tokenList, false)
         } ?: return null
 
         val rightValue = if (values.isNullOrEmpty()) {
-            evaluateLinear(right, tokenTable, false)
+            evaluateLinear(right, tokenList, false)
         } else {
-            evaluateLinearFromValues(right, values, tokenTable, false)
+            evaluateLinearFromValues(right, values, tokenList, false)
         } ?: return null
 
         return leftValue * rightValue
@@ -144,33 +147,15 @@ class ProductFunction<V : RealNumber<V>>(
         return leftVal * rightVal
     }
 
-    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val leftVal = evaluateLinear(left, tokenTable, zeroIfNone) ?: return null
-        val rightVal = evaluateLinear(right, tokenTable, zeroIfNone) ?: return null
-        return leftVal * rightVal
-    }
-
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromResults(left, results, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromResults(right, results, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        val leftVal = evaluateLinearFromResults(left, results, tokenTable, zeroIfNone) ?: return null
-        val rightVal = evaluateLinearFromResults(right, results, tokenTable, zeroIfNone) ?: return null
-        return leftVal * rightVal
-    }
-
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromValues(left, values, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromValues(right, values, tokenList, zeroIfNone) ?: return null
-        return leftVal * rightVal
-    }
-
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
-        val leftVal = evaluateLinearFromValues(left, values, tokenTable, zeroIfNone) ?: return null
-        val rightVal = evaluateLinearFromValues(right, values, tokenTable, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
@@ -222,26 +207,6 @@ class ProductFunction<V : RealNumber<V>>(
             return value
         }
 
-        private fun evaluateLinear(
-            poly: MathLinearPolynomial<Flt64>,
-            tokenTable: LegacyAbstractTokenTable,
-            zeroIfNone: Boolean
-        ): Flt64? {
-            var value = poly.constant
-            for (monomial in poly.monomials) {
-                val symbol = monomial.symbol
-                val symbolValue = when (symbol) {
-                    is AbstractVariableItem<*, *> -> {
-                        tokenTable.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else return null
-                    }
-                    is IntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
-                    else -> return null
-                }
-                value += monomial.coefficient * symbolValue
-            }
-            return value
-        }
-
         private fun evaluateLinearFromResults(
             poly: MathLinearPolynomial<Flt64>,
             results: List<Flt64>,
@@ -265,29 +230,6 @@ class ProductFunction<V : RealNumber<V>>(
             return value
         }
 
-        private fun evaluateLinearFromResults(
-            poly: MathLinearPolynomial<Flt64>,
-            results: List<Flt64>,
-            tokenTable: LegacyAbstractTokenTable,
-            zeroIfNone: Boolean
-        ): Flt64? {
-            var value = poly.constant
-            for (monomial in poly.monomials) {
-                val symbol = monomial.symbol
-                val symbolValue = when (symbol) {
-                    is AbstractVariableItem<*, *> -> {
-                        val index = tokenTable.indexOf(symbol)
-                        if (index != null && index >= 0 && index < results.size) results[index]
-                        else if (zeroIfNone) Flt64.zero else return null
-                    }
-                    is IntermediateSymbol<*> -> symbol.evaluate(results, tokenTable, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
-                    else -> return null
-                }
-                value += monomial.coefficient * symbolValue
-            }
-            return value
-        }
-
         private fun evaluateLinearFromValues(
             poly: MathLinearPolynomial<Flt64>,
             values: Map<Symbol, Flt64>,
@@ -302,27 +244,6 @@ class ProductFunction<V : RealNumber<V>>(
                         values[symbol] ?: tokenList?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else return null
                     }
                     is IntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
-                    else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else return null
-                }
-                value += monomial.coefficient * symbolValue
-            }
-            return value
-        }
-
-        private fun evaluateLinearFromValues(
-            poly: MathLinearPolynomial<Flt64>,
-            values: Map<Symbol, Flt64>,
-            tokenTable: LegacyAbstractTokenTable?,
-            zeroIfNone: Boolean
-        ): Flt64? {
-            var value = poly.constant
-            for (monomial in poly.monomials) {
-                val symbol = monomial.symbol
-                val symbolValue = when (symbol) {
-                    is AbstractVariableItem<*, *> -> {
-                        values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else return null
-                    }
-                    is IntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
                     else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else return null
                 }
                 value += monomial.coefficient * symbolValue

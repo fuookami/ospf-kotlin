@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Aizawa 吸引子
+ * Aizawa Attractor
+ */
 data class AizawaAttractor(
     val alpha: Flt64 = Flt64(0.95),
     val beta: Flt64 = Flt64(0.7),
@@ -45,6 +49,10 @@ data class AizawaAttractor(
     }
 }
 
+/**
+ * Aizawa 吸引子生成器
+ * Aizawa Attractor Generator
+ */
 data class AizawaAttractorGenerator(
     val aizawaAttractor: AizawaAttractor = AizawaAttractor(),
     private var _x: Point3 = point3(

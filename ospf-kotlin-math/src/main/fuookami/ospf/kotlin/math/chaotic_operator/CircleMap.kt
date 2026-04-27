@@ -22,6 +22,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 圆映射
+ * Circle Map
+ */
 data class CircleMap(
     val alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, pi2)
@@ -35,6 +39,10 @@ data class CircleMap(
     }
 }
 
+/**
+ * 圆映射生成器
+ * Circle Map Generator
+ */
 data class CircleMapGenerator(
     val circleMap: CircleMap = CircleMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

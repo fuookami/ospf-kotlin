@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 电路混沌模型
+ * Circuit Chaotic Model
+ */
 data class CircuitChaotic(
     val a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
     val b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
@@ -38,6 +42,10 @@ data class CircuitChaotic(
     }
 }
 
+/**
+ * 电路混沌模型生成器
+ * Circuit Chaotic Model Generator
+ */
 data class CircuitChaoticGenerator(
     val circuitChaotic: CircuitChaotic = CircuitChaotic(),
     private var _x: Point2 = point2(

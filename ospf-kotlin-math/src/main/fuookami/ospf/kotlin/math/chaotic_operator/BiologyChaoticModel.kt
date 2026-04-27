@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 生物混沌模型
+ * Biological Chaotic Model
+ */
 data class BiologyChaoticModel(
     val a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -39,6 +43,10 @@ data class BiologyChaoticModel(
     }
 }
 
+/**
+ * 生物混沌模型生成器
+ * Biological Chaotic Model Generator
+ */
 data class BiologyChaoticModelGenerator(
     val biologyChaoticModel: BiologyChaoticModel = BiologyChaoticModel(),
     private var _x: Point3 = point3(

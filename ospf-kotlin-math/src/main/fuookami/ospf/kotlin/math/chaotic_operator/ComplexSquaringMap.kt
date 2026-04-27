@@ -26,6 +26,10 @@ import org.kotlinmath.complex
 import org.kotlinmath.pow
 import kotlin.random.Random
 
+/**
+ * 复平方映射
+ * Complex Squaring Map
+ */
 data object ComplexSquaringMap : Extractor<Point2, Point2> {
     override operator fun invoke(x: Point2): Point2 {
         val complexNumber = pow(complex(x[0].value, x[1].value), complex(2.0, 0.0))
@@ -36,6 +40,10 @@ data object ComplexSquaringMap : Extractor<Point2, Point2> {
     }
 }
 
+/**
+ * 复平方映射生成器
+ * Complex Squaring Map Generator
+ */
 data class ComplexSquaringMapGenerator(
     val complexSquaringMap: ComplexSquaringMap = ComplexSquaringMap,
     private var _x: Point2 = point2(

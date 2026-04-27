@@ -29,12 +29,27 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import java.math.RoundingMode
 
+/**
+ * FltX 级数计算结果
+ * FltX series computation result
+ *
+ * @param value 计算结果值 / Computed value
+ * @param iterations 迭代次数 / Number of iterations
+ * @param converged 是否收敛 / Whether the series converged
+ */
 data class FltXSeriesResult(
     val value: FltX,
     val iterations: Int,
     val converged: Boolean
 )
 
+/**
+ * FltX 幂运算策略
+ * FltX power strategy
+ *
+ * 提供 FltX 高精度浮点数的幂运算、指数和对数计算。
+ * Provides high-precision power, exponential, and logarithm operations for FltX.
+ */
 object FltXPowerStrategy {
     fun defaultPrecision(digits: Int): FltX {
         val normalizedDigits = if (digits <= 0) {

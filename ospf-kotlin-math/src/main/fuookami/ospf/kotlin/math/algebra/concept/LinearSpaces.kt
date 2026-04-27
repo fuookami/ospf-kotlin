@@ -22,12 +22,52 @@ interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
     @Suppress("UNCHECKED_CAST")
     private fun self(): Self = this as Self
 
+    /**
+     * 取两个值中的较小值
+     * Get the minimum of two values
+     *
+     * @param rhs 另一个值
+     * @param rhs The other value
+     * @return 较小值
+     * @return The minimum value
+     */
     fun minValue(rhs: Self): Self = if (self() <= rhs) self() else rhs
 
+    /**
+     * 取两个值中的较大值
+     * Get the maximum of two values
+     *
+     * @param rhs 另一个值
+     * @param rhs The other value
+     * @return 较大值
+     * @return The maximum value
+     */
     fun maxValue(rhs: Self): Self = if (self() >= rhs) self() else rhs
 
+    /**
+     * 判断值是否在指定范围内
+     * Check if the value is within the specified range
+     *
+     * @param lower 下界
+     * @param lower The lower bound
+     * @param upper 上界
+     * @param upper The upper bound
+     * @return 是否在范围内
+     * @return Whether the value is within the range
+     */
     fun isBetween(lower: Self, upper: Self): Boolean = self() >= lower && self() <= upper
 
+    /**
+     * 将值限制在指定范围内
+     * Clamp the value to the specified range
+     *
+     * @param lower 下界
+     * @param lower The lower bound
+     * @param upper 上界
+     * @param upper The upper bound
+     * @return 限制后的值
+     * @return The clamped value
+     */
     fun clampValue(lower: Self, upper: Self): Self = when {
         self() < lower -> lower
         self() > upper -> upper

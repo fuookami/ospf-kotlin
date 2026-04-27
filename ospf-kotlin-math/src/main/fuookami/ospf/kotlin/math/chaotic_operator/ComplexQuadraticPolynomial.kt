@@ -26,6 +26,10 @@ import org.kotlinmath.complex
 import org.kotlinmath.pow
 import kotlin.random.Random
 
+/**
+ * 复二次多项式
+ * Complex Quadratic Polynomial
+ */
 data class ComplexQuadraticPolynomial(
     val c: Point2 = point2(
         Random.nextFlt64(-Flt64.one, Flt64.one),
@@ -42,6 +46,10 @@ data class ComplexQuadraticPolynomial(
     }
 }
 
+/**
+ * 复二次多项式生成器
+ * Complex Quadratic Polynomial Generator
+ */
 data class ComplexQuadraticPolynomialGenerator(
     val complexQuadraticPolynomial: ComplexQuadraticPolynomial = ComplexQuadraticPolynomial(),
     private var _x: Point2 = point2(

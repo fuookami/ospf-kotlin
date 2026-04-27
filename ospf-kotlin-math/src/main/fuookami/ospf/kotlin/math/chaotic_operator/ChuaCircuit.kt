@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 蔡氏电路
+ * Chua's Circuit
+ */
 data class ChuaCircuit(
     val a: Flt64 = Flt64(15.6),
     val b: Flt64 = Flt64(28.0),
@@ -44,6 +48,10 @@ data class ChuaCircuit(
     }
 }
 
+/**
+ * 蔡氏电路生成器
+ * Chua's Circuit Generator
+ */
 data class ChuaCircuitGenerator(
     val chuaCircuit: ChuaCircuit = ChuaCircuit(),
     private var _x: Point3 = point3(

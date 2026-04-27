@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Bouali 吸引子
+ * Bouali Attractor
+ */
 data class BoualiAttractor(
     val alpha: Flt64 = Flt64(0.3),
     val zeta: Flt64 = Flt64.one,
@@ -41,6 +45,10 @@ data class BoualiAttractor(
     }
 }
 
+/**
+ * Bouali 吸引子生成器
+ * Bouali Attractor Generator
+ */
 data class BoualiAttractorGenerator(
     val boualiAttractor: BoualiAttractor = BoualiAttractor(),
     private var _x: Point3 = point3(

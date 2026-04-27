@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 布鲁塞尔振子
+ * Brusselator
+ */
 data class Brusselator(
     val a: Flt64 = Flt64.one,
     val b: Flt64 = Flt64.three,
@@ -41,6 +45,10 @@ data class Brusselator(
     }
 }
 
+/**
+ * 布鲁塞尔振子生成器
+ * Brusselator Generator
+ */
 data class BrusselatorGenerator(
     val brusselator: Brusselator = Brusselator(),
     private var _x: Point2 = point2(

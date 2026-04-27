@@ -1,3 +1,10 @@
+/**
+ * 多项式序列化与反序列化
+ * Polynomial Serialization and Deserialization
+ *
+ * 提供多项式对象与 JSON 之间的双向转换功能。
+ * Provides bidirectional conversion between polynomial objects and JSON.
+ */
 package fuookami.ospf.kotlin.math.symbol.serde
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -20,36 +27,60 @@ import java.io.ByteArrayInputStream
 // DTO data classes for polynomial JSON serialization
 // ============================================================================
 
+/**
+ * 规范多项式 DTO
+ * Canonical polynomial DTO
+ */
 @Serializable
 data class CanonicalPolynomialData(
     val monomials: List<CanonicalMonomialData> = emptyList(),
     val constant: Double
 )
 
+/**
+ * 规范单项式 DTO
+ * Canonical monomial DTO
+ */
 @Serializable
 data class CanonicalMonomialData(
     val coefficient: Double,
     val powers: Map<String, Int> = emptyMap()
 )
 
+/**
+ * 线性多项式 DTO
+ * Linear polynomial DTO
+ */
 @Serializable
 data class LinearPolynomialData(
     val monomials: List<LinearMonomialData> = emptyList(),
     val constant: Double
 )
 
+/**
+ * 线性单项式 DTO
+ * Linear monomial DTO
+ */
 @Serializable
 data class LinearMonomialData(
     val coefficient: Double,
     val symbol: String
 )
 
+/**
+ * 二次多项式 DTO
+ * Quadratic polynomial DTO
+ */
 @Serializable
 data class QuadraticPolynomialData(
     val monomials: List<QuadraticMonomialData> = emptyList(),
     val constant: Double
 )
 
+/**
+ * 二次单项式 DTO
+ * Quadratic monomial DTO
+ */
 @Serializable
 data class QuadraticMonomialData(
     val coefficient: Double,

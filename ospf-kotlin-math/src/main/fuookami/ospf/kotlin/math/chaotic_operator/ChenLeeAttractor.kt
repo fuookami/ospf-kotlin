@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Chen-Lee 吸引子
+ * Chen-Lee Attractor
+ */
 data class ChenLeeAttractor(
     val alpha: Flt64 = Flt64(5.0),
     val beta: Flt64 = Flt64(-10.0),
@@ -42,6 +46,10 @@ data class ChenLeeAttractor(
     }
 }
 
+/**
+ * Chen-Lee 吸引子生成器
+ * Chen-Lee Attractor Generator
+ */
 data class ChenLeeAttractorGenerator(
     val chenLeeAttractor: ChenLeeAttractor = ChenLeeAttractor(),
     private var _x: Point3 = point3(

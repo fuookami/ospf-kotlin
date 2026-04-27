@@ -1,6 +1,6 @@
 /**
- * 表达式序列化
- * Expression Serialization
+ * 表达式序列化与反序列化
+ * Expression Serialization and Deserialization
  *
  * 提供 ScalarExpression 和 BooleanExpression 的 JSON 序列化/反序列化。
  * Provides JSON serialization/deserialization for ScalarExpression and BooleanExpression.

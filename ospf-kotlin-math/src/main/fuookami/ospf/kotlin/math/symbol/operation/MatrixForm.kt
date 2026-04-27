@@ -32,12 +32,26 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 // Typed Matrix Form Data Classes for DoubleArray/Flt64
 // ============================================================================
 
+/**
+ * 线性矩阵形式
+ * Linear matrix form
+ *
+ * 表示线性多项式 c'x + d 的矩阵形式。
+ * Represents the matrix form of a linear polynomial c'x + d.
+ */
 data class LinearMatrixForm(
     val c: DoubleArray,
     val d: Flt64,
     val order: List<Symbol>
 )
 
+/**
+ * 二次矩阵形式
+ * Quadratic matrix form
+ *
+ * 表示二次多项式 x'Qx + c'x + d 的矩阵形式。
+ * Represents the matrix form of a quadratic polynomial x'Qx + c'x + d.
+ */
 data class QuadraticMatrixForm(
     val q: Array<DoubleArray>,
     val c: DoubleArray,
@@ -49,12 +63,26 @@ data class QuadraticMatrixForm(
 // Typed Matrix Form Data Classes for Generic Ring<T>
 // ============================================================================
 
+/**
+ * 泛型线性矩阵形式
+ * Generic linear matrix form
+ *
+ * 表示泛型 Ring<T> 线性多项式 c'x + d 的矩阵形式。
+ * Represents the matrix form of a generic Ring<T> linear polynomial c'x + d.
+ */
 data class TypedLinearMatrixForm<T>(
     val c: List<T>,
     val d: T,
     val order: List<Symbol>
 ) where T : Ring<T>
 
+/**
+ * 泛型二次矩阵形式
+ * Generic quadratic matrix form
+ *
+ * 表示泛型 Ring<T> 二次多项式 x'Qx + c'x + d 的矩阵形式。
+ * Represents the matrix form of a generic Ring<T> quadratic polynomial x'Qx + c'x + d.
+ */
 data class TypedQuadraticMatrixForm<T>(
     val q: List<List<T>>,
     val c: List<T>,

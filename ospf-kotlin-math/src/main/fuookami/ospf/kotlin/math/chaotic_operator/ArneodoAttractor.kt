@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Arneodo 吸引子
+ * Arneodo Attractor
+ */
 data class ArneodoAttractor(
     val alpha: Flt64 = Flt64(-5.5),
     val beta: Flt64 = Flt64(3.5),
@@ -42,6 +46,10 @@ data class ArneodoAttractor(
     }
 }
 
+/**
+ * Arneodo 吸引子生成器
+ * Arneodo Attractor Generator
+ */
 data class ArneodoAttractorGenerator(
     val arneodoAttractor: ArneodoAttractor = ArneodoAttractor(),
     private var _x: Point3 = point3(

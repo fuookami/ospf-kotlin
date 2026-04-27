@@ -1,3 +1,10 @@
+/**
+ * 单项式快捷操作
+ * Monomial Quick Operations
+ *
+ * 提供数值类型与符号之间的快捷乘法运算，用于创建线性单项式。
+ * Provides quick multiplication operations between numeric types and symbols for creating linear monomials.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.monomial

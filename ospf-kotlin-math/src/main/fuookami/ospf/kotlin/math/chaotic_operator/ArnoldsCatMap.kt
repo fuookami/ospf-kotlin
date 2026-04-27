@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Arnold 猫映射
+ * Arnold's Cat Map
+ */
 data object ArnoldsCatMap : Extractor<Point2, Point2> {
     override operator fun invoke(x: Point2): Point2 {
         return point2(
@@ -33,6 +37,10 @@ data object ArnoldsCatMap : Extractor<Point2, Point2> {
     }
 }
 
+/**
+ * Arnold 猫映射生成器
+ * Arnold's Cat Map Generator
+ */
 data class ArnoldsCatMapGenerator(
     val arnoldsCatMap: ArnoldsCatMap = ArnoldsCatMap,
     private var _x: Point2 = point2(

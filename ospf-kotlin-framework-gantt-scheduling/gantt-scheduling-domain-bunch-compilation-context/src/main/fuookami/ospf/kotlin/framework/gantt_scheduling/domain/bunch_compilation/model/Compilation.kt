@@ -4,10 +4,10 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.FunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -229,7 +229,10 @@ open class BunchCompilation<
         _x.add(xi)
 
         for (bunch in unduplicatedBunches) {
-            bunchCost.asMutable() += LinearMonomial(bunch.cost.sum ?: Flt64.infinity, xi[bunch])
+            (bunchCost as LinearExpressionSymbol).asMutable() += LinearMonomial(
+                bunch.cost.sum ?: Flt64.infinity,
+                xi[bunch]
+            )
         }
 
         for (task in tasks) {

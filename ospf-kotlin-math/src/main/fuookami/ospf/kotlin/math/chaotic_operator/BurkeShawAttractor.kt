@@ -24,6 +24,10 @@ import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Burke-Shaw 吸引子
+ * Burke-Shaw Attractor
+ */
 data class BurkeShawAttractor(
     val zeta: Flt64 = Flt64(10.0),
     val nu: Flt64 = Flt64(4.272),
@@ -41,6 +45,10 @@ data class BurkeShawAttractor(
     }
 }
 
+/**
+ * Burke-Shaw 吸引子生成器
+ * Burke-Shaw Attractor Generator
+ */
 data class BurkeShawAttractorGenerator(
     val burkeShawAttractor: BurkeShawAttractor = BurkeShawAttractor(),
     private var _x: Point3 = point3(

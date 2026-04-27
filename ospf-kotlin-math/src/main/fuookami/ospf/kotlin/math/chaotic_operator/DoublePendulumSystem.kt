@@ -23,6 +23,10 @@ import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * 双摆系统
+ * Double Pendulum System
+ */
 data class DoublePendulumSystem(
     val m: Flt64 = Flt64(10.0),
     val l: Flt64 = Flt64(1.0),
@@ -52,6 +56,10 @@ data class DoublePendulumSystem(
     }
 }
 
+/**
+ * 双摆系统生成器
+ * Double Pendulum System Generator
+ */
 data class DoublePendulumSystemGenerator(
     val doublePendulumSystem: DoublePendulumSystem = DoublePendulumSystem(),
     private var _x: Point2 = point2(

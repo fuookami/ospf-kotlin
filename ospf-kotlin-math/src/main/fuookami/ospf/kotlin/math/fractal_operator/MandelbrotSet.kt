@@ -29,6 +29,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.point2
 
+/**
+ * Mandelbrot 集迭代函数
+ * Mandelbrot Set iteration function
+ */
 class MandelbrotSet(
     val c: Point2 = Point2(Flt64.one, Flt64.one)
 ) {
@@ -45,6 +49,10 @@ class MandelbrotSet(
     }
 }
 
+/**
+ * Mandelbrot 集序列生成器
+ * Mandelbrot Set sequence generator
+ */
 data class MandelbrotSetGenerator(
     val mandelbrotSet: MandelbrotSet = MandelbrotSet(),
     private var _z: Point2 = point2()

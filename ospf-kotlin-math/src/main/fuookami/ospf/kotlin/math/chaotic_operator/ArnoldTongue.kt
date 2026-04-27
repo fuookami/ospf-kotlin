@@ -22,6 +22,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
+/**
+ * Arnold 舌
+ * Arnold Tongue
+ */
 data class ArnoldTongue(
     val omega: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
     val kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two),
@@ -31,6 +35,10 @@ data class ArnoldTongue(
     }
 }
 
+/**
+ * Arnold 舌生成器
+ * Arnold Tongue Generator
+ */
 data class ArnoldTongueGenerator(
     val arnoldTongue: ArnoldTongue = ArnoldTongue(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)

@@ -1,3 +1,10 @@
+/**
+ * 多项式词法分析器
+ * Polynomial Lexer
+ *
+ * 提供多项式表达式的词法分析功能，将字符串分解为词法单元序列。
+ * Provides lexical analysis for polynomial expressions, decomposing strings into token sequences.
+ */
 package fuookami.ospf.kotlin.math.symbol.parse
 
 internal enum class PolynomialTokenType {
