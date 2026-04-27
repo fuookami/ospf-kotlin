@@ -59,7 +59,7 @@ class CapacityCompilation<A : ProductionAction>(
      * 成本表达�?
      * Cost expression
      */
-    lateinit var cost: LinearExpressionSymbol
+    lateinit var cost: LinearIntermediateSymbol<Flt64>
         private set
 
     override lateinit var operationTime: LinearExpressionSymbols2

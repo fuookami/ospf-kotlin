@@ -65,7 +65,7 @@ open class BunchCompilation<
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
 
-    lateinit var bunchCost: LinearExpressionSymbol
+    lateinit var bunchCost: LinearIntermediateSymbol<Flt64>
     override lateinit var taskAssignment: LinearExpressionSymbols2
     override lateinit var taskCompilation: LinearExpressionSymbols1
     override lateinit var executorCompilation: LinearExpressionSymbols1

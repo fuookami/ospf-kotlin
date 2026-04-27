@@ -303,7 +303,7 @@ open class IterativeTaskCompilation<
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
 
-    lateinit var taskCost: LinearExpressionSymbol
+    lateinit var taskCost: LinearIntermediateSymbol<Flt64>
     override lateinit var taskAssignment: LinearExpressionSymbols2
     override lateinit var taskCompilation: LinearExpressionSymbols1
     private lateinit var xor: BinVariable1

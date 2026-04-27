@@ -1,4 +1,4 @@
-@file:Suppress("OVERRIDE_DEPRECATION", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
@@ -413,7 +413,6 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
     }
 }
 
-@Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class LinearExpressionSymbol(
     internal val _utilsPolynomial: UtilsMutableLinearPolynomial<Flt64>,
     category: Category = Linear,
@@ -955,7 +954,6 @@ class LinearExpressionSymbol(
     }
 }
 
-@Deprecated("DSL expression wrapper, use MathFunctionSymbol instead")
 class QuadraticExpressionSymbol(
     internal val _utilsPolynomial: UtilsMutableQuadraticPolynomial<Flt64>,
     category: Category = _utilsPolynomial.category,
@@ -1558,182 +1556,6 @@ class QuadraticExpressionSymbol(
     }
 }
 
-data class FunctionSymbolRegistrationScope(
-    val tokens: MutableList<AbstractVariableItem<*, *>> = mutableListOf(),
-    val origin: LegacyAbstractTokenTable? = null
-) : AddableTokenCollectionF64 {
-    override fun add(item: AbstractVariableItem<*, *>): Try {
-        tokens.add(item)
-        return ok
-    }
-
-    override fun add(items: Iterable<AbstractVariableItem<*, *>>): Try {
-        tokens.addAll(items)
-        return ok
-    }
-}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-interface FunctionSymbol : IntermediateSymbol<Flt64> {
-    fun register(tokenTable: AddableTokenCollectionF64): Try
-
-    fun register(
-        tokenTable: AddableTokenCollectionF64,
-        fixedValues: Map<Symbol, Flt64>
-    ): Try {
-        return register(tokenTable)
-    }
-
-    /**
-     * Evaluate directly from token table values via calculateValue,
-     * bypassing the default evaluate(tokenTable) delegation.
-     * This avoids the infinite recursion that would occur if the
-     * default IntermediateSymbol.evaluateFromTokens (which calls evaluate)
-     * were used, since evaluate(tokenTable) calls calculateValue.
-     */
-    override fun evaluateFromTokens(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return calculateValue(
-            tokenTable = tokenTable,
-            zeroIfNone = zeroIfNone
-        )
-    }
-
-    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
-            evaluateFromTokens(
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            )
-        }
-    }
-
-    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
-        return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
-            calculateValue(
-                results = results,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            )
-        }
-    }
-
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
-        return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
-            calculateValue(
-                values = values,
-                tokenTable = tokenTable,
-                zeroIfNone = zeroIfNone
-            )
-        }
-    }
-
-    fun calculateValue(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64?
-    fun calculateValue(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64?
-    fun calculateValue(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64?
-}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-interface LogicFunctionSymbol : FunctionSymbol {
-    fun isTrue(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Boolean? {
-        return this.evaluate(
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        )?.let { it eq Flt64.one }
-    }
-
-    fun isTrue(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Boolean? {
-        return this.evaluate(
-            results = results,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        )?.let { it eq Flt64.one }
-    }
-
-    fun isTrue(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Boolean? {
-        return this.evaluate(
-            values = values,
-            tokenList = tokenList,
-            zeroIfNone = zeroIfNone
-        )?.let { it eq Flt64.one }
-    }
-}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-abstract class LinearFunctionSymbol : LinearIntermediateSymbol<Flt64>, FunctionSymbol {
-    internal var _group: AbstractSymbolCombination<*>? = null
-    internal var _index: Int? = null
-    override val identifier: UInt64 by lazy {
-        _group?.identifier ?: IdentifierGenerator.gen()
-    }
-    override val index: Int by lazy {
-        _index ?: 0
-    }
-
-    abstract fun register(model: AbstractLinearMechanismModelF64): Try
-    open fun register(
-        model: AbstractLinearMechanismModelF64,
-        fixedValues: Map<Symbol, Flt64>
-    ): Try {
-        return register(model)
-    }
-
-    override fun hashCode(): Int {
-        return identifier.toInt() * 31 + index
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is LinearFunctionSymbol) return false
-
-        if (identifier != other.identifier) return false
-        if (index != other.index) return false
-        if (name != other.name) return false
-
-        return true
-    }
-}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-abstract class LinearLogicFunctionSymbol : LinearFunctionSymbol(), LogicFunctionSymbol {}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-abstract class QuadraticFunctionSymbol : QuadraticIntermediateSymbol<Flt64>, FunctionSymbol {
-    internal var _group: AbstractSymbolCombination<*>? = null
-    internal var _index: Int? = null
-    override val identifier: UInt64 by lazy {
-        _group?.identifier ?: IdentifierGenerator.gen()
-    }
-    override val index: Int by lazy {
-        _index ?: 0
-    }
-
-    abstract fun register(model: AbstractQuadraticMechanismModelF64): Try
-    open fun register(
-        model: AbstractQuadraticMechanismModelF64,
-        fixedValues: Map<Symbol, Flt64>
-    ): Try {
-        return register(model)
-    }
-
-    override fun hashCode(): Int {
-        return identifier.toInt() * 31 + index
-    }
-
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other !is QuadraticFunctionSymbol) return false
-
-        if (identifier != other.identifier) return false
-        if (index != other.index) return false
-        if (name != other.name) return false
-
-        return true
-    }
-}
-
-@Deprecated("Use fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol instead")
-abstract class QuadraticLogicFunctionSymbol : QuadraticFunctionSymbol(), LogicFunctionSymbol {}
-
 operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> {
     return Quantity(this, rhs)
 }
@@ -1771,8 +1593,5 @@ typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol<*
 typealias QuantityQuadraticIntermediateSymbol = Quantity<QuadraticIntermediateSymbol<*>>
 typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol>
 typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol>
-typealias QuantityFunctionSymbol = Quantity<FunctionSymbol>
-typealias QuantityLinearFunctionSymbol = Quantity<LinearFunctionSymbol>
-typealias QuantityQuadraticFunctionSymbol = Quantity<QuadraticFunctionSymbol>
 
 

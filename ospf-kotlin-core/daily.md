@@ -2,7 +2,7 @@
 
 日期：2026-04-27
 
-状态：P3-6 完成 — `ospf-kotlin-example` 已迁入并接入 reactor，P3-5 “迁入 + import 迁移 + 构建接线”完成；全仓 `mvn clean test`（68 模块）已通过。下一阶段为 P4-1：`intermediate_symbol` 包实际类（如 `LinearExpressionSymbol`、`FunctionSymbol`）彻底迁移，计划 2026-04-28 启动，预计 2026-05-02 ~ 2026-05-04 完成
+状态：P4-1 执行中（Phase A1 已完成） — 旧 `FunctionSymbol` 层级体系（`FunctionSymbol`、`LogicFunctionSymbol`、`LinearFunctionSymbol`、`QuadraticFunctionSymbol`、`LinearLogicFunctionSymbol`、`QuadraticLogicFunctionSymbol`、`FunctionSymbolRegistrationScope`）及 `QuantityFunctionSymbol`/`QuantityLinearFunctionSymbol`/`QuantityQuadraticFunctionSymbol` typealias 已从 `IntermediateSymbol.kt` 物理删除；`LinearExpressionSymbol` / `QuadraticExpressionSymbol` 的 `@Deprecated` 注解已移除。下一步：Phase A2~A4（迁移 TokenTable/MetaModel/MechanismModel/SymbolCombination 中的旧 FunctionSymbol 引用），然后 Phase B/C（gantt-scheduling/bpp3d/example 调用方迁移）。
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 

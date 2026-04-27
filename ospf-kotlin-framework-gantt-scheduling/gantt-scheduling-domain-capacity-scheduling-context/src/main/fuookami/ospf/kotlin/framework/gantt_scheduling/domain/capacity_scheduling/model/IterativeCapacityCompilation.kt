@@ -93,8 +93,8 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 成本表达式
      * Cost expression
      */
-    private var _cost: LinearExpressionSymbol? = null
-    val cost: LinearExpressionSymbol?
+    private var _cost: LinearIntermediateSymbol<Flt64>? = null
+    val cost: LinearIntermediateSymbol<Flt64>?
         get() = _cost
 
     override lateinit var operationTime: LinearExpressionSymbols2

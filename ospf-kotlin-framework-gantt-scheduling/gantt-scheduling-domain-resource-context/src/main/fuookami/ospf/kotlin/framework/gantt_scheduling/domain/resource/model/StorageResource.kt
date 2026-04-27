@@ -265,7 +265,7 @@ abstract class AbstractStorageResourceUsage<
                 val t = timeWindow.timeSlots.indexOfFirst { it.end == time.end }
                 @Suppress("UNCHECKED_CAST")
                 val executorSum = executorSupply[_a, r, t].fold(LinearPolynomial<Flt64>(emptyList(), Flt64.zero)) { acc, elem ->
-                    acc + (elem as LinearExpressionSymbol).polynomial
+                    acc + (elem as LinearIntermediateSymbol<Flt64>).polynomial
                 }
                 LinearExpressionSymbol(
                     polynomial = LinearPolynomial(emptyList(), fixedSupply) + executorSum,
@@ -295,8 +295,8 @@ abstract class AbstractStorageResourceUsage<
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
                     val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity) +
-                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearExpressionSymbol)).polynomial -
-                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearExpressionSymbol)).polynomial
+                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearIntermediateSymbol<Flt64>)).polynomial -
+                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearIntermediateSymbol<Flt64>)).polynomial
                     LinearExpressionSymbol(
                         polynomial = quantityPoly,
                         name = "${name}_quantity_${slot}"
