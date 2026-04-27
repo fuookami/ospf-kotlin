@@ -43,7 +43,7 @@ data object Demo12 {
 
     lateinit var assignment: LinearIntermediateSymbols1
     lateinit var premium: LinearIntermediateSymbols1
-    lateinit var risk: LinearExpressionSymbol
+    lateinit var risk: LinearExpressionSymbol<Flt64>
     lateinit var yield: LinearIntermediateSymbol<*>
 
     val metaModel = LinearMetaModelF64("demo12")

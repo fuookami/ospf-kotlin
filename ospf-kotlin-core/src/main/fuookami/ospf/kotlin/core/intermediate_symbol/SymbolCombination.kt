@@ -29,12 +29,12 @@ class SymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     init {
         for ((i, sym) in this.withIndex()) {
             when (sym) {
-                is LinearExpressionSymbol -> {
+                is LinearExpressionSymbol<*> -> {
                     sym._group = this
                     sym._index = i
                 }
 
-                is QuadraticExpressionSymbol -> {
+                is QuadraticExpressionSymbol<*> -> {
                     sym._group = this
                     sym._index = i
                 }
@@ -55,12 +55,12 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     init {
         for ((i, qsym) in this.withIndex()) {
             when (val sym = qsym.value) {
-                is LinearExpressionSymbol -> {
+                is LinearExpressionSymbol<*> -> {
                     sym._group = this
                     sym._index = i
                 }
 
-                is QuadraticExpressionSymbol -> {
+                is QuadraticExpressionSymbol<*> -> {
                     sym._group = this
                     sym._index = i
                 }
@@ -119,29 +119,29 @@ typealias QuantityQuadraticIntermediateSymbols3 = QuantitySymbolCombination<Quad
 typealias QuantityQuadraticIntermediateSymbols4 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape4>
 typealias DynQuantityQuadraticIntermediateSymbols = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, DynShape>
 
-typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbol, Shape1>
-typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbol, Shape2>
-typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbol, Shape3>
-typealias LinearExpressionSymbols4 = SymbolCombination<LinearExpressionSymbol, Shape4>
-typealias DynLinearExpressionSymbols = SymbolCombination<LinearExpressionSymbol, DynShape>
+typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbolF64, Shape1>
+typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbolF64, Shape2>
+typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbolF64, Shape3>
+typealias LinearExpressionSymbols4 = SymbolCombination<LinearExpressionSymbolF64, Shape4>
+typealias DynLinearExpressionSymbols = SymbolCombination<LinearExpressionSymbolF64, DynShape>
 
-typealias QuantityLinearExpressionSymbols1 = QuantitySymbolCombination<LinearExpressionSymbol, Shape1>
-typealias QuantityLinearExpressionSymbols2 = QuantitySymbolCombination<LinearExpressionSymbol, Shape2>
-typealias QuantityLinearExpressionSymbols3 = QuantitySymbolCombination<LinearExpressionSymbol, Shape3>
-typealias QuantityLinearExpressionSymbols4 = QuantitySymbolCombination<LinearExpressionSymbol, Shape4>
-typealias DynQuantityLinearExpressionSymbols = QuantitySymbolCombination<LinearExpressionSymbol, DynShape>
+typealias QuantityLinearExpressionSymbols1 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape1>
+typealias QuantityLinearExpressionSymbols2 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape2>
+typealias QuantityLinearExpressionSymbols3 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape3>
+typealias QuantityLinearExpressionSymbols4 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape4>
+typealias DynQuantityLinearExpressionSymbols = QuantitySymbolCombination<LinearExpressionSymbolF64, DynShape>
 
-typealias QuadraticExpressionSymbols1 = SymbolCombination<QuadraticExpressionSymbol, Shape1>
-typealias QuadraticExpressionSymbols2 = SymbolCombination<QuadraticExpressionSymbol, Shape2>
-typealias QuadraticExpressionSymbols3 = SymbolCombination<QuadraticExpressionSymbol, Shape3>
-typealias QuadraticExpressionSymbols4 = SymbolCombination<QuadraticExpressionSymbol, Shape4>
-typealias DynQuadraticExpressionSymbols = SymbolCombination<QuadraticExpressionSymbol, DynShape>
+typealias QuadraticExpressionSymbols1 = SymbolCombination<QuadraticExpressionSymbolF64, Shape1>
+typealias QuadraticExpressionSymbols2 = SymbolCombination<QuadraticExpressionSymbolF64, Shape2>
+typealias QuadraticExpressionSymbols3 = SymbolCombination<QuadraticExpressionSymbolF64, Shape3>
+typealias QuadraticExpressionSymbols4 = SymbolCombination<QuadraticExpressionSymbolF64, Shape4>
+typealias DynQuadraticExpressionSymbols = SymbolCombination<QuadraticExpressionSymbolF64, DynShape>
 
-typealias QuantityQuadraticExpressionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape1>
-typealias QuantityQuadraticExpressionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape2>
-typealias QuantityQuadraticExpressionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape3>
-typealias QuantityQuadraticExpressionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape4>
-typealias DynQuantityQuadraticExpressionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbol, DynShape>
+typealias QuantityQuadraticExpressionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape1>
+typealias QuantityQuadraticExpressionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape2>
+typealias QuantityQuadraticExpressionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape3>
+typealias QuantityQuadraticExpressionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape4>
+typealias DynQuantityQuadraticExpressionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbolF64, DynShape>
 
 @Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape1> directly", level = DeprecationLevel.WARNING)
 typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbolAdapter, Shape1>
@@ -166,26 +166,26 @@ typealias QuantityLinearFunctionSymbols4 = QuantitySymbolCombination<LinearFunct
 typealias DynQuantityLinearFunctionSymbols = QuantitySymbolCombination<LinearFunctionSymbolAdapter, DynShape>
 
 @Deprecated("Use QuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticExpressionSymbol, Shape1>
+typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticExpressionSymbolF64, Shape1>
 @Deprecated("Use QuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticExpressionSymbol, Shape2>
+typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticExpressionSymbolF64, Shape2>
 @Deprecated("Use QuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticExpressionSymbol, Shape3>
+typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticExpressionSymbolF64, Shape3>
 @Deprecated("Use QuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticExpressionSymbol, Shape4>
+typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticExpressionSymbolF64, Shape4>
 @Deprecated("Use DynQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
-typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticExpressionSymbol, DynShape>
+typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticExpressionSymbolF64, DynShape>
 
 @Deprecated("Use QuantityQuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape1>
+typealias QuantityQuadraticFunctionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape1>
 @Deprecated("Use QuantityQuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape2>
+typealias QuantityQuadraticFunctionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape2>
 @Deprecated("Use QuantityQuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape3>
+typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape3>
 @Deprecated("Use QuantityQuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbol, Shape4>
+typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape4>
 @Deprecated("Use DynQuantityQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
-typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbol, DynShape>
+typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbolF64, DynShape>
 
 typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol<*>, Shape1>
 typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol<*>, Shape2>

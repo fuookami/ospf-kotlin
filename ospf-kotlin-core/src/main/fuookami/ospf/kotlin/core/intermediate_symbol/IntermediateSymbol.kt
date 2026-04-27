@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -20,9 +22,10 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelF64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.token.newTokenCacheKey
 import fuookami.ospf.kotlin.core.token.boundTokenTableContext
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
@@ -44,6 +47,7 @@ import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
     override var name: String
@@ -173,14 +177,18 @@ interface IntermediateSymbol<V : RealNumber<V>> : Symbol {
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 
-interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToMathLinearInequality, ToMathQuadraticInequality {
+interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequality, ToMathQuadraticInequality, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
         ): LinearIntermediateSymbol<Flt64> {
-            return LinearExpressionSymbol(
+            return LinearExpressionSymbol<Flt64>(
+                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64.zero
+                ),
                 parent = parent,
                 name = name,
                 displayName = displayName
@@ -190,6 +198,14 @@ interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, T
 
     @Suppress("DEPRECATION")
     val flattenedMonomials: LinearFlattenDataF64
+
+    val flattenedMonomialsAsV: LinearFlattenData<V>
+        @Suppress("UNCHECKED_CAST")
+        get() = flattenedMonomials as LinearFlattenData<V>
+
+    val polynomial: UtilsLinearPolynomial<V>
+
+    fun asMutable(): UtilsMutableLinearPolynomial<V>
 
     override fun toMathLinearInequality(): MathLinearInequality {
         val lhs = UtilsLinearPolynomial(
@@ -210,16 +226,22 @@ interface LinearIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, T
             Comparison.EQ
         )
     }
+
+    override fun toLinearPolynomial(): UtilsLinearPolynomial<V> = polynomial
 }
 
-interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>, ToMathQuadraticInequality {
+interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadraticInequality, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
         ): QuadraticIntermediateSymbol<Flt64> {
-            return QuadraticExpressionSymbol(
+            return QuadraticExpressionSymbol<Flt64>(
+                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                    monomials = emptyList(),
+                    constant = Flt64.zero
+                ),
                 parent = parent,
                 name = name,
                 displayName = displayName
@@ -230,6 +252,14 @@ interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>
     @Suppress("DEPRECATION")
     val flattenedMonomials: QuadraticFlattenDataF64
 
+    val flattenedMonomialsAsV: QuadraticFlattenData<V>
+        @Suppress("UNCHECKED_CAST")
+        get() = flattenedMonomials as QuadraticFlattenData<V>
+
+    val polynomial: UtilsQuadraticPolynomial<V>
+
+    fun asMutable(): UtilsMutableQuadraticPolynomial<V>
+
     override fun toMathQuadraticInequality(): MathQuadraticInequality {
         val lhs = UtilsQuadraticPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
@@ -237,23 +267,27 @@ interface QuadraticIntermediateSymbol<V : RealNumber<V>> : IntermediateSymbol<V>
         )
         return MathQuadraticInequality(lhs, UtilsQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
+
+    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<V> = polynomial
 }
 
 internal fun IntermediateSymbol<*>.shouldPrepare(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable
+    tokenTable: AbstractTokenTable<*>
 ): Boolean {
-    return (!values.isNullOrEmpty() || tokenTable.cachedSolution) && if (values.isNullOrEmpty()) {
-        tokenTable.cached(cacheKey)
+    @Suppress("UNCHECKED_CAST")
+    val tt = tokenTable as AbstractTokenTable<Flt64>
+    return (!values.isNullOrEmpty() || tt.cachedSolution) && if (values.isNullOrEmpty()) {
+        tt.cached(cacheKey)
     } else {
-        tokenTable.cached(cacheKey, values)
+        tt.cached(cacheKey, values)
     } == false
 }
 
 internal fun IntermediateSymbol<*>.shouldPrepare(
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable
+    tokenTable: AbstractTokenTable<*>
 ): Boolean {
     return shouldPrepare(this, values, tokenTable)
 }
@@ -261,14 +295,16 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable
+    tokenTable: AbstractTokenTable<*>
 ): Boolean {
-    return (!values.isNullOrEmpty() || tokenTable.cachedSolution) && tokenTable.cached(cacheKey) == false
+    @Suppress("UNCHECKED_CAST")
+    val tt = tokenTable as AbstractTokenTable<Flt64>
+    return (!values.isNullOrEmpty() || tt.cachedSolution) && tt.cached(cacheKey) == false
 }
 
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable
+    tokenTable: AbstractTokenTable<*>
 ): Boolean {
     return shouldPrepareWithFixedCacheKey(this, values, tokenTable)
 }
@@ -276,7 +312,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     block: () -> T?
 ): T? {
     return if (shouldPrepare(cacheKey, values, tokenTable)) {
@@ -288,7 +324,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     block: () -> T?
 ): T? {
     return prepareIfNotCached(this, values, tokenTable, block)
@@ -297,7 +333,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     block: () -> T?
 ): T? {
     return if (shouldPrepareWithFixedCacheKey(cacheKey, values, tokenTable)) {
@@ -309,24 +345,26 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
 
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     block: () -> T?
 ): T? {
     return prepareIfNotCachedWithFixedCacheKey(this, values, tokenTable, block)
 }
 
 private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     zeroIfNone: Boolean,
     calculator: () -> Flt64?
 ): Flt64? {
-    return if (tokenTable.cachedSolution) {
-        tokenTable.cacheIfNotCached(
+    @Suppress("UNCHECKED_CAST")
+    val tt = tokenTable as AbstractTokenTable<Flt64>
+    return if (tt.cachedSolution) {
+        tt.cacheIfNotCached(
             cacheKey = this,
             solution = null
         ) {
             for (dependency in dependencies) {
-                if (tokenTable.cachedSolution) {
+                if (tt.cachedSolution) {
                     dependency.evaluate(
                         tokenTable = tokenTable,
                         zeroIfNone = zeroIfNone
@@ -336,7 +374,7 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
             calculator()
         }
     } else {
-        tokenTable.cachedValue(
+        tt.cachedValue(
             cacheKey = this,
             solution = null
         )
@@ -345,14 +383,16 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
 
 private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
     results: List<Flt64>,
-    tokenTable: LegacyAbstractTokenTable,
+    tokenTable: AbstractTokenTable<*>,
     zeroIfNone: Boolean,
     calculator: () -> Flt64?
 ): Flt64? {
-    return if (tokenTable.cachedSolution) {
-        tokenTable.cacheIfNotCached(this, results) {
+    @Suppress("UNCHECKED_CAST")
+    val tt = tokenTable as AbstractTokenTable<Flt64>
+    return if (tt.cachedSolution) {
+        tt.cacheIfNotCached(this, results) {
             for (dependency in dependencies) {
-                if (tokenTable.cachedSolution) {
+                if (tt.cachedSolution) {
                     dependency.evaluate(
                         results = results,
                         tokenTable = tokenTable,
@@ -363,18 +403,20 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
             calculator()
         }
     } else {
-        tokenTable.cachedValue(this, results)
+        tt.cachedValue(this, results)
     }
 }
 
 private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
     values: Map<Symbol, Flt64>,
-    tokenTable: LegacyAbstractTokenTable?,
+    tokenTable: AbstractTokenTable<*>?,
     zeroIfNone: Boolean,
     calculator: () -> Flt64?
 ): Flt64? {
+    @Suppress("UNCHECKED_CAST")
+    val tt = tokenTable as? AbstractTokenTable<Flt64>
     values[this]?.let { value ->
-        tokenTable?.cache(
+        tt?.cache(
             cacheKey = this,
             fixedValues = values,
             value = value
@@ -382,14 +424,14 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
         return value
     }
 
-    if (tokenTable == null) {
+    if (tt == null) {
         return calculator()
     }
 
-    return if (values.isNotEmpty() || tokenTable.cachedSolution) {
-        tokenTable.cacheIfNotCached(this, values) {
+    return if (values.isNotEmpty() || tt.cachedSolution) {
+        tt.cacheIfNotCached(this, values) {
             for (dependency in dependencies) {
-                if (values.isNotEmpty() || tokenTable.cachedSolution) {
+                if (values.isNotEmpty() || tt.cachedSolution) {
                     dependency.evaluate(
                         values = values,
                         tokenTable = tokenTable,
@@ -400,17 +442,17 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
             calculator()
         }
     } else {
-        tokenTable.cachedValue(this, values)
+        tt.cachedValue(this, values)
     }
 }
 
-class LinearExpressionSymbol(
-    internal val _utilsPolynomial: UtilsMutableLinearPolynomial<Flt64>,
+class LinearExpressionSymbol<V>(
+    internal val _utilsPolynomial: UtilsMutableLinearPolynomial<V>,
     category: Category = Linear,
     parent: IntermediateSymbol<*>? = null,
     name: String = "",
     displayName: String? = null
-) : LinearIntermediateSymbol<Flt64> {
+) : LinearIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
     override val identifier: UInt64 by lazy {
@@ -433,8 +475,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = listOf(UtilsLinearMonomial(Flt64.one, item)),
                     constant = Flt64.zero
@@ -451,8 +493,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -469,8 +511,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = polynomial.monomials,
                     constant = polynomial.constant
@@ -487,8 +529,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = listOf(monomial),
                     constant = Flt64.zero
@@ -505,8 +547,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = polynomial,
                 category = Linear,
                 parent = parent,
@@ -520,8 +562,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -538,8 +580,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -556,8 +598,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
@@ -574,8 +616,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -592,8 +634,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -610,8 +652,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
@@ -627,8 +669,8 @@ class LinearExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol {
-            return LinearExpressionSymbol(
+        ): LinearExpressionSymbol<Flt64> {
+            return LinearExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -641,18 +683,29 @@ class LinearExpressionSymbol(
         }
     }
 
+    // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
+    @Suppress("UNCHECKED_CAST")
+    private val _polyF64: UtilsMutableLinearPolynomial<Flt64> get() = _utilsPolynomial as UtilsMutableLinearPolynomial<Flt64>
+
     // polynomial property returns immutable version
-    val polynomial: UtilsLinearPolynomial<Flt64> get() = _utilsPolynomial.toLinearPolynomial()
+    override val polynomial: UtilsLinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
     // flattenedMonomials: extract from monomials
+    @Suppress("DEPRECATION")
     override val flattenedMonomials: LinearFlattenDataF64
         get() = LinearFlattenDataF64(
+            monomials = _polyF64.monomials,
+            constant = _polyF64.constant
+        )
+
+    override val flattenedMonomialsAsV: LinearFlattenData<V>
+        get() = LinearFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
         )
 
-    // asMutable returns UtilsMutableLinearPolynomial<Flt64>
-    fun asMutable(): UtilsMutableLinearPolynomial<Flt64> {
+    // asMutable returns UtilsMutableLinearPolynomial<V>
+    override fun asMutable(): UtilsMutableLinearPolynomial<V> {
         return _utilsPolynomial
     }
 
@@ -693,7 +746,7 @@ class LinearExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -740,8 +793,9 @@ class LinearExpressionSymbol(
 
     // range/lowerBound/upperBound using possibleRange algorithm
     private fun calculateRange(): ValueRange<Flt64>? {
-        var range: ValueRange<Flt64>? = ValueRange(_utilsPolynomial.constant, Flt64).value
-        for (monomial in _utilsPolynomial.monomials) {
+        val poly = _polyF64
+        var range: ValueRange<Flt64>? = ValueRange(poly.constant, Flt64).value
+        for (monomial in poly.monomials) {
             val symRange = when (val sym = monomial.symbol) {
                 is AbstractVariableItem<*, *> -> sym.range.valueRange
                 is LinearIntermediateSymbol<*> -> sym.range.valueRange
@@ -763,13 +817,13 @@ class LinearExpressionSymbol(
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
-        get() = _utilsPolynomial.monomials.all { monomial ->
+        get() = _polyF64.monomials.all { monomial ->
             when (val sym = monomial.symbol) {
                 is AbstractVariableItem<*, *> -> sym.type.isIntegerType && monomial.coefficient.round() eq monomial.coefficient
                 is LinearIntermediateSymbol<*> -> sym.discrete && monomial.coefficient.round() eq monomial.coefficient
                 else -> false
             }
-        } && _utilsPolynomial.constant.round() eq _utilsPolynomial.constant
+        } && _polyF64.constant.round() eq _polyF64.constant
 
     // cached/flush via TokenTable cache key
     private val rangeCacheKey = newTokenCacheKey(
@@ -782,11 +836,11 @@ class LinearExpressionSymbol(
     )
 
     @Suppress("UNCHECKED_CAST")
-    private fun cacheTokenTable(): LegacyAbstractTokenTable? {
+    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? LegacyAbstractTokenTable
+            .firstOrNull() as? AbstractTokenTable<Flt64>
     }
 
     override val cached: Boolean
@@ -816,16 +870,16 @@ class LinearExpressionSymbol(
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, false)
                 if (symbolValue == null) return null
                 ret += monomial.coefficient * symbolValue
             }
             ret
         } else {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, false)
                 if (symbolValue == null) return null
                 ret += monomial.coefficient * symbolValue
@@ -837,7 +891,7 @@ class LinearExpressionSymbol(
     // toRawString
     override fun toRawString(unfold: UInt64): String {
         return if (unfold neq UInt64.zero) {
-            val monomialStrings = _utilsPolynomial.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
+            val monomialStrings = _polyF64.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
                 val symStr = when (val sym = m.symbol) {
                     is IntermediateSymbol<*> -> sym.toRawString(unfold - UInt64.one)
                     else -> sym.name
@@ -846,8 +900,8 @@ class LinearExpressionSymbol(
                 else if (m.coefficient eq -Flt64.one) "-$symStr"
                 else "${m.coefficient} * $symStr"
             }
-            if (_utilsPolynomial.constant neq Flt64.zero) {
-                "${monomialStrings.joinToString(" + ")} + ${_utilsPolynomial.constant}"
+            if (_polyF64.constant neq Flt64.zero) {
+                "${monomialStrings.joinToString(" + ")} + ${_polyF64.constant}"
             } else {
                 monomialStrings.joinToString(" + ")
             }
@@ -858,8 +912,8 @@ class LinearExpressionSymbol(
 
     // evaluate methods - similar to Polynomial.evaluate implementation
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
             if (symbolValue == null && !zeroIfNone) return null
             ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
@@ -867,10 +921,10 @@ class LinearExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, zeroIfNone)
                 if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
@@ -880,8 +934,8 @@ class LinearExpressionSymbol(
     }
 
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
             if (symbolValue == null && !zeroIfNone) return null
             ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
@@ -889,10 +943,10 @@ class LinearExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val symbolValue = evaluateSymbol(monomial.symbol, results, tokenTable, zeroIfNone)
                 if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
@@ -903,8 +957,8 @@ class LinearExpressionSymbol(
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, values, tokenList, zeroIfNone)
             if (symbolValue == null && !zeroIfNone) return null
             ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
@@ -912,13 +966,13 @@ class LinearExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
             if (values.containsKey(this)) {
                 return@evaluateWithCachedTokenTable values[this]!!
             }
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, zeroIfNone)
                 if (symbolValue == null && !zeroIfNone) {
                     return@evaluateWithCachedTokenTable null
@@ -939,7 +993,7 @@ class LinearExpressionSymbol(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is LinearExpressionSymbol) return false
+        if (other !is LinearExpressionSymbol<*>) return false
 
         if (identifier != other.identifier) return false
         if (index != other.index) return false
@@ -949,13 +1003,13 @@ class LinearExpressionSymbol(
     }
 }
 
-class QuadraticExpressionSymbol(
-    internal val _utilsPolynomial: UtilsMutableQuadraticPolynomial<Flt64>,
+class QuadraticExpressionSymbol<V>(
+    internal val _utilsPolynomial: UtilsMutableQuadraticPolynomial<V>,
     category: Category = _utilsPolynomial.category,
     parent: IntermediateSymbol<*>? = null,
     name: String = "",
     displayName: String? = null
-) : QuadraticIntermediateSymbol<Flt64> {
+) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
     override val identifier: UInt64 by lazy {
@@ -978,8 +1032,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, item)),
                     constant = Flt64.zero
@@ -996,8 +1050,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -1014,8 +1068,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -1032,8 +1086,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -1050,8 +1104,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -1068,8 +1122,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
@@ -1086,8 +1140,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -1104,8 +1158,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -1122,8 +1176,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
@@ -1139,8 +1193,8 @@ class QuadraticExpressionSymbol(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol {
-            return QuadraticExpressionSymbol(
+        ): QuadraticExpressionSymbol<Flt64> {
+            return QuadraticExpressionSymbol<Flt64>(
                 _utilsPolynomial = UtilsMutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -1153,18 +1207,29 @@ class QuadraticExpressionSymbol(
         }
     }
 
+    // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
+    @Suppress("UNCHECKED_CAST")
+    private val _polyF64: UtilsMutableQuadraticPolynomial<Flt64> get() = _utilsPolynomial as UtilsMutableQuadraticPolynomial<Flt64>
+
     // polynomial property returns immutable version
-    val polynomial: UtilsQuadraticPolynomial<Flt64> get() = _utilsPolynomial.toQuadraticPolynomial()
+    override val polynomial: UtilsQuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
     // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
+    @Suppress("DEPRECATION")
     override val flattenedMonomials: QuadraticFlattenDataF64
         get() = QuadraticFlattenDataF64(
+            monomials = _polyF64.monomials,
+            constant = _polyF64.constant
+        )
+
+    override val flattenedMonomialsAsV: QuadraticFlattenData<V>
+        get() = QuadraticFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
         )
 
-    // asMutable returns UtilsMutableQuadraticPolynomial<Flt64>
-    fun asMutable(): UtilsMutableQuadraticPolynomial<Flt64> {
+    // asMutable returns UtilsMutableQuadraticPolynomial<V>
+    override fun asMutable(): UtilsMutableQuadraticPolynomial<V> {
         return _utilsPolynomial
     }
 
@@ -1208,7 +1273,7 @@ class QuadraticExpressionSymbol(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -1266,8 +1331,8 @@ class QuadraticExpressionSymbol(
 
     // range/lowerBound/upperBound using possibleRange algorithm
     private fun calculateRange(): ValueRange<Flt64>? {
-        var range: ValueRange<Flt64>? = ValueRange(_utilsPolynomial.constant, Flt64).value
-        for (monomial in _utilsPolynomial.monomials) {
+        var range: ValueRange<Flt64>? = ValueRange(_polyF64.constant, Flt64).value
+        for (monomial in _polyF64.monomials) {
             val sym1Range: ValueRange<Flt64>? = when (val sym1 = monomial.symbol1) {
                 is AbstractVariableItem<*, *> -> sym1.range.valueRange
                 is LinearIntermediateSymbol<*> -> sym1.range.valueRange
@@ -1310,7 +1375,7 @@ class QuadraticExpressionSymbol(
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
-        get() = _utilsPolynomial.monomials.all { monomial ->
+        get() = _polyF64.monomials.all { monomial ->
             val sym1Discrete = when (val sym1 = monomial.symbol1) {
                 is AbstractVariableItem<*, *> -> sym1.type.isIntegerType && monomial.coefficient.round() eq monomial.coefficient
                 is LinearIntermediateSymbol<*> -> sym1.discrete && monomial.coefficient.round() eq monomial.coefficient
@@ -1326,7 +1391,7 @@ class QuadraticExpressionSymbol(
                 }
             } else true
             sym1Discrete && sym2Discrete
-        } && _utilsPolynomial.constant.round() eq _utilsPolynomial.constant
+        } && _polyF64.constant.round() eq _polyF64.constant
 
     // cached/flush via TokenTable cache key
     private val rangeCacheKey = newTokenCacheKey(
@@ -1339,11 +1404,11 @@ class QuadraticExpressionSymbol(
     )
 
     @Suppress("UNCHECKED_CAST")
-    private fun cacheTokenTable(): LegacyAbstractTokenTable? {
+    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? LegacyAbstractTokenTable
+            .firstOrNull() as? AbstractTokenTable<Flt64>
     }
 
     override val cached: Boolean
@@ -1373,8 +1438,8 @@ class QuadraticExpressionSymbol(
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, false)
                 if (sym1Value == null) return null
                 val termValue = if (monomial.symbol2 != null) {
@@ -1386,8 +1451,8 @@ class QuadraticExpressionSymbol(
             }
             ret
         } else {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, false)
                 if (sym1Value == null) return null
                 val termValue = if (monomial.symbol2 != null) {
@@ -1404,7 +1469,7 @@ class QuadraticExpressionSymbol(
     // toRawString
     override fun toRawString(unfold: UInt64): String {
         return if (unfold neq UInt64.zero) {
-            val monomialStrings = _utilsPolynomial.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
+            val monomialStrings = _polyF64.monomials.filter { it.coefficient neq Flt64.zero }.map { m ->
                 val sym1Str = when (val s1 = m.symbol1) {
                     is IntermediateSymbol<*> -> s1.toRawString(unfold - UInt64.one)
                     else -> s1.name
@@ -1420,8 +1485,8 @@ class QuadraticExpressionSymbol(
                 else if (m.coefficient eq -Flt64.one) "-$termStr"
                 else "${m.coefficient} * $termStr"
             }
-            if (_utilsPolynomial.constant neq Flt64.zero) {
-                "${monomialStrings.joinToString(" + ")} + ${_utilsPolynomial.constant}"
+            if (_polyF64.constant neq Flt64.zero) {
+                "${monomialStrings.joinToString(" + ")} + ${_polyF64.constant}"
             } else {
                 monomialStrings.joinToString(" + ")
             }
@@ -1432,8 +1497,8 @@ class QuadraticExpressionSymbol(
 
     // evaluate methods - similar to Polynomial.evaluate implementation
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
             if (sym1Value == null && !zeroIfNone) return null
             val termValue = if (monomial.symbol2 != null) {
@@ -1446,10 +1511,10 @@ class QuadraticExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(tokenTable, zeroIfNone) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 val termValue = if (monomial.symbol2 != null) {
@@ -1464,8 +1529,8 @@ class QuadraticExpressionSymbol(
     }
 
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
             if (sym1Value == null && !zeroIfNone) return null
             val termValue = if (monomial.symbol2 != null) {
@@ -1478,10 +1543,10 @@ class QuadraticExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(results, tokenTable, zeroIfNone) {
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenTable, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 val termValue = if (monomial.symbol2 != null) {
@@ -1497,8 +1562,8 @@ class QuadraticExpressionSymbol(
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
-        var ret = _utilsPolynomial.constant
-        for (monomial in _utilsPolynomial.monomials) {
+        var ret = _polyF64.constant
+        for (monomial in _polyF64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenList, zeroIfNone)
             if (sym1Value == null && !zeroIfNone) return null
             val termValue = if (monomial.symbol2 != null) {
@@ -1511,13 +1576,13 @@ class QuadraticExpressionSymbol(
         return ret
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: LegacyAbstractTokenTable?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
         return evaluateWithCachedTokenTable(values, tokenTable, zeroIfNone) {
             if (values.containsKey(this)) {
                 return@evaluateWithCachedTokenTable values[this]!!
             }
-            var ret = _utilsPolynomial.constant
-            for (monomial in _utilsPolynomial.monomials) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
                 val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) {
                     return@evaluateWithCachedTokenTable null
@@ -1545,7 +1610,7 @@ class QuadraticExpressionSymbol(
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is QuadraticExpressionSymbol) return false
+        if (other !is QuadraticExpressionSymbol<*>) return false
 
         if (identifier != other.identifier) return false
         if (index != other.index) return false
@@ -1555,29 +1620,29 @@ class QuadraticExpressionSymbol(
     }
 }
 
-operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> {
+operator fun <V> LinearIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs)
 }
 
-operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> {
+operator fun <V> LinearIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<LinearIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs.reciprocal())
 }
 
-operator fun <V : RealNumber<V>> QuadraticIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> {
+operator fun <V> QuadraticIntermediateSymbol<V>.times(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs)
 }
 
-operator fun <V : RealNumber<V>> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> {
+operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity<QuadraticIntermediateSymbol<V>> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     return Quantity(this, rhs.reciprocal())
 }
 
-operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> {
+operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     val lhs = this.toMathLinearPolynomial()
     val rhsPoly = rhs.toMathLinearPolynomial()
     return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
 }
 
-operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> {
+operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     val lhs = this.toMathLinearPolynomial()
     val rhsPoly = rhs.toMathLinearPolynomial()
     return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
@@ -1586,11 +1651,13 @@ operator fun <V : RealNumber<V>> LinearIntermediateSymbol<V>.minus(rhs: LinearIn
 typealias IntermediateSymbolF64 = IntermediateSymbol<Flt64>
 typealias LinearIntermediateSymbolF64 = LinearIntermediateSymbol<Flt64>
 typealias QuadraticIntermediateSymbolF64 = QuadraticIntermediateSymbol<Flt64>
+typealias LinearExpressionSymbolF64 = LinearExpressionSymbol<Flt64>
+typealias QuadraticExpressionSymbolF64 = QuadraticExpressionSymbol<Flt64>
 
 typealias QuantityIntermediateSymbol = Quantity<IntermediateSymbol<*>>
 typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol<*>>
 typealias QuantityQuadraticIntermediateSymbol = Quantity<QuadraticIntermediateSymbol<*>>
-typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol>
-typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol>
+typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol<*>>
+typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol<*>>
 
 

@@ -64,7 +64,7 @@ data object Demo2 {
     )
 
     private lateinit var x: BinVariable2
-    private lateinit var cost: LinearExpressionSymbol
+    private lateinit var cost: LinearExpressionSymbol<Flt64>
     private lateinit var assignmentCompany: LinearExpressionSymbols1
     private lateinit var assignmentProduct: LinearExpressionSymbols1
 

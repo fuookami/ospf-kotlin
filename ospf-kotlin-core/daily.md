@@ -2,7 +2,7 @@
 
 日期：2026-04-27（P4-2 D1 交接）
 
-状态：P4-2 D1 执行中（接口层泛型优先改造） — `IntermediateSymbol<V>` 接口的 `prepare`/`prepareAndCache`/`evaluateFromTokens`/`evaluateAsV` 等方法签名已从 `LegacyAbstractTokenTable` 改为 `AbstractTokenTable<*>`；`evaluate(tokenTable: AbstractTokenTable<*>)` 默认方法已添加；`Product.kt` 的 `LegacyAbstractTokenTable` evaluate 重载及 companion helpers 已移除。**当前阻塞**：JVM platform declaration clash — `evaluate(tokenTable: AbstractTokenTable<*>)` 与 `evaluate(tokenTable: LegacyAbstractTokenTable)` 在 JVM 字节码层面签名相同（type erasure），需要移除 `LinearExpressionSymbol`/`QuadraticExpressionSymbol` 中的 `LegacyAbstractTokenTable` override 方法，以及 `IfFunction`/`MaskingWithPolyMaskFunction`/`LinearFunctionSymbolAdapter` 中继承的 clash。下一步：系统性移除所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override（由 `AbstractTokenTable<*>` 默认方法替代），然后验证构建。
+状态：P4-1 已完成。P4-2 D1 执行中（接口层泛型优先改造） — `IntermediateSymbol<V>` 接口的 `prepare`/`prepareAndCache`/`evaluateFromTokens`/`evaluateAsV` 等方法签名已从 `LegacyAbstractTokenTable` 改为 `AbstractTokenTable<*>`；`evaluate(tokenTable: AbstractTokenTable<*>)` 默认方法已添加；JVM platform declaration clash 已解决（所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override 已移除，由 `AbstractTokenTable<*>` 版本替代）；`Product.kt` 的 `LegacyAbstractTokenTable` evaluate 重载及 companion helpers 已移除；`Binaryzation.kt` 和 `Constraint.kt` 的 `LegacyAbstractTokenTable` 引用已迁移。下一步：P4-2 D2（`LinearExpressionSymbol`/`QuadraticExpressionSymbol` 完整泛型化改造）。
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -145,8 +145,8 @@
 | P4 | P3-4 | `basic / mechanism / intermediate / callback` 模型重排 | 新目标 | ✅ 完成 — 四分包建立，@Deprecated typealias 过渡，全链路 import 更新；`-am` clean 构建已通过 |
 | P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | ✅ 已完成 — example 迁入、import 迁移、reactor 接线与不 install/deploy 配置已落地 |
 | P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | ✅ 已完成 — 全仓 `mvn clean test` 已通过 |
-| P7 | P4-1 | `intermediate_symbol` 包实际类彻底迁移 | 新目标 | 执行中 — Phase A2 已完成（2026-04-27），A3~A4 推进中 |
-| P8 | P4-2 | 主链路完整泛型化收口（与 P4-1 并行衔接） | 新目标 | 计划中 — 待 P4-1A 基线恢复后启动 |
+| P7 | P4-1 | `intermediate_symbol` 包实际类彻底迁移 | 新目标 | ✅ 已完成（2026-04-27） |
+| P8 | P4-2 | 主链路完整泛型化收口（与 P4-1 并行衔接） | 新目标 | 执行中 — D0+D0.5+D1 已完成（2026-04-27），D2~D7 待推进 |
 | P9 | P4-3 | `TokenF64` 兼容别名清退与类型统一 | 新目标 | 计划中 — 待 P4-2 完成后启动 |
 | P10 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
 | P11 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
@@ -467,9 +467,18 @@ P3-0 基线冻结与兼容面清单
 
 #### 最新验证结果（2026-04-27）
 
-1. `mvn -pl ospf-kotlin-core test` 通过（135/0/0）。
+1. `mvn -pl ospf-kotlin-core -am test` 通过（143/0/0）。
 2. `mvn -pl ospf-kotlin-framework compile` 通过。
-3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-capacity-scheduling-context -am compile` 通过。
+3. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am compile` 通过。
+4. `mvn -pl ospf-kotlin-example -am compile` 通过。
+
+#### P4-1 完成验证（2026-04-27）
+
+1. ✅ `intermediate_symbol` 包中目标实际类完成迁移 — 旧 FunctionSymbol/LinearFunctionSymbol/QuadraticFunctionSymbol 已删除，替换为 MathFunctionSymbol\<T\> + LinearFunctionSymbolAdapter。FunctionSymbolRegistrationScope 已删除。无"未说明保留"。
+2. ✅ 调用方主路径不再依赖历史桥接类型 — core/src/main 中零旧 FunctionSymbol 引用，所有 deprecated typealias 仅桥接到新类型。
+3. ✅ core -am test (143/0/0) + framework compile + gantt-scheduling compile + example compile 通过
+
+**注**：`model.mechanism` 和 `model.callback` 包中 52 处 `LegacyAbstractTokenTable`（40）/ `LegacyAbstractMutableTokenTable`（16）引用属于 P4-2 D4 范围，不影响 P4-1 验收。
 
 #### 执行步骤
 
@@ -670,10 +679,13 @@ P3-0 基线冻结与兼容面清单
    - `evaluateFromTokens(tokenTable: AbstractTokenTable<*>)` — 签名改为 `AbstractTokenTable<*>`
    - `prepareAsV`/`evaluateAsV`/`evaluateFromTokensAsV` — 签名改为 `AbstractTokenTable<*>`
    - 新增 `evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone)` 默认方法（3 个重载），内部通过 `@Suppress("UNCHECKED_CAST")` 转型后委托给 `evaluate(tokenList)`
-   - **已移除** `evaluate(tokenTable: LegacyAbstractTokenTable)` 默认方法（3 个重载），因为与 `AbstractTokenTable<*>` 版本 JVM 签名冲突
    - `evaluateSymbol` 私有方法改为接受 `AbstractTokenTable<*>`，内部 `@Suppress("UNCHECKED_CAST")` 转型后调用 `tt.find(symbol)?.result`
    - `LinearExpressionSymbol.prepare` override 改为 `AbstractTokenTable<*>`
    - `QuadraticExpressionSymbol.prepare` override 改为 `AbstractTokenTable<*>`
+   - `shouldPrepare`/`prepareIfNotCached`/`evaluateWithCachedTokenTable` 辅助方法改为 `AbstractTokenTable<*>`，内部 `@Suppress("UNCHECKED_CAST")` 转型
+   - `cacheTokenTable()` 返回类型改为 `AbstractTokenTable<Flt64>?`
+   - 移除所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override（LinearExpressionSymbol 3 个 + QuadraticExpressionSymbol 3 个），由 `AbstractTokenTable<*>` 默认方法替代
+   - 移除 `import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable`
 
 2. **`FunctionSymbol.kt`**：
    - `LinearFunctionSymbolAdapter.prepare` override 改为 `AbstractTokenTable<*>`
@@ -689,38 +701,32 @@ P3-0 基线冻结与兼容面清单
    - 移除 `evaluate(tokenTable: LegacyAbstractTokenTable)` override（3 个重载），由接口默认方法替代
    - 移除 companion object 中 `evaluateLinear(LegacyAbstractTokenTable)`/`evaluateLinearFromResults(LegacyAbstractTokenTable)`/`evaluateLinearFromValues(LegacyAbstractTokenTable?)` 辅助方法
 
-### 7.2 当前阻塞：JVM Platform Declaration Clash
+6. **`Binaryzation.kt`**：
+   - 移除 `import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable`
 
-**根因**：`AbstractTokenTable<*>` 和 `AbstractTokenTable<Flt64>`（即 `LegacyAbstractTokenTable`）在 JVM 字节码层面 type erasure 后签名相同，因此 Kotlin 不允许在同一接口/类中同时存在这两个重载。
+7. **`Constraint.kt`**：
+   - `import LegacyAbstractTokenTable` 改为 `import AbstractTokenTable`
+   - 所有 `LegacyAbstractTokenTable` 类型引用改为 `AbstractTokenTable<Flt64>`（invoke operators + createLinearCells/createQuadraticCells）
 
-**受影响位置**（构建错误列表）：
+### 7.2 JVM Platform Declaration Clash 已解决
 
-| 文件 | 类 | 冲突方法 |
-|------|-----|----------|
-| `IntermediateSymbol.kt` | `LinearExpressionSymbol` | `evaluate(tokenTable)`, `evaluate(results, tokenTable)`, `evaluate(values, tokenTable)` |
-| `IntermediateSymbol.kt` | `QuadraticExpressionSymbol` | 同上 |
-| `FunctionSymbol.kt` | `LinearFunctionSymbolAdapter` | 继承 clash |
-| `If.kt` | `IfFunction` | 继承 clash |
-| `Masking.kt` | `MaskingWithPolyMaskFunction` | 继承 clash |
-| `Product.kt` | `ProductFunction` | 继承 clash |
+**根因**：`AbstractTokenTable<*>` 和 `AbstractTokenTable<Flt64>`（即 `LegacyAbstractTokenTable`）在 JVM 字节码层面 type erasure 后签名相同。
 
-**修复方案**：系统性移除所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override 方法。这些 override 不再需要，因为接口的 `evaluate(tokenTable: AbstractTokenTable<*>)` 默认方法已覆盖相同逻辑（通过 unchecked cast 委托到 `evaluate(tokenList)`）。
+**解决方案**：系统性移除所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override 方法，统一使用 `AbstractTokenTable<*>` 版本。运行时所有实例实际都是 `AbstractTokenTable<Flt64>`，`@Suppress("UNCHECKED_CAST")` 转型安全。
 
-### 7.3 仍需保留的 `LegacyAbstractTokenTable` 引用（D2/D4 再处理）
+### 7.3 仍需保留的 `LegacyAbstractTokenTable` 引用（D4 再处理）
 
-1. `shouldPrepare`/`prepareIfNotCached`/`evaluateWithCachedTokenTable` 辅助方法仍使用 `LegacyAbstractTokenTable`
-2. `cacheTokenTable()` 返回 `LegacyAbstractTokenTable?`
-3. `evaluateSymbol(results, tokenTable: LegacyAbstractTokenTable)` 私有方法（`LinearExpressionSymbol` 和 `QuadraticExpressionSymbol` 各一个）
-4. `LinearIntermediateSymbol`/`QuadraticIntermediateSymbol` 子接口中仍可能有 `LegacyAbstractTokenTable` 签名方法
-5. `Binaryzation.kt` 中 `import LegacyAbstractTokenTable`
+1. `model.mechanism` 包中 ~30 处 `LegacyAbstractTokenTable`/`LegacyAbstractMutableTokenTable` 引用（公共 API 如 `MechanismModel.tokens`、`BasicModel.tokens`、`MetaModel.evaluate()`）
+2. `model.callback` 包中 ~10 处引用
+3. `token/TokenTable.kt` 中的 typealias 定义本身
 
-### 7.4 下一步操作清单
+这些属于 P4-2 D4 范围，当前通过 deprecated typealias 编译正常。
 
-1. **移除 `LinearExpressionSymbol` 的 3 个 `evaluate(tokenTable: LegacyAbstractTokenTable)` override**（约第 870/892/915 行）
-2. **移除 `QuadraticExpressionSymbol` 的 3 个 `evaluate(tokenTable: LegacyAbstractTokenTable)` override**（约第 1449/1481/1514 行）
-3. **验证构建通过** — 移除后 `AbstractTokenTable<*>` 默认方法会自动接管
-4. **检查外部调用方** — 搜索 framework/gantt-scheduling/example 中是否有显式调用 `evaluate(tokenTable: LegacyAbstractTokenTable)` 的代码，如有需改为 `evaluate(tokenTable: AbstractTokenTable<*>)` 或依赖自动分发
-5. **继续 D2** — `LinearExpressionSymbol`/`QuadraticExpressionSymbol` 完整泛型化改造
+### 7.4 下一步操作清单（P4-2 D2）
+
+1. `LinearExpressionSymbol`/`QuadraticExpressionSymbol` 完整泛型化改造
+2. 构造器、`flattenedMonomials`、`toMath*` 转换和 `SymbolCombination` 的类型约束同步改造
+3. 保证旧命名兼容但主实现不再绑定 `Flt64`
 
 ### 7.5 关键设计决策记录
 

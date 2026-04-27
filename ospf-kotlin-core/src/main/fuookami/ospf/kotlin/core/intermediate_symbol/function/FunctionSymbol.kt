@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
@@ -19,6 +20,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as MathMutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
@@ -183,6 +185,16 @@ class LinearFunctionSymbolAdapter(
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
+
+    override val flattenedMonomialsAsV: fuookami.ospf.kotlin.core.token.LinearFlattenData<Flt64>
+        get() = flattenedMonomials
+
+    override val polynomial: MathLinearPolynomial<Flt64>
+        get() = MathLinearPolynomial(emptyList(), Flt64.zero)
+
+    override fun asMutable(): MathMutableLinearPolynomial<Flt64> {
+        return MathMutableLinearPolynomial(emptyList(), Flt64.zero)
+    }
 
     override fun toMathLinearInequality(): MathLinearInequality {
         return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)

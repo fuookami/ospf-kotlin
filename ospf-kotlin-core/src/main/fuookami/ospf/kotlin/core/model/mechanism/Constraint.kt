@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearCellF64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -175,7 +175,7 @@ class LinearConstraintImpl(
     companion object {
         operator fun invoke(
             relation: LinearRelation,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
@@ -217,7 +217,7 @@ class QuadraticConstraintImpl(
     companion object {
         operator fun invoke(
             relation: QuadraticRelation,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
@@ -244,7 +244,7 @@ typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
 
 internal fun createLinearCells(
     monomials: List<UtilsLinearMonomial<Flt64>>,
-    tokens: LegacyAbstractTokenTable
+    tokens: AbstractTokenTable<Flt64>
 ): ArrayList<LinearCellF64> {
     val cells = ArrayList<LinearCellF64>()
     for (monomial in monomials) {
@@ -259,7 +259,7 @@ internal fun createLinearCells(
 
 internal fun createQuadraticCells(
     monomials: List<UtilsQuadraticMonomial<Flt64>>,
-    tokens: LegacyAbstractTokenTable
+    tokens: AbstractTokenTable<Flt64>
 ): ArrayList<QuadraticCellF64> {
     val cells = ArrayList<QuadraticCellF64>()
     for (monomial in monomials) {

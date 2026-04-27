@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as MathMutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -226,6 +227,9 @@ class MaskingWithPolyMaskFunction(
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
+
+    override val polynomial: MathLinearPolynomial<Flt64> get() = MathLinearPolynomial(emptyList(), Flt64.zero)
+    override fun asMutable(): MathMutableLinearPolynomial<Flt64> = MathMutableLinearPolynomial(emptyList(), Flt64.zero)
 
     override fun toMathLinearInequality(): MathLinearInequality {
         return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)

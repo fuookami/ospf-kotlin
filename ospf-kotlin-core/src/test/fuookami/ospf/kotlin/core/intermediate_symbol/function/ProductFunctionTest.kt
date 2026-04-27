@@ -30,7 +30,7 @@ class ProductFunctionTest {
             constant = Flt64.zero
         )
 
-        val product = ProductFunction(left, right, name = "x_times_y")
+        val product = ProductFunction<Flt64>(left, right, name = "x_times_y")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
@@ -68,7 +68,7 @@ class ProductFunctionTest {
             constant = Flt64(7.0)
         )
 
-        val product = ProductFunction(left, right, name = "test")
+        val product = ProductFunction<Flt64>(left, right, name = "test")
         val poly = product.toMathQuadraticPolynomial()
 
         // (2x + 3)(5y + 7) = 10xy + 14x + 15y + 21

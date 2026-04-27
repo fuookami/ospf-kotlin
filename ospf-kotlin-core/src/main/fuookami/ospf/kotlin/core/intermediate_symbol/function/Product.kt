@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial as MathMutableQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -36,12 +37,12 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param V value type for the polynomial coefficients. Internal kernel uses Flt64
  *          for solver compatibility; V-typed access is via IntoValue<V> conversion.
  */
-class ProductFunction<V : RealNumber<V>>(
+class ProductFunction<V>(
     val left: MathLinearPolynomial<Flt64>,
     val right: MathLinearPolynomial<Flt64>,
     override var name: String = "${left}*${right}",
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V> {
+) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.Ring<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
     override val identifier: UInt64 by lazy {
@@ -140,6 +141,13 @@ class ProductFunction<V : RealNumber<V>>(
             val poly = toMathQuadraticPolynomial()
             return QuadraticFlattenDataF64(poly.monomials, poly.constant)
         }
+
+    @Suppress("UNCHECKED_CAST")
+    override val polynomial: MathQuadraticPolynomial<V>
+        get() = toMathQuadraticPolynomial() as MathQuadraticPolynomial<V>
+
+    @Suppress("UNCHECKED_CAST")
+    override fun asMutable(): MathMutableQuadraticPolynomial<V> = MathMutableQuadraticPolynomial(emptyList(), Flt64.zero) as MathMutableQuadraticPolynomial<V>
 
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(left, tokenList, zeroIfNone) ?: return null
