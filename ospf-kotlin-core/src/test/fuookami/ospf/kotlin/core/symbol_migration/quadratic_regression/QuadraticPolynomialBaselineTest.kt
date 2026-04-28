@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import org.junit.jupiter.api.Test
@@ -86,6 +87,7 @@ class QuadraticPolynomialBaselineTest {
                 x to Flt64(3.0)
             ),
             tokenTable = tokenTable,
+            converter = IntoValue.Flt64,
             zeroIfNone = false
         )
         assertNotNull(overridden)
@@ -94,6 +96,7 @@ class QuadraticPolynomialBaselineTest {
         val fromValues = symbol.evaluate(
             values = mapOf<Symbol, Flt64>(x to Flt64(3.0)),
             tokenTable = tokenTable,
+            converter = IntoValue.Flt64,
             zeroIfNone = false
         )
         assertNotNull(fromValues)

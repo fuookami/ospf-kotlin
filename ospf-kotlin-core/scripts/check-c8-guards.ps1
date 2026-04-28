@@ -108,24 +108,51 @@ Write-Result "P4-3-1: No TokenF64 in core/src/main" ($tokenF64.Count -eq 0) "Fou
 
 # --- P4-4 Guards (new) ---
 
-# Guard 8: No new AbstractTokenTable<*> in intermediate_symbol (baseline-count)
-# After P4-4 D2, star-projected AbstractTokenTable is confined to interface-level
-# methods in intermediate_symbol only. No new occurrences should appear.
+# Guard 8: No AbstractTokenTable<*> in intermediate_symbol (zero-tolerance after P4-5)
+# After P4-5 D3, star-projected AbstractTokenTable is fully eliminated from
+# intermediate_symbol. The only remaining AbstractTokenTable<*> are in
+# TokenCacheContext.kt (cache infrastructure, outside intermediate_symbol).
 $starProjDir = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol"
 $starProjMatches = Get-ChildItem -Path $starProjDir -Recurse -Filter "*.kt" |
     Select-String -Pattern "AbstractTokenTable<\*>" |
     Where-Object { $_.Line -notmatch "^\s*//" }
-$starProjBaseline = 21  # Frozen 2026-04-28 at P4-4 D5 close
-Write-Baseline "P4-4-1: No new AbstractTokenTable<*> in intermediate_symbol" $starProjMatches.Count $starProjBaseline "Found $($starProjMatches.Count) total (baseline=$starProjBaseline)"
+Write-Result "P4-4-1: No AbstractTokenTable<*> in intermediate_symbol (zero-tolerance)" ($starProjMatches.Count -eq 0) "Found $($starProjMatches.Count) violations"
 
-# Guard 9: No new `as AbstractTokenTable<Flt64>` casts in intermediate_symbol (baseline-count)
-# After P4-4 D2, unchecked casts are confined to internal helper methods that
-# reify the star projection to Flt64. No new occurrences should appear.
+# Guard 9: No `as AbstractTokenTable<Flt64>` casts in intermediate_symbol (zero-tolerance after P4-5)
+# After P4-5 D3, unchecked casts to AbstractTokenTable<Flt64> are eliminated from
+# intermediate_symbol. Product.kt uses `tokenTable as AbstractTokenTable<Flt64>` but
+# these are now in the V-typed override path and cast from AbstractTokenTable<V>,
+# which is the expected solver-boundary pattern.
 $castMatches = Get-ChildItem -Path $starProjDir -Recurse -Filter "*.kt" |
     Select-String -Pattern "as AbstractTokenTable<Flt64>" |
     Where-Object { $_.Line -notmatch "^\s*//" }
-$castBaseline = 10  # Frozen 2026-04-28 at P4-4 D5 close
-Write-Baseline "P4-4-2: No new as AbstractTokenTable<Flt64> casts in intermediate_symbol" $castMatches.Count $castBaseline "Found $($castMatches.Count) total (baseline=$castBaseline)"
+# Exclude expected solver-boundary casts in Product.kt (V-typed override path)
+$castViolations = $castMatches | Where-Object { $_.Filename -ne "Product.kt" }
+Write-Result "P4-4-2: No as AbstractTokenTable<Flt64> casts in intermediate_symbol (zero-tolerance, Product.kt exempt)" ($castViolations.Count -eq 0) "Found $($castViolations.Count) violations (total $($castMatches.Count) including Product.kt)"
+
+# --- P4-5 Guards (new) ---
+
+# Guard 10: No new Flt64-returning evaluate/prepare/evaluateFromTokens in IntermediateSymbol
+# interface (excluding @Deprecated extension functions and solver-boundary convenience).
+# After P4-5 D1+D2, the V-typed primary path is the interface member, and Flt64
+# convenience methods are @Deprecated extension functions only.
+# Solver-boundary convenience methods (AbstractTokenListF64 parameter) are exempt.
+$interfaceFile = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/IntermediateSymbol.kt"
+$p4_5_violations = 0
+$lines = Get-Content $interfaceFile
+for ($i = 0; $i -lt $lines.Count; $i++) {
+    $line = $lines[$i]
+    # Match Flt64?-returning prepare/evaluate/evaluateFromTokens/prepareAndCache
+    if ($line -match "^\s*fun\s+(prepare|evaluate|evaluateFromTokens|prepareAndCache)" -and
+        $line -match ":\s*Flt64\?" -and
+        $line -notmatch "@Deprecated" -and
+        ($i -eq 0 -or $lines[$i-1] -notmatch "@Deprecated") -and
+        # Exempt solver-boundary convenience (AbstractTokenListF64 parameter)
+        $line -notmatch "AbstractTokenListF64") {
+        $p4_5_violations++
+    }
+}
+Write-Result "P4-5-1: No non-deprecated Flt64-returning prepare/evaluate in IntermediateSymbol interface (solver-boundary exempt)" ($p4_5_violations -eq 0) "Found $($p4_5_violations) violations"
 
 # --- Summary ---
 Write-Host ""

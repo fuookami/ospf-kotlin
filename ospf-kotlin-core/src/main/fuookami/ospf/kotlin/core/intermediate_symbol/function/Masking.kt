@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
@@ -223,7 +224,7 @@ class MaskingWithPolyMaskFunction(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
@@ -243,6 +244,12 @@ class MaskingWithPolyMaskFunction(
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
         (this as MathFunctionSymbol<Flt64>).evaluate(values)
+
+    // V-typed evaluate overrides (P4-5)
+    override fun evaluate(tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
+        (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
 
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
         val maskValue = maskPoly.evaluate(values) ?: return Flt64.zero

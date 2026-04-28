@@ -4,8 +4,10 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -133,7 +135,7 @@ data object SolutionAnalyzer {
         }
 
         val assignedECT = assignedExecutor.entries.associate { (task, _) ->
-            task to (taskTime.estimateEndTime[task].evaluate(results, model.tokens)?.let {
+            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, IntoValue.Flt64)?.let {
                 with(timeWindow) { it.instant }
             } ?: Instant.DISTANT_FUTURE)
         }

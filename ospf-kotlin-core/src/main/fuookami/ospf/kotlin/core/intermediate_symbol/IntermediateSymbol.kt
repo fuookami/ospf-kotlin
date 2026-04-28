@@ -357,7 +357,8 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheIfNotCached(this, results) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    dependency.evaluate(
+                    @Suppress("UNCHECKED_CAST")
+                    (dependency as IntermediateSymbol<V>).evaluate(
                         results = results,
                         tokenTable = tokenTable,
                         converter = converter,
@@ -683,19 +684,6 @@ class LinearExpressionSymbol<V>(
                 symbol.evaluate(tokenTable.tokenList as AbstractTokenListF64, zeroIfNone)
             }
             else -> null
-        }
-    }
-
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> {
-                @Suppress("UNCHECKED_CAST")
-                symbol.evaluate(values, tokenTable.tokenList as AbstractTokenListF64, zeroIfNone)
-            }
-            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
 
@@ -1230,48 +1218,80 @@ class QuadraticExpressionSymbol<V>(
     // Helper: evaluate a single symbol (V-typed path)
     // Internally computes in Flt64 (via resultF64 / Flt64 evaluate(tokenList)), then the caller converts via converter.intoValue().
     private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tokenList = tokenTable.tokenList as AbstractTokenListF64
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable.tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenTable.tokenList, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
             else -> null
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable.tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable.tokenList, zeroIfNone)
-            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
-        }
-    }
-
     private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tokenList = tokenTable.tokenList as AbstractTokenListF64
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable.tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable.tokenList, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
             else -> null
         }
     }
 
     // Nullable tokenTable variant for evaluate(values, tokenTable?, ...) path
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        val tokenList = tokenTable?.tokenList as AbstractTokenListF64?
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenTable?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable?.tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable?.tokenList, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    // Helper: evaluate a single monomial's symbol (Flt64 tokenList path)
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val token = tokenList.find(symbol)
+                token?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenList.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenList?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }

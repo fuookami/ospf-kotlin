@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -504,7 +505,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         // 从 operationTime 计算执行器产能
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val capValue = capacity[e, s].evaluate(model.tokens)
+                val capValue = capacity[e, s].evaluate(model.tokens, IntoValue.Flt64)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
                     timeWindow.durationOf(capValue)
                 } else {

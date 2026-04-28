@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
 import org.junit.jupiter.api.Test
@@ -94,6 +95,7 @@ class LinearPolynomialBaselineTest {
                 x to Flt64(3.0)
             ),
             tokenTable = tokenTable,
+            converter = IntoValue.Flt64,
             zeroIfNone = false
         )
         assertNotNull(overridden)
@@ -102,6 +104,7 @@ class LinearPolynomialBaselineTest {
         val fromValues = expression.evaluate(
             values = mapOf<Symbol, Flt64>(x to Flt64(3.0)),
             tokenTable = tokenTable,
+            converter = IntoValue.Flt64,
             zeroIfNone = false
         )
         assertNotNull(fromValues)
@@ -132,6 +135,7 @@ class LinearPolynomialBaselineTest {
         val valueFromTokenTable = expression.evaluate(
             results = results,
             tokenTable = tokenTable,
+            converter = IntoValue.Flt64,
             zeroIfNone = false
         )
 

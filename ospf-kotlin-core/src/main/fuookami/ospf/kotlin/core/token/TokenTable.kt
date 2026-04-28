@@ -3,6 +3,7 @@
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -618,12 +619,15 @@ fun Collection<IntermediateSymbol<*>>.register(
         }
         // Batch write value cache for all ready symbols (single computation, aligned with concurrent path)
         // 为所有就绪符号批量写入 value 缓存（单次计算，与并发链路一致）
+        // Solver boundary: all symbols are IntermediateSymbol<Flt64> at runtime, cast + IntoValue.Flt64
         tokenTable.cache(
             symbols = readySymbols.associateWithNotNull {
+                @Suppress("UNCHECKED_CAST")
+                val sym = it as IntermediateSymbol<Flt64>
                 if (fixedValues.isNullOrEmpty()) {
-                    it.prepare(null, tokenTable)
+                    sym.prepare(null, tokenTable, IntoValue.Flt64)
                 } else {
-                    it.prepare(fixedValues, tokenTable)
+                    sym.prepare(fixedValues, tokenTable, IntoValue.Flt64)
                 }
             }.mapKeys { it.key as IntermediateSymbol<*> }
         )
@@ -1271,10 +1275,12 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val sym = it as IntermediateSymbol<Flt64>
                                     if (fixedValues.isNullOrEmpty()) {
-                                        it.prepare(null, tokenTable)
+                                        sym.prepare(null, tokenTable, IntoValue.Flt64)
                                     } else {
-                                        it.prepare(fixedValues, tokenTable)
+                                        sym.prepare(fixedValues, tokenTable, IntoValue.Flt64)
                                     }
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
@@ -1306,10 +1312,12 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
+                                    @Suppress("UNCHECKED_CAST")
+                                    val sym = it as IntermediateSymbol<Flt64>
                                     if (fixedValues.isNullOrEmpty()) {
-                                        it.prepare(null, tokenTable)
+                                        sym.prepare(null, tokenTable, IntoValue.Flt64)
                                     } else {
-                                        it.prepare(fixedValues, tokenTable)
+                                        sym.prepare(fixedValues, tokenTable, IntoValue.Flt64)
                                     }
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
@@ -1350,10 +1358,12 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
             } else {
                 tokenTable.cache(
                     symbols = readySymbols.associateWithNotNull {
+                        @Suppress("UNCHECKED_CAST")
+                        val sym = it as IntermediateSymbol<Flt64>
                         if (fixedValues.isNullOrEmpty()) {
-                            it.prepare(null, tokenTable)
+                            sym.prepare(null, tokenTable, IntoValue.Flt64)
                         } else {
-                            it.prepare(fixedValues, tokenTable)
+                            sym.prepare(fixedValues, tokenTable, IntoValue.Flt64)
                         }
                     }.mapKeys { it.key as IntermediateSymbol<*> }
                 )
