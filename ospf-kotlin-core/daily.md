@@ -1,8 +1,8 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-28（P4-4 审查完成，P4-5 待启动）
+日期：2026-04-28（P4-5 D1+D2+D3 进行中，接口迁移已部分落地，编译阻断待修复）
 
-状态：P4-1 已完成。P4-2 已完成（D0~D7 全部落地，2026-04-28）。P4-3 已完成（A1~A7 + B1~B4 全部落地，2026-04-28）。P4-4 已完成（D0~D6 全部落地，2026-04-28）— 已完成桥接收口（`IntermediateSymbol<V>` 约束对齐、`intermediate_symbol` 包内 `AbstractTokenTable<*>` 基线=21、`as AbstractTokenTable<Flt64>` 基线=10、门禁 P4-4-1/P4-4-2 上线）；但尚未达到“完全泛型化”（主接口仍有 `Flt64` 返回与星投影/cast 存量）。下一步：启动 P4-5（完全泛型化收口阶段二）。
+状态：P4-1 已完成。P4-2 已完成（D0~D7 全部落地，2026-04-28）。P4-3 已完成（A1~A7 + B1~B4 全部落地，2026-04-28）。P4-4 已完成（D0~D6 全部落地，2026-04-28）。P4-5 进行中 — D0 基线冻结已完成，D1+D2+D3 部分落地但编译阻断，详见下方 P4-5 交接清单。
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -149,7 +149,7 @@
 | P8 | P4-2 | 主链路完整泛型化收口（与 P4-1 并行衔接） | 新目标 | ✅ 已完成（2026-04-28） — D0~D7 全部落地 |
 | P9 | P4-3 | `TokenF64` 兼容别名清退与类型统一 | 新目标 | ✅ 已完成（2026-04-28） — A1~A7 + B1~B4 全部落地 |
 | P10 | P4-4 | core 泛型桥接收口（主链路阶段一） | 新目标 | ✅ 已完成（2026-04-28） — 基线冻结与门禁落地（21/10） |
-| P11 | P4-5 | core 完全泛型化收口（主链路阶段二） | 新目标 | 待启动 — 清零 `intermediate_symbol` 星投影/cast，接口切到 `V` 主路径 |
+| P11 | P4-5 | core 完全泛型化收口（主链路阶段二） | 新目标 | 进行中 — D0 已完成，D1+D2+D3 部分落地（接口已切换到 V-typed 主路径，编译尚未通过） |
 | P12 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
 | P13 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
 | P14 | P2-3 | PSO 求解器对齐 Rust | 历史待办 | 待执行 |
@@ -710,6 +710,56 @@ P3-0 基线冻结与兼容面清单
    - `mvn -pl ospf-kotlin-example -am clean compile`
    - `pwsh.exe -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1`
 5. 兼容入口保留最小集合，且全部可追踪、可删除。
+
+#### P4-5 交接清单（2026-04-28，编译阻断状态）
+
+**当前编译状态**：`mvn -pl ospf-kotlin-core -am clean compile` **FAIL**。接口层已切换但实现层/调用方未对齐，存在约 30+ 编译错误。
+
+**已完成的工作（D1+D2+D3 部分落地）**：
+
+1. ✅ `IntoValue.kt` — `Flt64IntoValue` companion object 已添加（identity converter）
+2. ✅ `IntermediateSymbol<V>` 接口 — 主签名已切换到 V-typed primary path：
+   - `prepare(values, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?`
+   - `prepareAndCache(values, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>)`
+   - `evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone): V?`（3 个重载）
+   - `evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone): V?`
+   - 保留 `AbstractTokenListF64` 求解器边界便利重载（3 个）
+3. ✅ Flt64 扩展函数 — 6 个 `@Deprecated` 扩展函数已添加（prepare/prepareAndCache/evaluate 3 overload/evaluateFromTokens），通过 `IntoValue.Flt64` 委托到 V-typed primary
+4. ✅ `prepareAsV`/`evaluateAsV`/`evaluateFromTokensAsV` — 已删除（现在就是主路径）
+5. ✅ `evaluateWithCachedTokenTable` — 3 个重载已参数化为 `<V>`，使用 `AbstractTokenTable<V>` + `IntoValue<V>`
+6. ✅ `LinearExpressionSymbol<V>` prepare/evaluate — 已切换到 V-typed override
+7. ✅ `QuadraticExpressionSymbol<V>` prepare/evaluate — 已切换到 V-typed override
+8. ✅ `shouldPrepare`/`prepareIfNotCached` 等辅助方法 — 仍使用 `AbstractTokenTable<Flt64>`（内部缓存判定逻辑，不涉及接口主路径）
+
+**编译阻断错误分类与修复指引**：
+
+| 错误类别 | 文件 | 行号范围 | 根因 | 修复方案 |
+|----------|------|----------|------|----------|
+| evaluateSymbol V-typed path 类型不匹配 | IntermediateSymbol.kt | 681~725 (Linear) | `LinearIntermediateSymbol<*>.evaluate(values, tokenTable.tokenList)` — `tokenTable.tokenList` 返回 `AbstractTokenList<V>` 而非 `AbstractTokenListF64`，无法匹配 `AbstractTokenListF64` 参数 | 已部分修复（LinearExpressionSymbol 的 evaluateSymbol 加了 `@Suppress("UNCHECKED_CAST") tokenTable.tokenList as AbstractTokenListF64`），但 QuadraticExpressionSymbol 的 evaluateSymbol 仍有同样问题 |
+| evaluateSymbol V-typed path 类型不匹配 | IntermediateSymbol.kt | 1228~1273 (Quadratic) | 同上 — `QuadraticIntermediateSymbol<*>` 的 evaluate 调用同样需要 `as AbstractTokenListF64` cast | 同 LinearExpressionSymbol 方案：加 `@Suppress("UNCHECKED_CAST") tokenTable.tokenList as AbstractTokenListF64` |
+| QuadraticExpressionSymbol Flt64 convenience overload 参数顺序错误 | IntermediateSymbol.kt | 1494~1540 | `evaluate(results, tokenList)` 和 `evaluate(values, tokenList)` 的 override 签名与接口不匹配 — 旧代码把 `results: List<Flt64>` 和 `tokenList: AbstractTokenListF64` 的顺序搞反了 | 检查接口定义的 `evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64)` 签名，确保 override 参数顺序一致 |
+| evaluateWithCachedTokenTable dependency evaluate 调用签名不匹配 | IntermediateSymbol.kt | ~361 | `(dependency as IntermediateSymbol<V>).evaluate(results, tokenTable, converter)` — `dependency` 是 `IntermediateSymbol<*>`，cast 到 `IntermediateSymbol<V>` 后调用 V-typed evaluate，但 `results` 参数类型是 `List<Flt64>` 而接口期望 `List<Flt64>`（匹配），问题出在 `CapturedType(*)` 不匹配 | 需要确认 `evaluateWithCachedTokenTable(results, ...)` 重载中 dependency 的 evaluate 调用是否正确传参；可能需要 `@Suppress("UNCHECKED_CAST")` cast dependency |
+| function/ 子包未实现新接口签名 | Product.kt, FunctionSymbol.kt, If.kt, Masking.kt | 各文件 | `prepare` override 仍使用旧 `AbstractTokenTable<*>` 签名，不匹配新的 `AbstractTokenTable<V>` + `IntoValue<V>` + `V?` 返回 | 每个文件的 `prepare` override 改为 `prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?`；Product.kt 还需添加 V-typed evaluate override（3 个重载）；FunctionSymbol.kt/If.kt/Masking.kt 的 prepare 返回 null，evaluate 需添加 V-typed override |
+| TokenTable.kt register() 缺 converter 参数 | TokenTable.kt | 621~626, 1272~1277, 1307~1312, 1351~1356 | `symbol.prepare(null, tokenTable)` 调用缺少 `converter` 参数；`symbol.prepareAndCache(null, tokenTable)` 同样缺少 | 在所有 `register()` 调用点添加 `IntoValue.Flt64` 作为 converter 参数：`symbol.prepare(null, tokenTable, IntoValue.Flt64)` / `symbol.prepareAndCache(null, tokenTable, IntoValue.Flt64)` |
+
+**下一步操作清单（按优先级排序）**：
+
+1. **修复 QuadraticExpressionSymbol evaluateSymbol V-typed path**（同 LinearExpressionSymbol 已完成的方案，加 `@Suppress("UNCHECKED_CAST")` cast `tokenTable.tokenList as AbstractTokenListF64`）
+2. **修复 QuadraticExpressionSymbol Flt64 convenience overload 参数顺序**（确保 override 签名与接口定义一致）
+3. **修复 evaluateWithCachedTokenTable dependency 调用**（确认 `results` 重载中 dependency evaluate 的参数传递是否正确）
+4. **更新 function/ 子包**（Product.kt/FunctionSymbol.kt/If.kt/Masking.kt 的 prepare + evaluate override）
+5. **修复 TokenTable.kt register() 调用**（添加 `IntoValue.Flt64` converter 参数）
+6. **编译验证**：`mvn -pl ospf-kotlin-core -am clean compile` PASS
+7. **D4 模型层联动**（MetaModel/MechanismModel/CallBackModel 的 evaluate 调用添加 `IntoValue.Flt64`）
+8. **D5 Token 层收口**（TokenCacheContext `<*>` 评估）
+9. **D6 门禁升级**（P4-4-1/P4-4-2 改零容忍，新增 P4-5-1）
+10. **D7 回归补齐 + D8 全链路验收**
+
+**关键设计决策（已确认）**：
+
+1. JVM 签名碰撞：`AbstractTokenTable<V>` 和 `AbstractTokenTable<Flt64>` 在 JVM 字节码层面 type erasure 后签名相同。解决方案：V-typed 方法是主接口成员，Flt64 方法是 `@Deprecated` 扩展函数（不是接口成员，不参与 JVM dispatch）。
+2. evaluateSymbol V-typed path 内部仍以 Flt64 计算（通过 `resultF64` 和 `evaluate(tokenList: AbstractTokenListF64)`），最终通过 `converter.intoValue(ret)` 转换为 V。`tokenTable.tokenList` 返回 `AbstractTokenList<V>`，需要 `@Suppress("UNCHECKED_CAST") as AbstractTokenListF64` cast（运行时安全，因为所有实例 V=Flt64）。
+3. 求解器边界（TokenTable.kt register()、MetaModel/MechanismModel evaluate）显式使用 `IntoValue.Flt64`（identity converter），标注边界注释。
 
 ### P2-4 LP 导出能力对齐 Rust
 

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMo
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
@@ -60,26 +60,30 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val upperBound get() = range.upperBound?.toFlt64()
     val fixedValue get() = range.fixedValue
 
+    // --- V-typed primary path (P4-5) ---
+    fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
+    fun prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>) {
+        if (values.isNullOrEmpty()) {
+            prepare(null, tokenTable, converter)?.let {
+                tokenTable.cache(cacheKey = this, solution = null, value = it)
+            }
+        } else {
+            prepare(values, tokenTable, converter)?.let {
+                tokenTable.cache(cacheKey = this, fixedValues = values, value = it)
+            }
+        }
+    }
+
+    fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+    fun evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V? =
+        evaluate(tokenTable, converter, zeroIfNone)
+
+    // --- Solver-boundary convenience (AbstractTokenListF64, no AbstractTokenTable) ---
     fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluate(tokenList = tt.tokenList, zeroIfNone = zeroIfNone)
-    }
-
     fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluate(results = results, tokenList = tt.tokenList, zeroIfNone = zeroIfNone)
-    }
-
     fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64? = null, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean = false): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as? AbstractTokenTable<Flt64>
-        return evaluate(values = values, tokenList = tt?.tokenList, zeroIfNone = zeroIfNone)
-    }
 
     val category: Category
     val operationCategory: Category get() = category
@@ -94,87 +98,49 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 
     fun flush(force: Boolean = false)
 
-    /**
-     * Prepare (generic-first view).
-     * Accepts any AbstractTokenTable regardless of V, since the return is Flt64.
-     */
-    fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64?
-    fun prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>) {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        if (values.isNullOrEmpty()) {
-            prepare(null, tokenTable)?.let {
-                tt.cache(cacheKey = this, solution = null, value = it)
-            }
-        } else {
-            prepare(values, tokenTable)?.let {
-                tt.cache(cacheKey = this, fixedValues = values, value = it)
-            }
-        }
-    }
-
-    /**
-     * Register auxiliary tokens needed by this symbol.
-     * Aligns with Rust IntermediateSymbol::register_auxiliary_tokens.
-     *
-     * Called by TokenTable.register() after the symbol's constraints are registered.
-     * Override this to register helper variables (slack, binary, auxiliary) separately
-     * from constraint registration in register(). This separates "register constraints"
-     * from "register auxiliary tokens" for clarity.
-     *
-     * Default: no-op (non-function symbols don't register tokens).
-     * LinearFunctionSymbolAdapter overrides this to register helperVariables from its delegate.
-     */
-    /**
-     * Register auxiliary tokens (helper variables) needed by this symbol into the given token collection.
-     *
-     * This method separates "register variables" from "register constraints" for clarity.
-     * It is called by [register] as the first step before adding constraints, and may also
-     * be called independently (e.g., by TokenTable) to add only the auxiliary variables.
-     *
-     * ## Convention
-     *
-     * - This method should **only** register tokens (variables), never constraints.
-     * - Subclasses that create auxiliary tokens inside their [register] method should override
-     *   this method to expose the same token registrations independently.
-     * - The default implementation is a no-op. Subclasses with auxiliary tokens should override it.
-     * - For composite functions (those that delegate to sub-functions), this method should register
-     *   only the **own** auxiliary tokens of this symbol, not the sub-function's tokens
-     *   (the sub-function handles its own registration via its own [register] method).
-     *   Exception: if the sub-function's tokens are already part of this symbol's [helperVariables],
-     *   the default [MathFunctionSymbol.registerAuxiliaryTokens] implementation will include them.
-     *
-     * @param tokens The token collection to add auxiliary variables to.
-     * @return [Ok] on success, [Failed] or [Fatal] on error (e.g., duplicate token).
-     */
     fun registerAuxiliaryTokens(tokens: AddableTokenCollectionF64): Try = ok
 
-    /**
-     * Evaluate this symbol from token table values.
-     * Aligns with Rust IntermediateSymbol::evaluate_from_tokens.
-     * Default: delegates to evaluate(tokenTable, zeroIfNone=false).
-     */
-    fun evaluateFromTokens(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Flt64? {
-        return evaluate(tokenTable, zeroIfNone)
-    }
-
-    /** V-typed prepare via IntoValue<V> conversion. */
-    fun prepareAsV(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>): V? =
-        prepare(values, tokenTable)?.let { converter.intoValue(it) }
-
-    /** V-typed evaluate via IntoValue<V> conversion. */
-    fun evaluateAsV(tokenList: AbstractTokenListF64, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-        evaluate(tokenList, zeroIfNone)?.let { converter.intoValue(it) }
-
-    /** V-typed evaluate via IntoValue<V> conversion. */
-    fun evaluateAsV(tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-        evaluate(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
-
-    /** V-typed evaluate from tokens via IntoValue<V> conversion. */
-    fun evaluateFromTokensAsV(tokenTable: AbstractTokenTable<*>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-        evaluateFromTokens(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
-
     fun toRawString(unfold: UInt64 = UInt64.zero): String
+}
+
+// --- Flt64 extension functions for backward compat (P4-5) ---
+// These are NOT interface members to avoid JVM signature collision with the V-typed primary path.
+// They delegate to the V-typed primary via IntoValue.Flt64 (identity converter).
+
+@Deprecated("Use prepare(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("prepare(values, tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    return prepare(values, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>)?.let { (it as Flt64) }
+}
+
+@Deprecated("Use prepareAndCache(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("prepareAndCache(values, tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>) where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    prepareAndCache(values, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>)
+}
+
+@Deprecated("Use evaluate(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluate(tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.evaluate(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    return evaluate(tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
+}
+
+@Deprecated("Use evaluate(results, tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluate(results, tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    return evaluate(results, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
+}
+
+@Deprecated("Use evaluate(values, tokenTable: AbstractTokenTable<V>?, converter) instead", ReplaceWith("evaluate(values, tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    return evaluate(values, tokenTable as AbstractTokenTable<V>?, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
+}
+
+@Deprecated("Use evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluateFromTokens(tokenTable, IntoValue.Flt64)"))
+fun <V> IntermediateSymbol<V>.evaluateFromTokens(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    return evaluateFromTokens(tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
 }
 
 interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequality, ToMathQuadraticInequality, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
@@ -349,11 +315,12 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
     return prepareIfNotCachedWithFixedCacheKey(this, values, tokenTable, block)
 }
 
-private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
-    tokenTable: AbstractTokenTable<Flt64>,
+private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
+    tokenTable: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     zeroIfNone: Boolean,
-    calculator: () -> Flt64?
-): Flt64? {
+    calculator: () -> V?
+): V? where V : RealNumber<V>, V : NumberField<V> {
     return if (tokenTable.cachedSolution) {
         tokenTable.cacheIfNotCached(
             cacheKey = this,
@@ -361,8 +328,10 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
         ) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    dependency.evaluate(
+                    @Suppress("UNCHECKED_CAST")
+                    (dependency as IntermediateSymbol<V>).evaluate(
                         tokenTable = tokenTable,
+                        converter = converter,
                         zeroIfNone = zeroIfNone
                     )
                 }
@@ -377,12 +346,13 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
     }
 }
 
-private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
+private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     results: List<Flt64>,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     zeroIfNone: Boolean,
-    calculator: () -> Flt64?
-): Flt64? {
+    calculator: () -> V?
+): V? where V : RealNumber<V>, V : NumberField<V> {
     return if (tokenTable.cachedSolution) {
         tokenTable.cacheIfNotCached(this, results) {
             for (dependency in dependencies) {
@@ -390,6 +360,7 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
                     dependency.evaluate(
                         results = results,
                         tokenTable = tokenTable,
+                        converter = converter,
                         zeroIfNone = zeroIfNone
                     )
                 }
@@ -401,32 +372,31 @@ private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
     }
 }
 
-private fun IntermediateSymbol<*>.evaluateWithCachedTokenTable(
+private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     values: Map<Symbol, Flt64>,
-    tokenTable: AbstractTokenTable<Flt64>?,
+    tokenTable: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     zeroIfNone: Boolean,
-    calculator: () -> Flt64?
-): Flt64? {
+    calculator: () -> V?
+): V? where V : RealNumber<V>, V : NumberField<V> {
     values[this]?.let { value ->
-        tokenTable?.cache(
+        tokenTable.cache(
             cacheKey = this,
             fixedValues = values,
-            value = value
+            value = converter.intoValue(value)
         )
-        return value
-    }
-
-    if (tokenTable == null) {
-        return calculator()
+        return converter.intoValue(value)
     }
 
     return if (values.isNotEmpty() || tokenTable.cachedSolution) {
         tokenTable.cacheIfNotCached(this, values) {
             for (dependency in dependencies) {
                 if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                    dependency.evaluate(
+                    @Suppress("UNCHECKED_CAST")
+                    (dependency as IntermediateSymbol<V>).evaluate(
                         values = values,
                         tokenTable = tokenTable,
+                        converter = converter,
                         zeroIfNone = zeroIfNone
                     )
                 }
@@ -701,7 +671,64 @@ class LinearExpressionSymbol<V>(
         return _utilsPolynomial
     }
 
-    // Helper: evaluate a single monomial's symbol
+    // Helper: evaluate a single monomial's symbol (V-typed path)
+    // Internally computes in Flt64 (via resultF64 / Flt64 evaluate(tokenList)), then the caller converts via converter.intoValue().
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                symbol.evaluate(tokenTable.tokenList as AbstractTokenListF64, zeroIfNone)
+            }
+            else -> null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                symbol.evaluate(values, tokenTable.tokenList as AbstractTokenListF64, zeroIfNone)
+            }
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenTable.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                symbol.evaluate(results, tokenTable.tokenList as AbstractTokenListF64, zeroIfNone)
+            }
+            else -> null
+        }
+    }
+
+    // Nullable tokenTable variant for evaluate(values, tokenTable?, ...) path
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                values[symbol] ?: tokenTable?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+            }
+            is LinearIntermediateSymbol<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                symbol.evaluate(values, tokenTable?.tokenList as AbstractTokenListF64?, zeroIfNone)
+            }
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
+        }
+    }
+
+    // Helper: evaluate a single monomial's symbol (Flt64 tokenList path)
     private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
@@ -709,17 +736,6 @@ class LinearExpressionSymbol<V>(
                 token?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
-            else -> null
-        }
-    }
-
-    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                val token = tokenTable.find(symbol)
-                token?.result ?: if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
             else -> null
         }
     }
@@ -736,34 +752,12 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                val index = tokenTable.indexOf(symbol)
-                if (index != null && index >= 0 && index < results.size) results[index]
-                else if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable, zeroIfNone)
-            else -> null
-        }
-    }
-
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
-            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
-        }
-    }
-
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
@@ -852,29 +846,27 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    // prepare: using math.evaluate + ValueProvider
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
+    // prepare: V-typed primary path (P4-5)
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, tt, false)
+                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, converter, false)
                 if (symbolValue == null) return null
                 ret += monomial.coefficient * symbolValue
             }
-            ret
+            converter.intoValue(ret)
         } else {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, values, tt, false)
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, converter, false)
                 if (symbolValue == null) return null
                 ret += monomial.coefficient * symbolValue
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 
@@ -911,20 +903,59 @@ class LinearExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(tt, zeroIfNone) {
+    // V-typed evaluate methods (P4-5)
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return evaluateWithCachedTokenTable(tokenTable, converter, zeroIfNone) {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, tt, zeroIfNone)
+                val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, converter, zeroIfNone)
                 if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, results, tokenTable, converter, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            converter.intoValue(ret)
+        }
+    }
+
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        if (tokenTable == null) {
+            if (values.containsKey(this)) return converter.intoValue(values[this]!!)
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, converter, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) return null
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            return converter.intoValue(ret)
+        }
+        return evaluateWithCachedTokenTable(values, tokenTable, converter, zeroIfNone) {
+            if (values.containsKey(this)) {
+                return@evaluateWithCachedTokenTable converter.intoValue(values[this]!!)
+            }
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
+                val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, converter, zeroIfNone)
+                if (symbolValue == null && !zeroIfNone) {
+                    return@evaluateWithCachedTokenTable null
+                }
+                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
+            }
+            converter.intoValue(ret)
+        }
+    }
+
+    // Flt64 convenience overloads (solver boundary)
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         var ret = _polyF64.constant
         for (monomial in _polyF64.monomials) {
@@ -933,20 +964,6 @@ class LinearExpressionSymbol<V>(
             ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
         }
         return ret
-    }
-
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(results, tt, zeroIfNone) {
-            var ret = _polyF64.constant
-            for (monomial in _polyF64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, results, tt, zeroIfNone)
-                if (symbolValue == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
-                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
-            }
-            ret
-        }
     }
 
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
@@ -958,25 +975,6 @@ class LinearExpressionSymbol<V>(
             ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
         }
         return ret
-    }
-
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as? AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(values, tt, zeroIfNone) {
-            if (values.containsKey(this)) {
-                return@evaluateWithCachedTokenTable values[this]!!
-            }
-            var ret = _polyF64.constant
-            for (monomial in _polyF64.monomials) {
-                val symbolValue = evaluateSymbol(monomial.symbol, values, tt, zeroIfNone)
-                if (symbolValue == null && !zeroIfNone) {
-                    return@evaluateWithCachedTokenTable null
-                }
-                ret += monomial.coefficient * (symbolValue ?: Flt64.zero)
-            }
-            ret
-        }
     }
 
     override fun toString(): String {
@@ -1229,75 +1227,51 @@ class QuadraticExpressionSymbol<V>(
         return _utilsPolynomial
     }
 
-    // Helper: evaluate a single symbol
-    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    // Helper: evaluate a single symbol (V-typed path)
+    // Internally computes in Flt64 (via resultF64 / Flt64 evaluate(tokenList)), then the caller converts via converter.intoValue().
+    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                val token = tokenList.find(symbol)
-                token?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+                tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable.tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenTable.tokenList, zeroIfNone)
             else -> null
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                val token = tokenTable.find(symbol)
-                token?.result ?: if (zeroIfNone) Flt64.zero else null
+                values[symbol] ?: tokenTable.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenTable, zeroIfNone)
-            else -> null
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable.tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable.tokenList, zeroIfNone)
+            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                val index = tokenList.indexOf(symbol)
-                if (index != null && index >= 0 && index < results.size) results[index]
-                else if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
-            else -> null
-        }
-    }
-
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable.tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenTable.tokenList, zeroIfNone)
             else -> null
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
+    // Nullable tokenTable variant for evaluate(values, tokenTable?, ...) path
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenList?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
+                values[symbol] ?: tokenTable?.find(symbol)?.resultF64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
-            else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
-        }
-    }
-
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, zeroIfNone: Boolean): Flt64? {
-        return when (symbol) {
-            is AbstractVariableItem<*, *> -> {
-                values[symbol] ?: tokenTable?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else null
-            }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable, zeroIfNone)
+            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable?.tokenList, zeroIfNone)
+            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenTable?.tokenList, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
@@ -1424,39 +1398,37 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    // prepare: using math.evaluate + ValueProvider
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<*>): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
+    // prepare: V-typed primary path (P4-5)
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, tt, false)
+                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, converter, false)
                 if (sym1Value == null) return null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tt, false)
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, converter, false)
                     if (sym2Value == null) return null
                     sym1Value * sym2Value
                 } else sym1Value
                 ret += monomial.coefficient * termValue
             }
-            ret
+            converter.intoValue(ret)
         } else {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, values, tt, false)
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, converter, false)
                 if (sym1Value == null) return null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tt, false)
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, converter, false)
                     if (sym2Value == null) return null
                     sym1Value * sym2Value
                 } else sym1Value
                 ret += monomial.coefficient * termValue
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 
@@ -1505,22 +1477,21 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluate(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(tt, zeroIfNone) {
+    // V-typed evaluate methods (P4-5)
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return evaluateWithCachedTokenTable(tokenTable, converter, zeroIfNone) {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, tt, zeroIfNone)
+                val sym1Value = evaluateSymbol(monomial.symbol1, tokenTable, converter, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tt, zeroIfNone)
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, tokenTable, converter, zeroIfNone)
                     if (sym2Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                     (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
                 } else (sym1Value ?: Flt64.zero)
                 ret += monomial.coefficient * termValue
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 
@@ -1539,22 +1510,20 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(results, tt, zeroIfNone) {
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, results, tt, zeroIfNone)
+                val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenTable, converter, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, results, tt, zeroIfNone)
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, results, tokenTable, converter, zeroIfNone)
                     if (sym2Value == null && !zeroIfNone) return@evaluateWithCachedTokenTable null
                     (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
                 } else (sym1Value ?: Flt64.zero)
                 ret += monomial.coefficient * termValue
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 
@@ -1574,21 +1543,34 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<*>?, zeroIfNone: Boolean): Flt64? {
-        @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as? AbstractTokenTable<Flt64>
-        return evaluateWithCachedTokenTable(values, tt, zeroIfNone) {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        if (tokenTable == null) {
+            if (values.containsKey(this)) return converter.intoValue(values[this]!!)
+            var ret = _polyF64.constant
+            for (monomial in _polyF64.monomials) {
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, converter, zeroIfNone)
+                if (sym1Value == null && !zeroIfNone) return null
+                val termValue = if (monomial.symbol2 != null) {
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, converter, zeroIfNone)
+                    if (sym2Value == null && !zeroIfNone) return null
+                    (sym1Value ?: Flt64.zero) * (sym2Value ?: Flt64.zero)
+                } else (sym1Value ?: Flt64.zero)
+                ret += monomial.coefficient * termValue
+            }
+            return converter.intoValue(ret)
+        }
+        return evaluateWithCachedTokenTable(values, tokenTable, converter, zeroIfNone) {
             if (values.containsKey(this)) {
-                return@evaluateWithCachedTokenTable values[this]!!
+                return@evaluateWithCachedTokenTable converter.intoValue(values[this]!!)
             }
             var ret = _polyF64.constant
             for (monomial in _polyF64.monomials) {
-                val sym1Value = evaluateSymbol(monomial.symbol1, values, tt, zeroIfNone)
+                val sym1Value = evaluateSymbol(monomial.symbol1, values, tokenTable, converter, zeroIfNone)
                 if (sym1Value == null && !zeroIfNone) {
                     return@evaluateWithCachedTokenTable null
                 }
                 val termValue = if (monomial.symbol2 != null) {
-                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tt, zeroIfNone)
+                    val sym2Value = evaluateSymbol(monomial.symbol2!!, values, tokenTable, converter, zeroIfNone)
                     if (sym2Value == null && !zeroIfNone) {
                         return@evaluateWithCachedTokenTable null
                     }
@@ -1596,7 +1578,7 @@ class QuadraticExpressionSymbol<V>(
                 } else (sym1Value ?: Flt64.zero)
                 ret += monomial.coefficient * termValue
             }
-            ret
+            converter.intoValue(ret)
         }
     }
 

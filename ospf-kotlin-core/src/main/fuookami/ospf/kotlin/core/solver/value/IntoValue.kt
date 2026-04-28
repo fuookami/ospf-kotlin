@@ -21,6 +21,12 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 interface IntoValue<V : RealNumber<V>> {
     fun intoValue(value: Flt64): V
+
+    companion object {
+        val Flt64: IntoValue<Flt64> = object : IntoValue<Flt64> {
+            override fun intoValue(value: Flt64): Flt64 = value
+        }
+    }
 }
 
 /**
