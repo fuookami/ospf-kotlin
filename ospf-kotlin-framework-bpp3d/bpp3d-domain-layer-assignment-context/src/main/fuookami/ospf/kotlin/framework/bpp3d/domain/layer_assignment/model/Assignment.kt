@@ -35,7 +35,7 @@ class ImpreciseAssignment(
     private val _x = ArrayList<UIntVariable1>()
     val x: List<UIntVariable1> by ::_x
 
-    lateinit var volume: LinearExpressionSymbol
+    lateinit var volume: LinearExpressionSymbol<Flt64>
 
     fun register(model: MetaModelF64): Try {
         if (!::volume.isInitialized) {

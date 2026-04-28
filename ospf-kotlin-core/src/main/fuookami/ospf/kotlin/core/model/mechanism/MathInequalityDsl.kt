@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -435,7 +435,7 @@ infix fun UInt64.geq(rhs: Symbol): MathLinearInequality = this.toFlt64() geq rhs
 // ========== LinearInequality to QuadraticConstraint direct conversion ==========
 
 fun MathLinearInequality.toQuadraticConstraint(
-    tokens: LegacyAbstractTokenTable,
+    tokens: AbstractTokenTable<Flt64>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -454,7 +454,7 @@ fun MathLinearInequality.toQuadraticConstraint(
 // ========== Relation-based constraint creation ==========
 
 fun LinearRelation.toConstraint(
-    tokens: LegacyAbstractTokenTable,
+    tokens: AbstractTokenTable<Flt64>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -464,7 +464,7 @@ fun LinearRelation.toConstraint(
 }
 
 fun QuadraticRelation.toConstraint(
-    tokens: LegacyAbstractTokenTable,
+    tokens: AbstractTokenTable<Flt64>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -474,7 +474,7 @@ fun QuadraticRelation.toConstraint(
 }
 
 fun LinearRelation.toQuadraticConstraint(
-    tokens: LegacyAbstractTokenTable,
+    tokens: AbstractTokenTable<Flt64>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,

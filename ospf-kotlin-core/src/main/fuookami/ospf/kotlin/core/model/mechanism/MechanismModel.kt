@@ -1,7 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.TokenTable
@@ -44,7 +44,7 @@ sealed interface MechanismModel<V : RealNumber<V>> : AutoCloseable {
     val name: String
     val constraints: List<Constraint<V, *>>
     val objectFunction: Object
-    val tokens: LegacyAbstractTokenTable
+    val tokens: AbstractTokenTable<Flt64>
 
     override fun close() {
         tokens.close()
@@ -278,7 +278,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
     override var name: String,
     constraints: List<LinearConstraintImpl>,
     override val objectFunction: SingleObject<LinearSubObject<Flt64>>,
-    override val tokens: LegacyAbstractTokenTable
+    override val tokens: AbstractTokenTable<Flt64>
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V> {
     private val logger = logger()
 
@@ -394,7 +394,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: LinearMetaModelF64,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModelF64 {
@@ -431,10 +431,10 @@ class LinearMechanismModel<V : RealNumber<V>>(
         }
 
         private suspend fun unfold(
-            tokens: LegacyAbstractMutableTokenTable,
+            tokens: AbstractMutableTokenTable<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<LegacyAbstractTokenTable> {
+        ): Ret<AbstractTokenTable<Flt64>> {
             return when (tokens) {
                 is MutableTokenTableF64 -> {
                     val temp = tokens.copy() as MutableTokenTableF64
@@ -700,7 +700,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
     override var name: String,
     constraints: List<QuadraticConstraintImpl>,
     override val objectFunction: SingleObject<QuadraticSubObject<Flt64>>,
-    override val tokens: LegacyAbstractTokenTable
+    override val tokens: AbstractTokenTable<Flt64>
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V> {
     private val logger = logger()
 
@@ -816,7 +816,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: QuadraticMetaModelF64,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModelF64 {
@@ -853,10 +853,10 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
         }
 
         private suspend fun unfold(
-            tokens: LegacyAbstractMutableTokenTable,
+            tokens: AbstractMutableTokenTable<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<LegacyAbstractTokenTable> {
+        ): Ret<AbstractTokenTable<Flt64>> {
             return when (tokens) {
                 is MutableTokenTableF64 -> {
                     val temp = tokens.copy() as MutableTokenTableF64

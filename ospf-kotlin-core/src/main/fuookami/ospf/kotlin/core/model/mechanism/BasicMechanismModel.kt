@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -12,12 +12,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * This corresponds to `BasicMechanismModel<V>` in the Rust implementation.
  * `MechanismModel<V>` extends this with the objective function and Benders cut generation.
  *
- * BasicMechanismModel delegates token storage to an [LegacyAbstractTokenTable] provided
+ * BasicMechanismModel delegates token storage to an [AbstractTokenTable<Flt64>] provided
  * at construction time — the same mechanism used by MechanismModelF64.
  */
 open class BasicMechanismModel<V : RealNumber<V>>(
     open val name: String,
-    open val tokens: LegacyAbstractTokenTable
+    open val tokens: AbstractTokenTable<Flt64>
 ) {
 
     // ── Query helpers ────────────────────────────────────────────────

@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 
 /**
@@ -18,12 +19,12 @@ import fuookami.ospf.kotlin.utils.functional.*
  * This corresponds to `BasicModel<V>` in the Rust implementation.
  * `MetaModel` extends this with objective functions and higher-level semantics.
  *
- * BasicModel delegates token storage to a [LegacyAbstractMutableTokenTable] provided
+ * BasicModel delegates token storage to a [AbstractMutableTokenTable<Flt64>] provided
  * at construction time -- the same mechanism used by MetaModel.
  */
 open class BasicModel<V : RealNumber<V>>(
     open val name: String,
-    open val tokens: LegacyAbstractMutableTokenTable
+    open val tokens: AbstractMutableTokenTable<Flt64>
 ) : AutoCloseable {
 
     /** Symbol table. */

@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.core.model.basic.Objective
 import fuookami.ospf.kotlin.core.model.basic.BasicModelView
 import fuookami.ospf.kotlin.core.model.basic.ModelView
 import fuookami.ospf.kotlin.core.model.basic.VariableSlack
-import fuookami.ospf.kotlin.core.token.TokenF64
+import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.Binary
 import fuookami.ospf.kotlin.core.variable.BalancedTernary
@@ -234,8 +234,8 @@ class BasicQuadraticTetradModel(
          */
         fun from(
             model: QuadraticMechanismModelF64,
-            tokenIndexMap: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>> = emptyMap(),
+            tokenIndexMap: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicQuadraticTetradModel {
             val variables = dumpVariables(model, tokenIndexMap, bounds)
@@ -245,8 +245,8 @@ class BasicQuadraticTetradModel(
 
         private fun dumpVariables(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -285,8 +285,8 @@ class BasicQuadraticTetradModel(
 
         private fun dumpConstraints(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -534,7 +534,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
 data class QuadraticTetradModel(
     private val impl: BasicQuadraticTetradModel,
-    val tokensInSolver: List<TokenF64>,
+    val tokensInSolver: List<Token<Flt64>>,
     override val objective: QuadraticObjective,
     internal val dualOrigin: QuadraticTetradModelView? = null
 ) : QuadraticTetradModelView, Cloneable, Copyable<QuadraticTetradModel> {
@@ -653,8 +653,8 @@ data class QuadraticTetradModel(
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -694,8 +694,8 @@ data class QuadraticTetradModel(
 
         private fun dumpConstraints(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -775,8 +775,8 @@ data class QuadraticTetradModel(
 
         private suspend fun dumpConstraintsAsync(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
-            bounds: Map<TokenF64, List<Quadruple<OriginQuadraticConstraint, TokenF64, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -946,7 +946,7 @@ data class QuadraticTetradModel(
 
         private fun dumpObjectives(
             model: QuadraticMechanismModelF64,
-            tokenIndexes: Map<TokenF64, Int>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {

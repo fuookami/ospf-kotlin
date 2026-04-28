@@ -1,114 +1,137 @@
-# check-c8-guards.ps1
-# P4-2 门禁：确保旧类型不再被新代码引入
+#!/usr/bin/env pwsh
+# P4-2 Guard Script — Static checks for core refactor integrity
+# Runs against staged changes (git diff --cached) or full src/main if no staging.
 #
-# 模式：
-#   - Guard 1 (硬阻断): 禁止任何旧 FunctionSymbol 族类型引用
-#   - Guard 2/3 (基线计数): 记录存量，只报告增量变化，不阻断当前基线
-#
-# 用法: powershell -ExecutionPolicy Bypass -File scripts/check-c8-guards.ps1
+# Guard categories:
+#   C8-1: Zero-tolerance (must be 0)
+#   C8-2/C8-3: Baseline-count (must not exceed frozen baseline)
+#   P4-2-1/2/3: Zero-tolerance (must be 0)
+#   P4-3-1: Zero-tolerance (must be 0)
+#   P4-4-1/2: Baseline-count (must not exceed frozen baseline)
 
 param(
-    [string]$BaselineFile = ""
+    [switch]$Full,
+    [switch]$Verbose
 )
 
 $ErrorActionPreference = "Stop"
-# Resolve root from script location: scripts/ -> ospf-kotlin-core/ -> repo root
-$ScriptDir = if ($PSScriptRoot) { $PSScriptRoot } else { Split-Path -Parent $MyInvocation.MyCommand.Path }
-if (-not $ScriptDir) { $ScriptDir = Join-Path $PWD.Path "ospf-kotlin-core" | Join-Path -ChildPath "scripts" }
-$RootDir = Split-Path -Parent (Split-Path -Parent $ScriptDir)
-$CoreMain = Join-Path $RootDir "ospf-kotlin-core" "src" "main"
+$exitCode = 0
 
-# Guard 1: 禁止旧 FunctionSymbol 族类型引用（硬阻断）
-$forbiddenOldTypes = @(
-    "FunctionSymbolRegistrationScope",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.FunctionSymbol\b",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.LinearFunctionSymbol\b",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.QuadraticFunctionSymbol\b",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.LogicFunctionSymbol\b",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.LinearLogicFunctionSymbol\b",
-    "fuookami\.ospf\.kotlin\.core\.intermediate_symbol\.QuadraticLogicFunctionSymbol\b"
-)
-
-# Guard 2/3 白名单（typealias 定义文件）
-$tokenF64Whitelist = @(
-    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/Token.kt",
-    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenList.kt",
-    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt",
-    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenCacheContext.kt"
-)
-
-$legacyWhitelist = @(
-    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt"
-)
-
-# Current baseline counts (D0 freeze, 2026-04-27)
-$baselineTokenF64 = 34    # TokenF64 occurrences in core/src/main (excluding whitelist files)
-$baselineLegacy = 109     # LegacyAbstract*TokenTable occurrences in core/src/main (excluding whitelist files)
-
-function Count-Matches {
-    param([string[]]$Patterns, [string[]]$WhitelistFiles, [string]$SearchRoot)
-
-    $total = 0
-    $files = @()
-    Get-ChildItem -Path $SearchRoot -Recurse -Filter "*.kt" | ForEach-Object {
-        $relPath = $_.FullName.Substring($RootDir.Length + 1).Replace("\", "/")
-        if ($WhitelistFiles -contains $relPath) { return }
-
-        $content = Get-Content $_.FullName -Raw -ErrorAction SilentlyContinue
-        if (-not $content) { return }
-
-        $fileCount = 0
-        foreach ($pat in $Patterns) {
-            $matches = [regex]::Matches($content, $pat)
-            $fileCount += $matches.Count
-        }
-        if ($fileCount -gt 0) {
-            $total += $fileCount
-            $files += "$relPath ($fileCount)"
-        }
+function Write-Result {
+    param([string]$Label, [bool]$Pass, [string]$Detail = "")
+    $icon = if ($Pass) { "PASS" } else { "FAIL" }
+    $color = if ($Pass) { "Green" } else { "Red" }
+    Write-Host "[$icon] $Label" -ForegroundColor $color
+    if ($Detail -and ($Verbose -or -not $Pass)) {
+        Write-Host "      $Detail" -ForegroundColor DarkGray
     }
-    return @{ Total = $total; Files = $files }
+    if (-not $Pass) { $script:exitCode = 1 }
 }
 
-$hardViolations = @()
-$warnings = @()
-
-# Guard 1: Hard block on old FunctionSymbol types
-$g1 = Count-Matches -Patterns $forbiddenOldTypes -WhitelistFiles @() -SearchRoot $CoreMain
-if ($g1.Total -gt 0) {
-    $hardViolations += "[GUARD-1] BLOCKED: Old FunctionSymbol types still referenced ($($g1.Total) occurrences):"
-    $hardViolations += $g1.Files
+function Write-Baseline {
+    param([string]$Label, [int]$Current, [int]$Baseline, [string]$Detail = "")
+    $increased = $Current -gt $Baseline
+    $icon = if ($increased) { "FAIL" } else { "PASS" }
+    $color = if ($increased) { "Red" } else { "Green" }
+    $delta = $Current - $Baseline
+    $deltaStr = if ($delta -gt 0) { "+$delta" } elseif ($delta -lt 0) { "$delta" } else { "0" }
+    Write-Host "[$icon] $Label (baseline=$Baseline, current=$Current, delta=$deltaStr)" -ForegroundColor $color
+    if ($Detail -and ($Verbose -or $increased)) {
+        Write-Host "      $Detail" -ForegroundColor DarkGray
+    }
+    if ($increased) { $script:exitCode = 1 }
 }
 
-# Guard 2: TokenF64 baseline count check
-$g2 = Count-Matches -Patterns @("\bTokenF64\b") -WhitelistFiles $tokenF64Whitelist -SearchRoot $CoreMain
-$delta2 = $g2.Total - $baselineTokenF64
-if ($delta2 -gt 0) {
-    $hardViolations += "[GUARD-2] BLOCKED: TokenF64 usage increased by $delta2 (baseline: $baselineTokenF64, current: $($g2.Total))"
-} elseif ($delta2 -lt 0) {
-    $warnings += "[GUARD-2] GOOD: TokenF64 usage decreased by $(-$delta2) (baseline: $baselineTokenF64, current: $($g2.Total))"
+$coreMain = "ospf-kotlin-core/src/main"
+
+# --- C8 Guards (original) ---
+
+# Guard 1: No new old-polynomial imports in core/src/main
+$oldPoly = @(
+    "fuookami.ospf.kotlin.core.intermediate_model.monomial",
+    "fuookami.ospf.kotlin.core.intermediate_model.Expression",
+    "fuookami.ospf.kotlin.core.intermediate_model.ToPolynomial"
+)
+$found = @()
+foreach ($pat in $oldPoly) {
+    $matches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+        Select-String -Pattern $pat -SimpleMatch |
+        Where-Object { $_.Line -match "^\s*import" }
+    $found += $matches
+}
+Write-Result "C8-1: No old polynomial imports in core/src/main" ($found.Count -eq 0) "Found $($found.Count) violations"
+
+# Guard 2: No new .cells direct access in core/src/main (baseline-count)
+# Historical baseline: existing violations are grandfathered; only new ones fail.
+$cellsMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "\.cells\b" |
+    Where-Object { $_.Path -notmatch "intermediate[/\\]" -and $_.Path -notmatch "model[/\\]intermediate[/\\]" -and $_.Line -notmatch "^\s*//" }
+$cellsBaseline = 2  # Frozen 2026-04-28 at P4-2 D7 close
+Write-Baseline "C8-2: No new .cells direct access outside intermediate model" $cellsMatches.Count $cellsBaseline "Found $($cellsMatches.Count) total (baseline=$cellsBaseline)"
+
+# Guard 3: No new Double-typed constraint/variable in core/src/main (baseline-count)
+# Historical baseline: existing violations are grandfathered; only new ones fail.
+$doubleMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "\bDouble\b" |
+    Where-Object { $_.Line -notmatch "^\s*//" -and $_.Line -notmatch "import " -and $_.Line -notmatch "kotlin\." -and $_.Line -notmatch "java\." }
+$doubleBaseline = 31  # Frozen 2026-04-28 at P4-2 D7 close
+Write-Baseline "C8-3: No bare Double type in core/src/main" $doubleMatches.Count $doubleBaseline "Found $($doubleMatches.Count) total (baseline=$doubleBaseline)"
+
+# --- P4-2 Guards (new) ---
+
+# Guard 4: No LegacyAbstractTokenTable* in core/src/main (zero-tolerance after P4-3B deletion)
+$legacyTT = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "LegacyAbstract(TokenTable|MutableTokenTable)" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+Write-Result "P4-2-1: No LegacyAbstractTokenTable* in core/src/main" ($legacyTT.Count -eq 0) "Found $($legacyTT.Count) violations"
+
+# Guard 5: No new old FunctionSymbol naming (FunctionSymbol/LinearFunctionSymbol/QuadraticFunctionSymbol)
+# in core/src/main (excluding deprecated typealias and MathFunctionSymbolAdapter)
+$oldFuncSym = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "\b(LinearFunctionSymbol|QuadraticFunctionSymbol)\b" |
+    Where-Object { $_.Line -notmatch "^\s*//" -and $_.Line -notmatch "@Deprecated" -and $_.Line -notmatch "typealias" -and $_.Line -notmatch "Adapter" }
+Write-Result "P4-2-2: No old FunctionSymbol naming in core/src/main" ($oldFuncSym.Count -eq 0) "Found $($oldFuncSym.Count) violations"
+
+# Guard 6: No FunctionSymbolRegistrationScope in core/src/main
+$fsrScope = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "FunctionSymbolRegistrationScope" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+Write-Result "P4-2-3: No FunctionSymbolRegistrationScope in core/src/main" ($fsrScope.Count -eq 0) "Found $($fsrScope.Count) violations"
+
+# --- P4-3 Guards (new) ---
+
+# Guard 7: No TokenF64 in core/src/main (zero-tolerance after P4-3B deletion)
+$tokenF64 = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "\bTokenF64\b" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+Write-Result "P4-3-1: No TokenF64 in core/src/main" ($tokenF64.Count -eq 0) "Found $($tokenF64.Count) violations"
+
+# --- P4-4 Guards (new) ---
+
+# Guard 8: No new AbstractTokenTable<*> in intermediate_symbol (baseline-count)
+# After P4-4 D2, star-projected AbstractTokenTable is confined to interface-level
+# methods in intermediate_symbol only. No new occurrences should appear.
+$starProjDir = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol"
+$starProjMatches = Get-ChildItem -Path $starProjDir -Recurse -Filter "*.kt" |
+    Select-String -Pattern "AbstractTokenTable<\*>" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$starProjBaseline = 21  # Frozen 2026-04-28 at P4-4 D5 close
+Write-Baseline "P4-4-1: No new AbstractTokenTable<*> in intermediate_symbol" $starProjMatches.Count $starProjBaseline "Found $($starProjMatches.Count) total (baseline=$starProjBaseline)"
+
+# Guard 9: No new `as AbstractTokenTable<Flt64>` casts in intermediate_symbol (baseline-count)
+# After P4-4 D2, unchecked casts are confined to internal helper methods that
+# reify the star projection to Flt64. No new occurrences should appear.
+$castMatches = Get-ChildItem -Path $starProjDir -Recurse -Filter "*.kt" |
+    Select-String -Pattern "as AbstractTokenTable<Flt64>" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$castBaseline = 10  # Frozen 2026-04-28 at P4-4 D5 close
+Write-Baseline "P4-4-2: No new as AbstractTokenTable<Flt64> casts in intermediate_symbol" $castMatches.Count $castBaseline "Found $($castMatches.Count) total (baseline=$castBaseline)"
+
+# --- Summary ---
+Write-Host ""
+if ($exitCode -eq 0) {
+    Write-Host "All guards passed." -ForegroundColor Green
 } else {
-    $warnings += "[GUARD-2] OK: TokenF64 usage unchanged (baseline: $baselineTokenF64, current: $($g2.Total))"
+    Write-Host "Some guards failed. See above for details." -ForegroundColor Red
 }
-
-# Guard 3: LegacyAbstract*TokenTable baseline count check
-$g3 = Count-Matches -Patterns @("\bLegacyAbstractTokenTable\b", "\bLegacyAbstractMutableTokenTable\b") -WhitelistFiles $legacyWhitelist -SearchRoot $CoreMain
-$delta3 = $g3.Total - $baselineLegacy
-if ($delta3 -gt 0) {
-    $hardViolations += "[GUARD-3] BLOCKED: LegacyAbstract*TokenTable usage increased by $delta3 (baseline: $baselineLegacy, current: $($g3.Total))"
-} elseif ($delta3 -lt 0) {
-    $warnings += "[GUARD-3] GOOD: LegacyAbstract*TokenTable usage decreased by $(-$delta3) (baseline: $baselineLegacy, current: $($g3.Total))"
-} else {
-    $warnings += "[GUARD-3] OK: LegacyAbstract*TokenTable usage unchanged (baseline: $baselineLegacy, current: $($g3.Total))"
-}
-
-# Report
-$warnings | ForEach-Object { Write-Host $_ -ForegroundColor Cyan }
-if ($hardViolations.Count -gt 0) {
-    Write-Host "C8 GUARD CHECK FAILED" -ForegroundColor Red
-    $hardViolations | ForEach-Object { Write-Host "  $_" -ForegroundColor Yellow }
-    exit 1
-} else {
-    Write-Host "C8 GUARD CHECK PASSED" -ForegroundColor Green
-    exit 0
-}
+exit $exitCode

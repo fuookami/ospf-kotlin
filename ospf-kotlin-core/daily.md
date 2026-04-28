@@ -1,8 +1,8 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-27（P4-2 D1 交接）
+日期：2026-04-28（P4-4 审查完成，P4-5 待启动）
 
-状态：P4-1 已完成。P4-2 D1 执行中（接口层泛型优先改造） — `IntermediateSymbol<V>` 接口的 `prepare`/`prepareAndCache`/`evaluateFromTokens`/`evaluateAsV` 等方法签名已从 `LegacyAbstractTokenTable` 改为 `AbstractTokenTable<*>`；`evaluate(tokenTable: AbstractTokenTable<*>)` 默认方法已添加；JVM platform declaration clash 已解决（所有 `evaluate(tokenTable: LegacyAbstractTokenTable)` override 已移除，由 `AbstractTokenTable<*>` 版本替代）；`Product.kt` 的 `LegacyAbstractTokenTable` evaluate 重载及 companion helpers 已移除；`Binaryzation.kt` 和 `Constraint.kt` 的 `LegacyAbstractTokenTable` 引用已迁移。下一步：P4-2 D2（`LinearExpressionSymbol`/`QuadraticExpressionSymbol` 完整泛型化改造）。
+状态：P4-1 已完成。P4-2 已完成（D0~D7 全部落地，2026-04-28）。P4-3 已完成（A1~A7 + B1~B4 全部落地，2026-04-28）。P4-4 已完成（D0~D6 全部落地，2026-04-28）— 已完成桥接收口（`IntermediateSymbol<V>` 约束对齐、`intermediate_symbol` 包内 `AbstractTokenTable<*>` 基线=21、`as AbstractTokenTable<Flt64>` 基线=10、门禁 P4-4-1/P4-4-2 上线）；但尚未达到“完全泛型化”（主接口仍有 `Flt64` 返回与星投影/cast 存量）。下一步：启动 P4-5（完全泛型化收口阶段二）。
 
 目标：在保持原 Kotlin 类型命名与接口语义兼容的前提下，按 Rust 版本架构完成 core 重构，补齐当前尚未完成的完全泛型化（包含 `Token` 体系），并让 `ospf-kotlin-example` 迁入当前仓库后通过调整已变更架构部分的 import 路径完成编译。
 
@@ -24,14 +24,14 @@
 2. `basic / mechanism / intermediate / callback` 四层职责已按 Rust 风格重排到独立分包（P3-4 完成）。
 3. `ospf-kotlin-math` 重构已完成，`-am` clean 构建已通过。
 4. 当前仍存在未完全泛型化路径，部分 model / token / framework / helper API 仍固化为 `Flt64` 或依赖 `Flt64` 视图。
-5. `intermediate_symbol` 包中的实际类（如 `LinearExpressionSymbol`、`QuadraticExpressionSymbol`、`FunctionSymbol`）仍为历史兼容形态，尚未完成彻底迁移与清退。
-6. 仍需把上述 `intermediate_symbol` 实际类迁移纳入统一门禁，避免仅靠人工回归。
+5. `intermediate_symbol` 主路径仍保留 `AbstractTokenTable<*>`（21）与 `as AbstractTokenTable<Flt64>`（10）桥接存量，尚未清零。
+6. `IntermediateSymbol` 关键接口仍以 `Flt64` 返回为主（`prepare/evaluate/evaluateFromTokens`），尚未切换到 `V` 主路径。
 
 ### 1.3 当前工作重心
 
-1. 启动并完成 `intermediate_symbol` 实际类迁移（P4-1），从“兼容保留”进入“彻底收口”。
-2. 继续稳住旧 Kotlin 类型名与接口语义兼容面，优先保证外部调用行为不回退。
-3. 把 `intermediate_symbol` 迁移结果纳入全仓 clean test 与门禁，确保可持续守护。
+1. P4-2 已完成，主链路泛型化收口已通过全链路验收。
+2. P4-3 已完成，`TokenF64` 兼容别名清退与类型统一已通过全链路验收。
+3. 下一步：启动 P4-5（完全泛型化收口阶段二），完成后进入 P2-4/P2-5/P2-3/P2-6 后续迭代。
 
 ---
 
@@ -146,12 +146,14 @@
 | P5 | P3-5 | `ospf-kotlin-example` 迁入与 reactor 接线 | 新目标 | ✅ 已完成 — example 迁入、import 迁移、reactor 接线与不 install/deploy 配置已落地 |
 | P6 | P3-6 | 门禁增强与全链路验收 | 新目标 + 历史遗留 | ✅ 已完成 — 全仓 `mvn clean test` 已通过 |
 | P7 | P4-1 | `intermediate_symbol` 包实际类彻底迁移 | 新目标 | ✅ 已完成（2026-04-27） |
-| P8 | P4-2 | 主链路完整泛型化收口（与 P4-1 并行衔接） | 新目标 | 执行中 — D0+D0.5+D1 已完成（2026-04-27），D2~D7 待推进 |
-| P9 | P4-3 | `TokenF64` 兼容别名清退与类型统一 | 新目标 | 计划中 — 待 P4-2 完成后启动 |
-| P10 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
-| P11 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
-| P12 | P2-3 | PSO 求解器对齐 Rust | 历史待办 | 待执行 |
-| P13 | P2-6 | 非线性残留 TODO 复核 | 历史待办 | 待确认 |
+| P8 | P4-2 | 主链路完整泛型化收口（与 P4-1 并行衔接） | 新目标 | ✅ 已完成（2026-04-28） — D0~D7 全部落地 |
+| P9 | P4-3 | `TokenF64` 兼容别名清退与类型统一 | 新目标 | ✅ 已完成（2026-04-28） — A1~A7 + B1~B4 全部落地 |
+| P10 | P4-4 | core 泛型桥接收口（主链路阶段一） | 新目标 | ✅ 已完成（2026-04-28） — 基线冻结与门禁落地（21/10） |
+| P11 | P4-5 | core 完全泛型化收口（主链路阶段二） | 新目标 | 待启动 — 清零 `intermediate_symbol` 星投影/cast，接口切到 `V` 主路径 |
+| P12 | P2-4 | LP 导出能力对齐 Rust | 历史待办 | 待执行 |
+| P13 | P2-5 | 结构化错误类型对齐 Rust | 历史待办 | 待执行 |
+| P14 | P2-3 | PSO 求解器对齐 Rust | 历史待办 | 待执行 |
+| P15 | P2-6 | 非线性残留 TODO 复核 | 历史待办 | 待确认 |
 
 ### 4.2 统一执行顺序
 
@@ -166,6 +168,8 @@ P3-0 基线冻结与兼容面清单
   -> P4-1 intermediate_symbol 实际类彻底迁移
   -> P4-2 主链路完整泛型化收口（与 P4-1 并行衔接）
   -> P4-3 TokenF64 兼容别名清退与类型统一
+  -> P4-4 core 泛型桥接收口（主链路阶段一）
+  -> P4-5 core 完全泛型化收口（主链路阶段二）
   -> P2-4 / P2-5 / P2-3 / P2-6 进入后续迭代
 ```
 
@@ -546,6 +550,23 @@ P3-0 基线冻结与兼容面清单
 4. `core/src/main` 中 `LegacyAbstractTokenTable*` 仅允许保留在别名定义与历史兼容入口，主实现路径不再直接使用。
 5. `ApiCompatibilityTest.kt` 与泛型回归测试通过，且兼容层仅保留可追踪、可删除的最小集合。
 
+#### P4-2 完成记录（2026-04-28）
+
+1. ✅ **D3（函数符号链路）** — `FunctionSymbolRegistrationScope` 已在 P4-1 中删除，`registerAuxiliaryTokens` 双阶段流程已在 P4-1 中统一落地，D3 无额外改动。
+2. ✅ **D4（别名清扫）** — 10 个 core/src/main 文件中 `LegacyAbstractTokenTable`/`LegacyAbstractMutableTokenTable` 直接引用替换为 `AbstractTokenTable<Flt64>`/`AbstractMutableTokenTable<Flt64>`，仅保留 `TokenTable.kt` 中的 typealias 定义（4 处豁免）。
+   - 迁移文件：`BasicModel.kt`、`BasicMechanismModel.kt`、`MetaModel.kt`、`MechanismModel.kt`、`SubObject.kt`、`LinearConstraintInput.kt`、`MathInequalityDsl.kt`、`MetaConstraint.kt`、`CallBackModelInterface.kt`、`CallBackModel.kt`
+3. ✅ **D5（模型层联动）** — `exportOpm` 与 dump 过程中的符号注册入口已在 D2 中自然完成泛型化，`registerAuxiliaryTokens` 已统一为双阶段流程，D5 无额外改动。
+4. ✅ **D6（调用方迁移）** — framework/gantt-scheduling/example 中零 `LegacyAbstractTokenTable` 非豁免引用，D6 无额外改动。
+5. ✅ **D7（门禁与回归）** — guard 脚本增加 P4-2 三条零容忍检查（P4-2-1/2/3），C8-2/C8-3 改为基线计数模式（baseline=2/31 frozen at 2026-04-28），全部通过。
+
+#### P4-2 验收结果（2026-04-28）
+
+1. ✅ `mvn -pl ospf-kotlin-core -am clean test` — Tests run: 144, Failures: 0, Errors: 0
+2. ✅ `mvn -pl ospf-kotlin-framework -am clean compile` — BUILD SUCCESS
+3. ✅ `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile` — BUILD SUCCESS
+4. ✅ `mvn -pl ospf-kotlin-example -am clean compile` — BUILD SUCCESS
+5. ✅ `pwsh.exe -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1` — All guards passed (C8-1 PASS, C8-2 baseline=2 current=2 delta=0, C8-3 baseline=31 current=31 delta=0, P4-2-1/2/3 PASS)
+
 ### P4-3 `TokenF64` 兼容别名清退与类型统一
 
 目标：将主链路中对 `TokenF64` 的直接依赖收口到 `Token<Flt64>`，并通过“先弃用、后移除”两阶段策略完成兼容平滑过渡。
@@ -571,17 +592,124 @@ P3-0 基线冻结与兼容面清单
    - B3 兼容测试更新：移除旧别名断言，新增“别名已删除”静态检查。
    - B4 发布治理：在 CHANGELOG/迁移文档中明确替换规则、影响面与一键检索命令。
 
+#### P4-3A 完成记录（2026-04-28）
+
+1. ✅ **A1（基线冻结）** — 6 文件 40 处 TokenF64 引用 + 4 处 LegacyAbstractTokenTable* 引用已盘点冻结。
+2. ✅ **A2（内部替换）** — 3 批次完成：
+   - MetaModel.kt：3 处 `as? fuookami.ospf.kotlin.core.token.TokenF64` → `as? Token<Flt64>`（新增 Token import）
+   - Cell.kt：移除未使用的 TokenF64 import
+   - LinearTriadModel.kt + QuadraticTetradModel.kt：16+15 处公共 API 签名 `TokenF64` → `Token<Flt64>`
+3. ✅ **A3（软弃用）** — `TokenF64` typealias 标记 `@Deprecated(WARNING, ReplaceWith("Token<Flt64>"))`；`LegacyAbstractTokenTable*` 弃用级别从 WARNING 升级为 ERROR；TokenTable.kt 私有扩展函数接收器从 `LegacyAbstractTokenTable` 迁移为 `AbstractTokenTable<Flt64>`。
+4. ✅ **A4（兼容性测试）** — core compile + core test 全部通过。
+5. ✅ **A5（门禁）** — guard 脚本新增 P4-3-1（no non-exempt TokenF64），P4-2-1 已覆盖 LegacyAbstractTokenTable*。
+6. ✅ **A6（core-plugin-heuristic/MVO.kt）** — `token: TokenF64` → `token: Token<Flt64>`，移除 TokenF64 import。
+7. ✅ **A7（全链路验证）** — core compile + framework compile + core test + guard script 全部通过。
+
+#### P4-3A 验收结果（2026-04-28）
+
+1. ✅ core/src/main 中除 Token.kt typealias 定义外无 TokenF64 引用
+2. ✅ core/src/main 中除 TokenTable.kt typealias 定义外无 LegacyAbstractTokenTable* 引用
+3. ✅ `mvn -pl ospf-kotlin-core test` — BUILD SUCCESS
+4. ✅ `mvn -pl ospf-kotlin-framework compile` — BUILD SUCCESS
+5. ✅ guard script — All guards passed (C8-1 PASS, C8-2 baseline=2 current=2 delta=0, C8-3 baseline=31 current=31 delta=0, P4-2-1/2/3 PASS, P4-3-1 PASS)
+
+#### P4-3B 完成记录（2026-04-28）
+
+1. ✅ **B0（审计）** — 全仓库零 `TokenF64` / `LegacyAbstractTokenTable*` 外部引用，仅剩 typealias 定义。
+2. ✅ **B1（删除 TokenF64）** — `Token.kt` 中 `@Deprecated(WARNING) typealias TokenF64 = Token<Flt64>` 已物理删除。
+3. ✅ **B2（删除 LegacyAbstractTokenTable*）** — `TokenTable.kt` 中 `@Deprecated(ERROR) typealias LegacyAbstractTokenTable` 和 `LegacyAbstractMutableTokenTable` 已物理删除。
+4. ✅ **B3（门禁升级）** — P4-2-1 和 P4-3-1 从"豁免型"升级为零容忍（无豁免），任何恢复均 FAIL。
+5. ✅ **B4（全链路验证）** — core compile + framework compile + core test + guard script 全部通过。
+
+### P4-4 core 泛型桥接收口（主链路阶段一）
+
+目标：在不破坏现有对外语义的前提下，完成 `intermediate_symbol -> token -> model.mechanism/callback` 的桥接收口，先统一泛型约束与门禁基线，为下一阶段“完全泛型化”铺路。
+
+#### P4-4 完成记录（D0~D6，2026-04-28）
+
+1. ✅ D0（基线冻结）：
+   - `intermediate_symbol` 包内 `AbstractTokenTable<*>` 基线=21（`IntermediateSymbol.kt` 17 + `Product.kt`/`FunctionSymbol.kt`/`If.kt`/`Masking.kt` 各 1）。
+   - `intermediate_symbol` 包内 `as AbstractTokenTable<Flt64>` 基线=10（`IntermediateSymbol.kt` 9 + `Product.kt` 1）。
+2. ✅ D1（泛型边界统一）：
+   - `IntermediateSymbol<V>` 约束升级为 `V : RealNumber<V>, V : NumberField<V>`。
+   - `LinearIntermediateSymbol<V>` / `QuadraticIntermediateSymbol<V>` 约束与之对齐。
+   - 下游 `framework-bpp3d` 的 `Assignment.kt` 已补齐 `LinearExpressionSymbol<Flt64>` 类型参数。
+3. ✅ D2（接口桥接收口）：
+   - `prepare/evaluate/evaluateFromTokens` 主签名统一为 `AbstractTokenTable<*>`，并在必要处通过 `@Suppress("UNCHECKED_CAST") as AbstractTokenTable<Flt64>` 桥接。
+   - helper 层消除重复 cast，收敛到固定桥接点。
+4. ✅ D3（实现与缓存联动）：
+   - `intermediate_symbol` 包外无新增 `AbstractTokenTable<*>` 与 `as AbstractTokenTable<Flt64>`。
+   - `TokenCacheContext.kt` 的 `AbstractTokenTable<*>`（2 处）作为缓存映射基础设施保留。
+5. ✅ D4（模型层联动）：
+   - `model` 包主路径保持 `AbstractTokenTable<Flt64>`，无星投影与额外 cast。
+6. ✅ D5（门禁）：
+   - `P4-4-1`：`intermediate_symbol` 中 `AbstractTokenTable<*>` 基线计数守护（<=21）。
+   - `P4-4-2`：`intermediate_symbol` 中 `as AbstractTokenTable<Flt64>` 基线计数守护（<=10）。
+7. ✅ D6（验证）：
+   - `mvn clean compile -pl ospf-kotlin-core -am` PASS
+   - `mvn clean compile -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am` PASS
+   - `pwsh.exe -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1` PASS
+
+#### P4-4 审查结论
+
+1. P4-4 已完成“桥接收口”目标；
+2. 但它不是“完全泛型化”：`IntermediateSymbol` 关键接口仍以 `Flt64` 返回为主，且 `intermediate_symbol` 包内仍有 `AbstractTokenTable<*>`（21）和 `as AbstractTokenTable<Flt64>`（10）存量；
+3. 因此必须进入 P4-5 阶段二做清零收口。
+
+### P4-5 core 完全泛型化收口（主链路阶段二）
+
+目标：在保持兼容入口可追踪、可删除的前提下，把 `intermediate_symbol` 主路径从“星投影 + Flt64 桥接”迁移为“`V` 泛型主路径”，并将 `intermediate_symbol` 内 `AbstractTokenTable<*>` / `as AbstractTokenTable<Flt64>` 收敛到 0。
+
+#### 前置条件
+
+1. P4-4 已完成，P4-4-1/P4-4-2 门禁稳定 PASS。
+2. P4-3 已完成，`TokenF64` / `LegacyAbstractTokenTable*` 已清退。
+3. 兼容策略明确：允许保留少量 `@Deprecated` 兼容入口，但主实现必须为泛型路径。
+
+#### 详细执行计划（D0~D8）
+
+1. D0（基线与口径冻结，0.5d）：
+   - 冻结以下清零目标：  
+     - `intermediate_symbol` 中 `AbstractTokenTable<*>` = 0  
+     - `intermediate_symbol` 中 `as AbstractTokenTable<Flt64>` = 0  
+     - `IntermediateSymbol` 接口层 `prepare/evaluate/evaluateFromTokens` 的 `Flt64` 返回签名 = 0（兼容层除外）
+   - 输出到 `docs/refactor-baseline/p4-5-generic-baseline.md`。
+2. D1（接口主签名泛型化，1~1.5d）：
+   - 将 `IntermediateSymbol` 的 `prepare/evaluate/evaluateFromTokens` 主签名迁移为 `AbstractTokenTable<V>` + `V` 返回。
+   - 同步 `LinearIntermediateSymbol` / `QuadraticIntermediateSymbol` 与相关 override。
+3. D2（兼容入口下沉，1d）：
+   - 把 `Flt64` 兼容方法改为 `@Deprecated` 适配层（扩展函数或桥接方法），不再作为主接口。
+   - 确保 `ApiCompatibilityTest` 覆盖兼容入口行为。
+4. D3（实现层去星投影/cast，1~1.5d）：
+   - 清理 `IntermediateSymbol.kt`、`function/Product.kt` 中剩余星投影和 `as AbstractTokenTable<Flt64>`。
+   - 缓存链路使用 `AbstractTokenTable<V>` 直通。
+5. D4（模型层联动，1d）：
+   - 迁移 `MetaModel` / `MechanismModel` / `LinearConstraintInput` / `MathInequalityDsl` / `CallBackModel` 的调用链，打通 `V` 主路径。
+   - 求解器边界允许保留 `Flt64` 适配，但需显式注释边界原因。
+6. D5（Token 层收口，1d）：
+   - 避免主建模路径直接依赖 `resultF64`，优先走 `result: V?`。
+   - 评估 `Token` 内部存储 `Flt64` 的边界定位并文档化（阶段二可保留，阶段三再评估剥离）。
+7. D6（门禁升级，0.5d）：
+   - 将 P4-4-1/P4-4-2 从基线计数升级为零容忍；
+   - 新增门禁：禁止在 `IntermediateSymbol` 主接口新增 `Flt64` 返回签名（兼容白名单除外）。
+8. D7（回归补齐，0.5~1d）：
+   - 扩展 `ApiCompatibilityTest`、`GenericTokenTableRegressionTest`、`FunctionSymbolMigrationTest` 的泛型路径断言。
+9. D8（全链路验收，0.5d）：
+   - 执行 core/framework/bpp3d/gantt/example + guard 全量验收，并回写日报。
+
 #### 验收标准
 
-1. P4-3A 验收：
-   - `src/main` 新增代码中不允许新增 `TokenF64` 引用；
-   - 现有主链路实现以 `Token<Flt64>` 为主；
-   - `TokenF64` 仅作为 `@Deprecated(WARNING)` 兼容别名存在；
-   - `TokenF64` 使用总量相对冻结基线净减少，且减少量可追踪到模块级清单。
-2. P4-3B 验收（仅在允许破坏兼容时执行）：
-   - 全仓不存在 `TokenF64` 类型引用与别名定义；
-   - core/framework/example 构建与测试通过；
-   - 发布说明明确记录该破坏性变更。
+1. `intermediate_symbol` 包内 `AbstractTokenTable<*>` = 0。
+2. `intermediate_symbol` 包内 `as AbstractTokenTable<Flt64>` = 0。
+3. `IntermediateSymbol` 主接口 `prepare/evaluate/evaluateFromTokens` 全部走 `V` + `AbstractTokenTable<V>` 主路径。
+4. 构建与门禁全部通过：
+   - `mvn -pl ospf-kotlin-core -am clean test`
+   - `mvn -pl ospf-kotlin-framework -am clean compile`
+   - `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am clean compile`
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`
+   - `mvn -pl ospf-kotlin-example -am clean compile`
+   - `pwsh.exe -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1`
+5. 兼容入口保留最小集合，且全部可追踪、可删除。
 
 ### P2-4 LP 导出能力对齐 Rust
 
@@ -764,6 +892,8 @@ Week 4: P3-4 完成 (3-5d) -> P3-5 (1-2d) -> P3-6 (1-2d)（已完成）
 Week 5: P4-1（2026-04-27 已启动，Phase A2 已完成，预计 2026-05-02 ~ 2026-05-04 完成）
 Week 6: P4-2（满足前置条件后启动，预计 2026-05-06 ~ 2026-05-09 完成）
 Week 7: P4-3A（2026-05-12 ~ 2026-05-14，兼容保留）-> P4-3B（下一大版本窗口）
+Week 8: P4-4（主链路泛型桥接收口阶段一，2026-04-28 已完成）
+Week 9: P4-5（主链路完全泛型化收口阶段二，预计 5~8d）
 ```
 
 ### 8.2 关键风险

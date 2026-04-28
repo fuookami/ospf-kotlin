@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.token.TokenF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64

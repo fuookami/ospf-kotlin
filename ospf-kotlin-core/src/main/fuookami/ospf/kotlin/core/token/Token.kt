@@ -132,4 +132,3 @@ data class Token<V : RealNumber<V>>(
     override fun toString() = "$name: ${result ?: "?"}"
 }
 
-typealias TokenF64 = Token<Flt64>

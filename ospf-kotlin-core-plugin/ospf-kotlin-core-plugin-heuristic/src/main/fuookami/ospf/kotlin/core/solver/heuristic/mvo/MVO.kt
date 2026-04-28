@@ -7,7 +7,6 @@ import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.token.Token
-import fuookami.ospf.kotlin.core.token.TokenF64
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -154,7 +153,7 @@ open class MVOPolicy<V>(
     private fun applyWormhole(
         bestSolution: Solution,
         dimension: Int,
-        token: TokenF64,
+        token: Token<Flt64>,
         tdr: Flt64
     ): Flt64 {
         val range = token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()

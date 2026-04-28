@@ -184,12 +184,6 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
 
 typealias AbstractMutableTokenTableF64 = AbstractMutableTokenTable<Flt64>
 
-@Deprecated("Use AbstractTokenTable<Flt64> instead", ReplaceWith("AbstractTokenTable<Flt64>"))
-typealias LegacyAbstractTokenTable = AbstractTokenTable<Flt64>
-
-@Deprecated("Use AbstractMutableTokenTable<Flt64> instead", ReplaceWith("AbstractMutableTokenTable<Flt64>"))
-typealias LegacyAbstractMutableTokenTable = AbstractMutableTokenTable<Flt64>
-
 data class TokenTable<V>(
     override val category: Category,
     override val tokenList: AbstractTokenList<V>,
@@ -561,7 +555,7 @@ sealed class MutableTokenTable<V>(
 typealias MutableTokenTableF64 = MutableTokenTable<Flt64>
 typealias ConcurrentMutableTokenTableF64 = ConcurrentMutableTokenTable<Flt64>
 
-private fun LegacyAbstractTokenTable.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
+private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
@@ -575,7 +569,7 @@ private fun LegacyAbstractTokenTable.cacheSymbolContext(symbol: IntermediateSymb
     cacheRange(symbol, symbol.range)
 }
 
-private fun LegacyAbstractTokenTable.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
+private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }

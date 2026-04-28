@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.CellF64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellF64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -97,7 +97,7 @@ class LinearSubObject<V : RealNumber<V>>(
         operator fun invoke(
             category: ObjectCategory,
             flattenData: LinearFlattenDataF64,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             name: String = ""
         ): LinearSubObject<Flt64> {
             val cells = createLinearCells(flattenData.monomials, tokens)
@@ -146,7 +146,7 @@ class QuadraticSubObject<V : RealNumber<V>>(
         operator fun invoke(
             category: ObjectCategory,
             flattenData: QuadraticFlattenDataF64,
-            tokens: LegacyAbstractTokenTable,
+            tokens: AbstractTokenTable<Flt64>,
             name: String = ""
         ): QuadraticSubObject<Flt64> {
             val cells = createQuadraticCells(flattenData.monomials, tokens)

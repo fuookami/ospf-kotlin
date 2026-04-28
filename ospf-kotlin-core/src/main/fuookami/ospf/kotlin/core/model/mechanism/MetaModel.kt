@@ -10,8 +10,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
-import fuookami.ospf.kotlin.core.token.LegacyAbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.LegacyAbstractTokenTable
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
@@ -49,7 +50,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
 /**
- * Factory function to create the appropriate [LegacyAbstractMutableTokenTable]
+ * Factory function to create the appropriate [AbstractMutableTokenTable<Flt64>]
  * based on configuration. Used by [AbstractMetaModel] to construct the token
  * table before passing it to the [BasicModel] superclass constructor.
  */
@@ -58,7 +59,7 @@ private fun createTokenTable(
     concurrent: Boolean,
     manualTokenAddition: Boolean,
     checkTokenExists: Boolean
-): LegacyAbstractMutableTokenTable {
+): AbstractMutableTokenTable<Flt64> {
     return if (concurrent) {
         if (manualTokenAddition) {
             ConcurrentManualAddTokenTable(category, checkTokenExists)
@@ -114,17 +115,17 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         fun evaluate(solution: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? Token<Flt64> ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = parent.tokens.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * solution[idx]
             }
             return result
         }
 
-        fun evaluate(tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        fun evaluate(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? Token<Flt64> ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 val tokenResult = tokenTable[idx].resultF64 ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * tokenResult
@@ -132,10 +133,10 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
             return result
         }
 
-        fun evaluate(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, zeroIfNone: Boolean = false): Flt64? {
+        fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? {
             var result = polynomial.constant
             for (m in polynomial.monomials) {
-                val sym = m.symbol as? fuookami.ospf.kotlin.core.token.TokenF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val sym = m.symbol as? Token<Flt64> ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = tokenTable.indexOf(sym) ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * results[idx]
             }
@@ -149,10 +150,10 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
         fun evaluateAsV(solution: List<Flt64>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
             evaluate(solution, zeroIfNone)?.let { converter.intoValue(it) }
 
-        fun evaluateAsV(tokenTable: LegacyAbstractTokenTable, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
+        fun evaluateAsV(tokenTable: AbstractTokenTable<Flt64>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
             evaluate(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
 
-        fun evaluateAsV(results: List<Flt64>, tokenTable: LegacyAbstractTokenTable, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
+        fun evaluateAsV(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
             evaluate(results, tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
 
         fun flush(force: Boolean = false) {
@@ -164,7 +165,7 @@ sealed interface MetaModel<V : RealNumber<V>> : Model, AutoCloseable {
     val constraints: List<MathConstraint>
     override val objectCategory: ObjectCategory
     val subObjects: List<SubObject<V>>
-    val tokens: LegacyAbstractMutableTokenTable
+    val tokens: AbstractMutableTokenTable<Flt64>
     val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = tokens.symbolDependencies
 
     override fun add(item: AbstractVariableItem<*, *>): Try {
