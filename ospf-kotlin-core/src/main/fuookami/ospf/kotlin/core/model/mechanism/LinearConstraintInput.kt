@@ -75,7 +75,7 @@ data class LinearConstraintInput(
      * Evaluate whether this constraint is satisfied given token values.
      * Replaces `LinearInequality.isTrue()` for function symbol runtime evaluation.
      */
-    fun isTrue(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Boolean? {
+    fun isTrue(tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Boolean? {
         val lhsValue = evaluateFlattenData(flattenData, tokenTable, zeroIfNone = zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -83,7 +83,7 @@ data class LinearConstraintInput(
 
     fun isTrue(
         values: Map<Symbol, Flt64>,
-        tokenTable: AbstractTokenTable<Flt64>?,
+        tokenTable: AbstractTokenTable<*>?,
         zeroIfNone: Boolean = false
     ): Boolean? {
         val lhsValue = evaluateFlattenDataWithValues(flattenData, values, tokenTable, zeroIfNone = zeroIfNone)
@@ -93,7 +93,7 @@ data class LinearConstraintInput(
 
     fun isTrue(
         results: List<Flt64>,
-        tokenTable: AbstractTokenTable<Flt64>,
+        tokenTable: AbstractTokenTable<*>,
         zeroIfNone: Boolean = false
     ): Boolean? {
         val lhsValue = evaluateFlattenDataWithResults(flattenData, results, tokenTable, zeroIfNone = zeroIfNone)
@@ -136,14 +136,14 @@ data class LinearConstraintInput(
  */
 internal fun evaluateFlattenData(
     data: LinearFlattenDataF64,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<*>,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
     for (monomial in data.monomials) {
         val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
         val token = tokenTable.find(symbol) ?: continue
-        val value = token.result ?: if (zeroIfNone) Flt64.zero else return null
+        val value = token.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
     return result
@@ -152,14 +152,14 @@ internal fun evaluateFlattenData(
 private fun evaluateFlattenDataWithValues(
     data: LinearFlattenDataF64,
     values: Map<Symbol, Flt64>,
-    tokenTable: AbstractTokenTable<Flt64>?,
+    tokenTable: AbstractTokenTable<*>?,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
     for (monomial in data.monomials) {
         val symbol = monomial.symbol
         val value = values[symbol]
-            ?: (symbol as? AbstractVariableItem<*, *>)?.let { tokenTable?.find(it)?.result }
+            ?: (symbol as? AbstractVariableItem<*, *>)?.let { tokenTable?.find(it)?.resultF64 }
             ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
@@ -189,14 +189,13 @@ private fun evaluateFlattenDataWithValuesAndTokenList(
 private fun evaluateFlattenDataWithResults(
     data: LinearFlattenDataF64,
     results: List<Flt64>,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<*>,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
     for (monomial in data.monomials) {
         val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
-        val token = tokenTable.find(symbol) ?: continue
-        val idx = tokenTable.indexOf(token) ?: if (zeroIfNone) 0 else return null
+        val idx = tokenTable.indexOf(symbol) ?: if (zeroIfNone) 0 else return null
         val value = results.getOrElse(idx) { if (zeroIfNone) Flt64.zero else return null }
         result = result + monomial.coefficient * value
     }
@@ -212,7 +211,7 @@ private fun evaluateFlattenDataFromTokenList(
     for (monomial in data.monomials) {
         val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
         val token = tokenList.find(symbol) ?: continue
-        val value = token.result ?: if (zeroIfNone) Flt64.zero else return null
+        val value = token.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
     return result
@@ -252,18 +251,18 @@ internal fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this)
  */
 internal fun evaluateQuadraticFlattenData(
     data: QuadraticFlattenDataF64,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<*>,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
     for (monomial in data.monomials) {
         val sym1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
         val token1 = tokenTable.find(sym1) ?: continue
-        val val1 = token1.result ?: if (zeroIfNone) Flt64.zero else return null
+        val val1 = token1.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
         val val2 = if (monomial.symbol2 != null) {
             val sym2 = monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue
             val token2 = tokenTable.find(sym2) ?: continue
-            token2.result ?: if (zeroIfNone) Flt64.zero else return null
+            token2.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
         } else {
             val1
         }

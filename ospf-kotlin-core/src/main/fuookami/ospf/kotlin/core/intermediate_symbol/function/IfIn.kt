@@ -37,8 +37,8 @@ class IfInFunction<T : Field<T>>(
     val lby: AbstractVariableItem<*, *> = BinVar("${name}_lby")
     val uby: AbstractVariableItem<*, *> = BinVar("${name}_uby")
 
-    private val andFunc: Flt64AndFunction by lazy {
-        Flt64AndFunction(
+    private val andFunc: AndFunction<Flt64> by lazy {
+        AndFunction(
             listOf(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, lby)), Flt64.zero),
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, uby)), Flt64.zero)

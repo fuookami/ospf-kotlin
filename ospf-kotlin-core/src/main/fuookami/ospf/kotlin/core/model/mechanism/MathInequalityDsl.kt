@@ -435,7 +435,7 @@ infix fun UInt64.geq(rhs: Symbol): MathLinearInequality = this.toFlt64() geq rhs
 // ========== LinearInequality to QuadraticConstraint direct conversion ==========
 
 fun MathLinearInequality.toQuadraticConstraint(
-    tokens: AbstractTokenTable<Flt64>,
+    tokens: AbstractTokenTable<*>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -454,7 +454,7 @@ fun MathLinearInequality.toQuadraticConstraint(
 // ========== Relation-based constraint creation ==========
 
 fun LinearRelation.toConstraint(
-    tokens: AbstractTokenTable<Flt64>,
+    tokens: AbstractTokenTable<*>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -464,7 +464,7 @@ fun LinearRelation.toConstraint(
 }
 
 fun QuadraticRelation.toConstraint(
-    tokens: AbstractTokenTable<Flt64>,
+    tokens: AbstractTokenTable<*>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -474,7 +474,7 @@ fun QuadraticRelation.toConstraint(
 }
 
 fun LinearRelation.toQuadraticConstraint(
-    tokens: AbstractTokenTable<Flt64>,
+    tokens: AbstractTokenTable<*>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,

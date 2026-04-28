@@ -6,8 +6,10 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
 import fuookami.ospf.kotlin.core.model.intermediate.CellF64
+import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellF64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
@@ -17,6 +19,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
@@ -175,14 +178,16 @@ class LinearConstraintImpl(
     companion object {
         operator fun invoke(
             relation: LinearRelation,
-            tokens: AbstractTokenTable<Flt64>,
+            tokens: AbstractTokenTable<*>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl {
+            @Suppress("UNCHECKED_CAST")
+            val solverTokens = tokens as AbstractTokenTable<Flt64>
             val flattenData = relation.flattenData
-            val lhs = createLinearCells(flattenData.monomials, tokens)
+            val lhs = createLinearCells(flattenData.monomials, solverTokens)
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -217,14 +222,16 @@ class QuadraticConstraintImpl(
     companion object {
         operator fun invoke(
             relation: QuadraticRelation,
-            tokens: AbstractTokenTable<Flt64>,
+            tokens: AbstractTokenTable<*>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl {
+            @Suppress("UNCHECKED_CAST")
+            val solverTokens = tokens as AbstractTokenTable<Flt64>
             val flattenData = relation.flattenData
-            val lhs = createQuadraticCells(flattenData.monomials, tokens)
+            val lhs = createQuadraticCells(flattenData.monomials, solverTokens)
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -242,11 +249,11 @@ class QuadraticConstraintImpl(
 typealias LinearConstraint = Constraint<Flt64, Linear>
 typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
 
-internal fun createLinearCells(
+internal fun <V> createLinearCells(
     monomials: List<UtilsLinearMonomial<Flt64>>,
-    tokens: AbstractTokenTable<Flt64>
-): ArrayList<LinearCellF64> {
-    val cells = ArrayList<LinearCellF64>()
+    tokens: AbstractTokenTable<V>
+): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val cells = ArrayList<LinearCell<V>>()
     for (monomial in monomials) {
         val variable = monomial.symbol as AbstractVariableItem<*, *>
         val token = tokens.find(variable)
@@ -257,11 +264,11 @@ internal fun createLinearCells(
     return cells
 }
 
-internal fun createQuadraticCells(
+internal fun <V> createQuadraticCells(
     monomials: List<UtilsQuadraticMonomial<Flt64>>,
-    tokens: AbstractTokenTable<Flt64>
-): ArrayList<QuadraticCellF64> {
-    val cells = ArrayList<QuadraticCellF64>()
+    tokens: AbstractTokenTable<V>
+): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val cells = ArrayList<QuadraticCell<V>>()
     for (monomial in monomials) {
         val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
         val token1 = tokens.find(variable1)

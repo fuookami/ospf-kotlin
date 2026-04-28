@@ -28,6 +28,7 @@ import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -40,11 +41,11 @@ import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
 
-sealed interface MechanismModel<V : RealNumber<V>> : AutoCloseable {
+sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
     val constraints: List<Constraint<V, *>>
     val objectFunction: Object
-    val tokens: AbstractTokenTable<Flt64>
+    val tokens: AbstractTokenTable<V>
 
     override fun close() {
         tokens.close()
@@ -64,7 +65,7 @@ sealed interface MechanismModel<V : RealNumber<V>> : AutoCloseable {
  * invoke() methods.
  */
 @Suppress("UNCHECKED_CAST")
-fun <V : RealNumber<V>> convertMechanismModelToF64(model: MechanismModel<V>): Ret<MechanismModelF64> {
+fun <V> convertMechanismModelToF64(model: MechanismModel<V>): Ret<MechanismModelF64> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {
             Ok(model as LinearMechanismModelF64)
@@ -81,7 +82,7 @@ fun <V : RealNumber<V>> convertMechanismModelToF64(model: MechanismModel<V>): Re
 // Backward compatibility: typealias aliases
 typealias MechanismModelF64 = MechanismModel<Flt64>
 
-interface AbstractLinearMechanismModel<V : RealNumber<V>> : MechanismModel<V> {
+interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
      * Add constraint using math LinearInequality
      */
@@ -104,7 +105,7 @@ interface AbstractLinearMechanismModel<V : RealNumber<V>> : MechanismModel<V> {
     }
 }
 
-interface AbstractQuadraticMechanismModel<V : RealNumber<V>> : AbstractLinearMechanismModel<V> {
+interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
      * Add constraint using math QuadraticInequality
      */
@@ -131,7 +132,7 @@ interface AbstractQuadraticMechanismModel<V : RealNumber<V>> : AbstractLinearMec
 typealias AbstractLinearMechanismModelF64 = AbstractLinearMechanismModel<Flt64>
 typealias AbstractQuadraticMechanismModelF64 = AbstractQuadraticMechanismModel<Flt64>
 
-interface SingleObjectMechanismModel<V : RealNumber<V>> : MechanismModel<V> {
+interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<*>
 }
 
@@ -273,14 +274,18 @@ private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
     return constraints to dumpedSubObjects
 }
 
-class LinearMechanismModel<V : RealNumber<V>>(
+class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
     constraints: List<LinearConstraintImpl>,
     override val objectFunction: SingleObject<LinearSubObject<Flt64>>,
-    override val tokens: AbstractTokenTable<Flt64>
-) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V> {
+    override val tokens: AbstractTokenTable<V>
+) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
+        where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
+    @Suppress("UNCHECKED_CAST")
+    private val solverTokenTable: AbstractTokenTable<Flt64>
+        get() = tokens as AbstractTokenTable<Flt64>
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -493,7 +498,7 @@ class LinearMechanismModel<V : RealNumber<V>>(
         _constraints.add(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(relation.flattenData, relation.comparison),
-                tokens = tokens,
+                tokens = solverTokenTable,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -695,14 +700,18 @@ class LinearMechanismModel<V : RealNumber<V>>(
 // Backward compatibility: typealias aliases
 typealias LinearMechanismModelF64 = LinearMechanismModel<Flt64>
 
-class QuadraticMechanismModel<V : RealNumber<V>>(
+class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
     constraints: List<QuadraticConstraintImpl>,
     override val objectFunction: SingleObject<QuadraticSubObject<Flt64>>,
-    override val tokens: AbstractTokenTable<Flt64>
-) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V> {
+    override val tokens: AbstractTokenTable<V>
+) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
+        where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
+    @Suppress("UNCHECKED_CAST")
+    private val solverTokenTable: AbstractTokenTable<Flt64>
+        get() = tokens as AbstractTokenTable<Flt64>
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -914,7 +923,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
     ): Try {
         _constraints.add(
             relation.toQuadraticConstraint(
-                tokens = tokens,
+                tokens = solverTokenTable,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -931,7 +940,7 @@ class QuadraticMechanismModel<V : RealNumber<V>>(
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
-                tokens = tokens,
+                tokens = solverTokenTable,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from

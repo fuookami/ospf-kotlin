@@ -107,37 +107,55 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 // These are NOT interface members to avoid JVM signature collision with the V-typed primary path.
 // They delegate to the V-typed primary via IntoValue.Flt64 (identity converter).
 
-@Deprecated("Use prepare(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("prepare(values, tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use prepare(tokenTable: AbstractTokenTable<V>, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("prepare(values, tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>): Flt64? where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     return prepare(values, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>)?.let { (it as Flt64) }
 }
 
-@Deprecated("Use prepareAndCache(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("prepareAndCache(values, tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use prepareAndCache(tokenTable: AbstractTokenTable<V>, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("prepareAndCache(values, tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.prepareAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>) where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     prepareAndCache(values, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>)
 }
 
-@Deprecated("Use evaluate(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluate(tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use evaluate(tokenTable: AbstractTokenTable<V>, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("evaluate(tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.evaluate(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     return evaluate(tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
 }
 
-@Deprecated("Use evaluate(results, tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluate(results, tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use evaluate(results, tokenTable: AbstractTokenTable<V>, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("evaluate(results, tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     return evaluate(results, tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
 }
 
-@Deprecated("Use evaluate(values, tokenTable: AbstractTokenTable<V>?, converter) instead", ReplaceWith("evaluate(values, tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use evaluate(values, tokenTable: AbstractTokenTable<V>?, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("evaluate(values, tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     return evaluate(values, tokenTable as AbstractTokenTable<V>?, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }
 }
 
-@Deprecated("Use evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter) instead", ReplaceWith("evaluateFromTokens(tokenTable, IntoValue.Flt64)"))
+@Deprecated(
+    "Use evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+    ReplaceWith("evaluateFromTokens(tokenTable, IntoValue.Flt64)")
+)
 fun <V> IntermediateSymbol<V>.evaluateFromTokens(tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Flt64? where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("UNCHECKED_CAST")
     return evaluateFromTokens(tokenTable as AbstractTokenTable<V>, IntoValue.Flt64 as IntoValue<V>, zeroIfNone)?.let { (it as Flt64) }

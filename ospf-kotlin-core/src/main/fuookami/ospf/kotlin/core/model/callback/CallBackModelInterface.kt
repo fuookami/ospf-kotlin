@@ -8,14 +8,17 @@ import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface AbstractCallBackModelInterface<Obj, V> : Model, AutoCloseable {
+interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model, AutoCloseable
+        where TV : RealNumber<TV>, TV : NumberField<TV> {
     val defaultObjective: V
 
-    val tokens: AbstractMutableTokenTable<Flt64>
+    val tokens: AbstractMutableTokenTable<TV>
     val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
 
     val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>
@@ -83,7 +86,9 @@ interface AbstractCallBackModelInterface<Obj, V> : Model, AutoCloseable {
     }
 }
 
-interface CallBackModelInterface : AbstractCallBackModelInterface<Flt64, Flt64> {
+typealias AbstractCallBackModelInterface<Obj, V> = AbstractCallBackModelInterfaceV<Obj, V, Flt64>
+
+interface CallBackModelInterface : AbstractCallBackModelInterfaceV<Flt64, Flt64, Flt64> {
     override val defaultObjective: Flt64
         get() = if (objectCategory == ObjectCategory.Minimum) {
             Flt64.negativeInfinity
@@ -104,7 +109,7 @@ interface CallBackModelInterface : AbstractCallBackModelInterface<Flt64, Flt64> 
     }
 }
 
-interface MultiObjectiveModelInterface : AbstractCallBackModelInterface<MulObj, List<Flt64>> {
+interface MultiObjectiveModelInterface : AbstractCallBackModelInterfaceV<MulObj, List<Flt64>, Flt64> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
 

@@ -154,6 +154,70 @@ for ($i = 0; $i -lt $lines.Count; $i++) {
 }
 Write-Result "P4-5-1: No non-deprecated Flt64-returning prepare/evaluate in IntermediateSymbol interface (solver-boundary exempt)" ($p4_5_violations -eq 0) "Found $($p4_5_violations) violations"
 
+# --- P5-1 Guards (new) ---
+
+# Guard 11: No usages of deprecated typealias in core/src/main (definitions exempt)
+$deprecatedAliasNames = @()
+$ktFiles = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt"
+foreach ($file in $ktFiles) {
+    $fileLines = Get-Content $file.FullName
+    for ($i = 0; $i -lt $fileLines.Count; $i++) {
+        if ($fileLines[$i] -match "^\s*typealias\s+([A-Za-z_][A-Za-z0-9_]*)\b") {
+            $aliasName = $Matches[1]
+            $isDeprecatedAlias = $false
+            for ($j = [Math]::Max(0, $i - 3); $j -lt $i; $j++) {
+                if ($fileLines[$j] -match "@Deprecated") {
+                    $isDeprecatedAlias = $true
+                    break
+                }
+            }
+            if ($isDeprecatedAlias) {
+                $deprecatedAliasNames += $aliasName
+            }
+        }
+    }
+}
+$deprecatedAliasNames = $deprecatedAliasNames | Sort-Object -Unique
+
+$deprecatedAliasUsages = @()
+foreach ($aliasName in $deprecatedAliasNames) {
+    $hits = $ktFiles |
+        Select-String -Pattern ("\b" + [Regex]::Escape($aliasName) + "\b") |
+        Where-Object {
+            $_.Line -notmatch ("^\s*typealias\s+" + [Regex]::Escape($aliasName) + "\b") -and
+            $_.Line -notmatch "^\s*@Deprecated" -and
+            $_.Line -notmatch "^\s*//"
+        }
+    $deprecatedAliasUsages += $hits
+}
+Write-Result "P5-1-1: No deprecated typealias usages in core/src/main (definitions exempt)" ($deprecatedAliasUsages.Count -eq 0) "Found $($deprecatedAliasUsages.Count) usages across $($deprecatedAliasNames.Count) aliases"
+
+# --- P5-3/P5-4 Guards (new) ---
+
+# Guard 12: No increase in Flt64-fixed token-table signatures under core/model.
+# Current remaining items are solver-boundary / compatibility shims and are
+# tracked by frozen baseline to prevent regressions.
+$modelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
+$flt64TokenSigMatches = Get-ChildItem -Path $modelMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "AbstractTokenTable<Flt64>|AbstractMutableTokenTable<Flt64>" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$flt64TokenSigBaseline = 18  # Frozen 2026-04-29 after P5 full closure
+Write-Baseline "P5-3-1: No new Flt64-fixed token-table signatures under core/model" $flt64TokenSigMatches.Count $flt64TokenSigBaseline "Found $($flt64TokenSigMatches.Count) total (baseline=$flt64TokenSigBaseline)"
+
+# Guard 13: No increase in deprecated ToMathLinearPolynomial bridge references
+# across core/framework during migration window.
+$toMathLinearPolyMatches = @()
+$bridgeRoots = @("ospf-kotlin-core/src/main", "ospf-kotlin-framework/src/main")
+foreach ($root in $bridgeRoots) {
+    if (Test-Path $root) {
+        $toMathLinearPolyMatches += Get-ChildItem -Path $root -Recurse -Filter "*.kt" |
+            Select-String -Pattern "\bToMathLinearPolynomial\b" |
+            Where-Object { $_.Line -notmatch "^\s*//" }
+    }
+}
+$toMathLinearPolyBaseline = 23  # Frozen 2026-04-29 after P5 full closure
+Write-Baseline "P5-4-1: No new ToMathLinearPolynomial bridge references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
+
 # --- Summary ---
 Write-Host ""
 if ($exitCode -eq 0) {

@@ -100,9 +100,9 @@ suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelF64): Ret<Feas
  * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to F64 first.
  * Uses [convertMechanismModelToF64] to validate V=Flt64 at the solver boundary.
  */
-suspend fun <V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>> AbstractLinearSolver.solve(
+suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val f64Model = when (val result = convertMechanismModelToF64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
@@ -188,9 +188,9 @@ suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelF64): Re
  * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to F64 first.
  * Uses [convertMechanismModelToF64] to validate V=Flt64 at the solver boundary.
  */
-suspend fun <V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>> AbstractQuadraticSolver.solve(
+suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val f64Model = when (val result = convertMechanismModelToF64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)

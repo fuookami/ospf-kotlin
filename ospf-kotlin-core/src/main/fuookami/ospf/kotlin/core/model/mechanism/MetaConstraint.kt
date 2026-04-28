@@ -219,7 +219,7 @@ interface MathConstraint {
     /**
      * Evaluate whether this constraint is satisfied given solution values.
      */
-    fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean = false): Boolean?
+    fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Boolean?
 }
 
 /**
@@ -239,7 +239,7 @@ data class LinearInequalityConstraint(
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Boolean? {
+    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Boolean? {
         val lhsValue = evaluateFlattenData(flattenData, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -267,7 +267,7 @@ data class QuadraticInequalityConstraint(
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, zeroIfNone: Boolean): Boolean? {
+    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Boolean? {
         val lhsValue = evaluateQuadraticFlattenData(flattenData, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)

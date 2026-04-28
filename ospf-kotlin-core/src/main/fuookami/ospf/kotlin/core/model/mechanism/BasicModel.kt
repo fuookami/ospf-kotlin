@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.CombinationVariableItem
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
@@ -19,13 +20,13 @@ import fuookami.ospf.kotlin.utils.functional.*
  * This corresponds to `BasicModel<V>` in the Rust implementation.
  * `MetaModel` extends this with objective functions and higher-level semantics.
  *
- * BasicModel delegates token storage to a [AbstractMutableTokenTable<Flt64>] provided
+ * BasicModel delegates token storage to a [AbstractMutableTokenTable<V>] provided
  * at construction time -- the same mechanism used by MetaModel.
  */
-open class BasicModel<V : RealNumber<V>>(
+open class BasicModel<V>(
     open val name: String,
-    open val tokens: AbstractMutableTokenTable<Flt64>
-) : AutoCloseable {
+    open val tokens: AbstractMutableTokenTable<V>
+) : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
 
     /** Symbol table. */
     val symbols: MutableList<IntermediateSymbol<*>> = mutableListOf()

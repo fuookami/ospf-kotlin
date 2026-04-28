@@ -23,6 +23,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
@@ -168,12 +169,30 @@ class MaskingFunction<T : Field<T>>(
             )
         )
 
-        /**
-         * Factory: accept ToLinearPolynomial for both x and mask.
-         * Fully generic factory for mixed framework types.
-         */
+        /** Factory: accept ToLinearPolynomial<Flt64> for both x and mask. */
         @JvmStatic
-        @JvmName("fromToLinearPolynomials")
+        @JvmName("fromLinearPolynomials")
+        fun fromLinearPolynomials(
+            x: ToLinearPolynomial<Flt64>,
+            mask: ToLinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+            input = x.toLinearPolynomial(),
+            maskPoly = mask.toLinearPolynomial(),
+            bigM = bigM,
+            name = name,
+            displayName = displayName
+        )
+
+        @Deprecated(
+            message = "Use fromLinearPolynomials(x: ToLinearPolynomial<Flt64>, mask: ToLinearPolynomial<Flt64>, ...) instead. Compatibility shim scheduled for removal after 2026-09-30.",
+            replaceWith = ReplaceWith("fromLinearPolynomials(x, mask, bigM, name, displayName)"),
+            level = DeprecationLevel.WARNING
+        )
+        @JvmStatic
+        @JvmName("fromToMathLinearPolynomialsCompat")
         operator fun invoke(
             x: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
             mask: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
