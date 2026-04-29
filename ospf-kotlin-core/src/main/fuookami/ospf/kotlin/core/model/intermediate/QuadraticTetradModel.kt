@@ -507,7 +507,6 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
     fun linearRelax(): QuadraticTetradModelView
     fun linearRelaxed(): QuadraticTetradModelView
-    suspend fun farkasDual(): QuadraticTetradModelView
     fun feasibility(): QuadraticTetradModelView
     fun elastic(): QuadraticTetradModelView
 
@@ -1042,16 +1041,6 @@ data class QuadraticTetradModel(
             tokensInSolver = tokensInSolver,
             objective = objective.copy()
         )
-    }
-
-    @Deprecated("Quadratic dual is not supported — Rust has no public API for this")
-    suspend fun dual(): QuadraticTetradModel {
-        throw UnsupportedOperationException("Quadratic dual is not supported")
-    }
-
-    @Deprecated("Quadratic farkas dual is not supported — Rust has no public API for this")
-    override suspend fun farkasDual(): QuadraticTetradModel {
-        throw UnsupportedOperationException("Quadratic farkas dual is not supported")
     }
 
     @Suppress("DEPRECATION")
@@ -1598,48 +1587,6 @@ data class QuadraticTetradModel(
 
     override fun toString(): String {
         return name
-    }
-}
-
-suspend fun solveDual(
-    model: QuadraticTetradModel,
-    solver: QuadraticSolver
-): Ret<QuadraticDualSolution> {
-    val dualModel = model.dual()
-
-    return when (val result = solver(dualModel)) {
-        is Ok -> {
-            Ok(dualModel.tidyDualSolution(result.value.solution))
-        }
-
-        is Failed -> {
-            Failed(result.error)
-        }
-
-        is Fatal -> {
-            Fatal(result.errors)
-        }
-    }
-}
-
-suspend fun solveFarkasDual(
-    model: QuadraticTetradModelView,
-    solver: QuadraticSolver
-): Ret<QuadraticDualSolution> {
-    val dualModel = model.farkasDual()
-
-    return when (val result = solver(dualModel)) {
-        is Ok -> {
-            Ok(dualModel.tidyDualSolution(result.value.solution))
-        }
-
-        is Failed -> {
-            Failed(result.error)
-        }
-
-        is Fatal -> {
-            Fatal(result.errors)
-        }
     }
 }
 

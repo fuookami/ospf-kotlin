@@ -4,7 +4,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
@@ -12,7 +11,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -99,7 +97,7 @@ class TaskSchedulingSwitch<
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     } else {
-                        AndFunction(
+                        AndFunction.fromLinearPolynomials(
                             polynomials = listOf(
                                 frontOf[task1, task3],
                                 frontOf[task3, task2]
@@ -136,7 +134,7 @@ class TaskSchedulingSwitch<
                         name = "front_of_${task1}_${task2}"
                     )
                 } else if (taskTime != null) {
-                    val conditions: MutableList<ToMathLinearPolynomial> = mutableListOf(
+                    val conditions: MutableList<LinearIntermediateSymbol<Flt64>> = mutableListOf(
                         compilation.taskAssignment[executor, task1],
                         compilation.taskAssignment[executor, task2],
                         frontOf[task1, task2]
@@ -150,7 +148,7 @@ class TaskSchedulingSwitch<
                             name = "not_between_${task3}_${task1}_${task2}"
                         ))
                     }
-                    AndFunction(
+                    AndFunction.fromLinearPolynomials(
                         polynomials = conditions,
                         name = "switch_${executor}_${task1}_${task2}"
                     )
@@ -158,7 +156,7 @@ class TaskSchedulingSwitch<
                     if (task1.time!!.start < task2.time!!.start
                         && !tasks.any { task1.time!!.start < it.time!!.start && it.time!!.start < task2.time!!.start }
                     ) {
-                        AndFunction(
+                        AndFunction.fromLinearPolynomials(
                             polynomials = listOf(
                                 compilation.taskAssignment[executor, task1],
                                 compilation.taskAssignment[executor, task2]
@@ -193,7 +191,7 @@ class TaskSchedulingSwitch<
                         emptyList(),
                         with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }
                     )
-                MaskingFunction(
+                MaskingFunction.fromLinearPolynomials(
                     x = LinearExpressionSymbol(
                         polynomial = xPoly,
                         name = "switch_time_x_${task1}_$task2"

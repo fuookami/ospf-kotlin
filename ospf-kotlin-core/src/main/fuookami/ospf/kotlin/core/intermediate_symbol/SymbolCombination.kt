@@ -83,6 +83,18 @@ typealias QuantityLinearExpressionSymbols3 = QuantitySymbolCombination<LinearExp
 typealias QuantityLinearExpressionSymbols4 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape4>
 typealias DynQuantityLinearExpressionSymbols = QuantitySymbolCombination<LinearExpressionSymbolF64, DynShape>
 
+typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbolF64, Shape1>
+typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbolF64, Shape2>
+typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbolF64, Shape3>
+typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbolF64, Shape4>
+typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbolF64, DynShape>
+
+typealias QuantityLinearIntermediateSymbols1 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape1>
+typealias QuantityLinearIntermediateSymbols2 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape2>
+typealias QuantityLinearIntermediateSymbols3 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape3>
+typealias QuantityLinearIntermediateSymbols4 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape4>
+typealias DynQuantityLinearIntermediateSymbols = QuantitySymbolCombination<LinearIntermediateSymbolF64, DynShape>
+
 typealias QuadraticExpressionSymbols1 = SymbolCombination<QuadraticExpressionSymbolF64, Shape1>
 typealias QuadraticExpressionSymbols2 = SymbolCombination<QuadraticExpressionSymbolF64, Shape2>
 typealias QuadraticExpressionSymbols3 = SymbolCombination<QuadraticExpressionSymbolF64, Shape3>

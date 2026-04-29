@@ -7,9 +7,8 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
@@ -19,7 +18,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -104,9 +102,9 @@ abstract class TaskTimeImpl<
                         }
                     }
                     if (compilation.taskCancelEnabled) {
-                        MaskingFunction(
+                        MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
-                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                            mask = compilation.taskCompilation[task],
                             name = "delay_time_${task}"
                         )
                     } else {
@@ -167,9 +165,9 @@ abstract class TaskTimeImpl<
                         }
                     }
                     if (compilation.taskCancelEnabled) {
-                        MaskingFunction(
+                        MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
-                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                            mask = compilation.taskCompilation[task],
                             name = "advance_time_${task}"
                         )
                     } else {
@@ -261,9 +259,9 @@ abstract class TaskTimeImpl<
                                                 throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
-                                        MaskingFunction(
+                                        MaskingFunction.fromLinearPolynomials(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                                            mask = compilation.taskCompilation[task],
                                             name = "over_max_delay_time_${task}"
                                         )
                                     } else {
@@ -353,9 +351,9 @@ abstract class TaskTimeImpl<
                                                 throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
-                                        MaskingFunction(
+                                        MaskingFunction.fromLinearPolynomials(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                                            mask = compilation.taskCompilation[task],
                                             name = "over_max_advance_time_${task}"
                                         )
                                     } else {
@@ -445,9 +443,9 @@ abstract class TaskTimeImpl<
                                                 throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
-                                        MaskingFunction(
+                                        MaskingFunction.fromLinearPolynomials(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                                            mask = compilation.taskCompilation[task],
                                             name = "delay_last_end_time_${task}"
                                         )
                                     } else {
@@ -533,9 +531,9 @@ abstract class TaskTimeImpl<
                                                 throw IllegalStateException(result.errors.joinToString(", ") { it.message })
                                             }
                                         }
-                                        MaskingFunction(
+                                        MaskingFunction.fromLinearPolynomials(
                                             x = slack,
-                                            mask = compilation.taskCompilation[task] as ToMathLinearPolynomial,
+                                            mask = compilation.taskCompilation[task],
                                             name = "advance_earliest_end_time_${task}"
                                         )
                                     } else {
@@ -1086,8 +1084,8 @@ open class IterativeTaskSchedulingTaskTime<
     private lateinit var estRedundancy: Variable1<*>
     override lateinit var estSlack: LinearIntermediateSymbols1
 
-    override lateinit var estimateStartTime: LinearExpressionSymbols1
-    override lateinit var estimateEndTime: LinearExpressionSymbols1
+    override lateinit var estimateStartTime: LinearIntermediateSymbols1
+    override lateinit var estimateEndTime: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
@@ -1095,7 +1093,7 @@ open class IterativeTaskSchedulingTaskTime<
         }
 
         if (!::estimateStartTime.isInitialized) {
-            estimateStartTime = LinearExpressionSymbols1(
+            estimateStartTime = LinearIntermediateSymbols1(
                 name = "estimate_start_time",
                 shape = Shape1(tasks.size)
             ) { t, _ ->
@@ -1123,7 +1121,7 @@ open class IterativeTaskSchedulingTaskTime<
         }
 
         if (!::estimateEndTime.isInitialized) {
-            estimateEndTime = LinearExpressionSymbols1(
+            estimateEndTime = LinearIntermediateSymbols1(
                 name = "estimate_end_time",
                 shape = Shape1(tasks.size)
             ) { t, _ ->

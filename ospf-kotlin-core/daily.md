@@ -242,6 +242,45 @@
 
 ---
 
+## P7 当前进展（2026-04-29 晚，交接快照）
+
+### 本轮已完成
+
+1. `core` 侧完成 `QuadraticTetradModel` 的对偶接口收敛：
+   - 删除 `farkasDual` 相关对外接口与实现。
+   - 删除 `QuadraticDualUnsupportedTest.kt`（旧接口已下线）。
+   - 更新 `BendersCutApiTest` 中 `QuadraticTetradModelView` stub，移除 `farkasDual` override。
+2. 为下游过渡添加兼容别名：
+   - 在 `core/intermediate_symbol/SymbolCombination.kt` 增加 `LinearIntermediateSymbols* / QuantityLinearIntermediateSymbols* / Dyn*` typealias，降低 `framework` 迁移断点。
+3. `gantt-scheduling-domain-task-compilation-context` 已完成大部分 API 迁移：
+   - `Switch.kt`：`AndFunction` 与 `MaskingFunction` 改为 `fromLinearPolynomials` 工厂。
+   - `TaskTime.kt`：6 处多项式 mask 调用改为 `MaskingFunction.fromLinearPolynomials(...)`。
+   - `Compilation.kt`：`executorCompilation` 分支重构为“先构造 OR，再用 `resultVar` 组装表达式”的流程。
+
+### 本轮验证结果
+
+1. `mvn -pl ospf-kotlin-core -am test`：PASS。
+2. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`：FAIL。
+3. 当前失败已收敛为单点文件：`Compilation.kt`（`executorCompilation` 构造段，约 222~230 行）。
+
+### 当前阻塞点（需下个环境优先处理）
+
+1. `model.add(or)` 类型不匹配：当前 `or` 是 `OrFunction<Flt64>`，不满足 `MetaModel.add` 所需 `IntermediateSymbol` 重载。
+2. 由上一条引发级联报错：`when (val result = model.add(or))` 分支中的 `Ok/Failed/Fatal` 与 `result.error/result.errors` 解析失败。
+
+### 接力建议（下一步最短路径）
+
+1. 在 `Compilation.kt` 的 `executorCompilation` 段改为：
+   - 保留 `val or = OrFunction(...)`（需要 `or.resultVar`）。
+   - 用 `LinearFunctionSymbolAdapter(or)` 作为 `model.add(...)` 入参，确保类型满足 `IntermediateSymbol`。
+2. 修复后优先复跑：
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`
+3. 若通过，再补跑：
+   - `mvn -pl ospf-kotlin-core -am test`
+   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am test`（若该模块有测试）
+
+---
+
 ## 后续历史待办（P5 后）
 
 1. `P2-4`：LP 导出能力对齐 Rust

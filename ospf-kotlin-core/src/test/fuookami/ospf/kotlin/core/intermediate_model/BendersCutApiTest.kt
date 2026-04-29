@@ -508,7 +508,6 @@ private class RecordingQuadraticTetradModelView(
     override val objective: QuadraticObjective get() = throw UnsupportedOperationException()
     override fun linearRelax(): QuadraticTetradModelView = throw UnsupportedOperationException()
     override fun linearRelaxed(): QuadraticTetradModelView = throw UnsupportedOperationException()
-    override suspend fun farkasDual(): QuadraticTetradModelView = throw UnsupportedOperationException()
     override fun feasibility(): QuadraticTetradModelView = throw UnsupportedOperationException()
     override fun elastic(): QuadraticTetradModelView = throw UnsupportedOperationException()
     override fun exportLP(writer: java.io.OutputStreamWriter): Try = throw UnsupportedOperationException()

@@ -214,34 +214,31 @@ class TaskCompilation<
                     name = "executor_compilation",
                     shape = Shape1(executors.size)
                 ) { i, _ ->
-                    if (withExecutorLeisure) {
-                        val orPolynomials: List<ToMathLinearPolynomial> = tasks.map { x[it, executors[i]] }
-                        val or = OrFunction(
-                            polynomials = orPolynomials,
-                            name = "executor_compilation_or_${executors[i]}"
-                        )
-                        when (val result = model.add(or)) {
-                            is Ok -> {}
+                    val orPolynomials = tasks.map { x[it, executors[i]].toMathLinearPolynomial() }
+                    val or = OrFunction(
+                        polynomials = orPolynomials,
+                        name = "executor_compilation_or_${executors[i]}"
+                    )
+                    when (val result = model.add(or)) {
+                        is Ok -> {}
 
-                            is Failed -> {
-                                throw IllegalStateException(result.error.message)
-                            }
-
-                            is Fatal -> {
-                                throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                            }
+                        is Failed -> {
+                            throw IllegalStateException(result.error.message)
                         }
-                        LinearExpressionSymbol(
-                            polynomial = or.toMathLinearPolynomial() + z[executors[i]].toMathLinearPolynomial(),
-                            name = "executor_compilation_${executors[i]}"
-                        )
-                    } else {
-                        val orPolynomials: List<ToMathLinearPolynomial> = tasks.map { x[it, executors[i]] }
-                        OrFunction(
-                            polynomials = orPolynomials,
-                            name = "executor_compilation_${executors[i]}"
-                        )
+
+                        is Fatal -> {
+                            throw IllegalStateException(result.errors.joinToString(", ") { it.message })
+                        }
                     }
+                    val polynomial = if (withExecutorLeisure) {
+                        or.resultVar.toMathLinearPolynomial() + z[executors[i]].toMathLinearPolynomial()
+                    } else {
+                        or.resultVar.toMathLinearPolynomial()
+                    }
+                    LinearExpressionSymbol(
+                        polynomial = polynomial,
+                        name = "executor_compilation_${executors[i]}"
+                    )
                 }
             } catch (e: IllegalStateException) {
                 return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
@@ -304,10 +301,10 @@ open class IterativeTaskCompilation<
     override lateinit var z: BinVariable1
 
     lateinit var taskCost: LinearIntermediateSymbol<Flt64>
-    override lateinit var taskAssignment: LinearExpressionSymbols2
-    override lateinit var taskCompilation: LinearExpressionSymbols1
+    override lateinit var taskAssignment: LinearIntermediateSymbols2
+    override lateinit var taskCompilation: LinearIntermediateSymbols1
     private lateinit var xor: BinVariable1
-    override lateinit var executorCompilation: LinearExpressionSymbols1
+    override lateinit var executorCompilation: LinearIntermediateSymbols1
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
@@ -353,7 +350,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = LinearExpressionSymbols2(
+            taskAssignment = LinearIntermediateSymbols2(
                 "task_assignment",
                 Shape2(tasks.size, executors.size)
             ) { _, v ->
@@ -375,7 +372,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = LinearExpressionSymbols1(
+            taskCompilation = LinearIntermediateSymbols1(
                 "task_compilation",
                 Shape1(tasks.size)
             ) { t, _ ->
@@ -430,7 +427,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = LinearExpressionSymbols1(
+            executorCompilation = LinearIntermediateSymbols1(
                 "executor_compilation",
                 Shape1(executors.size)
             ) { e, _ ->
