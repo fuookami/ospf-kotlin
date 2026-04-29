@@ -501,6 +501,8 @@ private class RecordingQuadraticTetradModelView(
         lastSolution = solution
         return fixedDualSolution
     }
+    override suspend fun dual(): QuadraticTetradModel = throw UnsupportedOperationException()
+    override suspend fun farkasDual(): QuadraticTetradModel = throw UnsupportedOperationException()
     override val name: String = "stub-tetrad"
     override val dual: Boolean = false
     override val constraints: QuadraticConstraintBatch get() = throw UnsupportedOperationException()

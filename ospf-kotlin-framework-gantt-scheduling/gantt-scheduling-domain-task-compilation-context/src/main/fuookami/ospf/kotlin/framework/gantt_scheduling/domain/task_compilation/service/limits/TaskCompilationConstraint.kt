@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.eq

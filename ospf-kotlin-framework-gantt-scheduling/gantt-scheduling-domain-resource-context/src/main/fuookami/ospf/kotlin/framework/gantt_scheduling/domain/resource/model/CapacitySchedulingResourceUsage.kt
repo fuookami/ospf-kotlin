@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
@@ -38,7 +36,7 @@ abstract class CapacitySchedulingResourceUsage<
     override val lessEnabled: Boolean = true
 
     abstract override val name: String
-    abstract override var quantity: LinearExpressionSymbols1
+    abstract override var quantity: LinearExpressionSymbols1<Flt64>
 
     /**
      * 注册变量到模�?
@@ -54,7 +52,7 @@ abstract class CapacitySchedulingResourceUsage<
      * Subclasses should calculate timeSlots first in init block, then call this method
      */
     protected fun initQuantity(timeSlots: List<S>) {
-        quantity = LinearExpressionSymbols1(
+        quantity = LinearExpressionSymbols1<Flt64>(
             name = "${name}_quantity",
             shape = Shape1(timeSlots.size)
         ) { s, _ ->

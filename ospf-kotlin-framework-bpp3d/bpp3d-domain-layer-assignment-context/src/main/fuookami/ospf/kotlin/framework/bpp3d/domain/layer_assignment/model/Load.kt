@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -19,17 +17,17 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape1
 
 interface Load {
-    val load: LinearIntermediateSymbols1
-    val overLoad: LinearIntermediateSymbols1
-    val lessLoad: LinearIntermediateSymbols1
+    val load: LinearIntermediateSymbols1<Flt64>
+    val overLoad: LinearIntermediateSymbols1<Flt64>
+    val lessLoad: LinearIntermediateSymbols1<Flt64>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
 }
 
 abstract class AbstractLoad : Load {
-    override lateinit var overLoad: LinearIntermediateSymbols1
-    override lateinit var lessLoad: LinearIntermediateSymbols1
+    override lateinit var overLoad: LinearIntermediateSymbols1<Flt64>
+    override lateinit var lessLoad: LinearIntermediateSymbols1<Flt64>
 
     open fun register(model: MetaModelF64): Try {
         TODO("not implemented yet")
@@ -42,11 +40,11 @@ class ImpreciseLoad(
     override val overEnabled: Boolean = true,
     override val lessEnabled: Boolean = true
 ) : AbstractLoad() {
-    override lateinit var load: LinearExpressionSymbols1
+    override lateinit var load: LinearExpressionSymbols1<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         if (!::load.isInitialized) {
-            load = LinearExpressionSymbols1(
+            load = LinearExpressionSymbols1<Flt64>(
                 "load",
                 Shape1(items.size)
             ) { i, _ ->
@@ -99,11 +97,11 @@ class PreciseLoad(
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = true
 ) : AbstractLoad() {
-    override lateinit var load: LinearIntermediateSymbols1
+    override lateinit var load: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         if (!::load.isInitialized) {
-            load = LinearIntermediateSymbols1(
+            load = LinearIntermediateSymbols1<Flt64>(
                 "load",
                 Shape1(items.size)
             ) { i, _ ->

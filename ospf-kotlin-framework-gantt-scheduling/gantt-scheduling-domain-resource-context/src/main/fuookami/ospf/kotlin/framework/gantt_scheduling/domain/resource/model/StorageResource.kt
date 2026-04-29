@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
@@ -192,11 +190,11 @@ abstract class AbstractStorageResourceUsage<
     times: List<TimeSlot>,
     interval: Duration = timeWindow.interval
 ) : AbstractResourceUsage<StorageResourceTimeSlot<R, C>, R, C>() {
-    abstract val executorSupply: LinearIntermediateSymbols3
-    lateinit var supply: LinearIntermediateSymbols2
-    abstract val cost: LinearIntermediateSymbols2
+    abstract val executorSupply: LinearIntermediateSymbols3<Flt64>
+    lateinit var supply: LinearIntermediateSymbols2<Flt64>
+    abstract val cost: LinearIntermediateSymbols2<Flt64>
 
-    override lateinit var quantity: LinearIntermediateSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     final override val timeSlots: List<StorageResourceTimeSlot<R, C>>
 
@@ -253,7 +251,7 @@ abstract class AbstractStorageResourceUsage<
 
     override fun register(model: MetaModelF64): Try {
         if (!::supply.isInitialized) {
-            supply = LinearIntermediateSymbols2(
+            supply = LinearIntermediateSymbols2<Flt64>(
                 name = "${name}_supply",
                 shape = Shape2(resources.size, timeWindow.timeSlots.size)
             ) { _, (r, s) ->
@@ -265,7 +263,7 @@ abstract class AbstractStorageResourceUsage<
                 val t = timeWindow.timeSlots.indexOfFirst { it.end == time.end }
                 @Suppress("UNCHECKED_CAST")
                 val executorSum = executorSupply[_a, r, t].fold(LinearPolynomial<Flt64>(emptyList(), Flt64.zero)) { acc, elem ->
-                    acc + (elem as LinearIntermediateSymbol<Flt64>).toMathLinearPolynomial()
+                    acc + (elem as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
                 }
                 LinearExpressionSymbol(
                     polynomial = LinearPolynomial(emptyList(), fixedSupply) + executorSum,
@@ -287,7 +285,7 @@ abstract class AbstractStorageResourceUsage<
 
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
-                quantity = LinearIntermediateSymbols1(
+                quantity = LinearIntermediateSymbols1<Flt64>(
                     name = "${name}_quantity",
                     shape = Shape1(timeSlots.size)
                 ) { s, _ ->
@@ -295,8 +293,8 @@ abstract class AbstractStorageResourceUsage<
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
                     val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity) +
-                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearIntermediateSymbol<Flt64>)).toMathLinearPolynomial() -
-                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearIntermediateSymbol<Flt64>)).toMathLinearPolynomial()
+                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
+                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
                     LinearExpressionSymbol(
                         polynomial = quantityPoly,
                         name = "${name}_quantity_${slot}"
@@ -386,8 +384,8 @@ class TaskSchedulingStorageResourceUsage<
         lessEnabled = lessEnabled
     )
 
-    override lateinit var executorSupply: LinearIntermediateSymbols3
-    override lateinit var cost: LinearIntermediateSymbols2
+    override lateinit var executorSupply: LinearIntermediateSymbols3<Flt64>
+    override lateinit var cost: LinearIntermediateSymbols2<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
@@ -442,8 +440,8 @@ class IterativeTaskSchedulingStorageResourceUsage<
         name = name
     )
 
-    override lateinit var executorSupply: LinearExpressionSymbols3
-    override lateinit var cost: LinearExpressionSymbols2
+    override lateinit var executorSupply: LinearExpressionSymbols3<Flt64>
+    override lateinit var cost: LinearExpressionSymbols2<Flt64>
 
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
@@ -622,12 +620,12 @@ class BunchSchedulingStorageResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override lateinit var executorSupply: LinearExpressionSymbols3
-    override lateinit var cost: LinearExpressionSymbols2
+    override lateinit var executorSupply: LinearExpressionSymbols3<Flt64>
+    override lateinit var cost: LinearExpressionSymbols2<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         if (!::executorSupply.isInitialized) {
-            executorSupply = LinearExpressionSymbols3(
+            executorSupply = LinearExpressionSymbols3<Flt64>(
                 name = "${name}_executor_supply",
                 shape = Shape3(executors.size, resources.size, timeWindow.timeSlots.size)
             ) { _, (e, r, s) ->
@@ -652,7 +650,7 @@ class BunchSchedulingStorageResourceUsage<
         }
 
         if (!::cost.isInitialized) {
-            cost = LinearExpressionSymbols2(
+            cost = LinearExpressionSymbols2<Flt64>(
                 name = "${name}_cost",
                 shape = Shape2(resources.size, timeWindow.timeSlots.size)
             ) { _, (r, t) ->

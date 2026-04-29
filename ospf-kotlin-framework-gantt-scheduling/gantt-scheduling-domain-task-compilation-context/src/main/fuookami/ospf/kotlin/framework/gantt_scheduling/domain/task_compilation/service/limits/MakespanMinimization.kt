@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
@@ -34,7 +32,7 @@ class MakespanMinimization<
         val thresholdValue = with(timeWindow) { threshold.value }
         if (thresholdValue eq Flt64.zero) {
             when (val result = model.minimize(
-                polynomial = coefficient * makespan.makespan.toMathLinearPolynomial(),
+                polynomial = coefficient * makespan.makespan.toLinearPolynomial(),
                 name = "makespan"
             )) {
                 is Ok -> {}
@@ -70,7 +68,7 @@ class MakespanMinimization<
                 }
             }
             when (val result = model.minimize(
-                polynomial = coefficient * slack.toMathLinearPolynomial(),
+                polynomial = coefficient * slack.toLinearPolynomial(),
                 name = "makespan"
             )) {
                 is Ok -> {}

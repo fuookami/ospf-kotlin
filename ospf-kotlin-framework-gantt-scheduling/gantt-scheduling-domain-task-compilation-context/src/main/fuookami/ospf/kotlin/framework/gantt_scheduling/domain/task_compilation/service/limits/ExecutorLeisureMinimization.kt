@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -28,7 +26,7 @@ class ExecutorLeisureMinimization<
                 when (val result = model.minimize(
                     polynomial = sum(executors.map { e ->
                         val penalty = it(e) ?: Flt64.infinity
-                        penalty * compilation.z[e].toMathLinearPolynomial()
+                        penalty * LinearPolynomial(compilation.z[e])
                     }),
                     name = "executor leisure"
                 )) {
@@ -48,6 +46,3 @@ class ExecutorLeisureMinimization<
         return ok
     }
 }
-
-
-

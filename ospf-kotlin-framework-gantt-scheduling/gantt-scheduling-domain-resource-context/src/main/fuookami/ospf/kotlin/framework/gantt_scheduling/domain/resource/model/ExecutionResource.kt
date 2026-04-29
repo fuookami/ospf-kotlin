@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
@@ -205,7 +203,7 @@ class TaskSchedulingExecutionResourceUsage<
         lessEnabled = lessEnabled
     )
 
-    override lateinit var quantity: LinearIntermediateSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
@@ -256,12 +254,12 @@ class BunchSchedulingExecutionResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override lateinit var quantity: LinearExpressionSymbols1
+    override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
-                quantity = LinearExpressionSymbols1(
+                quantity = LinearExpressionSymbols1<Flt64>(
                     name = "${name}_quantity",
                     shape = Shape1(timeSlots.size)
                 ) { s, _ ->

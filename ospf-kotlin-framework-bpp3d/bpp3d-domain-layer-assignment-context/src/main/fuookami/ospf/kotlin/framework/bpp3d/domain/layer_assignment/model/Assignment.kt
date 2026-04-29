@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
@@ -108,8 +106,8 @@ class PreciseAssignment(
 ) {
     lateinit var x: UIntVariable2
 
-    lateinit var u: LinearIntermediateSymbols2
-    lateinit var v: LinearIntermediateSymbols1
+    lateinit var u: LinearIntermediateSymbols2<Flt64>
+    lateinit var v: LinearIntermediateSymbols1<Flt64>
     lateinit var tail: BinVariable1
 
     fun register(model: MetaModelF64): Try {
@@ -147,7 +145,7 @@ class PreciseAssignment(
         }
 
         if (!::u.isInitialized) {
-            u = LinearIntermediateSymbols2(
+            u = LinearIntermediateSymbols2<Flt64>(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
@@ -170,7 +168,7 @@ class PreciseAssignment(
         }
 
         if (!::v.isInitialized) {
-            v = LinearIntermediateSymbols1(
+            v = LinearIntermediateSymbols1<Flt64>(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
@@ -50,7 +48,7 @@ class PlanCapacitySchedulingResourceUsage<
     private val capacitySlots: List<TimeSlot> = times
 
     override val name: String = "plan_capacity_scheduling_resource"
-    override lateinit var quantity: LinearExpressionSymbols1
+    override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
     final override val timeSlots: List<CapacityActionResourceTimeSlot<R, C>>
 

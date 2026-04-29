@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -31,7 +29,7 @@ class TaskCancelMinimization<
             when (val result = model.minimize(
                 polynomial = sum(tasks.map { task ->
                     val thisCoefficient = coefficient(task) ?: Flt64.infinity
-                    thisCoefficient * compilation.y[task].toMathLinearPolynomial()
+                    thisCoefficient * LinearPolynomial(compilation.y[task])
                 }),
                 name = "task cancel"
             )) {
@@ -50,6 +48,3 @@ class TaskCancelMinimization<
         return ok
     }
 }
-
-
-

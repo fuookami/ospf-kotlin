@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
@@ -43,7 +41,7 @@ class TaskDelayTimeMinimization<
                 val thisThreshold = threshold(task)?.let { with(timeWindow) { it.value } } ?: Flt64.zero
                 val thisCoefficient = coefficient(task) ?: Flt64.infinity
                 if (thisThreshold eq Flt64.zero) {
-                    cost += thisCoefficient * delayTime.toMathLinearPolynomial()
+                    cost += thisCoefficient * delayTime.toLinearPolynomial()
                 } else {
                     val slack = SlackFunction(
                         x = delayTime,
@@ -66,7 +64,7 @@ class TaskDelayTimeMinimization<
                             return Fatal(result.errors)
                         }
                     }
-                    cost += thisCoefficient * slack.toMathLinearPolynomial()
+                    cost += thisCoefficient * slack.toLinearPolynomial()
                 }
             }
 

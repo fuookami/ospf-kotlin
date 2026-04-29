@@ -1,12 +1,10 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
@@ -66,9 +64,9 @@ open class BunchCompilation<
     override lateinit var z: BinVariable1
 
     lateinit var bunchCost: LinearIntermediateSymbol<Flt64>
-    override lateinit var taskAssignment: LinearExpressionSymbols2
-    override lateinit var taskCompilation: LinearExpressionSymbols1
-    override lateinit var executorCompilation: LinearExpressionSymbols1
+    override lateinit var taskAssignment: LinearIntermediateSymbols2<Flt64>
+    override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
+    override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
@@ -109,7 +107,7 @@ open class BunchCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = LinearExpressionSymbols2(
+            taskAssignment = LinearIntermediateSymbols2<Flt64>(
                 name = "task_assignment",
                 shape = Shape2(tasks.size, executors.size)
             ) { _, (t, e) ->
@@ -133,7 +131,7 @@ open class BunchCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = LinearExpressionSymbols1(
+            taskCompilation = LinearIntermediateSymbols1<Flt64>(
                 name = "task_compilation",
                 shape = Shape1(tasks.size)
             ) { i, _ ->
@@ -174,7 +172,7 @@ open class BunchCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = LinearExpressionSymbols1(
+            executorCompilation = LinearIntermediateSymbols1<Flt64>(
                 name = "executor_compilation",
                 shape = Shape1(executors.size)
             ) { i, _ ->
@@ -229,7 +227,8 @@ open class BunchCompilation<
         _x.add(xi)
 
         for (bunch in unduplicatedBunches) {
-            (bunchCost as LinearExpressionSymbol).asMutable() += LinearMonomial(
+            (bunchCost as LinearExpressionSymbol<Flt64>).flush()
+            (bunchCost as LinearExpressionSymbol<Flt64>).asMutable() += LinearMonomial(
                 bunch.cost.sum ?: Flt64.infinity,
                 xi[bunch]
             )
@@ -240,6 +239,7 @@ open class BunchCompilation<
                 val thisBunches = unduplicatedBunches.filter { it.contains(task) && it.executor == executor }
                 if (thisBunches.isNotEmpty()) {
                     val assign = taskAssignment[task, executor]
+                    assign.flush()
                     assign.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
                 }
             }
@@ -249,6 +249,7 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.contains(task) }
             if (thisBunches.isNotEmpty()) {
                 val compilation = taskCompilation[task]
+                compilation.flush()
                 compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }
@@ -257,6 +258,7 @@ open class BunchCompilation<
             val thisBunches = unduplicatedBunches.filter { it.executor == executor }
             if (thisBunches.isNotEmpty()) {
                 val compilation = executorCompilation[executor]
+                compilation.flush()
                 compilation.asMutable() += sum(thisBunches.map { LinearMonomial(Flt64.one, xi[it]) })
             }
         }

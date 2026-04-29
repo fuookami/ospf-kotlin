@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -27,7 +25,7 @@ class SwitchCostMinimization<
             for (task1 in tasks) {
                 for (task2 in tasks) {
                     val thisCoefficient = coefficient(Triple(executor, task1, task2)) ?: Flt64.infinity
-                    cost += thisCoefficient * switch.switch[executor, task1, task2].toMathLinearPolynomial()
+                    cost += thisCoefficient * switch.switch[executor, task1, task2].toLinearPolynomial()
                 }
             }
         }

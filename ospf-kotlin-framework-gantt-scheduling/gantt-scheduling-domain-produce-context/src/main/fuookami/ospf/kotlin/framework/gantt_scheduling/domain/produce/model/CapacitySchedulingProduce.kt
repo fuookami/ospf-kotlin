@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
@@ -44,7 +42,7 @@ abstract class CapacitySchedulingProduce<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    final override var quantity: LinearExpressionSymbols1 = LinearExpressionSymbols1(
+    final override var quantity: LinearExpressionSymbols1<Flt64> = LinearExpressionSymbols1<Flt64>(
         name = "produce_quantity",
         shape = Shape1(products.size)
     ) { p, _ ->

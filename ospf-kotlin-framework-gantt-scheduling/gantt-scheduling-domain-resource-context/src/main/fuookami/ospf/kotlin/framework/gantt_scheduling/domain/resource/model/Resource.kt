@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
@@ -101,9 +99,9 @@ interface ResourceUsage<
     val name: String
 
     val timeSlots: List<S>
-    val quantity: LinearIntermediateSymbols1
-    val overQuantity: LinearIntermediateSymbols1
-    val lessQuantity: LinearIntermediateSymbols1
+    val quantity: LinearIntermediateSymbols1<Flt64>
+    val overQuantity: LinearIntermediateSymbols1<Flt64>
+    val lessQuantity: LinearIntermediateSymbols1<Flt64>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
@@ -116,14 +114,14 @@ abstract class AbstractResourceUsage<
         out R : Resource<C>,
         out C : AbstractResourceCapacity
         > : ResourceUsage<S, R, C> {
-    override lateinit var overQuantity: LinearIntermediateSymbols1
-    override lateinit var lessQuantity: LinearIntermediateSymbols1
+    override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
+    override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModelF64): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {
-                    overQuantity = LinearIntermediateSymbols1(
+                    overQuantity = LinearIntermediateSymbols1<Flt64>(
                         name = "${name}_over_quantity",
                         shape = Shape1(timeSlots.size)
                     ) { i, _ ->
@@ -163,7 +161,7 @@ abstract class AbstractResourceUsage<
 
             if (lessEnabled) {
                 if (!::lessQuantity.isInitialized) {
-                    lessQuantity = LinearIntermediateSymbols1(
+                    lessQuantity = LinearIntermediateSymbols1<Flt64>(
                         name = "${name}_less_quantity",
                         shape = Shape1(timeSlots.size)
                     ) { i, _ ->

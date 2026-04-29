@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.eq
@@ -29,7 +27,7 @@ class ExecutorCompilationConstraint<
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (executor in executors) {
             when (val result = model.addConstraint(
-                compilation.executorCompilation[executor].toMathLinearPolynomial() eq Flt64.one,
+                compilation.executorCompilation[executor].toLinearPolynomial() eq Flt64.one,
                 name = "${name}_$executor",
                 args = ExecutorCompilationShadowPriceKey(executor)
             )) {

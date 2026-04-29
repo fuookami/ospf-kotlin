@@ -38,6 +38,7 @@ import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
@@ -507,6 +508,8 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
 
     fun linearRelax(): QuadraticTetradModelView
     fun linearRelaxed(): QuadraticTetradModelView
+    suspend fun dual(): QuadraticTetradModel
+    suspend fun farkasDual(): QuadraticTetradModel
     fun feasibility(): QuadraticTetradModelView
     fun elastic(): QuadraticTetradModelView
 
@@ -1040,6 +1043,606 @@ data class QuadraticTetradModel(
             impl = impl.linearRelaxed(),
             tokensInSolver = tokensInSolver,
             objective = objective.copy()
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    override suspend fun dual(): QuadraticTetradModel {
+        val dualVariables = this.constraints.indices.map {
+            var lowerBound = Flt64.negativeInfinity
+            var upperBound = Flt64.infinity
+            when (this.objective.category) {
+                ObjectCategory.Maximum -> {
+                    when (this.constraints.signs[it]) {
+                        ConstraintRelation.LessEqual -> {
+                            lowerBound = Flt64.zero
+                        }
+
+                        ConstraintRelation.GreaterEqual -> {
+                            upperBound = Flt64.zero
+                        }
+
+                        else -> {}
+                    }
+                }
+
+                ObjectCategory.Minimum -> {
+                    when (this.constraints.signs[it]) {
+                        ConstraintRelation.LessEqual -> {
+                            upperBound = Flt64.zero
+                        }
+
+                        ConstraintRelation.GreaterEqual -> {
+                            lowerBound = Flt64.zero
+                        }
+
+                        else -> {}
+                    }
+                }
+            }
+
+            Variable(
+                index = it,
+                lowerBound = lowerBound,
+                upperBound = upperBound,
+                type = Continuous,
+                origin = null,
+                dualOrigin = this.constraints.origins[it],
+                slack = null,
+                name = "${this.constraints.names[it].ifEmpty { "cons${it}" }}_dual",
+                initialResult = Flt64.zero
+            )
+        }
+        var colIndex = this.constraints.size
+        val boundDualVariables = this.variables.map {
+            when (this.objective.category) {
+                ObjectCategory.Maximum -> {
+                    if (it.negativeNormalized || it.positiveNormalized || it.free) {
+                        null to null
+                    } else if (it.positiveFree) {
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable to null
+                    } else if (it.negativeFree) {
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        null to variable
+                    } else {
+                        val variable1 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        val variable2 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable1 to variable2
+                    }
+                }
+
+                ObjectCategory.Minimum -> {
+                    if (it.negativeNormalized || it.positiveNormalized || it.free) {
+                        null to null
+                    } else if (it.positiveFree) {
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable to null
+                    } else if (it.negativeFree) {
+                        val variable = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        null to variable
+                    } else {
+                        val variable1 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.zero,
+                            upperBound = Flt64.infinity,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_lb_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        val variable2 = Variable(
+                            index = colIndex,
+                            lowerBound = Flt64.negativeInfinity,
+                            upperBound = Flt64.zero,
+                            type = Continuous,
+                            origin = null,
+                            dualOrigin = null,
+                            slack = null,
+                            name = "${it.name}_ub_dual",
+                            initialResult = Flt64.zero
+                        )
+                        colIndex += 1
+                        variable1 to variable2
+                    }
+                }
+            }
+        }
+
+        val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex1 }
+        val coefficients = this@QuadraticTetradModel.variables.indices.map {
+            cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
+        }
+        val lhs = coroutineScope {
+            val constraintPromises = this@QuadraticTetradModel.variables.indices.map { col ->
+                async(Dispatchers.Default) {
+                    coefficients[col].map { cell ->
+                        QuadraticConstraintCell(
+                            rowIndex = col,
+                            colIndex1 = cell.first,
+                            colIndex2 = null,
+                            coefficient = cell.second
+                        )
+                    } + listOfNotNull(boundDualVariables[col].first, boundDualVariables[col].second).map {
+                        QuadraticConstraintCell(
+                            rowIndex = col,
+                            colIndex1 = it.index,
+                            colIndex2 = null,
+                            coefficient = Flt64.one
+                        )
+                    }
+                }
+            }
+            constraintPromises.awaitAll()
+        }
+        val signs = this.variables.map {
+            if (!it.normalized) {
+                ConstraintRelation.Equal
+            } else if (it.negativeNormalized) {
+                when (this.objective.category) {
+                    ObjectCategory.Maximum -> {
+                        ConstraintRelation.LessEqual
+                    }
+
+                    ObjectCategory.Minimum -> {
+                        ConstraintRelation.GreaterEqual
+                    }
+                }
+            } else if (it.positiveNormalized) {
+                when (this.objective.category) {
+                    ObjectCategory.Maximum -> {
+                        ConstraintRelation.GreaterEqual
+                    }
+
+                    ObjectCategory.Minimum -> {
+                        ConstraintRelation.LessEqual
+                    }
+                }
+            } else {
+                ConstraintRelation.Equal
+            }
+        }
+        val rhs = this.variables.map { col ->
+            this.objective.objective.find { it.colIndex1 == col.index && it.colIndex2 == null }?.coefficient ?: Flt64.zero
+        }
+        val names = this.variables.map { "${it.name}_dual" }
+        val sources = this.variables.map { ConstraintSource.Dual }
+
+        val objective = constraints.indices.map {
+            QuadraticObjectiveCell(
+                colIndex1 = it,
+                colIndex2 = null,
+                coefficient = this.constraints.rhs[it]
+            )
+        } + boundDualVariables.flatMapIndexed { col, (lb, ub) ->
+            listOfNotNull(
+                lb?.let {
+                    QuadraticObjectiveCell(
+                        colIndex1 = lb.index,
+                        colIndex2 = null,
+                        coefficient = this.variables[col].lowerBound
+                    )
+                },
+                ub?.let {
+                    QuadraticObjectiveCell(
+                        colIndex1 = it.index,
+                        colIndex2 = null,
+                        coefficient = this.variables[col].upperBound
+                    )
+                }
+            )
+        }
+
+        return QuadraticTetradModel(
+            impl = BasicQuadraticTetradModel(
+                variables = (dualVariables + boundDualVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
+                constraints = QuadraticConstraintBatch(
+                    sparseLhs = buildSparseLhs(lhs),
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources
+                ),
+                name = "$name-dual"
+            ),
+            tokensInSolver = tokensInSolver,
+            objective = QuadraticObjective(this.objective.category.reverse, objective),
+            dualOrigin = this
+        )
+    }
+
+    @Suppress("DEPRECATION")
+    override suspend fun farkasDual(): QuadraticTetradModel {
+        var colIndex = this.constraints.size
+        val farkasVariables = ArrayList<Variable>()
+        val posFarkasVariables = ArrayList<Variable>()
+        val negFarkasVariables = ArrayList<Variable>()
+        val slackVariables = ArrayList<Variable>()
+        for (i in this.constraints.indices) {
+            when (this.constraints.signs[i]) {
+                ConstraintRelation.LessEqual -> {
+                    val variable = Variable(
+                        index = i,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = this.constraints.origins[i],
+                        slack = null,
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
+                        initialResult = Flt64.zero
+                    )
+                    farkasVariables.add(variable)
+                    posFarkasVariables.add(variable)
+                }
+
+                ConstraintRelation.GreaterEqual -> {
+                    val variable = Variable(
+                        index = i,
+                        lowerBound = Flt64.negativeInfinity,
+                        upperBound = Flt64.zero,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = this.constraints.origins[i],
+                        slack = null,
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
+                        initialResult = Flt64.zero
+                    )
+                    farkasVariables.add(variable)
+                    negFarkasVariables.add(variable)
+                }
+
+                ConstraintRelation.Equal -> {
+                    val variable = Variable(
+                        index = i,
+                        lowerBound = Flt64.negativeInfinity,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = this.constraints.origins[i],
+                        slack = null,
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_farkas",
+                        initialResult = Flt64.zero
+                    )
+                    farkasVariables.add(variable)
+
+                    val posSlack = Variable(
+                        index = colIndex,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            constraint = this.constraints.origins[i]
+                        ),
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_pos_slack",
+                        initialResult = Flt64.zero
+                    )
+                    colIndex += 1
+
+                    val negSlack = Variable(
+                        index = colIndex,
+                        lowerBound = Flt64.zero,
+                        upperBound = Flt64.infinity,
+                        type = Continuous,
+                        origin = null,
+                        dualOrigin = null,
+                        slack = VariableSlack(
+                            constraint = this.constraints.origins[i]
+                        ),
+                        name = "${this.constraints.names[i].ifEmpty { "cons${i}" }}_neg_slack",
+                        initialResult = Flt64.zero
+                    )
+                    colIndex += 1
+
+                    slackVariables.add(posSlack)
+                    slackVariables.add(negSlack)
+                }
+            }
+        }
+        val boundVariables = this.variables.map {
+            if (it.free) {
+                null to null
+            } else if (it.positiveFree) {
+                val variable = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.negativeInfinity,
+                    upperBound = Flt64.zero,
+                    type = Continuous,
+                    origin = null,
+                    dualOrigin = null,
+                    slack = null,
+                    name = "${it.name}_lb_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                variable to null
+            } else if (it.negativeFree) {
+                val variable = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.zero,
+                    upperBound = Flt64.infinity,
+                    type = Continuous,
+                    origin = null,
+                    dualOrigin = null,
+                    slack = null,
+                    name = "${it.name}_ub_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                null to variable
+            } else {
+                val variable1 = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.negativeInfinity,
+                    upperBound = Flt64.zero,
+                    type = Continuous,
+                    origin = null,
+                    dualOrigin = null,
+                    slack = null,
+                    name = "${it.name}_lb_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                val variable2 = Variable(
+                    index = colIndex,
+                    lowerBound = Flt64.zero,
+                    upperBound = Flt64.infinity,
+                    type = Continuous,
+                    origin = null,
+                    dualOrigin = null,
+                    slack = null,
+                    name = "${it.name}_ub_dual",
+                    initialResult = Flt64.zero
+                )
+                colIndex += 1
+                variable1 to variable2
+            }
+        }
+
+        val cellGroups = this.constraints.lhs.flatten().groupBy { it.colIndex1 }
+        val coefficients = this@QuadraticTetradModel.variables.indices.map {
+            cellGroups[it]?.map { cell -> Pair(cell.rowIndex, cell.coefficient) } ?: emptyList()
+        }
+
+        val lhs = coroutineScope {
+            val constraintPromises = this@QuadraticTetradModel.variables.indices.map { col ->
+                async(Dispatchers.Default) {
+                    coefficients[col].map { cell ->
+                        QuadraticConstraintCell(
+                            rowIndex = col,
+                            colIndex1 = cell.first,
+                            colIndex2 = null,
+                            coefficient = cell.second
+                        )
+                    } + listOfNotNull(boundVariables[col].first, boundVariables[col].second).map {
+                        QuadraticConstraintCell(
+                            rowIndex = col,
+                            colIndex1 = it.index,
+                            colIndex2 = null,
+                            coefficient = Flt64.one
+                        )
+                    }
+                }
+            } + listOf(async(Dispatchers.Default) {
+                this@QuadraticTetradModel.constraints.indices.map {
+                    QuadraticConstraintCell(
+                        rowIndex = this@QuadraticTetradModel.variables.size,
+                        colIndex1 = farkasVariables[it].index,
+                        colIndex2 = null,
+                        coefficient = this@QuadraticTetradModel.constraints.rhs[it]
+                    )
+                } + this@QuadraticTetradModel.variables.flatMapIndexed { col, variable ->
+                    listOfNotNull(
+                        boundVariables[col].first?.let {
+                            QuadraticConstraintCell(
+                                rowIndex = this@QuadraticTetradModel.variables.size,
+                                colIndex1 = it.index,
+                                colIndex2 = null,
+                                coefficient = variable.lowerBound
+                            )
+                        },
+                        boundVariables[col].second?.let {
+                            QuadraticConstraintCell(
+                                rowIndex = this@QuadraticTetradModel.variables.size,
+                                colIndex1 = it.index,
+                                colIndex2 = null,
+                                coefficient = variable.upperBound
+                            )
+                        }
+                    )
+                }
+            })
+            val slackConstraintPromises = async(Dispatchers.Default) {
+                var rowIndex = this@QuadraticTetradModel.variables.size + 1
+                var i = 0
+                this@QuadraticTetradModel.constraints.indices.mapNotNull {
+                    when (this@QuadraticTetradModel.constraints.signs[it]) {
+                        ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
+                            null
+                        }
+
+                        ConstraintRelation.Equal -> {
+                            val result = listOf(
+                                QuadraticConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex1 = farkasVariables[it].index,
+                                    colIndex2 = null,
+                                    coefficient = Flt64.one
+                                ),
+                                QuadraticConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex1 = slackVariables[2 * i].index,
+                                    colIndex2 = null,
+                                    coefficient = -Flt64.one
+                                ),
+                                QuadraticConstraintCell(
+                                    rowIndex = rowIndex,
+                                    colIndex1 = slackVariables[2 * i + 1].index,
+                                    colIndex2 = null,
+                                    coefficient = Flt64.one
+                                )
+                            )
+                            i += 1
+                            rowIndex += 1
+                            result
+                        }
+                    }
+                }
+            }
+            constraintPromises.awaitAll() + slackConstraintPromises.await()
+        }
+
+        val signs = this.variables.indices.map { ConstraintRelation.Equal } + listOf(ConstraintRelation.Equal) + this.constraints.indices.mapNotNull {
+            when (this.constraints.signs[it]) {
+                ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
+                    null
+                }
+
+                ConstraintRelation.Equal -> {
+                    ConstraintRelation.Equal
+                }
+            }
+        }
+        val rhs = this.variables.indices.map { Flt64.zero } + listOf(-Flt64.one) + this.constraints.indices.mapNotNull {
+            when (this.constraints.signs[it]) {
+                ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
+                    null
+                }
+
+                ConstraintRelation.Equal -> {
+                    Flt64.zero
+                }
+            }
+        }
+        val names = this.variables.map { "${it.name}_farkas_dual" } + listOf("normalization") + this.constraints.indices.mapNotNull {
+            when (this.constraints.signs[it]) {
+                ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
+                    null
+                }
+
+                ConstraintRelation.Equal -> {
+                    "${this.constraints.names[it].ifEmpty { "cons${it}" }}_abs"
+                }
+            }
+        }
+        val sources = this.variables.map { ConstraintSource.FarkasDual } + listOf(ConstraintSource.FarkasDual) + this.constraints.indices.mapNotNull {
+            when (this.constraints.signs[it]) {
+                ConstraintRelation.LessEqual, ConstraintRelation.GreaterEqual -> {
+                    null
+                }
+
+                ConstraintRelation.Equal -> {
+                    ConstraintSource.FarkasDual
+                }
+            }
+        }
+
+        val objective = posFarkasVariables.map {
+            QuadraticObjectiveCell(
+                colIndex1 = it.index,
+                colIndex2 = null,
+                coefficient = Flt64.one
+            )
+        } + negFarkasVariables.map {
+            QuadraticObjectiveCell(
+                colIndex1 = it.index,
+                colIndex2 = null,
+                coefficient = -Flt64.one
+            )
+        } + slackVariables.map {
+            QuadraticObjectiveCell(
+                colIndex1 = it.index,
+                colIndex2 = null,
+                coefficient = Flt64.one
+            )
+        }
+
+        return QuadraticTetradModel(
+            impl = BasicQuadraticTetradModel(
+                variables = (farkasVariables + slackVariables + boundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
+                constraints = QuadraticConstraintBatch(
+                    sparseLhs = buildSparseLhs(lhs),
+                    signs = signs,
+                    rhs = rhs,
+                    names = names,
+                    sources = sources
+                ),
+                name = "$name-farkas-dual"
+            ),
+            tokensInSolver = tokensInSolver,
+            objective = QuadraticObjective(ObjectCategory.Minimum, objective),
+            dualOrigin = this
         )
     }
 
@@ -1590,5 +2193,45 @@ data class QuadraticTetradModel(
     }
 }
 
+suspend fun solveDual(
+    model: QuadraticTetradModel,
+    solver: QuadraticSolver
+): Ret<QuadraticDualSolution> {
+    val dualModel = model.dual()
 
+    return when (val result = solver(dualModel)) {
+        is Ok -> {
+            Ok(dualModel.tidyDualSolution(result.value.solution))
+        }
+
+        is Failed -> {
+            Failed(result.error)
+        }
+
+        is Fatal -> {
+            Fatal(result.errors)
+        }
+    }
+}
+
+suspend fun solveFarkasDual(
+    model: QuadraticTetradModelView,
+    solver: QuadraticSolver
+): Ret<QuadraticDualSolution> {
+    val dualModel = model.farkasDual()
+
+    return when (val result = solver(dualModel)) {
+        is Ok -> {
+            Ok(dualModel.tidyDualSolution(result.value.solution))
+        }
+
+        is Failed -> {
+            Failed(result.error)
+        }
+
+        is Fatal -> {
+            Fatal(result.errors)
+        }
+    }
+}
 

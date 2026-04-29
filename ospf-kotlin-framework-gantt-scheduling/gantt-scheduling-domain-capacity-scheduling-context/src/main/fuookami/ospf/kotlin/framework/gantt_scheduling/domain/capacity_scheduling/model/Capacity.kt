@@ -1,10 +1,9 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Ret
 
 /**
@@ -28,7 +27,7 @@ interface Capacity<A : ProductionAction> {
      * Represents capacity (duration) allocated to each action in each time slot.
      * 表示每个动作在每个时隙分配的产能（时长）。
      */
-    val operationTime: LinearExpressionSymbols2  // [action, slot] -> duration
+    val operationTime: LinearExpressionSymbols2<Flt64>  // [action, slot] -> duration
 
     /**
      * 设备-时隙的总产能
@@ -37,7 +36,7 @@ interface Capacity<A : ProductionAction> {
      * Represents total capacity (duration) per executor in each time slot.
      * 表示每个设备在每个时隙的总产能（时长）。
      */
-    val capacity: LinearExpressionSymbols2  // [executor, slot] -> duration
+    val capacity: LinearExpressionSymbols2<Flt64>  // [executor, slot] -> duration
 
     /**
      * 解析解

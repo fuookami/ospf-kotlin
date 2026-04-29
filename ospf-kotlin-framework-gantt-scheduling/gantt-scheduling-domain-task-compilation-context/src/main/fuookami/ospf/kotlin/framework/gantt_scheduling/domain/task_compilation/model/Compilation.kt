@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -9,7 +7,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.BinVariable2
 import fuookami.ospf.kotlin.core.variable.eq
@@ -33,9 +30,9 @@ interface Compilation {
     val y: BinVariable1
     val z: BinVariable1
 
-    val taskAssignment: LinearIntermediateSymbols2
-    val taskCompilation: LinearIntermediateSymbols1
-    val executorCompilation: LinearIntermediateSymbols1
+    val taskAssignment: LinearIntermediateSymbols2<Flt64>
+    val taskCompilation: LinearIntermediateSymbols1<Flt64>
+    val executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     fun register(model: MetaModel<Flt64>): Try
 }
@@ -55,11 +52,13 @@ class TaskCompilation<
     override lateinit var y: BinVariable1
     override lateinit var z: BinVariable1
 
-    override lateinit var taskAssignment: LinearIntermediateSymbols2
-    override lateinit var taskCompilation: LinearIntermediateSymbols1
-    override lateinit var executorCompilation: LinearIntermediateSymbols1
+    override lateinit var taskAssignment: LinearIntermediateSymbols2<Flt64>
+    override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
+    override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
+        val linearModel = model as AbstractLinearMetaModel<Flt64>
+
         if (!::x.isInitialized) {
             x = BinVariable2(
                 "x",
@@ -100,7 +99,7 @@ class TaskCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = LinearIntermediateSymbols2(
+            taskAssignment = LinearIntermediateSymbols2<Flt64>(
                 name = "task_assignment",
                 shape = Shape2(tasks.size, executors.size)
             ) { _, v ->
@@ -159,15 +158,15 @@ class TaskCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = LinearIntermediateSymbols1(
+            taskCompilation = LinearIntermediateSymbols1<Flt64>(
                 name = "task_compilation",
                 shape = Shape1(tasks.size)
             ) { t, _ ->
                 LinearExpressionSymbol(
                     polynomial = if (taskCancelEnabled) {
-                        y[t].toMathLinearPolynomial() + sum(x[t, _a].map { it.toMathLinearPolynomial() })
+                        LinearPolynomial(y[t]) + sum(x[t, _a].map { LinearPolynomial(it) })
                     } else {
-                        sum(x[t, _a].map { it.toMathLinearPolynomial() })
+                        sum(x[t, _a].map { LinearPolynomial(it) })
                     },
                     name = "task_compilation_${t}"
                 )
@@ -210,16 +209,16 @@ class TaskCompilation<
 
         if (!::executorCompilation.isInitialized) {
             try {
-                executorCompilation = LinearIntermediateSymbols1(
+                executorCompilation = LinearIntermediateSymbols1<Flt64>(
                     name = "executor_compilation",
                     shape = Shape1(executors.size)
                 ) { i, _ ->
-                    val orPolynomials = tasks.map { x[it, executors[i]].toMathLinearPolynomial() }
+                    val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
                     val or = OrFunction(
                         polynomials = orPolynomials,
                         name = "executor_compilation_or_${executors[i]}"
                     )
-                    when (val result = model.add(or)) {
+                    when (val result = or.register(linearModel)) {
                         is Ok -> {}
 
                         is Failed -> {
@@ -231,9 +230,9 @@ class TaskCompilation<
                         }
                     }
                     val polynomial = if (withExecutorLeisure) {
-                        or.resultVar.toMathLinearPolynomial() + z[executors[i]].toMathLinearPolynomial()
+                        LinearPolynomial(or.resultVar) + LinearPolynomial(z[executors[i]])
                     } else {
-                        or.resultVar.toMathLinearPolynomial()
+                        LinearPolynomial(or.resultVar)
                     }
                     LinearExpressionSymbol(
                         polynomial = polynomial,
@@ -301,10 +300,10 @@ open class IterativeTaskCompilation<
     override lateinit var z: BinVariable1
 
     lateinit var taskCost: LinearIntermediateSymbol<Flt64>
-    override lateinit var taskAssignment: LinearIntermediateSymbols2
-    override lateinit var taskCompilation: LinearIntermediateSymbols1
+    override lateinit var taskAssignment: LinearIntermediateSymbols2<Flt64>
+    override lateinit var taskCompilation: LinearIntermediateSymbols1<Flt64>
     private lateinit var xor: BinVariable1
-    override lateinit var executorCompilation: LinearIntermediateSymbols1
+    override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
@@ -350,7 +349,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskAssignment.isInitialized) {
-            taskAssignment = LinearIntermediateSymbols2(
+            taskAssignment = LinearIntermediateSymbols2<Flt64>(
                 "task_assignment",
                 Shape2(tasks.size, executors.size)
             ) { _, v ->
@@ -372,7 +371,7 @@ open class IterativeTaskCompilation<
         }
 
         if (!::taskCompilation.isInitialized) {
-            taskCompilation = LinearIntermediateSymbols1(
+            taskCompilation = LinearIntermediateSymbols1<Flt64>(
                 "task_compilation",
                 Shape1(tasks.size)
             ) { t, _ ->
@@ -427,15 +426,15 @@ open class IterativeTaskCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            executorCompilation = LinearIntermediateSymbols1(
+            executorCompilation = LinearIntermediateSymbols1<Flt64>(
                 "executor_compilation",
                 Shape1(executors.size)
             ) { e, _ ->
                 LinearExpressionSymbol(
                     polynomial = if (withExecutorLeisure) {
-                        xor[e].toMathLinearPolynomial() + z[e].toMathLinearPolynomial()
+                        LinearPolynomial(xor[e]) + LinearPolynomial(z[e])
                     } else {
-                        xor[e].toMathLinearPolynomial()
+                        LinearPolynomial(xor[e])
                     },
                     name = "executor_compilation_${e}"
                 )
@@ -484,7 +483,7 @@ open class IterativeTaskCompilation<
 
         taskCost.flush()
         for (task in unduplicatedTasks) {
-            (taskCost as LinearExpressionSymbol).asMutable() += (cost(task).sum ?: Flt64.infinity) * xi[task].toMathLinearPolynomial()
+            (taskCost as LinearExpressionSymbol<Flt64>).asMutable() += (cost(task).sum ?: Flt64.infinity) * LinearPolynomial(xi[task])
         }
 
         for (originTask in originTasks) {
@@ -493,7 +492,7 @@ open class IterativeTaskCompilation<
                 if (thisTasks.isNotEmpty()) {
                     val assign = taskAssignment[originTask, executor]
                     assign.flush()
-                    assign.asMutable() += sum(thisTasks.map { xi[it].toMathLinearPolynomial() })
+                    assign.asMutable() += sum(thisTasks.map { LinearPolynomial(xi[it]) })
                 }
             }
         }
@@ -503,7 +502,7 @@ open class IterativeTaskCompilation<
             if (thisTasks.isNotEmpty()) {
                 val compilation = taskCompilation[originTask]
                 compilation.flush()
-                compilation.asMutable() += sum(thisTasks.map { xi[it].toMathLinearPolynomial() })
+                compilation.asMutable() += sum(thisTasks.map { LinearPolynomial(xi[it]) })
             }
         }
 
@@ -532,7 +531,7 @@ open class IterativeTaskCompilation<
                 for (task2 in otherTasks) {
                     if (task1 != task2 && conflict(task1, task2)) {
                         when (val result = model.addConstraint(
-                            xi[task1].toMathLinearPolynomial() + x[otherIteration][task2].toMathLinearPolynomial() leq Flt64.one,
+                            LinearPolynomial(xi[task1]) + LinearPolynomial(x[otherIteration][task2]) leq Flt64.one,
                             name = "task_conflict_${task1}_${otherIteration}_${task2}"
                         )) {
                             is Ok -> {}
@@ -553,7 +552,3 @@ open class IterativeTaskCompilation<
         return Ok(unduplicatedTasks)
     }
 }
-
-
-
-

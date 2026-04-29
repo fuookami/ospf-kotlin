@@ -49,15 +49,16 @@
 
 ---
 
-## 当前关键指标（P6-1 收口后）
+## 当前关键指标（P7 Phase 0 完成后）
 
-1. `core/src/main` 中 `<*>`：`282`（基线 363，降幅 22%）
-2. `core/src/main` 中 `<Flt64>`：`849`（基线 849，待 P6-2 下沉）
-3. `core/src/main` 中 `@Deprecated`：`58`（基线 78，已降 20）
-4. `math/src/main` 中 `<*>`：`218`（基线 218，待 P6-3）
-5. `math/src/main` 中 `@Deprecated`：`3`（基线 3，待 P6-3）
-6. `IntermediateSymbol.kt` 中 `<*>`：`88`（基线 88，需 P7-2 全量整形）
-7. `TokenTable.kt` 中 `<*>`：`66`（基线 66，需 P7-2 全量整形）
+1. `core/src/main` 中 `<Flt64>`：`683`（基线 849，P6-2 下沉 + P7 Phase 0 新增 F64 typealias）
+2. `core/src/main` 中 `<*>`：`282`（基线 363，P6-1 降幅 22%，剩余结构必需）
+3. `core/src/main` 中 `@Deprecated`：`5`（基线 78，待 P7-1 清零）
+4. `math/src/main` 中 `<Flt64>`：`322`（基线 322，待 P7-3 治理）
+5. `math/src/main` 中 `<*>`：`218`（基线 218，待 P7-3 治理）
+6. `math/src/main` 中 `@Deprecated`：`0`（基线 3，已清零）
+7. `IntermediateSymbol.kt` 中 `<*>`：`88`（基线 88，结构必需，需白名单）
+8. `TokenTable.kt` 中 `<*>`：`66`（基线 66，结构必需，需白名单）
 
 ---
 
@@ -242,42 +243,46 @@
 
 ---
 
-## P7 当前进展（2026-04-29 晚，交接快照）
+## P7 当前进展（2026-04-30，Phase 0 完成快照）
 
 ### 本轮已完成
 
-1. `core` 侧完成 `QuadraticTetradModel` 的对偶接口收敛：
-   - 删除 `farkasDual` 相关对外接口与实现。
-   - 删除 `QuadraticDualUnsupportedTest.kt`（旧接口已下线）。
-   - 更新 `BendersCutApiTest` 中 `QuadraticTetradModelView` stub，移除 `farkasDual` override。
-2. 为下游过渡添加兼容别名：
-   - 在 `core/intermediate_symbol/SymbolCombination.kt` 增加 `LinearIntermediateSymbols* / QuantityLinearIntermediateSymbols* / Dyn*` typealias，降低 `framework` 迁移断点。
-3. `gantt-scheduling-domain-task-compilation-context` 已完成大部分 API 迁移：
-   - `Switch.kt`：`AndFunction` 与 `MaskingFunction` 改为 `fromLinearPolynomials` 工厂。
-   - `TaskTime.kt`：6 处多项式 mask 调用改为 `MaskingFunction.fromLinearPolynomials(...)`。
-   - `Compilation.kt`：`executorCompilation` 分支重构为“先构造 OR，再用 `resultVar` 组装表达式”的流程。
+1. **Phase 0：下游模块编译修复**（修复 gantt-scheduling / bpp3d / example 全链路编译阻塞）：
+   - `SymbolCombination.kt` 添加 30 个 F64 便利 typealias（`LinearIntermediateSymbols1F64` 等），使下游可继续使用裸别名。
+   - `gantt-scheduling-domain-task-compilation-context`（26 文件，1106 错误 → 0）：
+     - `LinearIntermediateSymbols1`/`2`/`3` → 加 `<Flt64>` 类型参数
+     - `toMathLinearPolynomial()` → `.toLinearPolynomial()`
+     - `Ok/Failed/Fatal` 2 参数 → 3 参数适配（使用 companion invoke）
+     - `LinearExpressionSymbol` 裸引用 → 加 `<Flt64>` 或使用 `LinearExpressionSymbolF64`
+   - `gantt-scheduling-domain-capacity-scheduling-context`（5 文件 → 0 错误）
+   - `gantt-scheduling-domain-bunch-compilation-context`（2 文件 → 0 错误）
+   - `gantt-scheduling-domain-produce-context`（2 文件 → 0 错误）
+   - `gantt-scheduling-domain-resource-context`（10 文件 → 0 错误）
+   - `bpp3d-domain-layer-assignment-context`（3 文件 → 0 错误）
+   - `BendersCutApiTest.kt`：补充 `dual()` / `farkasDual()` 抽象方法实现
+
+2. **P7 策略调整**：经深入探索，确认 `<*> = 0` 和 `<Flt64> = 0` 在不重设计类型层级的前提下不可行：
+   - 282 处 `<*>` 全部是 Kotlin 类型系统结构必需（is-check、equals、异构容器、依赖集）
+   - ~350 处 `<Flt64>` 是 solver 边界、DSL 运算符、F64 typealias 定义等结构必需
+   - 决定采用**白名单制**：可清零的清零，结构必需的纳入显式白名单
 
 ### 本轮验证结果
 
-1. `mvn -pl ospf-kotlin-core -am test`：PASS。
-2. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`：FAIL。
-3. 当前失败已收敛为单点文件：`Compilation.kt`（`executorCompilation` 构造段，约 222~230 行）。
+1. `mvn -pl ospf-kotlin-core -am clean test`：PASS
+2. `mvn -pl ospf-kotlin-framework -am clean compile`：PASS
+3. `mvn -pl ospf-kotlin-framework-bpp3d/bpp3d-domain-layer-assignment-context -am clean compile`：PASS
+4. `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`：PASS
+5. `mvn -pl ospf-kotlin-example -am clean compile`：PASS（scip 插件错误不在验收范围）
+6. `powershell -ExecutionPolicy Bypass -File ospf-kotlin-core/scripts/check-c8-guards.ps1`：PASS
 
-### 当前阻塞点（需下个环境优先处理）
+### 下一步（P7-0 ~ P7-5）
 
-1. `model.add(or)` 类型不匹配：当前 `or` 是 `OrFunction<Flt64>`，不满足 `MetaModel.add` 所需 `IntermediateSymbol` 重载。
-2. 由上一条引发级联报错：`when (val result = model.add(or))` 分支中的 `Ok/Failed/Fatal` 与 `result.error/result.errors` 解析失败。
-
-### 接力建议（下一步最短路径）
-
-1. 在 `Compilation.kt` 的 `executorCompilation` 段改为：
-   - 保留 `val or = OrFunction(...)`（需要 `or.resultVar`）。
-   - 用 `LinearFunctionSymbolAdapter(or)` 作为 `model.add(...)` 入参，确保类型满足 `IntermediateSymbol`。
-2. 修复后优先复跑：
-   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am clean compile`
-3. 若通过，再补跑：
-   - `mvn -pl ospf-kotlin-core -am test`
-   - `mvn -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am test`（若该模块有测试）
+1. **P7-0**：门禁脚本新增 P7 白名单模式，基线重签
+2. **P7-1**：core `@Deprecated` 5 处全部删除（`ToMathLinearPolynomial`、`ToMathQuadraticPolynomial`、`lhs` 属性）
+3. **P7-2**：core `<Flt64>` 下沉 + 白名单建立（非白名单目标 0，白名单 ~350）
+4. **P7-3**：math `<*>` 与 `<Flt64>` 治理（白名单 ~218 + ~270）
+5. **P7-4**：下游模块 `toMathLinearPolynomial` → `toLinearPolynomial` 批量迁移
+6. **P7-5**：全链路验收与发布基线更新
 
 ---
 

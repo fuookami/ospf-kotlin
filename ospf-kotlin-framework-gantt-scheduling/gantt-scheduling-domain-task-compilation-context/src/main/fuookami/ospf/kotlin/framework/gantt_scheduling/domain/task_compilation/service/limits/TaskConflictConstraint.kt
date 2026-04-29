@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
@@ -32,7 +30,7 @@ class TaskConflictConstraint<
                 for (j in (i + 1) until tasks.size) {
                     if (conflict(executor, tasks[i], tasks[j])) {
                         when (val result = model.addConstraint(
-                            (x[tasks[i], executor].toMathLinearPolynomial() + x[tasks[j], executor].toMathLinearPolynomial()) leq Flt64.one,
+                            (LinearPolynomial(x[tasks[i], executor]) + LinearPolynomial(x[tasks[j], executor])) leq Flt64.one,
                             name = "${name}_${tasks[i]}_${tasks[j]}"
                         )) {
                             is Ok -> {}
@@ -53,6 +51,3 @@ class TaskConflictConstraint<
         return ok
     }
 }
-
-
-

@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
@@ -23,8 +21,8 @@ import fuookami.ospf.kotlin.multiarray.Shape3
 import fuookami.ospf.kotlin.multiarray._a
 
 interface Switch {
-    val switch: LinearIntermediateSymbols3
-    val switchTime: LinearIntermediateSymbols2
+    val switch: LinearIntermediateSymbols3<Flt64>
+    val switchTime: LinearIntermediateSymbols2<Flt64>
 
     fun register(model: MetaModel<Flt64>): Try
 }
@@ -40,15 +38,15 @@ class TaskSchedulingSwitch<
     private val compilation: TaskCompilation<T, E, A>,
     private val taskTime: TaskTime? = null
 ) : Switch {
-    private lateinit var frontOf: LinearIntermediateSymbols2
-    private lateinit var betweenIn: LinearIntermediateSymbols3
-    override lateinit var switch: LinearIntermediateSymbols3
-    override lateinit var switchTime: LinearIntermediateSymbols2
+    private lateinit var frontOf: LinearIntermediateSymbols2<Flt64>
+    private lateinit var betweenIn: LinearIntermediateSymbols3<Flt64>
+    override lateinit var switch: LinearIntermediateSymbols3<Flt64>
+    override lateinit var switchTime: LinearIntermediateSymbols2<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (taskTime != null) {
             if (!::frontOf.isInitialized) {
-                frontOf = LinearIntermediateSymbols2(
+                frontOf = LinearIntermediateSymbols2<Flt64>(
                     name = "front_of",
                     shape = Shape2(tasks.size, tasks.size)
                 ) { _, v ->
@@ -85,7 +83,7 @@ class TaskSchedulingSwitch<
 
         if (taskTime != null) {
             if (!::betweenIn.isInitialized) {
-                betweenIn = LinearIntermediateSymbols3(
+                betweenIn = LinearIntermediateSymbols3<Flt64>(
                     name = "between_in",
                     shape = Shape3(tasks.size, tasks.size, tasks.size)
                 ) { _, v ->
@@ -122,7 +120,7 @@ class TaskSchedulingSwitch<
         }
 
         if (!::switch.isInitialized) {
-            switch = LinearIntermediateSymbols3(
+            switch = LinearIntermediateSymbols3<Flt64>(
                 name = "switch",
                 shape = Shape3(executors.size, tasks.size, tasks.size)
             ) { _, v ->
@@ -144,7 +142,7 @@ class TaskSchedulingSwitch<
                             continue
                         }
                         conditions.add(LinearExpressionSymbol(
-                            polynomial = LinearPolynomial(emptyList(), Flt64.one) - betweenIn[task3, task1, task2].toMathLinearPolynomial(),
+                            polynomial = LinearPolynomial(emptyList(), Flt64.one) - betweenIn[task3, task1, task2].toLinearPolynomial(),
                             name = "not_between_${task3}_${task1}_${task2}"
                         ))
                     }
@@ -174,19 +172,19 @@ class TaskSchedulingSwitch<
         }
 
         if (!::switchTime.isInitialized) {
-            switchTime = LinearIntermediateSymbols2(
+            switchTime = LinearIntermediateSymbols2<Flt64>(
                 name = "switch_time",
                 shape = Shape2(tasks.size, tasks.size)
             ) { _, v ->
                 val task1 = tasks[v[0]]
                 val task2 = tasks[v[1]]
-                val thisSwitchPoly = sum(switch[_a, task1, task2].map { it.toMathLinearPolynomial() })
+                val thisSwitchPoly = sum(switch[_a, task1, task2].map { it.toLinearPolynomial() })
                 val thisSwitch = LinearExpressionSymbol(
                     polynomial = thisSwitchPoly,
                     name = "this_switch_${task1}_$task2"
                 )
                 thisSwitch.range.leq(Flt64.one)
-                val xPoly = taskTime?.let { it.estimateStartTime[task2].toMathLinearPolynomial() - it.estimateEndTime[task1].toMathLinearPolynomial() }
+                val xPoly = taskTime?.let { it.estimateStartTime[task2].toLinearPolynomial() - it.estimateEndTime[task1].toLinearPolynomial() }
                     ?: LinearPolynomial(
                         emptyList(),
                         with(timeWindow) { (task2.time!!.start - task1.time!!.end).value }

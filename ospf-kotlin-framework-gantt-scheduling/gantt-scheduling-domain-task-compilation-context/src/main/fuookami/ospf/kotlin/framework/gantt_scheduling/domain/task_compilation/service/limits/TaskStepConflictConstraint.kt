@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -28,7 +26,7 @@ class TaskStepConflictConstraint<
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
             when (val result = model.addConstraint(
-                sum(tasks.map { t -> compilation.taskCompilation[t].toMathLinearPolynomial() }) leq Flt64.one,
+                sum(tasks.map { t -> compilation.taskCompilation[t].toLinearPolynomial() }) leq Flt64.one,
                 name = "task_step_conflict_$i"
             )) {
                 is Ok -> {}

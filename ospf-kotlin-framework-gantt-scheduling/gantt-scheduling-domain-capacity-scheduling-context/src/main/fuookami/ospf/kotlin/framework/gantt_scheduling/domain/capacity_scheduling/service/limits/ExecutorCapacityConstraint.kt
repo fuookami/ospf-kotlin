@@ -1,7 +1,3 @@
-@file:Suppress("DEPRECATION")
-
-@file:OptIn(kotlin.time.ExperimentalTime::class)
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq

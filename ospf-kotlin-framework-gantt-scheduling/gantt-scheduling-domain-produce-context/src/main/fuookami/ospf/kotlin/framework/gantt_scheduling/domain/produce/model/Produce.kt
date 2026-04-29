@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
@@ -31,9 +29,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 
 interface Produce {
-    val quantity: LinearIntermediateSymbols1
-    val overQuantity: LinearIntermediateSymbols1
-    val lessQuantity: LinearIntermediateSymbols1
+    val quantity: LinearIntermediateSymbols1<Flt64>
+    val overQuantity: LinearIntermediateSymbols1<Flt64>
+    val lessQuantity: LinearIntermediateSymbols1<Flt64>
 
     val overEnabled: Boolean
     val lessEnabled: Boolean
@@ -50,14 +48,14 @@ abstract class AbstractProduce<
         >(
     val products: List<Pair<P, MaterialDemand?>>
 ) : Produce {
-    override lateinit var lessQuantity: LinearIntermediateSymbols1
-    override lateinit var overQuantity: LinearIntermediateSymbols1
+    override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
+    override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModelF64): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
                 val overConstraints = mutableListOf<Pair<LinearPolynomial<Flt64>, Flt64>>()
-                overQuantity = LinearIntermediateSymbols1(
+                overQuantity = LinearIntermediateSymbols1<Flt64>(
                     name = "produce_over_quantity",
                     shape = Shape1(products.size)
                 ) { i, _ ->
@@ -105,7 +103,7 @@ abstract class AbstractProduce<
         if (lessEnabled) {
             if (!::lessQuantity.isInitialized) {
                 val lessConstraints = mutableListOf<Pair<LinearPolynomial<Flt64>, Flt64>>()
-                lessQuantity = LinearIntermediateSymbols1(
+                lessQuantity = LinearIntermediateSymbols1<Flt64>(
                     name = "produce_less_quantity",
                     shape = Shape1(products.size)
                 ) { i, _ ->
@@ -220,7 +218,7 @@ class TaskSchedulingProduce<
     override val overEnabled: Boolean = false,
     override val lessEnabled: Boolean = false
 ) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
-    override lateinit var quantity: LinearIntermediateSymbols1
+    override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModelF64): Try {
         TODO("NOT IMPLEMENT YET")
@@ -239,12 +237,12 @@ class BunchSchedulingProduce<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override lateinit var quantity: LinearExpressionSymbols1
+    override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModelF64): Try {
         if (products.isNotEmpty()) {
             if (!::quantity.isInitialized) {
-                quantity = LinearExpressionSymbols1(
+                quantity = LinearExpressionSymbols1<Flt64>(
                     name = "produce_quantity",
                     shape = Shape1(products.size)
                 ) { p, _ ->

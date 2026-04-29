@@ -71,52 +71,52 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     }
 }
 
-typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbolF64, Shape1>
-typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbolF64, Shape2>
-typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbolF64, Shape3>
-typealias LinearExpressionSymbols4 = SymbolCombination<LinearExpressionSymbolF64, Shape4>
-typealias DynLinearExpressionSymbols = SymbolCombination<LinearExpressionSymbolF64, DynShape>
+typealias LinearExpressionSymbols1<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape1>
+typealias LinearExpressionSymbols2<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape2>
+typealias LinearExpressionSymbols3<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape3>
+typealias LinearExpressionSymbols4<V> = SymbolCombination<LinearExpressionSymbol<V>, Shape4>
+typealias DynLinearExpressionSymbols<V> = SymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
-typealias QuantityLinearExpressionSymbols1 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape1>
-typealias QuantityLinearExpressionSymbols2 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape2>
-typealias QuantityLinearExpressionSymbols3 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape3>
-typealias QuantityLinearExpressionSymbols4 = QuantitySymbolCombination<LinearExpressionSymbolF64, Shape4>
-typealias DynQuantityLinearExpressionSymbols = QuantitySymbolCombination<LinearExpressionSymbolF64, DynShape>
+typealias QuantityLinearExpressionSymbols1<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape1>
+typealias QuantityLinearExpressionSymbols2<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape2>
+typealias QuantityLinearExpressionSymbols3<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape3>
+typealias QuantityLinearExpressionSymbols4<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, Shape4>
+typealias DynQuantityLinearExpressionSymbols<V> = QuantitySymbolCombination<LinearExpressionSymbol<V>, DynShape>
 
-typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbolF64, Shape1>
-typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbolF64, Shape2>
-typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbolF64, Shape3>
-typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbolF64, Shape4>
-typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbolF64, DynShape>
+typealias LinearIntermediateSymbols1<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+typealias LinearIntermediateSymbols2<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+typealias LinearIntermediateSymbols3<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+typealias LinearIntermediateSymbols4<V> = SymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+typealias DynLinearIntermediateSymbols<V> = SymbolCombination<LinearIntermediateSymbol<V>, DynShape>
 
-typealias QuantityLinearIntermediateSymbols1 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape1>
-typealias QuantityLinearIntermediateSymbols2 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape2>
-typealias QuantityLinearIntermediateSymbols3 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape3>
-typealias QuantityLinearIntermediateSymbols4 = QuantitySymbolCombination<LinearIntermediateSymbolF64, Shape4>
-typealias DynQuantityLinearIntermediateSymbols = QuantitySymbolCombination<LinearIntermediateSymbolF64, DynShape>
+typealias QuantityLinearIntermediateSymbols1<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape1>
+typealias QuantityLinearIntermediateSymbols2<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape2>
+typealias QuantityLinearIntermediateSymbols3<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape3>
+typealias QuantityLinearIntermediateSymbols4<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape4>
+typealias DynQuantityLinearIntermediateSymbols<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, DynShape>
 
-typealias QuadraticExpressionSymbols1 = SymbolCombination<QuadraticExpressionSymbolF64, Shape1>
-typealias QuadraticExpressionSymbols2 = SymbolCombination<QuadraticExpressionSymbolF64, Shape2>
-typealias QuadraticExpressionSymbols3 = SymbolCombination<QuadraticExpressionSymbolF64, Shape3>
-typealias QuadraticExpressionSymbols4 = SymbolCombination<QuadraticExpressionSymbolF64, Shape4>
-typealias DynQuadraticExpressionSymbols = SymbolCombination<QuadraticExpressionSymbolF64, DynShape>
+typealias QuadraticExpressionSymbols1<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+typealias QuadraticExpressionSymbols2<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+typealias QuadraticExpressionSymbols3<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+typealias QuadraticExpressionSymbols4<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+typealias DynQuadraticExpressionSymbols<V> = SymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
-typealias QuantityQuadraticExpressionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape1>
-typealias QuantityQuadraticExpressionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape2>
-typealias QuantityQuadraticExpressionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape3>
-typealias QuantityQuadraticExpressionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape4>
-typealias DynQuantityQuadraticExpressionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbolF64, DynShape>
+typealias QuantityQuadraticExpressionSymbols1<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
+typealias QuantityQuadraticExpressionSymbols2<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
+typealias QuantityQuadraticExpressionSymbols3<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape3>
+typealias QuantityQuadraticExpressionSymbols4<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, Shape4>
+typealias DynQuantityQuadraticExpressionSymbols<V> = QuantitySymbolCombination<QuadraticExpressionSymbol<V>, DynShape>
 
 data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1
-    ): LinearExpressionSymbols1 {
+    ): LinearExpressionSymbols1<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbolF64(
+            LinearExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -125,12 +125,12 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape2
-    ): LinearExpressionSymbols2 {
+    ): LinearExpressionSymbols2<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbolF64(
+            LinearExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -139,12 +139,12 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape3
-    ): LinearExpressionSymbols3 {
+    ): LinearExpressionSymbols3<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbolF64(
+            LinearExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -153,12 +153,12 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape4
-    ): LinearExpressionSymbols4 {
+    ): LinearExpressionSymbols4<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbolF64(
+            LinearExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -167,12 +167,12 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: DynShape
-    ): DynLinearExpressionSymbols {
+    ): DynLinearExpressionSymbols<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbolF64(
+            LinearExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -183,12 +183,12 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1
-    ): QuadraticExpressionSymbols1 {
+    ): QuadraticExpressionSymbols1<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbolF64(
+            QuadraticExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -197,12 +197,12 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape2
-    ): QuadraticExpressionSymbols2 {
+    ): QuadraticExpressionSymbols2<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbolF64(
+            QuadraticExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -211,12 +211,12 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape3
-    ): QuadraticExpressionSymbols3 {
+    ): QuadraticExpressionSymbols3<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbolF64(
+            QuadraticExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -225,12 +225,12 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape4
-    ): QuadraticExpressionSymbols4 {
+    ): QuadraticExpressionSymbols4<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbolF64(
+            QuadraticExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -239,12 +239,12 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: DynShape
-    ): DynQuadraticExpressionSymbols {
+    ): DynQuadraticExpressionSymbols<Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbolF64(
+            QuadraticExpressionSymbol(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -256,13 +256,13 @@ fun <T> map(
     objs: Iterable<T>,
     ctor: (T) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
-): LinearExpressionSymbols1 {
+): LinearExpressionSymbols1<Flt64> {
     val l = objs.toList()
     return LinearExpressionSymbols1(
         name,
         Shape1(l.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l[v[0]]),
             name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
@@ -274,13 +274,13 @@ fun <T> flatMap(
     objs: Iterable<T>,
     ctor: (T) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
-): LinearExpressionSymbols1 {
+): LinearExpressionSymbols1<Flt64> {
     val l = objs.toList()
     return LinearExpressionSymbols1(
         name,
         Shape1(l.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l[v[0]]),
             name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
@@ -293,14 +293,14 @@ fun <T1, T2> map(
     objs2: Iterable<T2>,
     ctor: (T1, T2) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
-): LinearExpressionSymbols2 {
+): LinearExpressionSymbols2<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     return LinearExpressionSymbols2(
         name,
         Shape2(l1.size, l2.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]]),
             name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
@@ -313,14 +313,14 @@ fun <T1, T2> flatMap(
     objs2: Iterable<T2>,
     ctor: (T1, T2) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
-): LinearExpressionSymbols2 {
+): LinearExpressionSymbols2<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     return LinearExpressionSymbols2(
         name,
         Shape2(l1.size, l2.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]]),
             name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
@@ -334,7 +334,7 @@ fun <T1, T2, T3> map(
     objs3: Iterable<T3>,
     ctor: (T1, T2, T3) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
-): LinearExpressionSymbols3 {
+): LinearExpressionSymbols3<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -342,7 +342,7 @@ fun <T1, T2, T3> map(
         name,
         Shape3(l1.size, l2.size, l3.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
             name = "${name}_${
                 suffix(
@@ -362,7 +362,7 @@ fun <T1, T2, T3> flatMap(
     objs3: Iterable<T3>,
     ctor: (T1, T2, T3) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
-): LinearExpressionSymbols3 {
+): LinearExpressionSymbols3<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -370,7 +370,7 @@ fun <T1, T2, T3> flatMap(
         name,
         Shape3(l1.size, l2.size, l3.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
             name = "${name}_${
                 suffix(
@@ -392,7 +392,7 @@ fun <T1, T2, T3, T4> map(
     ctor: (T1, T2, T3, T4) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
-): LinearExpressionSymbols4 {
+): LinearExpressionSymbols4<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -401,7 +401,7 @@ fun <T1, T2, T3, T4> map(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
             name = "${name}_${
                 suffix(
@@ -424,7 +424,7 @@ fun <T1, T2, T3, T4> flatMap(
     ctor: (T1, T2, T3, T4) -> UtilsLinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
-): LinearExpressionSymbols4 {
+): LinearExpressionSymbols4<Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -433,7 +433,7 @@ fun <T1, T2, T3, T4> flatMap(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
             name = "${name}_${
                 suffix(
@@ -453,13 +453,13 @@ fun map(
     objs: Iterable<Iterable<Any>>,
     ctor: (List<Any>) -> UtilsLinearPolynomial<Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
-): DynLinearExpressionSymbols {
+): DynLinearExpressionSymbols<Flt64> {
     val ls = objs.map { it.toList() }
     return DynLinearExpressionSymbols(
         name,
         DynShape(ls.map { it.size }.toIntArray())
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(ls.mapIndexed { i, l -> l[v[i]] }),
             name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
@@ -472,15 +472,52 @@ fun flatMap(
     objs: List<Iterable<Any>>,
     ctor: (List<Any>) -> UtilsLinearPolynomial<Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
-): DynLinearExpressionSymbols {
+): DynLinearExpressionSymbols<Flt64> {
     val ls = objs.map { it.toList() }
     return DynLinearExpressionSymbols(
         name,
         DynShape(ls.map { it.size }.toIntArray())
     ) { _, v ->
-        LinearExpressionSymbolF64(
+        LinearExpressionSymbol(
             ctor(ls.mapIndexed { i, l -> l[v[i]] }),
             name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
     }
 }
+
+// F64 convenience type aliases
+typealias LinearExpressionSymbols1F64 = LinearExpressionSymbols1<Flt64>
+typealias LinearExpressionSymbols2F64 = LinearExpressionSymbols2<Flt64>
+typealias LinearExpressionSymbols3F64 = LinearExpressionSymbols3<Flt64>
+typealias LinearExpressionSymbols4F64 = LinearExpressionSymbols4<Flt64>
+typealias DynLinearExpressionSymbolsF64 = DynLinearExpressionSymbols<Flt64>
+
+typealias QuantityLinearExpressionSymbols1F64 = QuantityLinearExpressionSymbols1<Flt64>
+typealias QuantityLinearExpressionSymbols2F64 = QuantityLinearExpressionSymbols2<Flt64>
+typealias QuantityLinearExpressionSymbols3F64 = QuantityLinearExpressionSymbols3<Flt64>
+typealias QuantityLinearExpressionSymbols4F64 = QuantityLinearExpressionSymbols4<Flt64>
+typealias DynQuantityLinearExpressionSymbolsF64 = DynQuantityLinearExpressionSymbols<Flt64>
+
+typealias LinearIntermediateSymbols1F64 = LinearIntermediateSymbols1<Flt64>
+typealias LinearIntermediateSymbols2F64 = LinearIntermediateSymbols2<Flt64>
+typealias LinearIntermediateSymbols3F64 = LinearIntermediateSymbols3<Flt64>
+typealias LinearIntermediateSymbols4F64 = LinearIntermediateSymbols4<Flt64>
+typealias DynLinearIntermediateSymbolsF64 = DynLinearIntermediateSymbols<Flt64>
+
+typealias QuantityLinearIntermediateSymbols1F64 = QuantityLinearIntermediateSymbols1<Flt64>
+typealias QuantityLinearIntermediateSymbols2F64 = QuantityLinearIntermediateSymbols2<Flt64>
+typealias QuantityLinearIntermediateSymbols3F64 = QuantityLinearIntermediateSymbols3<Flt64>
+typealias QuantityLinearIntermediateSymbols4F64 = QuantityLinearIntermediateSymbols4<Flt64>
+typealias DynQuantityLinearIntermediateSymbolsF64 = DynQuantityLinearIntermediateSymbols<Flt64>
+
+typealias QuadraticExpressionSymbols1F64 = QuadraticExpressionSymbols1<Flt64>
+typealias QuadraticExpressionSymbols2F64 = QuadraticExpressionSymbols2<Flt64>
+typealias QuadraticExpressionSymbols3F64 = QuadraticExpressionSymbols3<Flt64>
+typealias QuadraticExpressionSymbols4F64 = QuadraticExpressionSymbols4<Flt64>
+typealias DynQuadraticExpressionSymbolsF64 = DynQuadraticExpressionSymbols<Flt64>
+
+typealias QuantityQuadraticExpressionSymbols1F64 = QuantityQuadraticExpressionSymbols1<Flt64>
+typealias QuantityQuadraticExpressionSymbols2F64 = QuantityQuadraticExpressionSymbols2<Flt64>
+typealias QuantityQuadraticExpressionSymbols3F64 = QuantityQuadraticExpressionSymbols3<Flt64>
+typealias QuantityQuadraticExpressionSymbols4F64 = QuantityQuadraticExpressionSymbols4<Flt64>
+typealias DynQuantityQuadraticExpressionSymbolsF64 = DynQuantityQuadraticExpressionSymbols<Flt64>

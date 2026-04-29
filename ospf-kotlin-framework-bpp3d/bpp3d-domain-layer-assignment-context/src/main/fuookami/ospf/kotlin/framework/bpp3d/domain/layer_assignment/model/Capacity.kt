@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -17,12 +15,12 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
 
 interface Capacity {
-    val loadWeight: LinearIntermediateSymbols1
-    val loadVolume: LinearIntermediateSymbols1
-    val loadDepth: LinearIntermediateSymbols1
+    val loadWeight: LinearIntermediateSymbols1<Flt64>
+    val loadVolume: LinearIntermediateSymbols1<Flt64>
+    val loadDepth: LinearIntermediateSymbols1<Flt64>
 
-    val loadingRate: LinearIntermediateSymbols1
-    val tailLoadingRate: LinearIntermediateSymbols1
+    val loadingRate: LinearIntermediateSymbols1<Flt64>
+    val tailLoadingRate: LinearIntermediateSymbols1<Flt64>
 }
 
 class PreciseLoadCapacity(
@@ -30,16 +28,16 @@ class PreciseLoadCapacity(
     private val layers: List<BinLayer>,
     private val assignment: PreciseAssignment
 ) : Capacity {
-    override lateinit var loadWeight: LinearIntermediateSymbols1
-    override lateinit var loadVolume: LinearIntermediateSymbols1
-    override lateinit var loadDepth: LinearIntermediateSymbols1
+    override lateinit var loadWeight: LinearIntermediateSymbols1<Flt64>
+    override lateinit var loadVolume: LinearIntermediateSymbols1<Flt64>
+    override lateinit var loadDepth: LinearIntermediateSymbols1<Flt64>
 
-    override lateinit var loadingRate: LinearIntermediateSymbols1
-    override lateinit var tailLoadingRate: LinearIntermediateSymbols1
+    override lateinit var loadingRate: LinearIntermediateSymbols1<Flt64>
+    override lateinit var tailLoadingRate: LinearIntermediateSymbols1<Flt64>
 
     fun register(model: MetaModelF64): Try {
         if (!::loadWeight.isInitialized) {
-            loadWeight = LinearIntermediateSymbols1(
+            loadWeight = LinearIntermediateSymbols1<Flt64>(
                 name = "load_weight",
                 shape = Shape1(bins.size)
             ) { i, _ ->
@@ -64,7 +62,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadVolume.isInitialized) {
-            loadVolume = LinearIntermediateSymbols1(
+            loadVolume = LinearIntermediateSymbols1<Flt64>(
                 name = "load_volume",
                 shape = Shape1(bins.size)
             ) { i, _ ->
@@ -89,7 +87,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadDepth.isInitialized) {
-            loadDepth = LinearIntermediateSymbols1(
+            loadDepth = LinearIntermediateSymbols1<Flt64>(
                 name = "load_depth",
                 shape = Shape1(bins.size)
             ) { i, _ ->
@@ -114,7 +112,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::loadingRate.isInitialized) {
-            loadingRate = LinearIntermediateSymbols1(
+            loadingRate = LinearIntermediateSymbols1<Flt64>(
                 name = "loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->
@@ -139,7 +137,7 @@ class PreciseLoadCapacity(
         }
 
         if (!::tailLoadingRate.isInitialized) {
-            tailLoadingRate = LinearIntermediateSymbols1(
+            tailLoadingRate = LinearIntermediateSymbols1<Flt64>(
                 name = "tail_loading_rate",
                 shape = Shape1(bins.size)
             ) { i, _ ->

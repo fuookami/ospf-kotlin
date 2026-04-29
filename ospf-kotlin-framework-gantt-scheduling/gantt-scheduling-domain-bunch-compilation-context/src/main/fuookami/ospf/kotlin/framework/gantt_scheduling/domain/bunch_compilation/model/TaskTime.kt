@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model
@@ -7,7 +5,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
@@ -51,10 +48,10 @@ open class BunchSchedulingTaskTime<
     private val withRedundancy get() = redundancyRange != null
 
     private lateinit var estRedundancy: Variable1<*>
-    override lateinit var estSlack: LinearIntermediateSymbols1
+    override lateinit var estSlack: LinearIntermediateSymbols1<Flt64>
 
-    override lateinit var estimateStartTime: LinearExpressionSymbols1
-    override lateinit var estimateEndTime: LinearExpressionSymbols1
+    override lateinit var estimateStartTime: LinearIntermediateSymbols1<Flt64>
+    override lateinit var estimateEndTime: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
@@ -113,7 +110,7 @@ open class BunchSchedulingTaskTime<
         }
 
         if (!::estimateStartTime.isInitialized) {
-            estimateStartTime = LinearExpressionSymbols1(
+            estimateStartTime = LinearIntermediateSymbols1<Flt64>(
                 name = "estimate_start_time",
                 shape = Shape1(tasks.size)
             ) { i, _ ->
@@ -141,7 +138,7 @@ open class BunchSchedulingTaskTime<
         }
 
         if (!::estimateEndTime.isInitialized) {
-            estimateEndTime = LinearExpressionSymbols1(
+            estimateEndTime = LinearIntermediateSymbols1<Flt64>(
                 name = "estimate_end_time",
                 shape = Shape1(tasks.size)
             ) { i, _ ->
@@ -169,7 +166,7 @@ open class BunchSchedulingTaskTime<
         }
 
         if (!::estSlack.isInitialized) {
-            estSlack = LinearIntermediateSymbols1(
+            estSlack = LinearIntermediateSymbols1<Flt64>(
                 name = "est_slack",
                 shape = Shape1(tasks.size)
             ) { i, _ ->
@@ -204,7 +201,6 @@ open class BunchSchedulingTaskTime<
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_${task}"
                             )
-                            slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack
                         }
                     }

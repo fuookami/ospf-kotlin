@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -26,7 +24,7 @@ class TaskExecutorCostMinimization<
             polynomial = sum(tasks.flatMap { t ->
                 executors.map { e ->
                     val coefficient = costCalculator(Pair(t, e)) ?: Flt64.infinity
-                    coefficient * compilation.taskAssignment[t, e].toMathLinearPolynomial()
+                    coefficient * compilation.taskAssignment[t, e].toLinearPolynomial()
                 }
             }),
             name = "task executor"

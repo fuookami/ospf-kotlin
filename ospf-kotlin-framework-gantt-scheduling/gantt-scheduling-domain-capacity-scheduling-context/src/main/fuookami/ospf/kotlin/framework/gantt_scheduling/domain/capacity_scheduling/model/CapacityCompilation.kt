@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
@@ -64,10 +62,10 @@ class CapacityCompilation<A : ProductionAction>(
     lateinit var cost: LinearIntermediateSymbol<Flt64>
         private set
 
-    override lateinit var operationTime: LinearExpressionSymbols2
+    override lateinit var operationTime: LinearExpressionSymbols2<Flt64>
         private set
 
-    override lateinit var capacity: LinearExpressionSymbols2
+    override lateinit var capacity: LinearExpressionSymbols2<Flt64>
         private set
 
     /**
