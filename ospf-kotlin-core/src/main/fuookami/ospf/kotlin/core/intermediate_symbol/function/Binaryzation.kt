@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -177,7 +178,7 @@ class BinaryzationFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             threshold: Flt64 = Flt64.zero,
             bigM: Flt64? = null,
             method: BinaryzationMethod = BinaryzationMethod.BigM,

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -123,7 +124,7 @@ class MaxFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<*>>,
+            polynomials: List<LinearIntermediateSymbolF64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -239,7 +240,7 @@ class MinFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<*>>,
+            polynomials: List<LinearIntermediateSymbolF64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -198,7 +199,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             y: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withNegative: Boolean = true,
@@ -225,7 +226,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             threshold: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -253,7 +254,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             threshold: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -283,7 +284,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             threshold: UInt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -312,7 +313,7 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             threshold: UInt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -342,8 +343,8 @@ class SlackFunction<T : Field<T>>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
-            y: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
+            y: LinearIntermediateSymbolF64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,

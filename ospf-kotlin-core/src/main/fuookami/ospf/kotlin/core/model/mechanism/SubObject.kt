@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearCellF64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -99,9 +100,9 @@ class LinearSubObject<V : RealNumber<V>>(
             flattenData: LinearFlattenDataF64,
             tokens: AbstractTokenTable<*>,
             name: String = ""
-        ): LinearSubObject<Flt64> {
+        ): LinearSubObjectF64 {
             @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTable<Flt64>
+            val solverTokens = tokens as AbstractTokenTableF64
             val cells = createLinearCells(flattenData.monomials, solverTokens)
             return LinearSubObject(
                 category = category,
@@ -150,9 +151,9 @@ class QuadraticSubObject<V : RealNumber<V>>(
             flattenData: QuadraticFlattenDataF64,
             tokens: AbstractTokenTable<*>,
             name: String = ""
-        ): QuadraticSubObject<Flt64> {
+        ): QuadraticSubObjectF64 {
             @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTable<Flt64>
+            val solverTokens = tokens as AbstractTokenTableF64
             val cells = createQuadraticCells(flattenData.monomials, solverTokens)
             return QuadraticSubObject(
                 category = category,

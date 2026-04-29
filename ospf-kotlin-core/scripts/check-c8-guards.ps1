@@ -8,6 +8,9 @@
 #   P4-2-1/2/3: Zero-tolerance (must be 0)
 #   P4-3-1: Zero-tolerance (must be 0)
 #   P4-4-1/2: Baseline-count (must not exceed frozen baseline)
+#   P5-1-1: Zero-tolerance (must be 0)
+#   P5-3-1/P5-4-1: Baseline-count (must not exceed frozen baseline)
+#   P6-0-1~6: Baseline-count (must not exceed frozen baseline)
 
 param(
     [switch]$Full,
@@ -201,7 +204,7 @@ $modelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
 $flt64TokenSigMatches = Get-ChildItem -Path $modelMain -Recurse -Filter "*.kt" |
     Select-String -Pattern "AbstractTokenTable<Flt64>|AbstractMutableTokenTable<Flt64>" |
     Where-Object { $_.Line -notmatch "^\s*//" }
-$flt64TokenSigBaseline = 18  # Frozen 2026-04-29 after P5 full closure
+$flt64TokenSigBaseline = 0  # Updated 2026-04-29 after P6-2b (was 18 after P5 full closure)
 Write-Baseline "P5-3-1: No new Flt64-fixed token-table signatures under core/model" $flt64TokenSigMatches.Count $flt64TokenSigBaseline "Found $($flt64TokenSigMatches.Count) total (baseline=$flt64TokenSigBaseline)"
 
 # Guard 13: No increase in deprecated ToMathLinearPolynomial bridge references
@@ -215,8 +218,66 @@ foreach ($root in $bridgeRoots) {
             Where-Object { $_.Line -notmatch "^\s*//" }
     }
 }
-$toMathLinearPolyBaseline = 23  # Frozen 2026-04-29 after P5 full closure
+$toMathLinearPolyBaseline = 13  # Updated 2026-04-29 after P6-2a (was 23 after P5 full closure)
 Write-Baseline "P5-4-1: No new ToMathLinearPolynomial bridge references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
+
+# --- P6-0 Guards (new) ---
+
+# Guard 14: core/src/main <Flt64> baseline freeze
+$mathMain = "ospf-kotlin-math/src/main"
+
+$coreFlt64Matches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "<Flt64>" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$coreFlt64Baseline = 662  # Updated 2026-04-29 after P6-2b (was 759 after P6-2a)
+Write-Baseline "P6-0-1: core/src/main <Flt64> baseline freeze" $coreFlt64Matches.Count $coreFlt64Baseline "Found $($coreFlt64Matches.Count) total (baseline=$coreFlt64Baseline)"
+
+# Guard 15: core/src/main <*> baseline freeze
+$coreStarMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "<\*>" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$coreStarBaseline = 282  # Updated 2026-04-29 after P6-1 (was 363 at P6-0 start)
+Write-Baseline "P6-0-2: core/src/main <*> baseline freeze" $coreStarMatches.Count $coreStarBaseline "Found $($coreStarMatches.Count) total (baseline=$coreStarBaseline)"
+
+# Guard 16: core/src/main @Deprecated baseline freeze
+$coreDeprecatedMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
+    Select-String -Pattern "@Deprecated" |
+    Where-Object { $_.Line -notmatch "^\s*//" }
+$coreDeprecatedBaseline = 7  # Updated 2026-04-29 after P6-2a (was 58 at P6-1 close)
+Write-Baseline "P6-0-3: core/src/main @Deprecated baseline freeze" $coreDeprecatedMatches.Count $coreDeprecatedBaseline "Found $($coreDeprecatedMatches.Count) total (baseline=$coreDeprecatedBaseline)"
+
+# Guard 17: math/src/main <Flt64> baseline freeze
+if (Test-Path $mathMain) {
+    $mathFlt64Matches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+        Select-String -Pattern "<Flt64>" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $mathFlt64Baseline = 322  # Updated 2026-04-29 after P6-3 (was 323 at P6-0 start)
+    Write-Baseline "P6-0-4: math/src/main <Flt64> baseline freeze" $mathFlt64Matches.Count $mathFlt64Baseline "Found $($mathFlt64Matches.Count) total (baseline=$mathFlt64Baseline)"
+} else {
+    Write-Host "[SKIP] P6-0-4: math/src/main not found" -ForegroundColor Yellow
+}
+
+# Guard 18: math/src/main <*> baseline freeze
+if (Test-Path $mathMain) {
+    $mathStarMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+        Select-String -Pattern "<\*>" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $mathStarBaseline = 218  # Frozen 2026-04-29 at P6-0 start
+    Write-Baseline "P6-0-5: math/src/main <*> baseline freeze" $mathStarMatches.Count $mathStarBaseline "Found $($mathStarMatches.Count) total (baseline=$mathStarBaseline)"
+} else {
+    Write-Host "[SKIP] P6-0-5: math/src/main not found" -ForegroundColor Yellow
+}
+
+# Guard 19: math/src/main @Deprecated baseline freeze
+if (Test-Path $mathMain) {
+    $mathDeprecatedMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+        Select-String -Pattern "@Deprecated" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $mathDeprecatedBaseline = 0  # Updated 2026-04-29 after P6-3 (was 3 at P6-0 start)
+    Write-Baseline "P6-0-6: math/src/main @Deprecated baseline freeze" $mathDeprecatedMatches.Count $mathDeprecatedBaseline "Found $($mathDeprecatedMatches.Count) total (baseline=$mathDeprecatedBaseline)"
+} else {
+    Write-Host "[SKIP] P6-0-6: math/src/main not found" -ForegroundColor Yellow
+}
 
 # --- Summary ---
 Write-Host ""

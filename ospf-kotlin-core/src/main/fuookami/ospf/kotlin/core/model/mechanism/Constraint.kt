@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -185,7 +186,7 @@ class LinearConstraintImpl(
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl {
             @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTable<Flt64>
+            val solverTokens = tokens as AbstractTokenTableF64
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, solverTokens)
             return LinearConstraintImpl(
@@ -229,7 +230,7 @@ class QuadraticConstraintImpl(
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl {
             @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTable<Flt64>
+            val solverTokens = tokens as AbstractTokenTableF64
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, solverTokens)
             return QuadraticConstraintImpl(

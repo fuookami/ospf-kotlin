@@ -2,7 +2,9 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
@@ -56,7 +58,7 @@ interface MetaConstraintGroup {
     }
 
     fun AbstractLinearMetaModelF64.addConstraint(
-        constraint: LinearIntermediateSymbol<*>,
+        constraint: LinearIntermediateSymbolF64,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -99,7 +101,7 @@ interface MetaConstraintGroup {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun AbstractLinearMetaModelF64.partition(
-        symbols: Iterable<LinearIntermediateSymbol<*>>,
+        symbols: Iterable<LinearIntermediateSymbolF64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -119,7 +121,7 @@ interface MetaConstraintGroup {
     }
 
     fun AbstractQuadraticMetaModelF64.addConstraint(
-        constraint: QuadraticIntermediateSymbol<*>,
+        constraint: QuadraticIntermediateSymbolF64,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -139,7 +141,7 @@ interface MetaConstraintGroup {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun AbstractQuadraticMetaModelF64.partition(
-        symbols: Iterable<QuadraticIntermediateSymbol<*>>,
+        symbols: Iterable<QuadraticIntermediateSymbolF64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,

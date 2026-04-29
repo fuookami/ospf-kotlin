@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -400,16 +401,16 @@ infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): MathLinearInequality = (
 infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): MathLinearInequality = (this as Symbol) ls rhs
 infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): MathLinearInequality = (this as Symbol) gr rhs
 
-// ========== QuadraticIntermediateSymbol<*> vs Boolean ==========
+// ========== QuadraticIntermediateSymbolF64 vs Boolean ==========
 
-infix fun QuadraticIntermediateSymbol<*>.eq(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbolF64.eq(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toMathQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
-infix fun QuadraticIntermediateSymbol<*>.le(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbolF64.le(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toMathQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
-infix fun QuadraticIntermediateSymbol<*>.ge(rhs: Boolean): MathQuadraticInequality =
+infix fun QuadraticIntermediateSymbolF64.ge(rhs: Boolean): MathQuadraticInequality =
     MathQuadraticInequality(toMathQuadraticPolynomial(), UtilsQuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
-infix fun QuadraticIntermediateSymbol<*>.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
-infix fun QuadraticIntermediateSymbol<*>.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
+infix fun QuadraticIntermediateSymbolF64.leq(rhs: Boolean): MathQuadraticInequality = this le rhs
+infix fun QuadraticIntermediateSymbolF64.geq(rhs: Boolean): MathQuadraticInequality = this ge rhs
 
 // ========== UInt comparison helpers ==========
 

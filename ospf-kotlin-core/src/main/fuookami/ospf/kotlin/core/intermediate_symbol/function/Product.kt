@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -82,7 +83,7 @@ class ProductFunction<V>(
 
     override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         @Suppress("UNCHECKED_CAST")
-        val tt = tokenTable as AbstractTokenTable<Flt64>
+        val tt = tokenTable as AbstractTokenTableF64
         val tokenList = tt.tokenList
         val leftValue = if (values.isNullOrEmpty()) {
             evaluateLinear(left, tokenList, false)
@@ -170,7 +171,7 @@ class ProductFunction<V>(
 
     @Suppress("UNCHECKED_CAST")
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
+        val tt = tokenTable as AbstractTokenTableF64
         val tokenList = tt.tokenList as AbstractTokenListF64
         val result = evaluate(tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
@@ -178,7 +179,7 @@ class ProductFunction<V>(
 
     @Suppress("UNCHECKED_CAST")
     override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
+        val tt = tokenTable as AbstractTokenTableF64
         val tokenList = tt.tokenList as AbstractTokenListF64
         val result = evaluate(results, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
@@ -186,7 +187,7 @@ class ProductFunction<V>(
 
     @Suppress("UNCHECKED_CAST")
     override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tokenList = tokenTable?.let { (it as AbstractTokenTable<Flt64>).tokenList as AbstractTokenListF64 }
+        val tokenList = tokenTable?.let { (it as AbstractTokenTableF64).tokenList as AbstractTokenListF64 }
         val result = evaluate(values, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }

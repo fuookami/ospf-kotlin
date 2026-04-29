@@ -71,54 +71,6 @@ class QuantitySymbolCombination<out Sym : IntermediateSymbol<*>, S : Shape>(
     }
 }
 
-typealias IntermediateSymbols = MultiArray<IntermediateSymbol<*>, *>
-typealias IntermediateSymbols1 = MultiArray<IntermediateSymbol<*>, Shape1>
-typealias IntermediateSymbols2 = MultiArray<IntermediateSymbol<*>, Shape2>
-typealias IntermediateSymbols3 = MultiArray<IntermediateSymbol<*>, Shape3>
-typealias IntermediateSymbols4 = MultiArray<IntermediateSymbol<*>, Shape4>
-typealias DynIntermediateSymbols = MultiArray<IntermediateSymbol<*>, DynShape>
-typealias IntermediateSymbolView = MultiArrayView<IntermediateSymbol<*>, *>
-typealias IntermediateSymbolView1 = MultiArrayView<IntermediateSymbol<*>, Shape1>
-typealias IntermediateSymbolView2 = MultiArrayView<IntermediateSymbol<*>, Shape2>
-typealias IntermediateSymbolView3 = MultiArrayView<IntermediateSymbol<*>, Shape3>
-typealias IntermediateSymbolView4 = MultiArrayView<IntermediateSymbol<*>, Shape4>
-typealias DynIntermediateSymbolView = MultiArrayView<IntermediateSymbol<*>, DynShape>
-
-typealias QuantityIntermediateSymbols1 = MultiArray<QuantityIntermediateSymbol, Shape1>
-typealias QuantityIntermediateSymbols2 = MultiArray<QuantityIntermediateSymbol, Shape2>
-typealias QuantityIntermediateSymbols3 = MultiArray<QuantityIntermediateSymbol, Shape3>
-typealias QuantityIntermediateSymbols4 = MultiArray<QuantityIntermediateSymbol, Shape4>
-typealias DynQuantityIntermediateSymbols = MultiArray<QuantityIntermediateSymbol, DynShape>
-typealias QuantityIntermediateSymbolView1 = MultiArrayView<QuantityIntermediateSymbol, Shape1>
-typealias QuantityIntermediateSymbolView2 = MultiArrayView<QuantityIntermediateSymbol, Shape2>
-typealias QuantityIntermediateSymbolView3 = MultiArrayView<QuantityIntermediateSymbol, Shape3>
-typealias QuantityIntermediateSymbolView4 = MultiArrayView<QuantityIntermediateSymbol, Shape4>
-typealias DynQuantityIntermediateSymbolView = MultiArrayView<QuantityIntermediateSymbol, DynShape>
-
-typealias LinearIntermediateSymbols1 = SymbolCombination<LinearIntermediateSymbol<*>, Shape1>
-typealias LinearIntermediateSymbols2 = SymbolCombination<LinearIntermediateSymbol<*>, Shape2>
-typealias LinearIntermediateSymbols3 = SymbolCombination<LinearIntermediateSymbol<*>, Shape3>
-typealias LinearIntermediateSymbols4 = SymbolCombination<LinearIntermediateSymbol<*>, Shape4>
-typealias DynLinearIntermediateSymbols = SymbolCombination<LinearIntermediateSymbol<*>, DynShape>
-
-typealias QuantityLinearIntermediateSymbols1 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape1>
-typealias QuantityLinearIntermediateSymbols2 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape2>
-typealias QuantityLinearIntermediateSymbols3 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape3>
-typealias QuantityLinearIntermediateSymbols4 = QuantitySymbolCombination<LinearIntermediateSymbol<*>, Shape4>
-typealias DynQuantityLinearIntermediateSymbols = QuantitySymbolCombination<LinearIntermediateSymbol<*>, DynShape>
-
-typealias QuadraticIntermediateSymbols1 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape1>
-typealias QuadraticIntermediateSymbols2 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape2>
-typealias QuadraticIntermediateSymbols3 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape3>
-typealias QuadraticIntermediateSymbols4 = SymbolCombination<QuadraticIntermediateSymbol<*>, Shape4>
-typealias DynQuadraticIntermediateSymbols = SymbolCombination<QuadraticIntermediateSymbol<*>, DynShape>
-
-typealias QuantityQuadraticIntermediateSymbols1 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape1>
-typealias QuantityQuadraticIntermediateSymbols2 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape2>
-typealias QuantityQuadraticIntermediateSymbols3 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape3>
-typealias QuantityQuadraticIntermediateSymbols4 = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, Shape4>
-typealias DynQuantityQuadraticIntermediateSymbols = QuantitySymbolCombination<QuadraticIntermediateSymbol<*>, DynShape>
-
 typealias LinearExpressionSymbols1 = SymbolCombination<LinearExpressionSymbolF64, Shape1>
 typealias LinearExpressionSymbols2 = SymbolCombination<LinearExpressionSymbolF64, Shape2>
 typealias LinearExpressionSymbols3 = SymbolCombination<LinearExpressionSymbolF64, Shape3>
@@ -143,74 +95,6 @@ typealias QuantityQuadraticExpressionSymbols3 = QuantitySymbolCombination<Quadra
 typealias QuantityQuadraticExpressionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape4>
 typealias DynQuantityQuadraticExpressionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbolF64, DynShape>
 
-@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape1> directly", level = DeprecationLevel.WARNING)
-typealias LinearFunctionSymbols1 = SymbolCombination<LinearFunctionSymbolAdapter, Shape1>
-@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape2> directly", level = DeprecationLevel.WARNING)
-typealias LinearFunctionSymbols2 = SymbolCombination<LinearFunctionSymbolAdapter, Shape2>
-@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape3> directly", level = DeprecationLevel.WARNING)
-typealias LinearFunctionSymbols3 = SymbolCombination<LinearFunctionSymbolAdapter, Shape3>
-@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, Shape4> directly", level = DeprecationLevel.WARNING)
-typealias LinearFunctionSymbols4 = SymbolCombination<LinearFunctionSymbolAdapter, Shape4>
-@Deprecated("Use SymbolCombination<LinearFunctionSymbolAdapter, DynShape> directly", level = DeprecationLevel.WARNING)
-typealias DynLinearFunctionSymbols = SymbolCombination<LinearFunctionSymbolAdapter, DynShape>
-
-@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape1> directly", level = DeprecationLevel.WARNING)
-typealias QuantityLinearFunctionSymbols1 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape1>
-@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape2> directly", level = DeprecationLevel.WARNING)
-typealias QuantityLinearFunctionSymbols2 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape2>
-@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape3> directly", level = DeprecationLevel.WARNING)
-typealias QuantityLinearFunctionSymbols3 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape3>
-@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape4> directly", level = DeprecationLevel.WARNING)
-typealias QuantityLinearFunctionSymbols4 = QuantitySymbolCombination<LinearFunctionSymbolAdapter, Shape4>
-@Deprecated("Use QuantitySymbolCombination<LinearFunctionSymbolAdapter, DynShape> directly", level = DeprecationLevel.WARNING)
-typealias DynQuantityLinearFunctionSymbols = QuantitySymbolCombination<LinearFunctionSymbolAdapter, DynShape>
-
-@Deprecated("Use QuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols1 = SymbolCombination<QuadraticExpressionSymbolF64, Shape1>
-@Deprecated("Use QuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols2 = SymbolCombination<QuadraticExpressionSymbolF64, Shape2>
-@Deprecated("Use QuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols3 = SymbolCombination<QuadraticExpressionSymbolF64, Shape3>
-@Deprecated("Use QuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
-typealias QuadraticFunctionSymbols4 = SymbolCombination<QuadraticExpressionSymbolF64, Shape4>
-@Deprecated("Use DynQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
-typealias DynQuadraticFunctionSymbols = SymbolCombination<QuadraticExpressionSymbolF64, DynShape>
-
-@Deprecated("Use QuantityQuadraticExpressionSymbols1 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols1 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape1>
-@Deprecated("Use QuantityQuadraticExpressionSymbols2 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols2 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape2>
-@Deprecated("Use QuantityQuadraticExpressionSymbols3 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols3 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape3>
-@Deprecated("Use QuantityQuadraticExpressionSymbols4 instead", level = DeprecationLevel.WARNING)
-typealias QuantityQuadraticFunctionSymbols4 = QuantitySymbolCombination<QuadraticExpressionSymbolF64, Shape4>
-@Deprecated("Use DynQuantityQuadraticExpressionSymbols instead", level = DeprecationLevel.WARNING)
-typealias DynQuantityQuadraticFunctionSymbols = QuantitySymbolCombination<QuadraticExpressionSymbolF64, DynShape>
-
-typealias LinearIntermediateSymbolView1 = MultiArrayView<LinearIntermediateSymbol<*>, Shape1>
-typealias LinearIntermediateSymbolView2 = MultiArrayView<LinearIntermediateSymbol<*>, Shape2>
-typealias LinearIntermediateSymbolView3 = MultiArrayView<LinearIntermediateSymbol<*>, Shape3>
-typealias LinearIntermediateSymbolView4 = MultiArrayView<LinearIntermediateSymbol<*>, Shape4>
-typealias DynLinearIntermediateSymbolView = MultiArrayView<LinearIntermediateSymbol<*>, DynShape>
-
-typealias QuantityLinearIntermediateSymbolView1 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape1>
-typealias QuantityLinearIntermediateSymbolView2 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape2>
-typealias QuantityLinearIntermediateSymbolView3 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape3>
-typealias QuantityLinearIntermediateSymbolView4 = MultiArrayView<QuantityLinearIntermediateSymbol, Shape4>
-typealias DynQuantityLinearIntermediateSymbolView = MultiArrayView<QuantityLinearIntermediateSymbol, DynShape>
-
-typealias QuadraticIntermediateSymbolView1 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape1>
-typealias QuadraticIntermediateSymbolView2 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape2>
-typealias QuadraticIntermediateSymbolView3 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape3>
-typealias QuadraticIntermediateSymbolView4 = MultiArrayView<QuadraticIntermediateSymbol<*>, Shape4>
-typealias DynQuadraticIntermediateSymbolView = MultiArrayView<QuadraticIntermediateSymbol<*>, DynShape>
-
-typealias QuantityQuadraticIntermediateSymbolView1 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape1>
-typealias QuantityQuadraticIntermediateSymbolView2 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape2>
-typealias QuantityQuadraticIntermediateSymbolView3 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape3>
-typealias QuantityQuadraticIntermediateSymbolView4 = MultiArrayView<QuantityQuadraticIntermediateSymbol, Shape4>
-typealias DynQuantityQuadraticIntermediateSymbolView = MultiArrayView<QuantityQuadraticIntermediateSymbol, DynShape>
-
 data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
@@ -220,7 +104,7 @@ data object LinearIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbol(
+            LinearExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -234,7 +118,7 @@ data object LinearIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbol(
+            LinearExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -248,7 +132,7 @@ data object LinearIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbol(
+            LinearExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -262,7 +146,7 @@ data object LinearIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbol(
+            LinearExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -276,7 +160,7 @@ data object LinearIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            LinearExpressionSymbol(
+            LinearExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -292,7 +176,7 @@ data object QuadraticIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbol(
+            QuadraticExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -306,7 +190,7 @@ data object QuadraticIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbol(
+            QuadraticExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -320,7 +204,7 @@ data object QuadraticIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbol(
+            QuadraticExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -334,7 +218,7 @@ data object QuadraticIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbol(
+            QuadraticExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -348,7 +232,7 @@ data object QuadraticIntermediateSymbols {
             name = name,
             shape = shape
         ) { _, v ->
-            QuadraticExpressionSymbol(
+            QuadraticExpressionSymbolF64(
                 name = "${name}_${v.joinToString("_") { "$it" }}"
             )
         }
@@ -366,7 +250,7 @@ fun <T> map(
         name,
         Shape1(l.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l[v[0]]),
             name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
@@ -384,7 +268,7 @@ fun <T> flatMap(
         name,
         Shape1(l.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l[v[0]]),
             name = "${name}_${suffix(Pair(v[0], l[v[0]]))}"
         )
@@ -404,7 +288,7 @@ fun <T1, T2> map(
         name,
         Shape2(l1.size, l2.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]]),
             name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
@@ -424,7 +308,7 @@ fun <T1, T2> flatMap(
         name,
         Shape2(l1.size, l2.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]]),
             name = "${name}_${suffix(Pair(v[0], l1[v[0]]), Pair(v[1], l2[v[1]]))}"
         )
@@ -446,7 +330,7 @@ fun <T1, T2, T3> map(
         name,
         Shape3(l1.size, l2.size, l3.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
             name = "${name}_${
                 suffix(
@@ -474,7 +358,7 @@ fun <T1, T2, T3> flatMap(
         name,
         Shape3(l1.size, l2.size, l3.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]]),
             name = "${name}_${
                 suffix(
@@ -505,7 +389,7 @@ fun <T1, T2, T3, T4> map(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
             name = "${name}_${
                 suffix(
@@ -537,7 +421,7 @@ fun <T1, T2, T3, T4> flatMap(
         name,
         Shape4(l1.size, l2.size, l3.size, l4.size)
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(l1[v[0]], l2[v[1]], l3[v[2]], l4[v[4]]),
             name = "${name}_${
                 suffix(
@@ -563,7 +447,7 @@ fun map(
         name,
         DynShape(ls.map { it.size }.toIntArray())
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(ls.mapIndexed { i, l -> l[v[i]] }),
             name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
@@ -582,13 +466,9 @@ fun flatMap(
         name,
         DynShape(ls.map { it.size }.toIntArray())
     ) { _, v ->
-        LinearExpressionSymbol(
+        LinearExpressionSymbolF64(
             ctor(ls.mapIndexed { i, l -> l[v[i]] }),
             name = "${name}_${suffix(ls.mapIndexed { i, l -> Pair(v[i], l[v[i]]) })}"
         )
     }
 }
-
-
-
-

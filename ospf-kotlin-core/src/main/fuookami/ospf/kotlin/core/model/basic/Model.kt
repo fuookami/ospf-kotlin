@@ -7,7 +7,9 @@ import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
@@ -295,7 +297,7 @@ interface LinearModel : Model {
     }
 
     fun minimize(
-        symbol: LinearIntermediateSymbol<*>,
+        symbol: LinearIntermediateSymbolF64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -308,7 +310,7 @@ interface LinearModel : Model {
     }
 
     fun maximize(
-        symbol: LinearIntermediateSymbol<*>,
+        symbol: LinearIntermediateSymbolF64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -454,7 +456,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun minimize(
-        symbol: QuadraticIntermediateSymbol<*>,
+        symbol: QuadraticIntermediateSymbolF64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -467,7 +469,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun maximize(
-        symbol: QuadraticIntermediateSymbol<*>,
+        symbol: QuadraticIntermediateSymbolF64,
         name: String? = null,
         displayName: String? = null
     ): Try {

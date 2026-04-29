@@ -1,4 +1,4 @@
-@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -8,8 +8,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -154,7 +156,7 @@ class MaskingFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbol<*>,
+            x: LinearIntermediateSymbolF64,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
@@ -185,27 +187,6 @@ class MaskingFunction<T : Field<T>>(
             name = name,
             displayName = displayName
         )
-
-        @Deprecated(
-            message = "Use fromLinearPolynomials(x: ToLinearPolynomial<Flt64>, mask: ToLinearPolynomial<Flt64>, ...) instead. Compatibility shim scheduled for removal after 2026-09-30.",
-            replaceWith = ReplaceWith("fromLinearPolynomials(x, mask, bigM, name, displayName)"),
-            level = DeprecationLevel.WARNING
-        )
-        @JvmStatic
-        @JvmName("fromToMathLinearPolynomialsCompat")
-        operator fun invoke(
-            x: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
-            mask: fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
-            input = x.toMathLinearPolynomial(),
-            maskPoly = mask.toMathLinearPolynomial(),
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
     }
 }
 
@@ -221,7 +202,7 @@ class MaskingWithPolyMaskFunction(
     bigM: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbol<Flt64>, MathFunctionSymbol<Flt64> {
+) : LinearIntermediateSymbolF64, MathFunctionSymbol<Flt64> {
     private val bigM: Flt64 = bigM ?: Flt64(BIG_M_DEFAULT)
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
@@ -243,7 +224,7 @@ class MaskingWithPolyMaskFunction(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
@@ -265,9 +246,9 @@ class MaskingWithPolyMaskFunction(
         (this as MathFunctionSymbol<Flt64>).evaluate(values)
 
     // V-typed evaluate overrides (P4-5)
-    override fun evaluate(tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableF64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
         (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
 
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {

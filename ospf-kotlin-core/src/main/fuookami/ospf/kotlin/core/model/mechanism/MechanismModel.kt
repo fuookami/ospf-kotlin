@@ -1,7 +1,9 @@
 ﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.TokenTable
@@ -278,14 +280,14 @@ class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
     constraints: List<LinearConstraintImpl>,
-    override val objectFunction: SingleObject<LinearSubObject<Flt64>>,
+    override val objectFunction: SingleObject<LinearSubObjectF64>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
     @Suppress("UNCHECKED_CAST")
-    private val solverTokenTable: AbstractTokenTable<Flt64>
-        get() = tokens as AbstractTokenTable<Flt64>
+    private val solverTokenTable: AbstractTokenTableF64
+        get() = tokens as AbstractTokenTableF64
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -399,7 +401,7 @@ class LinearMechanismModel<V>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: LinearMetaModelF64,
-            tokens: AbstractTokenTable<Flt64>,
+            tokens: AbstractTokenTableF64,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModelF64 {
@@ -436,10 +438,10 @@ class LinearMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTable<Flt64>,
+            tokens: AbstractMutableTokenTableF64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable<Flt64>> {
+        ): Ret<AbstractTokenTableF64> {
             return when (tokens) {
                 is MutableTokenTableF64 -> {
                     val temp = tokens.copy() as MutableTokenTableF64
@@ -704,14 +706,14 @@ class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
     constraints: List<QuadraticConstraintImpl>,
-    override val objectFunction: SingleObject<QuadraticSubObject<Flt64>>,
+    override val objectFunction: SingleObject<QuadraticSubObjectF64>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
     @Suppress("UNCHECKED_CAST")
-    private val solverTokenTable: AbstractTokenTable<Flt64>
-        get() = tokens as AbstractTokenTable<Flt64>
+    private val solverTokenTable: AbstractTokenTableF64
+        get() = tokens as AbstractTokenTableF64
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -825,7 +827,7 @@ class QuadraticMechanismModel<V>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: QuadraticMetaModelF64,
-            tokens: AbstractTokenTable<Flt64>,
+            tokens: AbstractTokenTableF64,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModelF64 {
@@ -862,10 +864,10 @@ class QuadraticMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTable<Flt64>,
+            tokens: AbstractMutableTokenTableF64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTable<Flt64>> {
+        ): Ret<AbstractTokenTableF64> {
             return when (tokens) {
                 is MutableTokenTableF64 -> {
                     val temp = tokens.copy() as MutableTokenTableF64

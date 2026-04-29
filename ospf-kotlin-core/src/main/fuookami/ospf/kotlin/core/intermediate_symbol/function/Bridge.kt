@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -17,8 +18,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinea
  * toLinearPolynomial() already returns the math type directly.
  */
 @Suppress("UNCHECKED_CAST")
-fun LinearIntermediateSymbol<*>.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    return (this as LinearIntermediateSymbol<Flt64>).toMathLinearPolynomial()
+fun LinearIntermediateSymbolF64.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
+    return (this as LinearIntermediateSymbolF64).toMathLinearPolynomial()
 }
 
 /**

@@ -1,9 +1,10 @@
-@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -115,26 +116,6 @@ class AndFunction<T : Field<T>>(
             )
         )
 
-        @Deprecated(
-            message = "Use fromLinearPolynomials(polynomials: List<ToLinearPolynomial<Flt64>>, ...) instead. Compatibility shim scheduled for removal after 2026-09-30.",
-            replaceWith = ReplaceWith("fromLinearPolynomials(polynomials, bigM, name, displayName)"),
-            level = DeprecationLevel.WARNING
-        )
-        @JvmStatic
-        @JvmName("fromToMathLinearPolynomialsCompat")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            AndFunction<Flt64>(
-                polynomials = polynomials.map { it.toMathLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
     }
 }
 
@@ -220,7 +201,7 @@ class OrFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<*>>,
+            polynomials: List<LinearIntermediateSymbolF64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -252,26 +233,6 @@ class OrFunction<T : Field<T>>(
             )
         )
 
-        @Deprecated(
-            message = "Use fromLinearPolynomials(polynomials: List<ToLinearPolynomial<Flt64>>, ...) instead. Compatibility shim scheduled for removal after 2026-09-30.",
-            replaceWith = ReplaceWith("fromLinearPolynomials(polynomials, bigM, name, displayName)"),
-            level = DeprecationLevel.WARNING
-        )
-        @JvmStatic
-        @JvmName("fromToMathLinearPolynomialsCompat")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            OrFunction<Flt64>(
-                polynomials = polynomials.map { it.toMathLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
     }
 }
 
@@ -435,7 +396,7 @@ class XorFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<*>>,
+            polynomials: List<LinearIntermediateSymbolF64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -461,27 +422,6 @@ class XorFunction<T : Field<T>>(
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
             XorFunction<Flt64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
-                bigM = bigM,
-                name = name,
-                displayName = displayName
-            )
-        )
-
-        @Deprecated(
-            message = "Use fromLinearPolynomials(polynomials: List<ToLinearPolynomial<Flt64>>, ...) instead. Compatibility shim scheduled for removal after 2026-09-30.",
-            replaceWith = ReplaceWith("fromLinearPolynomials(polynomials, bigM, name, displayName)"),
-            level = DeprecationLevel.WARNING
-        )
-        @JvmStatic
-        @JvmName("fromToMathLinearPolynomialsCompat")
-        operator fun invoke(
-            polynomials: List<fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearPolynomial>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            XorFunction<Flt64>(
-                polynomials = polynomials.map { it.toMathLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName

@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
@@ -95,7 +96,7 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: AbstractMutableTokenTable<Flt64> = ManualTokenTable(category),
+    override val tokens: AbstractMutableTokenTableF64 = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<Flt64>
@@ -350,7 +351,7 @@ class MultiObjectCallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val objectiveLocation: List<MultiObjectLocation>,
-    override val tokens: AbstractMutableTokenTable<Flt64> = ManualTokenTable(category),
+    override val tokens: AbstractMutableTokenTableF64 = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution>, String>> = ArrayList(),
     private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }

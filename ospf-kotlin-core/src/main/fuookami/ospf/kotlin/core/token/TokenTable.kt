@@ -3,6 +3,7 @@
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbolF64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -556,7 +557,7 @@ sealed class MutableTokenTable<V>(
 typealias MutableTokenTableF64 = MutableTokenTable<Flt64>
 typealias ConcurrentMutableTokenTableF64 = ConcurrentMutableTokenTable<Flt64>
 
-private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
+private fun AbstractTokenTableF64.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
@@ -570,7 +571,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
     cacheRange(symbol, symbol.range)
 }
 
-private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
+private fun AbstractTokenTableF64.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
@@ -619,11 +620,11 @@ fun Collection<IntermediateSymbol<*>>.register(
         }
         // Batch write value cache for all ready symbols (single computation, aligned with concurrent path)
         // 为所有就绪符号批量写入 value 缓存（单次计算，与并发链路一致）
-        // Solver boundary: all symbols are IntermediateSymbol<Flt64> at runtime, cast + IntoValue.Flt64
+        // Solver boundary: all symbols are IntermediateSymbolF64 at runtime, cast + IntoValue.Flt64
         tokenTable.cache(
             symbols = readySymbols.associateWithNotNull {
                 @Suppress("UNCHECKED_CAST")
-                val sym = it as IntermediateSymbol<Flt64>
+                val sym = it as IntermediateSymbolF64
                 if (fixedValues.isNullOrEmpty()) {
                     sym.prepare(null, tokenTable, IntoValue.Flt64)
                 } else {
@@ -1276,7 +1277,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
                                     @Suppress("UNCHECKED_CAST")
-                                    val sym = it as IntermediateSymbol<Flt64>
+                                    val sym = it as IntermediateSymbolF64
                                     if (fixedValues.isNullOrEmpty()) {
                                         sym.prepare(null, tokenTable, IntoValue.Flt64)
                                     } else {
@@ -1313,7 +1314,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
                                     @Suppress("UNCHECKED_CAST")
-                                    val sym = it as IntermediateSymbol<Flt64>
+                                    val sym = it as IntermediateSymbolF64
                                     if (fixedValues.isNullOrEmpty()) {
                                         sym.prepare(null, tokenTable, IntoValue.Flt64)
                                     } else {
@@ -1359,7 +1360,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                 tokenTable.cache(
                     symbols = readySymbols.associateWithNotNull {
                         @Suppress("UNCHECKED_CAST")
-                        val sym = it as IntermediateSymbol<Flt64>
+                        val sym = it as IntermediateSymbolF64
                         if (fixedValues.isNullOrEmpty()) {
                             sym.prepare(null, tokenTable, IntoValue.Flt64)
                         } else {

@@ -5,10 +5,12 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -89,7 +91,7 @@ interface MathFunctionSymbol<T : Field<T>> {
  */
 class LinearFunctionSymbolAdapter(
     private val delegate: MathFunctionSymbol<Flt64>
-) : LinearIntermediateSymbol<Flt64>, MathFunctionSymbol<Flt64> {
+) : LinearIntermediateSymbolF64, MathFunctionSymbol<Flt64> {
     override var name: String
         get() = delegate.name
         set(value) { delegate.name = value }
@@ -182,12 +184,12 @@ class LinearFunctionSymbolAdapter(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
 
-    override val flattenedMonomialsAsV: fuookami.ospf.kotlin.core.token.LinearFlattenData<Flt64>
+    override val flattenedMonomialsAsV: fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
         get() = flattenedMonomials
 
     override val polynomial: MathLinearPolynomial<Flt64>
@@ -210,9 +212,9 @@ class LinearFunctionSymbolAdapter(
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? = delegate.evaluate(values)
 
     // V-typed evaluate overrides (P4-5) — delegate to Flt64-boundary evaluate + converter
-    override fun evaluate(tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<Flt64>, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<Flt64>?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableF64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
         delegate.evaluate(values)?.let { converter.intoValue(it) }
 }
 
@@ -264,96 +266,3 @@ internal fun <T : Field<T>> MathLinearPolynomial<T>.asFlt64Poly(): MathLinearPol
     )
 }
 
-// ========== Flt64 type aliases for backward compatibility ==========
-// These are soft-deprecated: prefer the generic types (e.g. MathFunctionSymbol<Flt64>, SlackFunction<Flt64>)
-// or the concrete adapter (LinearFunctionSymbolAdapter) directly.
-
-@Deprecated("Use MathFunctionSymbol<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64MathFunctionSymbol = MathFunctionSymbol<Flt64>
-
-@Deprecated("Use AndFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64AndFunction = AndFunction<Flt64>
-@Deprecated("Use OrFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64OrFunction = OrFunction<Flt64>
-@Deprecated("Use NotFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64NotFunction = NotFunction<Flt64>
-@Deprecated("Use XorFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64XorFunction = XorFunction<Flt64>
-@Deprecated("Use IfFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64IfFunction = IfFunction<Flt64>
-@Deprecated("Use LinearFunctionSymbolAdapter directly", level = DeprecationLevel.WARNING)
-typealias Flt64BinaryzationFunction = LinearFunctionSymbolAdapter
-@Deprecated("Use LinearFunctionSymbolAdapter directly", level = DeprecationLevel.WARNING)
-typealias Flt64MaskingFunction = LinearFunctionSymbolAdapter
-@Deprecated("Use LinearFunctionSymbolAdapter directly", level = DeprecationLevel.WARNING)
-typealias Flt64MaskingRangeFunction = LinearFunctionSymbolAdapter
-@Deprecated("Use MaxFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64MaxFunction = MaxFunction<Flt64>
-@Deprecated("Use MinFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64MinFunction = MinFunction<Flt64>
-@Deprecated("Use MinMaxFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64MinMaxFunction = MinMaxFunction<Flt64>
-@Deprecated("Use MaxMinFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64MaxMinFunction = MaxMinFunction<Flt64>
-@Deprecated("Use LinearFunctionSymbolAdapter directly", level = DeprecationLevel.WARNING)
-typealias Flt64SlackFunction = LinearFunctionSymbolAdapter
-
-// Newly migrated functions (2026-04-13)
-@Deprecated("Use AbsFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64AbsFunction = AbsFunction<Flt64>
-@Deprecated("Use SemiFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SemiFunction = SemiFunction<Flt64>
-@Deprecated("Use FloorFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64FloorFunction = FloorFunction<Flt64>
-@Deprecated("Use CeilingFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64CeilingFunction = CeilingFunction<Flt64>
-@Deprecated("Use RoundingFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64RoundingFunction = RoundingFunction<Flt64>
-@Deprecated("Use ModFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64ModFunction = ModFunction<Flt64>
-@Deprecated("Use UnivariateLinearPiecewiseFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64UnivariateLinearPiecewiseFunction = UnivariateLinearPiecewiseFunction<Flt64>
-@Deprecated("Use SigmoidFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SigmoidFunction = SigmoidFunction<Flt64>
-@Deprecated("Use IfInFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64IfInFunction = IfInFunction<Flt64>
-@Deprecated("Use IfThenFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64IfThenFunction = IfThenFunction<Flt64>
-@Deprecated("Use SameAsFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SameAsFunction = SameAsFunction<Flt64>
-@Deprecated("Use OneOfFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64OneOfFunction = OneOfFunction<Flt64>
-
-// Newly migrated functions (2026-04-13 batch 2)
-@Deprecated("Use FirstFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64FirstFunction = FirstFunction<Flt64>
-@Deprecated("Use SatisfiedAmountFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SatisfiedAmountFunction = SatisfiedAmountFunction<Flt64>
-@Deprecated("Use BivariateLinearPiecewiseFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64BivariateLinearPiecewiseFunction = BivariateLinearPiecewiseFunction<Flt64>
-
-// Phase 0 remaining functions (2026-04-14)
-@Deprecated("Use BalanceTernaryzationFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64BalanceTernaryzationFunction = BalanceTernaryzationFunction<Flt64>
-@Deprecated("Use InStepRangeFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64InStepRangeFunction = InStepRangeFunction<Flt64>
-@Deprecated("Use SlackRangeFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SlackRangeFunction = SlackRangeFunction<Flt64>
-@Deprecated("Use InequalityFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64InequalityFunction = InequalityFunction<Flt64>
-@Deprecated("Use SatisfiedAmountInequalityFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SatisfiedAmountInequalityFunction = SatisfiedAmountInequalityFunction<Flt64>
-@Deprecated("Use SinFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64SinFunction = SinFunction<Flt64>
-@Deprecated("Use CosFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64CosFunction = CosFunction<Flt64>
-@Deprecated("Use AnyFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64AnyFunction = AnyFunction<Flt64>
-@Deprecated("Use AllFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64AllFunction = AllFunction<Flt64>
-@Deprecated("Use AtLeastInequalityFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64AtLeastInequalityFunction = AtLeastInequalityFunction<Flt64>
-@Deprecated("Use NotAllFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64NotAllFunction = NotAllFunction<Flt64>
-@Deprecated("Use NumerableFunction<Flt64> directly", level = DeprecationLevel.WARNING)
-typealias Flt64NumerableFunction = NumerableFunction<Flt64>

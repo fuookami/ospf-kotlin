@@ -8,11 +8,14 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMo
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
@@ -53,7 +56,7 @@ import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
 /**
- * Factory function to create the appropriate [AbstractMutableTokenTable<Flt64>]
+ * Factory function to create the appropriate [AbstractMutableTokenTableF64]
  * based on configuration. Used by [AbstractMetaModel] to construct the token
  * table before passing it to the [BasicModel] superclass constructor.
  */
@@ -62,7 +65,7 @@ private fun createTokenTable(
     concurrent: Boolean,
     manualTokenAddition: Boolean,
     checkTokenExists: Boolean
-): AbstractMutableTokenTable<Flt64> {
+): AbstractMutableTokenTableF64 {
     return if (concurrent) {
         if (manualTokenAddition) {
             ConcurrentManualAddTokenTable(category, checkTokenExists)
@@ -700,7 +703,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealN
     }
 
     fun addConstraint(
-        constraint: LinearIntermediateSymbol<*>,
+        constraint: LinearIntermediateSymbolF64,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -759,7 +762,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealN
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
-        symbols: Iterable<LinearIntermediateSymbol<*>>,
+        symbols: Iterable<LinearIntermediateSymbolF64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -823,7 +826,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V :
     }
 
     fun addConstraint(
-        constraint: QuadraticIntermediateSymbol<*>,
+        constraint: QuadraticIntermediateSymbolF64,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -859,7 +862,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V :
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
-        symbols: Iterable<QuadraticIntermediateSymbol<*>>,
+        symbols: Iterable<QuadraticIntermediateSymbolF64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -993,8 +996,8 @@ class LinearMetaModel<V>(
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
-    internal val _flattenSubObjects: MutableList<LinearSubObject<Flt64>> = ArrayList()
-    val flattenSubObjects: List<LinearSubObject<Flt64>> by ::_flattenSubObjects
+    internal val _flattenSubObjects: MutableList<LinearSubObjectF64> = ArrayList()
+    val flattenSubObjects: List<LinearSubObjectF64> by ::_flattenSubObjects
 
     fun addObject(
         category: ObjectCategory,
