@@ -49,7 +49,7 @@ class MaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -110,11 +110,11 @@ class MaxFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxFunction<F64> = MaxFunction(polynomials, bigM, name, displayName)
+        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -167,7 +167,7 @@ class MinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -228,11 +228,11 @@ class MinFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinFunction<F64> = MinFunction(polynomials, bigM, name, displayName)
+        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.

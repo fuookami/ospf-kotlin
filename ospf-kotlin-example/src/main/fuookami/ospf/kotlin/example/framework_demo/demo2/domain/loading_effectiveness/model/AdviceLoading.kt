@@ -23,14 +23,14 @@ class AdviceLoading(
     private val positions: List<Position>,
     private val load: Load
 ) {
-    lateinit var amountSlack: LinearIntermediateSymbols1
-    lateinit var weightSlack: LinearIntermediateSymbols1
+    lateinit var amountSlack: LinearIntermediateSymbols1Flt64
+    lateinit var weightSlack: LinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::amountSlack.isInitialized) {
-            amountSlack = LinearIntermediateSymbols1("advice_amount_slack", Shape1(positions.size)) { j, _ ->
+            amountSlack = LinearIntermediateSymbols1Flt64("advice_amount_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.ala != null) {
                     SlackFunction(
@@ -63,7 +63,7 @@ class AdviceLoading(
         }
 
         if (!::weightSlack.isInitialized) {
-            weightSlack = LinearIntermediateSymbols1("advice_weight_slack", Shape1(positions.size)) { j, _ ->
+            weightSlack = LinearIntermediateSymbols1Flt64("advice_weight_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.alw != null) {
                     SlackFunction(

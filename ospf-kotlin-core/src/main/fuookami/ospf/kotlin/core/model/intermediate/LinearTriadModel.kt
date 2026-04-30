@@ -46,10 +46,10 @@ import java.io.OutputStreamWriter
 
 typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 
-private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrixF64 {
-    val mat = SparseMatrixF64()
+private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrixFlt64 {
+    val mat = SparseMatrixFlt64()
     for (row in rows) {
-        val sv = SparseVectorF64()
+        val sv = SparseVectorFlt64()
         for (cell in row) {
             sv.add(cell.colIndex, cell.coefficient)
         }
@@ -94,9 +94,9 @@ class LinearConstraintCell(
 }
 
 class LinearConstraintBatch(
-    val sparseLhs: SparseMatrixF64,
+    val sparseLhs: SparseMatrixFlt64,
     signs: List<ConstraintRelation>,
-    rhs: List<F64>,
+    rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
     origins: List<OriginLinearConstraint?> = (0 until sparseLhs.numRows()).map { null },
@@ -105,7 +105,7 @@ class LinearConstraintBatch(
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
      * Sparse representation of the LHS matrix.
-     * Each row is a SparseVectorF64 where entry.index = colIndex, entry.value = coefficient.
+     * Each row is a SparseVectorFlt64 where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
      */
 
@@ -131,7 +131,7 @@ class LinearConstraintBatch(
     val priorities: List<Int?> by ::_priorities
 
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
-        val filteredSparseLhs = SparseMatrixF64()
+        val filteredSparseLhs = SparseMatrixFlt64()
         for ((i, row) in sparseLhs.rows.withIndex()) {
             if (condition(i)) {
                 filteredSparseLhs.addRow(row)
@@ -150,9 +150,9 @@ class LinearConstraintBatch(
     }
 
     override fun copy() = LinearConstraintBatch(
-        SparseMatrixF64().also { mat ->
+        SparseMatrixFlt64().also { mat ->
             for (row in sparseLhs.rows) {
-                val newRow = SparseVectorF64()
+                val newRow = SparseVectorFlt64()
                 for (entry in row.entries) {
                     newRow.add(entry.index, entry.value.copy())
                 }
@@ -249,8 +249,8 @@ class BasicLinearTriadModel(
          */
         fun from(
             model: LinearMechanismModelF64,
-            tokenIndexMap: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>> = emptyMap(),
+            tokenIndexMap: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicLinearTriadModel {
             val variables = dumpVariables(model, tokenIndexMap, bounds)
@@ -260,8 +260,8 @@ class BasicLinearTriadModel(
 
         private fun dumpVariables(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>>
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -300,8 +300,8 @@ class BasicLinearTriadModel(
 
         private fun dumpConstraints(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -311,7 +311,7 @@ class BasicLinearTriadModel(
 
             val lhs = ArrayList<List<LinearConstraintCell>>()
             val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<F64>()
+            val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginLinearConstraint>()
@@ -531,7 +531,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
-    val tokensInSolver: List<Token<F64>>,
+    val tokensInSolver: List<Token<Flt64>>,
     override val objective: LinearObjective,
     internal val dualOrigin: LinearTriadModelView? = null
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
@@ -645,8 +645,8 @@ data class LinearTriadModel(
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>>
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -685,8 +685,8 @@ data class LinearTriadModel(
 
         private fun dumpConstraints(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -715,7 +715,7 @@ data class LinearTriadModel(
 
             val lhs = ArrayList<List<LinearConstraintCell>>()
             val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<F64>()
+            val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
             val origins = ArrayList<OriginLinearConstraint>()
@@ -745,8 +745,8 @@ data class LinearTriadModel(
 
         private suspend fun dumpConstraintsAsync(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
-            bounds: Map<Token<F64>, List<Quadruple<OriginLinearConstraint, Token<F64>, ConstraintRelation, Flt64>>>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
+            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -793,7 +793,7 @@ data class LinearTriadModel(
 
                     val lhs = ArrayList<List<LinearConstraintCell>>()
                     val signs = ArrayList<ConstraintRelation>()
-                    val rhs = ArrayList<F64>()
+                    val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
                     val origins = ArrayList<OriginLinearConstraint>()
@@ -824,7 +824,7 @@ data class LinearTriadModel(
             } else {
                 val lhs = ArrayList<List<LinearConstraintCell>>()
                 val signs = ArrayList<ConstraintRelation>()
-                val rhs = ArrayList<F64>()
+                val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
                 val origins = ArrayList<OriginLinearConstraint>()
@@ -871,7 +871,7 @@ data class LinearTriadModel(
 
         private fun dumpObjectives(
             model: LinearMechanismModelF64,
-            tokenIndexes: Map<Token<F64>, Int>,
+            tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
@@ -2061,7 +2061,7 @@ data class LinearTriadModel(
             },
             rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
-                val thisRhs = ArrayList<F64>()
+                val thisRhs = ArrayList<Flt64>()
                 if (slackVariables[jp].first != null) {
                     thisRhs.add(variable.lowerBound)
                 }

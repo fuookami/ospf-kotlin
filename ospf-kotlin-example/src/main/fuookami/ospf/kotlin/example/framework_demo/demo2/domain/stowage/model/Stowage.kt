@@ -42,8 +42,8 @@ class Stowage(
     lateinit var x: BinVariable2
     lateinit var u: BTerVariable2
 
-    lateinit var stowage: LinearIntermediateSymbols2
-    lateinit var loaded: LinearIntermediateSymbols1
+    lateinit var stowage: LinearIntermediateSymbols2Flt64
+    lateinit var loaded: LinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
@@ -109,7 +109,7 @@ class Stowage(
         }
 
         if (!::stowage.isInitialized) {
-            stowage = LinearIntermediateSymbols2("stowage", Shape2(items.size, positions.size)) { _, v ->
+            stowage = LinearIntermediateSymbols2Flt64("stowage", Shape2(items.size, positions.size)) { _, v ->
                 val item = items[v[0]]
                 val position = positions[v[1]]
                 val poly = MutableLinearPolynomial()
@@ -154,7 +154,7 @@ class Stowage(
         }
 
         if (!::loaded.isInitialized) {
-            loaded = LinearIntermediateSymbols1("loaded", Shape1(items.size)) { i, _ ->
+            loaded = LinearIntermediateSymbols1Flt64("loaded", Shape1(items.size)) { i, _ ->
                 val item = items[i]
                 LinearExpressionSymbol(
                     sum(stowage[i, _a]),

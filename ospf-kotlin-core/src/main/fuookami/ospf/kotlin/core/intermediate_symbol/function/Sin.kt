@@ -43,7 +43,7 @@ class SinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -81,10 +81,10 @@ class SinFunction<T : Field<T>>(
          * Factory for Flt64-typed sine function.
          */
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             name: String,
             displayName: String? = null
-        ): SinFunction<F64> = SinFunction(
+        ): SinFunction<Flt64> = SinFunction(
             x = x,
             samplingPoints = defaultPoints(),
             name = name,
@@ -95,10 +95,10 @@ class SinFunction<T : Field<T>>(
          * Factory for Flt64-typed sine function with LinearMonomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             name: String,
             displayName: String? = null
-        ): SinFunction<F64> = SinFunction(
+        ): SinFunction<Flt64> = SinFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = defaultPoints(),
             name = name,

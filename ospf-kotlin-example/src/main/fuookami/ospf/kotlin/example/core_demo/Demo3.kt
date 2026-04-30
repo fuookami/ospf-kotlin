@@ -63,8 +63,8 @@ data object Demo3 {
 
     private lateinit var x: UIntVariable1
 
-    private lateinit var cost: LinearIntermediateSymbol<*>
-    private lateinit var yield: LinearIntermediateSymbols1
+    private lateinit var cost: LinearIntermediateSymbolF64
+    private lateinit var yield: LinearIntermediateSymbols1Flt64
 
     private val metaModel = LinearMetaModelF64("demo3")
 
@@ -110,7 +110,7 @@ data object Demo3 {
         )
         metaModel.add(cost)
 
-        yield = LinearIntermediateSymbols1("yield", Shape1(products.size)) { p, _ ->
+        yield = LinearIntermediateSymbols1Flt64("yield", Shape1(products.size)) { p, _ ->
             val product = products[p]
             LinearExpressionSymbol(
                 sum(materials.filter { it.yieldQuantity.contains(product) }) { m ->

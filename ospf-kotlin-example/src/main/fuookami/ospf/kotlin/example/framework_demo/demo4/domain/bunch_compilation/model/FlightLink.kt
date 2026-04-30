@@ -30,13 +30,13 @@ class FlightLink(
         }
     }
 
-    lateinit var link: LinearExpressionSymbols1
-    lateinit var slack: LinearIntermediateSymbols1
+    lateinit var link: LinearExpressionSymbols1Flt64
+    lateinit var slack: LinearIntermediateSymbols1Flt64
 
     fun register(model: AbstractLinearMetaModelF64): Try {
         if (links.isNotEmpty()) {
             if (!::link.isInitialized) {
-                link = LinearExpressionSymbols1(
+                link = LinearExpressionSymbols1Flt64(
                     "link",
                     Shape1(links.size)
                 ) { k, _ ->
@@ -59,7 +59,7 @@ class FlightLink(
             }
 
             if (!::slack.isInitialized) {
-                slack = LinearIntermediateSymbols1(
+                slack = LinearIntermediateSymbols1Flt64(
                     "link_slack",
                     Shape1(links.size)
                 ) { k, _ ->

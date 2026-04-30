@@ -36,8 +36,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
  * @property comparison 比较运算符 / Comparison operator
  */
 data class CanonicalInequality(
-    val lhs: CanonicalPolynomial<F64>,
-    val rhs: CanonicalPolynomial<F64>,
+    val lhs: CanonicalPolynomial<Flt64>,
+    val rhs: CanonicalPolynomial<Flt64>,
     val comparison: Comparison
 ) {
     /**

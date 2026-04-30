@@ -29,15 +29,15 @@ class DivideEmptyLoading(
         }
     }
 
-    lateinit var emptyBetweenCargo: LinearIntermediateSymbols1
-    lateinit var emptyCargoBetweenCargo: LinearIntermediateSymbols1
-    lateinit var emptyBetweenEmptyCargo: LinearIntermediateSymbols1
+    lateinit var emptyBetweenCargo: LinearIntermediateSymbols1Flt64
+    lateinit var emptyCargoBetweenCargo: LinearIntermediateSymbols1Flt64
+    lateinit var emptyBetweenEmptyCargo: LinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::emptyBetweenCargo.isInitialized) {
-            emptyBetweenCargo = LinearIntermediateSymbols1("empty_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
+            emptyBetweenCargo = LinearIntermediateSymbols1Flt64("empty_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val position2 = adjacentPositions[p].second
                 val j2 = positions.indexOf(position2)
@@ -81,7 +81,7 @@ class DivideEmptyLoading(
         }
 
         if (!::emptyCargoBetweenCargo.isInitialized) {
-            emptyCargoBetweenCargo = LinearIntermediateSymbols1("empty_cargo_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
+            emptyCargoBetweenCargo = LinearIntermediateSymbols1Flt64("empty_cargo_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val position2 = adjacentPositions[p].second
 
@@ -128,7 +128,7 @@ class DivideEmptyLoading(
         }
 
         if (!::emptyBetweenEmptyCargo.isInitialized) {
-            emptyBetweenEmptyCargo = LinearIntermediateSymbols1("empty_between_empty_cargo", Shape1(adjacentPositions.size)) { p, _ ->
+            emptyBetweenEmptyCargo = LinearIntermediateSymbols1Flt64("empty_between_empty_cargo", Shape1(adjacentPositions.size)) { p, _ ->
                 val position1 = adjacentPositions[p].first
                 val j1 = positions.indexOf(position1)
                 val position2 = adjacentPositions[p].second

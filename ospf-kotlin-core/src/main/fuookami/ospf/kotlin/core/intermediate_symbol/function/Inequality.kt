@@ -52,7 +52,7 @@ class InequalityFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(flagVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -200,13 +200,13 @@ class InequalityFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            lhs: LinearPolynomial<F64>,
+            lhs: LinearPolynomial<Flt64>,
             rhs: Flt64,
             sign: Comparison,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): InequalityFunction<F64> = InequalityFunction(
+        ): InequalityFunction<Flt64> = InequalityFunction(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
@@ -216,13 +216,13 @@ class InequalityFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            lhs: LinearMonomial<F64>,
+            lhs: LinearMonomial<Flt64>,
             rhs: Flt64,
             sign: Comparison,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): InequalityFunction<F64> = InequalityFunction(
+        ): InequalityFunction<Flt64> = InequalityFunction(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,

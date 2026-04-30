@@ -67,7 +67,7 @@ internal fun addConstraints(model: AbstractLinearMetaModelF64, constraints: List
  * Returns a list of named LinearInequality constraints.
  */
 fun nonzeroIndicatorConstraints(
-    poly: LinearPolynomial<F64>,
+    poly: LinearPolynomial<Flt64>,
     indVar: AbstractVariableItem<*, *>,
     sideVar: AbstractVariableItem<*, *>,
     bigM: Flt64,

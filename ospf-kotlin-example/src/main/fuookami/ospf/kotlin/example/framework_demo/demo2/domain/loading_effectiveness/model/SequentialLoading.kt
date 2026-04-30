@@ -33,13 +33,13 @@ class SequentialLoading(
         }
     }
 
-    lateinit var itemOrderReverse: LinearIntermediateSymbols2
+    lateinit var itemOrderReverse: LinearIntermediateSymbols2Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::itemOrderReverse.isInitialized) {
-            itemOrderReverse = LinearIntermediateSymbols2("item_order_reverse", Shape2(orderedItems.size, orderedPositions.size)) { _, v ->
+            itemOrderReverse = LinearIntermediateSymbols2Flt64("item_order_reverse", Shape2(orderedItems.size, orderedPositions.size)) { _, v ->
                 val (item1, item2) = orderedItems[v[0]]
                 val i1 = items.indexOf(item1)
                 val i2 = items.indexOf(item2)

@@ -1,8 +1,8 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
@@ -23,8 +23,8 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 
-typealias UtilsLinearPolynomialF64 = UtilsLinearPolynomial<F64>
-typealias UtilsQuadraticPolynomialF64 = UtilsQuadraticPolynomial<F64>
+typealias UtilsLinearPolynomialF64 = UtilsLinearPolynomial<Flt64>
+typealias UtilsQuadraticPolynomialF64 = UtilsQuadraticPolynomial<Flt64>
 
 // ========== LinearInequality normalize extension ==========
 
@@ -440,7 +440,7 @@ infix fun UInt64.geq(rhs: Symbol): MathLinearInequality = this.toFlt64() geq rhs
 // ========== LinearInequality to QuadraticConstraint direct conversion ==========
 
 fun MathLinearInequality.toQuadraticConstraint(
-    tokens: AbstractTokenTableF64,
+    tokens: AbstractTokenTableFlt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -459,7 +459,7 @@ fun MathLinearInequality.toQuadraticConstraint(
 // ========== Relation-based constraint creation ==========
 
 fun LinearRelation.toConstraint(
-    tokens: AbstractTokenTableF64,
+    tokens: AbstractTokenTableFlt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -469,7 +469,7 @@ fun LinearRelation.toConstraint(
 }
 
 fun QuadraticRelation.toConstraint(
-    tokens: AbstractTokenTableF64,
+    tokens: AbstractTokenTableFlt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -479,7 +479,7 @@ fun QuadraticRelation.toConstraint(
 }
 
 fun LinearRelation.toQuadraticConstraint(
-    tokens: AbstractTokenTableF64,
+    tokens: AbstractTokenTableFlt64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -489,7 +489,7 @@ fun LinearRelation.toQuadraticConstraint(
     val qMonomials = normalized.flattenData.monomials.map {
         UtilsQuadraticMonomial(it.coefficient, it.symbol, null)
     }
-    val qFlattenData = QuadraticFlattenDataF64(qMonomials, normalized.flattenData.constant)
+    val qFlattenData = QuadraticFlattenDataFlt64(qMonomials, normalized.flattenData.constant)
     val qRelation = QuadraticRelationImpl(qFlattenData, normalized.sign, normalized.name, normalized.displayName)
     return QuadraticConstraintImpl(qRelation, tokens, lazy, name, origin, from)
 }

@@ -51,8 +51,8 @@ data object Demo4 {
     private val maxDiff = Int64(1)
 
     private lateinit var x: RealVariable1
-    private lateinit var profit: LinearIntermediateSymbol<*>
-    private lateinit var use: LinearIntermediateSymbols1
+    private lateinit var profit: LinearIntermediateSymbolF64
+    private lateinit var use: LinearIntermediateSymbols1Flt64
 
     private val metaModel = LinearMetaModelF64("demo4")
 
@@ -98,7 +98,7 @@ data object Demo4 {
         )
         metaModel.add(profit)
 
-        use = LinearIntermediateSymbols1("use", Shape1(materials.size)) { m, _ ->
+        use = LinearIntermediateSymbols1Flt64("use", Shape1(materials.size)) { m, _ ->
             val material = materials[m]
             val ps = products.filter { it.use.contains(material) }
             LinearExpressionSymbol(

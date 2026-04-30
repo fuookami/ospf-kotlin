@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilati
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*

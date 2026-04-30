@@ -56,7 +56,7 @@ class RoundingFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(qVar, rVar, bVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -178,11 +178,11 @@ class RoundingFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             d: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<F64> = RoundingFunction(
+        ): RoundingFunction<Flt64> = RoundingFunction(
             x = x,
             d = d,
             name = name,
@@ -190,11 +190,11 @@ class RoundingFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             d: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<F64> = RoundingFunction(
+        ): RoundingFunction<Flt64> = RoundingFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             d = d,
             name = name,

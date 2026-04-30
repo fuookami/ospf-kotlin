@@ -65,8 +65,8 @@ data object Demo11 {
     lateinit var x: UIntVariable2
     lateinit var flow: UIntVar
 
-    lateinit var flowIn: LinearIntermediateSymbols1
-    lateinit var flowOut: LinearIntermediateSymbols1
+    lateinit var flowIn: LinearIntermediateSymbols1Flt64
+    lateinit var flowOut: LinearIntermediateSymbols1Flt64
 
     val metaModel = LinearMetaModelF64("demo11")
 
@@ -116,7 +116,7 @@ data object Demo11 {
     }
 
     private suspend fun initSymbol(): Try {
-        flowIn = LinearIntermediateSymbols1(
+        flowIn = LinearIntermediateSymbols1Flt64(
             "flow_in",
             Shape1(nodes.size)
         ) { i, _ ->
@@ -126,7 +126,7 @@ data object Demo11 {
             )
         }
         metaModel.add(flowIn)
-        flowOut = LinearIntermediateSymbols1(
+        flowOut = LinearIntermediateSymbols1Flt64(
             "flow_out",
             Shape1(nodes.size)
         ) { i, _ ->

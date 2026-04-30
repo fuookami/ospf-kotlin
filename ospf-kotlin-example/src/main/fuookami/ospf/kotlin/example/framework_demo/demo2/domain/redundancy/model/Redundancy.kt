@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.model
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
@@ -23,9 +24,9 @@ class Redundancy(
     private val load: Load,
     private val payload: Payload
 ) {
-    lateinit var redundancy: LinearIntermediateSymbol<*>
-    lateinit var predicateRedundancy: LinearIntermediateSymbol<*>
-    lateinit var redundancySlack: LinearIntermediateSymbol<*>
+    lateinit var redundancy: LinearIntermediateSymbolF64
+    lateinit var predicateRedundancy: LinearIntermediateSymbolF64
+    lateinit var redundancySlack: LinearIntermediateSymbolF64
 
     val minRedundancy: LinearPolynomial<Flt64> by lazy {
         TODO("not implemented yet")

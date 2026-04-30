@@ -22,14 +22,14 @@ class TransferAdjacentLoading(
     private val destinations: List<IATA>,
     private val load: Load
 ) {
-    lateinit var sameSourceAdjacent: LinearIntermediateSymbols2
-    lateinit var sameDestinationAdjacent: LinearIntermediateSymbols2
+    lateinit var sameSourceAdjacent: LinearIntermediateSymbols2Flt64
+    lateinit var sameDestinationAdjacent: LinearIntermediateSymbols2Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::sameSourceAdjacent.isInitialized) {
-            sameSourceAdjacent = LinearIntermediateSymbols2("same_source_adjacent", Shape2(sources.size, adjacentPositions.size)) { _, v ->
+            sameSourceAdjacent = LinearIntermediateSymbols2Flt64("same_source_adjacent", Shape2(sources.size, adjacentPositions.size)) { _, v ->
                 val source = sources[v[0]]
                 val position1 = adjacentPositions[v[1]].first
                 val position2 = adjacentPositions[v[1]].second
@@ -72,7 +72,7 @@ class TransferAdjacentLoading(
         }
 
         if (!::sameDestinationAdjacent.isInitialized) {
-            sameDestinationAdjacent = LinearIntermediateSymbols2("same_destination_adjacent", Shape2(destinations.size, adjacentPositions.size)) { _, v ->
+            sameDestinationAdjacent = LinearIntermediateSymbols2Flt64("same_destination_adjacent", Shape2(destinations.size, adjacentPositions.size)) { _, v ->
                 val destination = destinations[v[0]]
                 val position1 = adjacentPositions[v[1]].first
                 val position2 = adjacentPositions[v[1]].second

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilati
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
@@ -21,8 +22,8 @@ class FlightCapacity(
     val withPassenger: Boolean = tasks.any { it.capacity is AircraftCapacity.Passenger },
     val withCargo: Boolean = tasks.any { it.capacity is AircraftCapacity.Cargo }
 ) {
-    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbol<Flt64>>>
-    lateinit var cargo: Map<FlightTask, LinearExpressionSymbol<Flt64>>
+    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbolF64>>
+    lateinit var cargo: Map<FlightTask, LinearExpressionSymbolF64>
 
     fun register(model: AbstractLinearMetaModelF64): Try {
         if (withPassenger) {

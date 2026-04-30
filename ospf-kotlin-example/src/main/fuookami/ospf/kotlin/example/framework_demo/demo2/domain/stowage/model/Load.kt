@@ -29,22 +29,22 @@ class Load(
     lateinit var y: QuantityURealVariable1
     lateinit var z: QuantityUIntVariable1
 
-    lateinit var predicateLoadWeightSlack: QuantityLinearIntermediateSymbols1
-    lateinit var loadAmount: LinearIntermediateSymbols1
-    lateinit var full: LinearIntermediateSymbols1
+    lateinit var predicateLoadWeightSlack: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var loadAmount: LinearIntermediateSymbols1Flt64
+    lateinit var full: LinearIntermediateSymbols1Flt64
 
-    lateinit var estimateLoadWeight: QuantityLinearIntermediateSymbols1
-    lateinit var actualLoadWeight: QuantityLinearIntermediateSymbols1
-    lateinit var estimateLoaded: LinearIntermediateSymbols1
-    lateinit var actualLoaded: LinearIntermediateSymbols1
+    lateinit var estimateLoadWeight: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var actualLoadWeight: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var estimateLoaded: LinearIntermediateSymbols1Flt64
+    lateinit var actualLoaded: LinearIntermediateSymbols1Flt64
 
-    lateinit var loadEstimateLongitudinalTorque: QuantityLinearIntermediateSymbols1
-    lateinit var loadActualLongitudinalTorque: QuantityLinearIntermediateSymbols1
-    lateinit var loadLateralTorque: QuantityLinearIntermediateSymbols1
-    lateinit var loadCLIM: QuantityLinearIntermediateSymbols1
-    lateinit var loadIndex: QuantityLinearIntermediateSymbols1
+    lateinit var loadEstimateLongitudinalTorque: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var loadActualLongitudinalTorque: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var loadLateralTorque: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var loadCLIM: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var loadIndex: QuantityLinearIntermediateSymbols1Flt64
 
-    fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbol<*> {
+    fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbolF64 {
         val j = positions.indexOf(position)
         val poly = sum(items.mapIndexedNotNull { i, item ->
             if (predicate(item)) {
@@ -117,7 +117,7 @@ class Load(
         }
 
         if (!::predicateLoadWeightSlack.isInitialized) {
-            predicateLoadWeightSlack = QuantityLinearIntermediateSymbols1("predicate_load_weight_slack", Shape1(positions.size)) { j, _ ->
+            predicateLoadWeightSlack = QuantityLinearIntermediateSymbols1Flt64("predicate_load_weight_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 Quantity(
                     if (position.status.predicateWeightNeeded) {
@@ -163,7 +163,7 @@ class Load(
         }
 
         if (!::loadAmount.isInitialized) {
-            loadAmount = LinearIntermediateSymbols1("load_amount", Shape1(positions.size)) { j, _ ->
+            loadAmount = LinearIntermediateSymbols1Flt64("load_amount", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 LinearExpressionSymbol(
                     sum(stowage.stowage[_a, j]),
@@ -187,7 +187,7 @@ class Load(
         }
 
         if (!::full.isInitialized) {
-            full = LinearIntermediateSymbols1("full", Shape1(positions.size)) { j, _ ->
+            full = LinearIntermediateSymbols1Flt64("full", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.status.available) {
                     if (position.mla eq UInt64.one) {
@@ -223,7 +223,7 @@ class Load(
 
         if (withMultiLoadingSchema) {
             if (!::estimateLoadWeight.isInitialized) {
-                estimateLoadWeight = QuantityLinearIntermediateSymbols1("load_weight", Shape1(positions.size)) { j, _ ->
+                estimateLoadWeight = QuantityLinearIntermediateSymbols1Flt64("load_weight", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
                     val poly = MutableLinearPolynomial()
                     for ((i, item) in items.withIndex()) {
@@ -258,7 +258,7 @@ class Load(
         }
 
         if (!::actualLoadWeight.isInitialized) {
-            actualLoadWeight = QuantityLinearIntermediateSymbols1("actual_load_weight", Shape1(positions.size)) { j, _ ->
+            actualLoadWeight = QuantityLinearIntermediateSymbols1Flt64("actual_load_weight", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val poly = MutableLinearPolynomial()
                 for ((i, item) in items.withIndex()) {
@@ -286,10 +286,10 @@ class Load(
         }
 
         if (!::estimateLoaded.isInitialized) {
-            estimateLoaded = LinearIntermediateSymbols1("estimate_loaded", Shape1(positions.size)) { j, _ ->
+            estimateLoaded = LinearIntermediateSymbols1Flt64("estimate_loaded", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.status.available) {
-                    val loadedItem: LinearIntermediateSymbol<*> = if (position.mla eq UInt64.one) {
+                    val loadedItem: LinearIntermediateSymbolF64 = if (position.mla eq UInt64.one) {
                         LinearExpressionSymbol(
                             loadAmount[j],
                             name = "estimate_loaded_item_${position}"
@@ -316,7 +316,7 @@ class Load(
                     } else {
                         null
                     }
-                    val symbols: List<LinearIntermediateSymbol<*>> = listOfNotNull(
+                    val symbols: List<LinearIntermediateSymbolF64> = listOfNotNull(
                         loadedItem,
                         withPredicateLoadWeight,
                         withRecommendLoadWeight
@@ -346,7 +346,7 @@ class Load(
         }
 
         if (!::actualLoaded.isInitialized) {
-            actualLoaded = LinearIntermediateSymbols1("actual_loaded", Shape1(positions.size)) { j, _ ->
+            actualLoaded = LinearIntermediateSymbols1Flt64("actual_loaded", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.status.available) {
                     if (position.mla eq UInt64.one) {
@@ -381,7 +381,7 @@ class Load(
         }
 
         if (!::loadEstimateLongitudinalTorque.isInitialized) {
-            loadEstimateLongitudinalTorque = QuantityLinearIntermediateSymbols1("load_longitudinal_torque", Shape1(positions.size)) { j, _ ->
+            loadEstimateLongitudinalTorque = QuantityLinearIntermediateSymbols1Flt64("load_longitudinal_torque", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm
                 QuantityLinearIntermediateSymbol(
@@ -406,7 +406,7 @@ class Load(
         }
 
         if (!::loadActualLongitudinalTorque.isInitialized) {
-            loadActualLongitudinalTorque = QuantityLinearIntermediateSymbols1("load_actual_longitudinal_torque", Shape1(positions.size)) { j, _ ->
+            loadActualLongitudinalTorque = QuantityLinearIntermediateSymbols1Flt64("load_actual_longitudinal_torque", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.longitudinalArm
                 QuantityLinearIntermediateSymbol(
@@ -432,7 +432,7 @@ class Load(
 
         if (aircraftModel.wideBody) {
             if (!::loadLateralTorque.isInitialized) {
-                loadLateralTorque = QuantityLinearIntermediateSymbols1("load_lateral_torque", Shape1(positions.size)) { j, _ ->
+                loadLateralTorque = QuantityLinearIntermediateSymbols1Flt64("load_lateral_torque", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
                     val torquePerWeight = aircraftModel.gravity(Quantity(Flt64.one, aircraftModel.weightUnit)) * position.coordinate.lateralArm
                     QuantityLinearIntermediateSymbol(
@@ -457,7 +457,7 @@ class Load(
             }
 
             if (!::loadCLIM.isInitialized) {
-                loadCLIM = QuantityLinearIntermediateSymbols1("load_clim", Shape1(positions.size)) { j, _ ->
+                loadCLIM = QuantityLinearIntermediateSymbols1Flt64("load_clim", Shape1(positions.size)) { j, _ ->
                     val position = positions[j]
                     QuantityLinearIntermediateSymbol(
                         LinearExpressionSymbol(
@@ -482,7 +482,7 @@ class Load(
         }
 
         if (!::loadIndex.isInitialized) {
-            loadIndex = QuantityLinearIntermediateSymbols1("load_index", Shape1(positions.size)) { j, _ ->
+            loadIndex = QuantityLinearIntermediateSymbols1Flt64("load_index", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val poly = MutableLinearPolynomial()
                 for ((i, item) in items.withIndex()) {

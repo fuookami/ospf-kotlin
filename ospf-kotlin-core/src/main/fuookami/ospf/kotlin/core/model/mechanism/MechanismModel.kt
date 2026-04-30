@@ -1,14 +1,14 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableF64
-import fuookami.ospf.kotlin.core.token.MutableTokenTableF64
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableF64
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableFlt64
+import fuookami.ospf.kotlin.core.token.MutableTokenTableFlt64
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
@@ -67,7 +67,7 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
  * invoke() methods.
  */
 @Suppress("UNCHECKED_CAST")
-fun <V> convertMechanismModelToF64(model: MechanismModel<V>): Ret<MechanismModelF64> where V : RealNumber<V>, V : NumberField<V> {
+fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModelF64> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {
             Ok(model as LinearMechanismModelF64)
@@ -76,13 +76,13 @@ fun <V> convertMechanismModelToF64(model: MechanismModel<V>): Ret<MechanismModel
             Ok(model as QuadraticMechanismModelF64)
         }
         else -> {
-            Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to F64: unexpected model type ${model::class.simpleName}"))
+            Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to Flt64: unexpected model type ${model::class.simpleName}"))
         }
     }
 }
 
 // Backward compatibility: typealias aliases
-typealias MechanismModelF64 = MechanismModel<F64>
+typealias MechanismModelF64 = MechanismModel<Flt64>
 
 interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
@@ -131,18 +131,18 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
 }
 
 // Backward compatibility: typealias aliases
-typealias AbstractLinearMechanismModelF64 = AbstractLinearMechanismModel<F64>
-typealias AbstractQuadraticMechanismModelF64 = AbstractQuadraticMechanismModel<F64>
+typealias AbstractLinearMechanismModelF64 = AbstractLinearMechanismModel<Flt64>
+typealias AbstractQuadraticMechanismModelF64 = AbstractQuadraticMechanismModel<Flt64>
 
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<*>
 }
 
-typealias SingleObjectMechanismModelF64 = SingleObjectMechanismModel<F64>
+typealias SingleObjectMechanismModelF64 = SingleObjectMechanismModel<Flt64>
 
 @Suppress("UNCHECKED_CAST")
-private fun <V> AbstractTokenTable<V>.asSolverTokenTable(): AbstractTokenTableF64 where V : RealNumber<V>, V : NumberField<V> {
-    return this as AbstractTokenTableF64
+private fun <V> AbstractTokenTable<V>.asSolverTokenTable(): AbstractTokenTableFlt64 where V : RealNumber<V>, V : NumberField<V> {
+    return this as AbstractTokenTableFlt64
 }
 
 private data class OrderedVariablePair(
@@ -290,7 +290,7 @@ class LinearMechanismModel<V>(
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
-    private val solverTokenTable: AbstractTokenTableF64
+    private val solverTokenTable: AbstractTokenTableFlt64
         get() = tokens.asSolverTokenTable()
 
     /**
@@ -362,7 +362,7 @@ class LinearMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant),
+                            flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant),
                             tokens = tokens,
                             name = it.name
                         )
@@ -374,7 +374,7 @@ class LinearMechanismModel<V>(
 
             logger.trace { "Registering symbols for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbol<F64>)?.let { sym ->
+                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
                     sym.register(metaModel)
                 }
 
@@ -405,7 +405,7 @@ class LinearMechanismModel<V>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: LinearMetaModelF64,
-            tokens: AbstractTokenTableF64,
+            tokens: AbstractTokenTableFlt64,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModelF64 {
@@ -425,7 +425,7 @@ class LinearMechanismModel<V>(
                 createSubObject = {
                     LinearSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant),
+                        flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant),
                         tokens = tokens,
                         name = it.name
                     )
@@ -442,13 +442,13 @@ class LinearMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTableF64,
+            tokens: AbstractMutableTokenTableFlt64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTableF64> {
+        ): Ret<AbstractTokenTableFlt64> {
             return when (tokens) {
-                is MutableTokenTableF64 -> {
-                    val temp = tokens.copy() as MutableTokenTableF64
+                is MutableTokenTableFlt64 -> {
+                    val temp = tokens.copy() as MutableTokenTableFlt64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -468,8 +468,8 @@ class LinearMechanismModel<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTableF64 -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTableF64
+                is ConcurrentMutableTokenTableFlt64 -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTableFlt64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -704,7 +704,7 @@ class LinearMechanismModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias LinearMechanismModelF64 = LinearMechanismModel<F64>
+typealias LinearMechanismModelF64 = LinearMechanismModel<Flt64>
 
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
@@ -715,7 +715,7 @@ class QuadraticMechanismModel<V>(
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
-    private val solverTokenTable: AbstractTokenTableF64
+    private val solverTokenTable: AbstractTokenTableFlt64
         get() = tokens.asSolverTokenTable()
 
     /**
@@ -787,7 +787,7 @@ class QuadraticMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                            flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                             tokens = tokens,
                             name = it.name
                         )
@@ -799,7 +799,7 @@ class QuadraticMechanismModel<V>(
 
             logger.trace { "Registering symbols for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbol<F64>)?.let { sym ->
+                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
                     sym.register(metaModel)
                 }
 
@@ -830,7 +830,7 @@ class QuadraticMechanismModel<V>(
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
             metaModel: QuadraticMetaModelF64,
-            tokens: AbstractTokenTableF64,
+            tokens: AbstractTokenTableFlt64,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModelF64 {
@@ -850,7 +850,7 @@ class QuadraticMechanismModel<V>(
                 createSubObject = {
                     QuadraticSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenDataF64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                        flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                         tokens = tokens,
                         name = it.name
                     )
@@ -867,13 +867,13 @@ class QuadraticMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTableF64,
+            tokens: AbstractMutableTokenTableFlt64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTableF64> {
+        ): Ret<AbstractTokenTableFlt64> {
             return when (tokens) {
-                is MutableTokenTableF64 -> {
-                    val temp = tokens.copy() as MutableTokenTableF64
+                is MutableTokenTableFlt64 -> {
+                    val temp = tokens.copy() as MutableTokenTableFlt64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -893,8 +893,8 @@ class QuadraticMechanismModel<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTableF64 -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTableF64
+                is ConcurrentMutableTokenTableFlt64 -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTableFlt64
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -1106,7 +1106,7 @@ class QuadraticMechanismModel<V>(
                     .map { MathQuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
             constant = constants
         )
-        val rhs = MathQuadraticPolynomial<F64>(emptyList(), Flt64.zero)
+        val rhs = MathQuadraticPolynomial<Flt64>(emptyList(), Flt64.zero)
         return Ok(listOf((lhs le rhs).normalize()))
     }
 
@@ -1225,5 +1225,5 @@ class QuadraticMechanismModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias QuadraticMechanismModelF64 = QuadraticMechanismModel<F64>
+typealias QuadraticMechanismModelF64 = QuadraticMechanismModel<Flt64>
 

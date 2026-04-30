@@ -76,7 +76,7 @@ class BalanceTernaryzationFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -101,12 +101,12 @@ class BalanceTernaryzationFunction<T : Field<T>>(
          * Factory for Flt64-typed balance ternaryzation function.
          */
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             epsilon: Flt64 = Flt64(1e-6),
             extract: Boolean = true,
             name: String,
             displayName: String? = null
-        ): BalanceTernaryzationFunction<F64> = BalanceTernaryzationFunction(
+        ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
             x = x,
             epsilon = epsilon,
             extract = extract,
@@ -118,12 +118,12 @@ class BalanceTernaryzationFunction<T : Field<T>>(
          * Factory for Flt64-typed balance ternaryzation function with LinearMonomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             epsilon: Flt64 = Flt64(1e-6),
             extract: Boolean = true,
             name: String,
             displayName: String? = null
-        ): BalanceTernaryzationFunction<F64> = BalanceTernaryzationFunction(
+        ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             epsilon = epsilon,
             extract = extract,

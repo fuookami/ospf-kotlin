@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusC
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelF64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToF64
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
 import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -97,13 +97,13 @@ suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelF64): Ret<Feas
 }
 
 /**
- * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to F64 first.
- * Uses [convertMechanismModelToF64] to validate V=Flt64 at the solver boundary.
+ * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
+ * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
  */
 suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>
 ): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
-    val f64Model = when (val result = convertMechanismModelToF64(model)) {
+    val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)
@@ -185,13 +185,13 @@ suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelF64): Re
 }
 
 /**
- * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to F64 first.
- * Uses [convertMechanismModelToF64] to validate V=Flt64 at the solver boundary.
+ * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
+ * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
  */
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>
 ): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
-    val f64Model = when (val result = convertMechanismModelToF64(model)) {
+    val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)

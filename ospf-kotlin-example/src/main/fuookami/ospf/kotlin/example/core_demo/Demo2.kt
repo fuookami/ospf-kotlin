@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
@@ -64,9 +65,9 @@ data object Demo2 {
     )
 
     private lateinit var x: BinVariable2
-    private lateinit var cost: LinearExpressionSymbol<Flt64>
-    private lateinit var assignmentCompany: LinearExpressionSymbols1
-    private lateinit var assignmentProduct: LinearExpressionSymbols1
+    private lateinit var cost: LinearExpressionSymbolF64
+    private lateinit var assignmentCompany: LinearExpressionSymbols1Flt64
+    private lateinit var assignmentProduct: LinearExpressionSymbols1Flt64
 
     private val metaModel = LinearMetaModelF64("demo2")
 

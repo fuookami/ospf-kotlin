@@ -52,7 +52,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
         }
     }
 
-    open fun setSolution(solution: List<F64>) {
+    open fun setSolution(solution: List<Flt64>) {
         assert(solution.size >= tokens.size)
         for ((index, token) in tokensInSolver.withIndex()) {
             token._result = solution[index]
@@ -79,7 +79,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 /**
  * Legacy typealias for Flt64-specific AbstractTokenListF64.
  */
-typealias AbstractTokenListF64 = AbstractTokenList<F64>
+typealias AbstractTokenListF64 = AbstractTokenList<Flt64>
 
 @OptIn(ExperimentalStdlibApi::class)
 class TokenList<T : RealNumber<T>>(
@@ -119,7 +119,7 @@ class TokenList<T : RealNumber<T>>(
         return list[item.key]
     }
 
-    override fun setSolution(solution: List<F64>) {
+    override fun setSolution(solution: List<Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
@@ -158,7 +158,7 @@ class TokenList<T : RealNumber<T>>(
 /**
  * Legacy typealias for Flt64-specific TokenListF64.
  */
-typealias TokenListF64 = TokenList<F64>
+typealias TokenListF64 = TokenList<Flt64>
 
 interface AddableTokenCollection<T : RealNumber<T>> {
     fun add(item: AbstractVariableItem<*, *>): Try
@@ -166,9 +166,9 @@ interface AddableTokenCollection<T : RealNumber<T>> {
 }
 
 /**
- * Legacy typealias for Flt64-specific AddableTokenCollectionF64.
+ * Legacy typealias for Flt64-specific AddableTokenCollectionFlt64.
  */
-typealias AddableTokenCollectionF64 = AddableTokenCollection<F64>
+typealias AddableTokenCollectionFlt64 = AddableTokenCollection<Flt64>
 
 abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
     abstract fun remove(item: AbstractVariableItem<*, *>)
@@ -178,7 +178,7 @@ abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T
 /**
  * Legacy typealias for Flt64-specific AbstractMutableTokenListF64.
  */
-typealias AbstractMutableTokenListF64 = AbstractMutableTokenList<F64>
+typealias AbstractMutableTokenListF64 = AbstractMutableTokenList<Flt64>
 
 sealed class MutableTokenList<T : RealNumber<T>>(
     internal val list: MutableMap<VariableItemKey, Token<T>> = HashMap(),
@@ -253,7 +253,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         clearSolution()
     }
 
-    override fun setSolution(solution: List<F64>) {
+    override fun setSolution(solution: List<Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
@@ -294,7 +294,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 /**
  * Legacy typealias for Flt64-specific MutableTokenListF64.
  */
-typealias MutableTokenListF64 = MutableTokenList<F64>
+typealias MutableTokenListF64 = MutableTokenList<Flt64>
 
 class AutoTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
@@ -350,7 +350,7 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
 /**
  * Legacy typealias for Flt64-specific AutoTokenListF64.
  */
-typealias AutoTokenListF64 = AutoTokenList<F64>
+typealias AutoTokenListF64 = AutoTokenList<Flt64>
 
 class ManualTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
@@ -396,4 +396,4 @@ class ManualTokenList<T : RealNumber<T>> private constructor(
 /**
  * Legacy typealias for Flt64-specific ManualTokenListF64.
  */
-typealias ManualTokenListF64 = ManualTokenList<F64>
+typealias ManualTokenListF64 = ManualTokenList<Flt64>

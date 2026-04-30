@@ -73,13 +73,13 @@ class FleetBalance(
         limits.entries.map { it.key to Limit(it.value.first, it.value.second) }
     }
 
-    lateinit var fleet: LinearExpressionSymbols1
-    lateinit var slack: LinearIntermediateSymbols1
+    lateinit var fleet: LinearExpressionSymbols1Flt64
+    lateinit var slack: LinearIntermediateSymbols1Flt64
 
     fun register(model: AbstractLinearMetaModelF64): Try {
         if (limits.isNotEmpty()) {
             if (!::fleet.isInitialized) {
-                fleet = LinearExpressionSymbols1(
+                fleet = LinearExpressionSymbols1Flt64(
                     "fleet",
                     Shape1(limits.size)
                 ) { l, _ ->
@@ -107,7 +107,7 @@ class FleetBalance(
             }
 
             if (!::slack.isInitialized) {
-                slack = LinearIntermediateSymbols1(
+                slack = LinearIntermediateSymbols1Flt64(
                     "fleet_slack",
                     Shape1(limits.size)
                 ) { l, _ ->

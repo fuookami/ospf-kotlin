@@ -10,10 +10,10 @@ interface MutationMode<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<F64>,
+        weights: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<F64>
-    ): List<F64>
+        mutationRateRange: ValueRange<Flt64>
+    ): List<Flt64>
 }
 
 data class StaticMutationMode<V>(
@@ -22,10 +22,10 @@ data class StaticMutationMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<F64>,
+        weights: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<F64>
-    ): List<F64> {
+        mutationRateRange: ValueRange<Flt64>
+    ): List<Flt64> {
         return List(population.size) {
             mutationRate?.coerceIn(mutationRateRange) ?: mutationRateRange.upperBound.value.unwrap()
         }
@@ -33,15 +33,15 @@ data class StaticMutationMode<V>(
 }
 
 data class RandomMutationMode<V>(
-    private val randomGenerator: Generator<F64>
+    private val randomGenerator: Generator<Flt64>
 ) : MutationMode<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<F64>,
+        weights: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<F64>
-    ): List<F64> {
+        mutationRateRange: ValueRange<Flt64>
+    ): List<Flt64> {
         return List(population.size) {
             mutationRateRange.lowerBound.value.unwrap() + randomGenerator()!! * mutationRateRange.diff.unwrap()
         }
@@ -52,10 +52,10 @@ class AdaptiveDynamicMutationMode<V> : MutationMode<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<F64>,
+        weights: List<Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<F64>
-    ): List<F64> {
+        mutationRateRange: ValueRange<Flt64>
+    ): List<Flt64> {
         val weight = (weights.max() - weights.min()) / weights.max()
         return List(population.size) {
             mutationRateRange.lowerBound.value.unwrap() + weight * mutationRateRange.diff.unwrap()

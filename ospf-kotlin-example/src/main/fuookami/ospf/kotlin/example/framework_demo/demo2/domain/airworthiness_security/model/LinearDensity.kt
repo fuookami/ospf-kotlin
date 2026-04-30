@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_s
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -49,13 +50,13 @@ class LinearDensity(
         }
     }
 
-    lateinit var linearDensity: QuantityLinearIntermediateSymbols1
+    lateinit var linearDensity: QuantityLinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::linearDensity.isInitialized) {
-            linearDensity = QuantityLinearIntermediateSymbols1("linear_density", Shape1(positions.size)) { j, _ ->
+            linearDensity = QuantityLinearIntermediateSymbols1Flt64("linear_density", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val coefficient = Flt64.one / position.shape.length.to(aircraftModel.lengthUnit)!!.value
                 Quantity(

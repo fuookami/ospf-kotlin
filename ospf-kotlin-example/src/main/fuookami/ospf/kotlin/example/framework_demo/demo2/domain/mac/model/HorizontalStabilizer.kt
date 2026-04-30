@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.ordinary.*
 import fuookami.ospf.kotlin.math.geometry.*
@@ -53,8 +54,8 @@ class HorizontalStabilizer(
         val warnMaxTrim: Flt64?
     )
 
-    lateinit var trim: LinearIntermediateSymbol<*>
-    lateinit var warnSlack: LinearIntermediateSymbol<*>
+    lateinit var trim: LinearIntermediateSymbolF64
+    lateinit var warnSlack: LinearIntermediateSymbolF64
 
     operator fun invoke(tow: Quantity<Flt64>, mac: MAC): Flt64 {
         return points

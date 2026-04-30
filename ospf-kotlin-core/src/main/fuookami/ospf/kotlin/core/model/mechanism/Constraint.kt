@@ -13,9 +13,9 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -55,7 +55,7 @@ object Quadratic : PolynomialKind
  */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: MathLinearInequality<V>)
 
-typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<F64>
+typealias SymbolicLinearInequalityFlt64 = SymbolicLinearInequality<Flt64>
 
 /**
  * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
@@ -63,7 +63,7 @@ typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<F64>
  */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: MathQuadraticInequalityOf<V>)
 
-typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<F64>
+typealias SymbolicQuadraticInequalityFlt64 = SymbolicQuadraticInequality<Flt64>
 
 // ========== Constraint<V, P> ==========
 
@@ -73,7 +73,7 @@ typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<F64>
  * P is a type parameter tracking polynomial kind (Linear vs Quadratic).
  *
  * Dual-view pattern:
- *   - Flt64 view: `rhsF64` (solver-compatible, internal)
+ *   - Flt64 view: `rhsFlt64` (solver-compatible, internal)
  *   - V-typed view: `rhs` (type-safe, public API)
  */
 interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
@@ -82,7 +82,7 @@ interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
     /** V-typed rhs (primary public API). */
     val rhs: V
     /** Flt64 view of rhs (solver-compatible, internal). */
-    val rhsF64: Flt64
+    val rhsFlt64: Flt64
     val lazy: Boolean
     val name: String
     val origin: MathConstraint?
@@ -132,29 +132,29 @@ sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
     private val _rhs: V,
-    private val _rhsF64: Flt64,
+    private val _rhsFlt64: Flt64,
     override val lazy: Boolean,
     override val name: String = "",
     override val origin: MathConstraint? = null,
     override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
 ) : Constraint<V, P> {
     override val rhs: V get() = _rhs
-    override val rhsF64: Flt64 get() = _rhsF64
+    override val rhsFlt64: Flt64 get() = _rhsFlt64
 
     fun isTrue(): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.evaluateF64() ?: return null
+            lhsValue += cell.evaluateFlt64() ?: return null
         }
-        return sign(lhsValue, _rhsF64)
+        return sign(lhsValue, _rhsFlt64)
     }
 
     fun isTrue(results: Solution): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
-            lhsValue += cell.evaluateF64(results) ?: return null
+            lhsValue += cell.evaluateFlt64(results) ?: return null
         }
-        return sign(lhsValue, _rhsF64)
+        return sign(lhsValue, _rhsFlt64)
     }
 }
 
@@ -170,7 +170,7 @@ class LinearConstraintImpl(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
-    _rhsF64 = rhs,
+    _rhsFlt64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,
@@ -179,7 +179,7 @@ class LinearConstraintImpl(
     companion object {
         operator fun invoke(
             relation: LinearRelation,
-            tokens: AbstractTokenTableF64,
+            tokens: AbstractTokenTableFlt64,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
@@ -212,7 +212,7 @@ class QuadraticConstraintImpl(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
-    _rhsF64 = rhs,
+    _rhsFlt64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,
@@ -221,7 +221,7 @@ class QuadraticConstraintImpl(
     companion object {
         operator fun invoke(
             relation: QuadraticRelation,
-            tokens: AbstractTokenTableF64,
+            tokens: AbstractTokenTableFlt64,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
@@ -247,7 +247,7 @@ typealias LinearConstraint = Constraint<Flt64, Linear>
 typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
 
 internal fun <V> createLinearCells(
-    monomials: List<UtilsLinearMonomial<F64>>,
+    monomials: List<UtilsLinearMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<LinearCell<V>>()
@@ -262,7 +262,7 @@ internal fun <V> createLinearCells(
 }
 
 internal fun <V> createQuadraticCells(
-    monomials: List<UtilsQuadraticMonomial<F64>>,
+    monomials: List<UtilsQuadraticMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<QuadraticCell<V>>()

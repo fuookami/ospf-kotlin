@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param displayName optional human-readable display name
  */
 class SameAsFunction<T : Field<T>>(
-    val inequalities: List<LinearInequality<F64>>,
+    val inequalities: List<LinearInequality<Flt64>>,
     val constraint: Boolean = true,
     val epsilon: Flt64 = Flt64(1e-6),
     val m: Flt64 = Flt64(1e6),
@@ -60,7 +60,7 @@ class SameAsFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + satisfactionFlags
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -91,7 +91,7 @@ class SameAsFunction<T : Field<T>>(
             is Fatal -> return Fatal(r.errors)
         }
 
-        val allConstraints = mutableListOf<LinearInequality<F64>>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
@@ -112,7 +112,7 @@ class SameAsFunction<T : Field<T>>(
                     Flt64.zero
                 )
                 val eqRhs = LinearPolynomial(emptyList(), Flt64.zero)
-                allConstraints += LinearInequality<F64>(
+                allConstraints += LinearInequality<Flt64>(
                     eqLhs, eqRhs, Comparison.EQ, "${name}_equal_${i}")
             }
             // result = u[0] (since all are equal)
@@ -123,7 +123,7 @@ class SameAsFunction<T : Field<T>>(
                 ),
                 Flt64.zero
             )
-            allConstraints += LinearInequality<F64>(
+            allConstraints += LinearInequality<Flt64>(
                 resultLink, LinearPolynomial(emptyList(), Flt64.zero),
                 Comparison.EQ, "${name}_result_link")
         } else {
@@ -137,7 +137,7 @@ class SameAsFunction<T : Field<T>>(
 
             if (n == 1) {
                 // Single inequality: always "same" with itself
-                allConstraints += LinearInequality<F64>(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
                     LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_result_single")
             } else {
@@ -162,7 +162,7 @@ class SameAsFunction<T : Field<T>>(
                     val diffVar = diffVars[i - 1]
 
                     // diff >= u[i] - u[0]  =>  diff - u[i] + u[0] >= 0
-                    allConstraints += LinearInequality<F64>(
+                    allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -175,7 +175,7 @@ class SameAsFunction<T : Field<T>>(
                         Comparison.GE, "${name}_diff_ge_${i}")
 
                     // diff >= u[0] - u[i]  =>  diff - u[0] + u[i] >= 0
-                    allConstraints += LinearInequality<F64>(
+                    allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -188,7 +188,7 @@ class SameAsFunction<T : Field<T>>(
                         Comparison.GE, "${name}_diff_le_${i}")
 
                     // diff <= u[i] + u[0]  =>  diff - u[i] - u[0] <= 0
-                    allConstraints += LinearInequality<F64>(
+                    allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -201,7 +201,7 @@ class SameAsFunction<T : Field<T>>(
                         Comparison.LE, "${name}_diff_sum_ub_${i}")
 
                     // diff <= 2 - u[i] - u[0]  =>  diff + u[i] + u[0] <= 2
-                    allConstraints += LinearInequality<F64>(
+                    allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -217,7 +217,7 @@ class SameAsFunction<T : Field<T>>(
                 // y = 1 - sum(diff_i)  =>  y + sum(diff_i) = 1
                 val yPlusSumMonos = listOf(LinearMonomial(Flt64.one, resultVar)) +
                     diffVars.map { LinearMonomial(Flt64.one, it) }
-                allConstraints += LinearInequality<F64>(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(yPlusSumMonos, Flt64.zero),
                     LinearPolynomial(emptyList(), Flt64.one),
                     Comparison.EQ, "${name}_result_sum")
@@ -229,13 +229,13 @@ class SameAsFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            inequalities: List<LinearInequality<F64>>,
+            inequalities: List<LinearInequality<Flt64>>,
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): SameAsFunction<F64> = SameAsFunction(
+        ): SameAsFunction<Flt64> = SameAsFunction(
             inequalities = inequalities,
             constraint = constraint,
             epsilon = epsilon,
@@ -245,10 +245,10 @@ class SameAsFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            inequalities: List<LinearInequality<F64>>,
+            inequalities: List<LinearInequality<Flt64>>,
             name: String,
             displayName: String? = null
-        ): SameAsFunction<F64> = SameAsFunction(
+        ): SameAsFunction<Flt64> = SameAsFunction(
             inequalities = inequalities,
             constraint = true,
             epsilon = Flt64(1e-6),

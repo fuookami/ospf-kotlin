@@ -54,7 +54,7 @@ class SigmoidFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -149,12 +149,12 @@ class SigmoidFunction<T : Field<T>>(
          * Factory for Flt64-typed sigmoid function using Full precision.
          */
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
             name: String,
             displayName: String? = null
-        ): SigmoidFunction<F64> = SigmoidFunction(
+        ): SigmoidFunction<Flt64> = SigmoidFunction(
             x = x,
             samplingPoints = samplingPoints(precision, decimalPrecision),
             name = name,
@@ -165,12 +165,12 @@ class SigmoidFunction<T : Field<T>>(
          * Factory for Flt64-typed sigmoid function with custom sampling points.
          */
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
             name: String,
             displayName: String? = null
-        ): SigmoidFunction<F64> = SigmoidFunction(
+        ): SigmoidFunction<Flt64> = SigmoidFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = samplingPoints(precision, decimalPrecision),
             name = name,

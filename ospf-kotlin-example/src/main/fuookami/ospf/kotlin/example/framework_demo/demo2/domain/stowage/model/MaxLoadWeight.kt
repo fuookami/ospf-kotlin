@@ -19,15 +19,15 @@ class MaxLoadWeight(
     private val positions: List<Position>,
     private val totalWeight: TotalWeight
 ) {
-    lateinit var maxLoadWeight: QuantityLinearIntermediateSymbols1
+    lateinit var maxLoadWeight: QuantityLinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::maxLoadWeight.isInitialized) {
-            maxLoadWeight = QuantityLinearIntermediateSymbols1("max_load_weight", Shape1(positions.size)) { j, _ ->
+            maxLoadWeight = QuantityLinearIntermediateSymbols1Flt64("max_load_weight", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val symbol: LinearIntermediateSymbol<*> = if (position.mlw.segments.isNotEmpty()) {
+                val symbol: LinearIntermediateSymbolF64 = if (position.mlw.segments.isNotEmpty()) {
                     val zfw = totalWeight.computedTotalWeight[FlightPhase.ZeroFuel]
                     if (zfw != null) {
                         LinearExpressionSymbol(

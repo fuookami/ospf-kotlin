@@ -40,11 +40,11 @@ data object Demo16 {
 
     lateinit var x: UIntVariable2
 
-    lateinit var produce: LinearIntermediateSymbols1
-    lateinit var supply: LinearIntermediateSymbols1
-    lateinit var delayDeliveryCost: LinearIntermediateSymbol<*>
-    lateinit var storageCost: LinearIntermediateSymbol<*>
-    lateinit var produceCost: LinearIntermediateSymbol<*>
+    lateinit var produce: LinearIntermediateSymbols1Flt64
+    lateinit var supply: LinearIntermediateSymbols1Flt64
+    lateinit var delayDeliveryCost: LinearIntermediateSymbolF64
+    lateinit var storageCost: LinearIntermediateSymbolF64
+    lateinit var produceCost: LinearIntermediateSymbolF64
 
     val metaModel = LinearMetaModelF64("demo16")
 
@@ -82,7 +82,7 @@ data object Demo16 {
     }
 
     private suspend fun initSymbol(): Try {
-        produce = LinearIntermediateSymbols1(
+        produce = LinearIntermediateSymbols1Flt64(
             "produce",
             Shape1(produces.size)
         ) { i, _ ->
@@ -94,7 +94,7 @@ data object Demo16 {
         }
         metaModel.add(produce)
 
-        supply = LinearIntermediateSymbols1(
+        supply = LinearIntermediateSymbols1Flt64(
             "supply",
             Shape1(produces.size)
         ) { i, _ ->

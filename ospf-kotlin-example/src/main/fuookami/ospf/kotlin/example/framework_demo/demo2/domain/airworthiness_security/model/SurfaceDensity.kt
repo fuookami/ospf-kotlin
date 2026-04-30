@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_s
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -31,13 +32,13 @@ class SurfaceDensity(
         val maxSurfaceDensity: Quantity<Flt64>
     )
 
-    lateinit var surfaceDensity: QuantityLinearIntermediateSymbols1
+    lateinit var surfaceDensity: QuantityLinearIntermediateSymbols1Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::surfaceDensity.isInitialized) {
-            surfaceDensity = QuantityLinearIntermediateSymbols1("surface_density", Shape1(positions.size)) { j, _ ->
+            surfaceDensity = QuantityLinearIntermediateSymbols1Flt64("surface_density", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val coefficient = Flt64.one / position.shape.area.to(aircraftModel.areaUnit)!!.value
                 Quantity(

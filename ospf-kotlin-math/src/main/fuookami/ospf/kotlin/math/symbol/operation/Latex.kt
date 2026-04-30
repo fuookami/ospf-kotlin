@@ -42,7 +42,7 @@ private fun formatNumber(value: Flt64): String {
     return BigDecimal.valueOf(doubleValue).stripTrailingZeros().toPlainString()
 }
 
-private val flt64LatexOps = LatexNumberOps<F64>(
+private val flt64LatexOps = LatexNumberOps<Flt64>(
     isZero = { it == Flt64.zero },
     isOne = { it == Flt64.one },
     isNegative = { it.toDouble() < 0.0 },
@@ -50,37 +50,37 @@ private val flt64LatexOps = LatexNumberOps<F64>(
     format = { formatNumber(it) }
 )
 
-fun LinearMonomial<F64>.toLatex(
+fun LinearMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun QuadraticMonomial<F64>.toLatex(
+fun QuadraticMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun CanonicalMonomial<F64>.toLatex(
+fun CanonicalMonomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun LinearPolynomial<F64>.toLatex(
+fun LinearPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun QuadraticPolynomial<F64>.toLatex(
+fun QuadraticPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun CanonicalPolynomial<F64>.toLatex(
+fun CanonicalPolynomial<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
@@ -97,13 +97,13 @@ private fun Comparison.latexSymbol(): String {
     }
 }
 
-fun LinearInequality<F64>.toLatex(
+fun LinearInequality<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
-fun QuadraticInequalityOf<F64>.toLatex(
+fun QuadraticInequalityOf<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"

@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
@@ -65,7 +65,7 @@ class IfFunction<T : Field<T>>(
         return if (!premiseHolds || consequenceHolds) oneOf<T>() else zeroOf<T>()
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         val vars = helperVariables
         return if (vars.isNotEmpty()) tokens.add(vars) else ok
     }
@@ -126,16 +126,16 @@ class IfFunction<T : Field<T>>(
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<F64> get() = ExpressionRange()
+    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
-    override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
+    override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    override val polynomial: MathLinearPolynomial<F64> get() = MathLinearPolynomial(emptyList(), Flt64.zero)
-    override fun asMutable(): MathMutableLinearPolynomial<F64> = MathMutableLinearPolynomial(emptyList(), Flt64.zero)
+    override val polynomial: MathLinearPolynomial<Flt64> get() = MathLinearPolynomial(emptyList(), Flt64.zero)
+    override fun asMutable(): MathMutableLinearPolynomial<Flt64> = MathMutableLinearPolynomial(emptyList(), Flt64.zero)
 
     override fun toMathLinearInequality(): MathLinearInequality {
         return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
@@ -146,15 +146,15 @@ class IfFunction<T : Field<T>>(
     }
 
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<F64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<F64>).evaluate(values)
+        (this as MathFunctionSymbol<Flt64>).evaluate(values)
 
     // V-typed evaluate overrides (P4-5)
-    override fun evaluate(tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<F64>, tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableF64?, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<F64>).evaluate(values)?.let { converter.intoValue(it) }
+    override fun evaluate(tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableFlt64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
+        (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
 
     companion object {
         operator fun invoke(
@@ -163,7 +163,7 @@ class IfFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<F64> = IfFunction(premise, consequence, bigM, constraintMode = true, name, displayName)
+        ): IfFunction<Flt64> = IfFunction(premise, consequence, bigM, constraintMode = true, name, displayName)
 
         fun indicator(
             premise: MathLinearInequality,
@@ -171,7 +171,7 @@ class IfFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<F64> = IfFunction(premise, consequence, bigM, constraintMode = false, name, displayName)
+        ): IfFunction<Flt64> = IfFunction(premise, consequence, bigM, constraintMode = false, name, displayName)
 
         /**
          * Factory: accept legacy LinearConstraintInput for framework compatibility.
@@ -185,7 +185,7 @@ class IfFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<F64> {
+        ): IfFunction<Flt64> {
             // LinearConstraintInput.sign is already math.symbol.inequality.Comparison
             val comp = inequality.sign
             // Reconstruct linear inequality from flattenData
@@ -212,7 +212,7 @@ class IfFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<F64> {
+        ): IfFunction<Flt64> {
             val consequenceIneq = MathLinearInequality(
                 MathLinearPolynomial(emptyList(), Flt64.zero),
                 MathLinearPolynomial(emptyList(), Flt64.zero),
@@ -237,7 +237,7 @@ private fun <T : Field<T>> checkInequality(ineq: MathLinearInequality, values: M
     }
 }
 
-private fun <T : Field<T>> evalPoly(poly: MathLinearPolynomial<F64>, values: Map<Symbol, T>): T? {
+private fun <T : Field<T>> evalPoly(poly: MathLinearPolynomial<Flt64>, values: Map<Symbol, T>): T? {
     var sum: T? = null
     for (m in poly.monomials) {
         val sv = values[m.symbol] ?: return null

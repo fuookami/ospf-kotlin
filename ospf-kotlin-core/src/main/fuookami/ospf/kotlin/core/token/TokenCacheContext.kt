@@ -20,14 +20,14 @@ data class LinearFlattenData<T : Ring<T>>(
     val constant: T
 )
 
-typealias LinearFlattenDataF64 = LinearFlattenData<F64>
+typealias LinearFlattenDataFlt64 = LinearFlattenData<Flt64>
 
 data class QuadraticFlattenData<T : Ring<T>>(
     val monomials: List<UtilsQuadraticMonomial<T>>,
     val constant: T
 )
 
-typealias QuadraticFlattenDataF64 = QuadraticFlattenData<F64>
+typealias QuadraticFlattenDataFlt64 = QuadraticFlattenData<Flt64>
 
 class LinearFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
@@ -57,7 +57,7 @@ class LinearFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias LinearFlattenContextF64 = LinearFlattenContext<F64>
+typealias LinearFlattenContextF64 = LinearFlattenContext<Flt64>
 
 class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
@@ -87,10 +87,10 @@ class QuadraticFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias QuadraticFlattenContextF64 = QuadraticFlattenContext<F64>
+typealias QuadraticFlattenContextF64 = QuadraticFlattenContext<Flt64>
 
 class ValueCacheContext<V : RealNumber<V>>(
-    private val solutionCache: MutableMap<Pair<Any, List<F64>?>, V?> = HashMap(),
+    private val solutionCache: MutableMap<Pair<Any, List<Flt64>?>, V?> = HashMap(),
     private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, Flt64>>, V?> = HashMap()
 ) {
     fun clear() {
@@ -98,7 +98,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         fixedValueCache.clear()
     }
 
-    fun cached(cacheKey: Any, solution: List<F64>? = null): Boolean {
+    fun cached(cacheKey: Any, solution: List<Flt64>? = null): Boolean {
         return solutionCache.containsKey(cacheKey to solution)
     }
 
@@ -106,7 +106,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         return fixedValueCache.containsKey(cacheKey to fixedValues)
     }
 
-    fun value(cacheKey: Any, solution: List<F64>? = null): V? {
+    fun value(cacheKey: Any, solution: List<Flt64>? = null): V? {
         return solutionCache[cacheKey to solution]
     }
 
@@ -114,7 +114,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         return fixedValueCache[cacheKey to fixedValues]
     }
 
-    fun put(cacheKey: Any, solution: List<F64>? = null, value: V): V {
+    fun put(cacheKey: Any, solution: List<Flt64>? = null, value: V): V {
         solutionCache[cacheKey to solution] = value
         return value
     }
@@ -124,7 +124,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         return value
     }
 
-    fun putAll(symbols: Map<out Any, V>, solution: List<F64>? = null) {
+    fun putAll(symbols: Map<out Any, V>, solution: List<Flt64>? = null) {
         solutionCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to solution) to value
         })
@@ -136,7 +136,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         })
     }
 
-    fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<F64>? = null) {
+    fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<Flt64>? = null) {
         solutionCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
                 (cacheKey to solution) to it
@@ -152,7 +152,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         })
     }
 
-    fun getOrPut(cacheKey: Any, solution: List<F64>? = null, value: () -> V?): V? {
+    fun getOrPut(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
         var cachedValue = solutionCache[cacheKey to solution]
         if (cachedValue == null) {
             value()?.let {
@@ -180,7 +180,7 @@ class ValueCacheContext<V : RealNumber<V>>(
     }
 }
 
-typealias ValueCacheContextF64 = ValueCacheContext<F64>
+typealias ValueCacheContextF64 = ValueCacheContext<Flt64>
 
 class RangeCacheContext<V>(
     private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
@@ -210,7 +210,7 @@ class RangeCacheContext<V>(
     }
 }
 
-typealias RangeCacheContextF64 = RangeCacheContext<F64>
+typealias RangeCacheContextF64 = RangeCacheContext<Flt64>
 
 data class TokenCacheContexts<V>(
     val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),
@@ -254,7 +254,7 @@ data class TokenCacheContexts<V>(
     }
 }
 
-typealias TokenCacheContextsF64 = TokenCacheContexts<F64>
+typealias TokenCacheContextsFlt64 = TokenCacheContexts<Flt64>
 
 private val symbolTokenTableContext = Collections.synchronizedMap(
     WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<*>>()
@@ -281,7 +281,7 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
     return symbolTokenTableContext[symbol]
 }
 
-internal fun LinearFlattenDataF64.toQuadraticFlattenData(): QuadraticFlattenDataF64 {
+internal fun LinearFlattenDataFlt64.toQuadraticFlattenData(): QuadraticFlattenDataFlt64 {
     val monomials = this.monomials.map {
         UtilsQuadraticMonomial(
             coefficient = it.coefficient,
@@ -289,7 +289,7 @@ internal fun LinearFlattenDataF64.toQuadraticFlattenData(): QuadraticFlattenData
             symbol2 = null
         )
     }
-    return QuadraticFlattenDataF64(
+    return QuadraticFlattenDataFlt64(
         monomials = monomials,
         constant = this.constant
     )

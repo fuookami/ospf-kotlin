@@ -4,7 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.compare
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -69,7 +69,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -158,7 +158,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
                     val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
 
-                    // Convert LinearFlattenDataF64 to LinearPolynomial<F64>
+                    // Convert LinearFlattenDataFlt64 to LinearPolynomial<Flt64>
                     val polyFlt64 = LinearPolynomial(
                         input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
                         input.flattenData.constant
@@ -172,7 +172,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     )
                     val upperRhs = LinearPolynomial(emptyList(), m + eps)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<F64>(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
                         ),
                         name = "${name}_i${i}_upper"
@@ -184,7 +184,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     )
                     val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<F64>(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
                         ),
                         name = "${name}_i${i}_lower"
@@ -202,7 +202,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                     val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
                     model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<F64>(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                             poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
                         ),
                         name = "${name}_i${i}_flag"
@@ -231,7 +231,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                 Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
             model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<F64>(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                     lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
                 ),
                 name = "${name}_amount_lb"
@@ -247,7 +247,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
                 Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
             model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<F64>(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
                     ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
                 ),
                 name = "${name}_amount_ub"
@@ -264,7 +264,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): SatisfiedAmountInequalityFunction<F64> = SatisfiedAmountInequalityFunction(
+        ): SatisfiedAmountInequalityFunction<Flt64> = SatisfiedAmountInequalityFunction(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
@@ -297,7 +297,7 @@ class AnyFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AnyFunction<F64> = AnyFunction(
+        ): AnyFunction<Flt64> = AnyFunction(
             inputs = inputs,
             epsilon = epsilon,
             name = name,
@@ -329,7 +329,7 @@ class AllFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AllFunction<F64> = AllFunction(
+        ): AllFunction<Flt64> = AllFunction(
             inputs = inputs,
             epsilon = epsilon,
             name = name,
@@ -368,7 +368,7 @@ class AtLeastInequalityFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AtLeastInequalityFunction<F64> = AtLeastInequalityFunction(
+        ): AtLeastInequalityFunction<Flt64> = AtLeastInequalityFunction(
             inputs = inputs,
             k = k,
             epsilon = epsilon,
@@ -401,7 +401,7 @@ class NotAllFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): NotAllFunction<F64> = NotAllFunction(
+        ): NotAllFunction<Flt64> = NotAllFunction(
             inputs = inputs,
             epsilon = epsilon,
             name = name,
@@ -433,7 +433,7 @@ class NumerableFunction<T : Field<T>>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): NumerableFunction<F64> = NumerableFunction(
+        ): NumerableFunction<Flt64> = NumerableFunction(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,

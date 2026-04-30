@@ -23,7 +23,7 @@ class EdgeBandwidth(
     private val services: List<Service>
 ) {
     lateinit var y: UIntVariable2
-    lateinit var bandwidth: LinearIntermediateSymbols1
+    lateinit var bandwidth: LinearIntermediateSymbols1Flt64
 
     fun register(model: LinearMetaModelF64): Try {
         if (!::y.isInitialized) {

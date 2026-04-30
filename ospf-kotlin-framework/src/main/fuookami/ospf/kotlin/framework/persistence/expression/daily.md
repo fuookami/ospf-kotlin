@@ -829,11 +829,57 @@ abstract class MybatisRepository<E : Any, M : BaseMapper<E>>(
 
 ---
 
-## 9. 后续扩展方向
+### P8-1 完全泛型化 Solution 与 Token 写回链路
 
-1. **JPA/Hibernate 支持** - 类似 MyBatis 插件结构
-2. **Exposed 支持** - Kotlin 原生 SQL DSL
-3. **JOOQ 支持** - 类型安全 SQL 构建器
-4. **MongoDB 支持** - Document 查询翻译
-5. **缓存层** - 基于 Expression 的查询缓存
-6. **审计日志** - 自动记录 CRUD 操作
+- 将公开模型侧 solution 概念拆成 `Solution<V>` 与 solver 边界 `SolverSolution`。
+- 将 `AbstractTokenTable<V>.setSolution`、`AbstractTokenList<T>.setSolution`、`Model.setSolution` 的主签名切到 `List<V>` / `Map<AbstractVariableItem<*, *>, V>`。
+- 仅在 solver adapter 或 `AbstractTokenTableF64` 兼容扩展中保留 `List<F64>` / `Map<..., Flt64>`。
+- solver 返回值写回模型时，通过 `SolveValue`/`IntoValue` 从 `Flt64` 转换回 `V`，并按策略处理精度、溢出和非有限值。
+
+### P8-2 泛型化缓存与求值路径
+
+- 将 `TokenCacheContext` 中以 `List<F64>`、`Map<Symbol, Flt64>` 为 key/value 的公开缓存路径改成 `V` typed。
+- 将 `Cell.evaluate(solution: List<F64>)`、`evaluateF64`、constraint input、meta constraint result 等接口拆分为模型侧泛型求值与 solver 侧扁平化求值。
+- 明确 cache key 是否使用模型值 `V`、solver 值 `F64`，或专用 boundary key，避免泛型模型被 solver 数值域反向污染。
+
+### P8-3 完整化值转换与结构化错误
+
+- 让 `SolveValue` 不只做校验，还提供可组合的 `fromF64` / `toF64` 转换结果。
+- 补齐 `NonFinite`、`PrecisionLoss`、`Overflow` 等结构化错误，并让调用链返回可定位的错误信息。
+- 复核 Kotlin 默认转换策略，必要时改为与 Rust 一致的 `Strict`，`AllowRounding` 只在显式配置时启用。
+- 如 Kotlin 数值层已具备对应类型，补齐 BigDecimal/BigRational 等非 F64 数值域的转换实现与测试。
+
+### P8-4 恢复旧 Kotlin 快捷接口与命名兼容
+
+- 对照 `E:\workspace\ospf-kotlin-main`，补齐旧 `MetaConstraintGroup` 中 monomial、polynomial、inequality、intermediate symbol 的 `addConstraint` 与 `partition` overload。
+- 复核 `LinearMetaModel`、`LinearExpressionSymbol`、`LinearExpressionSymbols1`、`LinearIntermediateSymbols` 等旧命名到当前 `*F64` 命名的兼容策略。
+- 对照 `E:\workspace\ospf\examples\ospf-kotlin-example`，整理 example 用户迁移时最常见的 import/package/命名差异，必要时提供 typealias 或迁移文档。
+
+### P8-5 收敛 solver/framework 入口命名
+
+- 将 Rust 风格 `solve` / `solveWithOptions` 作为 Kotlin 推荐入口，并检查 core solver、framework solver、column generation、Benders 等模块是否一致。
+- 评估 `solveMILP`、`solveLP`、`solveMILPAsync`、`solveLPAsync` 是否保留为兼容 wrapper，或补充统一入口后降级为快捷方法。
+- 保持旧 `operator fun invoke` 可用，但文档中应明确主入口，减少 example 与 Rust 文档之间的命名差异。
+
+### P8-6 Rust 功能缺口复核与补齐
+
+- **LP 导出**：Kotlin 已有 `exportLP`，需要按 Rust 的 LP/MIP/QP 输出能力、变量命名、约束命名、目标方向和 bounds 表达逐项验收。
+- **IIS**：复核 deletion filtering、elastic filtering、配置项、返回结构和 solver 集成是否与 Rust 对齐。
+- **PSO**：Rust core 已有 PSO 求解器，Kotlin 需要确认是否缺失、是否放入 heuristic 模块，或是否明确暂不支持。
+- **Solver extension**：复核 Gurobi/SCIP option、callback、IIS、LP dump、日志和异常语义是否与 Rust framework 对齐。
+- **元数据消费**：确认 constraint group、lazy、priority、args 等 metadata 不只是可存储，还能被 solver/framework 侧正确消费。
+
+### P8-7 Expression 后续插件与横切能力
+
+- JPA/Hibernate 支持：沿用 Ktorm/MyBatis 插件结构。
+- Exposed 支持：提供 Kotlin 原生 SQL DSL translator/repository。
+- JOOQ 支持：提供类型安全 SQL 构建器 translator/repository。
+- MongoDB 支持：提供 Document 查询翻译。
+- 缓存层：基于 expression/repository 的查询缓存。
+- 审计日志：自动记录 CRUD 操作与变更上下文。
+
+### P8-8 验证与门禁
+
+- 增加 core/model 公开签名门禁，防止新的 `List<F64>`、`Map<Symbol, Flt64>` 回流到泛型模型接口。
+- 增加泛型模型与 F64 solver 边界转换测试，覆盖严格转换、允许舍入、非有限值和溢出。
+- 保留 P6/P7 门禁，并新增 P8 泛型化门禁；最终运行 core/framework/example 编译和全量 `mvn clean test`。

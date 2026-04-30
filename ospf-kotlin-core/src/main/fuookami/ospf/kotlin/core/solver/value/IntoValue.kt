@@ -23,7 +23,7 @@ interface IntoValue<V : RealNumber<V>> {
     fun intoValue(value: Flt64): V
 
     companion object {
-        val Flt64: IntoValue<F64> = object : IntoValue<F64> {
+        val Flt64: IntoValue<Flt64> = object : IntoValue<Flt64> {
             override fun intoValue(value: Flt64): Flt64 = value
         }
     }
@@ -40,17 +40,17 @@ interface IntoValue<V : RealNumber<V>> {
 interface SolveValue<V : RealNumber<V>> {
     fun typeName(): String
 
-    fun fromF64WithPolicy(value: Double, policy: SolveValueConversionPolicy): Try
-    fun toF64WithPolicy(value: V, policy: SolveValueConversionPolicy): Try
+    fun fromFlt64WithPolicy(value: Double, policy: SolveValueConversionPolicy): Try
+    fun toFlt64WithPolicy(value: V, policy: SolveValueConversionPolicy): Try
 }
 
 /**
  * Flt64 SolveValue implementation — identity-like conversion.
  */
-object Flt64SolveValue : SolveValue<F64> {
+object Flt64SolveValue : SolveValue<Flt64> {
     override fun typeName(): String = "Flt64"
 
-    override fun fromF64WithPolicy(value: Double, policy: SolveValueConversionPolicy): Try {
+    override fun fromFlt64WithPolicy(value: Double, policy: SolveValueConversionPolicy): Try {
         if (policy == SolveValueConversionPolicy.Strict) {
             if (value.isNaN()) return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected NaN"))
             if (value.isInfinite()) return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected infinity"))
@@ -58,7 +58,7 @@ object Flt64SolveValue : SolveValue<F64> {
         return ok
     }
 
-    override fun toF64WithPolicy(value: Flt64, policy: SolveValueConversionPolicy): Try {
+    override fun toFlt64WithPolicy(value: Flt64, policy: SolveValueConversionPolicy): Try {
         val raw = value.toDouble()
         if (policy == SolveValueConversionPolicy.Strict) {
             if (raw.isNaN()) return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected NaN"))

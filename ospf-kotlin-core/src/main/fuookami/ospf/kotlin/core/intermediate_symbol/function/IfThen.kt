@@ -40,7 +40,7 @@ class IfThenFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(pu, qu)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -87,7 +87,7 @@ class IfThenFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfThenFunction<F64> = IfThenFunction(
+        ): IfThenFunction<Flt64> = IfThenFunction(
             premise = premise,
             conclusion = conclusion,
             constraint = constraint,
@@ -223,7 +223,7 @@ private fun checkInequality(ineq: MathLinearInequality, values: Map<Symbol, *>):
 /**
  * Evaluate a Flt64 linear polynomial given a map of Symbol -> T values.
  */
-private fun evalFlt64Poly(poly: LinearPolynomial<F64>, values: Map<Symbol, *>): Double? {
+private fun evalFlt64Poly(poly: LinearPolynomial<Flt64>, values: Map<Symbol, *>): Double? {
     var sum = 0.0
     for (m in poly.monomials) {
         val sv = values[m.symbol] ?: return null

@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -38,9 +39,9 @@ data object Demo1 {
     private val maxLiability = Flt64(5.0)
 
     private lateinit var x: BinVariable1
-    private lateinit var capital: LinearExpressionSymbol<Flt64>
-    private lateinit var liability: LinearExpressionSymbol<Flt64>
-    private lateinit var profit: LinearExpressionSymbol<Flt64>
+    private lateinit var capital: LinearExpressionSymbolF64
+    private lateinit var liability: LinearExpressionSymbolF64
+    private lateinit var profit: LinearExpressionSymbolF64
 
     private val metaModel = LinearMetaModelF64("demo1")
 

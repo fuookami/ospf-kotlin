@@ -54,7 +54,7 @@ class SlackRangeFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(negVar, posVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -127,7 +127,7 @@ class SlackRangeFunction<T : Field<T>>(
             xPoly.constant
         )
         val upperRhs = LinearPolynomial(emptyList(), ub)
-        val upperConstraint = LinearInequality<F64>(upperLhs, upperRhs, Comparison.LE, "${name}_ub")
+        val upperConstraint = LinearInequality<Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_ub")
         when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -144,7 +144,7 @@ class SlackRangeFunction<T : Field<T>>(
             xPoly.constant
         )
         val lowerRhs = LinearPolynomial(emptyList(), lb)
-        val lowerConstraint = LinearInequality<F64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_lb")
+        val lowerConstraint = LinearInequality<Flt64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_lb")
         when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
@@ -156,13 +156,13 @@ class SlackRangeFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64.zero,
             constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): SlackRangeFunction<F64> = SlackRangeFunction(
+        ): SlackRangeFunction<Flt64> = SlackRangeFunction(
             x = x,
             lb = lb,
             ub = ub,
@@ -172,13 +172,13 @@ class SlackRangeFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64.zero,
             constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): SlackRangeFunction<F64> = SlackRangeFunction(
+        ): SlackRangeFunction<Flt64> = SlackRangeFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             lb = lb,
             ub = ub,
@@ -191,9 +191,9 @@ class SlackRangeFunction<T : Field<T>>(
         @JvmName("legacyWithVariableTypeAndPolynomialBounds")
         operator fun invoke(
             type: VariableType<*>,
-            x: LinearPolynomial<F64>,
-            lb: LinearPolynomial<F64>,
-            ub: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
+            lb: LinearPolynomial<Flt64>,
+            ub: LinearPolynomial<Flt64>,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter {
@@ -212,9 +212,9 @@ class SlackRangeFunction<T : Field<T>>(
         }
 
         private fun subtract(
-            lhs: LinearPolynomial<F64>,
-            rhs: LinearPolynomial<F64>
-        ): LinearPolynomial<F64> {
+            lhs: LinearPolynomial<Flt64>,
+            rhs: LinearPolynomial<Flt64>
+        ): LinearPolynomial<Flt64> {
             val negatedRhs = rhs.monomials.map { monomial ->
                 LinearMonomial(-monomial.coefficient, monomial.symbol)
             }

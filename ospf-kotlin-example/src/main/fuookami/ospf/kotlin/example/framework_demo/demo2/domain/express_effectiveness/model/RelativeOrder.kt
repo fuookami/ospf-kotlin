@@ -33,13 +33,13 @@ class RelativeOrder(
         }
     }
 
-    lateinit var itemPriorityReverse: LinearIntermediateSymbols2
+    lateinit var itemPriorityReverse: LinearIntermediateSymbols2Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::itemPriorityReverse.isInitialized) {
-            itemPriorityReverse = LinearIntermediateSymbols2("item_priority_reverse", Shape2(items.size, positions.size)) { _, v ->
+            itemPriorityReverse = LinearIntermediateSymbols2Flt64("item_priority_reverse", Shape2(items.size, positions.size)) { _, v ->
                 val (item1, item2) = orderedItems[v[0]]
                 val i1 = items.indexOf(item1)
                 val i2 = items.indexOf(item2)

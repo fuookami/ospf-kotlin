@@ -20,7 +20,7 @@ class PassengerAmount(
     private val cancel: PassengerCancel,
     private val change: PassengerChange
 ) {
-    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbol<*>>>
+    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbolF64>>
 
     fun register(model: AbstractLinearMetaModelF64): Try {
         if (!::passengerAmount.isInitialized) {

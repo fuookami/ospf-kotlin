@@ -21,7 +21,7 @@ class MAC(
     private val totalWeight: TotalWeight,
     private val torque: Torque
 ) {
-    lateinit var mac: LinearIntermediateSymbol<*>
+    lateinit var mac: LinearIntermediateSymbolF64
 
     fun register(
         model: AbstractLinearMetaModelF64

@@ -30,7 +30,6 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-typealias F64 = Flt64
 
 class RepeatedSymbolError(
     val repeatedSymbol: IntermediateSymbol<*>,
@@ -65,7 +64,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     }
 
     // Solver boundary methods (Flt64 signatures)
-    fun setSolution(solution: List<F64>) {
+    fun setSolution(solution: List<Flt64>) {
         flush()
         tokenList.setSolution(solution)
     }
@@ -78,11 +77,11 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     fun flush() {}
     fun clearSolution() { flush(); tokenList.clearSolution() }
 
-    fun cached(cacheKey: Any, solution: List<F64>? = null): Boolean? = null
+    fun cached(cacheKey: Any, solution: List<Flt64>? = null): Boolean? = null
     fun cached(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): Boolean? = null
-    fun cachedValue(cacheKey: Any, solution: List<F64>? = null): V? = null
+    fun cachedValue(cacheKey: Any, solution: List<Flt64>? = null): V? = null
     fun cachedValue(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): V? = null
-    fun cache(cacheKey: Any, solution: List<F64>? = null, value: V): V = value
+    fun cache(cacheKey: Any, solution: List<Flt64>? = null, value: V): V = value
     fun cache(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V): V = value
 
     // Generic cache methods (V-typed)
@@ -104,7 +103,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     fun clearValue(cacheKey: Any) {}
 
     // Lazy and batch cache methods (solver boundary, Flt64)
-    fun cache(cacheKey: Any, solution: List<F64>? = null, value: () -> V?): V? {
+    fun cache(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
         return value()?.let { cache(cacheKey = cacheKey, solution = solution, value = it) }
     }
 
@@ -112,7 +111,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return value()?.let { cache(cacheKey = cacheKey, fixedValues = fixedValues, value = it) }
     }
 
-    fun cacheIfNotCached(cacheKey: Any, solution: List<F64>? = null, value: () -> V?): V? {
+    fun cacheIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
         var cachedValue = this.cachedValue(cacheKey, solution)
         if (cachedValue == null) {
             value()?.let {
@@ -136,7 +135,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<F64>? = null) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) { cache(cacheKey = symbol, solution = solution, value = value) }
     }
 
@@ -148,7 +147,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<F64>? = null) {
+    fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null) {
         for ((symbol, value) in symbols) { cache(cacheKey = symbol, solution = solution, value = value) }
     }
 
@@ -163,7 +162,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     val symbolDependencies: Map<IntermediateSymbol<*>, Set<IntermediateSymbol<*>>> get() = emptyMap()
 }
 
-typealias AbstractTokenTableF64 = AbstractTokenTable<F64>
+typealias AbstractTokenTableFlt64 = AbstractTokenTable<Flt64>
 
 /**
  * Generic mutable token table interface skeleton - C2-2.5a declaration layer.
@@ -186,7 +185,7 @@ interface AbstractMutableTokenTable<V> : AbstractTokenTable<V>, AddableTokenColl
     fun removeSymbol(symbol: IntermediateSymbol<*>) = remove(symbol)
 }
 
-typealias AbstractMutableTokenTableF64 = AbstractMutableTokenTable<F64>
+typealias AbstractMutableTokenTableFlt64 = AbstractMutableTokenTable<Flt64>
 
 data class TokenTable<V>(
     override val category: Category,
@@ -207,7 +206,7 @@ data class TokenTable<V>(
         cacheContexts.clearAll()
     }
 
-    override fun cached(cacheKey: Any, solution: List<F64>?): Boolean {
+    override fun cached(cacheKey: Any, solution: List<Flt64>?): Boolean {
         return cacheContexts.value.cached(cacheKey, solution)
     }
 
@@ -215,7 +214,7 @@ data class TokenTable<V>(
         return cacheContexts.value.cached(cacheKey, fixedValues)
     }
 
-    override fun cachedValue(cacheKey: Any, solution: List<F64>?): V? {
+    override fun cachedValue(cacheKey: Any, solution: List<Flt64>?): V? {
         return cacheContexts.value.value(cacheKey, solution)
     }
 
@@ -223,7 +222,7 @@ data class TokenTable<V>(
         return cacheContexts.value.value(cacheKey, fixedValues)
     }
 
-    override fun cache(cacheKey: Any, solution: List<F64>?, value: V): V {
+    override fun cache(cacheKey: Any, solution: List<Flt64>?, value: V): V {
         return cacheContexts.value.put(cacheKey, solution, value)
     }
 
@@ -288,7 +287,7 @@ data class TokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>?) {
         cacheContexts.value.putAll(symbols, solution)
     }
 
@@ -300,7 +299,7 @@ data class TokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>?) {
         cacheContexts.value.putAllLazy(symbols, solution)
     }
 
@@ -320,7 +319,7 @@ data class TokenTable<V>(
     }
 }
 
-typealias TokenTableF64 = TokenTable<F64>
+typealias TokenTableFlt64 = TokenTable<Flt64>
 
 sealed class MutableTokenTable<V>(
     override val category: Category,
@@ -440,7 +439,7 @@ sealed class MutableTokenTable<V>(
         cacheContexts.clearAll()
     }
 
-    override fun cached(cacheKey: Any, solution: List<F64>?): Boolean {
+    override fun cached(cacheKey: Any, solution: List<Flt64>?): Boolean {
         return cacheContexts.value.cached(cacheKey, solution)
     }
 
@@ -448,7 +447,7 @@ sealed class MutableTokenTable<V>(
         return cacheContexts.value.cached(cacheKey, fixedValues)
     }
 
-    override fun cachedValue(cacheKey: Any, solution: List<F64>?): V? {
+    override fun cachedValue(cacheKey: Any, solution: List<Flt64>?): V? {
         return cacheContexts.value.value(cacheKey, solution)
     }
 
@@ -456,7 +455,7 @@ sealed class MutableTokenTable<V>(
         return cacheContexts.value.value(cacheKey, fixedValues)
     }
 
-    override fun cache(cacheKey: Any, solution: List<F64>?, value: V): V {
+    override fun cache(cacheKey: Any, solution: List<Flt64>?, value: V): V {
         return cacheContexts.value.put(cacheKey, solution, value)
     }
 
@@ -521,7 +520,7 @@ sealed class MutableTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>?) {
         cacheContexts.value.putAll(symbols, solution)
     }
 
@@ -533,7 +532,7 @@ sealed class MutableTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>?) {
         cacheContexts.value.putAllLazy(symbols, solution)
     }
 
@@ -556,10 +555,10 @@ sealed class MutableTokenTable<V>(
     }
 }
 
-typealias MutableTokenTableF64 = MutableTokenTable<F64>
-typealias ConcurrentMutableTokenTableF64 = ConcurrentMutableTokenTable<F64>
+typealias MutableTokenTableFlt64 = MutableTokenTable<Flt64>
+typealias ConcurrentMutableTokenTableFlt64 = ConcurrentMutableTokenTable<Flt64>
 
-private fun AbstractTokenTableF64.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
+private fun AbstractTokenTableFlt64.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
@@ -573,7 +572,7 @@ private fun AbstractTokenTableF64.cacheSymbolContext(symbol: IntermediateSymbol<
     cacheRange(symbol, symbol.range)
 }
 
-private fun AbstractTokenTableF64.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
+private fun AbstractTokenTableFlt64.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
@@ -581,7 +580,7 @@ private fun AbstractTokenTableF64.cacheSymbolContexts(symbols: Iterable<Intermed
 
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: MutableTokenTableF64,
+    tokenTable: MutableTokenTableFlt64,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {
@@ -689,7 +688,7 @@ data class ConcurrentTokenTable<V>(
         }
     }
 
-    override fun cached(cacheKey: Any, solution: List<F64>?): Boolean {
+    override fun cached(cacheKey: Any, solution: List<Flt64>?): Boolean {
         return synchronized(lock) {
             cacheContexts.value.cached(cacheKey, solution)
         }
@@ -701,7 +700,7 @@ data class ConcurrentTokenTable<V>(
         }
     }
 
-    override fun cachedValue(cacheKey: Any, solution: List<F64>?): V? {
+    override fun cachedValue(cacheKey: Any, solution: List<Flt64>?): V? {
         return synchronized(lock) {
             cacheContexts.value.value(cacheKey, solution)
         }
@@ -713,7 +712,7 @@ data class ConcurrentTokenTable<V>(
         }
     }
 
-    override fun cache(cacheKey: Any, solution: List<F64>?, value: V): V {
+    override fun cache(cacheKey: Any, solution: List<Flt64>?, value: V): V {
         return synchronized(lock) {
             cacheContexts.value.put(cacheKey, solution, value)
         }
@@ -806,7 +805,7 @@ data class ConcurrentTokenTable<V>(
         }
     }
 
-    override fun cacheIfNotCached(cacheKey: Any, solution: List<F64>?, value: () -> V?): V? {
+    override fun cacheIfNotCached(cacheKey: Any, solution: List<Flt64>?, value: () -> V?): V? {
         return synchronized(lock) {
             cacheContexts.value.getOrPut(cacheKey, solution, value)
         }
@@ -820,7 +819,7 @@ data class ConcurrentTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, solution)
         }
@@ -836,7 +835,7 @@ data class ConcurrentTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, solution)
         }
@@ -863,7 +862,7 @@ data class ConcurrentTokenTable<V>(
     }
 }
 
-typealias ConcurrentTokenTableF64 = ConcurrentTokenTable<F64>
+typealias ConcurrentTokenTableFlt64 = ConcurrentTokenTable<Flt64>
 
 class AutoTokenTable<V>(
     category: Category,
@@ -1036,7 +1035,7 @@ sealed class ConcurrentMutableTokenTable<V>(
         }
     }
 
-    override fun cached(cacheKey: Any, solution: List<F64>?): Boolean {
+    override fun cached(cacheKey: Any, solution: List<Flt64>?): Boolean {
         return synchronized(lock) {
             cacheContexts.value.cached(cacheKey, solution)
         }
@@ -1048,7 +1047,7 @@ sealed class ConcurrentMutableTokenTable<V>(
         }
     }
 
-    override fun cachedValue(cacheKey: Any, solution: List<F64>?): V? {
+    override fun cachedValue(cacheKey: Any, solution: List<Flt64>?): V? {
         return synchronized(lock) {
             cacheContexts.value.value(cacheKey, solution)
         }
@@ -1060,7 +1059,7 @@ sealed class ConcurrentMutableTokenTable<V>(
         }
     }
 
-    override fun cache(cacheKey: Any, solution: List<F64>?, value: V): V {
+    override fun cache(cacheKey: Any, solution: List<Flt64>?, value: V): V {
         return synchronized(lock) {
             cacheContexts.value.put(cacheKey, solution, value)
         }
@@ -1155,7 +1154,7 @@ sealed class ConcurrentMutableTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAll(symbols, solution)
         }
@@ -1171,7 +1170,7 @@ sealed class ConcurrentMutableTokenTable<V>(
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSymbols")
-    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<F64>?) {
+    override fun cache(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>?) {
         synchronized(lock) {
             cacheContexts.value.putAllLazy(symbols, solution)
         }
@@ -1185,7 +1184,7 @@ sealed class ConcurrentMutableTokenTable<V>(
         }
     }
 
-    override fun cacheIfNotCached(cacheKey: Any, solution: List<F64>?, value: () -> V?): V? {
+    override fun cacheIfNotCached(cacheKey: Any, solution: List<Flt64>?, value: () -> V?): V? {
         return synchronized(lock) {
             cacheContexts.value.getOrPut(cacheKey, solution, value)
         }
@@ -1215,7 +1214,7 @@ sealed class ConcurrentMutableTokenTable<V>(
 
 @Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: ConcurrentMutableTokenTableF64,
+    tokenTable: ConcurrentMutableTokenTableFlt64,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {

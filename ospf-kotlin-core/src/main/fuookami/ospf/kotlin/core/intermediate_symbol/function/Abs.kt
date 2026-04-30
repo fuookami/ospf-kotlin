@@ -60,7 +60,7 @@ class AbsFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOfNotNull(posVar, negVar, binVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -170,12 +170,12 @@ class AbsFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             extract: Boolean = true,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): AbsFunction<F64> = AbsFunction(
+        ): AbsFunction<Flt64> = AbsFunction(
             x = x,
             extract = extract,
             m = m,
@@ -184,12 +184,12 @@ class AbsFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             extract: Boolean = true,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): AbsFunction<F64> = AbsFunction(
+        ): AbsFunction<Flt64> = AbsFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             extract = extract,
             m = m,

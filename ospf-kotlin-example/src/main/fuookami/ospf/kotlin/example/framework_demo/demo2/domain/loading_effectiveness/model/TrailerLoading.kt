@@ -39,14 +39,14 @@ class TrailerLoading(
         }
     }
 
-    lateinit var trailerChange: LinearIntermediateSymbols2
-    lateinit var trailerCircling: LinearIntermediateSymbols2
+    lateinit var trailerChange: LinearIntermediateSymbols2Flt64
+    lateinit var trailerCircling: LinearIntermediateSymbols2Flt64
 
     fun register(
         model: AbstractLinearMetaModelF64
     ): Try {
         if (!::trailerChange.isInitialized) {
-            trailerChange = LinearIntermediateSymbols2("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->
+            trailerChange = LinearIntermediateSymbols2Flt64("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->
                 val (trailer1, trailer2) = orderedTrailers[v[0]]
                 val (position1, position2) = adjacentPositions[v[1]]
 
@@ -76,7 +76,7 @@ class TrailerLoading(
         }
 
         if (!::trailerCircling.isInitialized) {
-            trailerCircling = LinearIntermediateSymbols2("trailer_circling", Shape2(orderedItemsInTrailers.size, adjacentPositions.size)) { _, v ->
+            trailerCircling = LinearIntermediateSymbols2Flt64("trailer_circling", Shape2(orderedItemsInTrailers.size, adjacentPositions.size)) { _, v ->
                 val (item1, item2) = orderedItemsInTrailers[v[0]]
                 val i1 = items.indexOf(item1)
                 val i2 = items.indexOf(item2)

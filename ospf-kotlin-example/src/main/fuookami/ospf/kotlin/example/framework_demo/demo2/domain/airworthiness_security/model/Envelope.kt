@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_s
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import java.util.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.geometry.*
@@ -165,7 +166,7 @@ class ConditionalEnvelope(
     val symbolCondition: (String) -> Either<LinearPolynomial<Flt64>, LinearFunctionSymbolAdapter>,
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
-    lateinit var condition: LinearIntermediateSymbol<*>
+    lateinit var condition: LinearIntermediateSymbolF64
     override lateinit var minIndex: QuantityLinearIntermediateSymbol
     override lateinit var maxIndex: QuantityLinearIntermediateSymbol
 

@@ -7,11 +7,11 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQu
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
  * LinearConstraintInput - Abstraction for linear constraint data used by function symbols.
  *
  * It carries:
- * - `LinearFlattenDataF64` for the constraint expression (monomials + constant)
+ * - `LinearFlattenDataFlt64` for the constraint expression (monomials + constant)
  * - `Comparison` for the relation type
  * - Range metadata (`lhsRange`) needed by the Big-M register formulation
  * - `name` / `displayName` for identification
@@ -36,9 +36,9 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
  * - Direct: `LinearConstraintInput(flattenData, sign, lhsRange, name, displayName)`
  */
 data class LinearConstraintInput(
-    val flattenData: LinearFlattenDataF64,
+    val flattenData: LinearFlattenDataFlt64,
     val sign: Comparison,
-    val lhsRange: ValueRange<F64>,
+    val lhsRange: ValueRange<Flt64>,
     val name: String = "",
     val displayName: String? = null,
     /**
@@ -57,7 +57,7 @@ data class LinearConstraintInput(
          */
         fun from(
             relation: MathLinearInequality,
-            lhsRange: ValueRange<F64>,
+            lhsRange: ValueRange<Flt64>,
             rhsConstant: Flt64 = Flt64.zero,
             name: String = "",
             displayName: String? = null
@@ -96,7 +96,7 @@ data class LinearConstraintInput(
     }
 
     fun <V> isTrue(
-        results: List<F64>,
+        results: List<Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean = false
     ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
@@ -112,7 +112,7 @@ data class LinearConstraintInput(
     }
 
     fun isTrue(
-        results: List<F64>,
+        results: List<Flt64>,
         tokenList: AbstractTokenListF64,
         zeroIfNone: Boolean = false
     ): Boolean? {
@@ -136,10 +136,10 @@ data class LinearConstraintInput(
 }
 
 /**
- * Evaluate LinearFlattenDataF64 against a token table.
+ * Evaluate LinearFlattenDataFlt64 against a token table.
  */
 internal fun <V> evaluateFlattenData(
-    data: LinearFlattenDataF64,
+    data: LinearFlattenDataFlt64,
     tokenTable: AbstractTokenTable<V>,
     zeroIfNone: Boolean
 ): Flt64? where V : RealNumber<V>, V : NumberField<V> {
@@ -154,7 +154,7 @@ internal fun <V> evaluateFlattenData(
 }
 
 private fun <V> evaluateFlattenDataWithValues(
-    data: LinearFlattenDataF64,
+    data: LinearFlattenDataFlt64,
     values: Map<Symbol, Flt64>,
     tokenTable: AbstractTokenTable<V>?,
     zeroIfNone: Boolean
@@ -171,10 +171,10 @@ private fun <V> evaluateFlattenDataWithValues(
 }
 
 /**
- * Evaluate LinearFlattenDataF64 with values map and AbstractTokenListF64 fallback.
+ * Evaluate LinearFlattenDataFlt64 with values map and AbstractTokenListF64 fallback.
  */
 private fun evaluateFlattenDataWithValuesAndTokenList(
-    data: LinearFlattenDataF64,
+    data: LinearFlattenDataFlt64,
     values: Map<Symbol, Flt64>,
     tokenList: AbstractTokenListF64?,
     zeroIfNone: Boolean
@@ -191,8 +191,8 @@ private fun evaluateFlattenDataWithValuesAndTokenList(
 }
 
 internal fun <V> evaluateFlattenDataWithResults(
-    data: LinearFlattenDataF64,
-    results: List<F64>,
+    data: LinearFlattenDataFlt64,
+    results: List<Flt64>,
     tokenTable: AbstractTokenTable<V>,
     zeroIfNone: Boolean
 ): Flt64? where V : RealNumber<V>, V : NumberField<V> {
@@ -207,11 +207,11 @@ internal fun <V> evaluateFlattenDataWithResults(
 }
 
 /**
- * Evaluate QuadraticFlattenDataF64 with values from `results` and symbol index from token table.
- * 使用 `results` 中的值并结合 token table 的索引来评估 QuadraticFlattenDataF64。
+ * Evaluate QuadraticFlattenDataFlt64 with values from `results` and symbol index from token table.
+ * 使用 `results` 中的值并结合 token table 的索引来评估 QuadraticFlattenDataFlt64。
  */
 internal fun <V> evaluateQuadraticFlattenDataWithResults(
-    data: QuadraticFlattenDataF64,
+    data: QuadraticFlattenDataFlt64,
     results: Solution,
     tokenTable: AbstractTokenTable<V>,
     zeroIfNone: Boolean
@@ -234,7 +234,7 @@ internal fun <V> evaluateQuadraticFlattenDataWithResults(
 }
 
 private fun evaluateFlattenDataFromTokenList(
-    data: LinearFlattenDataF64,
+    data: LinearFlattenDataFlt64,
     tokenList: AbstractTokenListF64,
     zeroIfNone: Boolean
 ): Flt64? {
@@ -249,8 +249,8 @@ private fun evaluateFlattenDataFromTokenList(
 }
 
 private fun evaluateFlattenDataWithResultsFromTokenList(
-    data: LinearFlattenDataF64,
-    results: List<F64>,
+    data: LinearFlattenDataFlt64,
+    results: List<Flt64>,
     tokenList: AbstractTokenListF64,
     zeroIfNone: Boolean
 ): Flt64? {
@@ -281,7 +281,7 @@ internal fun Comparison.compare(value: Flt64, rhs: Flt64): Boolean = when (this)
  * Evaluate quadratic flatten data given token table and solution values.
  */
 internal fun <V> evaluateQuadraticFlattenData(
-    data: QuadraticFlattenDataF64,
+    data: QuadraticFlattenDataFlt64,
     tokenTable: AbstractTokenTable<V>,
     zeroIfNone: Boolean
 ): Flt64? where V : RealNumber<V>, V : NumberField<V> {

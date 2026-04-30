@@ -3,10 +3,10 @@
  * Evaluation Operations
  *
  * 提供多项式求值的便捷封装。
- * 支持完整求值和部分求值，处理缺失值的多种策略，适用于 F64 类型。
+ * 支持完整求值和部分求值，处理缺失值的多种策略，适用于 Flt64 类型。
  * Provides convenient wrappers for polynomial evaluation.
  * Supports full evaluation and partial evaluation with various missing value strategies,
- * suitable for F64 type.
+ * suitable for Flt64 type.
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
-import fuookami.ospf.kotlin.math.algebra.number.Flt64 as F64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error as OspfError
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -36,7 +35,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 // Helper Functions for Missing Value Handling
 // ============================================================================
 
-private fun missingValueFailed(symbol: Symbol): Ret<F64> {
+private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
 }
 
@@ -44,13 +43,13 @@ private fun resolveValue(
     symbol: Symbol,
     provider: ValueProvider,
     policy: MissingValuePolicy
-): F64? {
+): Flt64? {
     val value = provider[symbol]
     return if (value != null) {
         value
     } else {
         when (policy) {
-            MissingValuePolicy.AsZero -> F64.zero
+            MissingValuePolicy.AsZero -> Flt64.zero
             MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> null
         }
     }
@@ -60,13 +59,13 @@ private fun resolveValueRet(
     symbol: Symbol,
     provider: ValueProvider,
     policy: MissingValuePolicy
-): Ret<F64> {
+): Ret<Flt64> {
     val value = provider[symbol]
     return if (value != null) {
         Ok(value)
     } else {
         when (policy) {
-            MissingValuePolicy.AsZero -> Ok(F64.zero)
+            MissingValuePolicy.AsZero -> Ok(Flt64.zero)
             MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> missingValueFailed(symbol)
         }
     }
@@ -76,10 +75,10 @@ private fun resolveValueRet(
 // Linear Monomial Evaluation (Typed, no Generic conversion)
 // ============================================================================
 
-fun LinearMonomial<F64>.evaluate(
+fun LinearMonomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     val symbolValue = resolveValue(symbol, provider, policy)
     return if (symbolValue != null) {
         coefficient * symbolValue
@@ -88,17 +87,17 @@ fun LinearMonomial<F64>.evaluate(
     }
 }
 
-fun LinearMonomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun LinearMonomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun LinearMonomial<F64>.evaluateRet(
+fun LinearMonomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return when (val result = resolveValueRet(symbol, provider, policy)) {
         is Ok -> Ok(coefficient * result.value)
         is Failed -> Failed(result.error)
@@ -106,17 +105,17 @@ fun LinearMonomial<F64>.evaluateRet(
     }
 }
 
-fun LinearMonomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun LinearMonomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun LinearMonomial<F64>.evaluateOrdered(
+fun LinearMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
+    values: List<Flt64>
+): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
     }
@@ -129,7 +128,7 @@ fun LinearMonomial<F64>.evaluateOrdered(
     return coefficient * values[index]
 }
 
-fun LinearMonomial<F64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<F64> {
+fun LinearMonomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<Flt64> {
     val symbolValue = provider[symbol]
     return if (symbolValue != null) {
         LinearPolynomial(
@@ -139,12 +138,12 @@ fun LinearMonomial<F64>.partialEvaluate(provider: ValueProvider): LinearPolynomi
     } else {
         LinearPolynomial(
             monomials = listOf(this),
-            constant = F64.zero
+            constant = Flt64.zero
         )
     }
 }
 
-fun LinearMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): LinearPolynomial<F64> {
+fun LinearMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
@@ -152,10 +151,10 @@ fun LinearMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): LinearPolynom
 // Quadratic Monomial Evaluation (Typed, no Generic conversion)
 // ============================================================================
 
-fun QuadraticMonomial<F64>.evaluate(
+fun QuadraticMonomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     val v1 = resolveValue(symbol1, provider, policy)
     if (v1 == null) return null
 
@@ -171,17 +170,17 @@ fun QuadraticMonomial<F64>.evaluate(
     }
 }
 
-fun QuadraticMonomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun QuadraticMonomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun QuadraticMonomial<F64>.evaluateRet(
+fun QuadraticMonomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     val v1Result = resolveValueRet(symbol1, provider, policy)
     when (v1Result) {
         is Failed -> return Failed(v1Result.error)
@@ -203,17 +202,17 @@ fun QuadraticMonomial<F64>.evaluateRet(
     }
 }
 
-fun QuadraticMonomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun QuadraticMonomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun QuadraticMonomial<F64>.evaluateOrdered(
+fun QuadraticMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
+    values: List<Flt64>
+): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
     }
@@ -232,7 +231,7 @@ fun QuadraticMonomial<F64>.evaluateOrdered(
     return result
 }
 
-fun QuadraticMonomial<F64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<F64> {
+fun QuadraticMonomial<Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<Flt64> {
     val v1 = provider[symbol1]
     val v2 = if (symbol2 != null) provider[symbol2] else null
 
@@ -259,7 +258,7 @@ fun QuadraticMonomial<F64>.partialEvaluate(provider: ValueProvider): QuadraticPo
                     symbol1 = symbol2!!,
                     symbol2 = null
                 )),
-                constant = F64.zero
+                constant = Flt64.zero
             )
         }
         v2 != null -> {
@@ -270,20 +269,20 @@ fun QuadraticMonomial<F64>.partialEvaluate(provider: ValueProvider): QuadraticPo
                     symbol1 = symbol1,
                     symbol2 = null
                 )),
-                constant = F64.zero
+                constant = Flt64.zero
             )
         }
         else -> {
             // Neither symbol has value, keep as-is
             QuadraticPolynomial(
                 monomials = listOf(this),
-                constant = F64.zero
+                constant = Flt64.zero
             )
         }
     }
 }
 
-fun QuadraticMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): QuadraticPolynomial<F64> {
+fun QuadraticMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
@@ -291,53 +290,53 @@ fun QuadraticMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): QuadraticP
 // Canonical Monomial Evaluation (Typed, no Generic conversion)
 // ============================================================================
 
-fun CanonicalMonomial<F64>.evaluate(
+fun CanonicalMonomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     var result = coefficient
     for ((symbol, power) in powers) {
         val symbolValue = resolveValue(symbol, provider, policy)
         if (symbolValue == null) return null
-        result *= computeRingPower(symbolValue, power.toInt(), F64.one)
+        result *= computeRingPower(symbolValue, power.toInt(), Flt64.one)
     }
     return result
 }
 
-fun CanonicalMonomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun CanonicalMonomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<F64>.evaluateRet(
+fun CanonicalMonomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     var result = coefficient
     for ((symbol, power) in powers) {
         val symbolValueResult = resolveValueRet(symbol, provider, policy)
         when (symbolValueResult) {
             is Failed -> return Failed(symbolValueResult.error)
             is Fatal -> return Fatal(symbolValueResult.errors)
-            is Ok -> result *= computeRingPower(symbolValueResult.value, power.toInt(), F64.one)
+            is Ok -> result *= computeRingPower(symbolValueResult.value, power.toInt(), Flt64.one)
         }
     }
     return Ok(result)
 }
 
-fun CanonicalMonomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun CanonicalMonomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<F64>.evaluateOrdered(
+fun CanonicalMonomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
+    values: List<Flt64>
+): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
     }
@@ -349,18 +348,18 @@ fun CanonicalMonomial<F64>.evaluateOrdered(
     for ((symbol, power) in powers) {
         val index = indexOfSymbol[symbol]
             ?: throw IllegalArgumentException("Symbol ${symbol.name} not found in order.")
-        result *= computeRingPower(values[index], power.toInt(), F64.one)
+        result *= computeRingPower(values[index], power.toInt(), Flt64.one)
     }
     return result
 }
 
-fun CanonicalMonomial<F64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<F64> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<Flt64> {
     var newCoefficient = coefficient
     val remainedPowers = LinkedHashMap<Symbol, Int32>()
     for ((symbol, power) in powers) {
         val symbolValue = provider[symbol]
         if (symbolValue != null) {
-            newCoefficient *= computeRingPower(symbolValue, power.toInt(), F64.one)
+            newCoefficient *= computeRingPower(symbolValue, power.toInt(), Flt64.one)
         } else {
             remainedPowers[symbol] = power
         }
@@ -371,7 +370,7 @@ fun CanonicalMonomial<F64>.partialEvaluate(provider: ValueProvider): CanonicalMo
     )
 }
 
-fun CanonicalMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): CanonicalMonomial<F64> {
+fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
@@ -379,10 +378,10 @@ fun CanonicalMonomial<F64>.partialEvaluate(values: Map<Symbol, F64>): CanonicalM
 // Linear Polynomial Evaluation (Typed, using evaluateLinear/partialEvaluateLinear)
 // ============================================================================
 
-fun LinearPolynomial<F64>.evaluate(
+fun LinearPolynomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluateLinear(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -391,21 +390,21 @@ fun LinearPolynomial<F64>.evaluate(
     )
 }
 
-fun LinearPolynomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun LinearPolynomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return when (policy) {
-        MissingValuePolicy.AsZero -> evaluateLinear(values) { F64.zero }
+        MissingValuePolicy.AsZero -> evaluateLinear(values) { Flt64.zero }
         MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateLinear(values)
     }
 }
 
-fun LinearPolynomial<F64>.evaluateRet(
+fun LinearPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
-    var failure: Ret<F64>? = null
+): Ret<Flt64> {
+    var failure: Ret<Flt64>? = null
     val value = evaluateLinear(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -431,37 +430,37 @@ fun LinearPolynomial<F64>.evaluateRet(
     }
 }
 
-fun LinearPolynomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun LinearPolynomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun LinearPolynomial<F64>.evaluateOrdered(
+fun LinearPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
+    values: List<Flt64>
+): Flt64 {
     return evaluateLinearOrdered(order, values)
 }
 
-fun LinearPolynomial<F64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<F64> {
-    val values = LinkedHashMap<Symbol, F64>()
+fun LinearPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<Flt64> {
+    val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         provider[monomial.symbol]?.let { values[monomial.symbol] = it }
     }
     return partialEvaluateLinear(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero }
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
     )
 }
 
-fun LinearPolynomial<F64>.partialEvaluate(values: Map<Symbol, F64>): LinearPolynomial<F64> {
+fun LinearPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<Flt64> {
     return partialEvaluateLinear(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero }
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
     )
 }
 
@@ -483,9 +482,9 @@ fun LinearPolynomial<F64>.partialEvaluate(values: Map<Symbol, F64>): LinearPolyn
  * @return 极值范围（闭区间），或 null（区间信息不完整时）
  *         Extremum range (closed interval), or null if interval information is incomplete
  */
-fun LinearPolynomial<F64>.evaluateIntervalExtremum(
-    intervals: Map<Symbol, ValueRange<F64>>
-): ValueRange<F64>? {
+fun LinearPolynomial<Flt64>.evaluateIntervalExtremum(
+    intervals: Map<Symbol, ValueRange<Flt64>>
+): ValueRange<Flt64>? {
     var lowerBound = constant
     var upperBound = constant
     for (monomial in monomials) {
@@ -493,12 +492,12 @@ fun LinearPolynomial<F64>.evaluateIntervalExtremum(
         val lb = interval.lowerBound.value.unwrapOrNull() ?: return null
         val ub = interval.upperBound.value.unwrapOrNull() ?: return null
         when {
-            monomial.coefficient > F64.zero -> {
+            monomial.coefficient > Flt64.zero -> {
                 lowerBound += monomial.coefficient * lb
                 upperBound += monomial.coefficient * ub
             }
 
-            monomial.coefficient < F64.zero -> {
+            monomial.coefficient < Flt64.zero -> {
                 lowerBound += monomial.coefficient * ub
                 upperBound += monomial.coefficient * lb
             }
@@ -512,7 +511,7 @@ fun LinearPolynomial<F64>.evaluateIntervalExtremum(
             ub = upperBound,
             lbInterval = Interval.Closed,
             ubInterval = Interval.Closed,
-            constants = F64
+            constants = Flt64
         )
     ) {
         is Ok -> range.value
@@ -525,10 +524,10 @@ fun LinearPolynomial<F64>.evaluateIntervalExtremum(
 // Quadratic Polynomial Evaluation (Typed, using evaluateQuadratic/partialEvaluateQuadratic)
 // ============================================================================
 
-fun QuadraticPolynomial<F64>.evaluate(
+fun QuadraticPolynomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluateQuadratic(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -537,21 +536,21 @@ fun QuadraticPolynomial<F64>.evaluate(
     )
 }
 
-fun QuadraticPolynomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun QuadraticPolynomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return when (policy) {
-        MissingValuePolicy.AsZero -> evaluateQuadratic(values) { F64.zero }
+        MissingValuePolicy.AsZero -> evaluateQuadratic(values) { Flt64.zero }
         MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateQuadratic(values)
     }
 }
 
-fun QuadraticPolynomial<F64>.evaluateRet(
+fun QuadraticPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
-    var failure: Ret<F64>? = null
+): Ret<Flt64> {
+    var failure: Ret<Flt64>? = null
     val value = evaluateQuadratic(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -577,22 +576,22 @@ fun QuadraticPolynomial<F64>.evaluateRet(
     }
 }
 
-fun QuadraticPolynomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun QuadraticPolynomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun QuadraticPolynomial<F64>.evaluateOrdered(
+fun QuadraticPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
+    values: List<Flt64>
+): Flt64 {
     return evaluateQuadraticOrdered(order, values)
 }
 
-fun QuadraticPolynomial<F64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<F64> {
-    val values = LinkedHashMap<Symbol, F64>()
+fun QuadraticPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<Flt64> {
+    val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         provider[monomial.symbol1]?.let { values[monomial.symbol1] = it }
         monomial.symbol2?.let { symbol ->
@@ -601,16 +600,16 @@ fun QuadraticPolynomial<F64>.partialEvaluate(provider: ValueProvider): Quadratic
     }
     return partialEvaluateQuadratic(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero }
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
     )
 }
 
-fun QuadraticPolynomial<F64>.partialEvaluate(values: Map<Symbol, F64>): QuadraticPolynomial<F64> {
+fun QuadraticPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<Flt64> {
     return partialEvaluateQuadratic(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero }
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero }
     )
 }
 
@@ -618,38 +617,38 @@ fun QuadraticPolynomial<F64>.partialEvaluate(values: Map<Symbol, F64>): Quadrati
 // Canonical Polynomial Evaluation (Typed, using evaluateCanonical/partialEvaluateCanonical)
 // ============================================================================
 
-fun CanonicalPolynomial<F64>.evaluate(
+fun CanonicalPolynomial<Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return evaluateCanonical(
         values = emptyMap(),
         onMissing = { symbol ->
             resolveValue(symbol, provider, policy)
         },
-        one = F64.one
+        one = Flt64.one
     )
 }
 
-fun CanonicalPolynomial<F64>.evaluate(
-    values: Map<Symbol, F64>,
+fun CanonicalPolynomial<Flt64>.evaluate(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): F64? {
+): Flt64? {
     return when (policy) {
         MissingValuePolicy.AsZero -> evaluateCanonical(
             values = values,
-            onMissing = { F64.zero },
-            one = F64.one
+            onMissing = { Flt64.zero },
+            one = Flt64.one
         )
-        MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateCanonical(values, one = F64.one)
+        MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateCanonical(values, one = Flt64.one)
     }
 }
 
-fun CanonicalPolynomial<F64>.evaluateRet(
+fun CanonicalPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
-    var failure: Ret<F64>? = null
+): Ret<Flt64> {
+    var failure: Ret<Flt64>? = null
     val value = evaluateCanonical(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -667,7 +666,7 @@ fun CanonicalPolynomial<F64>.evaluateRet(
                 }
             }
         },
-        one = F64.one
+        one = Flt64.one
     )
     return when {
         value != null -> Ok(value)
@@ -676,25 +675,25 @@ fun CanonicalPolynomial<F64>.evaluateRet(
     }
 }
 
-fun CanonicalPolynomial<F64>.evaluateRet(
-    values: Map<Symbol, F64>,
+fun CanonicalPolynomial<Flt64>.evaluateRet(
+    values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<F64> {
+): Ret<Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalPolynomial<F64>.evaluateOrdered(
+fun CanonicalPolynomial<Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<F64>
-): F64 {
-    return evaluateCanonicalOrdered(order, values, F64.one)
+    values: List<Flt64>
+): Flt64 {
+    return evaluateCanonicalOrdered(order, values, Flt64.one)
 }
 
-fun CanonicalPolynomial<F64>.partialEvaluate(
+fun CanonicalPolynomial<Flt64>.partialEvaluate(
     provider: ValueProvider,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<F64> {
-    val values = LinkedHashMap<Symbol, F64>()
+): CanonicalPolynomial<Flt64> {
+    val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         for (symbol in monomial.powers.keys) {
             provider[symbol]?.let { values[symbol] = it }
@@ -702,22 +701,22 @@ fun CanonicalPolynomial<F64>.partialEvaluate(
     }
     return partialEvaluateCanonical(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero },
-        one = F64.one,
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero },
+        one = Flt64.one,
         symbolComparator = symbolComparator
     )
 }
 
-fun CanonicalPolynomial<F64>.partialEvaluate(
-    values: Map<Symbol, F64>,
+fun CanonicalPolynomial<Flt64>.partialEvaluate(
+    values: Map<Symbol, Flt64>,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<F64> {
+): CanonicalPolynomial<Flt64> {
     return partialEvaluateCanonical(
         values = values,
-        zero = F64.zero,
-        isZero = { it == F64.zero },
-        one = F64.one,
+        zero = Flt64.zero,
+        isZero = { it == Flt64.zero },
+        one = Flt64.one,
         symbolComparator = symbolComparator
     )
 }

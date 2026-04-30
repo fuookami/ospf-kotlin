@@ -75,7 +75,7 @@ class OneOfFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectionVars + maskedVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -184,11 +184,11 @@ class OneOfFunction<T : Field<T>>(
     companion object {
         @JvmName("fromBranches")
         operator fun invoke(
-            branches: List<OneOfBranch<F64>>,
+            branches: List<OneOfBranch<Flt64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): OneOfFunction<F64> = OneOfFunction(
+        ): OneOfFunction<Flt64> = OneOfFunction(
             branches = branches,
             m = m,
             name = name,
@@ -201,11 +201,11 @@ class OneOfFunction<T : Field<T>>(
          */
         @JvmName("fromPolynomials")
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): OneOfFunction<F64> {
+        ): OneOfFunction<Flt64> {
             val branchList = polynomials.mapIndexed { i, poly ->
                 OneOfBranch(poly, null, "${name}_branch_${i}")
             }

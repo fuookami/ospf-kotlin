@@ -75,7 +75,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = lambdas + zBins
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -144,7 +144,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
         val xLhs = lambdas.mapIndexed { i, lambda ->
             LinearMonomial(points[i].x, lambda)
         }.toMutableList()
-        val xConstraint = LinearInequality<F64>(
+        val xConstraint = LinearInequality<Flt64>(
             LinearPolynomial(xLhs, Flt64.zero),
             xPoly,
             Comparison.EQ,
@@ -160,7 +160,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
         val sumLambdaLhs = lambdas.map { lambda ->
             LinearMonomial(Flt64.one, lambda)
         }.toMutableList()
-        val sumLambdaConstraint = LinearInequality<F64>(
+        val sumLambdaConstraint = LinearInequality<Flt64>(
             LinearPolynomial(sumLambdaLhs, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one),
             Comparison.EQ,
@@ -178,7 +178,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
             val sumZLhs = zBins.map { z ->
                 LinearMonomial(Flt64.one, z)
             }.toMutableList()
-            val sumZConstraint = LinearInequality<F64>(
+            val sumZConstraint = LinearInequality<Flt64>(
                 LinearPolynomial(sumZLhs, Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ,
@@ -193,7 +193,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
             // lambda_0 <= z_0
             val lam0 = lambdas[0]
             val z0 = zBins[0]
-            val c0 = LinearInequality<F64>(
+            val c0 = LinearInequality<Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, lam0)), Flt64.zero),
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, z0)), Flt64.zero),
                 Comparison.LE,
@@ -214,7 +214,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
                     LinearMonomial(Flt64.one, zPrev),
                     LinearMonomial(Flt64.one, zCurr)
                 )
-                val c = LinearInequality<F64>(
+                val c = LinearInequality<Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, lam)), Flt64.zero),
                     LinearPolynomial(rhsMono, Flt64.zero),
                     Comparison.LE,
@@ -230,7 +230,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
             // lambda_n <= z_{n-1}
             val lamN = lambdas[n]
             val zN = zBins[n - 1]
-            val cN = LinearInequality<F64>(
+            val cN = LinearInequality<Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, lamN)), Flt64.zero),
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, zN)), Flt64.zero),
                 Comparison.LE,
@@ -251,11 +251,11 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
          * Factory for Flt64-typed piecewise function.
          */
         operator fun invoke(
-            x: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
             points: List<Point2>,
             name: String,
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<F64> = UnivariateLinearPiecewiseFunction(
+        ): UnivariateLinearPiecewiseFunction<Flt64> = UnivariateLinearPiecewiseFunction(
             x = x,
             points = points,
             name = name,
@@ -266,11 +266,11 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
          * Factory for a single monomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<F64>,
+            x: LinearMonomial<Flt64>,
             points: List<Point2>,
             name: String,
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<F64> = UnivariateLinearPiecewiseFunction(
+        ): UnivariateLinearPiecewiseFunction<Flt64> = UnivariateLinearPiecewiseFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             points = points,
             name = name,

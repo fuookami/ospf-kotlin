@@ -1278,7 +1278,7 @@ operator fun ValueRange<Flt32>.unaryMinus() = ValueRange(
  * @return 取负后的新值范围
  */
 @JvmName("negValueRangeFlt64")
-operator fun ValueRange<F64>.unaryMinus() = ValueRange(
+operator fun ValueRange<Flt64>.unaryMinus() = ValueRange(
     upperBound = -upperBound,
     lowerBound = -lowerBound,
     constants = Flt64

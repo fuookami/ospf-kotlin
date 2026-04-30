@@ -17,7 +17,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example10.html
@@ -67,9 +66,9 @@ data object Demo10 {
     private lateinit var x: BinVariable2
     private lateinit var u: IntVariable1
 
-    private lateinit var distance: LinearIntermediateSymbol<*>
-    private lateinit var depart: LinearIntermediateSymbols1
-    private lateinit var reached: LinearIntermediateSymbols1
+    private lateinit var distance: LinearIntermediateSymbolF64
+    private lateinit var depart: LinearIntermediateSymbols1Flt64
+    private lateinit var reached: LinearIntermediateSymbols1Flt64
 
     private val metaModel = LinearMetaModelF64("demo10")
 
@@ -139,7 +138,7 @@ data object Demo10 {
             }),
             name = "distance"
         )
-        depart = LinearIntermediateSymbols1(
+        depart = LinearIntermediateSymbols1Flt64(
             "depart",
             Shape1(cities.size)
         ) { i, _ ->
@@ -149,7 +148,7 @@ data object Demo10 {
                 name = "depart_${city.name}"
             )
         }
-        reached = LinearIntermediateSymbols1("reached", Shape1(cities.size)) { i, _ ->
+        reached = LinearIntermediateSymbols1Flt64("reached", Shape1(cities.size)) { i, _ ->
             val city = cities[i]
             LinearExpressionSymbol(
                 sum(x[_a, city]),

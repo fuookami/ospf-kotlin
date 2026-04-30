@@ -113,10 +113,10 @@ data object Demo15 {
     lateinit var x: UIntVariable3
     lateinit var y: Map<DistributionCenter, PctVariable1>
 
-    lateinit var receive: LinearIntermediateSymbols2
-    lateinit var demand: LinearIntermediateSymbols2
-    lateinit var trans: LinearIntermediateSymbols2
-    lateinit var cost: LinearIntermediateSymbol<*>
+    lateinit var receive: LinearIntermediateSymbols2Flt64
+    lateinit var demand: LinearIntermediateSymbols2Flt64
+    lateinit var trans: LinearIntermediateSymbols2Flt64
+    lateinit var cost: LinearIntermediateSymbolF64
 
     val metaModel = LinearMetaModelF64("demo15")
 
@@ -177,7 +177,7 @@ data object Demo15 {
     }
 
     private suspend fun initSymbol(): Try {
-        receive = LinearIntermediateSymbols2(
+        receive = LinearIntermediateSymbols2Flt64(
             "receive",
             Shape2(distributionCenters.size, carModels.size)
         ) { _, v ->
@@ -190,7 +190,7 @@ data object Demo15 {
         }
         metaModel.add(receive)
 
-        demand = LinearIntermediateSymbols2(
+        demand = LinearIntermediateSymbols2Flt64(
             "demand",
             Shape2(distributionCenters.size, carModels.size)
         ) { _, v ->
@@ -225,7 +225,7 @@ data object Demo15 {
         }
         metaModel.add(demand)
 
-        trans = LinearIntermediateSymbols2(
+        trans = LinearIntermediateSymbols2Flt64(
             "trans",
             Shape2(manufacturers.size, carModels.size)
         ) { _, v ->

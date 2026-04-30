@@ -45,7 +45,7 @@ class FirstFunction<T : Field<T>>(
     private val n: Int get() = polynomials.size
 
     // BinaryzationFunction for each polynomial
-    private val binaryFunctions: List<BinaryzationFunction<F64>> by lazy {
+    private val binaryFunctions: List<BinaryzationFunction<Flt64>> by lazy {
         polynomials.mapIndexed { i, poly ->
             BinaryzationFunction(
                 input = poly.asFlt64Poly(),
@@ -91,7 +91,7 @@ class FirstFunction<T : Field<T>>(
         return Flt64(n.toDouble()) as T
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         // Register own auxiliary tokens (_yVars); binaryFunctions register their own via register()
         return tokens.add(_yVars.items)
     }
@@ -158,10 +158,10 @@ class FirstFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): FirstFunction<F64> = FirstFunction(polynomials, epsilon, name, displayName)
+        ): FirstFunction<Flt64> = FirstFunction(polynomials, epsilon, name, displayName)
     }
 }

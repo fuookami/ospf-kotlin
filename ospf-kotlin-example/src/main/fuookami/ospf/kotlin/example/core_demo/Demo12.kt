@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -41,10 +42,10 @@ data object Demo12 {
 
     lateinit var x: UIntVariable1
 
-    lateinit var assignment: LinearIntermediateSymbols1
-    lateinit var premium: LinearIntermediateSymbols1
-    lateinit var risk: LinearExpressionSymbol<Flt64>
-    lateinit var yield: LinearIntermediateSymbol<*>
+    lateinit var assignment: LinearIntermediateSymbols1Flt64
+    lateinit var premium: LinearIntermediateSymbols1Flt64
+    lateinit var risk: LinearExpressionSymbolF64
+    lateinit var yield: LinearIntermediateSymbolF64
 
     val metaModel = LinearMetaModelF64("demo12")
 
@@ -81,7 +82,7 @@ data object Demo12 {
     }
 
     private suspend fun initSymbol(): Try {
-        assignment = LinearIntermediateSymbols1(
+        assignment = LinearIntermediateSymbols1Flt64(
             "assignment",
             Shape1(products.size)
         ) { i, _ ->
@@ -92,7 +93,7 @@ data object Demo12 {
         }
         metaModel.add(assignment)
 
-        premium = LinearIntermediateSymbols1(
+        premium = LinearIntermediateSymbols1Flt64(
             "premium",
             Shape1(products.size)
         ) { i, _ ->

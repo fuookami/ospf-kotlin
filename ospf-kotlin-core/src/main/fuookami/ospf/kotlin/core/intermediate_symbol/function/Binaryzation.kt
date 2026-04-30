@@ -3,9 +3,9 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -60,7 +60,7 @@ class BinaryzationFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -144,7 +144,7 @@ class BinaryzationFunction<T : Field<T>>(
         private val BINARYZATION_PIECEWISE_THRESHOLD: Flt64 = Flt64(1e-5)
 
         operator fun invoke(
-            input: LinearPolynomial<F64>,
+            input: LinearPolynomial<Flt64>,
             threshold: Flt64 = Flt64.zero,
             bigM: Flt64? = null,
             method: BinaryzationMethod = BinaryzationMethod.BigM,
@@ -155,7 +155,7 @@ class BinaryzationFunction<T : Field<T>>(
         )
 
         fun withBigM(
-            input: LinearPolynomial<F64>,
+            input: LinearPolynomial<Flt64>,
             bigM: Flt64,
             name: String,
             displayName: String? = null
@@ -164,7 +164,7 @@ class BinaryzationFunction<T : Field<T>>(
         )
 
         fun withThreshold(
-            input: LinearPolynomial<F64>,
+            input: LinearPolynomial<Flt64>,
             threshold: Flt64,
             name: String,
             displayName: String? = null

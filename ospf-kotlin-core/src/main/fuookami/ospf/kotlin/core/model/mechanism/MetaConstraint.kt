@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
@@ -223,7 +223,7 @@ interface MathConstraint {
      * Evaluate whether this constraint is satisfied given solution values.
      */
     fun <V> isTrue(
-        solution: List<F64>,
+        solution: List<Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean = false
     ): Boolean? where V : RealNumber<V>, V : NumberField<V>
@@ -232,7 +232,7 @@ interface MathConstraint {
 /**
  * LinearInequalityConstraint - ConstraintF64 using math LinearInequality
  *
- * This type uses LinearFlattenDataF64 directly, avoiding dependency on frontend/inequality.
+ * This type uses LinearFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
  */
 data class LinearInequalityConstraint(
     val inequality: MathLinearInequality,
@@ -241,13 +241,13 @@ data class LinearInequalityConstraint(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint {
-    val flattenData: LinearFlattenDataF64 get() = inequality.flattenData
+    val flattenData: LinearFlattenDataFlt64 get() = inequality.flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
     override fun <V> isTrue(
-        solution: List<F64>,
+        solution: List<Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
@@ -264,7 +264,7 @@ data class LinearInequalityConstraint(
 /**
  * QuadraticInequalityConstraint - ConstraintF64 using math QuadraticInequality
  *
- * This type uses QuadraticFlattenDataF64 directly, avoiding dependency on frontend/inequality.
+ * This type uses QuadraticFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
  */
 data class QuadraticInequalityConstraint(
     val inequality: MathQuadraticInequality,
@@ -273,13 +273,13 @@ data class QuadraticInequalityConstraint(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint {
-    val flattenData: QuadraticFlattenDataF64 get() = inequality.flattenData
+    val flattenData: QuadraticFlattenDataFlt64 get() = inequality.flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
     override fun <V> isTrue(
-        solution: List<F64>,
+        solution: List<Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
@@ -296,27 +296,27 @@ data class QuadraticInequalityConstraint(
 // ========== NEW FlattenData-based SubObject Types ==========
 
 /**
- * LinearFlattenSubObject - SubObject using LinearFlattenDataF64 (new API)
+ * LinearFlattenSubObject - SubObject using LinearFlattenDataFlt64 (new API)
  *
- * This type uses LinearFlattenDataF64 directly for objective functions,
+ * This type uses LinearFlattenDataFlt64 directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class LinearFlattenSubObject(
     val category: ObjectCategory,
-    val flattenData: LinearFlattenDataF64,
+    val flattenData: LinearFlattenDataFlt64,
     val name: String = "",
     val displayName: String? = null
 )
 
 /**
- * QuadraticFlattenSubObject - SubObject using QuadraticFlattenDataF64 (new API)
+ * QuadraticFlattenSubObject - SubObject using QuadraticFlattenDataFlt64 (new API)
  *
- * This type uses QuadraticFlattenDataF64 directly for objective functions,
+ * This type uses QuadraticFlattenDataFlt64 directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class QuadraticFlattenSubObject(
     val category: ObjectCategory,
-    val flattenData: QuadraticFlattenDataF64,
+    val flattenData: QuadraticFlattenDataFlt64,
     val name: String = "",
     val displayName: String? = null
 )

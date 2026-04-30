@@ -17,7 +17,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
-fun LinearPolynomial<F64>.compileEval(
+fun LinearPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): (List<Flt64>) -> Flt64 {
@@ -29,7 +29,7 @@ fun LinearPolynomial<F64>.compileEval(
     )
 }
 
-fun QuadraticPolynomial<F64>.compileEval(
+fun QuadraticPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -43,7 +43,7 @@ fun QuadraticPolynomial<F64>.compileEval(
     )
 }
 
-fun CanonicalPolynomial<F64>.compileEval(
+fun CanonicalPolynomial<Flt64>.compileEval(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -58,7 +58,7 @@ fun CanonicalPolynomial<F64>.compileEval(
     )
 }
 
-fun LinearPolynomial<F64>.compileGradient(
+fun LinearPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): (List<Flt64>) -> List<Flt64> {
@@ -70,7 +70,7 @@ fun LinearPolynomial<F64>.compileGradient(
     )
 }
 
-fun QuadraticPolynomial<F64>.compileGradient(
+fun QuadraticPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null
@@ -84,7 +84,7 @@ fun QuadraticPolynomial<F64>.compileGradient(
     )
 }
 
-fun CanonicalPolynomial<F64>.compileGradient(
+fun CanonicalPolynomial<Flt64>.compileGradient(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: Comparator<Symbol>? = null

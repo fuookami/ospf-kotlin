@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -37,9 +38,9 @@ data object Demo9 {
 
     private lateinit var x: IntVar
     private lateinit var y: IntVar
-    private lateinit var dx: LinearIntermediateSymbols1
-    private lateinit var dy: LinearIntermediateSymbols1
-    private lateinit var distance: LinearIntermediateSymbols1
+    private lateinit var dx: LinearIntermediateSymbols1Flt64
+    private lateinit var dy: LinearIntermediateSymbols1Flt64
+    private lateinit var distance: LinearIntermediateSymbols1Flt64
 
     private val metaModel = LinearMetaModelF64("demo9")
 
@@ -78,7 +79,7 @@ data object Demo9 {
     }
 
     private suspend fun initSymbol(): Try {
-        dx = LinearIntermediateSymbols1("dx", Shape1(settlements.size)) { i, _ ->
+        dx = LinearIntermediateSymbols1Flt64("dx", Shape1(settlements.size)) { i, _ ->
             SlackFunction(
                 type = UInteger,
                 x = x,
@@ -88,7 +89,7 @@ data object Demo9 {
         }
         metaModel.add(dx)
 
-        dy = LinearIntermediateSymbols1("dy", Shape1(settlements.size)) { i, _ ->
+        dy = LinearIntermediateSymbols1Flt64("dy", Shape1(settlements.size)) { i, _ ->
             SlackFunction(
                 type = UInteger,
                 x = y,
@@ -98,7 +99,7 @@ data object Demo9 {
         }
         metaModel.add(dy)
 
-        distance = LinearIntermediateSymbols1("distance", Shape1(settlements.size)) { i, _ ->
+        distance = LinearIntermediateSymbols1Flt64("distance", Shape1(settlements.size)) { i, _ ->
             LinearExpressionSymbol(
                 dx[i] + dy[i],
                 name = "distance_$i"

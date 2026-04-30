@@ -177,12 +177,12 @@ data object Demo17 {
     lateinit var x: BinVariable3
     lateinit var s: URealVariable2
 
-    lateinit var origin: LinearIntermediateSymbols1
-    lateinit var destination: LinearIntermediateSymbols1
-    lateinit var inFlow: LinearIntermediateSymbols2
-    lateinit var outFlow: LinearIntermediateSymbols2
-    lateinit var service: LinearIntermediateSymbols1
-    lateinit var capacity: LinearIntermediateSymbols1
+    lateinit var origin: LinearIntermediateSymbols1Flt64
+    lateinit var destination: LinearIntermediateSymbols1Flt64
+    lateinit var inFlow: LinearIntermediateSymbols2Flt64
+    lateinit var outFlow: LinearIntermediateSymbols2Flt64
+    lateinit var service: LinearIntermediateSymbols1Flt64
+    lateinit var capacity: LinearIntermediateSymbols1Flt64
 
     val metaModel = LinearMetaModelF64("demo17")
 
@@ -247,7 +247,7 @@ data object Demo17 {
     }
 
     private suspend fun initSymbol(): Try {
-        origin = LinearIntermediateSymbols1(
+        origin = LinearIntermediateSymbols1Flt64(
             "origin",
             Shape1(vehicles.size)
         ) { i, _ ->
@@ -259,7 +259,7 @@ data object Demo17 {
         }
         metaModel.add(origin)
 
-        destination = LinearIntermediateSymbols1(
+        destination = LinearIntermediateSymbols1Flt64(
             "destination",
             Shape1(vehicles.size)
         ) { i, _ ->
@@ -271,7 +271,7 @@ data object Demo17 {
         }
         metaModel.add(destination)
 
-        inFlow = LinearIntermediateSymbols2(
+        inFlow = LinearIntermediateSymbols2Flt64(
             "in",
             Shape2(nodes.size, vehicles.size)
         ) { _, vec ->
@@ -291,7 +291,7 @@ data object Demo17 {
         }
         metaModel.add(inFlow)
 
-        outFlow = LinearIntermediateSymbols2(
+        outFlow = LinearIntermediateSymbols2Flt64(
             "out",
             Shape2(nodes.size, vehicles.size)
         ) { _, vec ->
@@ -311,7 +311,7 @@ data object Demo17 {
         }
         metaModel.add(outFlow)
 
-        service = LinearIntermediateSymbols1(
+        service = LinearIntermediateSymbols1Flt64(
             "service",
             Shape1(nodes.size)
         ) { i, _ ->
@@ -330,7 +330,7 @@ data object Demo17 {
         }
         metaModel.add(service)
 
-        capacity = LinearIntermediateSymbols1(
+        capacity = LinearIntermediateSymbols1Flt64(
             "capacity",
             Shape1(vehicles.size)
         ) { i, _ ->

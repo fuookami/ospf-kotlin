@@ -44,7 +44,7 @@ fun parseCanonical(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalPolynomial<F64>> {
+): ParseResult<CanonicalPolynomial<Flt64>> {
     return parseCanonicalRet(input, symbolOf, symbolComparator)
 }
 
@@ -62,7 +62,7 @@ fun <T> parseLinear(
 fun parseLinear(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): ParseResult<LinearPolynomial<F64>> {
+): ParseResult<LinearPolynomial<Flt64>> {
     return parseLinearRet(input, symbolOf)
 }
 
@@ -82,7 +82,7 @@ fun parseQuadratic(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<QuadraticPolynomial<F64>> {
+): ParseResult<QuadraticPolynomial<Flt64>> {
     return parseQuadraticRet(input, symbolOf, symbolComparator)
 }
 

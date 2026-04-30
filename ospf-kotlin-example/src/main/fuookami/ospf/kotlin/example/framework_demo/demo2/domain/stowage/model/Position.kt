@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.toUInt64 as toMathUInt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.geometry.*

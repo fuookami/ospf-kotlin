@@ -72,7 +72,7 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = lambdaVars.flatMap { it.items } + zVars.items
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -142,7 +142,7 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
         val allConstraints = mutableListOf<MathLinearInequality>()
 
         // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
-        val xMonos = mutableListOf<LinearMonomial<F64>>()
+        val xMonos = mutableListOf<LinearMonomial<Flt64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -159,7 +159,7 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
         )
 
         // y constraint: y = sum over all triangles and vertices of (y_coord * lambda)
-        val yMonos = mutableListOf<LinearMonomial<F64>>()
+        val yMonos = mutableListOf<LinearMonomial<Flt64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -213,12 +213,12 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<F64>,
-            y: LinearPolynomial<F64>,
+            x: LinearPolynomial<Flt64>,
+            y: LinearPolynomial<Flt64>,
             triangles: List<Triangle3>,
             name: String,
             displayName: String? = null
-        ): BivariateLinearPiecewiseFunction<F64> =
+        ): BivariateLinearPiecewiseFunction<Flt64> =
             BivariateLinearPiecewiseFunction(x, y, triangles, name, displayName)
     }
 }

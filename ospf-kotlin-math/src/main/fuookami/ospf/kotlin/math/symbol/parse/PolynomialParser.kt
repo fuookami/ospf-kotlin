@@ -262,14 +262,14 @@ private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomi
 
 private fun ParsedPolynomial.toCanonicalPolynomial(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<F64> {
+): CanonicalPolynomial<Flt64> {
     val monomials = terms.map { term ->
-        CanonicalMonomial<F64>(
+        CanonicalMonomial<Flt64>(
             coefficient = term.coefficient,
             powers = term.powers
         )
     }
-    return CanonicalPolynomial<F64>(
+    return CanonicalPolynomial<Flt64>(
         monomials = monomials,
         constant = constant
     ).combineTerms(symbolComparator)
@@ -293,7 +293,7 @@ fun parseCanonical(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<F64> {
+): CanonicalPolynomial<Flt64> {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parsePolynomial().toCanonicalPolynomial(symbolComparator)
@@ -302,7 +302,7 @@ fun parseCanonical(
 fun parseLinear(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): LinearPolynomial<F64>? {
+): LinearPolynomial<Flt64>? {
     return parseCanonical(input, symbolOf).toLinearPolynomialOrNull()
 }
 
@@ -310,14 +310,14 @@ fun parseQuadratic(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<F64>? {
+): QuadraticPolynomial<Flt64>? {
     return parseCanonical(input, symbolOf, symbolComparator).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
 fun parseLinearInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): LinearInequality<F64>? {
+): LinearInequality<Flt64>? {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parseInequality().toCanonicalInequality().toLinearInequalityOrNull()
@@ -681,14 +681,14 @@ fun parseCanonicalRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalPolynomial<F64>> {
+): ParseResult<CanonicalPolynomial<Flt64>> {
     return wrapRet(input) { parseCanonical(input, symbolOf, symbolComparator) }
 }
 
 fun parseLinearRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): ParseResult<LinearPolynomial<F64>> {
+): ParseResult<LinearPolynomial<Flt64>> {
     return wrapRet(input) {
         parseLinear(input, symbolOf)
             ?: throw IllegalArgumentException("Expression is not linear polynomial.")
@@ -699,7 +699,7 @@ fun parseQuadraticRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<QuadraticPolynomial<F64>> {
+): ParseResult<QuadraticPolynomial<Flt64>> {
     return wrapRet(input) {
         parseQuadratic(input, symbolOf, symbolComparator)
             ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
@@ -717,7 +717,7 @@ fun parseCanonicalInequalityRet(
 fun parseLinearInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): ParseResult<LinearInequality<F64>> {
+): ParseResult<LinearInequality<Flt64>> {
     return wrapRet(input) {
         parseLinearInequality(input, symbolOf)
             ?: throw IllegalArgumentException("Inequality is not linear.")

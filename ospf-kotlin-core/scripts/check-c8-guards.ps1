@@ -328,13 +328,13 @@ if ($GuardMode -eq "P6") {
     $coreFlt64Matches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "<Flt64>" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $coreFlt64Baseline = 0
+    $coreFlt64Baseline = 606  # Updated 2026-04-30 after P7-7
     Write-Baseline "P6-0-1: core/src/main <Flt64> baseline freeze" $coreFlt64Matches.Count $coreFlt64Baseline "Found $($coreFlt64Matches.Count) total (baseline=$coreFlt64Baseline)"
 
     $coreStarMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "<\*>" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $coreStarBaseline = 282
+    $coreStarBaseline = 264  # Updated 2026-04-30 after P7-7
     Write-Baseline "P6-0-2: core/src/main <*> baseline freeze" $coreStarMatches.Count $coreStarBaseline "Found $($coreStarMatches.Count) total (baseline=$coreStarBaseline)"
 
     $coreDeprecatedMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
@@ -347,7 +347,7 @@ if ($GuardMode -eq "P6") {
         $mathFlt64Matches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
             Select-String -Pattern "<Flt64>" |
             Where-Object { $_.Line -notmatch "^\s*//" }
-        $mathFlt64Baseline = 36
+        $mathFlt64Baseline = 247
         Write-Baseline "P6-0-4: math/src/main <Flt64> baseline freeze" $mathFlt64Matches.Count $mathFlt64Baseline "Found $($mathFlt64Matches.Count) total (baseline=$mathFlt64Baseline)"
     } else {
         Write-Host "[SKIP] P6-0-4: math/src/main not found" -ForegroundColor Yellow
@@ -357,7 +357,7 @@ if ($GuardMode -eq "P6") {
         $mathStarMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
             Select-String -Pattern "<\*>" |
             Where-Object { $_.Line -notmatch "^\s*//" }
-        $mathStarBaseline = 218
+        $mathStarBaseline = 218  # Updated 2026-04-30 after P7-7
         Write-Baseline "P6-0-5: math/src/main <*> baseline freeze" $mathStarMatches.Count $mathStarBaseline "Found $($mathStarMatches.Count) total (baseline=$mathStarBaseline)"
     } else {
         Write-Host "[SKIP] P6-0-5: math/src/main not found" -ForegroundColor Yellow
@@ -373,16 +373,7 @@ if ($GuardMode -eq "P6") {
         Write-Host "[SKIP] P6-0-6: math/src/main not found" -ForegroundColor Yellow
     }
 
-    $coreModelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
-    if (Test-Path $coreModelMain) {
-        $coreModelF64Matches = Get-ChildItem -Path $coreModelMain -Recurse -Filter "*.kt" |
-            Select-String -Pattern "<F64>" |
-            Where-Object { $_.Line -notmatch "^\s*//" }
-        $coreModelF64Baseline = 134
-        Write-Baseline "P6-0-7: core/model <F64> baseline freeze" $coreModelF64Matches.Count $coreModelF64Baseline "Found $($coreModelF64Matches.Count) total (baseline=$coreModelF64Baseline)"
-    } else {
-        Write-Host "[SKIP] P6-0-7: core/model not found" -ForegroundColor Yellow
-    }
+    # P6-0-7 removed after P7-7: <F64> is now zero across all modules
 } else {
     $whitelistPath = "ospf-kotlin-core/scripts/p7-whitelist.json"
     if (-not (Test-Path $whitelistPath)) {
@@ -395,17 +386,7 @@ if ($GuardMode -eq "P6") {
         Write-P7Whitelist "P7-0-4: math/src/main <Flt64> whitelist freeze" $mathMain "<Flt64>" $p7Whitelist.math.flt64
         Write-P7Whitelist "P7-0-5: math/src/main <*> whitelist freeze" $mathMain "<\*>" $p7Whitelist.math.star
         Write-P7Whitelist "P7-0-6: math/src/main @Deprecated whitelist freeze" $mathMain "@Deprecated" $p7Whitelist.math.deprecated
-
-        $coreModelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
-        if (Test-Path $coreModelMain) {
-            $coreModelF64Matches = Get-ChildItem -Path $coreModelMain -Recurse -Filter "*.kt" |
-                Select-String -Pattern "<F64>" |
-                Where-Object { $_.Line -notmatch "^\s*//" }
-            $coreModelF64Baseline = 134
-            Write-Baseline "P7-0-7: core/model <F64> baseline freeze" $coreModelF64Matches.Count $coreModelF64Baseline "Found $($coreModelF64Matches.Count) total (baseline=$coreModelF64Baseline)"
-        } else {
-            Write-Host "[SKIP] P7-0-7: core/model not found" -ForegroundColor Yellow
-        }
+        # P7-0-7 removed after P7-7: <F64> is now zero across all modules
     }
 }
 

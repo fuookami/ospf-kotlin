@@ -16,10 +16,10 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinea
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
@@ -28,9 +28,9 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-typealias Solution = List<F64>
+typealias Solution = List<Flt64>
 
-interface Model : AddableTokenCollectionF64 {
+interface Model : AddableTokenCollectionFlt64 {
     val objectCategory: ObjectCategory
 
     fun remove(item: AbstractVariableItem<*, *>)
@@ -212,7 +212,7 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenDataF64(listOf(MathLinearMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = LinearFlattenDataFlt64(listOf(MathLinearMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -226,18 +226,18 @@ interface LinearModel : Model {
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenDataF64(emptyList(), constant.toFlt64()),
+            flattenData = LinearFlattenDataFlt64(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     /**
-     * Add objective using LinearFlattenDataF64 (new API)
+     * Add objective using LinearFlattenDataFlt64 (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: LinearFlattenDataF64,
+        flattenData: LinearFlattenDataFlt64,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -245,52 +245,52 @@ interface LinearModel : Model {
     // ========== math.symbol type overloads ==========
 
     fun minimize(
-        polynomial: MathLinearPolynomial<F64>,
+        polynomial: MathLinearPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenDataF64(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenDataFlt64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun maximize(
-        polynomial: MathLinearPolynomial<F64>,
+        polynomial: MathLinearPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenDataF64(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenDataFlt64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun minimize(
-        monomial: MathLinearMonomial<F64>,
+        monomial: MathLinearMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenDataF64(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenDataFlt64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun maximize(
-        monomial: MathLinearMonomial<F64>,
+        monomial: MathLinearMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenDataF64(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenDataFlt64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -371,7 +371,7 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenDataF64(listOf(MathQuadraticMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = QuadraticFlattenDataFlt64(listOf(MathQuadraticMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -385,18 +385,18 @@ interface QuadraticModel : LinearModel {
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenDataF64(emptyList(), constant.toFlt64()),
+            flattenData = QuadraticFlattenDataFlt64(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     /**
-     * Add objective using QuadraticFlattenDataF64 (new API)
+     * Add objective using QuadraticFlattenDataFlt64 (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: QuadraticFlattenDataF64,
+        flattenData: QuadraticFlattenDataFlt64,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -404,52 +404,52 @@ interface QuadraticModel : LinearModel {
     // ========== math.symbol type overloads for Quadratic ==========
 
     fun minimize(
-        polynomial: MathQuadraticPolynomial<F64>,
+        polynomial: MathQuadraticPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenDataF64(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenDataFlt64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun maximize(
-        polynomial: MathQuadraticPolynomial<F64>,
+        polynomial: MathQuadraticPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenDataF64(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenDataFlt64(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun minimize(
-        monomial: MathQuadraticMonomial<F64>,
+        monomial: MathQuadraticMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenDataF64(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenDataFlt64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     fun maximize(
-        monomial: MathQuadraticMonomial<F64>,
+        monomial: MathQuadraticMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenDataF64(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenDataFlt64(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )

@@ -44,7 +44,7 @@ class MinMaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -58,11 +58,11 @@ class MinMaxFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinMaxFunction<F64> = MinMaxFunction(polynomials, bigM, name, displayName)
+        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -108,7 +108,7 @@ class MaxMinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -122,11 +122,11 @@ class MaxMinFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<F64>>,
+            polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxMinFunction<F64> = MaxMinFunction(polynomials, bigM, name, displayName)
+        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.

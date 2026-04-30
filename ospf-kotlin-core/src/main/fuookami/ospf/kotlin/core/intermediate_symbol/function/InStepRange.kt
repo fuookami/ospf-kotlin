@@ -58,7 +58,7 @@ class InStepRangeFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = floorFunc.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         return super.registerAuxiliaryTokens(tokens)
     }
 
@@ -95,12 +95,12 @@ class InStepRangeFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            lb: LinearPolynomial<F64>,
-            ub: LinearPolynomial<F64>,
+            lb: LinearPolynomial<Flt64>,
+            ub: LinearPolynomial<Flt64>,
             step: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<F64> = InStepRangeFunction(
+        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
             lb = lb,
             ub = ub,
             step = step,
@@ -109,12 +109,12 @@ class InStepRangeFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            lb: LinearMonomial<F64>,
-            ub: LinearMonomial<F64>,
+            lb: LinearMonomial<Flt64>,
+            ub: LinearMonomial<Flt64>,
             step: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<F64> = InStepRangeFunction(
+        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
             lb = LinearPolynomial(listOf(lb), Flt64.zero),
             ub = LinearPolynomial(listOf(ub), Flt64.zero),
             step = step,

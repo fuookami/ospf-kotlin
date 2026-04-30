@@ -2,6 +2,7 @@
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import java.util.*
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -31,7 +32,7 @@ class RMP(
     private val cuttingPlans: MutableList<CuttingPlan> = ArrayList()
     private val x: MutableList<UIntVar> = ArrayList()
     private val rest = LinearExpressionSymbol(name = "rest")
-    private val yield = LinearExpressionSymbols1("output", Shape1(products.size)) { _, v ->
+    private val yield = LinearExpressionSymbols1Flt64("output", Shape1(products.size)) { _, v ->
         LinearExpressionSymbol(name = "output_${v[0]}")
     }
     private val metaModel = LinearMetaModelF64("demo3")

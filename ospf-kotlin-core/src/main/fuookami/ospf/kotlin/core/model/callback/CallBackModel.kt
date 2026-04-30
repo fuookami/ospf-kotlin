@@ -3,9 +3,9 @@
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableF64
+import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.TokenTable
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionF64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
@@ -96,13 +96,13 @@ class FunctionalCallBackModelPolicy<V>(
 class CallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val tokens: AbstractMutableTokenTableF64 = ManualTokenTable(category),
+    override val tokens: AbstractMutableTokenTableFlt64 = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<Flt64?, Solution>, String>> = ArrayList(),
-    private val policy: CallBackModelPolicy<F64>
+    private val policy: CallBackModelPolicy<Flt64>
 ) : CallBackModelInterface {
     companion object {
-        private fun dumpObjectiveComparator(category: ObjectCategory): PartialComparator<F64> = when (category) {
+        private fun dumpObjectiveComparator(category: ObjectCategory): PartialComparator<Flt64> = when (category) {
             ObjectCategory.Maximum -> { lhs, rhs -> lhs geq rhs }
             ObjectCategory.Minimum -> { lhs, rhs -> lhs leq rhs }
         }
@@ -119,7 +119,7 @@ class CallBackModel internal constructor(
         )
 
         operator fun invoke(
-            objectiveComparator: PartialComparator<F64>,
+            objectiveComparator: PartialComparator<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ) = CallBackModel(
             policy = FunctionalCallBackModelPolicy(
@@ -172,9 +172,9 @@ class CallBackModel internal constructor(
             concurrent: Boolean = true
         ): CallBackModel {
             val tokens = if (concurrent) {
-                ConcurrentManualAddTokenTable<F64>(model.tokens.category)
+                ConcurrentManualAddTokenTable<Flt64>(model.tokens.category)
             } else {
-                ManualTokenTable<F64>(model.tokens.category)
+                ManualTokenTable<Flt64>(model.tokens.category)
             }
             val constraints = model.constraints.map { constraint ->
                 Pair(
@@ -186,9 +186,9 @@ class CallBackModel internal constructor(
                 Pair(
                     { solution: Solution ->
                         if (objective.category == model.objectFunction.category) {
-                            objective.evaluateF64(solution)
+                            objective.evaluateFlt64(solution)
                         } else {
-                            objective.evaluateF64(solution)?.let {
+                            objective.evaluateFlt64(solution)?.let {
                                 -it
                             }
                         }
@@ -351,7 +351,7 @@ class MultiObjectCallBackModel internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val objectiveLocation: List<MultiObjectLocation>,
-    override val tokens: AbstractMutableTokenTableF64 = ManualTokenTable(category),
+    override val tokens: AbstractMutableTokenTableFlt64 = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution>, String>> = ArrayList(),
     private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
@@ -392,7 +392,7 @@ class MultiObjectCallBackModel internal constructor(
         }
     }
 
-    override fun objectiveValue(obj: MulObj): List<F64> {
+    override fun objectiveValue(obj: MulObj): List<Flt64> {
         val value = MutableList(objectiveSize) { Flt64.zero }
         for ((location, objective) in obj) {
             val index = priorityToIndex[location.priority] ?: continue
@@ -401,7 +401,7 @@ class MultiObjectCallBackModel internal constructor(
         return value
     }
 
-    override fun compareObjective(lhs: List<F64>, rhs: List<F64>): Order? {
+    override fun compareObjective(lhs: List<Flt64>, rhs: List<Flt64>): Order? {
         val size = minOf(lhs.size, rhs.size)
         for (i in 0 until size) {
             val l = lhs[i]

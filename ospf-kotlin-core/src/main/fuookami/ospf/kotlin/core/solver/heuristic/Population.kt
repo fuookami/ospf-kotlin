@@ -16,7 +16,7 @@ interface Individual<V> {
 data class PopulationBuilder(
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<F64>,
+    val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 )
 
@@ -26,7 +26,7 @@ data class Population<T : Individual<V>, V>(
     val best: T,
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<F64>,
+    val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 ) {
     val density by individuals::size

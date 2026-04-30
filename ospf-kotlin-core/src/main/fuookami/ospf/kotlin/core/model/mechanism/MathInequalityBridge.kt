@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -17,24 +17,24 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQ
 
 /**
  * Interface for types that can be converted to a MathLinearInequality.
- * Also provides direct conversion to LinearPolynomial<F64>.
+ * Also provides direct conversion to LinearPolynomial<Flt64>.
  */
 interface ToMathLinearInequality {
     fun toMathLinearInequality(): MathLinearInequality
 
-    fun toMathLinearPolynomial(): UtilsLinearPolynomial<F64> {
+    fun toMathLinearPolynomial(): UtilsLinearPolynomial<Flt64> {
         return toMathLinearInequality().lhs
     }
 }
 
 /**
  * Interface for types that can be converted to a MathQuadraticInequality.
- * Also provides direct conversion to QuadraticPolynomial<F64>.
+ * Also provides direct conversion to QuadraticPolynomial<Flt64>.
  */
 interface ToMathQuadraticInequality {
     fun toMathQuadraticInequality(): MathQuadraticInequality
 
-    fun toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<F64> {
+    fun toMathQuadraticPolynomial(): UtilsQuadraticPolynomial<Flt64> {
         return toMathQuadraticInequality().lhs
     }
 }
@@ -48,12 +48,12 @@ val MathLinearInequality.sign: Comparison get() = comparison
 val MathQuadraticInequality.sign: Comparison get() = comparison
 
 /**
- * Compute LinearFlattenDataF64 from math LinearInequality.
+ * Compute LinearFlattenDataFlt64 from math LinearInequality.
  * Flattens lhs - rhs into a single linear form: sum(lhs.monomials) - sum(rhs.monomials) <= lhs.constant - rhs.constant
  */
-val MathLinearInequality.flattenData: LinearFlattenDataF64
+val MathLinearInequality.flattenData: LinearFlattenDataFlt64
     get() {
-        val merged = HashMap<VariableItemKey, UtilsLinearMonomial<F64>>()
+        val merged = HashMap<VariableItemKey, UtilsLinearMonomial<Flt64>>()
 
         for (mono in lhs.monomials) {
             val key = (mono.symbol as AbstractVariableItem<*, *>).key
@@ -69,19 +69,19 @@ val MathLinearInequality.flattenData: LinearFlattenDataF64
             }
         }
 
-        return LinearFlattenDataF64(
+        return LinearFlattenDataFlt64(
             monomials = merged.values.toList(),
             constant = lhs.constant - rhs.constant
         )
     }
 
 /**
- * Compute QuadraticFlattenDataF64 from math QuadraticInequality.
+ * Compute QuadraticFlattenDataFlt64 from math QuadraticInequality.
  * Flattens lhs - rhs into a single quadratic form.
  */
-val MathQuadraticInequality.flattenData: QuadraticFlattenDataF64
+val MathQuadraticInequality.flattenData: QuadraticFlattenDataFlt64
     get() {
-        val merged = HashMap<QuadraticMonomialKey, UtilsQuadraticMonomial<F64>>()
+        val merged = HashMap<QuadraticMonomialKey, UtilsQuadraticMonomial<Flt64>>()
 
         for (mono in lhs.monomials) {
             val key = QuadraticMonomialKey.from(mono)
@@ -109,7 +109,7 @@ val MathQuadraticInequality.flattenData: QuadraticFlattenDataF64
             }
         }
 
-        return QuadraticFlattenDataF64(
+        return QuadraticFlattenDataFlt64(
             monomials = merged.values.toList(),
             constant = lhs.constant - rhs.constant
         )
@@ -121,7 +121,7 @@ private data class QuadraticMonomialKey(
     val sym2Id: Int?
 ) {
     companion object {
-        fun from(mono: UtilsQuadraticMonomial<F64>): QuadraticMonomialKey {
+        fun from(mono: UtilsQuadraticMonomial<Flt64>): QuadraticMonomialKey {
             val id1 = System.identityHashCode(mono.symbol1)
             val id2 = mono.symbol2?.let { System.identityHashCode(it) }
             return if (id2 != null && id1 > id2) {
@@ -134,22 +134,22 @@ private data class QuadraticMonomialKey(
 }
 
 /**
- * Create LinearFlattenDataF64 directly from math LinearPolynomial.
+ * Create LinearFlattenDataFlt64 directly from math LinearPolynomial.
  * Used when only one side of the inequality is needed.
  */
-fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<F64>.toFlattenData(): LinearFlattenDataF64 {
-    return LinearFlattenDataF64(
+fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenDataFlt64 {
+    return LinearFlattenDataFlt64(
         monomials = monomials.map { UtilsLinearMonomial(it.coefficient, it.symbol) },
         constant = constant
     )
 }
 
 /**
- * Create QuadraticFlattenDataF64 directly from math QuadraticPolynomial.
+ * Create QuadraticFlattenDataFlt64 directly from math QuadraticPolynomial.
  * Used when only one side of the inequality is needed.
  */
-fun fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<F64>.toFlattenData(): QuadraticFlattenDataF64 {
-    return QuadraticFlattenDataF64(
+fun fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<Flt64>.toFlattenData(): QuadraticFlattenDataFlt64 {
+    return QuadraticFlattenDataFlt64(
         monomials = monomials.map {
             UtilsQuadraticMonomial(
                 coefficient = it.coefficient,
@@ -164,6 +164,6 @@ fun fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<F64>.toFlatt
 // ========== Conversion from math types to frontend types ==========
 
 /** Convert math LinearPolynomial to frontend LinearPolynomial (now identity since Polynomial.kt is deleted) */
-fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<F64>.toFrontendPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<F64> {
+fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64>.toFrontendPolynomial(): fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<Flt64> {
     return this
 }

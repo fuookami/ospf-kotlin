@@ -26,8 +26,8 @@ class StaticSelectionMode<V>() : SelectionMode<V> {
     }
 }
 
-data object AdaptiveDynamicSelectionMode : SelectionMode<F64> {
-    override operator fun <T : Individual<F64>> invoke(
+data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64> {
+    override operator fun <T : Individual<Flt64>> invoke(
         iteration: Iteration,
         population: Population<T, Flt64>,
         model: AbstractCallBackModelInterface<*, Flt64>
@@ -46,7 +46,7 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<F64> {
         }
     }
 
-    private fun <T : Individual<F64>> calculateFitnessParameter(
+    private fun <T : Individual<Flt64>> calculateFitnessParameter(
         population: Population<T, Flt64>,
         model: AbstractCallBackModelInterface<*, Flt64>
     ): Flt64? {
@@ -68,7 +68,7 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<F64> {
         }
     }
 
-    private fun <T : Individual<F64>> calculateDensityParameter(population: Population<T, Flt64>): Flt64 {
+    private fun <T : Individual<Flt64>> calculateDensityParameter(population: Population<T, Flt64>): Flt64 {
         val a = population.densityRange.upperBound.value.unwrap().toFlt64()
         val b = population.densityRange.lowerBound.value.unwrap().toFlt64()
         return if (UInt64(population.density) < ((b + Flt64.three * a) / Flt64(4)).ceil().toUInt64()) {
