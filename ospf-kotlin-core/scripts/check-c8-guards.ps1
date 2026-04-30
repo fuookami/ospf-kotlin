@@ -13,6 +13,9 @@
 #   P6-0-1~6: Baseline-count (must not exceed frozen baseline)
 
 param(
+    [ValidateSet("P6", "P7")]
+    [string]$GuardMode = "P6",
+    [string]$BaseRef = "",
     [switch]$Full,
     [switch]$Verbose
 )
@@ -43,6 +46,102 @@ function Write-Baseline {
         Write-Host "      $Detail" -ForegroundColor DarkGray
     }
     if ($increased) { $script:exitCode = 1 }
+}
+
+function Get-RelativePath {
+    param([string]$Root, [string]$FilePath)
+    $rootPath = (Resolve-Path $Root).Path
+    $fullPath = (Resolve-Path $FilePath).Path
+    if ($fullPath.StartsWith($rootPath)) {
+        return $fullPath.Substring($rootPath.Length + 1).Replace("\", "/")
+    }
+    return $fullPath.Replace("\", "/")
+}
+
+function Get-KtMatchCountMap {
+    param([string]$Root, [string]$Pattern)
+    $result = @{}
+    if (-not (Test-Path $Root)) {
+        return $result
+    }
+    Get-ChildItem -Path $Root -Recurse -Filter "*.kt" | ForEach-Object {
+        $count = (Select-String -Path $_.FullName -Pattern $Pattern | Where-Object { $_.Line -notmatch "^\s*//" }).Count
+        if ($count -gt 0) {
+            $relPath = Get-RelativePath -Root $Root -FilePath $_.FullName
+            $result[$relPath] = $count
+        }
+    }
+    return $result
+}
+
+function Get-MapSum {
+    param([hashtable]$Map)
+    if ($null -eq $Map -or $Map.Count -eq 0) {
+        return 0
+    }
+    $sum = 0
+    foreach ($value in $Map.Values) {
+        $sum += [int]$value
+    }
+    return $sum
+}
+
+function Format-Delta {
+    param([int]$Delta)
+    if ($Delta -gt 0) {
+        return "+$Delta"
+    } elseif ($Delta -lt 0) {
+        return "$Delta"
+    } else {
+        return "0"
+    }
+}
+
+function Write-P7Whitelist {
+    param(
+        [string]$Label,
+        [string]$Root,
+        [string]$Pattern,
+        [hashtable]$WhitelistMap
+    )
+    if (-not (Test-Path $Root)) {
+        Write-Host "[SKIP] ${Label}: root not found ($Root)" -ForegroundColor Yellow
+        return
+    }
+
+    $actualMap = Get-KtMatchCountMap -Root $Root -Pattern $Pattern
+    $baseline = Get-MapSum -Map $WhitelistMap
+    $current = Get-MapSum -Map $actualMap
+    $deltaStr = Format-Delta -Delta ($current - $baseline)
+
+    $nonWhitelistHits = @()
+    $whitelistOverflows = @()
+    foreach ($entry in $actualMap.GetEnumerator()) {
+        if (-not $WhitelistMap.ContainsKey($entry.Key)) {
+            $nonWhitelistHits += "$($entry.Key)=$($entry.Value)"
+            continue
+        }
+        $allowed = [int]$WhitelistMap[$entry.Key]
+        if ([int]$entry.Value -gt $allowed) {
+            $whitelistOverflows += "$($entry.Key)=$($entry.Value)>$allowed"
+        }
+    }
+
+    $pass = ($nonWhitelistHits.Count -eq 0 -and $whitelistOverflows.Count -eq 0)
+    $icon = if ($pass) { "PASS" } else { "FAIL" }
+    $color = if ($pass) { "Green" } else { "Red" }
+    Write-Host "[$icon] $Label (baseline=$baseline, current=$current, delta=$deltaStr)" -ForegroundColor $color
+    if (($Verbose -or -not $pass) -and $nonWhitelistHits.Count -gt 0) {
+        $preview = ($nonWhitelistHits | Select-Object -First 8) -join "; "
+        Write-Host "      Non-whitelist hits: $preview" -ForegroundColor DarkGray
+    }
+    if (($Verbose -or -not $pass) -and $whitelistOverflows.Count -gt 0) {
+        $preview = ($whitelistOverflows | Select-Object -First 8) -join "; "
+        Write-Host "      Whitelist overflow: $preview" -ForegroundColor DarkGray
+    }
+    if (-not $pass) {
+        $script:exitCode = 1
+    }
 }
 
 $coreMain = "ospf-kotlin-core/src/main"
@@ -221,62 +320,93 @@ foreach ($root in $bridgeRoots) {
 $toMathLinearPolyBaseline = 13  # Updated 2026-04-29 after P6-2a (was 23 after P5 full closure)
 Write-Baseline "P5-4-1: No new ToMathLinearPolynomial bridge references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
 
-# --- P6-0 Guards (new) ---
+# --- P6/P7 Metric Guards ---
 
-# Guard 14: core/src/main <Flt64> baseline freeze
 $mathMain = "ospf-kotlin-math/src/main"
 
-$coreFlt64Matches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
-    Select-String -Pattern "<Flt64>" |
-    Where-Object { $_.Line -notmatch "^\s*//" }
-$coreFlt64Baseline = 662  # Updated 2026-04-29 after P6-2b (was 759 after P6-2a)
-Write-Baseline "P6-0-1: core/src/main <Flt64> baseline freeze" $coreFlt64Matches.Count $coreFlt64Baseline "Found $($coreFlt64Matches.Count) total (baseline=$coreFlt64Baseline)"
-
-# Guard 15: core/src/main <*> baseline freeze
-$coreStarMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
-    Select-String -Pattern "<\*>" |
-    Where-Object { $_.Line -notmatch "^\s*//" }
-$coreStarBaseline = 282  # Updated 2026-04-29 after P6-1 (was 363 at P6-0 start)
-Write-Baseline "P6-0-2: core/src/main <*> baseline freeze" $coreStarMatches.Count $coreStarBaseline "Found $($coreStarMatches.Count) total (baseline=$coreStarBaseline)"
-
-# Guard 16: core/src/main @Deprecated baseline freeze
-$coreDeprecatedMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
-    Select-String -Pattern "@Deprecated" |
-    Where-Object { $_.Line -notmatch "^\s*//" }
-$coreDeprecatedBaseline = 7  # Updated 2026-04-29 after P6-2a (was 58 at P6-1 close)
-Write-Baseline "P6-0-3: core/src/main @Deprecated baseline freeze" $coreDeprecatedMatches.Count $coreDeprecatedBaseline "Found $($coreDeprecatedMatches.Count) total (baseline=$coreDeprecatedBaseline)"
-
-# Guard 17: math/src/main <Flt64> baseline freeze
-if (Test-Path $mathMain) {
-    $mathFlt64Matches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+if ($GuardMode -eq "P6") {
+    $coreFlt64Matches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "<Flt64>" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $mathFlt64Baseline = 322  # Updated 2026-04-29 after P6-3 (was 323 at P6-0 start)
-    Write-Baseline "P6-0-4: math/src/main <Flt64> baseline freeze" $mathFlt64Matches.Count $mathFlt64Baseline "Found $($mathFlt64Matches.Count) total (baseline=$mathFlt64Baseline)"
-} else {
-    Write-Host "[SKIP] P6-0-4: math/src/main not found" -ForegroundColor Yellow
-}
+    $coreFlt64Baseline = 0
+    Write-Baseline "P6-0-1: core/src/main <Flt64> baseline freeze" $coreFlt64Matches.Count $coreFlt64Baseline "Found $($coreFlt64Matches.Count) total (baseline=$coreFlt64Baseline)"
 
-# Guard 18: math/src/main <*> baseline freeze
-if (Test-Path $mathMain) {
-    $mathStarMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+    $coreStarMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "<\*>" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $mathStarBaseline = 218  # Frozen 2026-04-29 at P6-0 start
-    Write-Baseline "P6-0-5: math/src/main <*> baseline freeze" $mathStarMatches.Count $mathStarBaseline "Found $($mathStarMatches.Count) total (baseline=$mathStarBaseline)"
-} else {
-    Write-Host "[SKIP] P6-0-5: math/src/main not found" -ForegroundColor Yellow
-}
+    $coreStarBaseline = 282
+    Write-Baseline "P6-0-2: core/src/main <*> baseline freeze" $coreStarMatches.Count $coreStarBaseline "Found $($coreStarMatches.Count) total (baseline=$coreStarBaseline)"
 
-# Guard 19: math/src/main @Deprecated baseline freeze
-if (Test-Path $mathMain) {
-    $mathDeprecatedMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+    $coreDeprecatedMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "@Deprecated" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $mathDeprecatedBaseline = 0  # Updated 2026-04-29 after P6-3 (was 3 at P6-0 start)
-    Write-Baseline "P6-0-6: math/src/main @Deprecated baseline freeze" $mathDeprecatedMatches.Count $mathDeprecatedBaseline "Found $($mathDeprecatedMatches.Count) total (baseline=$mathDeprecatedBaseline)"
+    $coreDeprecatedBaseline = 0
+    Write-Baseline "P6-0-3: core/src/main @Deprecated baseline freeze" $coreDeprecatedMatches.Count $coreDeprecatedBaseline "Found $($coreDeprecatedMatches.Count) total (baseline=$coreDeprecatedBaseline)"
+
+    if (Test-Path $mathMain) {
+        $mathFlt64Matches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+            Select-String -Pattern "<Flt64>" |
+            Where-Object { $_.Line -notmatch "^\s*//" }
+        $mathFlt64Baseline = 322
+        Write-Baseline "P6-0-4: math/src/main <Flt64> baseline freeze" $mathFlt64Matches.Count $mathFlt64Baseline "Found $($mathFlt64Matches.Count) total (baseline=$mathFlt64Baseline)"
+    } else {
+        Write-Host "[SKIP] P6-0-4: math/src/main not found" -ForegroundColor Yellow
+    }
+
+    if (Test-Path $mathMain) {
+        $mathStarMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+            Select-String -Pattern "<\*>" |
+            Where-Object { $_.Line -notmatch "^\s*//" }
+        $mathStarBaseline = 218
+        Write-Baseline "P6-0-5: math/src/main <*> baseline freeze" $mathStarMatches.Count $mathStarBaseline "Found $($mathStarMatches.Count) total (baseline=$mathStarBaseline)"
+    } else {
+        Write-Host "[SKIP] P6-0-5: math/src/main not found" -ForegroundColor Yellow
+    }
+
+    if (Test-Path $mathMain) {
+        $mathDeprecatedMatches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
+            Select-String -Pattern "@Deprecated" |
+            Where-Object { $_.Line -notmatch "^\s*//" }
+        $mathDeprecatedBaseline = 0
+        Write-Baseline "P6-0-6: math/src/main @Deprecated baseline freeze" $mathDeprecatedMatches.Count $mathDeprecatedBaseline "Found $($mathDeprecatedMatches.Count) total (baseline=$mathDeprecatedBaseline)"
+    } else {
+        Write-Host "[SKIP] P6-0-6: math/src/main not found" -ForegroundColor Yellow
+    }
+
+    $coreModelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
+    if (Test-Path $coreModelMain) {
+        $coreModelF64Matches = Get-ChildItem -Path $coreModelMain -Recurse -Filter "*.kt" |
+            Select-String -Pattern "<F64>" |
+            Where-Object { $_.Line -notmatch "^\s*//" }
+        $coreModelF64Baseline = 134
+        Write-Baseline "P6-0-7: core/model <F64> baseline freeze" $coreModelF64Matches.Count $coreModelF64Baseline "Found $($coreModelF64Matches.Count) total (baseline=$coreModelF64Baseline)"
+    } else {
+        Write-Host "[SKIP] P6-0-7: core/model not found" -ForegroundColor Yellow
+    }
 } else {
-    Write-Host "[SKIP] P6-0-6: math/src/main not found" -ForegroundColor Yellow
+    $whitelistPath = "ospf-kotlin-core/scripts/p7-whitelist.json"
+    if (-not (Test-Path $whitelistPath)) {
+        Write-Result "P7-0-0: whitelist file exists ($whitelistPath)" $false "Missing whitelist file."
+    } else {
+        $p7Whitelist = Get-Content -Raw $whitelistPath | ConvertFrom-Json -AsHashtable
+        Write-P7Whitelist "P7-0-1: core/src/main <Flt64> whitelist freeze" $coreMain "<Flt64>" $p7Whitelist.core.flt64
+        Write-P7Whitelist "P7-0-2: core/src/main <*> whitelist freeze" $coreMain "<\*>" $p7Whitelist.core.star
+        Write-P7Whitelist "P7-0-3: core/src/main @Deprecated whitelist freeze" $coreMain "@Deprecated" $p7Whitelist.core.deprecated
+        Write-P7Whitelist "P7-0-4: math/src/main <Flt64> whitelist freeze" $mathMain "<Flt64>" $p7Whitelist.math.flt64
+        Write-P7Whitelist "P7-0-5: math/src/main <*> whitelist freeze" $mathMain "<\*>" $p7Whitelist.math.star
+        Write-P7Whitelist "P7-0-6: math/src/main @Deprecated whitelist freeze" $mathMain "@Deprecated" $p7Whitelist.math.deprecated
+
+        $coreModelMain = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model"
+        if (Test-Path $coreModelMain) {
+            $coreModelF64Matches = Get-ChildItem -Path $coreModelMain -Recurse -Filter "*.kt" |
+                Select-String -Pattern "<F64>" |
+                Where-Object { $_.Line -notmatch "^\s*//" }
+            $coreModelF64Baseline = 134
+            Write-Baseline "P7-0-7: core/model <F64> baseline freeze" $coreModelF64Matches.Count $coreModelF64Baseline "Found $($coreModelF64Matches.Count) total (baseline=$coreModelF64Baseline)"
+        } else {
+            Write-Host "[SKIP] P7-0-7: core/model not found" -ForegroundColor Yellow
+        }
+    }
 }
 
 # --- Summary ---

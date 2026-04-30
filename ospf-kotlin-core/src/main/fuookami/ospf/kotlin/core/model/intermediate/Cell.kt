@@ -18,19 +18,19 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 interface Cell<V : RealNumber<V>> {
     /** V-typed evaluation (primary public API). */
     fun evaluate(): V?
-    fun evaluate(solution: List<Flt64>): V?
+    fun evaluate(solution: List<F64>): V?
     fun evaluate(solution: Map<VariableItemKey, Flt64>): V?
 
     /** Flt64 view of evaluation (solver-compatible, internal). */
     fun evaluateF64(): Flt64?
-    fun evaluateF64(solution: List<Flt64>): Flt64?
+    fun evaluateF64(solution: List<F64>): Flt64?
     fun evaluateF64(solution: Map<VariableItemKey, Flt64>): Flt64?
 
     /** V-typed evaluation via explicit IntoValue<V> conversion. Kept for backward compatibility. */
     fun evaluateAsV(converter: IntoValue<V>): V? = evaluateF64()?.let { converter.intoValue(it) }
 }
 
-typealias CellF64 = Cell<Flt64>
+typealias CellF64 = Cell<F64>
 
 interface LinearCell<V : RealNumber<V>> : Cell<V> {
     /** V-typed coefficient (primary public API). */
@@ -44,8 +44,8 @@ interface LinearCell<V : RealNumber<V>> : Cell<V> {
     fun coefficientAsV(converter: IntoValue<V>): V = converter.intoValue(coefficientF64)
 }
 
-typealias LinearCellF64 = LinearCell<Flt64>
-typealias LinearCellI = LinearCell<Flt64>
+typealias LinearCellF64 = LinearCell<F64>
+typealias LinearCellI = LinearCell<F64>
 
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     /** V-typed coefficient (primary public API). */
@@ -60,8 +60,8 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     fun coefficientAsV(converter: IntoValue<V>): V = converter.intoValue(coefficientF64)
 }
 
-typealias QuadraticCellF64 = QuadraticCell<Flt64>
-typealias QuadraticCellI = QuadraticCell<Flt64>
+typealias QuadraticCellF64 = QuadraticCell<F64>
+typealias QuadraticCellI = QuadraticCell<F64>
 
 class LinearCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
@@ -77,7 +77,7 @@ class LinearCellImpl<V>(
         return token.result?.let { coefficient * it }
     }
 
-    override fun evaluate(solution: List<Flt64>): V? {
+    override fun evaluate(solution: List<F64>): V? {
         return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
     }
 
@@ -89,7 +89,7 @@ class LinearCellImpl<V>(
         return token.resultF64?.let { _coefficientF64 * it }
     }
 
-    override fun evaluateF64(solution: List<Flt64>): Flt64? {
+    override fun evaluateF64(solution: List<F64>): Flt64? {
         return tokenTable.indexOf(token)?.let {
             _coefficientF64 * solution[it]
         }
@@ -108,7 +108,7 @@ class LinearCellImpl<V>(
     }
 }
 
-typealias LinearCellImplF64 = LinearCellImpl<Flt64>
+typealias LinearCellImplF64 = LinearCellImpl<F64>
 
 class QuadraticCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
@@ -129,7 +129,7 @@ class QuadraticCellImpl<V>(
         }
     }
 
-    override fun evaluate(solution: List<Flt64>): V? {
+    override fun evaluate(solution: List<F64>): V? {
         return evaluateF64(solution)?.let { if (converter != null) converter.intoValue(it) else it as V }
     }
 
@@ -145,7 +145,7 @@ class QuadraticCellImpl<V>(
         }
     }
 
-    override fun evaluateF64(solution: List<Flt64>): Flt64? {
+    override fun evaluateF64(solution: List<F64>): Flt64? {
         return if (token2 == null) {
             tokenTable.indexOf(token1)?.let {
                 _coefficientF64 * solution[it]
@@ -184,4 +184,4 @@ class QuadraticCellImpl<V>(
     }
 }
 
-typealias QuadraticCellImplF64 = QuadraticCellImpl<Flt64>
+typealias QuadraticCellImplF64 = QuadraticCellImpl<F64>

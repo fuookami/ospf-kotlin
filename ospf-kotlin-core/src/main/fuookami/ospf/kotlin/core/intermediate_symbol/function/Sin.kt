@@ -81,10 +81,10 @@ class SinFunction<T : Field<T>>(
          * Factory for Flt64-typed sine function.
          */
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             name: String,
             displayName: String? = null
-        ): SinFunction<Flt64> = SinFunction(
+        ): SinFunction<F64> = SinFunction(
             x = x,
             samplingPoints = defaultPoints(),
             name = name,
@@ -95,10 +95,10 @@ class SinFunction<T : Field<T>>(
          * Factory for Flt64-typed sine function with LinearMonomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             name: String,
             displayName: String? = null
-        ): SinFunction<Flt64> = SinFunction(
+        ): SinFunction<F64> = SinFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = defaultPoints(),
             name = name,

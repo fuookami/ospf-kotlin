@@ -40,8 +40,8 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *          for solver compatibility; V-typed access is via IntoValue<V> conversion.
  */
 class ProductFunction<V>(
-    val left: MathLinearPolynomial<Flt64>,
-    val right: MathLinearPolynomial<Flt64>,
+    val left: MathLinearPolynomial<F64>,
+    val right: MathLinearPolynomial<F64>,
     override var name: String = "${left}*${right}",
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.Ring<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -73,7 +73,7 @@ class ProductFunction<V>(
         }
 
     override val cached: Boolean get() = false
-    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+    override val range: ExpressionRange<F64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) {
@@ -108,7 +108,7 @@ class ProductFunction<V>(
         val leftConst = left.constant
         val rightConst = right.constant
 
-        val monomials = mutableListOf<MathQuadraticMonomial<Flt64>>()
+        val monomials = mutableListOf<MathQuadraticMonomial<F64>>()
 
         // quadratic terms: (a_i x_i) * (b_j x_j)
         for (lm in left.monomials) {
@@ -157,7 +157,7 @@ class ProductFunction<V>(
         return leftVal * rightVal
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<F64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromResults(left, results, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromResults(right, results, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
@@ -178,7 +178,7 @@ class ProductFunction<V>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    override fun evaluate(results: List<F64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tt = tokenTable as AbstractTokenTableF64
         val tokenList = tt.tokenList as AbstractTokenListF64
         val result = evaluate(results, tokenList, zeroIfNone) ?: return null
@@ -214,14 +214,14 @@ class ProductFunction<V>(
      */
     fun register(model: AbstractQuadraticMechanismModelF64): Try {
         val poly = toMathQuadraticPolynomial()
-        val rhs = MathQuadraticPolynomial<Flt64>(constant = Flt64.zero)
+        val rhs = MathQuadraticPolynomial<F64>(constant = Flt64.zero)
         val inequality = MathQuadraticInequality(poly, rhs, Comparison.EQ)
         return model.addConstraint(inequality, name = name, from = this to true)
     }
 
     companion object {
         private fun evaluateLinear(
-            poly: MathLinearPolynomial<Flt64>,
+            poly: MathLinearPolynomial<F64>,
             tokenList: AbstractTokenListF64,
             zeroIfNone: Boolean
         ): Flt64? {
@@ -241,8 +241,8 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromResults(
-            poly: MathLinearPolynomial<Flt64>,
-            results: List<Flt64>,
+            poly: MathLinearPolynomial<F64>,
+            results: List<F64>,
             tokenList: AbstractTokenListF64,
             zeroIfNone: Boolean
         ): Flt64? {
@@ -264,7 +264,7 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromValues(
-            poly: MathLinearPolynomial<Flt64>,
+            poly: MathLinearPolynomial<F64>,
             values: Map<Symbol, Flt64>,
             tokenList: AbstractTokenListF64?,
             zeroIfNone: Boolean
@@ -286,4 +286,4 @@ class ProductFunction<V>(
     }
 }
 
-typealias ProductFunctionF64 = ProductFunction<Flt64>
+typealias ProductFunctionF64 = ProductFunction<F64>

@@ -184,11 +184,11 @@ class OneOfFunction<T : Field<T>>(
     companion object {
         @JvmName("fromBranches")
         operator fun invoke(
-            branches: List<OneOfBranch<Flt64>>,
+            branches: List<OneOfBranch<F64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): OneOfFunction<Flt64> = OneOfFunction(
+        ): OneOfFunction<F64> = OneOfFunction(
             branches = branches,
             m = m,
             name = name,
@@ -201,11 +201,11 @@ class OneOfFunction<T : Field<T>>(
          */
         @JvmName("fromPolynomials")
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): OneOfFunction<Flt64> {
+        ): OneOfFunction<F64> {
             val branchList = polynomials.mapIndexed { i, poly ->
                 OneOfBranch(poly, null, "${name}_branch_${i}")
             }

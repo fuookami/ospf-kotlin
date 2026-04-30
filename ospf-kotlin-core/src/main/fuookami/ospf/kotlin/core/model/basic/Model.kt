@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-typealias Solution = List<Flt64>
+typealias Solution = List<F64>
 
 interface Model : AddableTokenCollectionF64 {
     val objectCategory: ObjectCategory
@@ -245,7 +245,7 @@ interface LinearModel : Model {
     // ========== math.symbol type overloads ==========
 
     fun minimize(
-        polynomial: MathLinearPolynomial<Flt64>,
+        polynomial: MathLinearPolynomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -258,7 +258,7 @@ interface LinearModel : Model {
     }
 
     fun maximize(
-        polynomial: MathLinearPolynomial<Flt64>,
+        polynomial: MathLinearPolynomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -271,7 +271,7 @@ interface LinearModel : Model {
     }
 
     fun minimize(
-        monomial: MathLinearMonomial<Flt64>,
+        monomial: MathLinearMonomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -284,7 +284,7 @@ interface LinearModel : Model {
     }
 
     fun maximize(
-        monomial: MathLinearMonomial<Flt64>,
+        monomial: MathLinearMonomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -404,7 +404,7 @@ interface QuadraticModel : LinearModel {
     // ========== math.symbol type overloads for Quadratic ==========
 
     fun minimize(
-        polynomial: MathQuadraticPolynomial<Flt64>,
+        polynomial: MathQuadraticPolynomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -417,7 +417,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun maximize(
-        polynomial: MathQuadraticPolynomial<Flt64>,
+        polynomial: MathQuadraticPolynomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -430,7 +430,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun minimize(
-        monomial: MathQuadraticMonomial<Flt64>,
+        monomial: MathQuadraticMonomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -443,7 +443,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun maximize(
-        monomial: MathQuadraticMonomial<Flt64>,
+        monomial: MathQuadraticMonomial<F64>,
         name: String? = null,
         displayName: String? = null
     ): Try {

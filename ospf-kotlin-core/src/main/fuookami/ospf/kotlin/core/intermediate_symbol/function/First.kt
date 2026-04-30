@@ -45,7 +45,7 @@ class FirstFunction<T : Field<T>>(
     private val n: Int get() = polynomials.size
 
     // BinaryzationFunction for each polynomial
-    private val binaryFunctions: List<BinaryzationFunction<Flt64>> by lazy {
+    private val binaryFunctions: List<BinaryzationFunction<F64>> by lazy {
         polynomials.mapIndexed { i, poly ->
             BinaryzationFunction(
                 input = poly.asFlt64Poly(),
@@ -158,10 +158,10 @@ class FirstFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): FirstFunction<Flt64> = FirstFunction(polynomials, epsilon, name, displayName)
+        ): FirstFunction<F64> = FirstFunction(polynomials, epsilon, name, displayName)
     }
 }

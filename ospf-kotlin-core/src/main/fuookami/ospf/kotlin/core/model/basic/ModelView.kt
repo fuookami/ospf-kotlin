@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.basic
+package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -102,7 +102,7 @@ enum class ConstraintSource {
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
     signs: List<ConstraintRelation>,
-    rhs: List<Flt64>,
+    rhs: List<F64>,
     names: List<String>,
     sources: List<ConstraintSource>
 ) : Cloneable, Copyable<ModelConstraint<ConCell>>, AutoCloseable
@@ -112,10 +112,9 @@ abstract class ModelConstraint<ConCell>(
     internal val _names = names.toMutableList()
     internal val _sources = sources.toMutableList()
 
-    @Deprecated("Use sparseLhs on LinearConstraintBatch or QuadraticConstraintBatch instead.", level = DeprecationLevel.WARNING)
     abstract val lhs: List<List<ConCell>>
     val signs: List<ConstraintRelation> by ::_signs
-    val rhs: List<Flt64> by ::_rhs
+    val rhs: List<F64> by ::_rhs
     val names: List<String> by ::_names
     val sources: List<ConstraintSource> by ::_sources
 

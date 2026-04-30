@@ -1,4 +1,3 @@
-﻿
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
@@ -18,6 +17,8 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Math
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 interface MetaConstraintGroup {
@@ -221,7 +222,11 @@ interface MathConstraint {
     /**
      * Evaluate whether this constraint is satisfied given solution values.
      */
-    fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean = false): Boolean?
+    fun <V> isTrue(
+        solution: List<F64>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean = false
+    ): Boolean? where V : RealNumber<V>, V : NumberField<V>
 }
 
 /**
@@ -241,8 +246,12 @@ data class LinearInequalityConstraint(
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Boolean? {
-        val lhsValue = evaluateFlattenData(flattenData, tokenTable, zeroIfNone)
+    override fun <V> isTrue(
+        solution: List<F64>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean
+    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+        val lhsValue = evaluateFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
     }
@@ -269,8 +278,12 @@ data class QuadraticInequalityConstraint(
     val name: String = ""
     val displayName: String? = null
 
-    override fun isTrue(solution: List<Flt64>, tokenTable: AbstractTokenTable<*>, zeroIfNone: Boolean): Boolean? {
-        val lhsValue = evaluateQuadraticFlattenData(flattenData, tokenTable, zeroIfNone)
+    override fun <V> isTrue(
+        solution: List<F64>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean
+    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+        val lhsValue = evaluateQuadraticFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
     }

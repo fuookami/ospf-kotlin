@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
-private typealias MathLinearInequality = LinearInequality<Flt64>
+private typealias MathLinearInequality = LinearInequality<F64>
 
 /**
  * Floor division function symbol: `y = floor(x / d)` where `x` is a LinearPolynomial.
@@ -125,12 +125,12 @@ class FloorFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             d: Flt64 = Flt64.one,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(
+        ): FloorFunction<F64> = FloorFunction(
             x = x,
             d = d,
             epsilon = epsilon,
@@ -139,12 +139,12 @@ class FloorFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             d: Flt64 = Flt64.one,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(
+        ): FloorFunction<F64> = FloorFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             d = d,
             epsilon = epsilon,

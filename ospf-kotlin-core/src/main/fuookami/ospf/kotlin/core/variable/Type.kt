@@ -85,7 +85,7 @@ data object BalancedTernary : VariableType<Int8>(Int8), IntegerVariableType<Int8
     override fun toString(): String = "BalancedTernary"
 }
 
-data object Percentage : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+data object Percentage : VariableType<F64>(Flt64), UContinuesVariableType<F64> {
     override val name = "Percentage"
     override val shortName = "pct"
     override val maximum by constants::one
@@ -105,13 +105,13 @@ data object UInteger : VariableType<UInt64>(UInt64), UIntegerVariableType<UInt64
     override fun toString(): String = "UInteger"
 }
 
-data object Continuous : VariableType<Flt64>(Flt64), ContinuesVariableType<Flt64> {
+data object Continuous : VariableType<F64>(Flt64), ContinuesVariableType<F64> {
     override val name = "Continuous"
     override val shortName = "real"
     override fun toString(): String = "Continues"
 }
 
-data object UContinuous : VariableType<Flt64>(Flt64), UContinuesVariableType<Flt64> {
+data object UContinuous : VariableType<F64>(Flt64), UContinuesVariableType<F64> {
     override val name = "UContinuous"
     override val shortName = "ureal"
     override fun toString(): String = "UContinues"

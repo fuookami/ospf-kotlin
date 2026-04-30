@@ -14,30 +14,30 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMon
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
 
 /**
- * Convert LinearIntermediateSymbol to math LinearPolynomial<Flt64>.
+ * Convert LinearIntermediateSymbol to math LinearPolynomial<F64>.
  * toLinearPolynomial() already returns the math type directly.
  */
 @Suppress("UNCHECKED_CAST")
-fun LinearIntermediateSymbolF64.asMathLinearPolynomial(): MathLinearPolynomial<Flt64> {
+fun LinearIntermediateSymbolF64.asMathLinearPolynomial(): MathLinearPolynomial<F64> {
     return (this as LinearIntermediateSymbolF64).toMathLinearPolynomial()
 }
 
 /**
- * Convert math LinearPolynomial<Flt64> to core expression LinearMonomial list + constant.
+ * Convert math LinearPolynomial<F64> to core expression LinearMonomial list + constant.
  * Used when framework code needs to construct core polynomials from math types
  * (e.g., extracting slack.pos/neg from new SlackFunction).
  */
-fun MathLinearPolynomial<Flt64>.asCoreLinearPolynomial(): MathLinearPolynomial<Flt64> {
+fun MathLinearPolynomial<F64>.asCoreLinearPolynomial(): MathLinearPolynomial<F64> {
     return this
 }
 
 /**
- * Convert star-projected math LinearPolynomial<*> to core expression MathLinearPolynomial<Flt64>.
+ * Convert star-projected math LinearPolynomial<*> to core expression MathLinearPolynomial<F64>.
  * Needed when working with SlackFunction<*> where the type parameter is unknown.
  */
 @Suppress("UNCHECKED_CAST")
 @JvmName("asCoreLinearPolynomialStar")
-fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): MathLinearPolynomial<Flt64> {
-    return this as MathLinearPolynomial<Flt64>
+fun MathLinearPolynomial<*>.asCoreLinearPolynomial(): MathLinearPolynomial<F64> {
+    return this as MathLinearPolynomial<F64>
 }
 

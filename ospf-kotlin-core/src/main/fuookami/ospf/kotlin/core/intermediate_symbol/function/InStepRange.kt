@@ -95,12 +95,12 @@ class InStepRangeFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            lb: LinearPolynomial<Flt64>,
-            ub: LinearPolynomial<Flt64>,
+            lb: LinearPolynomial<F64>,
+            ub: LinearPolynomial<F64>,
             step: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
+        ): InStepRangeFunction<F64> = InStepRangeFunction(
             lb = lb,
             ub = ub,
             step = step,
@@ -109,12 +109,12 @@ class InStepRangeFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            lb: LinearMonomial<Flt64>,
-            ub: LinearMonomial<Flt64>,
+            lb: LinearMonomial<F64>,
+            ub: LinearMonomial<F64>,
             step: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
+        ): InStepRangeFunction<F64> = InStepRangeFunction(
             lb = LinearPolynomial(listOf(lb), Flt64.zero),
             ub = LinearPolynomial(listOf(ub), Flt64.zero),
             step = step,

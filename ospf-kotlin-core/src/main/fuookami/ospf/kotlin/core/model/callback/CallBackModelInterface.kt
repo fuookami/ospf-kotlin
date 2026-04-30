@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.callback
+package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.Model
 import fuookami.ospf.kotlin.core.model.basic.MulObj
@@ -109,22 +109,22 @@ interface CallBackModelInterface : AbstractCallBackModelInterfaceV<Flt64, Flt64,
     }
 }
 
-interface MultiObjectiveModelInterface : AbstractCallBackModelInterfaceV<MulObj, List<Flt64>, Flt64> {
+interface MultiObjectiveModelInterface : AbstractCallBackModelInterfaceV<MulObj, List<F64>, Flt64> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
 
-    override val defaultObjective: List<Flt64>
+    override val defaultObjective: List<F64>
         get() = if (objectCategory == ObjectCategory.Minimum) {
             (0 until objectiveSize).map { Flt64.negativeInfinity }
         } else {
             (0 until objectiveSize).map { Flt64.infinity }
         }
 
-    override fun objectiveValue(): List<Flt64> {
+    override fun objectiveValue(): List<F64> {
         return (0 until objectiveSize).map { Flt64.zero }
     }
 
-    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<Flt64> {
+    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<F64> {
         return (0 until objectiveSize).map {
             obj.sumOf { (loc, v) ->
                 if (it == loc.priority.toInt()) {
@@ -136,7 +136,7 @@ interface MultiObjectiveModelInterface : AbstractCallBackModelInterfaceV<MulObj,
         }
     }
 
-    override fun operation(lhs: List<Flt64>, rhs: List<Flt64>): List<Flt64> {
+    override fun operation(lhs: List<F64>, rhs: List<F64>): List<F64> {
         return (0 until objectiveSize).map { lhs[it] + rhs[it] }
     }
 }

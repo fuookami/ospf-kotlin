@@ -178,11 +178,11 @@ class RoundingFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             d: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(
+        ): RoundingFunction<F64> = RoundingFunction(
             x = x,
             d = d,
             name = name,
@@ -190,11 +190,11 @@ class RoundingFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             d: Flt64 = Flt64.one,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(
+        ): RoundingFunction<F64> = RoundingFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             d = d,
             name = name,

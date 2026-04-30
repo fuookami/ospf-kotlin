@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
  * @return Merged LinearFlattenDataF64 with combined coefficients
  */
 internal fun mergeLinearMonomials(
-    monomials: List<UtilsLinearMonomial<Flt64>>,
+    monomials: List<UtilsLinearMonomial<F64>>,
     constant: Flt64
 ): LinearFlattenDataF64 {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -68,7 +68,7 @@ internal fun mergeLinearFlattenDataF64(
  * @return Merged QuadraticFlattenDataF64 with combined coefficients
  */
 internal fun mergeQuadraticMonomials(
-    monomials: List<UtilsQuadraticMonomial<Flt64>>,
+    monomials: List<UtilsQuadraticMonomial<F64>>,
     constant: Flt64
 ): QuadraticFlattenDataF64 {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
@@ -127,7 +127,7 @@ internal fun multiplyLinear(
     lhs: LinearFlattenDataF64,
     rhs: LinearFlattenDataF64
 ): QuadraticFlattenDataF64 {
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<UtilsQuadraticMonomial<F64>>()
 
     // m1 * m2 terms (quadratic)
     for (m1 in lhs.monomials) {
@@ -174,7 +174,7 @@ internal fun multiplyLinearQuadratic(
     linear: LinearFlattenDataF64,
     quadratic: QuadraticFlattenDataF64
 ): QuadraticFlattenDataF64 {
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<UtilsQuadraticMonomial<F64>>()
 
     // Linear monomials * Quadratic monomials -> Quadratic (cubic would require higher order)
     // Since we only support quadratic, this is handled differently
@@ -222,7 +222,7 @@ internal fun multiplyQuadratic(
 ): QuadraticFlattenDataF64 {
     // Quadratic * Quadratic is not fully supported
     // Only handle constant multiplication
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<UtilsQuadraticMonomial<F64>>()
 
     // lhs monomials * rhs constant
     if (rhs.constant neq Flt64.zero) {

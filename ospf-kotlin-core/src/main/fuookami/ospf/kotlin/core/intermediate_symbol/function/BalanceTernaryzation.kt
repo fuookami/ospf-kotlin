@@ -101,12 +101,12 @@ class BalanceTernaryzationFunction<T : Field<T>>(
          * Factory for Flt64-typed balance ternaryzation function.
          */
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             epsilon: Flt64 = Flt64(1e-6),
             extract: Boolean = true,
             name: String,
             displayName: String? = null
-        ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
+        ): BalanceTernaryzationFunction<F64> = BalanceTernaryzationFunction(
             x = x,
             epsilon = epsilon,
             extract = extract,
@@ -118,12 +118,12 @@ class BalanceTernaryzationFunction<T : Field<T>>(
          * Factory for Flt64-typed balance ternaryzation function with LinearMonomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             epsilon: Flt64 = Flt64(1e-6),
             extract: Boolean = true,
             name: String,
             displayName: String? = null
-        ): BalanceTernaryzationFunction<Flt64> = BalanceTernaryzationFunction(
+        ): BalanceTernaryzationFunction<F64> = BalanceTernaryzationFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             epsilon = epsilon,
             extract = extract,

@@ -127,12 +127,12 @@ class CeilingFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             d: Flt64 = Flt64.one,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): CeilingFunction<Flt64> = CeilingFunction(
+        ): CeilingFunction<F64> = CeilingFunction(
             x = x,
             d = d,
             epsilon = epsilon,
@@ -141,12 +141,12 @@ class CeilingFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             d: Flt64 = Flt64.one,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): CeilingFunction<Flt64> = CeilingFunction(
+        ): CeilingFunction<F64> = CeilingFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             d = d,
             epsilon = epsilon,

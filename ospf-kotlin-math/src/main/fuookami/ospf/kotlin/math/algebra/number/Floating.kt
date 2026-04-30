@@ -898,6 +898,8 @@ data object FltXJsonSerializer : KSerializer<FltX> {
  * Defines the ability to convert to BigDecimal.
  */
 interface FltXInterface {
+
+
     /**
      * 转换为 BigDecimal 值
      * Convert to BigDecimal value
@@ -906,6 +908,15 @@ interface FltXInterface {
      *         The BigDecimal value
      */
     fun toDecimal(): BigDecimal
+
+    /**
+     * 转换为 Double 值
+     * Convert to Double value
+     *
+     * @return Double 值
+     *         The Double value
+     */
+    fun toDouble(): Double
 }
 
 /**
@@ -1254,6 +1265,7 @@ value class FltX(internal val value: BigDecimal) :
     override fun toFlt64() = Flt64(value.toDouble())
     override fun toFltX() = copy()
 
+    override fun toDouble() = value.toDouble()
     override fun toDecimal() = value
 
     override fun floor(): FltX {

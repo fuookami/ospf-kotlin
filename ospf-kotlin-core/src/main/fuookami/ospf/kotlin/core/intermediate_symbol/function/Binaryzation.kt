@@ -144,7 +144,7 @@ class BinaryzationFunction<T : Field<T>>(
         private val BINARYZATION_PIECEWISE_THRESHOLD: Flt64 = Flt64(1e-5)
 
         operator fun invoke(
-            input: LinearPolynomial<Flt64>,
+            input: LinearPolynomial<F64>,
             threshold: Flt64 = Flt64.zero,
             bigM: Flt64? = null,
             method: BinaryzationMethod = BinaryzationMethod.BigM,
@@ -155,7 +155,7 @@ class BinaryzationFunction<T : Field<T>>(
         )
 
         fun withBigM(
-            input: LinearPolynomial<Flt64>,
+            input: LinearPolynomial<F64>,
             bigM: Flt64,
             name: String,
             displayName: String? = null
@@ -164,7 +164,7 @@ class BinaryzationFunction<T : Field<T>>(
         )
 
         fun withThreshold(
-            input: LinearPolynomial<Flt64>,
+            input: LinearPolynomial<F64>,
             threshold: Flt64,
             name: String,
             displayName: String? = null

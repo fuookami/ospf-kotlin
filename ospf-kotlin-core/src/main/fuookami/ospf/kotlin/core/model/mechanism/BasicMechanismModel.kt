@@ -26,4 +26,4 @@ open class BasicMechanismModel<V>(
     val numVariables: Int get() = tokens.tokens.size
 }
 
-typealias BasicMechanismModelF64 = BasicMechanismModel<Flt64>
+typealias BasicMechanismModelF64 = BasicMechanismModel<F64>

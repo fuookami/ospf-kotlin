@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.variable
+package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
@@ -71,8 +71,8 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 
     val range = Range(type, constants)
 
-    val lowerBound: Bound<Flt64>? get() = range.lowerBound?.toFlt64()
-    val upperBound: Bound<Flt64>? get() = range.upperBound?.toFlt64()
+    val lowerBound: Bound<F64>? get() = range.lowerBound?.toFlt64()
+    val upperBound: Bound<F64>? get() = range.upperBound?.toFlt64()
 
     val key get() = VariableItemKey(identifier, index)
 

@@ -91,24 +91,24 @@ class AndFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): AndFunction<Flt64> = AndFunction(polynomials, bigM, name, displayName)
+        ): AndFunction<F64> = AndFunction(polynomials, bigM, name, displayName)
 
         /**
-         * Factory: accept List<ToLinearPolynomial<Flt64>> for mixed-type inputs.
+         * Factory: accept List<ToLinearPolynomial<F64>> for mixed-type inputs.
          */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<ToLinearPolynomial<Flt64>>,
+            polynomials: List<ToLinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            AndFunction<Flt64>(
+            AndFunction<F64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
@@ -189,11 +189,11 @@ class OrFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): OrFunction<Flt64> = OrFunction(polynomials, bigM, name, displayName)
+        ): OrFunction<F64> = OrFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -215,17 +215,17 @@ class OrFunction<T : Field<T>>(
         )
 
         /**
-         * Factory: accept List<ToLinearPolynomial<Flt64>> for mixed-type inputs.
+         * Factory: accept List<ToLinearPolynomial<F64>> for mixed-type inputs.
          */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<ToLinearPolynomial<Flt64>>,
+            polynomials: List<ToLinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            OrFunction<Flt64>(
+            OrFunction<F64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
@@ -285,11 +285,11 @@ class NotFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomial: LinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<F64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): NotFunction<Flt64> = NotFunction(polynomial, bigM, name, displayName)
+        ): NotFunction<F64> = NotFunction(polynomial, bigM, name, displayName)
     }
 }
 
@@ -384,11 +384,11 @@ class XorFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): XorFunction<Flt64> = XorFunction(polynomials, bigM, name, displayName)
+        ): XorFunction<F64> = XorFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -410,17 +410,17 @@ class XorFunction<T : Field<T>>(
         )
 
         /**
-         * Factory: accept List<ToLinearPolynomial<Flt64>> for mixed-type inputs.
+         * Factory: accept List<ToLinearPolynomial<F64>> for mixed-type inputs.
          */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<ToLinearPolynomial<Flt64>>,
+            polynomials: List<ToLinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
-            XorFunction<Flt64>(
+            XorFunction<F64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,

@@ -1,6 +1,7 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenTableF64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -21,6 +22,9 @@ import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Math
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
+
+typealias UtilsLinearPolynomialF64 = UtilsLinearPolynomial<F64>
+typealias UtilsQuadraticPolynomialF64 = UtilsQuadraticPolynomial<F64>
 
 // ========== LinearInequality normalize extension ==========
 
@@ -43,175 +47,175 @@ fun MathQuadraticInequality.normalize(): MathQuadraticInequality {
 // ========== Utils LinearPolynomial DSL ==========
 
 // UtilsLinearPolynomial vs UtilsLinearPolynomial
-infix fun UtilsLinearPolynomial<Flt64>.eq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.eq(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.EQ)
 
-infix fun UtilsLinearPolynomial<Flt64>.le(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.le(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.LE)
 
-infix fun UtilsLinearPolynomial<Flt64>.ge(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.ge(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.GE)
 
-infix fun UtilsLinearPolynomial<Flt64>.lt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.lt(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.LT)
 
-infix fun UtilsLinearPolynomial<Flt64>.gt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.gt(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.GT)
 
-infix fun UtilsLinearPolynomial<Flt64>.ne(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.ne(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(this, rhs, Comparison.NE)
 
-infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this le rhs
-infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ge rhs
-infix fun UtilsLinearPolynomial<Flt64>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ne rhs
+infix fun UtilsLinearPolynomialF64.leq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this le rhs
+infix fun UtilsLinearPolynomialF64.geq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ge rhs
+infix fun UtilsLinearPolynomialF64.neq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ne rhs
 
 // UtilsLinearPolynomial vs Flt64
-infix fun UtilsLinearPolynomial<Flt64>.eq(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.eq(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.EQ)
 
-infix fun UtilsLinearPolynomial<Flt64>.le(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.le(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.LE)
 
-infix fun UtilsLinearPolynomial<Flt64>.ge(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.ge(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.GE)
 
-infix fun UtilsLinearPolynomial<Flt64>.lt(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.lt(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.LT)
 
-infix fun UtilsLinearPolynomial<Flt64>.gt(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.gt(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.GT)
 
-infix fun UtilsLinearPolynomial<Flt64>.ne(rhs: Flt64): MathLinearInequality =
+infix fun UtilsLinearPolynomialF64.ne(rhs: Flt64): MathLinearInequality =
     MathLinearInequality(this, UtilsLinearPolynomial(emptyList(), rhs), Comparison.NE)
 
-infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: Flt64): MathLinearInequality = this le rhs
-infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: Flt64): MathLinearInequality = this ge rhs
-infix fun UtilsLinearPolynomial<Flt64>.neq(rhs: Flt64): MathLinearInequality = this ne rhs
+infix fun UtilsLinearPolynomialF64.leq(rhs: Flt64): MathLinearInequality = this le rhs
+infix fun UtilsLinearPolynomialF64.geq(rhs: Flt64): MathLinearInequality = this ge rhs
+infix fun UtilsLinearPolynomialF64.neq(rhs: Flt64): MathLinearInequality = this ne rhs
 
 // Flt64 vs UtilsLinearPolynomial
-infix fun Flt64.eq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.eq(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.EQ)
 
-infix fun Flt64.le(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.le(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.LE)
 
-infix fun Flt64.ge(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.ge(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.GE)
 
-infix fun Flt64.lt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.lt(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.LT)
 
-infix fun Flt64.gt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.gt(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.GT)
 
-infix fun Flt64.ne(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality =
+infix fun Flt64.ne(rhs: UtilsLinearPolynomialF64): MathLinearInequality =
     MathLinearInequality(UtilsLinearPolynomial(emptyList(), this), rhs, Comparison.NE)
 
-infix fun Flt64.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this le rhs
-infix fun Flt64.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ge rhs
-infix fun Flt64.neq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ne rhs
+infix fun Flt64.leq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this le rhs
+infix fun Flt64.geq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ge rhs
+infix fun Flt64.neq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ne rhs
 
 // UtilsLinearPolynomial vs UtilsQuadraticPolynomial (produces quadratic)
-infix fun UtilsLinearPolynomial<Flt64>.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsLinearPolynomialF64.eq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.EQ)
 
-infix fun UtilsLinearPolynomial<Flt64>.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsLinearPolynomialF64.le(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.LE)
 
-infix fun UtilsLinearPolynomial<Flt64>.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsLinearPolynomialF64.ge(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.GE)
 
-infix fun UtilsLinearPolynomial<Flt64>.ne(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsLinearPolynomialF64.ne(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.NE)
 
-infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this le rhs
-infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
-infix fun UtilsLinearPolynomial<Flt64>.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+infix fun UtilsLinearPolynomialF64.leq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this le rhs
+infix fun UtilsLinearPolynomialF64.geq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ge rhs
+infix fun UtilsLinearPolynomialF64.neq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ne rhs
 
 // UtilsQuadraticPolynomial vs UtilsLinearPolynomial
-infix fun UtilsQuadraticPolynomial<Flt64>.eq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.eq(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.EQ)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.le(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.le(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.LE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ge(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ge(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.GE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ne(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ne(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.NE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this le rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.lt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.leq(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality = this le rhs
+infix fun UtilsQuadraticPolynomialF64.geq(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality = this ge rhs
+infix fun UtilsQuadraticPolynomialF64.neq(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality = this ne rhs
+infix fun UtilsQuadraticPolynomialF64.lt(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.LT)
-infix fun UtilsQuadraticPolynomial<Flt64>.gt(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.gt(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.GT)
-infix fun UtilsQuadraticPolynomial<Flt64>.ls(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this lt rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.gr(rhs: UtilsLinearPolynomial<Flt64>): MathQuadraticInequality = this gt rhs
+infix fun UtilsQuadraticPolynomialF64.ls(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality = this lt rhs
+infix fun UtilsQuadraticPolynomialF64.gr(rhs: UtilsLinearPolynomialF64): MathQuadraticInequality = this gt rhs
 
 // ========== Utils QuadraticPolynomial DSL ==========
 
 // UtilsQuadraticPolynomial vs UtilsQuadraticPolynomial
-infix fun UtilsQuadraticPolynomial<Flt64>.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.eq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.EQ)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.le(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.LE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ge(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.GE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.lt(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.lt(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.LT)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.gt(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.gt(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.GT)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ne(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ne(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(this, rhs, Comparison.NE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.leq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this le rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+infix fun UtilsQuadraticPolynomialF64.leq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this le rhs
+infix fun UtilsQuadraticPolynomialF64.geq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ge rhs
+infix fun UtilsQuadraticPolynomialF64.neq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ne rhs
 
 // UtilsQuadraticPolynomial vs Flt64
-infix fun UtilsQuadraticPolynomial<Flt64>.eq(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.eq(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.EQ)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.le(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.le(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.LE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ge(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ge(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.GE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.lt(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.lt(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.LT)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.gt(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.gt(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.GT)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.ne(rhs: Flt64): MathQuadraticInequality =
+infix fun UtilsQuadraticPolynomialF64.ne(rhs: Flt64): MathQuadraticInequality =
     MathQuadraticInequality(this, UtilsQuadraticPolynomial(emptyList(), rhs), Comparison.NE)
 
-infix fun UtilsQuadraticPolynomial<Flt64>.leq(rhs: Flt64): MathQuadraticInequality = this le rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.geq(rhs: Flt64): MathQuadraticInequality = this ge rhs
-infix fun UtilsQuadraticPolynomial<Flt64>.neq(rhs: Flt64): MathQuadraticInequality = this ne rhs
+infix fun UtilsQuadraticPolynomialF64.leq(rhs: Flt64): MathQuadraticInequality = this le rhs
+infix fun UtilsQuadraticPolynomialF64.geq(rhs: Flt64): MathQuadraticInequality = this ge rhs
+infix fun UtilsQuadraticPolynomialF64.neq(rhs: Flt64): MathQuadraticInequality = this ne rhs
 
 // Flt64 vs UtilsQuadraticPolynomial
-infix fun Flt64.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun Flt64.eq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(UtilsQuadraticPolynomial(emptyList(), this), rhs, Comparison.EQ)
 
-infix fun Flt64.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun Flt64.le(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(UtilsQuadraticPolynomial(emptyList(), this), rhs, Comparison.LE)
 
-infix fun Flt64.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun Flt64.ge(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(UtilsQuadraticPolynomial(emptyList(), this), rhs, Comparison.GE)
 
 // ========== Symbol DSL ==========
 
-private fun Symbol.asUtilsLinearPoly(): UtilsLinearPolynomial<Flt64> =
+private fun Symbol.asUtilsLinearPoly(): UtilsLinearPolynomialF64 =
     UtilsLinearPolynomial(listOf(UtilsLinearMonomial(Flt64.one, this)), Flt64.zero)
 
 // Symbol vs Flt64
@@ -297,40 +301,40 @@ infix fun Symbol.ls(rhs: Double): MathLinearInequality = this lt rhs
 infix fun Symbol.gr(rhs: Double): MathLinearInequality = this gt rhs
 
 // Symbol vs UtilsLinearPolynomial
-infix fun Symbol.eq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.EQ)
-infix fun Symbol.le(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.LE)
-infix fun Symbol.ge(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.GE)
-infix fun Symbol.lt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.LT)
-infix fun Symbol.gt(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.GT)
-infix fun Symbol.ne(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.NE)
+infix fun Symbol.eq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.EQ)
+infix fun Symbol.le(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.LE)
+infix fun Symbol.ge(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.GE)
+infix fun Symbol.lt(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.LT)
+infix fun Symbol.gt(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.GT)
+infix fun Symbol.ne(rhs: UtilsLinearPolynomialF64): MathLinearInequality = MathLinearInequality(asUtilsLinearPoly(), rhs, Comparison.NE)
 
-infix fun Symbol.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this le rhs
-infix fun Symbol.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ge rhs
-infix fun Symbol.neq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this ne rhs
-infix fun Symbol.ls(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this lt rhs
-infix fun Symbol.gr(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = this gt rhs
+infix fun Symbol.leq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this le rhs
+infix fun Symbol.geq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ge rhs
+infix fun Symbol.neq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this ne rhs
+infix fun Symbol.ls(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this lt rhs
+infix fun Symbol.gr(rhs: UtilsLinearPolynomialF64): MathLinearInequality = this gt rhs
 
 // UtilsLinearPolynomial vs Symbol
-infix fun UtilsLinearPolynomial<Flt64>.eq(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.EQ)
-infix fun UtilsLinearPolynomial<Flt64>.le(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.LE)
-infix fun UtilsLinearPolynomial<Flt64>.ge(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.GE)
-infix fun UtilsLinearPolynomial<Flt64>.lt(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.LT)
-infix fun UtilsLinearPolynomial<Flt64>.gt(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.GT)
-infix fun UtilsLinearPolynomial<Flt64>.ne(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.NE)
+infix fun UtilsLinearPolynomialF64.eq(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.EQ)
+infix fun UtilsLinearPolynomialF64.le(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.LE)
+infix fun UtilsLinearPolynomialF64.ge(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.GE)
+infix fun UtilsLinearPolynomialF64.lt(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.LT)
+infix fun UtilsLinearPolynomialF64.gt(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.GT)
+infix fun UtilsLinearPolynomialF64.ne(rhs: Symbol): MathLinearInequality = MathLinearInequality(this, rhs.asUtilsLinearPoly(), Comparison.NE)
 
-infix fun UtilsLinearPolynomial<Flt64>.leq(rhs: Symbol): MathLinearInequality = this le rhs
-infix fun UtilsLinearPolynomial<Flt64>.geq(rhs: Symbol): MathLinearInequality = this ge rhs
-infix fun UtilsLinearPolynomial<Flt64>.neq(rhs: Symbol): MathLinearInequality = this ne rhs
+infix fun UtilsLinearPolynomialF64.leq(rhs: Symbol): MathLinearInequality = this le rhs
+infix fun UtilsLinearPolynomialF64.geq(rhs: Symbol): MathLinearInequality = this ge rhs
+infix fun UtilsLinearPolynomialF64.neq(rhs: Symbol): MathLinearInequality = this ne rhs
 
 // Symbol vs UtilsQuadraticPolynomial
-infix fun Symbol.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
-infix fun Symbol.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-infix fun Symbol.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-infix fun Symbol.ne(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+infix fun Symbol.eq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
+infix fun Symbol.le(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+infix fun Symbol.ge(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+infix fun Symbol.ne(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = MathQuadraticInequality(asUtilsLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
 
-infix fun Symbol.leq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this le rhs
-infix fun Symbol.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ge rhs
-infix fun Symbol.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = this ne rhs
+infix fun Symbol.leq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this le rhs
+infix fun Symbol.geq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ge rhs
+infix fun Symbol.neq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = this ne rhs
 
 // ========== AbstractVariableItem DSL (delegates to Symbol) ==========
 
@@ -354,24 +358,24 @@ infix fun AbstractVariableItem<*, *>.ls(rhs: AbstractVariableItem<*, *>): MathLi
 infix fun AbstractVariableItem<*, *>.gr(rhs: AbstractVariableItem<*, *>): MathLinearInequality = (this as Symbol) gr (rhs as Symbol)
 
 // AbstractVariableItem vs UtilsLinearPolynomial
-infix fun AbstractVariableItem<*, *>.leq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) leq rhs
-infix fun AbstractVariableItem<*, *>.geq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) geq rhs
-infix fun AbstractVariableItem<*, *>.eq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) eq rhs
-infix fun AbstractVariableItem<*, *>.neq(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) neq rhs
-infix fun AbstractVariableItem<*, *>.ls(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) ls rhs
-infix fun AbstractVariableItem<*, *>.gr(rhs: UtilsLinearPolynomial<Flt64>): MathLinearInequality = (this as Symbol) gr rhs
+infix fun AbstractVariableItem<*, *>.leq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) leq rhs
+infix fun AbstractVariableItem<*, *>.geq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) geq rhs
+infix fun AbstractVariableItem<*, *>.eq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) eq rhs
+infix fun AbstractVariableItem<*, *>.neq(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) neq rhs
+infix fun AbstractVariableItem<*, *>.ls(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) ls rhs
+infix fun AbstractVariableItem<*, *>.gr(rhs: UtilsLinearPolynomialF64): MathLinearInequality = (this as Symbol) gr rhs
 
 // AbstractVariableItem vs UtilsQuadraticPolynomial
-infix fun AbstractVariableItem<*, *>.leq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) leq rhs
-infix fun AbstractVariableItem<*, *>.geq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) geq rhs
-infix fun AbstractVariableItem<*, *>.eq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) eq rhs
-infix fun AbstractVariableItem<*, *>.neq(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) neq rhs
-infix fun AbstractVariableItem<*, *>.ls(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun AbstractVariableItem<*, *>.leq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) leq rhs
+infix fun AbstractVariableItem<*, *>.geq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) geq rhs
+infix fun AbstractVariableItem<*, *>.eq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) eq rhs
+infix fun AbstractVariableItem<*, *>.neq(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) neq rhs
+infix fun AbstractVariableItem<*, *>.ls(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(UtilsQuadraticPolynomial(listOf(UtilsQuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.LT)
-infix fun AbstractVariableItem<*, *>.gr(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality =
+infix fun AbstractVariableItem<*, *>.gr(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality =
     MathQuadraticInequality(UtilsQuadraticPolynomial(listOf(UtilsQuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.GT)
-infix fun AbstractVariableItem<*, *>.le(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) le rhs
-infix fun AbstractVariableItem<*, *>.ge(rhs: UtilsQuadraticPolynomial<Flt64>): MathQuadraticInequality = (this as Symbol) ge rhs
+infix fun AbstractVariableItem<*, *>.le(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) le rhs
+infix fun AbstractVariableItem<*, *>.ge(rhs: UtilsQuadraticPolynomialF64): MathQuadraticInequality = (this as Symbol) ge rhs
 
 // ========== Symbol vs Boolean ==========
 
@@ -436,7 +440,7 @@ infix fun UInt64.geq(rhs: Symbol): MathLinearInequality = this.toFlt64() geq rhs
 // ========== LinearInequality to QuadraticConstraint direct conversion ==========
 
 fun MathLinearInequality.toQuadraticConstraint(
-    tokens: AbstractTokenTable<*>,
+    tokens: AbstractTokenTableF64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -455,7 +459,7 @@ fun MathLinearInequality.toQuadraticConstraint(
 // ========== Relation-based constraint creation ==========
 
 fun LinearRelation.toConstraint(
-    tokens: AbstractTokenTable<*>,
+    tokens: AbstractTokenTableF64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -465,7 +469,7 @@ fun LinearRelation.toConstraint(
 }
 
 fun QuadraticRelation.toConstraint(
-    tokens: AbstractTokenTable<*>,
+    tokens: AbstractTokenTableF64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -475,7 +479,7 @@ fun QuadraticRelation.toConstraint(
 }
 
 fun LinearRelation.toQuadraticConstraint(
-    tokens: AbstractTokenTable<*>,
+    tokens: AbstractTokenTableF64,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -489,3 +493,4 @@ fun LinearRelation.toQuadraticConstraint(
     val qRelation = QuadraticRelationImpl(qFlattenData, normalized.sign, normalized.name, normalized.displayName)
     return QuadraticConstraintImpl(qRelation, tokens, lazy, name, origin, from)
 }
+

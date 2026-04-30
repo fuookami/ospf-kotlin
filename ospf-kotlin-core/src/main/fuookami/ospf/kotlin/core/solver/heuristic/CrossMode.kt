@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.heuristic
+package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
@@ -17,7 +17,7 @@ interface CrossMode<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<F64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>>
@@ -27,7 +27,7 @@ class OneParentCrossMode<V> : CrossMode<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<F64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
@@ -41,7 +41,7 @@ class TwoParentCrossMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<F64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
@@ -91,12 +91,12 @@ class TwoParentCrossMode<V>(
 
 class MultiParentCrossMode<V>(
     val method: CrossMode.Method,
-    val parentAmountCalculator: (Iteration, List<Flt64>, ValueRange<UInt64>) -> UInt64
+    val parentAmountCalculator: (Iteration, List<F64>, ValueRange<UInt64>) -> UInt64
 ) : CrossMode<V> {
     companion object {
         operator fun <V> invoke(
             method: CrossMode.Method,
-            randomGenerator: Generator<Flt64>
+            randomGenerator: Generator<F64>
         ): MultiParentCrossMode<V> {
             return MultiParentCrossMode(method) { _, _, range ->
                 range.fixedValue
@@ -108,7 +108,7 @@ class MultiParentCrossMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<F64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {

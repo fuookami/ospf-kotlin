@@ -110,11 +110,11 @@ class MaxFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
+        ): MaxFunction<F64> = MaxFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -228,11 +228,11 @@ class MinFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<F64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
+        ): MinFunction<F64> = MinFunction(polynomials, bigM, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.

@@ -149,12 +149,12 @@ class SigmoidFunction<T : Field<T>>(
          * Factory for Flt64-typed sigmoid function using Full precision.
          */
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
             name: String,
             displayName: String? = null
-        ): SigmoidFunction<Flt64> = SigmoidFunction(
+        ): SigmoidFunction<F64> = SigmoidFunction(
             x = x,
             samplingPoints = samplingPoints(precision, decimalPrecision),
             name = name,
@@ -165,12 +165,12 @@ class SigmoidFunction<T : Field<T>>(
          * Factory for Flt64-typed sigmoid function with custom sampling points.
          */
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             precision: Precision = Precision.Full,
             decimalPrecision: Flt64 = Flt64(1e-5),
             name: String,
             displayName: String? = null
-        ): SigmoidFunction<Flt64> = SigmoidFunction(
+        ): SigmoidFunction<F64> = SigmoidFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = samplingPoints(precision, decimalPrecision),
             name = name,

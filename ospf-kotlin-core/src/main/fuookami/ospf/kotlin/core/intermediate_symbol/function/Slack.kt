@@ -101,7 +101,7 @@ class SlackFunction<T : Field<T>>(
         val yPoly = y.asFlt64Poly()
 
         if (!threshold) {
-            val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
+            val eqConstraint = LinearInequality<F64>(xPoly, yPoly, Comparison.EQ, name)
             when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
                 is Ok -> {}
                 is Failed -> return Failed(result.error)
@@ -110,7 +110,7 @@ class SlackFunction<T : Field<T>>(
         } else {
             if (withNegative && negVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
+                val constraint = LinearInequality<F64>(lhs, yPoly, Comparison.GE, "${name}_neg")
                 when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
@@ -118,7 +118,7 @@ class SlackFunction<T : Field<T>>(
                 }
             } else if (withPositive && posVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
+                val constraint = LinearInequality<F64>(lhs, yPoly, Comparison.LE, "${name}_pos")
                 when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
                     is Ok -> {}
                     is Failed -> return Failed(result.error)
@@ -129,7 +129,7 @@ class SlackFunction<T : Field<T>>(
         return ok
     }
 
-    val polyX: LinearPolynomial<Flt64> by lazy {
+    val polyX: LinearPolynomial<F64> by lazy {
         val xPoly = x.asFlt64Poly()
         var result = LinearPolynomial(xPoly.monomials.toMutableList(), xPoly.constant)
         if (withNegative && negVar != null) {
@@ -170,7 +170,7 @@ class SlackFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             threshold: Flt64,
             type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
             withPositive: Boolean = true,

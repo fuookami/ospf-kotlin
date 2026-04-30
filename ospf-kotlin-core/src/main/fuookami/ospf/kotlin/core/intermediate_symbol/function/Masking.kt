@@ -128,7 +128,7 @@ class MaskingFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            input: MathLinearPolynomial<Flt64>,
+            input: MathLinearPolynomial<F64>,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
@@ -138,7 +138,7 @@ class MaskingFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            input: MathLinearPolynomial<Flt64>,
+            input: MathLinearPolynomial<F64>,
             maskVarName: String,
             bigM: Flt64? = null,
             name: String,
@@ -171,12 +171,12 @@ class MaskingFunction<T : Field<T>>(
             )
         )
 
-        /** Factory: accept ToLinearPolynomial<Flt64> for both x and mask. */
+        /** Factory: accept ToLinearPolynomial<F64> for both x and mask. */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            x: ToLinearPolynomial<Flt64>,
-            mask: ToLinearPolynomial<Flt64>,
+            x: ToLinearPolynomial<F64>,
+            mask: ToLinearPolynomial<F64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -197,12 +197,12 @@ class MaskingFunction<T : Field<T>>(
  * standard Big-M masking constraints with m as the binary mask.
  */
 class MaskingWithPolyMaskFunction(
-    val input: MathLinearPolynomial<Flt64>,
-    val maskPoly: MathLinearPolynomial<Flt64>,
+    val input: MathLinearPolynomial<F64>,
+    val maskPoly: MathLinearPolynomial<F64>,
     bigM: Flt64? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbolF64, MathFunctionSymbol<Flt64> {
+) : LinearIntermediateSymbolF64, MathFunctionSymbol<F64> {
     private val bigM: Flt64 = bigM ?: Flt64(BIG_M_DEFAULT)
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
@@ -221,16 +221,16 @@ class MaskingWithPolyMaskFunction(
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+    override val range: ExpressionRange<F64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataF64 get() = LinearFlattenDataF64(emptyList(), Flt64.zero)
 
-    override val polynomial: MathLinearPolynomial<Flt64> get() = MathLinearPolynomial(emptyList(), Flt64.zero)
-    override fun asMutable(): MathMutableLinearPolynomial<Flt64> = MathMutableLinearPolynomial(emptyList(), Flt64.zero)
+    override val polynomial: MathLinearPolynomial<F64> get() = MathLinearPolynomial(emptyList(), Flt64.zero)
+    override fun asMutable(): MathMutableLinearPolynomial<F64> = MathMutableLinearPolynomial(emptyList(), Flt64.zero)
 
     override fun toMathLinearInequality(): MathLinearInequality {
         return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
@@ -241,15 +241,15 @@ class MaskingWithPolyMaskFunction(
     }
 
     override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<F64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<Flt64>).evaluate(values)
+        (this as MathFunctionSymbol<F64>).evaluate(values)
 
     // V-typed evaluate overrides (P4-5)
-    override fun evaluate(tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTableF64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableF64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
+    override fun evaluate(tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<F64>, tokenTable: AbstractTokenTableF64, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableF64?, converter: IntoValue<F64>, zeroIfNone: Boolean): Flt64? =
+        (this as MathFunctionSymbol<F64>).evaluate(values)?.let { converter.intoValue(it) }
 
     override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
         val maskValue = maskPoly.evaluate(values) ?: return Flt64.zero
@@ -411,7 +411,7 @@ class MaskingRangeFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            mask: MathLinearPolynomial<Flt64>,
+            mask: MathLinearPolynomial<F64>,
             lower: Flt64,
             upper: Flt64,
             name: String,

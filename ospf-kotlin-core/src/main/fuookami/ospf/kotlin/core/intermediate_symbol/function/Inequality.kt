@@ -200,13 +200,13 @@ class InequalityFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            lhs: LinearPolynomial<Flt64>,
+            lhs: LinearPolynomial<F64>,
             rhs: Flt64,
             sign: Comparison,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): InequalityFunction<Flt64> = InequalityFunction(
+        ): InequalityFunction<F64> = InequalityFunction(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
@@ -216,13 +216,13 @@ class InequalityFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            lhs: LinearMonomial<Flt64>,
+            lhs: LinearMonomial<F64>,
             rhs: Flt64,
             sign: Comparison,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): InequalityFunction<Flt64> = InequalityFunction(
+        ): InequalityFunction<F64> = InequalityFunction(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,

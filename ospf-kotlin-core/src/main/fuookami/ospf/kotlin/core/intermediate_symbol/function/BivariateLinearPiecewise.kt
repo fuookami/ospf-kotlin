@@ -142,7 +142,7 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
         val allConstraints = mutableListOf<MathLinearInequality>()
 
         // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
-        val xMonos = mutableListOf<LinearMonomial<Flt64>>()
+        val xMonos = mutableListOf<LinearMonomial<F64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -159,7 +159,7 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
         )
 
         // y constraint: y = sum over all triangles and vertices of (y_coord * lambda)
-        val yMonos = mutableListOf<LinearMonomial<Flt64>>()
+        val yMonos = mutableListOf<LinearMonomial<F64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -213,12 +213,12 @@ class BivariateLinearPiecewiseFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            y: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
+            y: LinearPolynomial<F64>,
             triangles: List<Triangle3>,
             name: String,
             displayName: String? = null
-        ): BivariateLinearPiecewiseFunction<Flt64> =
+        ): BivariateLinearPiecewiseFunction<F64> =
             BivariateLinearPiecewiseFunction(x, y, triangles, name, displayName)
     }
 }

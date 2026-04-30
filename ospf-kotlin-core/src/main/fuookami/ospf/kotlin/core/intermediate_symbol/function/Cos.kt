@@ -77,10 +77,10 @@ class CosFunction<T : Field<T>>(
          * Factory for Flt64-typed cosine function.
          */
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             name: String,
             displayName: String? = null
-        ): CosFunction<Flt64> = CosFunction(
+        ): CosFunction<F64> = CosFunction(
             x = x,
             samplingPoints = defaultPoints(),
             name = name,
@@ -91,10 +91,10 @@ class CosFunction<T : Field<T>>(
          * Factory for Flt64-typed cosine function with LinearMonomial input.
          */
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             name: String,
             displayName: String? = null
-        ): CosFunction<Flt64> = CosFunction(
+        ): CosFunction<F64> = CosFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = defaultPoints(),
             name = name,

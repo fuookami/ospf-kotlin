@@ -34,7 +34,7 @@ jobs:
         shell: pwsh
         run: ./ospf-kotlin-core/scripts/run-c7-regression.ps1
 
-      - name: Run C8 Guards
+      - name: Run C8 Guards (P6 Baseline)
         shell: pwsh
         run: |
           if ("${{ github.event_name }}" -eq "pull_request") {
@@ -42,4 +42,14 @@ jobs:
           } else {
             $baseRef = "HEAD~1"
           }
-          ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -BaseRef $baseRef
+          ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6 -BaseRef $baseRef
+
+      - name: Run P7 Guards (Whitelist)
+        shell: pwsh
+        run: |
+          if ("${{ github.event_name }}" -eq "pull_request") {
+            $baseRef = "${{ github.event.pull_request.base.sha }}"
+          } else {
+            $baseRef = "HEAD~1"
+          }
+          ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7 -BaseRef $baseRef

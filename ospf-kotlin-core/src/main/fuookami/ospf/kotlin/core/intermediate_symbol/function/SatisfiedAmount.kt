@@ -27,7 +27,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * If `amount` is set, adds constraint y >= amount (at least `amount` must be satisfied).
  */
 class SatisfiedAmountFunction<T : Field<T>>(
-    val inequalities: List<LinearInequality<Flt64>>,
+    val inequalities: List<LinearInequality<F64>>,
     val amount: UInt64? = null,
     val epsilon: Flt64 = Flt64(1e-6),
     val bigM: Flt64 = Flt64(BIG_M_DEFAULT),
@@ -91,7 +91,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
             is Fatal -> return Fatal(r.errors)
         }
 
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<F64>>()
         val mD = bigM.toDouble()
         val eps = epsilon.toDouble()
 
@@ -109,7 +109,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     // lhs - rhs <= M * (1 - u[i])
                     // => lhs - rhs + M*u[i] <= M
                     val monoWithU = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(monoWithU, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_le_ub_$i"
                     )
@@ -121,7 +121,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     // => rhs - lhs - M*u[i] <= -eps
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_le_lb_$i"
                     )
@@ -133,7 +133,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     // => rhs - lhs + M*u[i] <= M
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_ge_ub_$i"
                     )
@@ -141,7 +141,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     // lhs - rhs <= M * u[i] - eps
                     // => lhs - rhs - M*u[i] <= -eps
                     val monoWithU = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(monoWithU, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_ge_lb_$i"
                     )
@@ -150,26 +150,26 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     // When u[i]=1: lhs == rhs
                     // lhs - rhs <= M * (1 - u[i])  =>  lhs - rhs + M*u[i] <= M
                     val monoWithU1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(monoWithU1, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_eq_ub1_$i"
                     )
                     // lhs - rhs >= -M * (1 - u[i])  =>  lhs - rhs - M*u[i] >= -M
                     val monoWithU2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(monoWithU2, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(-mD)), Comparison.GE, "${name}_sat_eq_lb1_$i"
                     )
                     // When u[i]=0: lhs != rhs (at least eps away)
                     // lhs - rhs >= eps - M*u[i]  =>  lhs - rhs + M*u[i] >= eps
                     val relaxMono1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(relaxMono1, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(eps)), Comparison.GE, "${name}_sat_eq_ub2_$i"
                     )
                     // lhs - rhs <= -eps + M*u[i]  =>  lhs - rhs - M*u[i] <= -eps
                     val relaxMono2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<F64>(
                         LinearPolynomial(relaxMono2, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_eq_lb2_$i"
                     )
@@ -185,7 +185,7 @@ class SatisfiedAmountFunction<T : Field<T>>(
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(Flt64.one, it) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<F64>(
                 LinearPolynomial(sumMonos, Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64(amount.toInt().toDouble())),
                 Comparison.GE, "${name}_amount"
@@ -197,13 +197,13 @@ class SatisfiedAmountFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            inequalities: List<LinearInequality<Flt64>>,
+            inequalities: List<LinearInequality<F64>>,
             amount: UInt64? = null,
             epsilon: Flt64 = Flt64(1e-6),
             bigM: Flt64 = Flt64(BIG_M_DEFAULT),
             name: String,
             displayName: String? = null
-        ): SatisfiedAmountFunction<Flt64> = SatisfiedAmountFunction(
+        ): SatisfiedAmountFunction<F64> = SatisfiedAmountFunction(
             inequalities = inequalities,
             amount = amount,
             epsilon = epsilon,

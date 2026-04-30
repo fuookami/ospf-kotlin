@@ -23,7 +23,7 @@ interface IntoValue<V : RealNumber<V>> {
     fun intoValue(value: Flt64): V
 
     companion object {
-        val Flt64: IntoValue<Flt64> = object : IntoValue<Flt64> {
+        val Flt64: IntoValue<F64> = object : IntoValue<F64> {
             override fun intoValue(value: Flt64): Flt64 = value
         }
     }
@@ -47,7 +47,7 @@ interface SolveValue<V : RealNumber<V>> {
 /**
  * Flt64 SolveValue implementation — identity-like conversion.
  */
-object Flt64SolveValue : SolveValue<Flt64> {
+object Flt64SolveValue : SolveValue<F64> {
     override fun typeName(): String = "Flt64"
 
     override fun fromF64WithPolicy(value: Double, policy: SolveValueConversionPolicy): Try {

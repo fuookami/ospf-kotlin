@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.heuristic
+package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.math.functional.sum
@@ -9,11 +9,11 @@ interface ObjectiveNormalization<V> {
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>
-    ): List<Flt64>
+    ): List<F64>
 }
 
-data object MinMaxNormalization : ObjectiveNormalization<Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<Flt64>): List<Flt64> {
+data object MinMaxNormalization : ObjectiveNormalization<F64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<F64>): List<F64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         return if (model.compareObjective(minObj, maxObj) is Order.Less) {
@@ -24,8 +24,8 @@ data object MinMaxNormalization : ObjectiveNormalization<Flt64> {
     }
 }
 
-data object SumNormalization : ObjectiveNormalization<Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<Flt64>): List<Flt64> {
+data object SumNormalization : ObjectiveNormalization<F64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<F64>): List<F64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         val minMaxObjs = objs.map { (it - minObj) / (maxObj - minObj) }

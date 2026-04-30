@@ -55,7 +55,7 @@ object Quadratic : PolynomialKind
  */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: MathLinearInequality<V>)
 
-typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<Flt64>
+typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<F64>
 
 /**
  * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
@@ -63,7 +63,7 @@ typealias SymbolicLinearInequalityF64 = SymbolicLinearInequality<Flt64>
  */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: MathQuadraticInequalityOf<V>)
 
-typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<Flt64>
+typealias SymbolicQuadraticInequalityF64 = SymbolicQuadraticInequality<F64>
 
 // ========== Constraint<V, P> ==========
 
@@ -179,16 +179,14 @@ class LinearConstraintImpl(
     companion object {
         operator fun invoke(
             relation: LinearRelation,
-            tokens: AbstractTokenTable<*>,
+            tokens: AbstractTokenTableF64,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl {
-            @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTableF64
             val flattenData = relation.flattenData
-            val lhs = createLinearCells(flattenData.monomials, solverTokens)
+            val lhs = createLinearCells(flattenData.monomials, tokens)
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -223,16 +221,14 @@ class QuadraticConstraintImpl(
     companion object {
         operator fun invoke(
             relation: QuadraticRelation,
-            tokens: AbstractTokenTable<*>,
+            tokens: AbstractTokenTableF64,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl {
-            @Suppress("UNCHECKED_CAST")
-            val solverTokens = tokens as AbstractTokenTableF64
             val flattenData = relation.flattenData
-            val lhs = createQuadraticCells(flattenData.monomials, solverTokens)
+            val lhs = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -251,7 +247,7 @@ typealias LinearConstraint = Constraint<Flt64, Linear>
 typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
 
 internal fun <V> createLinearCells(
-    monomials: List<UtilsLinearMonomial<Flt64>>,
+    monomials: List<UtilsLinearMonomial<F64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<LinearCell<V>>()
@@ -266,7 +262,7 @@ internal fun <V> createLinearCells(
 }
 
 internal fun <V> createQuadraticCells(
-    monomials: List<UtilsQuadraticMonomial<Flt64>>,
+    monomials: List<UtilsQuadraticMonomial<F64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<QuadraticCell<V>>()

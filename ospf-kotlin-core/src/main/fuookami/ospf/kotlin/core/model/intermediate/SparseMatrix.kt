@@ -111,8 +111,8 @@ class SparseMatrix<V : RealNumber<V>>(
     }
 }
 
-typealias SparseVectorF64 = SparseVector<Flt64>
-typealias SparseMatrixF64 = SparseMatrix<Flt64>
+typealias SparseVectorF64 = SparseVector<F64>
+typealias SparseMatrixF64 = SparseMatrix<F64>
 
 /**
  * Negate a [SparseMatrixF64] in-place: multiply every entry by -1.

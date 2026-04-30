@@ -37,7 +37,7 @@ class IfInFunction<T : Field<T>>(
     val lby: AbstractVariableItem<*, *> = BinVar("${name}_lby")
     val uby: AbstractVariableItem<*, *> = BinVar("${name}_uby")
 
-    private val andFunc: AndFunction<Flt64> by lazy {
+    private val andFunc: AndFunction<F64> by lazy {
         AndFunction(
             listOf(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, lby)), Flt64.zero),
@@ -148,14 +148,14 @@ class IfInFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            lowerBound: LinearPolynomial<Flt64>,
-            upperBound: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
+            lowerBound: LinearPolynomial<F64>,
+            upperBound: LinearPolynomial<F64>,
             epsilon: Flt64 = Flt64(1e-6),
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfInFunction<Flt64> = IfInFunction(
+        ): IfInFunction<F64> = IfInFunction(
             x = x,
             lowerBound = lowerBound,
             upperBound = upperBound,

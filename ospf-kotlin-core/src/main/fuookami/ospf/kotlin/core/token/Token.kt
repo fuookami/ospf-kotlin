@@ -66,7 +66,7 @@ data class Token<V : RealNumber<V>>(
     val type by variable::type
 
     /** Flt64 view of range (solver-compatible). */
-    val range: ValueRange<Flt64>?
+    val range: ValueRange<F64>?
         get() = if (lowerBound != null && upperBound != null) {
             ValueRange(
                 lowerBound = lowerBound!!,

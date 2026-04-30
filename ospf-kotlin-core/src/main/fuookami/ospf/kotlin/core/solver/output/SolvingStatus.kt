@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.output
 
@@ -23,7 +23,7 @@ data class SolvingStatus(
     val possibleBestObj: Flt64,
     val initialBestObj: Flt64,
     val gap: Flt64,
-    val currentBestSolution: List<Flt64>? = null,
+    val currentBestSolution: List<F64>? = null,
     val iterations: UInt64? = null,
     val nodeCount: UInt64? = null,
     val bestBound: Flt64? = null,

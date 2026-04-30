@@ -170,12 +170,12 @@ class AbsFunction<T : Field<T>>(
 
     companion object {
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<F64>,
             extract: Boolean = true,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): AbsFunction<Flt64> = AbsFunction(
+        ): AbsFunction<F64> = AbsFunction(
             x = x,
             extract = extract,
             m = m,
@@ -184,12 +184,12 @@ class AbsFunction<T : Field<T>>(
         )
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
+            x: LinearMonomial<F64>,
             extract: Boolean = true,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): AbsFunction<Flt64> = AbsFunction(
+        ): AbsFunction<F64> = AbsFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             extract = extract,
             m = m,

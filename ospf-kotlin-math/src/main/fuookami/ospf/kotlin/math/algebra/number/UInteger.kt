@@ -621,6 +621,7 @@ value class UInt64(internal val value: ULong) : UIntegerNumberImpl<UInt64>, Copy
 
     fun toInt() = value.toInt()
     fun toLong() = value.toLong()
+    fun toULong() = value
 
     val indices get() = zero until this
 
