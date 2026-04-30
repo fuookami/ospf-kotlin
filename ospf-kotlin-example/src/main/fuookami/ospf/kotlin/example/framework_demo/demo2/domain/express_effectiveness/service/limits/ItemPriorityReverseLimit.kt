@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -20,8 +20,8 @@ class ItemPriorityReverseLimit(
     private val unloading: RelativeOrder,
     private val coefficient: (Pair<Position, Item>, Pair<Position, Item>) -> Flt64 = { _, _ -> Flt64.one },
     override val name: String = "item_priority_reverse_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.minimize(
             sum(orderedItems.flatMapIndexed { p1, (item1, item2) ->
                 orderedPositions.mapIndexed { p2, (position1, position2) ->

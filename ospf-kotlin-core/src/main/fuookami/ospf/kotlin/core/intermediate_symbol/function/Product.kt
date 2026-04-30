@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.core.intermediate_symbol.function
+﻿package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.AbstractSymbolCombination
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -81,7 +81,7 @@ class ProductFunction<V>(
         }
     }
 
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         @Suppress("UNCHECKED_CAST")
         val tt = tokenTable as AbstractTokenTableFlt64
         val tokenList = tt.tokenList
@@ -151,19 +151,19 @@ class ProductFunction<V>(
     @Suppress("UNCHECKED_CAST")
     override fun asMutable(): MathMutableQuadraticPolynomial<V> = MathMutableQuadraticPolynomial(emptyList(), Flt64.zero) as MathMutableQuadraticPolynomial<V>
 
-    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(left, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinear(right, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromResults(left, results, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromResults(right, results, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromValues(left, values, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromValues(right, values, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
@@ -172,22 +172,22 @@ class ProductFunction<V>(
     @Suppress("UNCHECKED_CAST")
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tt = tokenTable as AbstractTokenTableFlt64
-        val tokenList = tt.tokenList as AbstractTokenListF64
+        val tokenList = tt.tokenList as AbstractTokenListFlt64
         val result = evaluate(tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tt = tokenTable as AbstractTokenTableFlt64
-        val tokenList = tt.tokenList as AbstractTokenListF64
+        val tokenList = tt.tokenList as AbstractTokenListFlt64
         val result = evaluate(results, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tokenList = tokenTable?.let { (it as AbstractTokenTableFlt64).tokenList as AbstractTokenListF64 }
+    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val tokenList = tokenTable?.let { (it as AbstractTokenTableFlt64).tokenList as AbstractTokenListFlt64 }
         val result = evaluate(values, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
@@ -212,7 +212,7 @@ class ProductFunction<V>(
      * Register this product as a quadratic equality constraint: this = left * right.
      * Adds the constraint to the model via addConstraint.
      */
-    fun register(model: AbstractQuadraticMechanismModelF64): Try {
+    fun register(model: AbstractQuadraticMechanismModelFlt64): Try {
         val poly = toMathQuadraticPolynomial()
         val rhs = MathQuadraticPolynomial<Flt64>(constant = Flt64.zero)
         val inequality = MathQuadraticInequality(poly, rhs, Comparison.EQ)
@@ -222,7 +222,7 @@ class ProductFunction<V>(
     companion object {
         private fun evaluateLinear(
             poly: MathLinearPolynomial<Flt64>,
-            tokenList: AbstractTokenListF64,
+            tokenList: AbstractTokenListFlt64,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant
@@ -243,7 +243,7 @@ class ProductFunction<V>(
         private fun evaluateLinearFromResults(
             poly: MathLinearPolynomial<Flt64>,
             results: List<Flt64>,
-            tokenList: AbstractTokenListF64,
+            tokenList: AbstractTokenListFlt64,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant
@@ -266,7 +266,7 @@ class ProductFunction<V>(
         private fun evaluateLinearFromValues(
             poly: MathLinearPolynomial<Flt64>,
             values: Map<Symbol, Flt64>,
-            tokenList: AbstractTokenListF64?,
+            tokenList: AbstractTokenListFlt64?,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant

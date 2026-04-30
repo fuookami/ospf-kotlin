@@ -75,9 +75,9 @@ data object Demo13 {
 
     lateinit var trans: LinearIntermediateSymbols1Flt64
     lateinit var receive: LinearIntermediateSymbols1Flt64
-    lateinit var cost: LinearIntermediateSymbolF64
+    lateinit var cost: LinearIntermediateSymbolFlt64
 
-    val metaModel = LinearMetaModelF64("demo13")
+    val metaModel = LinearMetaModelFlt64("demo13")
 
     private val subProcesses = listOf(
         Demo13::initVariable,

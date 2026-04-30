@@ -21,8 +21,8 @@ class BiologicalAdjacentLimit(
     private val biologicalLimit: BiologicalLimit,
     private val stowage: Stowage,
     override val name: String = "biological_adjacent_limit"
-): Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+): Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((type1, type2) in biologicalLimit.adjacentLimit) {
             for ((i1, item1) in items.withIndex()) {
                 for (i2 in (i1 + 1) until items.size) {

@@ -39,7 +39,7 @@ class SP {
         products: List<Product>,
         shadowPrice: ShadowPriceMap
     ): Ret<CuttingPlan> {
-        val model = LinearMetaModelF64("demo1-sp-$iteration")
+        val model = LinearMetaModelFlt64("demo1-sp-$iteration")
 
         val y = UIntVariable1("y", Shape1(products.size))
         for (product in products) {
@@ -71,7 +71,7 @@ class SP {
         }
     }
 
-    private fun analyze(model: LinearMetaModelF64, products: List<Product>, result: List<Flt64>): CuttingPlan {
+    private fun analyze(model: LinearMetaModelFlt64, products: List<Product>, result: List<Flt64>): CuttingPlan {
         val cuttingPlan = HashMap<Product, UInt64>()
         for (token in model.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {

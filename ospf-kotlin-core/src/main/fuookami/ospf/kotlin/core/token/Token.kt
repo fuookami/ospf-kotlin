@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.token
+﻿package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableCombination
@@ -16,10 +16,10 @@ import kotlin.random.nextULong
  * Internal storage is Flt64? (solver backends always produce Flt64).
  * The primary `result` accessor returns V? by converting via the stored converter.
  * When V = Flt64, the conversion is identity (unchecked cast, zero overhead).
- * The `resultF64` accessor provides the raw Flt64? view for solver-internal use.
+ * The `resultFlt64` accessor provides the raw Flt64? view for solver-internal use.
  *
  * Dual-view pattern:
- *   - Flt64 view: `resultF64` (solver-compatible, internal)
+ *   - Flt64 view: `resultFlt64` (solver-compatible, internal)
  *   - V-typed view: `result` (type-safe, public API)
  */
 data class Token<V : RealNumber<V>>(
@@ -38,7 +38,7 @@ data class Token<V : RealNumber<V>>(
         }
 
     /** Flt64 view of result (solver-compatible, internal). */
-    val resultF64: Flt64? by ::_result
+    val resultFlt64: Flt64? by ::_result
     val doubleResult get() = _result?.toDouble()
 
     /**

@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variables: `q` (IntVar for quotient) and `r` (URealVar for remainder, -d/2 <= r < d/2)
- * - ConstraintF64: `x = d * q + r`
+ * - ConstraintFlt64: `x = d * q + r`
  * - The round result is `q`
  *
  * Note: Since URealVar is non-negative, we use two remainder variables or shift the
@@ -91,7 +91,7 @@ class RoundingFunction<T : Field<T>>(
         return Flt64(kotlin.math.round(doubleVal / dVal)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add helper variables to the model
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -104,7 +104,7 @@ class RoundingFunction<T : Field<T>>(
         val halfD = dVal / Flt64(2.0)
         val mVal = Flt64(1e6)
 
-        // ConstraintF64: x = d * q + r  =>  x eq (d*q + r)
+        // ConstraintFlt64: x = d * q + r  =>  x eq (d*q + r)
         val dqPoly = LinearPolynomial(listOf(LinearMonomial(dVal, qVar)), Flt64.zero)
         val rPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
         val rhs = LinearPolynomial(dqPoly.monomials + rPoly.monomials, dqPoly.constant + rPoly.constant)

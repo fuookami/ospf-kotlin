@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -96,7 +96,7 @@ class FirstFunction<T : Field<T>>(
         return tokens.add(_yVars.items)
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Register all binary functions (they register their own auxiliary tokens + constraints)
         for (binFunc in binaryFunctions) {
             when (val r = binFunc.register(model)) {

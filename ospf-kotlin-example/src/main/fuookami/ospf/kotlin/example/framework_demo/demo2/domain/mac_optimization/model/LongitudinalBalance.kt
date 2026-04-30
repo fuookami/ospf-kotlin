@@ -23,7 +23,7 @@ class LongitudinalBalance(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::slack.isInitialized) {
             slack = when (stowageMode) {

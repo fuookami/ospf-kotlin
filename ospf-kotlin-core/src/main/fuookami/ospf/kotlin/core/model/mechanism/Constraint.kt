@@ -1,14 +1,14 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
-import fuookami.ospf.kotlin.core.model.intermediate.CellF64
+import fuookami.ospf.kotlin.core.model.intermediate.CellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCellF64
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellF64
+import fuookami.ospf.kotlin.core.model.intermediate.LinearCellFlt64
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
@@ -68,20 +68,15 @@ typealias SymbolicQuadraticInequalityFlt64 = SymbolicQuadraticInequality<Flt64>
 // ========== Constraint<V, P> ==========
 
 /**
- * Generic constraint interface.
- * V is a real type parameter.
- * P is a type parameter tracking polynomial kind (Linear vs Quadratic).
- *
- * Dual-view pattern:
- *   - Flt64 view: `rhsFlt64` (solver-compatible, internal)
- *   - V-typed view: `rhs` (type-safe, public API)
+ * Generic constraint with typed public values and Flt64 solver values.
+ * 泛型约束：公开值使用 V，求解器边界值使用 Flt64。
  */
-interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
+interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : PolynomialKind {
     val lhs: List<Cell<V>>
     val sign: ConstraintRelation
-    /** V-typed rhs (primary public API). */
+    /** V-typed rhs for public callers. / 面向调用方的 V 类型右端项。 */
     val rhs: V
-    /** Flt64 view of rhs (solver-compatible, internal). */
+    /** Flt64 rhs for solver-boundary callers. / 面向求解器边界的 Flt64 右端项。 */
     val rhsFlt64: Flt64
     val lazy: Boolean
     val name: String
@@ -89,15 +84,15 @@ interface Constraint<V : RealNumber<V>, P : PolynomialKind> {
     val from: Pair<IntermediateSymbol<*>, Boolean>?
 }
 
-typealias ConstraintF64<P> = Constraint<Flt64, P>
+typealias ConstraintFlt64<P> = Constraint<Flt64, P>
 
-typealias DualSolution<P> = Map<ConstraintF64<P>, Flt64>
+typealias DualSolution<P> = Map<ConstraintFlt64<P>, Flt64>
 typealias LinearDualSolution = Map<LinearConstraint, Flt64>
 typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
 
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
-    val symbols: Map<IntermediateSymbol<*>, List<Pair<ConstraintF64<*>, Flt64>>>
+    val symbols: Map<IntermediateSymbol<*>, List<Pair<ConstraintFlt64<*>, Flt64>>>
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
@@ -128,7 +123,7 @@ fun QuadraticDualSolution.toMeta(): MetaDualSolution {
     )
 }
 
-sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
+sealed class ConstraintImpl<V, P : PolynomialKind>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
     private val _rhs: V,
@@ -137,11 +132,27 @@ sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
     override val name: String = "",
     override val origin: MathConstraint? = null,
     override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
-) : Constraint<V, P> {
+) : Constraint<V, P> where V : RealNumber<V>, V : NumberField<V> {
     override val rhs: V get() = _rhs
     override val rhsFlt64: Flt64 get() = _rhsFlt64
 
     fun isTrue(): Boolean? {
+        var lhsValue = _rhs - _rhs
+        for (cell in lhs) {
+            lhsValue += cell.evaluate() ?: return null
+        }
+        return sign(lhsValue, _rhs)
+    }
+
+    fun isTrue(results: List<V>): Boolean? {
+        var lhsValue = _rhs - _rhs
+        for (cell in lhs) {
+            lhsValue += cell.evaluate(results) ?: return null
+        }
+        return sign(lhsValue, _rhs)
+    }
+
+    fun isTrueFlt64(): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
             lhsValue += cell.evaluateFlt64() ?: return null
@@ -149,7 +160,7 @@ sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
         return sign(lhsValue, _rhsFlt64)
     }
 
-    fun isTrue(results: Solution): Boolean? {
+    fun isTrueFlt64(results: Solution): Boolean? {
         var lhsValue = Flt64.zero
         for (cell in lhs) {
             lhsValue += cell.evaluateFlt64(results) ?: return null
@@ -159,7 +170,7 @@ sealed class ConstraintImpl<V : RealNumber<V>, P : PolynomialKind>(
 }
 
 class LinearConstraintImpl(
-    override val lhs: List<LinearCellF64>,
+    override val lhs: List<LinearCellFlt64>,
     sign: ConstraintRelation,
     rhs: Flt64,
     lazy: Boolean = false,
@@ -201,7 +212,7 @@ class LinearConstraintImpl(
 }
 
 class QuadraticConstraintImpl(
-    override val lhs: List<QuadraticCellF64>,
+    override val lhs: List<QuadraticCellFlt64>,
     sign: ConstraintRelation,
     rhs: Flt64,
     lazy: Boolean = false,

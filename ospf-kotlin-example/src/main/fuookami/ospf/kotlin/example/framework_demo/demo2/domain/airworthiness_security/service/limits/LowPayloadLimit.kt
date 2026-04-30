@@ -14,8 +14,8 @@ class LowPayloadLimit(
     private val payload: Payload,
     private val minLowPayload: MinLowPayload,
     override val name: String = "low_payload_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.addConstraint(
             relation = payload.lowEstimatePayload.value geq minLowPayload.minLowPayload.value,
             name = name

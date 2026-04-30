@@ -31,7 +31,7 @@ class FlightLinkLimit(
     private val coefficient: (Link) -> Flt64,
     override val name: String = "flight_link_limit"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((k, _) in flightLink.links.withIndex()) {
             when (val result = model.addConstraint(
                 relation = flightLink.slack[k] geq Flt64.one,
@@ -100,7 +100,7 @@ class FlightLinkLimit(
 
     override fun refresh(
         map: ShadowPriceMap,
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup(this)) {

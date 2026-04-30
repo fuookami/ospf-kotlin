@@ -83,11 +83,11 @@ class RouteContext {
         return ok
     }
 
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         return aggregation.register(model)
     }
 
-    fun construct(model: LinearMetaModelF64): Try {
+    fun construct(model: LinearMetaModelFlt64): Try {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelinesRet = generator()) {
             is Failed -> {

@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * ConstraintF64 pattern:
+ * ConstraintFlt64 pattern:
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM constraints link each flag to its inequality
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)
@@ -84,7 +84,7 @@ class SameAsFunction<T : Field<T>>(
         return if (allSame) oneOf<T>() else zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)

@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sum
 
-interface Pipeline<in M : Model> : MetaConstraintGroup {
+interface Pipeline<in M : Model<*>> : MetaConstraintGroup {
     fun register(model: M) {
         if (model is MetaModel<*>) {
             model.registerConstraintGroup(this)
@@ -97,7 +97,7 @@ interface CGPipeline<
     }
 }
 
-interface HAPipeline<in M : Model> : Pipeline<M> {
+interface HAPipeline<in M : Model<*>> : Pipeline<M> {
     data class Obj(
         val tag: String,
         val value: Flt64
@@ -135,7 +135,7 @@ interface HAPipeline<in M : Model> : Pipeline<M> {
 
 typealias PipelineList<M> = List<Pipeline<M>>
 
-operator fun <M : Model> PipelineList<M>.invoke(model: M): Try {
+operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
     for (pipeline in this) {
         pipeline.register(model)
         when (val ret = pipeline(model)) {

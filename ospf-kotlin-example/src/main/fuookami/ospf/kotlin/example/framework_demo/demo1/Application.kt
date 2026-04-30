@@ -33,7 +33,7 @@ class SSP {
 
             is Ok -> {}
         }
-        val model = LinearMetaModelF64("demo1")
+        val model = LinearMetaModelFlt64("demo1")
         when (val result = construct(model)) {
             is Failed -> {
                 return Failed(result.error)
@@ -103,7 +103,7 @@ class SSP {
         return ok
     }
 
-    private fun construct(model: LinearMetaModelF64): Try {
+    private fun construct(model: LinearMetaModelFlt64): Try {
         when (val result = routeContext.register(model)) {
             is Failed -> {
                 return Failed(result.error)
@@ -153,7 +153,7 @@ class SSP {
         return ok
     }
 
-    private suspend fun solve(metaModel: LinearMetaModelF64): Ret<List<Flt64>> {
+    private suspend fun solve(metaModel: LinearMetaModelFlt64): Ret<List<Flt64>> {
         val solver = ScipLinearSolver()
         return when (val ret = solver(metaModel)) {
             is Ok -> {

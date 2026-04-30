@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
@@ -19,7 +19,7 @@ class PassengerFlightCapacityConstraint(
     private val capacity: FlightCapacity,
     override val name: String = "passenger_flight_capacity_constraint"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (flight in flights) {
             for (cls in PassengerClass.entries) {
                 when (val result = model.addConstraint(

@@ -65,11 +65,11 @@ data object Demo2 {
     )
 
     private lateinit var x: BinVariable2
-    private lateinit var cost: LinearExpressionSymbolF64
+    private lateinit var cost: LinearExpressionSymbolFlt64
     private lateinit var assignmentCompany: LinearExpressionSymbols1Flt64
     private lateinit var assignmentProduct: LinearExpressionSymbols1Flt64
 
-    private val metaModel = LinearMetaModelF64("demo2")
+    private val metaModel = LinearMetaModelFlt64("demo2")
 
     private val subProcesses = listOf(
         Demo2::initVariable,

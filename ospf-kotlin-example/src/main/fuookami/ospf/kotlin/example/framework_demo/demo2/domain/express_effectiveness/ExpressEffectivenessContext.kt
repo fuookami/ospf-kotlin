@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -52,7 +52,7 @@ class ExpressEffectivenessContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -105,19 +105,19 @@ class ExpressEffectivenessContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")

@@ -14,7 +14,7 @@ class Aggregation(
     val services: List<Service>,
     val assignment: Assignment
 ) {
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf assignment.register(model) }
         )

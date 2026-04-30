@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -21,8 +21,8 @@ class SameDestinationAdjacent(
     private val loading: TransferAdjacentLoading,
     private val coefficient: (IATA, Position, Position) -> Flt64 = { _, _, _ -> Flt64.one },
     override val name: String = "same_destination_adjacent_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.maximize(
             sum(destinations.flatMapIndexed { d, destination ->
                 adjacentPositions.mapIndexed { p, (position1, position2) ->

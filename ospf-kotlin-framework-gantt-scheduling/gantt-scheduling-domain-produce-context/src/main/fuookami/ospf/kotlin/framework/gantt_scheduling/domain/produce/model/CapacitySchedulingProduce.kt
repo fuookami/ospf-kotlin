@@ -1,10 +1,10 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -69,13 +69,13 @@ abstract class CapacitySchedulingProduce<
      * 注册变量到模�?
      * Register variables to model
      */
-    abstract fun register(model: LinearMetaModelF64): Try
+    abstract fun register(model: LinearMetaModelFlt64): Try
 
     /**
      * �?quantity 变量添加到模�?
      * Add quantity variables to model
      */
-    protected fun addQuantityToModel(model: LinearMetaModelF64): Try {
+    protected fun addQuantityToModel(model: LinearMetaModelFlt64): Try {
         if (products.isNotEmpty()) {
             when (val result = model.add(quantity)) {
                 is Ok -> {}

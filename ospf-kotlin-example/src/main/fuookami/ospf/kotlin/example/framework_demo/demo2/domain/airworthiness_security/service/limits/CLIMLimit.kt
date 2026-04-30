@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -17,8 +17,8 @@ class CLIMLimit(
     private val torque: Torque,
     private val maxCLIM: MaxCLIM,
     override val name: String = "max_clim_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val upper = MutableLinearPolynomial()
         upper += LinearMonomial(Flt64.one, torque.clim.value)
         upper += LinearMonomial(-Flt64.one, maxCLIM.maxCLIM.value)

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -19,8 +19,8 @@ class AdviceLoadAmountLimit(
     private val loading: AdviceLoading,
     private val coefficient: (Position) -> Flt64 = { Flt64.one },
     override val name: String = "advice_load_amount_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.minimize(
             sum(positions.mapIndexedNotNull { j, position ->
                 if (position.ala != null) {

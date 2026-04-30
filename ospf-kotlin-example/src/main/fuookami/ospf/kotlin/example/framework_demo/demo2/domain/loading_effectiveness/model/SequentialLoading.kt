@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -36,7 +36,7 @@ class SequentialLoading(
     lateinit var itemOrderReverse: LinearIntermediateSymbols2Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::itemOrderReverse.isInitialized) {
             itemOrderReverse = LinearIntermediateSymbols2Flt64("item_order_reverse", Shape2(orderedItems.size, orderedPositions.size)) { _, v ->

@@ -1,11 +1,11 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
@@ -205,7 +205,7 @@ class TaskSchedulingExecutionResourceUsage<
 
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -256,7 +256,7 @@ class BunchSchedulingExecutionResourceUsage<
 
     override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (timeSlots.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = LinearExpressionSymbols1<Flt64>(

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.expression.flatten
+﻿package fuookami.ospf.kotlin.core.expression.flatten
 
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
@@ -75,7 +75,7 @@ class FlattenUtilityTest {
             constant = Flt64(2.0)
         )
 
-        val result = mergeLinearFlattenDataF64(listOf(data1, data2))
+        val result = mergeLinearFlattenDataFlt64(listOf(data1, data2))
 
         assertEquals(2, result.monomials.size, "Should have 2 unique variables")
         assertTrue(result.constant eq Flt64(3.0), "Constant should be 1.0 + 2.0 = 3.0")
@@ -133,7 +133,7 @@ class FlattenUtilityTest {
             constant = Flt64(2.0)
         )
 
-        val result = mergeQuadraticFlattenDataF64(listOf(data1, data2))
+        val result = mergeQuadraticFlattenDataFlt64(listOf(data1, data2))
 
         assertEquals(1, result.monomials.size, "Symmetric terms should be merged")
         assertTrue(result.constant eq Flt64(3.0), "Constant should be 1.0 + 2.0 = 3.0")

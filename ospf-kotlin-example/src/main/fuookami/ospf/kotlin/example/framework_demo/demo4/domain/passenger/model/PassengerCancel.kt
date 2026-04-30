@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
@@ -15,7 +15,7 @@ class PassengerCancel(
 ) {
     lateinit var passengerCancel: UIntVariable1
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (!::passengerCancel.isInitialized) {
             passengerCancel = UIntVariable1(
                 "passenger_cancel",

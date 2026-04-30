@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -106,7 +106,7 @@ interface ResourceUsage<
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: MetaModelF64): Try
+    fun register(model: MetaModelFlt64): Try
 }
 
 abstract class AbstractResourceUsage<
@@ -117,7 +117,7 @@ abstract class AbstractResourceUsage<
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {

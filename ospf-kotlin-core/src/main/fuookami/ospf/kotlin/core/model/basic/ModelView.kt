@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.model.basic
+﻿package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -12,7 +12,7 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
-typealias OriginConstraint<P> = fuookami.ospf.kotlin.core.model.mechanism.ConstraintF64<P>
+typealias OriginConstraint<P> = fuookami.ospf.kotlin.core.model.mechanism.ConstraintFlt64<P>
 
 data class VariableSlack(
     val constraint: OriginConstraint<*>? = null,
@@ -131,11 +131,11 @@ abstract class ModelConstraint<ConCell>(
     }
 }
 
-class Objective<CellF64 : Copyable<CellF64>>(
+class Objective<CellFlt64 : Copyable<CellFlt64>>(
     val category: ObjectCategory,
-    val objective: List<CellF64>,
+    val objective: List<CellFlt64>,
     val constant: Flt64 = Flt64(0.0)
-) : Cloneable, Copyable<Objective<CellF64>> {
+) : Cloneable, Copyable<Objective<CellFlt64>> {
     override fun copy() = Objective(category, objective.toList())
     override fun clone() = copy()
 }

@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
@@ -26,7 +26,7 @@ class ProduceQuantityMinimization<
     private val coefficient: (P) -> Flt64 = { Flt64.one },
     override val name: String = "produce_quantity_minimization"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
         for (product in products) {
             val thresholdValue = threshold(product)

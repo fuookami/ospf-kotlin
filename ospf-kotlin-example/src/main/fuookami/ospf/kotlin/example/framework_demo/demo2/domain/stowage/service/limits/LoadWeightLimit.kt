@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,8 +14,8 @@ class LoadWeightLimit(
     private val load: Load,
     private val maxLoadWeight: MaxLoadWeight,
     override val name: String = "load_weight_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((j, position) in positions.withIndex()) {
             if (position.status.available) {
                 when (val result = model.addConstraint(

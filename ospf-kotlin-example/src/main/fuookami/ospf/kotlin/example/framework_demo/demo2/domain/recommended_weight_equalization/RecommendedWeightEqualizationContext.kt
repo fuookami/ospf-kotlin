@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -51,7 +51,7 @@ class RecommendedWeightEqualizationContext {
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         val generator = PipelineListGenerator(aggregation)
         val pipelines = when (val result = generator.invoke(
@@ -88,19 +88,19 @@ class RecommendedWeightEqualizationContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")

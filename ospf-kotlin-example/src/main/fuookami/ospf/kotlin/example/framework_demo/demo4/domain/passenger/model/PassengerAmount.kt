@@ -20,9 +20,9 @@ class PassengerAmount(
     private val cancel: PassengerCancel,
     private val change: PassengerChange
 ) {
-    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbolF64>>
+    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbolFlt64>>
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (!::passengerAmount.isInitialized) {
             passengerAmount = flights.associateWith { flight ->
                 PassengerClass.entries.associateWith { cls ->

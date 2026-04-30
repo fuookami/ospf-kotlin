@@ -39,11 +39,11 @@ data object Demo1 {
     private val maxLiability = Flt64(5.0)
 
     private lateinit var x: BinVariable1
-    private lateinit var capital: LinearExpressionSymbolF64
-    private lateinit var liability: LinearExpressionSymbolF64
-    private lateinit var profit: LinearExpressionSymbolF64
+    private lateinit var capital: LinearExpressionSymbolFlt64
+    private lateinit var liability: LinearExpressionSymbolFlt64
+    private lateinit var profit: LinearExpressionSymbolFlt64
 
-    private val metaModel = LinearMetaModelF64("demo1")
+    private val metaModel = LinearMetaModelFlt64("demo1")
 
     private val subProcesses = listOf(
         Demo1::initVariable,

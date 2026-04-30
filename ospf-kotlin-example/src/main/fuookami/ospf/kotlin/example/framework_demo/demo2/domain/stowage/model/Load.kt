@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+ï»¿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -44,7 +44,7 @@ class Load(
     lateinit var loadCLIM: QuantityLinearIntermediateSymbols1Flt64
     lateinit var loadIndex: QuantityLinearIntermediateSymbols1Flt64
 
-    fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbolF64 {
+    fun loadAmountOf(position: Position, predicate: (Item) -> Boolean): LinearIntermediateSymbolFlt64 {
         val j = positions.indexOf(position)
         val poly = sum(items.mapIndexedNotNull { i, item ->
             if (predicate(item)) {
@@ -60,7 +60,7 @@ class Load(
     }
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::y.isInitialized) {
             y = QuantityURealVariable1("y", Shape1(positions.size), aircraftModel.weightUnit)
@@ -121,7 +121,7 @@ class Load(
                 val position = positions[j]
                 Quantity(
                     if (position.status.predicateWeightNeeded) {
-                        // ÐèÒªÔ¤¼ÆÖØÁ¿µÄ²ÕÎ»£¬×î´óÔØÁ¿Ò»¶¨ÊÇ 1£¬ËùÒÔËüµÄ×°ÔØÁ¿Ò»¶¨ÊÇ¶þÔªÖµ£¨0 »ò 1£©
+                        // ï¿½ï¿½ÒªÔ¤ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ä²ï¿½Î»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½ï¿½ 1ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½Ò»ï¿½ï¿½ï¿½Ç¶ï¿½ÔªÖµï¿½ï¿½0 ï¿½ï¿½ 1ï¿½ï¿½
                         assert(position.mla eq UInt64.one)
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
                             SlackRangeFunction(
@@ -289,7 +289,7 @@ class Load(
             estimateLoaded = LinearIntermediateSymbols1Flt64("estimate_loaded", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.status.available) {
-                    val loadedItem: LinearIntermediateSymbolF64 = if (position.mla eq UInt64.one) {
+                    val loadedItem: LinearIntermediateSymbolFlt64 = if (position.mla eq UInt64.one) {
                         LinearExpressionSymbol(
                             loadAmount[j],
                             name = "estimate_loaded_item_${position}"
@@ -316,7 +316,7 @@ class Load(
                     } else {
                         null
                     }
-                    val symbols: List<LinearIntermediateSymbolF64> = listOfNotNull(
+                    val symbols: List<LinearIntermediateSymbolFlt64> = listOfNotNull(
                         loadedItem,
                         withPredicateLoadWeight,
                         withRecommendLoadWeight

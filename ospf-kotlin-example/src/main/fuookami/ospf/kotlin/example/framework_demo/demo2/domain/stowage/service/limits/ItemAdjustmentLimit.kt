@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -17,8 +17,8 @@ class ItemAdjustmentLimit(
     private val items: List<Item>,
     private val stowage: Stowage,
     override val name: String = "item_adjustment_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((i, item) in items.withIndex()) {
             when (item.status) {
                 ItemStatus.AdjustmentNeeded -> {

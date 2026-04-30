@@ -1,4 +1,4 @@
-@file:Suppress("unused", "DEPRECATION")
+﻿@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -7,9 +7,9 @@ import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
@@ -19,18 +19,19 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadra
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
+import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
 typealias Solution = List<Flt64>
 
-interface Model : AddableTokenCollectionFlt64 {
+interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory
 
     fun remove(item: AbstractVariableItem<*, *>)
@@ -171,12 +172,12 @@ interface Model : AddableTokenCollectionFlt64 {
         )
     }
 
-    fun setSolution(solution: Solution)
-    fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>)
+    fun setSolution(solution: List<V>)
+    fun setSolution(solution: Map<AbstractVariableItem<*, *>, V>)
     fun clearSolution()
 }
 
-interface LinearModel : Model {
+interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean = false,
@@ -297,7 +298,7 @@ interface LinearModel : Model {
     }
 
     fun minimize(
-        symbol: LinearIntermediateSymbolF64,
+        symbol: LinearIntermediateSymbolFlt64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -310,7 +311,7 @@ interface LinearModel : Model {
     }
 
     fun maximize(
-        symbol: LinearIntermediateSymbolF64,
+        symbol: LinearIntermediateSymbolFlt64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -351,7 +352,7 @@ interface LinearModel : Model {
     }
 }
 
-interface QuadraticModel : LinearModel {
+interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
      * Add constraint using math QuadraticInequality
      */
@@ -456,7 +457,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun minimize(
-        symbol: QuadraticIntermediateSymbolF64,
+        symbol: QuadraticIntermediateSymbolFlt64,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -469,7 +470,7 @@ interface QuadraticModel : LinearModel {
     }
 
     fun maximize(
-        symbol: QuadraticIntermediateSymbolF64,
+        symbol: QuadraticIntermediateSymbolFlt64,
         name: String? = null,
         displayName: String? = null
     ): Try {

@@ -1,9 +1,9 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
@@ -37,7 +37,7 @@ class ResourceLessQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         if (slots.isNotEmpty()) {
             val cost = MutableLinearPolynomial(constant = Flt64.zero)
             for (slot in slots) {

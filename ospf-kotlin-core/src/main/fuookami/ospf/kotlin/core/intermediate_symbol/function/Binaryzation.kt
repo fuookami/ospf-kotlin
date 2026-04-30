@@ -1,13 +1,13 @@
-@file:Suppress("unused", "DEPRECATION")
+﻿@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -76,7 +76,7 @@ class BinaryzationFunction<T : Field<T>>(
         return if (isTrue) oneOf() else zeroOf()
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
@@ -178,7 +178,7 @@ class BinaryzationFunction<T : Field<T>>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbolF64,
+            x: LinearIntermediateSymbolFlt64,
             threshold: Flt64 = Flt64.zero,
             bigM: Flt64? = null,
             method: BinaryzationMethod = BinaryzationMethod.BigM,

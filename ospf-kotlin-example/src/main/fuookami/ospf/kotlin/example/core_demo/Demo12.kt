@@ -44,10 +44,10 @@ data object Demo12 {
 
     lateinit var assignment: LinearIntermediateSymbols1Flt64
     lateinit var premium: LinearIntermediateSymbols1Flt64
-    lateinit var risk: LinearExpressionSymbolF64
-    lateinit var yield: LinearIntermediateSymbolF64
+    lateinit var risk: LinearExpressionSymbolFlt64
+    lateinit var yield: LinearIntermediateSymbolFlt64
 
-    val metaModel = LinearMetaModelF64("demo12")
+    val metaModel = LinearMetaModelFlt64("demo12")
 
     private val subProcesses = listOf(
         Demo12::initVariable,

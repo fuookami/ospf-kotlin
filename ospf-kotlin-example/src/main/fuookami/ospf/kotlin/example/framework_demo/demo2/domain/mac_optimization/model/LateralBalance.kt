@@ -23,7 +23,7 @@ class LateralBalance(
     lateinit var slack: QuantityLinearIntermediateSymbol
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::slack.isInitialized) {
             slack = Quantity(

@@ -17,7 +17,7 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
     override lateinit var aggregation: Aggregation
     override lateinit var pipelineList: CGPipelineList
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         pipelineList = when (val result = PipelineListGenerator(aggregation)()) {
             is Ok -> {
                 result.value
@@ -39,7 +39,7 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         fixedBunches: Set<FlightTaskBunch>,
         hiddenExecutors: Set<Aircraft>,
         shadowPriceMap: Map,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<Set<Aircraft>> {
         TODO("Not yet implemented")
     }

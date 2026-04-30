@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -16,8 +16,8 @@ class RedundancyLimit(
     private val redundancy: Redundancy,
     private val coefficient: () -> Flt64,
     override val name: String = "redundancy"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.minimize(
             coefficient() * redundancy.redundancySlack,
             "redundancy"

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -19,8 +19,8 @@ class LateralBalanceLimit(
     private val lateralBalance: LateralBalance,
     private val coefficient: () -> Flt64,
     override val name: String = "longitudinal_balance_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val poly = MutableLinearPolynomial()
         poly += LinearMonomial(
             coefficient(),

@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -24,9 +24,9 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variable `y` (URealVar for output) and `u` (BinVar for activation)
- * - ConstraintF64: `y >= x`        (lower bound: y covers x)
- * - ConstraintF64: `y <= x + M*u`  (upper bound via BigM)
- * - ConstraintF64: `y <= M*(1-u)`  (activation: if u=1, y must be 0; if u=0, y can be nonzero)
+ * - ConstraintFlt64: `y >= x`        (lower bound: y covers x)
+ * - ConstraintFlt64: `y <= x + M*u`  (upper bound via BigM)
+ * - ConstraintFlt64: `y <= M*(1-u)`  (activation: if u=1, y must be 0; if u=0, y can be nonzero)
  *
  * When `u=0`: y >= x, y <= x, y <= M  => y = x (active, y takes the value of x)
  * When `u=1`: y >= x, y <= x+M, y <= 0 => y = 0 (inactive, y is forced to 0)
@@ -69,7 +69,7 @@ class SemiFunction<T : Field<T>>(
         return Flt64(kotlin.math.abs(doubleVal)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add helper variables to the model
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -83,7 +83,7 @@ class SemiFunction<T : Field<T>>(
         // y polynomial
         val yPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, yVar)), Flt64.zero)
 
-        // ConstraintF64 1: y >= x  =>  y - x >= 0  =>  y geq x
+        // ConstraintFlt64 1: y >= x  =>  y - x >= 0  =>  y geq x
         val geqConstraint = LinearInequality<Flt64>(yPoly, xPoly, Comparison.GE, "${name}_geq_x")
         when (val result = model.addConstraint(relation = geqConstraint, name = geqConstraint.name)) {
             is Ok -> {}
@@ -91,7 +91,7 @@ class SemiFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // ConstraintF64 2: y <= x + M*u  =>  y - x - M*u <= 0
+        // ConstraintFlt64 2: y <= x + M*u  =>  y - x - M*u <= 0
         val upperLhs = LinearPolynomial(
             yPoly.monomials + xPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(-mVal, uVar),
@@ -105,7 +105,7 @@ class SemiFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // ConstraintF64 3: y <= M*(1-u)  =>  y + M*u <= M
+        // ConstraintFlt64 3: y <= M*(1-u)  =>  y + M*u <= M
         val activationLhs = LinearPolynomial(
             listOf(
                 LinearMonomial(Flt64.one, yVar),

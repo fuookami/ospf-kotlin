@@ -23,7 +23,7 @@ class ServiceBandwidth(
     lateinit var outDegree: LinearIntermediateSymbols2Flt64
     lateinit var outFlow: LinearIntermediateSymbols2Flt64
 
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         val y = edgeBandwidth.y
         val to: (Node) -> Predicate<Edge> =
             { fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.to(it) }

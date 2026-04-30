@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
@@ -28,7 +28,7 @@ class PassengerChange(
     lateinit var passengerClassChange: Map<FlightPassenger, Map<PassengerClass, UIntVar>>
     lateinit var passengerFlightChange: Map<FlightPassenger, Map<FlightTask, Map<PassengerClass, UIntVar>>>
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (!::passengerClassChange.isInitialized) {
             passengerClassChange = passengers.associateWith { passenger ->
                 PassengerClass.entries.filter { it != passenger.cls }.associateWith { cls ->

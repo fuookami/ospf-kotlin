@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
+ï»¿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -21,12 +21,12 @@ class ItemPriorityLimit(
     private val stowage: Stowage,
     private val coefficient: (Item) -> Flt64 = { Flt64.one },
     override val name: String = "item_priority_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.maximize(
             sum(items.flatMapIndexed { i, item ->
                 positions.mapIndexed { j, position ->
-                    // Êµ¼ÊµÄ½±ÀøÏµÊý=»ù±¾½±ÀøÏµÊý*Æ¥Åä¶È
+                    // Êµï¿½ÊµÄ½ï¿½ï¿½ï¿½Ïµï¿½ï¿½=ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ïµï¿½ï¿½*Æ¥ï¿½ï¿½ï¿½
                     coefficient(item) * unloading(item.cargo.priority, position) * stowage.stowage[i, j]
                 }
             }),

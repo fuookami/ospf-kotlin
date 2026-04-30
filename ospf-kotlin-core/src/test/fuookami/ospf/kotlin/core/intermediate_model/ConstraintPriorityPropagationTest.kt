@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -10,8 +10,8 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldKeepPriorityThroughCopyAndFilter() {
         val constraint = LinearConstraintBatch(
-            sparseLhs = SparseMatrixF64().also { mat ->
-                val sv = SparseVectorF64()
+            sparseLhs = SparseMatrixFlt64().also { mat ->
+                val sv = SparseVectorFlt64()
                 sv.add(0, Flt64.one)
                 mat.addRow(sv)
             },
@@ -30,8 +30,8 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldUseNullPriorityAsDefault() {
         val constraint = LinearConstraintBatch(
-            sparseLhs = SparseMatrixF64().also { mat ->
-                val sv = SparseVectorF64()
+            sparseLhs = SparseMatrixFlt64().also { mat ->
+                val sv = SparseVectorFlt64()
                 sv.add(0, Flt64.one)
                 mat.addRow(sv)
             },

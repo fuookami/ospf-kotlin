@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,8 +18,8 @@ class ItemReweighNeededLimit(
     private val stowage: Stowage,
     private val coefficient: (Item) -> Flt64 = { Flt64.one },
     override val name: String = "item_reweigh_needed_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.minimize(
             sum(items.mapIndexedNotNull { i, item ->
                 if (item.order?.reweighed == null) {

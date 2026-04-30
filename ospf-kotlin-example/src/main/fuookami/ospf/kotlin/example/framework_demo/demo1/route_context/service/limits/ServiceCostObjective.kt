@@ -15,8 +15,8 @@ class ServiceCostObjective(
     private val services: List<Service>,
     private val assignment: Assignment,
     override val name: String = "service_cost"
-) : Pipeline<LinearMetaModelF64> {
-    override fun invoke(model: LinearMetaModelF64): Try {
+) : Pipeline<LinearMetaModelFlt64> {
+    override fun invoke(model: LinearMetaModelFlt64): Try {
         model.minimize(
             sum(services) { it.cost * assignment.serviceAssignment[it] },
             "service cost"

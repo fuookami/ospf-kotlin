@@ -25,7 +25,7 @@ class PassengerFlightChangeConstraint(
     private val change: PassengerChange,
     override val name: String = "passenger_flight_change_constraint"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (passenger in passengers) {
             if (passenger.prev != null) {
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {

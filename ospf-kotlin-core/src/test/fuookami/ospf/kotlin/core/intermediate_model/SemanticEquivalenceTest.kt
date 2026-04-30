@@ -52,7 +52,7 @@ class SemanticEquivalenceTest {
         assertEquals(1, mechanismModel.constraints.size)
         assertEquals(ObjectCategory.Minimum, mechanismModel.objectFunction.category)
 
-        val f64Result = convertMechanismModelToF64(mechanismModel)
+        val f64Result = convertMechanismModelToFlt64(mechanismModel)
         assertTrue(f64Result is Ok)
         assertEquals(mechanismModel.constraints.size, f64Result.value.constraints.size)
 
@@ -95,7 +95,7 @@ class SemanticEquivalenceTest {
         assertEquals(2, mechanismModel.constraints.size)
         assertEquals(ObjectCategory.Minimum, mechanismModel.objectFunction.category)
 
-        val f64Result = convertMechanismModelToF64(mechanismModel)
+        val f64Result = convertMechanismModelToFlt64(mechanismModel)
         assertTrue(f64Result is Ok)
         assertEquals(mechanismModel.constraints.size, f64Result.value.constraints.size)
 

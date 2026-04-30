@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+ï»¿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -35,13 +35,13 @@ class Payload(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::mainEstimatePayload.isInitialized) {
             mainEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬ÒµÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Òµï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -92,7 +92,7 @@ class Payload(
             lowEstimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬ÒµÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Òµï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -143,7 +143,7 @@ class Payload(
             estimatePayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬ÒµÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Òµï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -154,7 +154,7 @@ class Payload(
                     }
 
                     StowageMode.Predistribution -> {
-                        // Ô¤ÅäÔØÄ£Ê½ÏÂ£¬ÒµÔØµÈÓÚÔ¤¼ÆÒµÔØ
+                        // Ô¤ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Òµï¿½Øµï¿½ï¿½ï¿½Ô¤ï¿½ï¿½Òµï¿½ï¿½
                         LinearExpressionSymbol(
                             (computedPayload ?: plannedPayload).to(aircraftModel.weightUnit)!!.value,
                             name = "estimate_payload"
@@ -191,7 +191,7 @@ class Payload(
             mainActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬Êµ¼ÊÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Êµï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -242,7 +242,7 @@ class Payload(
             lowActualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬Êµ¼ÊÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Êµï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->
@@ -293,7 +293,7 @@ class Payload(
             actualPayload = Quantity(
                 when (stowageMode) {
                     StowageMode.FullLoad -> {
-                        // È«ÅäÔØÄ£Ê½ÏÂ£¬Êµ¼ÊÔØµÈÓÚ×°ÔØÎïÖØÁ¿Ö®ºÍ
+                        // È«ï¿½ï¿½ï¿½ï¿½Ä£Ê½ï¿½Â£ï¿½Êµï¿½ï¿½ï¿½Øµï¿½ï¿½ï¿½×°ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½Ö®ï¿½ï¿½
                         LinearExpressionSymbol(
                             LinearPolynomial(
                                 items.fold(Flt64.zero) { acc, item ->

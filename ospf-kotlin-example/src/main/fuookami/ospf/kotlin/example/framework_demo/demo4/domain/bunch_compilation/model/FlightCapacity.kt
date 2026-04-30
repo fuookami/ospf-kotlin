@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
 
@@ -22,10 +22,10 @@ class FlightCapacity(
     val withPassenger: Boolean = tasks.any { it.capacity is AircraftCapacity.Passenger },
     val withCargo: Boolean = tasks.any { it.capacity is AircraftCapacity.Cargo }
 ) {
-    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbolF64>>
-    lateinit var cargo: Map<FlightTask, LinearExpressionSymbolF64>
+    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbolFlt64>>
+    lateinit var cargo: Map<FlightTask, LinearExpressionSymbolFlt64>
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (withPassenger) {
             if (!::passenger.isInitialized) {
                 passenger = tasks

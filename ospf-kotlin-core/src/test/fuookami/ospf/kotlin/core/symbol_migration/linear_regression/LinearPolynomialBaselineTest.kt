@@ -1,8 +1,8 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
+﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -150,7 +150,7 @@ class LinearPolynomialBaselineTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val flattenData = LinearFlattenDataF64(
+        val flattenData = LinearFlattenDataFlt64(
             monomials = listOf(
                 MathLinearMonomial(Flt64.one, x),
                 MathLinearMonomial(Flt64(2.0), x),

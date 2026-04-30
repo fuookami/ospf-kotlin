@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -39,7 +39,7 @@ data class OneOfBranch<T : Field<T>>(
  * When a branch is active, its polynomial value contributes to the output.
  * When a branch is inactive, its contribution is zero.
  *
- * ConstraintF64 pattern:
+ * ConstraintFlt64 pattern:
  * - Each branch has a binary activation variable `u[i]`
  * - `sum(u[i]) <= 1` (at most one branch active)
  * - Each branch's polynomial is masked via MaskingFunction: z[i] = polynomial[i] * u[i]
@@ -97,7 +97,7 @@ class OneOfFunction<T : Field<T>>(
         return zeroOf<T>()
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)

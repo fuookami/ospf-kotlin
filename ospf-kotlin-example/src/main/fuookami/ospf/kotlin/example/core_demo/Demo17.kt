@@ -184,7 +184,7 @@ data object Demo17 {
     lateinit var service: LinearIntermediateSymbols1Flt64
     lateinit var capacity: LinearIntermediateSymbols1Flt64
 
-    val metaModel = LinearMetaModelF64("demo17")
+    val metaModel = LinearMetaModelFlt64("demo17")
 
     private val subProcesses = listOf(
         Demo17::initVariable,

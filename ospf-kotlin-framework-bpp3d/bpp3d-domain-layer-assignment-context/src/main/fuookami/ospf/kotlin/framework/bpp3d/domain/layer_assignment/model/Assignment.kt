@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
@@ -35,7 +35,7 @@ class ImpreciseAssignment(
 
     lateinit var volume: LinearExpressionSymbol<Flt64>
 
-    fun register(model: MetaModelF64): Try {
+    fun register(model: MetaModelFlt64): Try {
         if (!::volume.isInitialized) {
             volume = LinearExpressionSymbol(name = "volume")
         }
@@ -57,7 +57,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -110,7 +110,7 @@ class PreciseAssignment(
     lateinit var v: LinearIntermediateSymbols1<Flt64>
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModelF64): Try {
+    fun register(model: MetaModelFlt64): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",

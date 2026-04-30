@@ -1,7 +1,7 @@
-package fuookami.ospf.kotlin.example.linear_function
+﻿package fuookami.ospf.kotlin.example.linear_function
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -31,7 +31,7 @@ class ULPTest {
             name = "y"
         )
 
-        val model = LinearMetaModelF64()
+        val model = LinearMetaModelFlt64()
         model.add(x)
         ulp.register(model)
         model.maximize(ulp.result)

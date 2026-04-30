@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.model.*
@@ -14,8 +14,8 @@ class StowageLimit(
     private val positions: List<Position>,
     private val stowage: Stowage,
     override val name: String = "stowage_limit"
-): Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+): Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((i, item) in items.withIndex()) {
             for ((j, position) in positions.withIndex()) {
                 if (item.status.available && position.status.available && !position.enabled(item).ok) {

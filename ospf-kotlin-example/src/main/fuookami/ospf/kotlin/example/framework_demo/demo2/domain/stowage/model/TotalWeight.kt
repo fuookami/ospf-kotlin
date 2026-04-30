@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -27,7 +27,7 @@ class TotalWeight(
     lateinit var actualTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol>
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::estimateTotalWeight.isInitialized) {
             estimateTotalWeight = FlightPhase.entries.associateWith { phase ->

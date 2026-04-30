@@ -18,8 +18,8 @@ class BiologicalBulkConflictLimit(
     private val biologicalLimit: BiologicalLimit,
     private val stowage: Stowage,
     override val name: String = "biological_bulk_conflict_limit"
-): Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+): Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((j, position) in positions.withIndex()) {
             if (position.status.unavailable || !position.location.bulk) {
                 continue

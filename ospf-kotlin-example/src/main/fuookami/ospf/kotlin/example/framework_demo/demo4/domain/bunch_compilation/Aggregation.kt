@@ -61,7 +61,7 @@ class Aggregation(
     )
 
     override fun register(model: MetaModel<Flt64>): Try {
-        model as AbstractLinearMetaModelF64
+        model as AbstractLinearMetaModelFlt64
 
         when (val result = super.register(model)) {
             is Ok -> {}
@@ -141,7 +141,7 @@ class Aggregation(
     override suspend fun addColumns(
         iteration: UInt64,
         newBunches: List<FlightTaskBunch>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<List<FlightTaskBunch>> {
         val unduplicatedBunches = when (val result = super.addColumns(iteration, newBunches, model)) {
             is Ok -> {

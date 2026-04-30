@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import java.util.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -15,8 +15,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 class TotalWeightLimit(
     private val totalWeight: TotalWeight,
     override val name: String = "total_weight_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (phase in FlightPhase.entries) {
             when (val result = model.addConstraint(
             relation = LinearPolynomial(totalWeight.estimateTotalWeight[phase]!!.value) leq totalWeight.maxTotalWeight[phase]!!.value,

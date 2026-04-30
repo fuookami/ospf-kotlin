@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -36,7 +36,7 @@ interface Produce {
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: AbstractLinearMetaModelF64): Try
+    fun register(model: AbstractLinearMetaModelFlt64): Try
 }
 
 abstract class AbstractProduce<
@@ -51,7 +51,7 @@ abstract class AbstractProduce<
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
                 val overConstraints = mutableListOf<Pair<LinearPolynomial<Flt64>, Flt64>>()
@@ -220,7 +220,7 @@ class TaskSchedulingProduce<
 ) : AbstractProduce<T, E, A, P, C>(products.sortedBy { it.first.index }) {
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -239,7 +239,7 @@ class BunchSchedulingProduce<
 
     override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (products.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = LinearExpressionSymbols1<Flt64>(

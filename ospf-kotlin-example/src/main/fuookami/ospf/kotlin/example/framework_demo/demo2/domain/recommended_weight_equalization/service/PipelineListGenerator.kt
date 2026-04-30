@@ -15,8 +15,8 @@ class PipelineListGenerator(
 ) {
     operator fun invoke(
         stowageMode: StowageMode
-    ): Ret<PipelineList<AbstractLinearMetaModelF64>> {
-        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModelF64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
+        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
 
         pipelines.add(
             ItemOrderLimit(

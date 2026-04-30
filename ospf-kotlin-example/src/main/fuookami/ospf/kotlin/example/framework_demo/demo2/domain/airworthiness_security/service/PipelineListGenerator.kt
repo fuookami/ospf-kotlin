@@ -13,8 +13,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_se
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
-    operator fun invoke(stowageMode: StowageMode): Ret<PipelineList<AbstractLinearMetaModelF64>> {
-        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelF64>>()
+    operator fun invoke(stowageMode: StowageMode): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
 
         pipelines.add(
             LinearDensityLimit(

@@ -14,8 +14,8 @@ class ServiceAssignmentConstraint(
     private val services: List<Service>,
     private val assignment: Assignment,
     override val name: String = "service_assignment"
-) : Pipeline<LinearMetaModelF64> {
-    override fun invoke(model: LinearMetaModelF64): Try {
+) : Pipeline<LinearMetaModelFlt64> {
+    override fun invoke(model: LinearMetaModelFlt64): Try {
         for (service in services) {
             model.addConstraint(
                 assignment.serviceAssignment[service] leq 1,

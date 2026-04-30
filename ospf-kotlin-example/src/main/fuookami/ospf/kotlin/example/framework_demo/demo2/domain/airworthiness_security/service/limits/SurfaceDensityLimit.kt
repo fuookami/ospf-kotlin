@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -15,8 +15,8 @@ class SurfaceDensityLimit(
     private val surfaceDensity: SurfaceDensity,
     private val positions: List<Position>,
     override val name: String = "surface_density_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (limitZone in surfaceDensity.limitsZones) {
             for ((j, position) in positions.withIndex()) {
                 if (position.status.unavailable) {

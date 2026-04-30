@@ -18,8 +18,8 @@ class NormalBulkDestinationAssignmentLimit(
     private val positions: List<Position>,
     private val stowage: Stowage,
     override val name: String = "normal_bulk_destination_assignment_limit"
-): Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+): Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((i1, item1) in items.withIndex()) {
             if (!item1.location.bulk || item1.cargo.contains(CargoCode.AOG) || item1.cargo.contains(CargoCode.MAT)) {
                 continue

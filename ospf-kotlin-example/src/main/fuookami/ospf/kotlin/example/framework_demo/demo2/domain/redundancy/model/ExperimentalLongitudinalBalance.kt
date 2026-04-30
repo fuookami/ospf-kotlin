@@ -34,7 +34,7 @@ class ExperimentalLongitudinalBalance(
         TODO("not implemented yet")
     }
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (!::mainActualLongitudinalTorque.isInitialized) {
             val poly = MutableLinearPolynomial()
             for ((j, position) in positions.withIndex()) {

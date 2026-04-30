@@ -19,7 +19,7 @@ data class SolutionAnalyzer(
 ) {
     operator fun invoke(
         solution: List<Flt64>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
         val stowage = HashMap<Position, MutableList<Item>>()
         for ((i, item) in aggregation.items.withIndex()) {

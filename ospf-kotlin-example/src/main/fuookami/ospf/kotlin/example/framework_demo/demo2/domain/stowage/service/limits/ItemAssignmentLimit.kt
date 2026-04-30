@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -13,8 +13,8 @@ class ItemAssignmentLimit(
     private val items: List<Item>,
     private val stowage: Stowage,
     override val name: String = "item_assignment_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((i, item) in items.withIndex()) {
             when (item.status) {
                 ItemStatus.Preassigned, ItemStatus.AdjustmentNeeded -> {

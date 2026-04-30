@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
@@ -25,21 +25,21 @@ interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
 
-    fun MetaModelF64.registerConstraintGroup() {
+    fun MetaModelFlt64.registerConstraintGroup() {
         this.registerConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModelF64.indicesOfConstraintGroup(): IntRange? {
+    fun MetaModelFlt64.indicesOfConstraintGroup(): IntRange? {
         return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModelF64.constraintsOfGroup(): List<MathConstraint> {
+    fun MetaModelFlt64.constraintsOfGroup(): List<MathConstraint> {
         return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
             indices.map { constraints[it] }
         } ?: emptyList()
     }
 
-    fun AbstractLinearMetaModelF64.addConstraint(
+    fun AbstractLinearMetaModelFlt64.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -58,8 +58,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractLinearMetaModelF64.addConstraint(
-        constraint: LinearIntermediateSymbolF64,
+    fun AbstractLinearMetaModelFlt64.addConstraint(
+        constraint: LinearIntermediateSymbolFlt64,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -79,7 +79,7 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
-    fun AbstractLinearMetaModelF64.partition(
+    fun AbstractLinearMetaModelFlt64.partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -101,8 +101,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
-    fun AbstractLinearMetaModelF64.partition(
-        symbols: Iterable<LinearIntermediateSymbolF64>,
+    fun AbstractLinearMetaModelFlt64.partition(
+        symbols: Iterable<LinearIntermediateSymbolFlt64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -121,8 +121,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractQuadraticMetaModelF64.addConstraint(
-        constraint: QuadraticIntermediateSymbolF64,
+    fun AbstractQuadraticMetaModelFlt64.addConstraint(
+        constraint: QuadraticIntermediateSymbolFlt64,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -141,8 +141,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
-    fun AbstractQuadraticMetaModelF64.partition(
-        symbols: Iterable<QuadraticIntermediateSymbolF64>,
+    fun AbstractQuadraticMetaModelFlt64.partition(
+        symbols: Iterable<QuadraticIntermediateSymbolFlt64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -166,7 +166,7 @@ interface MetaConstraintGroup {
     /**
      * Add constraint using math LinearInequality
      */
-    fun AbstractLinearMetaModelF64.addConstraint(
+    fun AbstractLinearMetaModelFlt64.addConstraint(
         relation: MathLinearInequality,
         lazy: Boolean? = null,
         name: String? = null,
@@ -188,7 +188,7 @@ interface MetaConstraintGroup {
     /**
      * Add constraint using math QuadraticInequality
      */
-    fun AbstractQuadraticMetaModelF64.addConstraint(
+    fun AbstractQuadraticMetaModelFlt64.addConstraint(
         relation: MathQuadraticInequality,
         lazy: Boolean? = null,
         name: String? = null,
@@ -208,7 +208,7 @@ interface MetaConstraintGroup {
     }
 }
 
-// ========== Math Inequality-based ConstraintF64 Types ==========
+// ========== Math Inequality-based ConstraintFlt64 Types ==========
 
 /**
  * Common interface for math-based constraints.
@@ -230,7 +230,7 @@ interface MathConstraint {
 }
 
 /**
- * LinearInequalityConstraint - ConstraintF64 using math LinearInequality
+ * LinearInequalityConstraint - ConstraintFlt64 using math LinearInequality
  *
  * This type uses LinearFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
  */
@@ -262,7 +262,7 @@ data class LinearInequalityConstraint(
 }
 
 /**
- * QuadraticInequalityConstraint - ConstraintF64 using math QuadraticInequality
+ * QuadraticInequalityConstraint - ConstraintFlt64 using math QuadraticInequality
  *
  * This type uses QuadraticFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
  */

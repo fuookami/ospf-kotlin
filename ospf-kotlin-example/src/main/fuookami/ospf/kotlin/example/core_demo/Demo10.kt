@@ -66,11 +66,11 @@ data object Demo10 {
     private lateinit var x: BinVariable2
     private lateinit var u: IntVariable1
 
-    private lateinit var distance: LinearIntermediateSymbolF64
+    private lateinit var distance: LinearIntermediateSymbolFlt64
     private lateinit var depart: LinearIntermediateSymbols1Flt64
     private lateinit var reached: LinearIntermediateSymbols1Flt64
 
-    private val metaModel = LinearMetaModelF64("demo10")
+    private val metaModel = LinearMetaModelFlt64("demo10")
 
     private val subProcesses = listOf(
         Demo10::initVariable,

@@ -21,10 +21,10 @@ class MAC(
     private val totalWeight: TotalWeight,
     private val torque: Torque
 ) {
-    lateinit var mac: LinearIntermediateSymbolF64
+    lateinit var mac: LinearIntermediateSymbolFlt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::mac.isInitialized) {
             val tow = totalWeight.computedTotalWeight[FlightPhase.TakeOff]

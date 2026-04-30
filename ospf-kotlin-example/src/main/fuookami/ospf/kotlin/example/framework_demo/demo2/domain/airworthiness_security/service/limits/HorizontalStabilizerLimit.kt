@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -14,8 +14,8 @@ class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
     private val stowageMode: StowageMode,
     override val name: String = "horizontal_stabilizer_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((key, horizontalStabilizer) in horizontalStabilizers) {
             if (stowageMode == StowageMode.WeightRecommendation && horizontalStabilizer.limit.warnMaxTrim != null) {
                 when (val result = model.addConstraint(

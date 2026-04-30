@@ -33,7 +33,7 @@ class ScipLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -111,7 +111,7 @@ class ScipLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -283,7 +283,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -300,7 +300,7 @@ class ScipQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModelF64,
+        metaModel: QuadraticMetaModelFlt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -377,7 +377,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -398,7 +398,7 @@ class ScipQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModelF64,
+        metaModel: QuadraticMetaModelFlt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,

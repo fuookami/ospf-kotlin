@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.model.*
@@ -14,8 +14,8 @@ class EmptyForbiddenLimit(
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "empty_forbidden_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((j, position) in positions.withIndex()) {
             if (position.status.available && position.type.contains(PositionTypeCode.EmptyForbidden)) {
                 when (val result = model.addConstraint(

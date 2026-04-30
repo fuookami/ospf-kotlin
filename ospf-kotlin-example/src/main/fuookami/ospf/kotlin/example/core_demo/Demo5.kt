@@ -36,10 +36,10 @@ data object Demo5 {
     private val maxWeight = UInt64(10U)
 
     private lateinit var x: BinVariable1
-    private lateinit var cargoWeight: LinearIntermediateSymbolF64
-    private lateinit var cargoValue: LinearIntermediateSymbolF64
+    private lateinit var cargoWeight: LinearIntermediateSymbolFlt64
+    private lateinit var cargoValue: LinearIntermediateSymbolFlt64
 
-    private val metaModel = LinearMetaModelF64("demo5")
+    private val metaModel = LinearMetaModelFlt64("demo5")
 
     private val subProcesses = listOf(
         Demo5::initVariable,

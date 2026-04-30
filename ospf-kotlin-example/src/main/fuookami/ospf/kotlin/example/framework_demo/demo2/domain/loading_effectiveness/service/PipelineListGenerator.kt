@@ -16,8 +16,8 @@ class PipelineListGenerator(
     operator fun invoke(
         stowageMode: StowageMode,
         parameter: Parameter
-    ): Ret<PipelineList<AbstractLinearMetaModelF64>> {
-        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelF64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
 
         when (stowageMode) {
             StowageMode.Predistribution -> {

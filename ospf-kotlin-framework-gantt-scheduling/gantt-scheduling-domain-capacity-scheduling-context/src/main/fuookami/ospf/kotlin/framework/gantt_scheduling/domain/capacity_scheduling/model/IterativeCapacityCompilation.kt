@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -107,7 +107,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 注册到模型
      * Register to model
      */
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         // Initialize variables for each executor
         // 为每个执行器初始化变量
         for (executor in executors) {
@@ -232,7 +232,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
     suspend fun addColumns(
         iteration: UInt64,
         newColumns: List<CapacityColumn<E, A>>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<List<CapacityColumn<E, A>>> {
         // Group columns by executor
         // 按执行器分组
@@ -451,7 +451,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
      * 解析解
      * Extract solution from model
      */
-    override fun extractSolution(model: AbstractLinearMetaModelF64): Ret<CapacitySchedulingSolution<A>> {
+    override fun extractSolution(model: AbstractLinearMetaModelFlt64): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()
 

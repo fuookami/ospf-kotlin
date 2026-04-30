@@ -12,7 +12,7 @@ data class SolveOptions(
     val valueConversionPolicy: SolveValueConversionPolicy? = null
 ) {
     val effectiveValueConversionPolicy: SolveValueConversionPolicy
-        get() = valueConversionPolicy ?: SolveValueConversionPolicy.AllowRounding
+        get() = valueConversionPolicy ?: SolveValueConversionPolicy.Strict
 
     class Builder {
         var solutionAmount: UInt64? = null

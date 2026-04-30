@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.solver
+﻿package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
@@ -14,12 +14,12 @@ import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
 import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
@@ -63,12 +63,12 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractLinearSolver.solve(model: LinearMetaModelF64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractLinearSolver.solve(model: LinearMetaModelFlt64): Ret<FeasibleSolverOutput> {
     return solveWithOptions(model, SolveOptions())
 }
 
 suspend fun AbstractLinearSolver.solveWithOptions(
-    model: LinearMetaModelF64,
+    model: LinearMetaModelFlt64,
     options: SolveOptions
 ): Ret<FeasibleSolverOutput> {
     val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
@@ -92,7 +92,7 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelF64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelFlt64): Ret<FeasibleSolverOutput> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -108,14 +108,14 @@ suspend fun <V> AbstractLinearSolver.solve(
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)
     }
-    if (f64Model is LinearMechanismModelF64) {
+    if (f64Model is LinearMechanismModelFlt64) {
         return solve(f64Model)
     }
     return Failed(ErrorCode.IllegalArgument, "LinearSolver requires LinearMechanismModel, got ${f64Model::class.simpleName}")
 }
 
 suspend fun AbstractLinearSolver.solveWithOptions(
-    model: LinearMechanismModelF64,
+    model: LinearMechanismModelFlt64,
     options: SolveOptions
 ): Ret<FeasibleSolverOutput> {
     return dump(model).use {
@@ -123,7 +123,7 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModelF64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModelFlt64): Ret<FeasibleSolverOutput> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -156,7 +156,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptions(
-    model: QuadraticMetaModelF64,
+    model: QuadraticMetaModelFlt64,
     options: SolveOptions
 ): Ret<FeasibleSolverOutput> {
     val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
@@ -180,7 +180,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelF64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelFlt64): Ret<FeasibleSolverOutput> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -196,14 +196,14 @@ suspend fun <V> AbstractQuadraticSolver.solve(
         is Failed -> return Failed(result.error)
         is Fatal -> return Fatal(result.errors)
     }
-    if (f64Model is QuadraticMechanismModelF64) {
+    if (f64Model is QuadraticMechanismModelFlt64) {
         return solve(f64Model)
     }
     return Failed(ErrorCode.IllegalArgument, "QuadraticSolver requires QuadraticMechanismModel, got ${f64Model::class.simpleName}")
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptions(
-    model: QuadraticMechanismModelF64,
+    model: QuadraticMechanismModelFlt64,
     options: SolveOptions
 ): Ret<FeasibleSolverOutput> {
     return dump(model).use {
@@ -364,7 +364,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
 }
 
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
-    model: LinearMechanismModelF64,
+    model: LinearMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
 ): Ret<SolverOutput> {
@@ -374,7 +374,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
 }
 
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
-    model: LinearMechanismModelF64,
+    model: LinearMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
 ): Ret<Pair<SolverOutput, List<Solution>>> {
@@ -384,7 +384,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
 }
 
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
-    model: LinearMetaModelF64,
+    model: LinearMetaModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -412,7 +412,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
 }
 
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
-    model: LinearMetaModelF64,
+    model: LinearMetaModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -592,7 +592,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
-    model: QuadraticMechanismModelF64,
+    model: QuadraticMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
 ): Ret<SolverOutput> {
@@ -602,7 +602,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
-    model: QuadraticMechanismModelF64,
+    model: QuadraticMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
 ): Ret<Pair<SolverOutput, List<Solution>>> {
@@ -612,7 +612,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
-    model: QuadraticMetaModelF64,
+    model: QuadraticMetaModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -640,7 +640,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
-    model: QuadraticMetaModelF64,
+    model: QuadraticMetaModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -685,7 +685,7 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput, List<Solution>
 
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
-    model: LinearMetaModelF64,
+    model: LinearMetaModelFlt64,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -698,7 +698,7 @@ fun AbstractLinearSolver.solveAsync(
 
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
-    model: LinearMechanismModelF64,
+    model: LinearMechanismModelFlt64,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -724,7 +724,7 @@ fun AbstractLinearSolver.solveAsync(
 
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
-    model: QuadraticMetaModelF64,
+    model: QuadraticMetaModelFlt64,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -737,7 +737,7 @@ fun AbstractQuadraticSolver.solveAsync(
 
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
-    model: QuadraticMechanismModelF64,
+    model: QuadraticMechanismModelFlt64,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput>> {

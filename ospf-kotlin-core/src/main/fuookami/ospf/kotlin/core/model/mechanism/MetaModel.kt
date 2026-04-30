@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -8,9 +8,9 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMo
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.token.Token
@@ -117,7 +117,7 @@ private fun UtilsQuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.
     }
 }
 
-sealed interface MetaModel<V> : Model, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
+sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     class SubObject<V>(
         val parent: MetaModel<V>,
         val category: ObjectCategory,
@@ -148,7 +148,7 @@ sealed interface MetaModel<V> : Model, AutoCloseable where V : RealNumber<V>, V 
             var result = polynomial.constant
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val tokenResult = tokenTable.find(variable)?.resultF64 ?: return if (zeroIfNone) Flt64.zero else null
+                val tokenResult = tokenTable.find(variable)?.resultFlt64 ?: return if (zeroIfNone) Flt64.zero else null
                 result += m.coefficient * tokenResult
             }
             return result
@@ -514,12 +514,20 @@ sealed interface MetaModel<V> : Model, AutoCloseable where V : RealNumber<V>, V 
         } ?: constraints.filter { it.group == group }
     }
 
-    override fun setSolution(solution: Solution) {
+    override fun setSolution(solution: List<V>) {
         tokens.setSolution(solution)
     }
 
-    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+    override fun setSolution(solution: Map<AbstractVariableItem<*, *>, V>) {
         tokens.setSolution(solution)
+    }
+
+    fun setSolverSolution(solution: Solution) {
+        tokens.setSolverSolution(solution)
+    }
+
+    fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
+        tokens.setSolverSolution(solution)
     }
 
     override fun clearSolution() {
@@ -665,9 +673,9 @@ sealed interface MetaModel<V> : Model, AutoCloseable where V : RealNumber<V>, V 
 }
 
 // Backward compatibility: typealias aliases
-typealias MetaModelF64 = MetaModel<Flt64>
+typealias MetaModelFlt64 = MetaModel<Flt64>
 
-interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealNumber<V>, V : NumberField<V> {
+interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
         group: MetaConstraintGroup?,
@@ -709,7 +717,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealN
     }
 
     fun addConstraint(
-        constraint: LinearIntermediateSymbolF64,
+        constraint: LinearIntermediateSymbolFlt64,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -768,7 +776,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealN
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
     fun partition(
-        symbols: Iterable<LinearIntermediateSymbolF64>,
+        symbols: Iterable<LinearIntermediateSymbolFlt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -808,9 +816,9 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel where V : RealN
 }
 
 // Backward compatibility: typealias aliases
-typealias AbstractLinearMetaModelF64 = AbstractLinearMetaModel<Flt64>
+typealias AbstractLinearMetaModelFlt64 = AbstractLinearMetaModel<Flt64>
 
-interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V : RealNumber<V>, V : NumberField<V> {
+interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
         constraint: UtilsQuadraticPolynomial<Flt64>,
         group: MetaConstraintGroup?,
@@ -832,7 +840,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V :
     }
 
     fun addConstraint(
-        constraint: QuadraticIntermediateSymbolF64,
+        constraint: QuadraticIntermediateSymbolFlt64,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -868,7 +876,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V :
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
     fun partition(
-        symbols: Iterable<QuadraticIntermediateSymbolF64>,
+        symbols: Iterable<QuadraticIntermediateSymbolFlt64>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -908,7 +916,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel where V :
 }
 
 // Backward compatibility: typealias aliases
-typealias AbstractQuadraticMetaModelF64 = AbstractQuadraticMetaModel<Flt64>
+typealias AbstractQuadraticMetaModelFlt64 = AbstractQuadraticMetaModel<Flt64>
 
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
@@ -985,7 +993,7 @@ abstract class AbstractMetaModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias AbstractMetaModelF64 = AbstractMetaModel<Flt64>
+typealias AbstractMetaModelFlt64 = AbstractMetaModel<Flt64>
 
 class LinearMetaModel<V>(
     override var name: String = "",
@@ -1002,8 +1010,8 @@ class LinearMetaModel<V>(
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
-    internal val _flattenSubObjects: MutableList<LinearSubObjectF64> = ArrayList()
-    val flattenSubObjects: List<LinearSubObjectF64> by ::_flattenSubObjects
+    internal val _flattenSubObjects: MutableList<LinearSubObjectFlt64> = ArrayList()
+    val flattenSubObjects: List<LinearSubObjectFlt64> by ::_flattenSubObjects
 
     fun addObject(
         category: ObjectCategory,
@@ -1095,7 +1103,7 @@ class LinearMetaModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias LinearMetaModelF64 = LinearMetaModel<Flt64>
+typealias LinearMetaModelFlt64 = LinearMetaModel<Flt64>
 
 class QuadraticMetaModel<V>(
     override var name: String = "",
@@ -1286,5 +1294,5 @@ class QuadraticMetaModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias QuadraticMetaModelF64 = QuadraticMetaModel<Flt64>
+typealias QuadraticMetaModelFlt64 = QuadraticMetaModel<Flt64>
 

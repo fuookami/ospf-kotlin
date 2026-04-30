@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver
 
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrixF64
+import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrixFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
 import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
@@ -578,7 +578,7 @@ private class InfeasibleQuadraticSolver(
 
 private fun emptyLinearModel(): LinearTriadModel {
     val constraints = LinearConstraintBatch(
-        sparseLhs = SparseMatrixF64(),
+        sparseLhs = SparseMatrixFlt64(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),
@@ -609,7 +609,7 @@ private fun boundedLinearModel(): LinearTriadModel {
         name = "x"
     )
     val constraints = LinearConstraintBatch(
-        sparseLhs = SparseMatrixF64(),
+        sparseLhs = SparseMatrixFlt64(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),

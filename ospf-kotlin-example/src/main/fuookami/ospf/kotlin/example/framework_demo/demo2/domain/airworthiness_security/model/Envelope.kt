@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -73,7 +73,7 @@ interface AbstractEnvelope {
     val minIndex: QuantityLinearIntermediateSymbol
     val maxIndex: QuantityLinearIntermediateSymbol
 
-    fun register(model: AbstractLinearMetaModelF64): Try
+    fun register(model: AbstractLinearMetaModelFlt64): Try
 }
 
 class Envelope(
@@ -96,7 +96,7 @@ class Envelope(
     override lateinit var maxIndex: QuantityLinearIntermediateSymbol
 
     override fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::minIndex.isInitialized) {
             val thisTotalWeight = totalWeight.computedTotalWeight[phase]
@@ -166,12 +166,12 @@ class ConditionalEnvelope(
     val symbolCondition: (String) -> Either<LinearPolynomial<Flt64>, LinearFunctionSymbolAdapter>,
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
-    lateinit var condition: LinearIntermediateSymbolF64
+    lateinit var condition: LinearIntermediateSymbolFlt64
     override lateinit var minIndex: QuantityLinearIntermediateSymbol
     override lateinit var maxIndex: QuantityLinearIntermediateSymbol
 
     override fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (valueCondition()) {
             true -> {

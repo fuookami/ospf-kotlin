@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -22,8 +22,8 @@ class ZoneLoadWeightLimit(
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "zone_load_weight_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (zone in maxZoneLoadWeight.limitZones) {
             if (zone.parts.none { it.position.status.available }) {
                 continue

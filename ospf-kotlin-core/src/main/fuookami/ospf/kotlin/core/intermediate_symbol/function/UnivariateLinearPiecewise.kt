@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.PctVar
@@ -130,7 +130,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
         return Flt64(pts.last().second) as T
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add all helper variables
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -140,7 +140,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
 
         val xPoly = x.asFlt64Poly()
 
-        // ConstraintF64: x = sum(x_i * lambda_i)
+        // ConstraintFlt64: x = sum(x_i * lambda_i)
         val xLhs = lambdas.mapIndexed { i, lambda ->
             LinearMonomial(points[i].x, lambda)
         }.toMutableList()
@@ -156,7 +156,7 @@ class UnivariateLinearPiecewiseFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // ConstraintF64: sum(lambda_i) = 1
+        // ConstraintFlt64: sum(lambda_i) = 1
         val sumLambdaLhs = lambdas.map { lambda ->
             LinearMonomial(Flt64.one, lambda)
         }.toMutableList()

@@ -35,7 +35,7 @@ class RMP(
     private val yield = LinearExpressionSymbols1Flt64("output", Shape1(products.size)) { _, v ->
         LinearExpressionSymbol(name = "output_${v[0]}")
     }
-    private val metaModel = LinearMetaModelF64("demo3")
+    private val metaModel = LinearMetaModelFlt64("demo3")
     private val solver: ColumnGenerationSolver = ScipColumnGenerationSolver()
 
     init {

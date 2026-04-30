@@ -2,7 +2,7 @@
 
 import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
 import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -29,7 +29,7 @@ data class MechanismModelDumpingStatus(
         }
 
     companion object {
-        fun dumpingConstrains(ready: UInt64, model: MetaModelF64): MechanismModelDumpingStatus {
+        fun dumpingConstrains(ready: UInt64, model: MetaModelFlt64): MechanismModelDumpingStatus {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = ready,
                 totalConstraintAmount = model.constraints.usize,
@@ -38,7 +38,7 @@ data class MechanismModelDumpingStatus(
             )
         }
 
-        fun dumpingSymbols(ready: UInt64, model: MetaModelF64): MechanismModelDumpingStatus {
+        fun dumpingSymbols(ready: UInt64, model: MetaModelFlt64): MechanismModelDumpingStatus {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = model.constraints.usize,
                 totalConstraintAmount = model.constraints.usize,

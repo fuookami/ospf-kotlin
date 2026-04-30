@@ -1,8 +1,8 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -101,7 +101,7 @@ class BunchCapacitySchedulingResourceUsage<
         initQuantity(this.timeSlots)
     }
 
-    override fun register(model: LinearMetaModelF64): Try {
+    override fun register(model: LinearMetaModelFlt64): Try {
         return addQuantityToModel(model, timeSlots)
     }
 

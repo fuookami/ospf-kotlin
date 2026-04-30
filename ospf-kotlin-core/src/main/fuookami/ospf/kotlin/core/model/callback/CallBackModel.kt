@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.model.callback
 
@@ -10,11 +10,11 @@ import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -129,7 +129,7 @@ class CallBackModel internal constructor(
         )
 
         operator fun invoke(
-            model: AbstractMetaModelF64,
+            model: AbstractMetaModelFlt64,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel {
             val tokens = model.tokens.copy()
@@ -167,7 +167,7 @@ class CallBackModel internal constructor(
         }
 
         operator fun invoke(
-            model: SingleObjectMechanismModelF64,
+            model: SingleObjectMechanismModelFlt64,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
         ): CallBackModel {
@@ -330,7 +330,7 @@ class CallBackModel internal constructor(
         )
     }
 
-    override fun setSolution(solution: Solution) {
+    override fun setSolution(solution: List<Flt64>) {
         tokens.setSolution(solution)
     }
 
@@ -522,7 +522,7 @@ class MultiObjectCallBackModel internal constructor(
         return ok
     }
 
-    override fun setSolution(solution: Solution) {
+    override fun setSolution(solution: List<Flt64>) {
         tokens.setSolution(solution)
     }
 

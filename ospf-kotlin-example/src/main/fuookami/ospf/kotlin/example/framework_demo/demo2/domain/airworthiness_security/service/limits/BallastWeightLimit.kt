@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 class BallastWeightLimit(
     private val ballast: Ballast,
     override val name: String = "ballast_weight_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         if (ballast.ballastPositions.none { it.status.available } || ballast.minBallastWeight == null) {
             return ok
         }

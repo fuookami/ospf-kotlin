@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
+﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
@@ -37,7 +37,7 @@ class ConsumptionQuantityConstraint<
         .filter { it.second != null }
         .filterIsInstance<Pair<C, MaterialReserves>>()
 
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((material, reserve) in materials) {
             if (consumption.overEnabled && reserve.overEnabled) {
                 when (val overQuantity = consumption.overQuantity[material]) {
@@ -198,7 +198,7 @@ class ConsumptionQuantityConstraint<
     @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<C, Flt64>()

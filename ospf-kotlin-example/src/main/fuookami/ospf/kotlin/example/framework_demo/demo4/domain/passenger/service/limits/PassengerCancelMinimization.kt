@@ -22,7 +22,7 @@ class PassengerCancelMinimization(
     private val coefficient: (FlightPassenger) -> Flt64 = { _ -> Flt64.one },
     override val name: String = "passenger_cancel_minimization"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val poly = MutableLinearPolynomial()
         for (passenger in passengers) {
             poly += LinearMonomial(coefficient(passenger), cancel.passengerCancel[passenger])

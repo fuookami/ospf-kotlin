@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -54,8 +54,8 @@ class HorizontalStabilizer(
         val warnMaxTrim: Flt64?
     )
 
-    lateinit var trim: LinearIntermediateSymbolF64
-    lateinit var warnSlack: LinearIntermediateSymbolF64
+    lateinit var trim: LinearIntermediateSymbolFlt64
+    lateinit var warnSlack: LinearIntermediateSymbolFlt64
 
     operator fun invoke(tow: Quantity<Flt64>, mac: MAC): Flt64 {
         return points
@@ -65,7 +65,7 @@ class HorizontalStabilizer(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::trim.isInitialized) {
             trim = LinearExpressionSymbol(

@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
@@ -6,9 +6,9 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataF64
+import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataF64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
@@ -96,7 +96,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = LinearFlattenDataF64(
+        val flattenData = LinearFlattenDataFlt64(
             monomials = listOf(
                 UtilsLinearMonomial(Flt64(2.0), x),
                 UtilsLinearMonomial(Flt64(3.0), y)
@@ -133,7 +133,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = QuadraticFlattenDataF64(
+        val flattenData = QuadraticFlattenDataFlt64(
             monomials = listOf(
                 UtilsQuadraticMonomial(Flt64.one, x, y),
                 UtilsQuadraticMonomial(Flt64(2.0), x, null)

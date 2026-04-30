@@ -20,8 +20,8 @@ class UnsymmetricalLinearDensityLimit(
     private val linearDensity: LinearDensity,
     private val positions: List<Position>,
     override val name: String = "unsymmetrical_linear_density_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (zone in maxUnsymmetricalLinearDensity.limitZones) {
             for (line in zone.lines) {
                 if (line.positions.none { it.status.available }) {

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -44,7 +44,7 @@ class Aggregation(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (val result = redundancy.register(model)) {
             is Ok -> {}
@@ -74,20 +74,20 @@ class Aggregation(
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")
     }
 
     private fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")

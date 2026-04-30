@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
 import fuookami.ospf.kotlin.core.intermediate_symbol.map
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -72,7 +72,7 @@ class CapacityCompilation<A : ProductionAction>(
      * 注册到模�?
      * Register to model
      */
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         // Register x variable
         // 注册 x 变量
         if (!::x.isInitialized) {
@@ -163,7 +163,7 @@ class CapacityCompilation<A : ProductionAction>(
      * 解析�?
      * Extract solution from model
      */
-    override fun extractSolution(model: AbstractLinearMetaModelF64): Ret<CapacitySchedulingSolution<A>> {
+    override fun extractSolution(model: AbstractLinearMetaModelFlt64): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
 
         for ((a, action) in actions.withIndex()) {

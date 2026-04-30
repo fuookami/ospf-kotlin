@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -34,7 +34,7 @@ class DivideEmptyLoading(
     lateinit var emptyBetweenEmptyCargo: LinearIntermediateSymbols1Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::emptyBetweenCargo.isInitialized) {
             emptyBetweenCargo = LinearIntermediateSymbols1Flt64("empty_between_cargo", Shape1(adjacentPositions.size)) { p, _ ->

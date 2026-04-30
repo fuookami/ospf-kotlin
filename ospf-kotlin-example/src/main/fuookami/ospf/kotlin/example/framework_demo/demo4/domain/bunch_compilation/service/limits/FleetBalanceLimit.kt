@@ -31,7 +31,7 @@ class FleetBalanceLimit(
     private val coefficient: (Airport, AircraftMinorType) -> Flt64,
     override val name: String = "fleet_balance_limit"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((l, checkPoint) in fleetBalance.limits.withIndex()) {
             when (val result = model.addConstraint(
                 relation = fleetBalance.slack[l] geq checkPoint.second.amount,
@@ -98,7 +98,7 @@ class FleetBalanceLimit(
 
     override fun refresh(
         map: ShadowPriceMap,
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup(this)) {

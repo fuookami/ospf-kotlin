@@ -281,7 +281,7 @@ private class FullLoadAlgorithmImpl {
         startTime: kotlinx.datetime.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val model = LinearMetaModelF64()
+        val model = LinearMetaModelFlt64()
         when (val result = register(parameter, model)) {
             is Ok -> {}
 
@@ -402,7 +402,7 @@ private class FullLoadAlgorithmImpl {
 
     private fun register(
         parameter: Parameter,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (val result = stowageContext.register(
             stowageMode = StowageMode.FullLoad,

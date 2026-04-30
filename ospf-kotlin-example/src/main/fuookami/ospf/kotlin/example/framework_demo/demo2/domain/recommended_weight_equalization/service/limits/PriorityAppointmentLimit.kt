@@ -21,8 +21,8 @@ class PriorityAppointmentLimit(
     private val priorityAppointment: PriorityAppointment,
     private val stowage: Stowage,
     override val name: String = "priority_appointment_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((i, item) in items.withIndex()) {
             if (!item.location.main || item.cargo.contains(CargoCode.Virtual) || appointment.containsKey(item)) {
                 continue

@@ -65,11 +65,11 @@ data object Demo7 {
 
     private lateinit var x: UIntVariable2
 
-    private lateinit var cost: LinearIntermediateSymbolF64
+    private lateinit var cost: LinearIntermediateSymbolFlt64
     private lateinit var shipment: LinearIntermediateSymbols1Flt64
     private lateinit var purchase: LinearIntermediateSymbols1Flt64
 
-    private val metaModel = LinearMetaModelF64("demo7")
+    private val metaModel = LinearMetaModelFlt64("demo7")
 
     private val subProcesses = listOf(
         Demo7::initVariable,

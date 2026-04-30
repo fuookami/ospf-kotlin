@@ -17,8 +17,8 @@ class BandwidthCostObjective(
     private val edges: List<Edge>,
     private val edgeBandwidth: EdgeBandwidth,
     override val name: String = "bandwidth_cost"
-) : Pipeline<LinearMetaModelF64> {
-    override fun invoke(model: LinearMetaModelF64): Try {
+) : Pipeline<LinearMetaModelFlt64> {
+    override fun invoke(model: LinearMetaModelFlt64): Try {
         model.minimize(
             sum(edges.filter(from(normal))) { it.costPerBandwidth * edgeBandwidth.bandwidth[it] },
             "bandwidth cost"

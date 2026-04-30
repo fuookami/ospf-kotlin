@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -43,7 +43,7 @@ class TrailerLoading(
     lateinit var trailerCircling: LinearIntermediateSymbols2Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::trailerChange.isInitialized) {
             trailerChange = LinearIntermediateSymbols2Flt64("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->

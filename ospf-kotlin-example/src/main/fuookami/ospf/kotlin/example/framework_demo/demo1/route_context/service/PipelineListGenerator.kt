@@ -14,8 +14,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.l
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
-    operator fun invoke(): Ret<PipelineList<LinearMetaModelF64>> {
-        val list = ArrayList<Pipeline<LinearMetaModelF64>>()
+    operator fun invoke(): Ret<PipelineList<LinearMetaModelFlt64>> {
+        val list = ArrayList<Pipeline<LinearMetaModelFlt64>>()
 
         list.add(NodeAssignmentConstraint(aggregation.graph.nodes, aggregation.assignment))
         list.add(ServiceAssignmentConstraint(aggregation.services, aggregation.assignment))

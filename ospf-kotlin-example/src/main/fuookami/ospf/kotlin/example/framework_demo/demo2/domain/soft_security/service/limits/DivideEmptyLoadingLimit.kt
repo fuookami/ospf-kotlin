@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -21,8 +21,8 @@ class DivideEmptyLoadingLimit(
     private val emptyCargoBetweenCargoCoefficient: (Position, Position) -> Flt64 = { _, _ -> Flt64.one },
     private val emptyBetweenEmptyCargoCoefficient: (Position, Position) -> Flt64 = { _, _ -> Flt64.one },
     override val name: String = "divide_empty_loading_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.minimize(
             sum(adjacentPositions.mapIndexed { p, (position1, position2) ->
                 emptyBetweenCargoCoefficient(position1, position2) * divideEmptyLoading.emptyBetweenCargo[p]

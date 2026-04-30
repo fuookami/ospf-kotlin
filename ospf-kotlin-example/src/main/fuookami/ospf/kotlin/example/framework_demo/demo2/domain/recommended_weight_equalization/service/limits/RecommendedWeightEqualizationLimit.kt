@@ -19,8 +19,8 @@ class RecommendedWeightEqualizationLimit(
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "recommended_weight_equalization_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((j1, position1) in positions.withIndex()) {
             if (!position1.status.recommendedWeightNeeded) {
                 continue

@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
@@ -16,7 +16,7 @@ class PassengerRouteCancelConstraint(
     private val cancel: PassengerCancel,
     override val name: String = "passenger_route_cancel_constraint"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for (passenger in passengers) {
             val prev = passenger.prev
             if (prev != null) {

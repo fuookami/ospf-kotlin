@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
@@ -26,7 +26,7 @@ class MindOPTColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -104,7 +104,7 @@ class MindOPTColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         amount: UInt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
@@ -201,7 +201,7 @@ class MindOPTColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModelF64,
+        metaModel: LinearMetaModelFlt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

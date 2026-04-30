@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -46,7 +46,7 @@ class StowageContext {
     
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -96,19 +96,19 @@ class StowageContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")
@@ -116,7 +116,7 @@ class StowageContext {
 
     fun analyze(
         solution: List<Flt64>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
         val analyzer = SolutionAnalyzer(aggregation)
         val stowageSolution = when (val result = analyzer(solution, model)) {

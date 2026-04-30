@@ -22,7 +22,7 @@ class PassengerFlightChangeMinimization(
     private val coefficient: (FlightTask, FlightTask, PassengerClass) -> Flt64 = { _, _, _ -> Flt64.one },
     override val name: String = "passenger_flight_change_minimization"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val poly = MutableLinearPolynomial()
         for (passer in passengers) {
             for (toFlight in change.toFlights[passer.flight] ?: emptyList()) {

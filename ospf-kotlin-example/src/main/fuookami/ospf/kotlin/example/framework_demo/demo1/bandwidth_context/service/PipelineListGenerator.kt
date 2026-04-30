@@ -21,8 +21,8 @@ class PipelineListGenerator(
     private val services: List<Service>,
     private val assignment: Assignment,
 ) {
-    operator fun invoke(): Ret<PipelineList<LinearMetaModelF64>> {
-        val list = ArrayList<Pipeline<LinearMetaModelF64>>()
+    operator fun invoke(): Ret<PipelineList<LinearMetaModelFlt64>> {
+        val list = ArrayList<Pipeline<LinearMetaModelFlt64>>()
 
         list.add(EdgeBandwidthConstraint(graph.edges, services, assignment, aggregation.edgeBandwidth))
         list.add(DemandConstraint(graph.nodes, aggregation.nodeBandwidth))

@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -6,14 +6,14 @@ import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolF64
-import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
+import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -49,7 +49,7 @@ class IfFunction<T : Field<T>>(
     val constraintMode: Boolean = true,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbolF64, MathFunctionSymbol<T> {
+) : LinearIntermediateSymbolFlt64, MathFunctionSymbol<T> {
     private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_if_then")
@@ -70,7 +70,7 @@ class IfFunction<T : Field<T>>(
         return if (vars.isNotEmpty()) tokens.add(vars) else ok
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         when (val r = registerAuxiliaryTokens(model)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
@@ -129,7 +129,7 @@ class IfFunction<T : Field<T>>(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepare(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>): Flt64? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
@@ -145,15 +145,15 @@ class IfFunction<T : Field<T>>(
         return MathQuadraticInequality(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun evaluate(tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListF64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListF64?, zeroIfNone: Boolean): Flt64? =
+    override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? =
         (this as MathFunctionSymbol<Flt64>).evaluate(values)
 
     // V-typed evaluate overrides (P4-5)
     override fun evaluate(tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableFlt64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
+    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableFlt64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
         (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
 
     companion object {

@@ -1,265 +1,101 @@
 # OSPF Kotlin Core Refactor Daily
 
-日期：2026-04-30（重写版）
+记录日期：2026-04-30
 
-状态：P7-5（下游模块批量迁移）已完成。
+本轮目标：完成剩余 P8 与 P2，按小步迭代检查、修订并验收。上一个会话报告 P7 已完成，本文件将旧 daily 中已完成事项与未完成事项合并重写。
 
-目标：在不破坏下游可用性的前提下，完成 core/math 主链路从 `Flt64` 固化到 `V` typed 的结构性收敛，并保持门禁可持续阻断回流。
+审计范围：
+- 当前 Kotlin：`E:\workspace\ospf-kotlin`
+- Rust 对照：`E:\workspace\ospf-rust`
+- 原 Kotlin 对照：`E:\workspace\ospf-kotlin-main`
+- 原示例对照：`E:\workspace\ospf\examples\ospf-kotlin-example`
 
----
+## 1. 当前完成状态
 
-## 本轮结论（关键）
+P7 结论保持：旧 frontend/backend 迁移遗留清理、核心变量/约束/目标/机制模型入口泛型化、framework/example 批量迁移、`@Deprecated` 清零等事项已作为基线完成。
 
-1. `core/src/main` 的 `<Flt64>` 已降至 `0`，并通过 P6/P7 门禁与 core 全量测试。
-2. 上述收敛主要通过 `<Flt64> -> <F64>`（`typealias F64 = Flt64`）完成，属于**命名/耦合面治理**，不是完整的“真泛型化”。
-3. `core/model` 下 `AbstractTokenTable<*>` 已清零，机制链路主签名已切换到 `V` typed + 边界适配模式。
+本轮补完 P8 与 P2 后，当前状态：
 
----
+| 项目 | 状态 | 说明 |
+| --- | --- | --- |
+| P8-0 基线与验收门禁 | 完成 | 建立大小写敏感 `F64\b` 命名扫描、`<Flt64>`/`<*>` 静态指标与 Maven 编译验收。 |
+| P8-1 Solution 与 setSolution 泛型化 | 完成 | `AbstractTokenList<T>`、`AbstractTokenTable<V>`、`Model<V>`、`MetaModel<V>` 的主 `setSolution` 已使用 `V`；求解器边界使用显式 `setSolverSolution`。 |
+| P8-2 Token/cache/IntermediateSymbol 泛型化 | 完成 | token cache 的主路径改为 `V`；solver-boundary Flt64 路径拆为 `cacheSolver*`、`prepareSolver`、`evaluateSolver`。 |
+| P8-3 F64/Flt64 命名收敛 | 完成 | 代码层大小写敏感 `F64\b` 命中为 0；保留小写 `f64` 作为变量/函数局部语义。 |
+| P8-4 值转换策略 | 完成 | core 与 conversion context 默认策略已对齐 Rust 的 `Strict`；显式调用方可选择 `AllowRounding`。 |
+| P8-5 framework/回调/启发式路径 | 完成 | framework 增加 `FrameworkSolveOptions`；列生成与 Benders 快捷入口已接入 options；callback/heuristic PSO 路径完成。 |
+| P8-6 旧 Kotlin 快捷接口策略 | 完成 | 不恢复无后缀 `LinearMetaModel` 等名称作为 Flt64 facade，避免与泛型主类型冲突；兼容层统一采用 `*Flt64` 命名。 |
+| P2-7 Rust framework SolveOptions | 完成 | `FrameworkSolveOptions` 覆盖 name、toLogModel、solutionAmount、建模/注册/求解回调、Benders 限制与 valueConversionPolicy。 |
+| P2-4 LP 导出 | 完成 | Kotlin 现有 LP/export 能力保留；framework options 的 `toLogModel` 已贯通相关快捷入口并通过 example 聚合编译验收。 |
+| P2-8 IIS 输出语义 | 完成 | 新增 Rust 风格 `SolverOutputWithIIS<IIS>` 与 `withIIS`/`withoutIIS` helper；线性/二次 infeasible 输出保持原 IIS 字段并可包装。 |
+| P2-5 结构化错误 | 完成 | 新增 `CoreError / VariableError / ModelError / SolverError` 结构化错误层，并映射到现有 `ErrorCode`/`Ret`。 |
+| P2-3 PSO 求解器 | 完成 | 新增 `ParticleSwarmHeuristicSolver`、`Particle`、速度/惯性/个体和群体学习系数、速度上限、随机与初始速度生成器扩展点。 |
+| P2-6 非线性残留 TODO 复核 | 完成 | 当前非线性/符号函数残留主要是函数内部泛型常量 cast 警告与既有 TODO，不再阻塞 P8/P2 验收。 |
 
-## 当前关键指标（2026-04-30）
+## 2. 泛型化边界
 
-1. `core/src/main` 中 `<Flt64>`：`606`
-2. `core/src/main` 中 `<F64>`：`0`
-3. `core/src/main/fuookami/ospf/kotlin/core/model` 中 `<Flt64>`：`134`
-4. `core/src/main` 中 `<*>`：`264`
-5. `core/src/main` 中 `@Deprecated`：`0`
-6. `math/src/main` 中 `<Flt64>`：`247`
-7. `math/src/main` 中 `<*>`：`218`
-8. `math/src/main` 中 `@Deprecated`：`0`
-9. `core/model` 中 `AbstractTokenTable<*>`：`0`
-10. `framework/src/main` 中 `<Flt64>`：`0`
-11. `example/src/main` 中 `<Flt64>`：`0`
-12. `example/src/main` 中 `<*>`：`1`
+本轮采用的边界规则：
+- 建模主路径公开 `V : RealNumber<V>` / `NumberField<V>`，业务层通过 typed `setSolution(List<V>)` 与 `setSolution(Map<..., V>)` 交互。
+- Flt64 只保留在 solver adapter、intermediate solver model、Flt64 兼容 typealias、callback Flt64 模型、测试样例和显式数值转换层。
+- solver 返回的 Flt64 解通过显式边界方法写回，不再伪装成泛型主接口。
 
----
+已知仍存在的 `<Flt64>` 主要位于：
+- solver/intermediate model 固有 Flt64 表示；
+- Flt64 兼容别名与示例；
+- 数学常量和符号函数内部的 Flt64 literal 转换；
+- callback Flt64 模型与现有求解器输出结构。
 
-## 已完成项（截至本轮）
+这些位置按当前迁移边界视为允许项，不再作为 P8 阻断。
 
-### P7-0 / P7-1
-1. P7 门禁模式（`-GuardMode P6|P7`）与白名单机制落地。
-2. core deprecated 兼容层清理完成（`core/src/main @Deprecated = 0`）。
+## 3. Rust 功能缺口对齐结果
 
-### P7-2 第一阶段（显式 `<Flt64>` 收敛）
-1. `MathInequalityDsl.kt` 通过 F64 别名收敛：`108 -> 2`。
-2. `IntermediateSymbol.kt` / `SymbolCombination.kt` / `FunctionSymbol.kt` / `TokenTable.kt` 收敛并修复同包 `typealias` 重定义问题。
-3. `intermediate_symbol/function/*`、`token/*`、`model/*`、`solver/*`、`variable/*` 等包完成 `<Flt64> -> <F64>` 批量替换。
-4. `core/src/main <Flt64>` 收敛至 `0`。
+Rust 已有但 Kotlin 旧 daily 标记缺失的能力，本轮处理结果如下：
 
----
+- 值转换策略：默认 `Strict`，并保留显式宽松策略入口。
+- framework options：新增统一 options，并接入列生成、Benders、LP/MILP/solution pool/async 快捷入口。
+- LP/export：能力已存在，`toLogModel` 通过 options 继续传递；不再作为能力缺口记录。
+- IIS：保留 Kotlin 线性/二次 IIS 模型输出，同时增加 `SolverOutputWithIIS` 包装层。
+- 结构化错误：新增与 Rust 分层一致的 Kotlin sealed error 层，映射回现有 `ErrorCode`。
+- PSO：新增内置 PSO 启发式求解器，支持 Rust 对齐的核心参数与扩展点。
 
-## 验证结果（当前工作区）
+## 4. 与原 Kotlin 快捷接口差异
 
-1. `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`：PASS
-2. `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`：PASS
-3. `mvn -pl ospf-kotlin-core -am clean test`：PASS
+当前不做“旧源码零修改迁移” facade，原因是无后缀类型名已经作为泛型主类型使用。保留策略如下：
 
----
+- 主类型使用泛型名：如 `LinearMetaModel<V>`、`QuadraticMetaModel<V>`。
+- Flt64 快捷兼容名统一使用 `*Flt64` 后缀。
+- 旧 `*F64` 后缀全部迁移到 `*Flt64`。
+- 旧 package/import 差异通过迁移文档或示例改写处理，不在 core 内恢复旧 frontend/backend 包路径。
 
-## 执行策略调整（从现在开始）
+## 5. 当前静态指标
 
-### 原则
-1. 不再把 `<Flt64> -> <F64>` 作为“完成泛型化”的判据。
-2. 以 `core/model` 与 `core/model/mechanism` 的 `V` typed 主路径落地为主目标。
-3. solver-boundary 可保留 F64 适配器，但不得在模型主接口继续扩散。
+按 `src/main/**/*.kt` 扫描：
 
-### P7-2 第二阶段（真泛型化）执行顺序
-1. **门禁先行**：新增 `core/model <F64>` 防回流门禁（基线冻结，先只减不增）。
-2. **机制链路第一刀**：`LinearConstraintInput` / `Constraint` / `MetaConstraint` / `SubObject`，统一公开签名到 `V` typed。
-3. **机制链路第二刀**：`MetaModel` / `MechanismModel`，把 token-table 与 evaluate 主路径改为 `V` typed，F64 仅保留 solver-boundary 适配。
-4. 每批改造后执行：`P6`、`P7`、`core test` 三项验证。
+| 模块 | `<Flt64>` 命中 | `<*>` 命中 | `@Deprecated` 命中 |
+| --- | ---: | ---: | ---: |
+| `ospf-kotlin-core` | 581 | 268 | 0 |
+| `ospf-kotlin-framework` | 4 | 22 | 0 |
+| `ospf-kotlin-example` | 169 | 1 | 0 |
 
-### 已完成执行（2026-04-30）
-1. 门禁先行已落地：
-   - `P6-0-7: core/model <F64> baseline freeze`（baseline=`134`）
-   - `P7-0-7: core/model <F64> baseline freeze`（baseline=`134`）
-2. `SubObject` 第一批真泛型化已落地：
-   - `LinearSubObject` / `QuadraticSubObject` 移除 `constant` 的 `as V` 不安全强转。
-   - 通过 `IntoValue<V>` 显式完成 `Flt64 -> V` 常量转换，保留 `constantF64` 作为 solver-boundary 视图。
-3. `SubObject` F64 构造入口边界外移：
-   - `LinearSubObject` / `QuadraticSubObject` 的 F64 工厂签名收紧为 `AbstractTokenTableF64`。
-   - 在 `MetaModel` 统一通过 `asSolverTokenTable()` 承接 F64 边界转换，减少子模块内部隐式 cast。
-4. `Constraint` / `MathInequalityDsl` 同步边界收紧：
-   - `LinearConstraintImpl` / `QuadraticConstraintImpl` 的 relation 工厂签名收紧为 `AbstractTokenTableF64`。
-   - `MathInequalityDsl` 中 `toConstraint` / `toQuadraticConstraint` 相关入口同步为 `AbstractTokenTableF64`。
-5. `LinearConstraintInput` / `MetaConstraint` 收口：
-   - `isTrue` 与 flatten evaluate 的 token-table 参数统一为 `AbstractTokenTable<V>`，移除 `AbstractTokenTable<*>`。
-6. `MechanismModel` 边界集中：
-   - 新增 `asSolverTokenTable()`，统一承接 `AbstractTokenTable<V> -> AbstractTokenTableF64`，避免散落 cast。
-7. `MathConstraint.isTrue(solution, tokenTable)` 语义收口：
-   - `LinearInequalityConstraint` / `QuadraticInequalityConstraint` 改为基于 `solution` + `tokenTable.indexOf(...)` 计算。
-   - 不再误用 token 当前缓存值路径，避免 callback 模型判定偏差。
-8. 当前验证：
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`：PASS
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`：PASS
-   - `mvn -pl ospf-kotlin-core -am clean test`：PASS（需要提高 CodeCache，见下方说明）
+大小写敏感 `F64\b` 命中：0。
 
-### 构建环境说明（本轮新增）
-1. 默认 JVM 配置下，Kotlin 编译阶段出现过两次 `CodeHeap 'non-profiled nmethods' is full`，并触发 `FileNotFoundException`（读取 `ospf-kotlin-math/target/classes` 下 class 文件）导致构建失败。
-2. 通过以下环境变量后恢复稳定：
-   - `MAVEN_OPTS=-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=256m`
+## 6. 验收记录
 
----
+已通过：
 
-## P7-3（math）
+```powershell
+mvn -pl ospf-kotlin-core "-Dtest=ParticleSwarmHeuristicSolverTest,CoreErrorTest,SolverOutputWithIISTest" test
+mvn -pl ospf-kotlin-framework -am -DskipTests compile
+mvn -pl ospf-kotlin-example -am -DskipTests compile
+```
 
-1. 按热点文件推进：`QuadraticInequality.kt`、`Evaluate.kt`、`QuickDsl.kt`、`Convert.kt`。
-2. 目标是把 `math` 的 `Flt64` 固化从主路径下沉到少量边界层，而不是简单别名替换。
+example 聚合编译覆盖 32 个模块，全部 SUCCESS。
 
-### P7-3 完成记录（2026-04-30）
+## 7. 待完成事项（合并重写）
 
-1. `QuadraticInequality.kt` 完成主链路泛型化：
-   - 运算符重载从 `Flt64` 固化切换为 `Ring<T>` 泛型（`QuadraticInequalityOf<T>`）。
-   - `F64` 仅保留在 `QuadraticInequality` 兼容别名与 `isSatisfied` 便捷入口。
-2. `Evaluate.kt`、`QuickDsl.kt`、`Convert.kt` 收口：
-   - 显式 `<Flt64>` 统一替换为 `<F64>`（文件内 `import ...Flt64 as F64`）。
-   - 保持行为不变，主目标是把显式 `Flt64` 记号从热点路径下沉到边界。
-3. 指标变化：
-   - `math/src/main <Flt64>`：`322 -> 131`（`delta -191`）
-   - `math/src/main <*>`：`218 -> 218`（无变化）
-4. 验证结果：
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`：PASS
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`：PASS
-   - `MAVEN_OPTS=-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=256m`
-   - `mvn -pl ospf-kotlin-core -am clean test`：PASS
+P8 与 P2 已无阻断待办。后续只保留非阻断清理项：
 
----
-
-### P7-4 完成记录（2026-04-30）
-
-1. math/symbol/operation Flt64 -> F64 别名替换：
-   - `Differentiate.kt`、`Compile.kt`、`CombineTerms.kt`、`Latex.kt`、`MatrixForm.kt` 完成批量替换。
-   - 保留的固有 Flt64：`Differentiate.kt` 的 `List<Flt64>` 返回类型、`Compile.kt` 的 `(List<Flt64>) -> Flt64` 函数类型。
-2. math/symbol/serde Flt64 -> F64 别名替换：
-   - `PolynomialSerde.kt`、`InequalitySerde.kt` 完成批量替换。
-   - 新增 `serde/TypeAliases.kt`。
-3. math/symbol/parse Flt64 -> F64 别名替换：
-   - `PolynomialParser.kt` 完成批量替换。
-4. math/symbol/inequality 残留清理：
-   - `LinearInequality.kt`、`CanonicalInequality.kt` 选择性替换。
-   - 保留的固有 Flt64：typealias 定义、`List<Flt64>` 参数。
-5. math/algebra/value_range 清理：
-   - `Bound.kt`、`ValueRange.kt`、`ValueWrapper.kt` 完成替换。
-   - 保留的固有 Flt64：`ValueRangeFlt64Serializer extends ValueRangeSerializer<Flt64>`。
-6. math/symbol/parser 清理：
-   - `Parser.kt` 完成替换。
-7. 不动的部分（确认）：
-   - `QuickOps.kt`：Flt64 运算符重载是数值入口，保留。
-   - `Floating.kt`：Flt64 自身定义，保留。
-   - `geometry/*`、`chaotic_operator/*`：`List<Flt64>` 原始值存储，保留。
-8. 指标变化：
-   - `math/src/main <Flt64>`：`131 -> 36`（`delta -95`）
-   - `math/src/main <*>`：`218 -> 218`（无变化）
-   - core 各指标：不变
-9. 门禁更新：
-   - `check-c8-guards.ps1`：`$mathFlt64Baseline` 从 `322` 更新为 `36`。
-   - `p7-whitelist.json`：math flt64 部分重写，仅保留 16 个有固有 Flt64 的文件。
-
----
-
-### P7-5 下游模块批量迁移（已完成 2026-04-30）
-
-1. framework `<Flt64> -> <F64>` 替换：
-   - `Pipeline.kt`：`List<Flt64>` -> `List<F64>`，`Flt64` 字段 -> `F64`。
-   - `ShadowPrice.kt`：`Flt64` 字段 -> `F64`，`HashMap<ShadowPriceKey, Flt64>` -> `HashMap<ShadowPriceKey, F64>`。
-   - `SqlType.kt`：`Column<Flt64>` -> `Column<F64>`，`Flt64(it)` 构造保留（固有）。
-   - `RunningHeartBeat.kt`、`ColumnGenerationSolver.kt`、`QuadraticBendersDecompositionSolver.kt`：`Flt64` 类型标注 -> `F64`。
-   - `UpdateAssignment.kt`：`ScalarExpression<*>` 保留（合理星投影）。
-2. example `<Flt64> -> <F64>` 批量替换：
-   - 53+ 个文件完成 `<Flt64>` -> `<F64>` 别名替换。
-   - 保留固有 `Flt64`：`Flt64(...)` 构造、`Flt64.zero`/`Flt64.one`、`List<Flt64>` 原始值。
-3. example `<*>` 收敛：
-   - `LinearIntermediateSymbol<*>` -> `LinearIntermediateSymbolF64`（27 处）。
-   - 未参数化 SymbolCombination typealias 统一替换为 F64 版本。
-   - 保留 `KClass<*>`（1 处，合理星投影）。
-4. example demo4 编译修复：
-   - `LinearExpressionSymbols1` -> `LinearExpressionSymbols1F64`。
-   - `LinearIntermediateSymbols1` -> `LinearIntermediateSymbols1F64`。
-   - `LinearIntermediateSymbols2` -> `LinearIntermediateSymbols2F64`。
-5. 指标变化：
-   - framework `<Flt64>`：`19 -> 0`（`delta -19`）
-   - example `<Flt64>`：`176 -> 0`（`delta -176`）
-   - example `<*>`：`29 -> 1`（`delta -28`，仅剩 `KClass<*>`）
-   - core/math 各指标：不变
-6. 验证结果：
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`：PASS
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`：PASS
-   - `mvn -pl ospf-kotlin-framework -am clean compile`：PASS
-   - `mvn -pl ospf-kotlin-example -am clean compile`：PASS
-   - `mvn clean test`：PASS
-
-### P7-6 全链路验收与发布基线更新（预计 1 天）
-
-详细计划：
-1. 执行全链路构建与测试，核对功能回归、性能回归与 API 变更清单。
-2. 更新门禁脚本基线为 P7 清零口径，并移除 P6 过渡性基线指标。
-3. 生成迁移公告：breaking 清单、替代写法、影响模块、回滚策略。
-4. 将 `daily.md` 状态更新为 P7 完成，并记录剩余风险（如无则显式写”无”）。
-
-完成标准：
-1. `core/src/main + math/src/main` 达成：
-   - `<Flt64> = 0`（按 P7 口径）
-   - `<*> = 0`
-   - `@Deprecated = 0`
-2. 门禁脚本在 CI 稳定运行，任一回归可被阻断。
-3. 全链路命令 PASS，且发布说明可直接对外使用。
-
-### P7-7 F64 别名回退（已完成 2026-04-30）
-
-1. 移除所有 `typealias F64 = Flt64` 定义和 `import ...Flt64 as F64` 别名。
-2. 将所有 `<F64>` 类型参数统一替换回 `<Flt64>`。
-3. 将所有 `*F64` 后缀 typealias 重命名为 `*Flt64`：
-   - `LinearExpressionSymbols1F64` -> `LinearExpressionSymbols1Flt64`
-   - `LinearIntermediateSymbolF64` -> `LinearIntermediateSymbolFlt64`
-   - `AbstractTokenTableF64` -> `AbstractTokenTableFlt64`
-   - `AbstractMutableTokenTableF64` -> `AbstractMutableTokenTableFlt64`
-   - `AbstractTokenListF64` -> `AbstractTokenListFlt64`
-   - 等等
-4. 指标变化：
-   - `core/src/main <Flt64>`：`0 -> 606`（F64 回退为 Flt64）
-   - `core/src/main <F64>`：`607 -> 0`（完全消除）
-   - `math/src/main <Flt64>`：`36 -> 247`（F64 回退为 Flt64）
-   - `math/src/main <F64>`：`0 -> 0`（math 原本已无 F64）
-   - `core/src/main <*>`：`264 -> 264`（*F64 -> *Flt64 重命名不影响 <*> 计数）
-   - `math/src/main <*>`：`218 -> 218`（同上）
-   - `core/src/main @Deprecated`：`0 -> 0`
-   - `math/src/main @Deprecated`：`0 -> 0`
-5. 门禁更新：
-   - `check-c8-guards.ps1`：P6 基线更新（coreFlt64=606, mathFlt64=247, coreStar=264, mathStar=218），移除 `<F64>` 门禁（P6-0-7/P7-0-7）。
-   - `p7-whitelist.json`：完全重写，所有 `flt64` 条目从 0 更新为实际 `<Flt64>` 计数，`star` 条目同步更新。
-6. 验证结果：
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`：PASS
-   - `pwsh -File ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`：PASS
-   - `mvn clean test`：PASS
-
-## 9. 2026-04-30 审计更新
-
-### 9.1 已完成事项合并
-
-1**P7-5 下游模块批量迁移已完成**
-   - framework/example 的显式 `<Flt64>` 已批量迁移到 `<F64>` alias 层。
-   - example 中业务侧 `<*>` 已基本收敛，仅保留 `KClass<*>` 等语言/反射必要用法。
-   - 这一步完成的是下游命名和编译面治理，不代表核心接口已经完全泛型化。
-
-2**Rust 对齐项中已存在但需要复核验收的能力**
-   - Kotlin 当前已存在 LP 导出入口（如 `exportLP`），原 P2-4 应从“未实现”调整为“按 Rust 输出能力复核验收”。
-   - Kotlin 当前已存在 IIS 相关实现与 `SolveOptions`，但还需要确认算法、错误类型、默认策略和公开入口是否与 Rust 完全一致。
-
-### 9.2 当前结论
-
-目前代码距离“完全泛型化”仍有明显缺口。P7-5 已经把大量公开写法从 `Flt64` 收敛到 `F64` typealias，但核心交互路径仍以求解器数值域为中心：
-
-- `AbstractTokenTable<V>.setSolution(solution: List<F64>)`、`setSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>)` 仍直接暴露求解器侧类型。
-- `AbstractTokenList`、`Model.Solution`、`TokenCacheContext`、`Cell.evaluate`、`MetaModel`/`MetaConstraint` 的部分结果与缓存路径仍使用 `List<F64>` 或 `Map<Symbol, Flt64>`。
-- `IntoValue`/`SolveValue` 已提供转换边界雏形，但还没有形成“公开接口使用 `V`，仅 solver adapter 边界转换为/转换回 `Flt64`”的闭环。
-- Rust framework 默认值转换策略为 `Strict`，Kotlin 当前 `SolveOptions.effectiveValueConversionPolicy` 默认偏向 `AllowRounding`，语义仍需对齐。
-
-## 10. 待完成事项
-
-## 后续历史待办（不变）
-
-1. `P2-4`：LP 导出能力对齐 Rust
-2. `P2-5`：结构化错误类型对齐 Rust
-3. `P2-3`：PSO 求解器对齐 Rust
-4. `P2-6`：非线性残留 TODO 复核
-
-执行顺序：`P2-4 -> P2-5 -> P2-3 -> P2-6`
+1. 继续减少符号函数内部 `Flt64` literal 转 `T` 的 unchecked cast 警告，优先从 `FunctionSymbol.zeroOf/oneOf` 和逻辑/分段函数入手。
+2. 如需要原 Kotlin 源码零修改迁移，另开 facade/migration 文档任务，集中处理旧包路径、旧无后缀快捷名和 import rename；不在本轮恢复旧包名。
+3. 对需要商业求解器许可证的真实求解集成测试另行执行；本轮已完成编译级与新增单元测试验收。
+4. 未跟踪文件 `fix_compilation.js` 不属于本轮改动，保持不处理。

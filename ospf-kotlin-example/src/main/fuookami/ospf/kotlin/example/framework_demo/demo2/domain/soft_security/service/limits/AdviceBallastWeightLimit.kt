@@ -21,8 +21,8 @@ class AdviceBallastWeightLimit(
     private val ballast: Ballast,
     private val coefficient: () -> Flt64 = { Flt64.one },
     override val name: String = "advice_ballast_weight_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         if (ballast.adviceBallastWeight != null) {
             val slack = SlackFunction(
                 x = LinearPolynomial(ballast.ballastWeight.value),

@@ -18,7 +18,7 @@ class Assignment(
     lateinit var nodeAssignment: LinearIntermediateSymbols1Flt64
     lateinit var serviceAssignment: LinearIntermediateSymbols1Flt64
 
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(nodes.size, services.size))
             for (service in services) {

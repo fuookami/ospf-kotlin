@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -36,7 +36,7 @@ class BasicModelEntryTest {
             initialResult = Flt64.zero
         )
         val constraints = LinearConstraintBatch(
-            sparseLhs = SparseMatrixF64(),
+            sparseLhs = SparseMatrixFlt64(),
             signs = emptyList(),
             rhs = emptyList(),
             names = emptyList(),
@@ -112,7 +112,7 @@ class BasicModelEntryTest {
             initialResult = Flt64.zero
         )
         val constraints = LinearConstraintBatch(
-            sparseLhs = SparseMatrixF64(),
+            sparseLhs = SparseMatrixFlt64(),
             signs = emptyList(),
             rhs = emptyList(),
             names = emptyList(),

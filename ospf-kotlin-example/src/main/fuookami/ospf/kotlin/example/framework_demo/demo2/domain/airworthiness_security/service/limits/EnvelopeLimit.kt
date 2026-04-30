@@ -15,8 +15,8 @@ class EnvelopeLimit(
     private val torque: Torque,
     private val envelopes: Map<FlightPhase, List<AbstractEnvelope>>,
     override val name: String = "envelope_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((phase, thisEnvelopes) in envelopes) {
             val index = torque.index[phase]!!
             for (envelope in thisEnvelopes) {

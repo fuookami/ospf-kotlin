@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.core.solver.heuristic.pso.*
 
 class Demo2 {
     operator fun invoke(): Try {
-        val metaModel = LinearMetaModelF64()
+        val metaModel = LinearMetaModelFlt64()
         val x = URealVar("x")
         val y = URealVar("y")
         x.range.leq(Flt64.two)

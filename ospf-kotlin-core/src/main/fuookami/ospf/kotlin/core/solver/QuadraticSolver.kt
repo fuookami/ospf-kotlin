@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -139,7 +139,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput> {
         return solveWithOptions(
@@ -151,7 +151,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
     ): Ret<SolverOutput> {
@@ -166,7 +166,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput>> {
@@ -181,7 +181,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
@@ -198,7 +198,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
@@ -212,7 +212,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
@@ -229,7 +229,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
@@ -247,7 +247,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMechanismModelF64,
+        model: QuadraticMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
@@ -266,7 +266,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -298,7 +298,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -317,7 +317,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -337,7 +337,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -358,7 +358,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -390,7 +390,7 @@ interface AbstractQuadraticSolver {
     }
 
     suspend operator fun invoke(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -411,7 +411,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -433,7 +433,7 @@ interface AbstractQuadraticSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -455,16 +455,16 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    suspend fun dump(model: QuadraticMechanismModelF64): QuadraticTetradModel {
+    suspend fun dump(model: QuadraticMechanismModelFlt64): QuadraticTetradModel {
         return QuadraticTetradModel(model)
     }
 
     suspend fun dump(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<QuadraticMechanismModelF64> {
-        return QuadraticMechanismModelF64(
+    ): Ret<QuadraticMechanismModelFlt64> {
+        return QuadraticMechanismModelFlt64(
             metaModel = model,
             registrationStatusCallBack = registrationStatusCallBack,
             dumpingStatusCallBack = dumpingStatusCallBack
@@ -475,7 +475,7 @@ interface AbstractQuadraticSolver {
 interface QuadraticSolver : AbstractQuadraticSolver {
     val config: SolverConfig
 
-    override suspend fun dump(model: QuadraticMechanismModelF64): QuadraticTetradModel {
+    override suspend fun dump(model: QuadraticMechanismModelFlt64): QuadraticTetradModel {
         return QuadraticTetradModel(
             model = model,
             fixedVariables = null,
@@ -486,11 +486,11 @@ interface QuadraticSolver : AbstractQuadraticSolver {
     }
 
     override suspend fun dump(
-        model: QuadraticMetaModelF64,
+        model: QuadraticMetaModelFlt64,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
-    ): Ret<QuadraticMechanismModelF64> {
-        return QuadraticMechanismModelF64(
+    ): Ret<QuadraticMechanismModelFlt64> {
+        return QuadraticMechanismModelFlt64(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,

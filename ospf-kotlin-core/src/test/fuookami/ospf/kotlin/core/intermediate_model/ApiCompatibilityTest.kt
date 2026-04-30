@@ -1,9 +1,9 @@
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbolF64
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbolFlt64
 import fuookami.ospf.kotlin.core.token.newTokenCacheKey
 import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -109,15 +109,15 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "typealias_check_linear"
         )
-        val linearF64: LinearExpressionSymbolF64 = linear
-        assertTrue(linear === linearF64, "LinearExpressionSymbolF64 should be typealias for LinearExpressionSymbol<Flt64>")
+        val linearFlt64: LinearExpressionSymbolFlt64 = linear
+        assertTrue(linear === linearFlt64, "LinearExpressionSymbolFlt64 should be typealias for LinearExpressionSymbol<Flt64>")
 
         val quadratic: QuadraticExpressionSymbol<Flt64> = QuadraticExpressionSymbol(
             constant = Flt64.one,
             name = "typealias_check_quadratic"
         )
-        val quadraticF64: QuadraticExpressionSymbolF64 = quadratic
-        assertTrue(quadratic === quadraticF64, "QuadraticExpressionSymbolF64 should be typealias for QuadraticExpressionSymbol<Flt64>")
+        val quadraticFlt64: QuadraticExpressionSymbolFlt64 = quadratic
+        assertTrue(quadratic === quadraticFlt64, "QuadraticExpressionSymbolFlt64 should be typealias for QuadraticExpressionSymbol<Flt64>")
     }
 
     @Test

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
+ï»¿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -18,19 +18,19 @@ class ItemAheadLoadLimit(
     private val stowage: Stowage,
     private val coefficient: (Item) -> Flt64 = { Flt64.one },
     override val name: String = "item_ahead_load_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
     companion object {
         private val predicates = listOf(
-            // ÒÑµ½»úÏÂ
+            // ï¿½Ñµï¿½ï¿½ï¿½ï¿½ï¿½
             { item: Item -> item.order?.hardstand != null },
-            // ÒÑ³ö¿â
+            // ï¿½Ñ³ï¿½ï¿½ï¿½
             { item: Item -> item.order?.hardstand != null || item.order?.carBoard != null },
-            // ÒÑ¸´°õ
+            // ï¿½Ñ¸ï¿½ï¿½ï¿½
             { item: Item -> item.order?.hardstand != null || item.order?.carBoard != null || item.order?.reweighed != null },
         )
     }
 
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val predicate = predicates.find { pred -> items.any(pred) }
         if (predicate != null) {
             when (val result = model.minimize(

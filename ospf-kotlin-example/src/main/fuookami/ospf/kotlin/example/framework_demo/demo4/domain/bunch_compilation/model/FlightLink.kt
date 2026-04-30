@@ -33,7 +33,7 @@ class FlightLink(
     lateinit var link: LinearExpressionSymbols1Flt64
     lateinit var slack: LinearIntermediateSymbols1Flt64
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         if (links.isNotEmpty()) {
             if (!::link.isInitialized) {
                 link = LinearExpressionSymbols1Flt64(

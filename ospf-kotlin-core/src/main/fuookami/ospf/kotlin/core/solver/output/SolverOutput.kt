@@ -51,5 +51,37 @@ data class QuadraticInfeasibleSolverOutput(
     override val solveTime: Duration? = null
 ) : QuadraticSolverOutput, UnifiedSolverOutput
 
+data class SolverOutputWithIIS<out IIS>(
+    val output: SolverOutput,
+    val iis: IIS?
+)
+
+fun <IIS> SolverOutput.withIIS(iis: IIS?): SolverOutputWithIIS<IIS> {
+    return SolverOutputWithIIS(
+        output = this,
+        iis = iis
+    )
+}
+
+fun SolverOutput.withoutIIS(): SolverOutputWithIIS<Nothing> {
+    return SolverOutputWithIIS(
+        output = this,
+        iis = null
+    )
+}
+
+fun LinearInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<BasicLinearTriadModelView> {
+    return SolverOutputWithIIS(
+        output = this,
+        iis = iis
+    )
+}
+
+fun QuadraticInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<QuadraticTetradModelView> {
+    return SolverOutputWithIIS(
+        output = this,
+        iis = iis
+    )
+}
 
 

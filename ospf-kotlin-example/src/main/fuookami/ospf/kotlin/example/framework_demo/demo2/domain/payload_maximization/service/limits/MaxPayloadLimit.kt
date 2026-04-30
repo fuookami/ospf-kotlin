@@ -24,8 +24,8 @@ class MaxPayloadLimit(
     private val payload: Payload,
     private val coefficient: () -> Flt64 = { Flt64.one },
     override val name: String = "max_payload_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.maximize(
             coefficient() * payload.estimatePayload.value
         )) {

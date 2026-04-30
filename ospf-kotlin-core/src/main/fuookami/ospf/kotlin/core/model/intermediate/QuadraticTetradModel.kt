@@ -1,11 +1,11 @@
-package fuookami.ospf.kotlin.core.model.intermediate
+﻿package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
 import fuookami.ospf.kotlin.core.model.basic.Variable
@@ -220,7 +220,7 @@ class BasicQuadraticTetradModel(
 ) : BasicModelView<QuadraticConstraintCell>, Cloneable, Copyable<BasicQuadraticTetradModel> {
     companion object {
         /**
-         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModelF64] by
+         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModelFlt64] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -233,7 +233,7 @@ class BasicQuadraticTetradModel(
          * @return a [BasicQuadraticTetradModel] containing the extracted variables and constraints
          */
         fun from(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -244,7 +244,7 @@ class BasicQuadraticTetradModel(
         }
 
         private fun dumpVariables(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -284,7 +284,7 @@ class BasicQuadraticTetradModel(
         }
 
         private fun dumpConstraints(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -549,7 +549,7 @@ data class QuadraticTetradModel(
 
         /** V→Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -653,7 +653,7 @@ data class QuadraticTetradModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -694,7 +694,7 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpConstraints(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -775,7 +775,7 @@ data class QuadraticTetradModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -946,7 +946,7 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpObjectives(
-            model: QuadraticMechanismModelF64,
+            model: QuadraticMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticObjective {

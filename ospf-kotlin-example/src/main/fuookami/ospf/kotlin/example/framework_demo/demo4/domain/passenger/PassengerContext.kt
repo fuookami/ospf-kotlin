@@ -15,7 +15,7 @@ class PassengerContext {
     lateinit var aggregation: Aggregation
     lateinit var pipelineList: CGPipelineList
 
-    fun register(model: AbstractLinearMetaModelF64): Try {
+    fun register(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
 

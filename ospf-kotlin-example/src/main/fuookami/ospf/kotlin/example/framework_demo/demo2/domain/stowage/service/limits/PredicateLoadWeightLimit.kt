@@ -16,8 +16,8 @@ class PredicateLoadWeightLimit(
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "recommend_load_weight_limit",
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((j, position) in positions.withIndex()) {
             if ((position.status.stowageNeeded || position.status.adjustmentNeeded)
                 && position.status.predicateWeightNeeded

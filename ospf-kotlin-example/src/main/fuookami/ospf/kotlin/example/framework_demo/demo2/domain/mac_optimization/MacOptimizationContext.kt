@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -56,7 +56,7 @@ class MacOptimizationContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -109,19 +109,19 @@ class MacOptimizationContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")

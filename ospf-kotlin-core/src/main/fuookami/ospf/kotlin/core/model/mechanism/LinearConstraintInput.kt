@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.AbstractTokenListF64
+import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -105,7 +105,7 @@ data class LinearConstraintInput(
         return sign.compare(lhsValue, Flt64.zero)
     }
 
-    fun isTrue(tokenList: AbstractTokenListF64, zeroIfNone: Boolean = false): Boolean? {
+    fun isTrue(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean = false): Boolean? {
         val lhsValue = evaluateFlattenDataFromTokenList(flattenData, tokenList, zeroIfNone = zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -113,7 +113,7 @@ data class LinearConstraintInput(
 
     fun isTrue(
         results: List<Flt64>,
-        tokenList: AbstractTokenListF64,
+        tokenList: AbstractTokenListFlt64,
         zeroIfNone: Boolean = false
     ): Boolean? {
         val lhsValue = evaluateFlattenDataWithResultsFromTokenList(flattenData, results, tokenList, zeroIfNone = zeroIfNone)
@@ -126,7 +126,7 @@ data class LinearConstraintInput(
      */
     fun isTrue(
         values: Map<Symbol, Flt64>,
-        tokenList: AbstractTokenListF64?,
+        tokenList: AbstractTokenListFlt64?,
         zeroIfNone: Boolean = false
     ): Boolean? {
         val lhsValue = evaluateFlattenDataWithValuesAndTokenList(flattenData, values, tokenList, zeroIfNone = zeroIfNone)
@@ -147,7 +147,7 @@ internal fun <V> evaluateFlattenData(
     for (monomial in data.monomials) {
         val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
         val token = tokenTable.find(symbol) ?: continue
-        val value = token.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
+        val value = token.resultFlt64 ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
     return result
@@ -163,7 +163,7 @@ private fun <V> evaluateFlattenDataWithValues(
     for (monomial in data.monomials) {
         val symbol = monomial.symbol
         val value = values[symbol]
-            ?: (symbol as? AbstractVariableItem<*, *>)?.let { tokenTable?.find(it)?.resultF64 }
+            ?: (symbol as? AbstractVariableItem<*, *>)?.let { tokenTable?.find(it)?.resultFlt64 }
             ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
@@ -171,12 +171,12 @@ private fun <V> evaluateFlattenDataWithValues(
 }
 
 /**
- * Evaluate LinearFlattenDataFlt64 with values map and AbstractTokenListF64 fallback.
+ * Evaluate LinearFlattenDataFlt64 with values map and AbstractTokenListFlt64 fallback.
  */
 private fun evaluateFlattenDataWithValuesAndTokenList(
     data: LinearFlattenDataFlt64,
     values: Map<Symbol, Flt64>,
-    tokenList: AbstractTokenListF64?,
+    tokenList: AbstractTokenListFlt64?,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
@@ -235,14 +235,14 @@ internal fun <V> evaluateQuadraticFlattenDataWithResults(
 
 private fun evaluateFlattenDataFromTokenList(
     data: LinearFlattenDataFlt64,
-    tokenList: AbstractTokenListF64,
+    tokenList: AbstractTokenListFlt64,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
     for (monomial in data.monomials) {
         val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
         val token = tokenList.find(symbol) ?: continue
-        val value = token.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
+        val value = token.resultFlt64 ?: if (zeroIfNone) Flt64.zero else return null
         result = result + monomial.coefficient * value
     }
     return result
@@ -251,7 +251,7 @@ private fun evaluateFlattenDataFromTokenList(
 private fun evaluateFlattenDataWithResultsFromTokenList(
     data: LinearFlattenDataFlt64,
     results: List<Flt64>,
-    tokenList: AbstractTokenListF64,
+    tokenList: AbstractTokenListFlt64,
     zeroIfNone: Boolean
 ): Flt64? {
     var result = data.constant
@@ -289,11 +289,11 @@ internal fun <V> evaluateQuadraticFlattenData(
     for (monomial in data.monomials) {
         val sym1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
         val token1 = tokenTable.find(sym1) ?: continue
-        val val1 = token1.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
+        val val1 = token1.resultFlt64 ?: if (zeroIfNone) Flt64.zero else return null
         val val2 = if (monomial.symbol2 != null) {
             val sym2 = monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue
             val token2 = tokenTable.find(sym2) ?: continue
-            token2.resultF64 ?: if (zeroIfNone) Flt64.zero else return null
+            token2.resultFlt64 ?: if (zeroIfNone) Flt64.zero else return null
         } else {
             val1
         }

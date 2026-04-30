@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -30,7 +30,7 @@ class Torque(
     lateinit var index: Map<FlightPhase, QuantityLinearIntermediateSymbol>
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::longitudinalTorque.isInitialized) {
             longitudinalTorque = FlightPhase.entries.associateWith { phase ->

@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -28,7 +28,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create two non-negative variables: `pos >= 0`, `neg >= 0`
- * - ConstraintF64: `x = pos - neg`  (i.e. `x + neg = pos`)
+ * - ConstraintFlt64: `x = pos - neg`  (i.e. `x + neg = pos`)
  * - Output:     `y = pos + neg`  (which equals `|x|`)
  *
  * When `extract = true`, additional binary variable and Big-M constraints are added
@@ -87,7 +87,7 @@ class AbsFunction<T : Field<T>>(
         return Flt64(kotlin.math.abs(doubleVal)) as T
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add helper variables to the model
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -97,7 +97,7 @@ class AbsFunction<T : Field<T>>(
 
         val xPoly = x.asFlt64Poly()
 
-        // ConstraintF64: x + neg = pos   ->   x + neg - pos = 0
+        // ConstraintFlt64: x + neg = pos   ->   x + neg - pos = 0
         val posPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, posVar)), Flt64.zero)
         val negPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, negVar)), Flt64.zero)
 

@@ -19,7 +19,7 @@ class ItemOrderLimit(
     private val orderedPositions: List<PositionPair>,
     private val stowage: Stowage,
     override val name: String = "item_order_limit"
-): Pipeline<AbstractLinearMetaModelF64> {
+): Pipeline<AbstractLinearMetaModelFlt64> {
     companion object {
         operator fun invoke(
             items: List<Item>,
@@ -31,7 +31,7 @@ class ItemOrderLimit(
         }
     }
 
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         for ((item1, item2) in orderedItems) {
             val i1 = items.indexOf(item1)
             val i2 = items.indexOf(item2)

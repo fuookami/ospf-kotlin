@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -35,7 +35,7 @@ class OrderConstraint<A : ProductionAction>(
      * 应用约束到模�?
      * Apply constraint to model
      */
-    operator fun invoke(model: LinearMetaModelF64): Try {
+    operator fun invoke(model: LinearMetaModelFlt64): Try {
         val x = compilation.x
         val b = compilation.b
 

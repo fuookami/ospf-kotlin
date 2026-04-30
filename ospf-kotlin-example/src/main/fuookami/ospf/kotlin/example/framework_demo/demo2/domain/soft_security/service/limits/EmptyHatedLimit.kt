@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -20,8 +20,8 @@ class EmptyHatedLimit(
     private val load: Load,
     private val coefficient: (Position) -> Flt64 = { Flt64.one },
     override val name: String = "empty_hated_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         val poly = MutableLinearPolynomial()
         for ((j, position) in positions.withIndex()) {
             if (position.type.contains(PositionTypeCode.EmptyHated)) {

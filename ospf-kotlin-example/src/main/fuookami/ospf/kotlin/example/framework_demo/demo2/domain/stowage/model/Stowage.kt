@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -46,7 +46,7 @@ class Stowage(
     lateinit var loaded: LinearIntermediateSymbols1Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(items.size, positions.size))

@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.VariableType
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * Decomposition:
  * - Create helper variables: `neg >= 0`, `pos >= 0`
- * - ConstraintF64: `lb <= x + neg - pos <= ub` (when `constraint = true`)
+ * - ConstraintFlt64: `lb <= x + neg - pos <= ub` (when `constraint = true`)
  * - Output: `y = pos + neg`
  *
  * @param x the input linear polynomial
@@ -101,7 +101,7 @@ class SlackRangeFunction<T : Field<T>>(
         }
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add helper variables
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -117,7 +117,7 @@ class SlackRangeFunction<T : Field<T>>(
 
         val xPoly = x.asFlt64Poly()
 
-        // ConstraintF64: x + neg - pos <= ub
+        // ConstraintFlt64: x + neg - pos <= ub
         // => x + neg - pos <= ub
         val upperLhs = LinearPolynomial(
             xPoly.monomials + listOf(
@@ -134,7 +134,7 @@ class SlackRangeFunction<T : Field<T>>(
             is Fatal -> return Fatal(result.errors)
         }
 
-        // ConstraintF64: x + neg - pos >= lb
+        // ConstraintFlt64: x + neg - pos >= lb
         // => x + neg - pos >= lb
         val lowerLhs = LinearPolynomial(
             xPoly.monomials + listOf(

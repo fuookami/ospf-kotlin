@@ -1,4 +1,4 @@
-@file:OptIn(kotlin.time.ExperimentalTime::class)
+﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -249,7 +249,7 @@ abstract class AbstractStorageResourceUsage<
         this.timeSlots = timeSlots
     }
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (!::supply.isInitialized) {
             supply = LinearIntermediateSymbols2<Flt64>(
                 name = "${name}_supply",
@@ -387,7 +387,7 @@ class TaskSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearIntermediateSymbols3<Flt64>
     override lateinit var cost: LinearIntermediateSymbols2<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -446,7 +446,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3(
                 name = "${name}_executor_supply",
@@ -623,7 +623,7 @@ class BunchSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearExpressionSymbols3<Flt64>
     override lateinit var cost: LinearExpressionSymbols2<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3<Flt64>(
                 name = "${name}_executor_supply",

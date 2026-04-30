@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * `MechanismModel<V>` extends this with the objective function and Benders cut generation.
  *
  * BasicMechanismModel delegates token storage to an [AbstractTokenTable<V>] provided
- * at construction time — the same mechanism used by MechanismModelF64.
+ * at construction time — the same mechanism used by MechanismModelFlt64.
  */
 open class BasicMechanismModel<V>(
     open val name: String,
@@ -26,4 +26,4 @@ open class BasicMechanismModel<V>(
     val numVariables: Int get() = tokens.tokens.size
 }
 
-typealias BasicMechanismModelF64 = BasicMechanismModel<Flt64>
+typealias BasicMechanismModelFlt64 = BasicMechanismModel<Flt64>

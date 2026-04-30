@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.intermediate_model
+﻿package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -13,66 +13,66 @@ import org.junit.jupiter.api.Test
 class GenericTokenTableRegressionTest {
 
     @Test
-    fun `MutableTokenTableF64 is MutableTokenTable of Flt64`() {
+    fun `MutableTokenTableFlt64 is MutableTokenTable of Flt64`() {
         val table: MutableTokenTable<Flt64> = ManualTokenTable<Flt64>(Linear, false)
-        assertTrue(table is MutableTokenTableF64)
+        assertTrue(table is MutableTokenTableFlt64)
     }
 
     @Test
-    fun `AutoTokenTableF64 is MutableTokenTable of Flt64`() {
+    fun `AutoTokenTableFlt64 is MutableTokenTable of Flt64`() {
         val table: MutableTokenTable<Flt64> = AutoTokenTable<Flt64>(Linear, false)
-        assertTrue(table is MutableTokenTableF64)
+        assertTrue(table is MutableTokenTableFlt64)
     }
 
     @Test
-    fun `ConcurrentMutableTokenTableF64 is ConcurrentMutableTokenTable of Flt64`() {
+    fun `ConcurrentMutableTokenTableFlt64 is ConcurrentMutableTokenTable of Flt64`() {
         val table: ConcurrentMutableTokenTable<Flt64> = ConcurrentManualAddTokenTable<Flt64>(Linear, false)
-        assertTrue(table is ConcurrentMutableTokenTableF64)
+        assertTrue(table is ConcurrentMutableTokenTableFlt64)
     }
 
     @Test
-    fun `TokenCacheContextsF64 is TokenCacheContexts of Flt64`() {
-        val ctx: TokenCacheContexts<Flt64> = TokenCacheContextsF64()
-        assertTrue(ctx is TokenCacheContextsF64)
+    fun `TokenCacheContextsFlt64 is TokenCacheContexts of Flt64`() {
+        val ctx: TokenCacheContexts<Flt64> = TokenCacheContextsFlt64()
+        assertTrue(ctx is TokenCacheContextsFlt64)
     }
 
     @Test
-    fun `LinearFlattenContextF64 is LinearFlattenContext of Flt64`() {
-        val ctx: LinearFlattenContext<Flt64> = LinearFlattenContextF64()
-        assertTrue(ctx is LinearFlattenContextF64)
+    fun `LinearFlattenContextFlt64 is LinearFlattenContext of Flt64`() {
+        val ctx: LinearFlattenContext<Flt64> = LinearFlattenContextFlt64()
+        assertTrue(ctx is LinearFlattenContextFlt64)
     }
 
     @Test
-    fun `QuadraticFlattenContextF64 is QuadraticFlattenContext of Flt64`() {
-        val ctx: QuadraticFlattenContext<Flt64> = QuadraticFlattenContextF64()
-        assertTrue(ctx is QuadraticFlattenContextF64)
+    fun `QuadraticFlattenContextFlt64 is QuadraticFlattenContext of Flt64`() {
+        val ctx: QuadraticFlattenContext<Flt64> = QuadraticFlattenContextFlt64()
+        assertTrue(ctx is QuadraticFlattenContextFlt64)
     }
 
     @Test
-    fun `RangeCacheContextF64 is RangeCacheContext of Flt64`() {
-        val ctx: RangeCacheContext<Flt64> = RangeCacheContextF64()
-        assertTrue(ctx is RangeCacheContextF64)
+    fun `RangeCacheContextFlt64 is RangeCacheContext of Flt64`() {
+        val ctx: RangeCacheContext<Flt64> = RangeCacheContextFlt64()
+        assertTrue(ctx is RangeCacheContextFlt64)
     }
 
     @Test
-    fun `ValueCacheContextF64 is ValueCacheContext of Flt64`() {
-        val ctx: ValueCacheContext<Flt64> = ValueCacheContextF64()
-        assertTrue(ctx is ValueCacheContextF64)
+    fun `ValueCacheContextFlt64 is ValueCacheContext of Flt64`() {
+        val ctx: ValueCacheContext<Flt64> = ValueCacheContextFlt64()
+        assertTrue(ctx is ValueCacheContextFlt64)
     }
 
     @Test
-    fun `LinearCellImplF64 is LinearCellImpl of Flt64`() {
+    fun `LinearCellImplFlt64 is LinearCellImpl of Flt64`() {
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val x = RealVar("cell_test_x")
         tokenTable.add(x)
         val token = tokenTable.find(x)!!
-        val cell: LinearCellImpl<Flt64> = LinearCellImplF64(tokenTable, Flt64.one, token)
-        assertTrue(cell is LinearCellImplF64)
-        assertEquals(Flt64.one, cell.coefficientF64)
+        val cell: LinearCellImpl<Flt64> = LinearCellImplFlt64(tokenTable, Flt64.one, token)
+        assertTrue(cell is LinearCellImplFlt64)
+        assertEquals(Flt64.one, cell.coefficientFlt64)
     }
 
     @Test
-    fun `QuadraticCellImplF64 is QuadraticCellImpl of Flt64`() {
+    fun `QuadraticCellImplFlt64 is QuadraticCellImpl of Flt64`() {
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val x1 = RealVar("cell_test_x1")
         val x2 = RealVar("cell_test_x2")
@@ -80,9 +80,9 @@ class GenericTokenTableRegressionTest {
         tokenTable.add(x2)
         val token1 = tokenTable.find(x1)!!
         val token2 = tokenTable.find(x2)!!
-        val cell: QuadraticCellImpl<Flt64> = QuadraticCellImplF64(tokenTable, Flt64.one, token1, token2)
-        assertTrue(cell is QuadraticCellImplF64)
-        assertEquals(Flt64.one, cell.coefficientF64)
+        val cell: QuadraticCellImpl<Flt64> = QuadraticCellImplFlt64(tokenTable, Flt64.one, token1, token2)
+        assertTrue(cell is QuadraticCellImplFlt64)
+        assertEquals(Flt64.one, cell.coefficientFlt64)
     }
 
     @Test

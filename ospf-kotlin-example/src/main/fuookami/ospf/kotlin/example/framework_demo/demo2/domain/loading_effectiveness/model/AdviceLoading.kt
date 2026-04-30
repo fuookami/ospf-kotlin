@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -27,7 +27,7 @@ class AdviceLoading(
     lateinit var weightSlack: LinearIntermediateSymbols1Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::amountSlack.isInitialized) {
             amountSlack = LinearIntermediateSymbols1Flt64("advice_amount_slack", Shape1(positions.size)) { j, _ ->

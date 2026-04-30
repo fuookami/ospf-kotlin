@@ -12,8 +12,8 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 class PayloadLimit(
     private val payload: Payload,
     override val name: String = "payload_limit"
-) : Pipeline<AbstractLinearMetaModelF64> {
-    override fun invoke(model: AbstractLinearMetaModelF64): Try {
+) : Pipeline<AbstractLinearMetaModelFlt64> {
+    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
         when (val result = model.addConstraint(
             relation = payload.estimatePayload.value leq payload.maxPayload.value,
             name = name

@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model, AutoCloseable
+interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
         where TV : RealNumber<TV>, TV : NumberField<TV> {
     val defaultObjective: V
 

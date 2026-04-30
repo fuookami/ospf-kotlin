@@ -51,10 +51,10 @@ data object Demo4 {
     private val maxDiff = Int64(1)
 
     private lateinit var x: RealVariable1
-    private lateinit var profit: LinearIntermediateSymbolF64
+    private lateinit var profit: LinearIntermediateSymbolFlt64
     private lateinit var use: LinearIntermediateSymbols1Flt64
 
-    private val metaModel = LinearMetaModelF64("demo4")
+    private val metaModel = LinearMetaModelFlt64("demo4")
 
     private val subProcesses = listOf(
         Demo4::initVariable,

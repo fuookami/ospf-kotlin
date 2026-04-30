@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -36,7 +36,7 @@ class PayloadMaximizationContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         val generator = PipelineListGenerator(aggregation)
         val pipelines = when (val result = generator.invoke(
@@ -74,19 +74,19 @@ class PayloadMaximizationContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         TODO("not implemented yet")
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelF64,
+        model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
         TODO("not implemented yet")

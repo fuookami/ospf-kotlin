@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
+﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -53,7 +53,7 @@ class LinearDensity(
     lateinit var linearDensity: QuantityLinearIntermediateSymbols1Flt64
 
     fun register(
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Try {
         if (!::linearDensity.isInitialized) {
             linearDensity = QuantityLinearIntermediateSymbols1Flt64("linear_density", Shape1(positions.size)) { j, _ ->

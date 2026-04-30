@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Item
 import fuookami.ospf.kotlin.utils.functional.*
@@ -29,7 +29,7 @@ abstract class AbstractLoad : Load {
     override lateinit var overLoad: LinearIntermediateSymbols1<Flt64>
     override lateinit var lessLoad: LinearIntermediateSymbols1<Flt64>
 
-    open fun register(model: MetaModelF64): Try {
+    open fun register(model: MetaModelFlt64): Try {
         TODO("not implemented yet")
     }
 }
@@ -42,7 +42,7 @@ class ImpreciseLoad(
 ) : AbstractLoad() {
     override lateinit var load: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (!::load.isInitialized) {
             load = LinearExpressionSymbols1<Flt64>(
                 "load",
@@ -69,7 +69,7 @@ class ImpreciseLoad(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModelF64
+        model: AbstractLinearMetaModelFlt64
     ): Ret<List<BinLayer>> {
         assert(newLayers.isNotEmpty())
 
@@ -99,7 +99,7 @@ class PreciseLoad(
 ) : AbstractLoad() {
     override lateinit var load: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModelF64): Try {
+    override fun register(model: MetaModelFlt64): Try {
         if (!::load.isInitialized) {
             load = LinearIntermediateSymbols1<Flt64>(
                 "load",

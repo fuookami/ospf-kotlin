@@ -21,7 +21,7 @@ class NodeBandwidth(
     lateinit var outDegree: LinearIntermediateSymbols1Flt64
     lateinit var outFlow: LinearIntermediateSymbols1Flt64
 
-    fun register(model: LinearMetaModelF64): Try {
+    fun register(model: LinearMetaModelFlt64): Try {
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(
                 "bandwidth_indegree_node",

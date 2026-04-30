@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.token
 
@@ -57,7 +57,7 @@ class LinearFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias LinearFlattenContextF64 = LinearFlattenContext<Flt64>
+typealias LinearFlattenContextFlt64 = LinearFlattenContext<Flt64>
 
 class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
@@ -87,56 +87,56 @@ class QuadraticFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias QuadraticFlattenContextF64 = QuadraticFlattenContext<Flt64>
+typealias QuadraticFlattenContextFlt64 = QuadraticFlattenContext<Flt64>
 
 class ValueCacheContext<V : RealNumber<V>>(
-    private val solutionCache: MutableMap<Pair<Any, List<Flt64>?>, V?> = HashMap(),
-    private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, Flt64>>, V?> = HashMap()
+    private val solutionCache: MutableMap<Pair<Any, List<V>?>, V?> = HashMap(),
+    private val fixedValueCache: MutableMap<Pair<Any, Map<Symbol, V>>, V?> = HashMap()
 ) {
     fun clear() {
         solutionCache.clear()
         fixedValueCache.clear()
     }
 
-    fun cached(cacheKey: Any, solution: List<Flt64>? = null): Boolean {
+    fun cached(cacheKey: Any, solution: List<V>? = null): Boolean {
         return solutionCache.containsKey(cacheKey to solution)
     }
 
-    fun cached(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): Boolean {
+    fun cached(cacheKey: Any, fixedValues: Map<Symbol, V>): Boolean {
         return fixedValueCache.containsKey(cacheKey to fixedValues)
     }
 
-    fun value(cacheKey: Any, solution: List<Flt64>? = null): V? {
+    fun value(cacheKey: Any, solution: List<V>? = null): V? {
         return solutionCache[cacheKey to solution]
     }
 
-    fun value(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): V? {
+    fun value(cacheKey: Any, fixedValues: Map<Symbol, V>): V? {
         return fixedValueCache[cacheKey to fixedValues]
     }
 
-    fun put(cacheKey: Any, solution: List<Flt64>? = null, value: V): V {
+    fun put(cacheKey: Any, solution: List<V>? = null, value: V): V {
         solutionCache[cacheKey to solution] = value
         return value
     }
 
-    fun put(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V): V {
+    fun put(cacheKey: Any, fixedValues: Map<Symbol, V>, value: V): V {
         fixedValueCache[cacheKey to fixedValues] = value
         return value
     }
 
-    fun putAll(symbols: Map<out Any, V>, solution: List<Flt64>? = null) {
+    fun putAll(symbols: Map<out Any, V>, solution: List<V>? = null) {
         solutionCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to solution) to value
         })
     }
 
-    fun putAll(symbols: Map<out Any, V>, fixedValues: Map<Symbol, Flt64>) {
+    fun putAll(symbols: Map<out Any, V>, fixedValues: Map<Symbol, V>) {
         fixedValueCache.putAll(symbols.map { (cacheKey, value) ->
             (cacheKey to fixedValues) to value
         })
     }
 
-    fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<Flt64>? = null) {
+    fun putAllLazy(symbols: Map<out Any, () -> V?>, solution: List<V>? = null) {
         solutionCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
                 (cacheKey to solution) to it
@@ -144,7 +144,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         })
     }
 
-    fun putAllLazy(symbols: Map<out Any, () -> V?>, fixedValues: Map<Symbol, Flt64>) {
+    fun putAllLazy(symbols: Map<out Any, () -> V?>, fixedValues: Map<Symbol, V>) {
         fixedValueCache.putAll(symbols.mapNotNull { (cacheKey, value) ->
             value()?.let {
                 (cacheKey to fixedValues) to it
@@ -152,7 +152,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         })
     }
 
-    fun getOrPut(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
+    fun getOrPut(cacheKey: Any, solution: List<V>? = null, value: () -> V?): V? {
         var cachedValue = solutionCache[cacheKey to solution]
         if (cachedValue == null) {
             value()?.let {
@@ -163,7 +163,7 @@ class ValueCacheContext<V : RealNumber<V>>(
         return cachedValue
     }
 
-    fun getOrPut(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> V?): V? {
+    fun getOrPut(cacheKey: Any, fixedValues: Map<Symbol, V>, value: () -> V?): V? {
         var cachedValue = fixedValueCache[cacheKey to fixedValues]
         if (cachedValue == null) {
             value()?.let {
@@ -180,7 +180,7 @@ class ValueCacheContext<V : RealNumber<V>>(
     }
 }
 
-typealias ValueCacheContextF64 = ValueCacheContext<Flt64>
+typealias ValueCacheContextFlt64 = ValueCacheContext<Flt64>
 
 class RangeCacheContext<V>(
     private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
@@ -210,7 +210,7 @@ class RangeCacheContext<V>(
     }
 }
 
-typealias RangeCacheContextF64 = RangeCacheContext<Flt64>
+typealias RangeCacheContextFlt64 = RangeCacheContext<Flt64>
 
 data class TokenCacheContexts<V>(
     val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),

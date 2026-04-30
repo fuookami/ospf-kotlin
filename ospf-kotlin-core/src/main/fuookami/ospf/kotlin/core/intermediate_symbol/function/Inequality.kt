@@ -1,8 +1,8 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.Field
@@ -77,7 +77,7 @@ class InequalityFunction<T : Field<T>>(
         return (if (satisfied) Flt64.one else Flt64.zero) as T
     }
 
-    override fun register(model: AbstractLinearMetaModelF64): Try {
+    override fun register(model: AbstractLinearMetaModelFlt64): Try {
         // Add binary flag variable
         when (val result = registerAuxiliaryTokens(model)) {
             is Ok -> {}
@@ -91,7 +91,7 @@ class InequalityFunction<T : Field<T>>(
 
         when (sign) {
             Comparison.LE, Comparison.LT -> {
-                // ConstraintF64: lhs <= rhs + M*(1-flag)
+                // ConstraintFlt64: lhs <= rhs + M*(1-flag)
                 // => lhs - M*(1-flag) <= rhs
                 // => lhs + M*flag <= rhs + M
                 val leqLhs = LinearPolynomial(
@@ -106,7 +106,7 @@ class InequalityFunction<T : Field<T>>(
                     is Fatal -> return Fatal(result.errors)
                 }
 
-                // ConstraintF64: lhs >= rhs + epsilon - M*flag
+                // ConstraintFlt64: lhs >= rhs + epsilon - M*flag
                 // => lhs - M*flag >= rhs + epsilon - M
                 // This ensures flag=1 => lhs >= rhs + epsilon - M (no-op when flag=1)
                 //                     flag=0 => lhs >= rhs + epsilon
@@ -124,7 +124,7 @@ class InequalityFunction<T : Field<T>>(
             }
 
             Comparison.GE, Comparison.GT -> {
-                // ConstraintF64: lhs >= rhs - M*(1-flag)
+                // ConstraintFlt64: lhs >= rhs - M*(1-flag)
                 // => lhs + M*flag >= rhs
                 val geqLhs = LinearPolynomial(
                     lhsPoly.monomials + listOf(LinearMonomial(mVal, flagVar)),
@@ -138,7 +138,7 @@ class InequalityFunction<T : Field<T>>(
                     is Fatal -> return Fatal(result.errors)
                 }
 
-                // ConstraintF64: lhs <= rhs - epsilon + M*flag
+                // ConstraintFlt64: lhs <= rhs - epsilon + M*flag
                 val leqLhs = LinearPolynomial(
                     lhsPoly.monomials + listOf(LinearMonomial(-mVal, flagVar)),
                     lhsPoly.constant

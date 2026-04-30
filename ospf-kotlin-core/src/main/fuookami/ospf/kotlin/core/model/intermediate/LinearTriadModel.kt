@@ -1,10 +1,10 @@
-package fuookami.ospf.kotlin.core.model.intermediate
+﻿package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelF64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
@@ -235,7 +235,7 @@ class BasicLinearTriadModel(
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     companion object {
         /**
-         * Create a [BasicLinearTriadModel] from a [LinearMechanismModelF64] by
+         * Create a [BasicLinearTriadModel] from a [LinearMechanismModelFlt64] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -248,7 +248,7 @@ class BasicLinearTriadModel(
          * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
          */
         fun from(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -259,7 +259,7 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpVariables(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -299,7 +299,7 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -540,7 +540,7 @@ data class LinearTriadModel(
 
         /** V→Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -644,7 +644,7 @@ data class LinearTriadModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -684,7 +684,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -744,7 +744,7 @@ data class LinearTriadModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -870,7 +870,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpObjectives(
-            model: LinearMechanismModelF64,
+            model: LinearMechanismModelFlt64,
             tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
