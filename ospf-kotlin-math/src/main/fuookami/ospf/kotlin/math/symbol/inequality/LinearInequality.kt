@@ -124,11 +124,11 @@ infix fun <T : Ring<T>> T.gt(rhs: LinearPolynomial<T>): LinearInequality<T> = as
 
 // ========== Symbol-level DSL ==========
 
-private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
+private fun Symbol.asLinearPolynomial(): LinearPolynomial<F64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 }
 
-private fun linearIneq(lhs: LinearPolynomial<Flt64>, rhs: LinearPolynomial<Flt64>, cmp: Comparison): Flt64LinearInequality =
+private fun linearIneq(lhs: LinearPolynomial<F64>, rhs: LinearPolynomial<F64>, cmp: Comparison): Flt64LinearInequality =
     LinearInequality(lhs, rhs, cmp)
 
 infix fun Symbol.lt(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)

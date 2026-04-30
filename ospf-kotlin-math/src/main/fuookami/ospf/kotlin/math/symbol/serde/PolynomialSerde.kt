@@ -96,21 +96,21 @@ private fun Symbol.toDtoIdentifier(): String {
     return toSymbolIdentityExpr().toSerializedIdentifier()
 }
 
-private fun CanonicalMonomial<Flt64>.toDto(): CanonicalMonomialData {
+private fun CanonicalMonomial<F64>.toDto(): CanonicalMonomialData {
     return CanonicalMonomialData(
         coefficient = coefficient.value,
         powers = powers.mapKeys { it.key.toDtoIdentifier() }.mapValues { it.value.toInt() }
     )
 }
 
-private fun LinearMonomial<Flt64>.toDto(): LinearMonomialData {
+private fun LinearMonomial<F64>.toDto(): LinearMonomialData {
     return LinearMonomialData(
         coefficient = coefficient.value,
         symbol = symbol.toDtoIdentifier()
     )
 }
 
-private fun QuadraticMonomial<Flt64>.toDto(): QuadraticMonomialData {
+private fun QuadraticMonomial<F64>.toDto(): QuadraticMonomialData {
     return QuadraticMonomialData(
         coefficient = coefficient.value,
         symbol1 = symbol1.toDtoIdentifier(),
@@ -118,21 +118,21 @@ private fun QuadraticMonomial<Flt64>.toDto(): QuadraticMonomialData {
     )
 }
 
-private fun CanonicalPolynomial<Flt64>.toDto(): CanonicalPolynomialData {
+private fun CanonicalPolynomial<F64>.toDto(): CanonicalPolynomialData {
     return CanonicalPolynomialData(
         monomials = monomials.map { it.toDto() },
         constant = constant.value
     )
 }
 
-private fun LinearPolynomial<Flt64>.toDto(): LinearPolynomialData {
+private fun LinearPolynomial<F64>.toDto(): LinearPolynomialData {
     return LinearPolynomialData(
         monomials = monomials.map { it.toDto() },
         constant = constant.value
     )
 }
 
-private fun QuadraticPolynomial<Flt64>.toDto(): QuadraticPolynomialData {
+private fun QuadraticPolynomial<F64>.toDto(): QuadraticPolynomialData {
     return QuadraticPolynomialData(
         monomials = monomials.map { it.toDto() },
         constant = constant.value
@@ -143,21 +143,21 @@ private fun QuadraticPolynomial<Flt64>.toDto(): QuadraticPolynomialData {
 // DTO -> Polynomial conversions
 // ============================================================================
 
-private fun CanonicalMonomialData.toDomain(symbolOf: (String) -> Symbol): CanonicalMonomial<Flt64> {
+private fun CanonicalMonomialData.toDomain(symbolOf: (String) -> Symbol): CanonicalMonomial<F64> {
     return CanonicalMonomial(
         coefficient = Flt64(coefficient),
         powers = powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }
     )
 }
 
-private fun LinearMonomialData.toDomain(symbolOf: (String) -> Symbol): LinearMonomial<Flt64> {
+private fun LinearMonomialData.toDomain(symbolOf: (String) -> Symbol): LinearMonomial<F64> {
     return LinearMonomial(
         coefficient = Flt64(coefficient),
         symbol = symbolOf(symbol)
     )
 }
 
-private fun QuadraticMonomialData.toDomain(symbolOf: (String) -> Symbol): QuadraticMonomial<Flt64> {
+private fun QuadraticMonomialData.toDomain(symbolOf: (String) -> Symbol): QuadraticMonomial<F64> {
     return QuadraticMonomial(
         coefficient = Flt64(coefficient),
         symbol1 = symbolOf(symbol1),
@@ -165,21 +165,21 @@ private fun QuadraticMonomialData.toDomain(symbolOf: (String) -> Symbol): Quadra
     )
 }
 
-private fun CanonicalPolynomialData.toDomain(symbolOf: (String) -> Symbol): CanonicalPolynomial<Flt64> {
+private fun CanonicalPolynomialData.toDomain(symbolOf: (String) -> Symbol): CanonicalPolynomial<F64> {
     return CanonicalPolynomial(
         monomials = monomials.map { it.toDomain(symbolOf) },
         constant = Flt64(constant)
     )
 }
 
-private fun LinearPolynomialData.toDomain(symbolOf: (String) -> Symbol): LinearPolynomial<Flt64> {
+private fun LinearPolynomialData.toDomain(symbolOf: (String) -> Symbol): LinearPolynomial<F64> {
     return LinearPolynomial(
         monomials = monomials.map { it.toDomain(symbolOf) },
         constant = Flt64(constant)
     )
 }
 
-private fun QuadraticPolynomialData.toDomain(symbolOf: (String) -> Symbol): QuadraticPolynomial<Flt64> {
+private fun QuadraticPolynomialData.toDomain(symbolOf: (String) -> Symbol): QuadraticPolynomial<F64> {
     return QuadraticPolynomial(
         monomials = monomials.map { it.toDomain(symbolOf) },
         constant = Flt64(constant)
@@ -190,15 +190,15 @@ private fun QuadraticPolynomialData.toDomain(symbolOf: (String) -> Symbol): Quad
 // Public API: toJsonString
 // ============================================================================
 
-fun CanonicalPolynomial<Flt64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
+fun CanonicalPolynomial<F64>.toJsonString(symbolComparator: Comparator<Symbol>? = null): String {
     return writeJson(combineTerms(symbolComparator).toDto())
 }
 
-fun LinearPolynomial<Flt64>.toJsonString(): String {
+fun LinearPolynomial<F64>.toJsonString(): String {
     return writeJson(toDto())
 }
 
-fun QuadraticPolynomial<Flt64>.toJsonString(): String {
+fun QuadraticPolynomial<F64>.toJsonString(): String {
     return writeJson(toDto())
 }
 
@@ -206,12 +206,12 @@ fun QuadraticPolynomial<Flt64>.toJsonString(): String {
 // Public API: fromJson
 // ============================================================================
 
-fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<Flt64> {
+fun canonicalPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalPolynomial<F64> {
     val dto = readFromJson<CanonicalPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toDomain(symbolOf).combineTerms()
 }
 
-fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<Flt64>? {
+fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearPolynomial<F64>? {
     val dto = readFromJson<LinearPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toDomain(symbolOf).toLinearPolynomialOrNull()
 }
@@ -219,7 +219,7 @@ fun linearPolynomialFromJson(json: String, symbolOf: (String) -> Symbol = ::symb
 fun quadraticPolynomialFromJson(
     json: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): QuadraticPolynomial<Flt64>? {
+): QuadraticPolynomial<F64>? {
     val dto = readFromJson<QuadraticPolynomialData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toDomain(symbolOf).toQuadraticPolynomialOrNull()
 }

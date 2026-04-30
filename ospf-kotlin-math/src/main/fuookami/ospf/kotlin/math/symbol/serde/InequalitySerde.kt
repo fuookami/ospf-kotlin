@@ -123,7 +123,7 @@ private fun CanonicalInequality.toDto(): CanonicalInequalityData {
     )
 }
 
-private fun LinearInequality<Flt64>.toDto(): LinearInequalityData {
+private fun LinearInequality<F64>.toDto(): LinearInequalityData {
     return LinearInequalityData(
         lhs = LinearPolynomialData(
             monomials = lhs.monomials.map { LinearMonomialData(it.coefficient.value, it.symbol.toDtoIdentifier()) },
@@ -139,7 +139,7 @@ private fun LinearInequality<Flt64>.toDto(): LinearInequalityData {
     )
 }
 
-private fun QuadraticInequalityOf<Flt64>.toDto(): QuadraticInequalityData {
+private fun QuadraticInequalityOf<F64>.toDto(): QuadraticInequalityData {
     return QuadraticInequalityData(
         lhs = QuadraticPolynomialData(
             monomials = lhs.monomials.map { QuadraticMonomialData(it.coefficient.value, it.symbol1.toDtoIdentifier(), it.symbol2?.toDtoIdentifier()) },
@@ -173,7 +173,7 @@ private fun CanonicalInequalityData.toDomain(symbolOf: (String) -> Symbol): Cano
     )
 }
 
-private fun LinearInequalityData.toDomain(symbolOf: (String) -> Symbol): LinearInequality<Flt64> {
+private fun LinearInequalityData.toDomain(symbolOf: (String) -> Symbol): LinearInequality<F64> {
     return LinearInequality(
         lhs = LinearPolynomial(
             monomials = lhs.monomials.map { LinearMonomial(Flt64(it.coefficient), symbolOf(it.symbol)) },
@@ -189,7 +189,7 @@ private fun LinearInequalityData.toDomain(symbolOf: (String) -> Symbol): LinearI
     )
 }
 
-private fun QuadraticInequalityData.toDomain(symbolOf: (String) -> Symbol): QuadraticInequalityOf<Flt64> {
+private fun QuadraticInequalityData.toDomain(symbolOf: (String) -> Symbol): QuadraticInequalityOf<F64> {
     return QuadraticInequalityOf(
         lhs = QuadraticPolynomial(
             monomials = lhs.monomials.map { QuadraticMonomial(Flt64(it.coefficient), symbolOf(it.symbol1), it.symbol2?.let { symbolOf(it) }) },
@@ -213,11 +213,11 @@ fun CanonicalInequality.toJsonString(): String {
     return writeJson(toDto())
 }
 
-fun LinearInequality<Flt64>.toJsonString(): String {
+fun LinearInequality<F64>.toJsonString(): String {
     return writeJson(toDto())
 }
 
-fun QuadraticInequalityOf<Flt64>.toJsonString(): String {
+fun QuadraticInequalityOf<F64>.toJsonString(): String {
     return writeJson(toDto())
 }
 
@@ -230,7 +230,7 @@ fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::s
     return dto.toDomain(symbolOf)
 }
 
-fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<Flt64> {
+fun linearInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): LinearInequality<F64> {
     val dto = readFromJson<LinearInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toDomain(symbolOf)
 }

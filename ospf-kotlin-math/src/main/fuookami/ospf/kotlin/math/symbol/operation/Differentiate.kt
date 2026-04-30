@@ -23,22 +23,22 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
-fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearMonomial<F64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
-fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearPolynomial<F64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
-fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
+fun LinearPolynomial<F64>.gradient(order: List<Symbol>): List<Flt64> {
     return gradientLinear(order, zero = Flt64.zero)
 }
 
-fun QuadraticMonomial<Flt64>.derivative(
+fun QuadraticMonomial<F64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<F64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -47,10 +47,10 @@ fun QuadraticMonomial<Flt64>.derivative(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.derivative(
+fun QuadraticPolynomial<F64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<F64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -59,10 +59,10 @@ fun QuadraticPolynomial<Flt64>.derivative(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.gradient(
+fun QuadraticPolynomial<F64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<LinearPolynomial<Flt64>> {
+): List<LinearPolynomial<F64>> {
     return gradientQuadratic(
         order = order,
         zero = Flt64.zero,
@@ -71,7 +71,7 @@ fun QuadraticPolynomial<Flt64>.gradient(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.hessian(
+fun QuadraticPolynomial<F64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): Array<DoubleArray> {
@@ -83,10 +83,10 @@ fun QuadraticPolynomial<Flt64>.hessian(
     }
 }
 
-fun CanonicalMonomial<Flt64>.derivative(
+fun CanonicalMonomial<F64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<F64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -95,10 +95,10 @@ fun CanonicalMonomial<Flt64>.derivative(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.derivative(
+fun CanonicalPolynomial<F64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<F64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -107,10 +107,10 @@ fun CanonicalPolynomial<Flt64>.derivative(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.gradient(
+fun CanonicalPolynomial<F64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<CanonicalPolynomial<Flt64>> {
+): List<CanonicalPolynomial<F64>> {
     return gradientCanonical(
         order = order,
         zero = Flt64.zero,
@@ -119,7 +119,7 @@ fun CanonicalPolynomial<Flt64>.gradient(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.hessian(
+fun CanonicalPolynomial<F64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

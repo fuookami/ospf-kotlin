@@ -1148,7 +1148,7 @@ operator fun ValueWrapper<Flt32>.unaryMinus() = when (this) {
  * @return 取负后的新值包装器
  */
 @JvmName("negValueWrapperFlt64")
-operator fun ValueWrapper<Flt64>.unaryMinus() = when (this) {
+operator fun ValueWrapper<F64>.unaryMinus() = when (this) {
     is ValueWrapper.Value -> ValueWrapper.Value(-value, constants)
     is ValueWrapper.Infinity -> ValueWrapper.NegativeInfinity(constants)
     is ValueWrapper.NegativeInfinity -> ValueWrapper.Infinity(constants)

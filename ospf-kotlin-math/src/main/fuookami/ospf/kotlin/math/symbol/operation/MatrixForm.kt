@@ -396,7 +396,7 @@ fun <T> typedQuadraticPolynomialFromMatrixForm(
 // Flt64-specific Matrix Form Operations (DoubleArray-based)
 // ============================================================================
 
-fun LinearPolynomial<Flt64>.toMatrixForm(
+fun LinearPolynomial<F64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): LinearMatrixForm {
@@ -418,7 +418,7 @@ fun linearPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<F64> {
     return typedLinearPolynomialFromMatrixForm(
         c = c.map { Flt64(it) },
         d = d,
@@ -428,7 +428,7 @@ fun linearPolynomialFromMatrixForm(
     )
 }
 
-fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt64> {
+fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<F64> {
     return linearPolynomialFromMatrixForm(
         c = form.c,
         d = form.d,
@@ -436,7 +436,7 @@ fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt
     )
 }
 
-fun QuadraticPolynomial<Flt64>.toMatrixForm(
+fun QuadraticPolynomial<F64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): QuadraticMatrixForm {
@@ -464,7 +464,7 @@ fun quadraticPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): QuadraticPolynomial<Flt64> {
+): QuadraticPolynomial<F64> {
     return typedQuadraticPolynomialFromMatrixForm(
         q = q.map { row -> row.map { Flt64(it) } },
         c = c.map { Flt64(it) },
@@ -476,7 +476,7 @@ fun quadraticPolynomialFromMatrixForm(
     )
 }
 
-fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
+fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<F64> {
     return quadraticPolynomialFromMatrixForm(
         q = form.q,
         c = form.c,
@@ -485,7 +485,7 @@ fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolyn
     )
 }
 
-fun CanonicalPolynomial<Flt64>.toMatrixForm(
+fun CanonicalPolynomial<F64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

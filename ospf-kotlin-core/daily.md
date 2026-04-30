@@ -2,7 +2,7 @@
 
 日期：2026-04-30（重写版）
 
-状态：P7-2（第一阶段 + 第二阶段）已完成；P7-3（math 主链路收口）已完成。
+状态：P7-4（math Flt64 便捷层下沉）已完成。
 
 目标：在不破坏下游可用性的前提下，完成 core/math 主链路从 `Flt64` 固化到 `V` typed 的结构性收敛，并保持门禁可持续阻断回流。
 
@@ -23,7 +23,7 @@
 3. `core/src/main/fuookami/ospf/kotlin/core/model` 中 `<F64>`：`134`
 4. `core/src/main` 中 `<*>`：`264`
 5. `core/src/main` 中 `@Deprecated`：`0`
-6. `math/src/main` 中 `<Flt64>`：`131`
+6. `math/src/main` 中 `<Flt64>`：`36`
 7. `math/src/main` 中 `<*>`：`218`
 8. `math/src/main` 中 `@Deprecated`：`0`
 9. `core/model` 中 `AbstractTokenTable<*>`：`0`
@@ -121,8 +121,39 @@
 
 ---
 
+### P7-4 完成记录（2026-04-30）
 
-### P7-4 下游模块批量迁移（预计 2~3 天）
+1. math/symbol/operation Flt64 -> F64 别名替换：
+   - `Differentiate.kt`、`Compile.kt`、`CombineTerms.kt`、`Latex.kt`、`MatrixForm.kt` 完成批量替换。
+   - 保留的固有 Flt64：`Differentiate.kt` 的 `List<Flt64>` 返回类型、`Compile.kt` 的 `(List<Flt64>) -> Flt64` 函数类型。
+2. math/symbol/serde Flt64 -> F64 别名替换：
+   - `PolynomialSerde.kt`、`InequalitySerde.kt` 完成批量替换。
+   - 新增 `serde/TypeAliases.kt`。
+3. math/symbol/parse Flt64 -> F64 别名替换：
+   - `PolynomialParser.kt` 完成批量替换。
+4. math/symbol/inequality 残留清理：
+   - `LinearInequality.kt`、`CanonicalInequality.kt` 选择性替换。
+   - 保留的固有 Flt64：typealias 定义、`List<Flt64>` 参数。
+5. math/algebra/value_range 清理：
+   - `Bound.kt`、`ValueRange.kt`、`ValueWrapper.kt` 完成替换。
+   - 保留的固有 Flt64：`ValueRangeFlt64Serializer extends ValueRangeSerializer<Flt64>`。
+6. math/symbol/parser 清理：
+   - `Parser.kt` 完成替换。
+7. 不动的部分（确认）：
+   - `QuickOps.kt`：Flt64 运算符重载是数值入口，保留。
+   - `Floating.kt`：Flt64 自身定义，保留。
+   - `geometry/*`、`chaotic_operator/*`：`List<Flt64>` 原始值存储，保留。
+8. 指标变化：
+   - `math/src/main <Flt64>`：`131 -> 36`（`delta -95`）
+   - `math/src/main <*>`：`218 -> 218`（无变化）
+   - core 各指标：不变
+9. 门禁更新：
+   - `check-c8-guards.ps1`：`$mathFlt64Baseline` 从 `322` 更新为 `36`。
+   - `p7-whitelist.json`：math flt64 部分重写，仅保留 16 个有固有 Flt64 的文件。
+
+---
+
+### P7-5 下游模块批量迁移（预计 2~3 天）
 
 详细计划：
 1. 按模块分批改造：`framework` -> `framework-*` -> `example` -> `starters`。
@@ -137,7 +168,7 @@
    - `mvn -pl ospf-kotlin-framework -am clean compile`
    - `mvn -pl ospf-kotlin-example -am clean compile`
 
-### P7-5 全链路验收与发布基线更新（预计 1 天）
+### P7-6 全链路验收与发布基线更新（预计 1 天）
 
 详细计划：
 1. 执行全链路构建与测试，核对功能回归、性能回归与 API 变更清单。

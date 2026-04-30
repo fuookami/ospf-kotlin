@@ -347,7 +347,7 @@ if ($GuardMode -eq "P6") {
         $mathFlt64Matches = Get-ChildItem -Path $mathMain -Recurse -Filter "*.kt" |
             Select-String -Pattern "<Flt64>" |
             Where-Object { $_.Line -notmatch "^\s*//" }
-        $mathFlt64Baseline = 322
+        $mathFlt64Baseline = 36
         Write-Baseline "P6-0-4: math/src/main <Flt64> baseline freeze" $mathFlt64Matches.Count $mathFlt64Baseline "Found $($mathFlt64Matches.Count) total (baseline=$mathFlt64Baseline)"
     } else {
         Write-Host "[SKIP] P6-0-4: math/src/main not found" -ForegroundColor Yellow

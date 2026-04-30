@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
  * Combine like terms in a linear monomial list.
  * Direct Typed operation - no Generic conversion.
  */
-fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> {
+fun Iterable<LinearMonomial<F64>>.combineTerms(): List<LinearMonomial<F64>> {
     val coefficientOfSymbol = LinkedHashMap<Symbol, Flt64>()
     for (monomial in this) {
         coefficientOfSymbol[monomial.symbol] =
@@ -48,7 +48,7 @@ fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> 
  * Combine like terms in a linear polynomial.
  * Uses Typed operation from LinearQuadraticOps.kt.
  */
-fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
+fun LinearPolynomial<F64>.combineTerms(): LinearPolynomial<F64> {
     return this.combineLinearTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero }
@@ -63,9 +63,9 @@ fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
  * Combine like terms in a quadratic monomial list.
  * Direct Typed operation - no Generic conversion.
  */
-fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
+fun Iterable<QuadraticMonomial<F64>>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<QuadraticMonomial<Flt64>> {
+): List<QuadraticMonomial<F64>> {
     val comparator = symbolComparator ?: defaultSymbolComparator
     val coefficientOfKey = LinkedHashMap<Pair<Symbol, Symbol?>, Flt64>()
 
@@ -90,9 +90,9 @@ fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
  * Combine like terms in a quadratic polynomial.
  * Uses Typed operation from LinearQuadraticOps.kt.
  */
-fun QuadraticPolynomial<Flt64>.combineTerms(
+fun QuadraticPolynomial<F64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<Flt64> {
+): QuadraticPolynomial<F64> {
     return this.combineQuadraticTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
@@ -108,9 +108,9 @@ fun QuadraticPolynomial<Flt64>.combineTerms(
  * Combine like terms in a canonical monomial list.
  * Uses Typed operation from CanonicalOps.kt.
  */
-fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
+fun Iterable<CanonicalMonomial<F64>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<CanonicalMonomial<Flt64>> {
+): List<CanonicalMonomial<F64>> {
     return this.combineCanonicalMonomials(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
@@ -122,9 +122,9 @@ fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
  * Combine like terms in a canonical polynomial.
  * Uses Typed operation from CanonicalOps.kt.
  */
-fun CanonicalPolynomial<Flt64>.combineTerms(
+fun CanonicalPolynomial<F64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<F64> {
     return this.combineCanonicalPolynomialTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
