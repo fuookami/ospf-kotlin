@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -35,15 +36,17 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class IfFunction<V>(
     val condition: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "if",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_if")
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_if_nz")
@@ -53,12 +56,12 @@ class IfFunction<V>(
         get() = listOf(resultVar, indicatorVar, sideVar)
 
     val result: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), resultVar)), zeroOf<V>())
+        LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (condValue.asFlt64().toDouble() > 0.0) oneOf<V>() else zeroOf<V>()
+        return if (condValue.asFlt64().toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -119,18 +122,19 @@ class IfFunction<V>(
     companion object {
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): IfFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            IfFunction(condition, bigM, name = name, displayName = displayName)
+            IfFunction(condition, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<Flt64> = IfFunction(condition, bigM, name = name, displayName = displayName)
+        ): IfFunction<Flt64> = IfFunction(condition, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearMonomial<Flt64>,

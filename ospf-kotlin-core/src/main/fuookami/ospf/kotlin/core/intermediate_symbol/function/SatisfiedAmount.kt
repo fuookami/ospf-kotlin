@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -29,10 +30,10 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * If `amount` is set, adds constraint y >= amount (at least `amount` must be satisfied).
  */
 class SatisfiedAmountFunction<V>(
-    val inequalities: List<LinearInequality<Flt64>>,
+    val inequalities: List<LinearInequality<V>>,
     val amount: UInt64? = null,
-    val epsilon: Flt64 = Flt64(1e-6),
-    val bigM: Flt64 = Flt64(BIG_M_DEFAULT),
+    val epsilon: V,
+    val bigM: V,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -51,32 +52,36 @@ class SatisfiedAmountFunction<V>(
      * Result polynomial: sum(u[i]) - the count of satisfied inequalities.
      */
     val result: LinearPolynomial<V> by lazy {
-        val monos = _uVars.map { LinearMonomial(oneOf<V>(), it) }
-        LinearPolynomial(monos, zeroOf<V>())
+        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
+        val zero = unit - unit
+        val monos = _uVars.map { LinearMonomial(unit, it) }
+        LinearPolynomial(monos, zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val fltValues = values.mapValues { (_, v) -> v.asFlt64() }
+        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
+        val zero = unit - unit
+        val epsF = epsilon.asFlt64()
         var count = 0
         for (ineq in inequalities) {
-            val lhsVal = ineq.lhs.evaluateWith(fltValues)?.toDouble() ?: return null
-            val rhsVal = ineq.rhs.evaluateWith(fltValues)?.toDouble() ?: return null
+            val lhsVal = ineq.lhs.evaluateWith(values)?.asFlt64() ?: return null
+            val rhsVal = ineq.rhs.evaluateWith(values)?.asFlt64() ?: return null
             val satisfied = when (ineq.comparison) {
-                Comparison.LE -> lhsVal <= rhsVal + epsilon.toDouble()
-                Comparison.GE -> lhsVal >= rhsVal - epsilon.toDouble()
-                Comparison.EQ -> kotlin.math.abs(lhsVal - rhsVal) <= epsilon.toDouble()
-                Comparison.LT -> lhsVal < rhsVal - epsilon.toDouble()
-                Comparison.GT -> lhsVal > rhsVal + epsilon.toDouble()
-                Comparison.NE -> kotlin.math.abs(lhsVal - rhsVal) > epsilon.toDouble()
+                Comparison.LE -> lhsVal <= rhsVal + epsF
+                Comparison.GE -> lhsVal >= rhsVal - epsF
+                Comparison.EQ -> (lhsVal - rhsVal).abs() <= epsF
+                Comparison.LT -> lhsVal < rhsVal - epsF
+                Comparison.GT -> lhsVal > rhsVal + epsF
+                Comparison.NE -> (lhsVal - rhsVal).abs() > epsF
             }
             if (satisfied) count++
         }
-        val countVal = Flt64(count.toDouble())
         return if (amount != null) {
-            if (count >= amount.toInt()) oneOf<V>() else zeroOf<V>()
+            if (count >= amount.toInt()) unit else zero
         } else {
-            @Suppress("UNCHECKED_CAST")
-            countVal as V
+            var result = zero
+            repeat(count) { result = result + unit }
+            result
         }
     }
 
@@ -89,65 +94,65 @@ class SatisfiedAmountFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
-        val mD = bigM.toDouble()
-        val eps = epsilon.toDouble()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val mD = bigM.asFlt64()
+        val eps = epsilon.asFlt64()
 
         for (i in inequalities.indices) {
             val ineq = inequalities[i]
             val ui = _uVars[i]
-            val lhsMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) }
-            val lhsConst = ineq.lhs.constant.toDouble()
-            val rhsConst = ineq.rhs.constant.toDouble()
-            val shiftedConst = lhsConst - rhsConst
+            val lhsF = ineq.lhs.asFlt64Poly()
+            val rhsF = ineq.rhs.asFlt64Poly()
+            val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+            val shiftedConst = lhsF.constant - rhsF.constant
 
             when (ineq.comparison) {
                 Comparison.LE -> {
-                    val monoWithU = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_le_ub_$i"
+                    val monoWithU = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU, shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_le_ub_$i"
                     )
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                        LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_le_lb_$i"
+                        LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_le_lb_$i"
                     )
                 }
                 Comparison.GE -> {
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                        LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_ge_ub_$i"
+                        LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_ge_ub_$i"
                     )
-                    val monoWithU = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_ge_lb_$i"
+                    val monoWithU = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU, shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_ge_lb_$i"
                     )
                 }
                 Comparison.EQ -> {
-                    val monoWithU1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU1, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_eq_ub1_$i"
+                    val monoWithU1 = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU1, shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_eq_ub1_$i"
                     )
-                    val monoWithU2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU2, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-mD)), Comparison.GE, "${name}_sat_eq_lb1_$i"
+                    val monoWithU2 = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU2, shiftedConst),
+                        LinearPolynomial(emptyList(), -mD), Comparison.GE, "${name}_sat_eq_lb1_$i"
                     )
-                    val relaxMono1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(relaxMono1, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(eps)), Comparison.GE, "${name}_sat_eq_ub2_$i"
+                    val relaxMono1 = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(relaxMono1, shiftedConst),
+                        LinearPolynomial(emptyList(), eps), Comparison.GE, "${name}_sat_eq_ub2_$i"
                     )
-                    val relaxMono2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(relaxMono2, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_eq_lb2_$i"
+                    val relaxMono2 = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(relaxMono2, shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_eq_lb2_$i"
                     )
                 }
                 Comparison.LT, Comparison.GT, Comparison.NE -> {
@@ -161,7 +166,7 @@ class SatisfiedAmountFunction<V>(
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(Flt64.one, it) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += Flt64LinearInequality(
                 LinearPolynomial(sumMonos, Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64(amount.toInt().toDouble())),
                 Comparison.GE, "${name}_amount"
@@ -180,65 +185,65 @@ class SatisfiedAmountFunction<V>(
             is Fatal -> return Fatal(r.errors)
         }
 
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
-        val mD = bigM.toDouble()
-        val eps = epsilon.toDouble()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val mD = bigM.asFlt64()
+        val eps = epsilon.asFlt64()
 
         for (i in inequalities.indices) {
             val ineq = inequalities[i]
             val ui = _uVars[i]
-            val lhsMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) }
-            val lhsConst = ineq.lhs.constant.toDouble()
-            val rhsConst = ineq.rhs.constant.toDouble()
-            val shiftedConst = lhsConst - rhsConst
+            val lhsF = ineq.lhs.asFlt64Poly()
+            val rhsF = ineq.rhs.asFlt64Poly()
+            val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+            val shiftedConst = lhsF.constant - rhsF.constant
 
             when (ineq.comparison) {
                 Comparison.LE -> {
-                    val monoWithU = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_le_ub_$i"
+                    val monoWithU = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU, shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_le_ub_$i"
                     )
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                        LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_le_lb_$i"
+                        LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_le_lb_$i"
                     )
                 }
                 Comparison.GE -> {
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                        LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_ge_ub_$i"
+                        LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_ge_ub_$i"
                     )
-                    val monoWithU = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_ge_lb_$i"
+                    val monoWithU = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU, shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_ge_lb_$i"
                     )
                 }
                 Comparison.EQ -> {
-                    val monoWithU1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU1, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_eq_ub1_$i"
+                    val monoWithU1 = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU1, shiftedConst),
+                        LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_eq_ub1_$i"
                     )
-                    val monoWithU2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(monoWithU2, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-mD)), Comparison.GE, "${name}_sat_eq_lb1_$i"
+                    val monoWithU2 = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(monoWithU2, shiftedConst),
+                        LinearPolynomial(emptyList(), -mD), Comparison.GE, "${name}_sat_eq_lb1_$i"
                     )
-                    val relaxMono1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(relaxMono1, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(eps)), Comparison.GE, "${name}_sat_eq_ub2_$i"
+                    val relaxMono1 = lhsMonos + LinearMonomial(mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(relaxMono1, shiftedConst),
+                        LinearPolynomial(emptyList(), eps), Comparison.GE, "${name}_sat_eq_ub2_$i"
                     )
-                    val relaxMono2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
-                    allConstraints += LinearInequality<Flt64>(
-                        LinearPolynomial(relaxMono2, Flt64(shiftedConst)),
-                        LinearPolynomial(emptyList(), Flt64(-eps)), Comparison.LE, "${name}_sat_eq_lb2_$i"
+                    val relaxMono2 = lhsMonos + LinearMonomial(-mD, ui)
+                    allConstraints += Flt64LinearInequality(
+                        LinearPolynomial(relaxMono2, shiftedConst),
+                        LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_eq_lb2_$i"
                     )
                 }
                 Comparison.LT, Comparison.GT, Comparison.NE -> {
@@ -252,7 +257,7 @@ class SatisfiedAmountFunction<V>(
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(Flt64.one, it) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += Flt64LinearInequality(
                 LinearPolynomial(sumMonos, Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64(amount.toInt().toDouble())),
                 Comparison.GE, "${name}_amount"

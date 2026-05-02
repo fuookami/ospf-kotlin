@@ -57,10 +57,11 @@ class QuadraticInStepRangeFunction<V>(
     val lower: V,
     val upper: V,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     init {
         require(lower.asFlt64().toDouble() <= upper.asFlt64().toDouble()) {
@@ -107,12 +108,10 @@ class QuadraticInStepRangeFunction<V>(
     override val flattenedMonomials: QuadraticFlattenDataFlt64
         get() = QuadraticFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
-        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(oneOf<V>(), y)), zeroOf<V>())
+        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, y)), converter.zero)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero as V)
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
@@ -217,10 +216,11 @@ class QuadraticInStepRangeFunction<V>(
             lower: V,
             upper: V,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): QuadraticInStepRangeFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
-            QuadraticInStepRangeFunction(x, lower, upper, bigM, name, displayName)
+            QuadraticInStepRangeFunction(x, lower, upper, bigM, converter, name, displayName)
 
         operator fun invoke(
             x: QuadraticPolynomial<Flt64>,
@@ -229,6 +229,6 @@ class QuadraticInStepRangeFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticInStepRangeFunction<Flt64> = QuadraticInStepRangeFunction(x, lower, upper, bigM, name, displayName)
+        ): QuadraticInStepRangeFunction<Flt64> = QuadraticInStepRangeFunction(x, lower, upper, bigM, IntoValue.Flt64, name, displayName)
     }
 }

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -39,6 +40,7 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 class FirstFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     val epsilon: Flt64 = Flt64(1e-6),
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -50,6 +52,7 @@ class FirstFunction<V>(
         polynomials.mapIndexed { i, poly ->
             BinaryzationFunction(
                 polynomial = poly,
+                converter = converter,
                 name = "${name}_bin_$i"
             )
         }
@@ -70,13 +73,11 @@ class FirstFunction<V>(
     val result: LinearPolynomial<V> by lazy {
         // sum(i * y[i])
         val indexedMonos = _yVars.items.mapIndexed { i, yi ->
-            @Suppress("UNCHECKED_CAST")
-            LinearMonomial(Flt64(i.toDouble()) as V, yi)
+            LinearMonomial(converter.intoValue(Flt64(i.toDouble())), yi)
         }
         // n * (1 - sum(y[i])) = n - n * sum(y[i])
-        @Suppress("UNCHECKED_CAST")
-        val nVal = Flt64(n.toDouble()) as V
-        val nSumMonos = _yVars.items.map { @Suppress("UNCHECKED_CAST") LinearMonomial(-nVal, it) }
+        val nVal = converter.intoValue(Flt64(n.toDouble()))
+        val nSumMonos = _yVars.items.map { LinearMonomial(-nVal, it) }
         val indexedPlus = indexedMonos + nSumMonos
         LinearPolynomial(indexedPlus, nVal)
     }
@@ -85,12 +86,10 @@ class FirstFunction<V>(
         for ((i, poly) in polynomials.withIndex()) {
             val value = poly.evaluateWith(values) ?: return null
             if (value.asFlt64().toDouble() > epsilon.toDouble()) {
-                @Suppress("UNCHECKED_CAST")
-                return Flt64(i.toDouble()) as V
+                return converter.intoValue(Flt64(i.toDouble()))
             }
         }
-        @Suppress("UNCHECKED_CAST")
-        return Flt64(n.toDouble()) as V
+        return converter.intoValue(Flt64(n.toDouble()))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -219,9 +218,10 @@ class FirstFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): FirstFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            FirstFunction(polynomials, epsilon, name, displayName)
+            FirstFunction(polynomials, epsilon, converter, name, displayName)
     }
 }

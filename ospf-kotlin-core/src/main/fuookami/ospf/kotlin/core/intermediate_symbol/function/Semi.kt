@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -27,11 +28,14 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param displayName optional human-readable display name
  */
 class SemiFunction<V>(
-    val lb: V = zeroOf<V>(),
-    val ub: V = Flt64(1e6) as V,
+    lb: V? = null,
+    ub: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "semi",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    val lb: V = lb ?: converter.zero
+    val ub: V = ub ?: converter.intoValue(Flt64(1e6))
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = emptyList()
@@ -56,21 +60,23 @@ class SemiFunction<V>(
 
     companion object {
         operator fun <V> invoke(
-            lb: V = zeroOf<V>(),
-            ub: V = Flt64(1e6) as V,
-            name: String,
+            lb: V? = null,
+            ub: V? = null,
+            converter: IntoValue<V>,
+            name: String = "semi",
             displayName: String? = null
         ): SemiFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            SemiFunction(lb = lb, ub = ub, name = name, displayName = displayName)
+            SemiFunction(lb, ub, converter, name, displayName)
 
         operator fun invoke(
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64(1e6),
-            name: String,
+            name: String = "semi",
             displayName: String? = null
         ): SemiFunction<Flt64> = SemiFunction(
             lb = lb,
             ub = ub,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )

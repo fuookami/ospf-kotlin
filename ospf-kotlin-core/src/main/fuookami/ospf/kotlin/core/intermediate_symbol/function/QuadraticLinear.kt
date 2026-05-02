@@ -41,6 +41,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class QuadraticLinearFunction<V>(
     private val _polynomial: QuadraticPolynomial<V>,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
@@ -102,8 +103,7 @@ class QuadraticLinearFunction<V>(
     override val polynomial: QuadraticPolynomial<V>
         get() = _polynomial
 
-    @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero as V)
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
@@ -139,9 +139,16 @@ class QuadraticLinearFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomial: QuadraticPolynomial<V>,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): QuadraticLinearFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
-            QuadraticLinearFunction(polynomial, name, displayName)
+            QuadraticLinearFunction(polynomial, converter, name, displayName)
+
+        operator fun invoke(
+            polynomial: QuadraticPolynomial<Flt64>,
+            name: String,
+            displayName: String? = null
+        ): QuadraticLinearFunction<Flt64> = QuadraticLinearFunction(polynomial, IntoValue.Flt64, name, displayName)
     }
 }

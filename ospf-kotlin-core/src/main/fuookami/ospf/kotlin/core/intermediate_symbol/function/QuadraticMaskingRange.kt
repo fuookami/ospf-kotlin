@@ -48,10 +48,11 @@ class QuadraticMaskingRangeFunction<V>(
     val _polynomial: QuadraticPolynomial<V>,
     val z: AbstractVariableItem<*, *>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_y")
 
@@ -92,12 +93,10 @@ class QuadraticMaskingRangeFunction<V>(
     override val flattenedMonomials: QuadraticFlattenDataFlt64
         get() = QuadraticFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
-        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(oneOf<V>(), resultVar)), zeroOf<V>())
+        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero as V)
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
@@ -165,10 +164,11 @@ class QuadraticMaskingRangeFunction<V>(
             polynomial: QuadraticPolynomial<V>,
             z: AbstractVariableItem<*, *>,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): QuadraticMaskingRangeFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
-            QuadraticMaskingRangeFunction(polynomial, z, bigM, name, displayName)
+            QuadraticMaskingRangeFunction(polynomial, z, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomial: QuadraticPolynomial<Flt64>,
@@ -176,6 +176,6 @@ class QuadraticMaskingRangeFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticMaskingRangeFunction<Flt64> = QuadraticMaskingRangeFunction(polynomial, z, bigM, name, displayName)
+        ): QuadraticMaskingRangeFunction<Flt64> = QuadraticMaskingRangeFunction(polynomial, z, bigM, IntoValue.Flt64, name, displayName)
     }
 }

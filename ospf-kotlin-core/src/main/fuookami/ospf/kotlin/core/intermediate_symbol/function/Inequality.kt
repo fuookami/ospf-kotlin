@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -41,15 +42,17 @@ class InequalityFunction<V>(
     val lhs: LinearPolynomial<V>,
     val rhs: V,
     val sign: Comparison,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "ineq",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     private val flagVar: AbstractVariableItem<*, *> by lazy { BinVar("${name}_flag") }
 
@@ -57,7 +60,7 @@ class InequalityFunction<V>(
         get() = listOf(flagVar)
 
     val result: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), flagVar)), zeroOf<V>())
+        LinearPolynomial(listOf(LinearMonomial(converter.one, flagVar)), converter.zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -70,7 +73,7 @@ class InequalityFunction<V>(
             Comparison.EQ -> kotlin.math.abs(lhsDouble - rhsDouble) < 1e-9
             Comparison.NE -> kotlin.math.abs(lhsDouble - rhsDouble) > 1e-9
         }
-        return if (satisfied) oneOf<V>() else zeroOf<V>()
+        return if (satisfied) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -241,11 +244,12 @@ class InequalityFunction<V>(
             lhs: LinearPolynomial<V>,
             rhs: V,
             sign: Comparison,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): InequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            InequalityFunction(lhs = lhs, rhs = rhs, sign = sign, bigM = bigM, name = name, displayName = displayName)
+            InequalityFunction(lhs = lhs, rhs = rhs, sign = sign, converter = converter, bigM = bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             lhs: LinearPolynomial<Flt64>,
@@ -258,6 +262,7 @@ class InequalityFunction<V>(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
+            converter = IntoValue.Flt64,
             bigM = bigM,
             name = name,
             displayName = displayName
@@ -274,6 +279,7 @@ class InequalityFunction<V>(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,
+            converter = IntoValue.Flt64,
             bigM = bigM,
             name = name,
             displayName = displayName

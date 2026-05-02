@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -31,11 +32,12 @@ import fuookami.ospf.kotlin.utils.functional.ok
 class MinMaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val inner = MaxFunction(polynomials, bigM, name)
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val inner = MaxFunction(polynomials, bigM, converter, name)
 
     val resultVar: AbstractVariableItem<*, *>
         get() = inner.resultVar
@@ -66,17 +68,18 @@ class MinMaxFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): MinMaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MinMaxFunction(polynomials, bigM, name, displayName)
+            MinMaxFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, name, displayName)
+        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -92,6 +95,7 @@ class MinMaxFunction<V>(
             MinMaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -108,11 +112,12 @@ class MinMaxFunction<V>(
 class MaxMinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val inner = MinFunction(polynomials, bigM, name)
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val inner = MinFunction(polynomials, bigM, converter, name)
 
     val resultVar: AbstractVariableItem<*, *>
         get() = inner.resultVar
@@ -143,17 +148,18 @@ class MaxMinFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): MaxMinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MaxMinFunction(polynomials, bigM, name, displayName)
+            MaxMinFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, name, displayName)
+        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -169,6 +175,7 @@ class MaxMinFunction<V>(
             MaxMinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

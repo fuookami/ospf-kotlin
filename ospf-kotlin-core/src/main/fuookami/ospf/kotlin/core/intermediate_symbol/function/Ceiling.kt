@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -30,11 +31,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class CeilingFunction<V>(
     val x: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     override var name: String = "ceil",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
     val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
@@ -45,8 +48,7 @@ class CeilingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return Flt64(kotlin.math.ceil(xVal.asFlt64().toDouble())) as V
+        return converter.intoValue(Flt64(kotlin.math.ceil(xVal.asFlt64().toDouble())))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -149,18 +151,19 @@ class CeilingFunction<V>(
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): CeilingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            CeilingFunction(x, bigM, name = name, displayName = displayName)
+            CeilingFunction(x, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): CeilingFunction<Flt64> = CeilingFunction(x, bigM, name = name, displayName = displayName)
+        ): CeilingFunction<Flt64> = CeilingFunction(x, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -170,9 +173,10 @@ class CeilingFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            CeilingFunction<Flt64>(
+            CeilingFunction(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

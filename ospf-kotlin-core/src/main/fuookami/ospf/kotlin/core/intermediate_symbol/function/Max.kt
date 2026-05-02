@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -27,10 +28,11 @@ import fuookami.ospf.kotlin.utils.functional.ok
 class MaxFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "max",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val n = polynomials.size
 
     init {
@@ -146,17 +148,18 @@ class MaxFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "max",
             displayName: String? = null
         ): MaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MaxFunction(polynomials, bigM, name, displayName)
+            MaxFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
-            name: String,
+            name: String = "max",
             displayName: String? = null
-        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
+        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")
@@ -169,6 +172,7 @@ class MaxFunction<V>(
             MaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -181,10 +185,11 @@ class MaxFunction<V>(
 class MinFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "min",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val n = polynomials.size
 
     init {
@@ -300,17 +305,18 @@ class MinFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "min",
             displayName: String? = null
         ): MinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MinFunction(polynomials, bigM, name, displayName)
+            MinFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
-            name: String,
+            name: String = "min",
             displayName: String? = null
-        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
+        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")

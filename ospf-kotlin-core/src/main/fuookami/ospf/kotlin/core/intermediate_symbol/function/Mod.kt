@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IntVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -30,10 +31,11 @@ class ModFunction<V>(
     val x: LinearPolynomial<V>,
     val d: V,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "mod",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val qVar: AbstractVariableItem<*, *> = IntVar("${name}_q")
     val rVar: AbstractVariableItem<*, *> = URealVar("${name}_r")
@@ -46,8 +48,7 @@ class ModFunction<V>(
         val xVal = x.evaluateWith(values) ?: return null
         val xD = xVal.asFlt64().toDouble()
         val dD = d.asFlt64().toDouble()
-        @Suppress("UNCHECKED_CAST")
-        return Flt64(xD % dD) as V
+        return converter.intoValue(Flt64(xD % dD))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -140,18 +141,19 @@ class ModFunction<V>(
             x: LinearPolynomial<V>,
             d: V,
             bigM: V? = null,
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "mod",
             displayName: String? = null
         ): ModFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            ModFunction(x, d, bigM, name = name, displayName = displayName)
+            ModFunction(x, d, bigM, converter, name, displayName)
 
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             d: Flt64,
             bigM: Flt64? = null,
-            name: String,
+            name: String = "mod",
             displayName: String? = null
-        ): ModFunction<Flt64> = ModFunction(x, d, bigM, name = name, displayName = displayName)
+        ): ModFunction<Flt64> = ModFunction(x, d, bigM, IntoValue.Flt64, name, displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -166,6 +168,7 @@ class ModFunction<V>(
                 x = x.toLinearPolynomial(),
                 d = d,
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

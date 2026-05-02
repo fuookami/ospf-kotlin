@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -23,18 +24,20 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *
  * @param x the input linear polynomial
  * @param samplingPoints pre-computed (x, sin(x)) break points
+ * @param converter value type converter
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
 class SinFunction<V>(
     val x: LinearPolynomial<V>,
     val samplingPoints: List<Point2>,
+    private val converter: IntoValue<V>,
     override var name: String = "sin",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
 
     private val impl: UnivariateLinearPiecewiseFunction<V> by lazy {
-        val breakpoints = samplingPoints.map { it[0] as V }
+        val breakpoints = samplingPoints.map { converter.intoValue(it[0]) }
         val slopes = mutableListOf<V>()
         val intercepts = mutableListOf<V>()
         for (i in 0 until samplingPoints.size - 1) {
@@ -42,8 +45,9 @@ class SinFunction<V>(
             val y0 = samplingPoints[i][1].toDouble()
             val x1 = samplingPoints[i + 1][0].toDouble()
             val y1 = samplingPoints[i + 1][1].toDouble()
-            val slope = Flt64((y1 - y0) / (x1 - x0)) as V
-            val intercept = Flt64(y0 - slope.asFlt64().toDouble() * x0) as V
+            val slopeVal = Flt64((y1 - y0) / (x1 - x0))
+            val slope = converter.intoValue(slopeVal)
+            val intercept = converter.intoValue(Flt64(y0 - slopeVal.toDouble() * x0))
             slopes.add(slope)
             intercepts.add(intercept)
         }
@@ -52,6 +56,7 @@ class SinFunction<V>(
             breakpoints = breakpoints,
             slopes = slopes,
             intercepts = intercepts,
+            converter = converter,
             name = "${name}_impl",
             displayName = displayName
         )
@@ -83,10 +88,11 @@ class SinFunction<V>(
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             samplingPoints: List<Point2> = defaultPoints(),
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "sin",
             displayName: String? = null
         ): SinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            SinFunction(x = x, samplingPoints = samplingPoints, name = name, displayName = displayName)
+            SinFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
         fun defaultPoints(): List<Point2> {
             val pi = Flt64(kotlin.math.PI)
@@ -102,22 +108,24 @@ class SinFunction<V>(
 
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
-            name: String,
+            name: String = "sin",
             displayName: String? = null
         ): SinFunction<Flt64> = SinFunction(
             x = x,
             samplingPoints = defaultPoints(),
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
 
         operator fun invoke(
             x: LinearMonomial<Flt64>,
-            name: String,
+            name: String = "sin",
             displayName: String? = null
         ): SinFunction<Flt64> = SinFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             samplingPoints = defaultPoints(),
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )

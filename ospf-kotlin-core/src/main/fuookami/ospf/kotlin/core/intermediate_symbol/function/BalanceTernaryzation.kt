@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -36,6 +37,7 @@ class BalanceTernaryzationFunction<V>(
     val x: LinearPolynomial<V>,
     val epsilon: Flt64 = Flt64(1e-6),
     val extract: Boolean = true,
+    private val converter: IntoValue<V>,
     override var name: String = "bter",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -45,26 +47,27 @@ class BalanceTernaryzationFunction<V>(
         val xUpper = Flt64(1e6)
         val eps = epsilon
         val precision = Flt64(1e-10)
-        val breakpoints = listOf(xLower, -eps, -eps + precision, eps - precision, eps, xUpper).map { it as V }
+        val breakpoints = listOf(xLower, -eps, -eps + precision, eps - precision, eps, xUpper).map { converter.intoValue(it) }
         val slopes = listOf(
             Flt64.zero,   // segment 0: constant -1
             Flt64(1.0 / precision.toDouble()), // segment 1: rising from -1 to 0
             Flt64.zero,   // segment 2: constant 0
             Flt64(1.0 / precision.toDouble()), // segment 3: rising from 0 to 1
             Flt64.zero    // segment 4: constant 1
-        ).map { it as V }
+        ).map { converter.intoValue(it) }
         val intercepts = listOf(
             Flt64(-1.0),
             Flt64(-1.0 - (-eps.toDouble()) / precision.toDouble()),
             Flt64.zero,
             Flt64.zero - Flt64((eps - precision).toDouble() / precision.toDouble()),
             Flt64.one
-        ).map { it as V }
+        ).map { converter.intoValue(it) }
         UnivariateLinearPiecewiseFunction(
             x = x,
             breakpoints = breakpoints,
             slopes = slopes,
             intercepts = intercepts,
+            converter = converter,
             name = "${name}_impl",
             displayName = displayName
         )
@@ -79,11 +82,10 @@ class BalanceTernaryzationFunction<V>(
         val xValue = x.evaluateWith(values) ?: return null
         val xDouble = xValue.asFlt64().toDouble()
         val epsDouble = epsilon.toDouble()
-        @Suppress("UNCHECKED_CAST")
         return when {
-            xDouble > epsDouble -> Flt64.one as V
-            xDouble < -epsDouble -> Flt64(-1.0) as V
-            else -> Flt64.zero as V
+            xDouble > epsDouble -> converter.one
+            xDouble < -epsDouble -> converter.intoValue(Flt64(-1.0))
+            else -> converter.zero
         }
     }
 
@@ -105,10 +107,11 @@ class BalanceTernaryzationFunction<V>(
             x: LinearPolynomial<V>,
             epsilon: Flt64 = Flt64(1e-6),
             extract: Boolean = true,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): BalanceTernaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            BalanceTernaryzationFunction(x = x, epsilon = epsilon, extract = extract, name = name, displayName = displayName)
+            BalanceTernaryzationFunction(x = x, epsilon = epsilon, extract = extract, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
             x: LinearMonomial<Flt64>,
@@ -120,6 +123,7 @@ class BalanceTernaryzationFunction<V>(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             epsilon = epsilon,
             extract = extract,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )

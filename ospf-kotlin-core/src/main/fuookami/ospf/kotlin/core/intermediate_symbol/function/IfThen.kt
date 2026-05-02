@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -39,15 +40,17 @@ import fuookami.ospf.kotlin.utils.functional.ok
 class IfThenFunction<V>(
     val condition: LinearPolynomial<V>,
     val thenPoly: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "ifthen",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_ind")
     val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_side")
@@ -57,7 +60,7 @@ class IfThenFunction<V>(
         get() = listOf(indicatorVar, sideVar, resultVar)
 
     val result: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), resultVar)), zeroOf<V>())
+        LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -65,7 +68,7 @@ class IfThenFunction<V>(
         return if (condValue.asFlt64().toDouble() > 0.0) {
             thenPoly.evaluateWith(values) ?: return null
         } else {
-            zeroOf<V>()
+            converter.zero
         }
     }
 
@@ -144,11 +147,12 @@ class IfThenFunction<V>(
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             thenPoly: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): IfThenFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            IfThenFunction(condition, thenPoly, bigM, name = name, displayName = displayName)
+            IfThenFunction(condition, thenPoly, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearPolynomial<Flt64>,
@@ -156,7 +160,7 @@ class IfThenFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, bigM, name = name, displayName = displayName)
+        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearMonomial<Flt64>,

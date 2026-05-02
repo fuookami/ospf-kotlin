@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -38,15 +39,17 @@ import fuookami.ospf.kotlin.utils.functional.ok
 class ImplyFunction<V>(
     val antecedent: LinearPolynomial<V>,
     val consequent: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "imply",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val antecedentIndicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_ant_nz")
     val antecedentSideVar: AbstractVariableItem<*, *> = BinVar("${name}_ant_side")
@@ -62,9 +65,9 @@ class ImplyFunction<V>(
         // Implication: if antecedent > 0, then consequent must be > 0
         // Returns 1 if the implication holds, 0 otherwise
         return if (antValue.asFlt64().toDouble() <= 0.0 || conValue.asFlt64().toDouble() > 0.0) {
-            oneOf<V>()
+            converter.one
         } else {
-            zeroOf<V>()
+            converter.zero
         }
     }
 
@@ -139,11 +142,12 @@ class ImplyFunction<V>(
         operator fun <V> invoke(
             antecedent: LinearPolynomial<V>,
             consequent: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): ImplyFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            ImplyFunction(antecedent, consequent, bigM, name = name, displayName = displayName)
+            ImplyFunction(antecedent, consequent, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             antecedent: LinearPolynomial<Flt64>,
@@ -151,7 +155,7 @@ class ImplyFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): ImplyFunction<Flt64> = ImplyFunction(antecedent, consequent, bigM, name = name, displayName = displayName)
+        ): ImplyFunction<Flt64> = ImplyFunction(antecedent, consequent, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             antecedent: LinearMonomial<Flt64>,

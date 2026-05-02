@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -28,6 +29,7 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
+            converter = IntoValue.Flt64,
             name = "test_slack"
         )
         val adapter = LinearFunctionSymbolAdapter(slack)
@@ -47,6 +49,7 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
+            converter = IntoValue.Flt64,
             name = "my_func", displayName = "My Function"
         )
         val adapter = LinearFunctionSymbolAdapter(slack)
@@ -72,6 +75,7 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
+            converter = IntoValue.Flt64,
             name = "slack_test"
         )
 
@@ -90,6 +94,7 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
+            converter = IntoValue.Flt64,
             name = "aux_slack"
         )
 
@@ -110,6 +115,7 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
+            converter = IntoValue.Flt64,
             name = "adapter_aux"
         )
         val adapter = LinearFunctionSymbolAdapter(slack)
@@ -129,6 +135,7 @@ class FunctionSymbolMigrationTest {
         val slack = SlackFunction(
             x = xPoly,
             y = LinearPolynomial(emptyList(), Flt64.zero),
+            converter = IntoValue.Flt64,
             name = "eval_slack"
         )
         val adapter = LinearFunctionSymbolAdapter(slack)
@@ -146,6 +153,7 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
+            converter = IntoValue.Flt64,
             name = "flatten_slack"
         )
         val adapter = LinearFunctionSymbolAdapter(slack)
@@ -163,6 +171,8 @@ class FunctionSymbolMigrationTest {
             override var displayName: String? = null
             override val helperVariables: List<AbstractVariableItem<*, *>> = emptyList()
             override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = null
+            override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try = ok
+            override fun registerConstraints(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64): Try = ok
             override fun register(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel<Flt64>): Try {
                 return ok
             }

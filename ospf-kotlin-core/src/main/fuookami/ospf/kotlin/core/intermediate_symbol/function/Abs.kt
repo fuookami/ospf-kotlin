@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -27,11 +28,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class AbsFunction<V>(
     val polynomial: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     override var name: String = "abs",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_abs")
     val posVar: AbstractVariableItem<*, *> = URealVar("${name}_abs_pos")
@@ -129,18 +132,19 @@ class AbsFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): AbsFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            AbsFunction(polynomial, bigM, name = name, displayName = displayName)
+            AbsFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomial: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): AbsFunction<Flt64> = AbsFunction(polynomial, bigM, name = name, displayName = displayName)
+        ): AbsFunction<Flt64> = AbsFunction(polynomial, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -150,9 +154,10 @@ class AbsFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            AbsFunction<Flt64>(
+            AbsFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -30,12 +31,13 @@ class SigmoidFunction<V>(
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "sigmoid",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_ind")
     val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_side")
@@ -45,7 +47,7 @@ class SigmoidFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (condValue.asFlt64().toDouble() > 0.0) oneOf<V>() else zeroOf<V>()
+        return if (condValue.asFlt64().toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -97,17 +99,18 @@ class SigmoidFunction<V>(
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
             bigM: V? = null,
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "sigmoid",
             displayName: String? = null
         ): SigmoidFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            SigmoidFunction(condition, bigM, name = name, displayName = displayName)
+            SigmoidFunction(condition, bigM, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
-            name: String,
+            name: String = "sigmoid",
             displayName: String? = null
-        ): SigmoidFunction<Flt64> = SigmoidFunction(condition, bigM, name = name, displayName = displayName)
+        ): SigmoidFunction<Flt64> = SigmoidFunction(condition, bigM, converter = IntoValue.Flt64, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -120,6 +123,7 @@ class SigmoidFunction<V>(
             SigmoidFunction<Flt64>(
                 condition = condition.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

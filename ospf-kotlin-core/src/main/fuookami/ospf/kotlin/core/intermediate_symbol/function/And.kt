@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -28,15 +29,17 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class AndFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "and",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
 
     init {
@@ -53,9 +56,9 @@ class AndFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (v.asFlt64().toDouble() == 0.0) return zeroOf<V>()
+            if (v.asFlt64().toDouble() == 0.0) return converter.zero
         }
-        return oneOf<V>()
+        return converter.one
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -132,18 +135,19 @@ class AndFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): AndFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            AndFunction(polynomials, bigM, name = name, displayName = displayName)
+            AndFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): AndFunction<Flt64> = AndFunction(polynomials, bigM, name = name, displayName = displayName)
+        ): AndFunction<Flt64> = AndFunction(polynomials, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -153,9 +157,10 @@ class AndFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            AndFunction<Flt64>(
+            AndFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -170,15 +175,17 @@ class AndFunction<V>(
  */
 class OrFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "or",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
 
     init {
@@ -195,9 +202,9 @@ class OrFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (v.asFlt64().toDouble() != 0.0) return oneOf<V>()
+            if (v.asFlt64().toDouble() != 0.0) return converter.one
         }
-        return zeroOf<V>()
+        return converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -274,18 +281,19 @@ class OrFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): OrFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            OrFunction(polynomials, bigM, name = name, displayName = displayName)
+            OrFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): OrFunction<Flt64> = OrFunction(polynomials, bigM, name = name, displayName = displayName)
+        ): OrFunction<Flt64> = OrFunction(polynomials, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -295,9 +303,10 @@ class OrFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            OrFunction<Flt64>(
+            OrFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -312,15 +321,17 @@ class OrFunction<V>(
  */
 class NotFunction<V>(
     val polynomial: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "not",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_not_nz")
     val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_not_side")
@@ -331,7 +342,7 @@ class NotFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (v.asFlt64().toDouble() == 0.0) oneOf<V>() else zeroOf<V>()
+        return if (v.asFlt64().toDouble() == 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -388,18 +399,19 @@ class NotFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): NotFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            NotFunction(polynomial, bigM, name = name, displayName = displayName)
+            NotFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomial: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): NotFunction<Flt64> = NotFunction(polynomial, bigM, name = name, displayName = displayName)
+        ): NotFunction<Flt64> = NotFunction(polynomial, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -409,9 +421,10 @@ class NotFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            NotFunction<Flt64>(
+            NotFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -426,15 +439,17 @@ class NotFunction<V>(
  */
 class XorFunction<V>(
     val polynomials: List<LinearPolynomial<V>>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
     override var name: String = "xor",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
 
     init {
@@ -454,7 +469,7 @@ class XorFunction<V>(
             val v = poly.evaluateWith(values) ?: return null
             if (v.asFlt64().toDouble() != 0.0) count++
         }
-        return if (count == 1) oneOf<V>() else zeroOf<V>()
+        return if (count == 1) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -589,18 +604,19 @@ class XorFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): XorFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            XorFunction(polynomials, bigM, name = name, displayName = displayName)
+            XorFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): XorFunction<Flt64> = XorFunction(polynomials, bigM, name = name, displayName = displayName)
+        ): XorFunction<Flt64> = XorFunction(polynomials, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -610,9 +626,10 @@ class XorFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            XorFunction<Flt64>(
+            XorFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

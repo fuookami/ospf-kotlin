@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
@@ -29,10 +30,11 @@ import fuookami.ospf.kotlin.utils.functional.ok
 class RoundingFunction<V>(
     val x: LinearPolynomial<V>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "round",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
     val rVar: AbstractVariableItem<*, *> = BinVar("${name}_r")
@@ -44,8 +46,7 @@ class RoundingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        @Suppress("UNCHECKED_CAST")
-        return Flt64(kotlin.math.round(xVal.asFlt64().toDouble())) as V
+        return converter.intoValue(Flt64(kotlin.math.round(xVal.asFlt64().toDouble())))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -205,17 +206,18 @@ class RoundingFunction<V>(
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): RoundingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            RoundingFunction(x, bigM, name = name, displayName = displayName)
+            RoundingFunction(x, bigM, converter, name = name, displayName = displayName)
 
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(x, bigM, name = name, displayName = displayName)
+        ): RoundingFunction<Flt64> = RoundingFunction(x, bigM, IntoValue.Flt64, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -228,6 +230,7 @@ class RoundingFunction<V>(
             RoundingFunction<Flt64>(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.PctVariable1
@@ -45,6 +46,7 @@ class BivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
     val triangles: List<Triangle3>,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -82,11 +84,11 @@ class BivariateLinearPiecewiseFunction<V>(
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
             // p1, p2, p3 correspond to j=0, 1, 2
-            monos += LinearMonomial(tri.p1.z as V, lambdas[0])
-            monos += LinearMonomial(tri.p2.z as V, lambdas[1])
-            monos += LinearMonomial(tri.p3.z as V, lambdas[2])
+            monos += LinearMonomial(converter.intoValue(tri.p1.z), lambdas[0])
+            monos += LinearMonomial(converter.intoValue(tri.p2.z), lambdas[1])
+            monos += LinearMonomial(converter.intoValue(tri.p3.z), lambdas[2])
         }
-        LinearPolynomial(monos, zeroOf<V>())
+        LinearPolynomial(monos, converter.zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -100,8 +102,7 @@ class BivariateLinearPiecewiseFunction<V>(
                 val zVal = tri.p1.z.toDouble() +
                     (tri.p2.z - tri.p1.z).toDouble() * u +
                     (tri.p3.z - tri.p1.z).toDouble() * v
-                @Suppress("UNCHECKED_CAST")
-                return Flt64(zVal) as V
+                return converter.intoValue(Flt64(zVal))
             }
         }
         return null
@@ -293,9 +294,10 @@ class BivariateLinearPiecewiseFunction<V>(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
             triangles: List<Triangle3>,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): BivariateLinearPiecewiseFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            BivariateLinearPiecewiseFunction(x, y, triangles, name, displayName)
+            BivariateLinearPiecewiseFunction(x, y, triangles, converter, name, displayName)
     }
 }

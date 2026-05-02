@@ -48,10 +48,11 @@ class QuadraticMinFunction<V>(
     val polynomials: List<QuadraticPolynomial<V>>,
     val exact: Boolean = true,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_min")
     val binVars: List<AbstractVariableItem<*, *>> by lazy {
@@ -96,12 +97,11 @@ class QuadraticMinFunction<V>(
     override val flattenedMonomials: QuadraticFlattenDataFlt64
         get() = QuadraticFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
-        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(oneOf<V>(), resultVar)), zeroOf<V>())
+        get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
 
     @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero as V)
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
@@ -173,10 +173,11 @@ class QuadraticMinFunction<V>(
             polynomials: List<QuadraticPolynomial<V>>,
             exact: Boolean = true,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): QuadraticMinFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
-            QuadraticMinFunction(polynomials, exact, bigM, name, displayName)
+            QuadraticMinFunction(polynomials, exact, bigM, converter, name, displayName)
 
         operator fun invoke(
             polynomials: List<QuadraticPolynomial<Flt64>>,
@@ -184,6 +185,6 @@ class QuadraticMinFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticMinFunction<Flt64> = QuadraticMinFunction(polynomials, exact, bigM, name, displayName)
+        ): QuadraticMinFunction<Flt64> = QuadraticMinFunction(polynomials, exact, bigM, IntoValue.Flt64, name, displayName)
     }
 }

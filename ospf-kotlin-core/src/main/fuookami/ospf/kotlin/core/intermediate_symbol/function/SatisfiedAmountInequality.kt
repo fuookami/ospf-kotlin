@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.compare
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -42,6 +43,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param inputs list of constraint inputs to check
  * @param amount optional range of satisfied count; if null, returns raw count
  * @param epsilon tolerance for boundary checks
+ * @param converter value type converter for V-typed constants and Flt64 <-> V conversion
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
@@ -49,6 +51,7 @@ open class SatisfiedAmountInequalityFunction<V>(
     val inputs: List<LinearConstraintInput>,
     open val amount: ValueRange<UInt64>? = null,
     val epsilon: Flt64 = Flt64(1e-6),
+    val converter: IntoValue<V>,
     override var name: String = "satisfied_amount",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -80,13 +83,13 @@ open class SatisfiedAmountInequalityFunction<V>(
         val currentAmount = amount
         if (currentAmount != null) {
             LinearPolynomial(
-                listOf(LinearMonomial(oneOf<V>(), amountFlagVar!!)),
-                zeroOf<V>()
+                listOf(LinearMonomial(converter.one, amountFlagVar!!)),
+                converter.zero
             )
         } else {
             LinearPolynomial(
-                flagVars.map { LinearMonomial(oneOf<V>(), it) },
-                zeroOf<V>()
+                flagVars.map { LinearMonomial(converter.one, it) },
+                converter.zero
             )
         }
     }
@@ -99,13 +102,12 @@ open class SatisfiedAmountInequalityFunction<V>(
         }
         val countUInt = UInt64(count)
         val currentAmount = amount
-        val result = if (currentAmount != null) {
+        val resultFlt64 = if (currentAmount != null) {
             if (currentAmount.contains(countUInt)) Flt64.one else Flt64.zero
         } else {
             Flt64(count.toDouble())
         }
-        @Suppress("UNCHECKED_CAST")
-        return result as V
+        return converter.intoValue(resultFlt64)
     }
 
     /**
@@ -208,8 +210,8 @@ open class SatisfiedAmountInequalityFunction<V>(
         if (currentAmount != null) {
             val y = amountFlagVar!!
             val sumPoly = LinearPolynomial(
-                flagVars.map { LinearMonomial(oneOf<V>(), it) },
-                zeroOf<V>()
+                flagVars.map { LinearMonomial(converter.one, it) },
+                converter.zero
             )
             val sumPolyFlt64 = sumPoly.asFlt64Poly()
 
@@ -341,8 +343,8 @@ open class SatisfiedAmountInequalityFunction<V>(
         if (currentAmount != null) {
             val y = amountFlagVar!!
             val sumPoly = LinearPolynomial(
-                flagVars.map { LinearMonomial(oneOf<V>(), it) },
-                zeroOf<V>()
+                flagVars.map { LinearMonomial(converter.one, it) },
+                converter.zero
             )
             val sumPolyFlt64 = sumPoly.asFlt64Poly()
 
@@ -393,6 +395,7 @@ open class SatisfiedAmountInequalityFunction<V>(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -407,12 +410,14 @@ open class SatisfiedAmountInequalityFunction<V>(
 class AnyFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
+    converter: IntoValue<V>,
     override var name: String = "any",
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(UInt64.one, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
+    converter = converter,
     name = name,
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -425,6 +430,7 @@ class AnyFunction<V>(
         ): AnyFunction<Flt64> = AnyFunction(
             inputs = inputs,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -439,12 +445,14 @@ class AnyFunction<V>(
 class AllFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
+    converter: IntoValue<V>,
     override var name: String = "all",
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(UInt64(inputs.size), UInt64(inputs.size)).value!!,
     epsilon = epsilon,
+    converter = converter,
     name = name,
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -457,6 +465,7 @@ class AllFunction<V>(
         ): AllFunction<Flt64> = AllFunction(
             inputs = inputs,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -472,12 +481,14 @@ class AtLeastInequalityFunction<V>(
     inputs: List<LinearConstraintInput>,
     val k: UInt64,
     epsilon: Flt64 = Flt64(1e-6),
+    converter: IntoValue<V>,
     override var name: String = "at_least",
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(k, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
+    converter = converter,
     name = name,
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -497,6 +508,7 @@ class AtLeastInequalityFunction<V>(
             inputs = inputs,
             k = k,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -511,12 +523,14 @@ class AtLeastInequalityFunction<V>(
 class NotAllFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
+    converter: IntoValue<V>,
     override var name: String = "not_all",
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = if (inputs.size > 1) ValueRange(UInt64.one, UInt64(inputs.size - 1)).value!! else null,
     epsilon = epsilon,
+    converter = converter,
     name = name,
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -529,6 +543,7 @@ class NotAllFunction<V>(
         ): NotAllFunction<Flt64> = NotAllFunction(
             inputs = inputs,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -542,12 +557,14 @@ class NumerableFunction<V>(
     inputs: List<LinearConstraintInput>,
     override val amount: ValueRange<UInt64>,
     epsilon: Flt64 = Flt64(1e-6),
+    converter: IntoValue<V>,
     override var name: String = "numerable",
     override var displayName: String? = null
 ) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = amount,
     epsilon = epsilon,
+    converter = converter,
     name = name,
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
@@ -562,6 +579,7 @@ class NumerableFunction<V>(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )

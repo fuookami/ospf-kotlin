@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -33,6 +34,7 @@ class SlackFunction<V>(
     val withNegative: Boolean = true,
     val withPositive: Boolean = true,
     val threshold: Boolean = false,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -73,18 +75,15 @@ class SlackFunction<V>(
         val yValue = y.evaluateWith(values) ?: return null
         val diff = (xValue.asFlt64() - yValue.asFlt64()).toDouble()
         return if (withNegative && withPositive) {
-            @Suppress("UNCHECKED_CAST")
-            Flt64(kotlin.math.abs(diff)) as V
+            converter.intoValue(Flt64(kotlin.math.abs(diff)))
         } else if (withNegative) {
             val v = kotlin.math.max(0.0, -diff)
-            @Suppress("UNCHECKED_CAST")
-            Flt64(v) as V
+            converter.intoValue(Flt64(v))
         } else if (withPositive) {
             val v = kotlin.math.max(0.0, diff)
-            @Suppress("UNCHECKED_CAST")
-            Flt64(v) as V
+            converter.intoValue(Flt64(v))
         } else {
-            zeroOf<V>()
+            converter.zero
         }
     }
 
@@ -190,6 +189,7 @@ class SlackFunction<V>(
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
+            converter: IntoValue<V>,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -200,10 +200,33 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = converter,
                 name = name ?: "",
                 displayName = displayName
             )
         }
+
+        /** Flt64-specific invoke: primary entry point with x and y polynomials. */
+        operator fun invoke(
+            x: LinearPolynomial<Flt64>,
+            y: LinearPolynomial<Flt64>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<Flt64> = SlackFunction(
+            x = x,
+            y = y,
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            converter = IntoValue.Flt64,
+            name = name ?: "",
+            displayName = displayName
+        )
 
         /** Generic V-typed invoke with LinearIntermediateSymbol<V>. */
         operator fun <V> invoke(
@@ -213,6 +236,7 @@ class SlackFunction<V>(
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
+            converter: IntoValue<V>,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -223,10 +247,33 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = converter,
                 name = name,
                 displayName = displayName
             )
         }
+
+        /** Flt64-specific invoke with LinearIntermediateSymbolFlt64. */
+        operator fun invoke(
+            x: LinearIntermediateSymbolFlt64,
+            y: LinearPolynomial<Flt64>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<Flt64> = invoke(
+            x = x.polynomial,
+            y = y,
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            converter = IntoValue.Flt64,
+            name = name,
+            displayName = displayName
+        )
 
         /** Generic V-typed invoke with ToLinearPolynomial<V>. */
         operator fun <V> invoke(
@@ -236,6 +283,7 @@ class SlackFunction<V>(
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
+            converter: IntoValue<V>,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -246,10 +294,33 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = converter,
                 name = name,
                 displayName = displayName
             )
         }
+
+        /** Flt64-specific invoke with ToLinearPolynomial<Flt64>. */
+        operator fun invoke(
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            y: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<Flt64> = invoke(
+            x = x.toLinearPolynomial(),
+            y = y.toLinearPolynomial(),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            threshold = threshold,
+            converter = IntoValue.Flt64,
+            name = name,
+            displayName = displayName
+        )
 
         /**
          * Factory: accept AbstractVariableItem for x and Flt64 for y.
@@ -273,6 +344,7 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -296,6 +368,7 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
+                    converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
                 )
@@ -324,6 +397,7 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -352,6 +426,7 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
+                    converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
                 )
@@ -381,6 +456,7 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = constraint,
+                    converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
                 )
@@ -410,6 +486,7 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
+                    converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
                 )
@@ -440,6 +517,7 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = constraint,
+                    converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
                 )
@@ -468,6 +546,7 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

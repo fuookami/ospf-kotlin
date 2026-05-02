@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -42,12 +43,13 @@ class OneOfFunction<V>(
     bigM: V? = null,
     tolerance: V? = null,
     strictBoundary: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String = "oneof",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
-    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
-    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
+    private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
+    private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
     private val n = polynomials.size
 
     init {
@@ -67,7 +69,7 @@ class OneOfFunction<V>(
             val v = poly.evaluateWith(values) ?: return null
             if (v.asFlt64().toDouble() != 0.0) count++
         }
-        return if (count == 1) oneOf<V>() else zeroOf<V>()
+        return if (count == 1) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -137,17 +139,18 @@ class OneOfFunction<V>(
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
             bigM: V? = null,
-            name: String,
+            converter: IntoValue<V>,
+            name: String = "oneof",
             displayName: String? = null
         ): OneOfFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            OneOfFunction(polynomials, bigM, name = name, displayName = displayName)
+            OneOfFunction(polynomials, bigM, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
-            name: String,
+            name: String = "oneof",
             displayName: String? = null
-        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, name = name, displayName = displayName)
+        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, converter = IntoValue.Flt64, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -160,7 +163,8 @@ class OneOfFunction<V>(
             OneOfFunction<Flt64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                name = name,
+                converter = IntoValue.Flt64,
+       name = name,
                 displayName = displayName
             )
         )

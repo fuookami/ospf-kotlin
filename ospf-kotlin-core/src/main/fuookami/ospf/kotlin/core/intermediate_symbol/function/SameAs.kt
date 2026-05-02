@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -38,10 +38,10 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param displayName optional human-readable display name
  */
 class SameAsFunction<V>(
-    val inequalities: List<LinearInequality<Flt64>>,
+    val inequalities: List<LinearInequality<V>>,
     val constraint: Boolean = true,
-    val epsilon: Flt64 = Flt64(1e-6),
-    val m: Flt64 = Flt64(1e6),
+    val epsilon: V,
+    val m: V,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -66,24 +66,25 @@ class SameAsFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + satisfactionFlags + diffVars
 
-    @Suppress("UNCHECKED_CAST")
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val flt64Values = values.mapValues { it.value.asFlt64() }
         val flags = mutableListOf<Boolean>()
+        val epsDouble = epsilon.asFlt64().toDouble()
         for (ineq in inequalities) {
-            val lhsVal = ineq.lhs.evaluate(flt64Values) ?: return null
-            val rhsVal = ineq.rhs.evaluate(flt64Values) ?: return null
-            val diff = (lhsVal - rhsVal).toDouble()
+            val lhsVal = ineq.lhs.evaluateWith(values) ?: return null
+            val rhsVal = ineq.rhs.evaluateWith(values) ?: return null
+            val diff = (lhsVal - rhsVal).asFlt64().toDouble()
             val satisfied = when (ineq.comparison) {
-                Comparison.LE -> diff <= epsilon.toDouble()
-                Comparison.GE -> diff >= -epsilon.toDouble()
-                Comparison.EQ -> kotlin.math.abs(diff) <= epsilon.toDouble()
+                Comparison.LE -> diff <= epsDouble
+                Comparison.GE -> diff >= -epsDouble
+                Comparison.EQ -> kotlin.math.abs(diff) <= epsDouble
                 else -> false
             }
             flags += satisfied
         }
         val allSame = flags.all { it == flags[0] }
-        return if (allSame) oneOf<V>() else zeroOf<V>()
+        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
+        val zero = unit - unit
+        return if (allSame) unit else zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -346,6 +347,22 @@ class SameAsFunction<V>(
     }
 
     companion object {
+        operator fun <V> invoke(
+            inequalities: List<LinearInequality<V>>,
+            constraint: Boolean = true,
+            epsilon: V,
+            m: V,
+            name: String,
+            displayName: String? = null
+        ): SameAsFunction<V> where V : RealNumber<V>, V : NumberField<V> = SameAsFunction(
+            inequalities = inequalities,
+            constraint = constraint,
+            epsilon = epsilon,
+            m = m,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inequalities: List<LinearInequality<Flt64>>,
             constraint: Boolean = true,

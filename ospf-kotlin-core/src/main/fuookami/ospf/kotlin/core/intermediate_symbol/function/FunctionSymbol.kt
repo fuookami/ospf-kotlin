@@ -97,7 +97,8 @@ interface MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
  * through the traditional prepare/flatten pipeline.
  */
 class LinearFunctionSymbolAdapter<V>(
-    val delegate: MathFunctionSymbol<V>
+    val delegate: MathFunctionSymbol<V>,
+    private val converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
 ) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     override var name: String
         get() = delegate.name
@@ -181,10 +182,10 @@ class LinearFunctionSymbolAdapter<V>(
     override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
 
     override val polynomial: LinearPolynomial<V>
-        get() = LinearPolynomial(emptyList(), Flt64.zero as V)
+        get() = LinearPolynomial(emptyList(), converter.zero)
 
     override fun asMutable(): MutableLinearPolynomial<V> {
-        return MutableLinearPolynomial(emptyList(), Flt64.zero as V)
+        return MutableLinearPolynomial(emptyList(), converter.zero)
     }
 
     override fun toMathLinearInequality(): Flt64LinearInequality {

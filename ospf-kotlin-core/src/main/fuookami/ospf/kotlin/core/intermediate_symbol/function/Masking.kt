@@ -49,10 +49,11 @@ class MaskingFunction<V>(
     val input: LinearPolynomial<V>,
     val mask: AbstractVariableItem<*, *>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_masking")
 
@@ -60,9 +61,9 @@ class MaskingFunction<V>(
         get() = listOf(resultVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val maskValue = values[mask] ?: return zeroOf<V>()
+        val maskValue = values[mask] ?: return converter.zero
         val maskD = maskValue.asFlt64().toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return zeroOf<V>()
+        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
         return input.evaluate(values)
     }
 
@@ -190,10 +191,11 @@ class MaskingFunction<V>(
             input: LinearPolynomial<V>,
             mask: AbstractVariableItem<*, *>,
             bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): MaskingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MaskingFunction(input, mask, bigM, name, displayName)
+            MaskingFunction(input, mask, bigM, converter, name, displayName)
 
         operator fun invoke(
             input: LinearPolynomial<Flt64>,
@@ -202,7 +204,7 @@ class MaskingFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            MaskingFunction(input, mask, bigM, name, displayName)
+            MaskingFunction(input, mask, bigM, IntoValue.Flt64, name, displayName)
         )
 
         operator fun invoke(
@@ -214,7 +216,7 @@ class MaskingFunction<V>(
         ): LinearFunctionSymbolAdapter<Flt64> {
             val maskVar = BinVar("${name}_${maskVarName}")
             return LinearFunctionSymbolAdapter<Flt64>(
-                MaskingFunction(input, maskVar, bigM, name, displayName)
+                MaskingFunction(input, maskVar, bigM, IntoValue.Flt64, name, displayName)
             )
         }
 
@@ -234,6 +236,7 @@ class MaskingFunction<V>(
                 input = x.toLinearPolynomial(),
                 mask = mask,
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -252,6 +255,7 @@ class MaskingFunction<V>(
             input = x.toLinearPolynomial(),
             maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
+            converter = IntoValue.Flt64,
             name = name,
             displayName = displayName
         )
@@ -268,10 +272,11 @@ class MaskingWithPolyMaskFunction<V>(
     val input: LinearPolynomial<V>,
     val maskPoly: LinearPolynomial<V>,
     bigM: V? = null,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
 
@@ -292,8 +297,8 @@ class MaskingWithPolyMaskFunction<V>(
 
     override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), zeroOf<V>())
-    override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), zeroOf<V>())
+    override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), converter.zero)
+    override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), converter.zero)
 
     override fun toMathLinearInequality(): Flt64LinearInequality {
         return Flt64LinearInequality(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
@@ -322,9 +327,9 @@ class MaskingWithPolyMaskFunction<V>(
     private fun delegate(): MathFunctionSymbol<V> = this
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val maskValue = maskPoly.evaluateWith(values) ?: return zeroOf<V>()
+        val maskValue = maskPoly.evaluateWith(values) ?: return converter.zero
         val maskD = maskValue.asFlt64().toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return zeroOf<V>()
+        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
         return input.evaluateWith(values)
     }
 
@@ -488,6 +493,7 @@ class MaskingRangeFunction<V>(
     val mask: LinearPolynomial<V>,
     val lower: V,
     val upper: V,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -503,14 +509,13 @@ class MaskingRangeFunction<V>(
         get() = listOf(resultVar)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val maskValue = mask.evaluate(values) ?: return zeroOf<V>()
+        val maskValue = mask.evaluate(values) ?: return converter.zero
         val maskD = maskValue.asFlt64().toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return zeroOf<V>()
-        val yVal = values[resultVar]?.asFlt64()?.toDouble() ?: return zeroOf<V>()
+        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
+        val yVal = values[resultVar]?.asFlt64()?.toDouble() ?: return converter.zero
         val lb = lower.asFlt64().toDouble() * maskD
         val ub = upper.asFlt64().toDouble() * maskD
-        @Suppress("UNCHECKED_CAST")
-        return Flt64(yVal.coerceIn(lb, ub)) as V
+        return converter.intoValue(Flt64(yVal.coerceIn(lb, ub)))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -603,10 +608,11 @@ class MaskingRangeFunction<V>(
             mask: LinearPolynomial<V>,
             lower: V,
             upper: V,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): MaskingRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            MaskingRangeFunction(mask, lower, upper, name, displayName)
+            MaskingRangeFunction(mask, lower, upper, converter, name, displayName)
 
         operator fun invoke(
             mask: LinearPolynomial<Flt64>,
@@ -615,7 +621,7 @@ class MaskingRangeFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            MaskingRangeFunction(mask, lower, upper, name, displayName)
+            MaskingRangeFunction(mask, lower, upper, IntoValue.Flt64, name, displayName)
         )
     }
 }

@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -27,11 +28,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  */
 class BinaryzationFunction<V>(
     val polynomial: LinearPolynomial<V>,
+    converter: IntoValue<V>,
     bigM: V? = null,
     override var name: String = "bin",
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val converter: IntoValue<V> = converter
+    private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_bin")
 
@@ -40,7 +43,7 @@ class BinaryzationFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (v.asFlt64().toDouble() > 0.0) oneOf<V>() else zeroOf<V>()
+        return if (v.asFlt64().toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -103,18 +106,19 @@ class BinaryzationFunction<V>(
     companion object {
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
+            converter: IntoValue<V>,
             bigM: V? = null,
             name: String,
             displayName: String? = null
         ): BinaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            BinaryzationFunction(polynomial, bigM, name = name, displayName = displayName)
+            BinaryzationFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             polynomial: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> = BinaryzationFunction(polynomial, bigM, name = name, displayName = displayName)
+        ): BinaryzationFunction<Flt64> = BinaryzationFunction(polynomial, IntoValue.Flt64, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -124,9 +128,10 @@ class BinaryzationFunction<V>(
             name: String,
             displayName: String? = null
         ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            BinaryzationFunction<Flt64>(
+            BinaryzationFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )

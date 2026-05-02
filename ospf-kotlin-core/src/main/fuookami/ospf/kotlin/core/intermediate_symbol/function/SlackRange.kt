@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -29,6 +30,7 @@ class SlackRangeFunction<V>(
     val x: LinearPolynomial<V>,
     val threshold: V,
     val type: VariableType<*> = UContinuous,
+    private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -56,10 +58,9 @@ class SlackRangeFunction<V>(
         val xFlt = xValue.asFlt64().toDouble()
         val threshFlt = threshold.asFlt64().toDouble()
         if (xFlt > threshFlt) {
-            @Suppress("UNCHECKED_CAST")
-            return Flt64(xFlt - threshFlt) as V
+            return converter.intoValue(Flt64(xFlt - threshFlt))
         } else {
-            return zeroOf<V>()
+            return converter.zero
         }
     }
 
@@ -158,7 +159,7 @@ class SlackRangeFunction<V>(
             type: VariableType<*> = UContinuous,
             name: String,
             displayName: String? = null
-        ): SlackRangeFunction<Flt64> = SlackRangeFunction(x, threshold, type, name, displayName)
+        ): SlackRangeFunction<Flt64> = SlackRangeFunction(x, threshold, type, IntoValue.Flt64, name, displayName)
 
         /**
          * Factory: accept LinearIntermediateSymbol for x and Flt64 threshold.
@@ -175,6 +176,7 @@ class SlackRangeFunction<V>(
                 x = x.toLinearPolynomial(),
                 threshold = threshold,
                 type = type,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -195,6 +197,7 @@ class SlackRangeFunction<V>(
                 x = x.toLinearPolynomial(),
                 threshold = threshold.toFlt64(),
                 type = type,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -215,6 +218,7 @@ class SlackRangeFunction<V>(
                 x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
                 threshold = threshold,
                 type = type,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
@@ -235,6 +239,7 @@ class SlackRangeFunction<V>(
                 x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
                 threshold = threshold.toFlt64(),
                 type = type,
+                converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
             )
