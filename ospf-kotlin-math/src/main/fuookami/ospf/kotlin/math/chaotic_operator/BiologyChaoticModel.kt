@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 生物混沌模型
  * Biological Chaotic Model
  *
@@ -19,36 +19,42 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
-/**
- * 生物混沌模型
- * Biological Chaotic Model
- */
-data class BiologyChaoticModel(
-    val a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val c: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val r: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
-        return point3(
-            r * x[0] * (Flt64.one - a * x[0] - b * x[1] - c * x[2]),
+data class BiologyChaoticModel<V : FloatingNumber<V>>(
+    val a: V,
+    val b: V,
+    val c: V,
+    val r: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
+        val v = r
+        return Point<Dim3, V>(listOf(
+            r * x[0] * (v.constants.one - a * x[0] - b * x[1] - c * x[2]),
             x[0],
             x[1]
-        )
+        ), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            c: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            r: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
+        ): BiologyChaoticModel<Flt64> {
+            return BiologyChaoticModel(a, b, c, r)
+        }
     }
 }
 
-/**
- * 生物混沌模型生成器
- * Biological Chaotic Model Generator
- */
 data class BiologyChaoticModelGenerator(
-    val biologyChaoticModel: BiologyChaoticModel = BiologyChaoticModel(),
+    val biologyChaoticModel: BiologyChaoticModel<Flt64> = BiologyChaoticModel(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -68,12 +74,7 @@ data class BiologyChaoticModelGenerator(
             )
         ): BiologyChaoticModelGenerator {
             return BiologyChaoticModelGenerator(
-                BiologyChaoticModel(
-                    a = a,
-                    b = b,
-                    c = c,
-                    r = r
-                ),
+                BiologyChaoticModel(a, b, c, r),
                 x
             )
         }
@@ -87,9 +88,3 @@ data class BiologyChaoticModelGenerator(
         return x
     }
 }
-
-
-
-
-
-

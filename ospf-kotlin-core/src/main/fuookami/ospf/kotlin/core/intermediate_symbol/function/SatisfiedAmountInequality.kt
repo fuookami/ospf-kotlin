@@ -2,13 +2,14 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.compare
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
@@ -43,13 +44,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-open class SatisfiedAmountInequalityFunction<T : Field<T>>(
+open class SatisfiedAmountInequalityFunction<V>(
     val inputs: List<LinearConstraintInput>,
     open val amount: ValueRange<UInt64>? = null,
     val epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "satisfied_amount",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
 
     /** Binary flags: one per input constraint. */
     private val flagVars: List<AbstractVariableItem<*, *>> by lazy {
@@ -69,30 +70,27 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
 
     /**
      * Result: sum of satisfied constraint flags.
      * If amount is specified, this is a binary indicator (0 or 1).
      */
-    val result: LinearPolynomial<T> by lazy {
+    val result: LinearPolynomial<V> by lazy {
         val currentAmount = amount
         if (currentAmount != null) {
             LinearPolynomial(
-                listOf(LinearMonomial(oneOf<T>(), amountFlagVar!!)),
-                zeroOf<T>()
+                listOf(LinearMonomial(oneOf<V>(), amountFlagVar!!)),
+                zeroOf<V>()
             )
         } else {
             LinearPolynomial(
-                flagVars.map { LinearMonomial(oneOf<T>(), it) },
-                zeroOf<T>()
+                flagVars.map { LinearMonomial(oneOf<V>(), it) },
+                zeroOf<V>()
             )
         }
     }
 
-    override fun evaluate(values: Map<Symbol, T>): T? {
+    override fun evaluate(values: Map<Symbol, V>): V? {
         var count = 0
         for (input in inputs) {
             val satisfied = checkInputSatisfied(input, values) ?: return null
@@ -106,16 +104,16 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
             Flt64(count.toDouble())
         }
         @Suppress("UNCHECKED_CAST")
-        return result as T
+        return result as V
     }
 
     /**
      * Check whether a single input constraint is satisfied given the current values.
      */
-    private fun <U : Field<U>> checkInputSatisfied(
+    private fun <U> checkInputSatisfied(
         input: LinearConstraintInput,
         values: Map<Symbol, U>
-    ): Boolean? {
+    ): Boolean? where U : RealNumber<U>, U : NumberField<U> {
         var lhsValue = input.flattenData.constant.asFlt64()
         for (monomial in input.flattenData.monomials) {
             val symbolValue = values[monomial.symbol]
@@ -125,7 +123,7 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         return input.sign.compare(lhsValue, Flt64.zero)
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         // Register flag variables
         when (val result = model.add(flagVars)) {
             is Ok -> {}
@@ -216,8 +214,8 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
         if (currentAmount != null) {
             val y = amountFlagVar!!
             val sumPoly = LinearPolynomial(
-                flagVars.map { LinearMonomial(oneOf<T>(), it) },
-                zeroOf<T>()
+                flagVars.map { LinearMonomial(oneOf<V>(), it) },
+                zeroOf<V>()
             )
             val sumPolyFlt64 = sumPoly.asFlt64Poly()
 
@@ -279,18 +277,18 @@ open class SatisfiedAmountInequalityFunction<T : Field<T>>(
  *
  * Alias: `amount = [1, n]`
  */
-class AnyFunction<T : Field<T>>(
+class AnyFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "any",
     override var displayName: String? = null
-) : SatisfiedAmountInequalityFunction<T>(
+) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(UInt64.one, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
@@ -311,18 +309,18 @@ class AnyFunction<T : Field<T>>(
  *
  * Alias: `amount = [n, n]`
  */
-class AllFunction<T : Field<T>>(
+class AllFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "all",
     override var displayName: String? = null
-) : SatisfiedAmountInequalityFunction<T>(
+) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(UInt64(inputs.size), UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
@@ -343,19 +341,19 @@ class AllFunction<T : Field<T>>(
  *
  * Alias: `amount = [k, n]`
  */
-class AtLeastInequalityFunction<T : Field<T>>(
+class AtLeastInequalityFunction<V>(
     inputs: List<LinearConstraintInput>,
     val k: UInt64,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "at_least",
     override var displayName: String? = null
-) : SatisfiedAmountInequalityFunction<T>(
+) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = ValueRange(k, UInt64(inputs.size)).value!!,
     epsilon = epsilon,
     name = name,
     displayName = displayName
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     init {
         assert(k > UInt64.zero)
         assert(UInt64(inputs.size) >= k)
@@ -383,18 +381,18 @@ class AtLeastInequalityFunction<T : Field<T>>(
  *
  * Alias: `amount = [1, n-1]`
  */
-class NotAllFunction<T : Field<T>>(
+class NotAllFunction<V>(
     inputs: List<LinearConstraintInput>,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "not_all",
     override var displayName: String? = null
-) : SatisfiedAmountInequalityFunction<T>(
+) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = if (inputs.size > 1) ValueRange(UInt64.one, UInt64(inputs.size - 1)).value!! else null,
     epsilon = epsilon,
     name = name,
     displayName = displayName
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
@@ -413,19 +411,19 @@ class NotAllFunction<T : Field<T>>(
 /**
  * NumerableFunction: the count of satisfied inequalities must be within a specified range.
  */
-class NumerableFunction<T : Field<T>>(
+class NumerableFunction<V>(
     inputs: List<LinearConstraintInput>,
     override val amount: ValueRange<UInt64>,
     epsilon: Flt64 = Flt64(1e-6),
     override var name: String = "numerable",
     override var displayName: String? = null
-) : SatisfiedAmountInequalityFunction<T>(
+) : SatisfiedAmountInequalityFunction<V>(
     inputs = inputs,
     amount = amount,
     epsilon = epsilon,
     name = name,
     displayName = displayName
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             inputs: List<LinearConstraintInput>,

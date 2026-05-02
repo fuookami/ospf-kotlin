@@ -1,4 +1,4 @@
-﻿/**
+/**
  * MandelbrotSet（Mandelbrot 集）
  * Mandelbrot Set
  *
@@ -26,26 +26,30 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 
 /**
  * Mandelbrot 集迭代函数
  * Mandelbrot Set iteration function
  */
-class MandelbrotSet(
-    val c: Point2 = Point2(Flt64.one, Flt64.one)
+class MandelbrotSet<V : FloatingNumber<V>>(
+    val c: Point<Dim2, V>
 ) {
     companion object {
-        operator fun invoke(real: Flt64, imag: Flt64): MandelbrotSet {
-            return MandelbrotSet(Point2(real, imag))
+        operator fun invoke(real: Flt64, imag: Flt64): MandelbrotSet<Flt64> {
+            return MandelbrotSet(Point<Dim2, Flt64>(listOf(real, imag), Dim2))
         }
     }
 
-    operator fun invoke(z: Point2): Point2 {
+    operator fun invoke(z: Point<Dim2, V>): Point<Dim2, V> {
+        val two = z[0].constants.two
         val real = z[0].pow(2) - z[1].pow(2) + c[0]
-        val imag = Flt64.two * z[0] * z[1] + c[1]
-        return Point2(real, imag)
+        @Suppress("UNCHECKED_CAST")
+        val imag = two * z[0] * z[1] + c[1]
+        return Point<Dim2, V>(listOf(real, imag), Dim2)
     }
 }
 
@@ -54,7 +58,7 @@ class MandelbrotSet(
  * Mandelbrot Set sequence generator
  */
 data class MandelbrotSetGenerator(
-    val mandelbrotSet: MandelbrotSet = MandelbrotSet(),
+    val mandelbrotSet: MandelbrotSet<Flt64> = MandelbrotSet(Flt64.one, Flt64.one),
     private var _z: Point2 = point2()
 ) : Generator<Point2> {
     companion object {
@@ -63,7 +67,7 @@ data class MandelbrotSetGenerator(
             imag: Flt64,
             z: Point2 = point2()
         ): MandelbrotSetGenerator {
-            return MandelbrotSetGenerator(MandelbrotSet(Point2(real, imag)), z)
+            return MandelbrotSetGenerator(MandelbrotSet(real, imag), z)
         }
     }
 
@@ -75,10 +79,3 @@ data class MandelbrotSetGenerator(
         return z
     }
 }
-
-
-
-
-
-
-

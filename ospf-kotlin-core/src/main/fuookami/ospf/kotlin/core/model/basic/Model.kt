@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused", "DEPRECATION")
 
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -10,12 +10,12 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -198,7 +198,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -213,7 +213,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenDataFlt64(listOf(MathLinearMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = LinearFlattenDataFlt64(listOf(LinearMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -246,7 +246,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     // ========== math.symbol type overloads ==========
 
     fun minimize(
-        polynomial: MathLinearPolynomial<Flt64>,
+        polynomial: LinearPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -259,7 +259,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 
     fun maximize(
-        polynomial: MathLinearPolynomial<Flt64>,
+        polynomial: LinearPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -272,7 +272,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 
     fun minimize(
-        monomial: MathLinearMonomial<Flt64>,
+        monomial: LinearMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -285,7 +285,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     }
 
     fun maximize(
-        monomial: MathLinearMonomial<Flt64>,
+        monomial: LinearMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -357,7 +357,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -372,7 +372,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenDataFlt64(listOf(MathQuadraticMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = QuadraticFlattenDataFlt64(listOf(QuadraticMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -405,7 +405,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     // ========== math.symbol type overloads for Quadratic ==========
 
     fun minimize(
-        polynomial: MathQuadraticPolynomial<Flt64>,
+        polynomial: QuadraticPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -418,7 +418,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     }
 
     fun maximize(
-        polynomial: MathQuadraticPolynomial<Flt64>,
+        polynomial: QuadraticPolynomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -431,7 +431,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     }
 
     fun minimize(
-        monomial: MathQuadraticMonomial<Flt64>,
+        monomial: QuadraticMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -444,7 +444,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     }
 
     fun maximize(
-        monomial: MathQuadraticMonomial<Flt64>,
+        monomial: QuadraticMonomial<Flt64>,
         name: String? = null,
         displayName: String? = null
     ): Try {

@@ -1,16 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -19,148 +21,131 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
 /**
- * IfInFunction: Returns 1 if x is in range [lowerBound, upperBound], else 0.
+ * If-In function: `y = 1 if a <= x <= b, else y = 0`.
  *
- * Uses BigM formulation with two binary variables (lby for lower bound, uby for upper bound)
- * combined via an AndFunction.
+ * Uses two binary indicators for the lower and upper bound checks,
+ * combined via an AND-like constraint.
+ *
+ * @param x the input linear polynomial
+ * @param lower the lower bound (a)
+ * @param upper the upper bound (b)
+ * @param bigM Big-M bound (default 1e6)
+ * @param tolerance zero tolerance (default 1e-6)
+ * @param strictBoundary strict boundary value (default 0.5)
+ * @param name unique name for this function
+ * @param displayName optional human-readable display name
  */
-class IfInFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
-    val lowerBound: LinearPolynomial<T>,
-    val upperBound: LinearPolynomial<T>,
-    val epsilon: Flt64 = Flt64(1e-6),
-    val bigM: Flt64 = Flt64(BIG_M_DEFAULT),
-    override var name: String,
+class IfInFunction<V>(
+    val x: LinearPolynomial<V>,
+    val lower: V,
+    val upper: V,
+    bigM: V? = null,
+    tolerance: V? = null,
+    strictBoundary: V? = null,
+    override var name: String = "ifin",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
+    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
 
-    val lby: AbstractVariableItem<*, *> = BinVar("${name}_lby")
-    val uby: AbstractVariableItem<*, *> = BinVar("${name}_uby")
-
-    private val andFunc: AndFunction<Flt64> by lazy {
-        AndFunction(
-            listOf(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, lby)), Flt64.zero),
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, uby)), Flt64.zero)
-            ),
-            bigM,
-            "${name}_and"
-        )
-    }
+    val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_ifin")
+    val geVar: AbstractVariableItem<*, *> = BinVar("${name}_ge")
+    val geSideVar: AbstractVariableItem<*, *> = BinVar("${name}_ge_side")
+    val leVar: AbstractVariableItem<*, *> = BinVar("${name}_le")
+    val leSideVar: AbstractVariableItem<*, *> = BinVar("${name}_le_side")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(lby, uby) + andFunc.helperVariables
+        get() = listOf(resultVar, geVar, geSideVar, leVar, leSideVar)
 
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val xVal = x.evaluate(values)?.asFlt64()?.toDouble() ?: return null
-        val lbVal = lowerBound.evaluate(values)?.asFlt64()?.toDouble() ?: return null
-        val ubVal = upperBound.evaluate(values)?.asFlt64()?.toDouble() ?: return null
-        return if (xVal >= lbVal - NONZERO_TOLERANCE && xVal <= ubVal + NONZERO_TOLERANCE) {
-            oneOf<T>()
-        } else {
-            zeroOf<T>()
-        }
+    val result: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), resultVar)), zeroOf<V>())
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        // Only register own auxiliary tokens; andFunc registers its own via andFunc.register()
-        return tokens.add(listOf(lby, uby))
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val xValue = x.evaluateWith(values) ?: return null
+        val xDouble = xValue.asFlt64().toDouble()
+        val lo = lower.asFlt64().toDouble()
+        val hi = upper.asFlt64().toDouble()
+        return if (xDouble >= lo && xDouble <= hi) oneOf<V>() else zeroOf<V>()
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        // Register own auxiliary tokens (lby, uby); andFunc registers its own via andFunc.register()
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        val xFlt = x.asFlt64Poly()
-        val lbFlt = lowerBound.asFlt64Poly()
-        val ubFlt = upperBound.asFlt64Poly()
-        val mD = bigM.toDouble()
-        val epsD = epsilon.toDouble()
+        val mVal = bigM
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
-        val allConstraints = mutableListOf<MathLinearInequality>()
+        // x - lower >= 0 indicator (x >= lower)
+        val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
+        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
 
-        // Lower bound: x >= lowerBound  (via lby)
-        // When lby=1: lowerBound - x <= 0
-        // When lby=0: x - lowerBound <= M - epsilon
-        allConstraints += MathLinearInequality(
-            LinearPolynomial(
-                lbFlt.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    xFlt.monomials.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                    LinearMonomial(Flt64(mD), lby),
-                (lbFlt.constant - xFlt.constant) + Flt64(-mD)
-            ),
+        // upper - x >= 0 indicator (x <= upper)
+        val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
+        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
+
+        // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE,
-            "${name}_lb_check"
+            Comparison.LE, "${name}_link_ge"
         )
 
-        allConstraints += MathLinearInequality(
-            LinearPolynomial(
-                xFlt.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    lbFlt.monomials.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                    LinearMonomial(Flt64(-(mD + epsD)), lby),
-                xFlt.constant - lbFlt.constant + Flt64(epsD)
-            ),
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, leVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE,
-            "${name}_lb_enforce"
+            Comparison.LE, "${name}_link_le"
         )
 
-        // Upper bound: x <= upperBound  (via uby)
-        // When uby=1: x - upperBound <= 0
-        // When uby=0: upperBound - x <= M - epsilon
-        allConstraints += MathLinearInequality(
+        allConstraints += Flt64LinearInequality(
             LinearPolynomial(
-                xFlt.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    ubFlt.monomials.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                    LinearMonomial(Flt64(mD), uby),
-                xFlt.constant - ubFlt.constant - Flt64(mD)
+                listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar), LinearMonomial(-Flt64.one, leVar)),
+                Flt64.zero
             ),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE,
-            "${name}_ub_check"
+            LinearPolynomial(emptyList(), -Flt64.one),
+            Comparison.GE, "${name}_link_lb"
         )
 
-        allConstraints += MathLinearInequality(
-            LinearPolynomial(
-                ubFlt.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    xFlt.monomials.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                    LinearMonomial(Flt64(-(mD + epsD)), uby),
-                ubFlt.constant - xFlt.constant + Flt64(epsD)
-            ),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE,
-            "${name}_ub_enforce"
-        )
-
-        when (val r = addConstraints(model, allConstraints)) {
-            null, is Ok<*, *, *> -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
-
-        return andFunc.register(model)
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
     }
 
     companion object {
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            lower: V,
+            upper: V,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            IfInFunction(x, lower, upper, bigM, name = name, displayName = displayName)
+
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
-            lowerBound: LinearPolynomial<Flt64>,
-            upperBound: LinearPolynomial<Flt64>,
-            epsilon: Flt64 = Flt64(1e-6),
+            lower: Flt64,
+            upper: Flt64,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): IfInFunction<Flt64> = IfInFunction(x, lower, upper, bigM, name = name, displayName = displayName)
+
+        operator fun invoke(
+            x: LinearMonomial<Flt64>,
+            lower: Flt64,
+            upper: Flt64,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): IfInFunction<Flt64> = IfInFunction(
-            x = x,
-            lowerBound = lowerBound,
-            upperBound = upperBound,
-            epsilon = epsilon,
-            bigM = bigM ?: Flt64(BIG_M_DEFAULT),
+            x = LinearPolynomial(listOf(x), Flt64.zero),
+            lower = lower,
+            upper = upper,
+            bigM = bigM,
             name = name,
             displayName = displayName
         )

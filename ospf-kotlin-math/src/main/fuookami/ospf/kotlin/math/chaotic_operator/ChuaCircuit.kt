@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 蔡氏电路
  * Chua's Circuit
  *
@@ -19,45 +19,49 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
-/**
- * 蔡氏电路
- * Chua's Circuit
- */
-data class ChuaCircuit(
-    val a: Flt64 = Flt64(15.6),
-    val b: Flt64 = Flt64(28.0),
-    val c: Flt64 = Flt64(-0.71),
-    val d: Flt64 = Flt64(-1.14),
-    val h: Flt64 = Flt64(0.01)
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
-        val f = c * x[0] + Flt64(0.5) * (d - c) * ((x[0] + Flt64.one).abs() - (x[0] - Flt64.one).abs())
+data class ChuaCircuit<V : FloatingNumber<V>>(
+    val a: V,
+    val b: V,
+    val c: V,
+    val d: V,
+    val h: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
+        val v = a
+        val half = v.constants.one / v.constants.two
+        val f = c * x[0] + half * (d - c) * ((x[0] + v.constants.one).abs() - (x[0] - v.constants.one).abs())
         val dx = a * (x[1] - x[0] - f)
         val dy = x[0] - x[1] + x[2]
         val dz = -b * x[1]
-        return point3(
-            x[0] + h * dx,
-            x[1] + h * dy,
-            x[2] + h * dz
-        )
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            a: Flt64 = Flt64(15.6),
+            b: Flt64 = Flt64(28.0),
+            c: Flt64 = Flt64(-0.71),
+            d: Flt64 = Flt64(-1.14),
+            h: Flt64 = Flt64(0.01)
+        ): ChuaCircuit<Flt64> {
+            return ChuaCircuit(a, b, c, d, h)
+        }
     }
 }
 
-/**
- * 蔡氏电路生成器
- * Chua's Circuit Generator
- */
 data class ChuaCircuitGenerator(
-    val chuaCircuit: ChuaCircuit = ChuaCircuit(),
+    val chuaCircuit: ChuaCircuit<Flt64> = ChuaCircuit(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point3> {
     companion object {
@@ -70,17 +74,11 @@ data class ChuaCircuitGenerator(
             x: Point3 = point3(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): ChuaCircuitGenerator {
             return ChuaCircuitGenerator(
-                ChuaCircuit(
-                    a = a,
-                    b = b,
-                    c = c,
-                    d = d,
-                    h = h
-                ),
+                ChuaCircuit(a, b, c, d, h),
                 x
             )
         }
@@ -94,9 +92,3 @@ data class ChuaCircuitGenerator(
         return x
     }
 }
-
-
-
-
-
-

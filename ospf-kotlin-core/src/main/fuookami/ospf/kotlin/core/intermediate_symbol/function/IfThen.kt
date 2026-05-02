@@ -1,16 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -19,220 +21,140 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
 /**
- * IfThenFunction: Logical implication - if premise is satisfied, then conclusion must be satisfied.
+ * If-Then function: `y = then_poly if condition > 0, else y = 0`.
  *
- * Uses BigM formulation with binary flags pu (premise satisfied) and qu (conclusion satisfied).
- * When constraint=true, enforces pu <= qu (if premise holds, conclusion must hold).
+ * Uses Big-M linearization:
+ * - When condition indicator b = 1: y = then_poly
+ * - When condition indicator b = 0: y = 0
+ *
+ * @param condition the condition linear polynomial
+ * @param thenPoly the "then" linear polynomial (activated when condition > 0)
+ * @param bigM Big-M bound (default 1e6)
+ * @param tolerance zero tolerance (default 1e-6)
+ * @param strictBoundary strict boundary value (default 0.5)
+ * @param name unique name for this function
+ * @param displayName optional human-readable display name
  */
-class IfThenFunction<T : Field<T>>(
-    val premise: MathLinearInequality,
-    val conclusion: MathLinearInequality,
-    val constraint: Boolean = true,
-    val epsilon: Flt64 = Flt64(1e-6),
-    val bigM: Flt64 = Flt64(BIG_M_DEFAULT),
-    override var name: String,
+class IfThenFunction<V>(
+    val condition: LinearPolynomial<V>,
+    val thenPoly: LinearPolynomial<V>,
+    bigM: V? = null,
+    tolerance: V? = null,
+    strictBoundary: V? = null,
+    override var name: String = "ifthen",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
+    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
 
-    val pu: AbstractVariableItem<*, *> = BinVar("${name}_pu")
-    val qu: AbstractVariableItem<*, *> = BinVar("${name}_qu")
+    val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_ind")
+    val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_side")
+    private val resultVar: AbstractVariableItem<*, *> by lazy { URealVar("${name}_y") }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(pu, qu)
+        get() = listOf(indicatorVar, sideVar, resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
+    val result: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), resultVar)), zeroOf<V>())
     }
 
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val premiseHolds = checkInequality(premise, values) ?: return null
-        val conclusionHolds = checkInequality(conclusion, values) ?: return null
-        return if (!premiseHolds || conclusionHolds) oneOf<T>() else zeroOf<T>()
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val condValue = condition.evaluateWith(values) ?: return null
+        return if (condValue.asFlt64().toDouble() > 0.0) {
+            thenPoly.evaluateWith(values) ?: return null
+        } else {
+            zeroOf<V>()
+        }
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        val allConstraints = mutableListOf<MathLinearInequality>()
+        val mF = bigM.asFlt64()
+        val thenF = thenPoly.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
-        allConstraints += bigMInequalityConstraints(premise, pu, bigM, epsilon, "${name}_premise")
-        allConstraints += bigMInequalityConstraints(conclusion, qu, bigM, epsilon, "${name}_conclusion")
+        // Nonzero indicator for condition
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
 
-        if (constraint) {
-            // pu <= qu  (if premise is true, conclusion must be true)
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(
-                    listOf(LinearMonomial(Flt64.one, pu), LinearMonomial(-Flt64.one, qu)),
-                    Flt64.zero
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${name}_implication"
-            )
-        }
+        // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
+        val yMono = LinearMonomial(Flt64.one, resultVar)
+        val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
+            LinearPolynomial(emptyList(), mF),
+            Comparison.LE, "${name}_then_ub"
+        )
 
-        return addConstraints(model, allConstraints) ?: ok
+        // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
+            LinearPolynomial(emptyList(), -mF),
+            Comparison.GE, "${name}_then_lb"
+        )
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
     }
 
     companion object {
+        operator fun <V> invoke(
+            condition: LinearPolynomial<V>,
+            thenPoly: LinearPolynomial<V>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): IfThenFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            IfThenFunction(condition, thenPoly, bigM, name = name, displayName = displayName)
+
         operator fun invoke(
-            premise: MathLinearInequality,
-            conclusion: MathLinearInequality,
-            constraint: Boolean = true,
-            epsilon: Flt64 = Flt64(1e-6),
+            condition: LinearPolynomial<Flt64>,
+            thenPoly: LinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, bigM, name = name, displayName = displayName)
+
+        operator fun invoke(
+            condition: LinearMonomial<Flt64>,
+            thenPoly: LinearPolynomial<Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): IfThenFunction<Flt64> = IfThenFunction(
-            premise = premise,
-            conclusion = conclusion,
-            constraint = constraint,
-            epsilon = epsilon,
-            bigM = bigM ?: Flt64(BIG_M_DEFAULT),
+            condition = LinearPolynomial(listOf(condition), Flt64.zero),
+            thenPoly = thenPoly,
+            bigM = bigM,
             name = name,
             displayName = displayName
         )
-    }
-}
 
-/**
- * Build BigM indicator constraints for a MathLinearInequality with a binary flag.
- *
- * When flag=1: the inequality is enforced.
- * When flag=0: the inequality can be violated (relaxed by BigM).
- */
-private fun bigMInequalityConstraints(
-    ineq: MathLinearInequality,
-    flag: AbstractVariableItem<*, *>,
-    bigM: Flt64,
-    epsilon: Flt64,
-    namePrefix: String
-): List<MathLinearInequality> {
-    val mD = bigM.toDouble()
-    val epsD = epsilon.toDouble()
-    val constraints = mutableListOf<MathLinearInequality>()
-
-    val lhsMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-    val rhsMonos = ineq.rhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-    val shiftedConst = (ineq.lhs.constant - ineq.rhs.constant).toDouble()
-
-    val diffMonos = lhsMonos + rhsMonos.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) }
-
-    when (ineq.comparison) {
-        Comparison.LE -> {
-            // flag=1: lhs <= rhs  ->  lhs - rhs <= 0
-            constraints += MathLinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(Flt64(mD), flag), Flt64(shiftedConst - mD)),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_enforce"
+        /**
+         * Factory: accept LinearConstraintInput for framework compatibility.
+         * Extracts the condition polynomial from the constraint input's flatten data.
+         * Defaults thenPoly to Flt64.one (binary indicator).
+         */
+        @JvmStatic
+        @JvmName("fromConstraintInput")
+        operator fun invoke(
+            inequality: fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput,
+            thenPoly: LinearPolynomial<Flt64> = LinearPolynomial(emptyList(), Flt64.one),
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> {
+            val conditionPoly = LinearPolynomial(
+                inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
+                inequality.flattenData.constant
             )
-            // flag=0: lhs > rhs   ->  rhs - lhs <= M - epsilon
-            constraints += MathLinearInequality(
-                LinearPolynomial(
-                    rhsMonos.map { LinearMonomial(it.coefficient, it.symbol) } +
-                        lhsMonos.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                        LinearMonomial(Flt64(-(mD + epsD)), flag),
-                    Flt64(-shiftedConst + epsD)
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_relax"
-            )
-        }
-
-        Comparison.GE -> {
-            // flag=1: lhs >= rhs  ->  rhs - lhs <= 0
-            constraints += MathLinearInequality(
-                LinearPolynomial(
-                    rhsMonos.map { LinearMonomial(it.coefficient, it.symbol) } +
-                        lhsMonos.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                        LinearMonomial(Flt64(mD), flag),
-                    Flt64(-shiftedConst - mD)
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_enforce"
-            )
-            // flag=0: lhs < rhs   ->  lhs - rhs <= M - epsilon
-            constraints += MathLinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(Flt64(-(mD + epsD)), flag), Flt64(shiftedConst + epsD)),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_relax"
-            )
-        }
-
-        Comparison.EQ -> {
-            // flag=1: lhs == rhs  ->  lhs - rhs <= 0  AND  rhs - lhs <= 0
-            constraints += MathLinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(Flt64(mD), flag), Flt64(shiftedConst - mD)),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_enforce_ub"
-            )
-            constraints += MathLinearInequality(
-                LinearPolynomial(
-                    rhsMonos.map { LinearMonomial(it.coefficient, it.symbol) } +
-                        lhsMonos.map { LinearMonomial(it.coefficient.unaryMinus(), it.symbol) } +
-                        LinearMonomial(Flt64(mD), flag),
-                    Flt64(-shiftedConst - mD)
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_enforce_lb"
-            )
-            // flag=0: can deviate (just need one relaxation direction)
-            constraints += MathLinearInequality(
-                LinearPolynomial(diffMonos + LinearMonomial(Flt64(-(mD + epsD)), flag), Flt64(shiftedConst + epsD)),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE,
-                "${namePrefix}_relax"
-            )
-        }
-
-        Comparison.LT, Comparison.GT, Comparison.NE -> {
-            throw UnsupportedOperationException(
-                "IfThenFunction does not support strict inequality: ${ineq.comparison}"
+            return LinearFunctionSymbolAdapter(
+                IfThenFunction(conditionPoly, thenPoly, bigM, name = name, displayName = displayName)
             )
         }
     }
-
-    return constraints
-}
-
-/**
- * Check whether a MathLinearInequality holds given resolved symbol values.
- */
-private fun checkInequality(ineq: MathLinearInequality, values: Map<Symbol, *>): Boolean? {
-    val lhsVal = evalFlt64Poly(ineq.lhs, values) ?: return null
-    val rhsVal = ineq.rhs.constant.toDouble()
-    val eps = 1e-10
-    return when (ineq.comparison) {
-        Comparison.LE -> lhsVal <= rhsVal + eps
-        Comparison.GE -> lhsVal + eps >= rhsVal
-        Comparison.EQ -> kotlin.math.abs(lhsVal - rhsVal) <= eps
-        Comparison.LT, Comparison.GT, Comparison.NE -> false
-    }
-}
-
-/**
- * Evaluate a Flt64 linear polynomial given a map of Symbol -> T values.
- */
-private fun evalFlt64Poly(poly: LinearPolynomial<Flt64>, values: Map<Symbol, *>): Double? {
-    var sum = 0.0
-    for (m in poly.monomials) {
-        val sv = values[m.symbol] ?: return null
-        val v = when (sv) {
-            is Flt64 -> sv.toDouble()
-            is Number -> sv.toDouble()
-            else -> return null
-        }
-        sum += m.coefficient.toDouble() * v
-    }
-    return sum + poly.constant.toDouble()
 }

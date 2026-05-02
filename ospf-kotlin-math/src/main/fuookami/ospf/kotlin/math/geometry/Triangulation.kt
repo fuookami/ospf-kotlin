@@ -1,32 +1,4 @@
-﻿/**
- * Triangulation（三角剖分）
- * Triangulation
- *
- * 提供 Delaunay 三角剖分算法及相关功能。
- * Provides Delaunay triangulation algorithm and related functionality.
- *
- * 主要功能：
- * Main features:
- * - Delaunay: Delaunay 三角剖分算法实现（Bowyer-Watson 算法）/ Delaunay triangulation algorithm implementation (Bowyer-Watson algorithm)
- * - DelaunayTriangulation2: 三角剖分结果结构 / Triangulation result structure
- * - triangulate: 便捷三角剖分函数 / Convenience triangulation functions
- * - isDelaunay: Delaunay 条件验证 / Delaunay condition validation
- * - 边提取（edges）/ Edge extraction
- *
- * Delaunay 三角剖分性质：任何三角形的外接圆内不包含其他点。
- * Delaunay triangulation property: No other points are contained within the circumcircle of any triangle.
- *
- * 支持 2D 点集三角剖分和 3D 点集（投影后）三角剖分。
- * Supports 2D point set triangulation and 3D point set (projected) triangulation.
- *
- * 应用场景：网格生成、地形建模、有限元分析、计算流体力学等。
- * Applications: mesh generation, terrain modeling, finite element analysis, computational fluid dynamics, etc.
- */
 package fuookami.ospf.kotlin.math.geometry
-
-import fuookami.ospf.kotlin.math.algebra.number.*
-import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.ordinary.max
@@ -36,30 +8,10 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 
-// ============================================================================
-// Delaunay 三角剖分结果 / Delaunay triangulation result
-// ============================================================================
-
-/**
- * Delaunay 三角剖分结果
- * Delaunay triangulation result
- *
- * 包含生成的三角形、原始点集和边集合。
- * Contains the generated triangles, original point set, and edge collection.
- *
- * @property triangles 生成的三角形 / Generated triangles
- * @property points 原始点集 / Original point set
- */
 data class DelaunayTriangulation2(
     val triangles: List<Triangle2>,
     val points: List<Point2>
 ) {
-    /**
-     * 获取所有唯一边
-     * Get all unique edges
-     *
-     * @return 去重后的边列表 / Deduplicated edge list
-     */
     val edges: List<Edge2> by lazy {
         val result = mutableListOf<Edge2>()
         val seen = mutableSetOf<Pair<Int, Int>>()
@@ -78,10 +30,6 @@ data class DelaunayTriangulation2(
         result
     }
 
-    /**
-     * 查找点在原始点集中的索引
-     * Find indices of points in the original point set
-     */
     private fun findPointIndices(p1: Point2, p2: Point2): Pair<Int, Int> {
         var i1 = 0
         var i2 = 0
@@ -99,29 +47,11 @@ data class DelaunayTriangulation2(
     }
 }
 
-// ============================================================================
-// Delaunay 校验函数 / Delaunay validation function
-// ============================================================================
-
-/**
- * 验证三角剖分是否满足 Delaunay 条件
- * Verify if triangulation satisfies Delaunay condition
- *
- * Delaunay 条件：任何三角形的外接圆内不包含其他点。
- * Delaunay condition: No other points are contained within the circumcircle of any triangle.
- *
- * @param triangles 三角形列表 / Triangle list
- * @param points 点集 / Point set
- * @return 是否满足 Delaunay 条件 / Whether Delaunay condition is satisfied
- */
 fun isDelaunay(triangles: List<Triangle2>, points: List<Point2>): Boolean {
     for (triangle in triangles) {
         val circumcircle = triangle.circumcircle()
 
-        // 检查每个点是否在任何三角形的外接圆内
-        // Check if any point is inside the circumcircle of any triangle
         for (point in points) {
-            // 跳过三角形的顶点 / Skip triangle vertices
             if (triangle.vertices.any { it approxEq point }) {
                 continue
             }
@@ -138,21 +68,7 @@ fun pointInCircumcircle(point: Point2, triangle: Triangle2): Boolean {
     return triangle.circumcircle() containsPointStrict point
 }
 
-// ============================================================================
-// Delaunay 三角剖分算法 / Delaunay triangulation algorithm
-// ============================================================================
-
 data object Delaunay {
-    // Bowyer-Watson algorithm
-    // Kotlin implementation of http://paulbourke.net/papers/triangulate
-
-    /**
-     * 执行 Delaunay 三角剖分（返回结构化结果）
-     * Perform Delaunay triangulation (returns structured result)
-     *
-     * @param points 输入点集 / Input point set
-     * @return 三角剖分结果 / Triangulation result
-     */
     fun triangulate(points: List<Point2>): DelaunayTriangulation2 {
         val triangles = invoke(points)
         return DelaunayTriangulation2(triangles, points)
@@ -165,13 +81,6 @@ data object Delaunay {
         return Ok(triangulate(points))
     }
 
-    /**
-     * 执行 Delaunay 三角剖分（返回三角形列表，旧 API）
-     * Perform Delaunay triangulation (returns triangle list, legacy API)
-     *
-     * @param points 输入点集 / Input point set
-     * @return 三角形列表 / Triangle list
-     */
     operator fun invoke(points: List<Point2>): List<Triangle2> {
         if (points.size < 3) {
             return emptyList()
@@ -197,7 +106,6 @@ data object Delaunay {
             val thisTriangles = ArrayList<Triangle2>()
 
             for (triangle in undeterminedTriangles) {
-                // check if the point is inside the triangle circum circle
                 val circumcircle = Circle2.circumcircleOf(triangle)
                 val dist = ((circumcircle.x - point.x).sqr() + (circumcircle.y - point.y).sqr()).sqrt()
                 if (triangle.illegal || (dist leq circumcircle.radius)) {
@@ -289,17 +197,6 @@ data object Delaunay {
     }
 }
 
-// ============================================================================
-// 便捷函数 / Convenience functions
-// ============================================================================
-
-/**
- * 执行 Delaunay 三角剖分（返回结构化结果）
- * Perform Delaunay triangulation (returns structured result)
- *
- * @param points 输入点集 / Input point set
- * @return 三角剖分结果 / Triangulation result
- */
 @JvmName("delaunayTriangulate2")
 fun delaunayTriangulate(points: List<Point2>): DelaunayTriangulation2 {
     return Delaunay.triangulate(points)
@@ -310,13 +207,6 @@ fun delaunayTriangulateRet(points: List<Point2>): Ret<DelaunayTriangulation2> {
     return Delaunay.triangulateRet(points)
 }
 
-/**
- * 执行 Delaunay 三角剖分（返回三角形列表，旧 API）
- * Perform Delaunay triangulation (returns triangle list, legacy API)
- *
- * @param points 输入点集 / Input point set
- * @return 三角形列表 / Triangle list
- */
 @JvmName("triangulate2")
 fun triangulate(points: List<Point2>): List<Triangle2> {
     return Delaunay(points)
@@ -364,10 +254,3 @@ fun triangulate(isolines: List<Pair<Flt64, List<Point2>>>): List<Triangle3> {
     }
     return triangles
 }
-
-
-
-
-
-
-

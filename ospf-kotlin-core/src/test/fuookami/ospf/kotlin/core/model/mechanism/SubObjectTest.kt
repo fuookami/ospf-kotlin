@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.times
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Category
@@ -42,8 +42,8 @@ class SubObjectTest {
 
         val flattenData = LinearFlattenData<Flt64>(
             monomials = listOf(
-                UtilsLinearMonomial(Flt64(2.0), x),
-                UtilsLinearMonomial(Flt64(3.0), y)
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(3.0), y)
             ),
             constant = Flt64(5.0)
         )
@@ -70,8 +70,8 @@ class SubObjectTest {
 
         val flattenData = QuadraticFlattenData<Flt64>(
             monomials = listOf(
-                UtilsQuadraticMonomial(Flt64(2.0), x, y),
-                UtilsQuadraticMonomial(Flt64(3.0), x, null)  // Linear term
+                QuadraticMonomial(Flt64(2.0), x, y),
+                QuadraticMonomial(Flt64(3.0), x, null)  // Linear term
             ),
             constant = Flt64(5.0)
         )
@@ -98,8 +98,8 @@ class SubObjectTest {
 
         val flattenData = LinearFlattenDataFlt64(
             monomials = listOf(
-                UtilsLinearMonomial(Flt64(2.0), x),
-                UtilsLinearMonomial(Flt64(3.0), y)
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(3.0), y)
             ),
             constant = Flt64(5.0)
         )
@@ -135,8 +135,8 @@ class SubObjectTest {
 
         val flattenData = QuadraticFlattenDataFlt64(
             monomials = listOf(
-                UtilsQuadraticMonomial(Flt64.one, x, y),
-                UtilsQuadraticMonomial(Flt64(2.0), x, null)
+                QuadraticMonomial(Flt64.one, x, y),
+                QuadraticMonomial(Flt64(2.0), x, null)
             ),
             constant = Flt64(5.0)
         )

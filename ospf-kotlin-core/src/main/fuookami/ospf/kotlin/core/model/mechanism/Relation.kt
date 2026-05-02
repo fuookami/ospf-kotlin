@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 /**
  * LinearRelation - New relation type for linear constraints
@@ -63,7 +63,7 @@ data class LinearRelationImpl(
         return when (sign) {
             Comparison.GT -> LinearRelationImpl(
                 flattenData = LinearFlattenDataFlt64(
-                    monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
+                    monomials = flattenData.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
                     constant = -flattenData.constant
                 ),
                 sign = Comparison.LT,
@@ -72,7 +72,7 @@ data class LinearRelationImpl(
             )
             Comparison.GE -> LinearRelationImpl(
                 flattenData = LinearFlattenDataFlt64(
-                    monomials = flattenData.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) },
+                    monomials = flattenData.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
                     constant = -flattenData.constant
                 ),
                 sign = Comparison.LE,
@@ -99,7 +99,7 @@ data class QuadraticRelationImpl(
         return when (sign) {
             Comparison.GT -> QuadraticRelationImpl(
                 flattenData = QuadraticFlattenDataFlt64(
-                    monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
+                    monomials = flattenData.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
                     constant = -flattenData.constant
                 ),
                 sign = Comparison.LT,
@@ -108,7 +108,7 @@ data class QuadraticRelationImpl(
             )
             Comparison.GE -> QuadraticRelationImpl(
                 flattenData = QuadraticFlattenDataFlt64(
-                    monomials = flattenData.monomials.map { UtilsQuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
+                    monomials = flattenData.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
                     constant = -flattenData.constant
                 ),
                 sign = Comparison.LE,

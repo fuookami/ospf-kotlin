@@ -1,11 +1,12 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -26,14 +27,14 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * Output: y = sum(u[i]) (count of satisfied inequalities).
  * If `amount` is set, adds constraint y >= amount (at least `amount` must be satisfied).
  */
-class SatisfiedAmountFunction<T : Field<T>>(
+class SatisfiedAmountFunction<V>(
     val inequalities: List<LinearInequality<Flt64>>,
     val amount: UInt64? = null,
     val epsilon: Flt64 = Flt64(1e-6),
     val bigM: Flt64 = Flt64(BIG_M_DEFAULT),
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
 
     private val n: Int get() = inequalities.size
 
@@ -45,20 +46,15 @@ class SatisfiedAmountFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = _uVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
     /**
      * Result polynomial: sum(u[i]) - the count of satisfied inequalities.
      */
-    val result: LinearPolynomial<T> by lazy {
-        val monos = _uVars.map { LinearMonomial(oneOf<T>(), it) }
-        LinearPolynomial(monos, zeroOf<T>())
+    val result: LinearPolynomial<V> by lazy {
+        val monos = _uVars.map { LinearMonomial(oneOf<V>(), it) }
+        LinearPolynomial(monos, zeroOf<V>())
     }
 
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        // Convert values to Flt64 map for evaluating inequalities
+    override fun evaluate(values: Map<Symbol, V>): V? {
         val fltValues = values.mapValues { (_, v) -> v.asFlt64() }
         var count = 0
         for (ineq in inequalities) {
@@ -76,16 +72,16 @@ class SatisfiedAmountFunction<T : Field<T>>(
         }
         val countVal = Flt64(count.toDouble())
         return if (amount != null) {
-            if (count >= amount.toInt()) oneOf() else zeroOf()
+            if (count >= amount.toInt()) oneOf<V>() else zeroOf<V>()
         } else {
             @Suppress("UNCHECKED_CAST")
-            countVal as T
+            countVal as V
         }
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         // Register all u variables
-        when (val r = registerAuxiliaryTokens(model)) {
+        when (val r = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -105,20 +101,11 @@ class SatisfiedAmountFunction<T : Field<T>>(
 
             when (ineq.comparison) {
                 Comparison.LE -> {
-                    // When u[i]=1: lhs <= rhs (enforced)
-                    // lhs - rhs <= M * (1 - u[i])
-                    // => lhs - rhs + M*u[i] <= M
                     val monoWithU = lhsMonos + LinearMonomial(Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(monoWithU, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_le_ub_$i"
                     )
-                    // When u[i]=0: lhs > rhs (relaxed)
-                    // lhs - rhs >= eps - M * u[i]
-                    // => -(lhs - rhs) - M*u[i] <= -eps + M*u[i] - M*u[i]
-                    // => rhs - lhs + M*u[i] <= M*u[i] - eps
-                    // Simplified: rhs - lhs <= -eps + M*u[i]
-                    // => rhs - lhs - M*u[i] <= -eps
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(-Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
@@ -127,19 +114,12 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     )
                 }
                 Comparison.GE -> {
-                    // When u[i]=1: lhs >= rhs (enforced)
-                    // lhs - rhs >= -M * (1 - u[i])
-                    // => rhs - lhs <= M * (1 - u[i])
-                    // => rhs - lhs + M*u[i] <= M
                     val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(rhsMinusLhsMonos, Flt64(-shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_ge_ub_$i"
                     )
-                    // When u[i]=0: lhs < rhs (relaxed)
-                    // lhs - rhs <= M * u[i] - eps
-                    // => lhs - rhs - M*u[i] <= -eps
                     val monoWithU = lhsMonos + LinearMonomial(-Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(monoWithU, Flt64(shiftedConst)),
@@ -147,27 +127,21 @@ class SatisfiedAmountFunction<T : Field<T>>(
                     )
                 }
                 Comparison.EQ -> {
-                    // When u[i]=1: lhs == rhs
-                    // lhs - rhs <= M * (1 - u[i])  =>  lhs - rhs + M*u[i] <= M
                     val monoWithU1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(monoWithU1, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(mD)), Comparison.LE, "${name}_sat_eq_ub1_$i"
                     )
-                    // lhs - rhs >= -M * (1 - u[i])  =>  lhs - rhs - M*u[i] >= -M
                     val monoWithU2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(monoWithU2, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(-mD)), Comparison.GE, "${name}_sat_eq_lb1_$i"
                     )
-                    // When u[i]=0: lhs != rhs (at least eps away)
-                    // lhs - rhs >= eps - M*u[i]  =>  lhs - rhs + M*u[i] >= eps
                     val relaxMono1 = lhsMonos + LinearMonomial(Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(relaxMono1, Flt64(shiftedConst)),
                         LinearPolynomial(emptyList(), Flt64(eps)), Comparison.GE, "${name}_sat_eq_ub2_$i"
                     )
-                    // lhs - rhs <= -eps + M*u[i]  =>  lhs - rhs - M*u[i] <= -eps
                     val relaxMono2 = lhsMonos + LinearMonomial(-Flt64(mD), ui)
                     allConstraints += LinearInequality<Flt64>(
                         LinearPolynomial(relaxMono2, Flt64(shiftedConst)),

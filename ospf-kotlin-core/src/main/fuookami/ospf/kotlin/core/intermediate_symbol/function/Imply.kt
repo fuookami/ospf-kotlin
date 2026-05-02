@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -75,7 +75,7 @@ class ImplyFunction<V>(
         }
 
         val mVal = bigM
-        val allConstraints = mutableListOf<MathLinearInequality>()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // Nonzero indicators
         allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
@@ -83,7 +83,7 @@ class ImplyFunction<V>(
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero
-        allConstraints += MathLinearInequality(
+        allConstraints += Flt64LinearInequality(
             LinearPolynomial(
                 listOf(
                     LinearMonomial(Flt64.one, antecedentIndicatorVar),

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -10,12 +10,12 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -62,15 +62,15 @@ class BasicModelEntryTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = MathLinearInequality(
-            lhs = MathLinearPolynomial(
+        val relation = Flt64LinearInequality(
+            lhs = LinearPolynomial(
                 monomials = listOf(
-                    MathLinearMonomial(Flt64(2.0), x),
-                    MathLinearMonomial(Flt64.one, y)
+                    LinearMonomial(Flt64(2.0), x),
+                    LinearMonomial(Flt64.one, y)
                 ),
                 constant = Flt64.zero
             ),
-            rhs = MathLinearPolynomial(emptyList(), Flt64(10.0)),
+            rhs = LinearPolynomial(emptyList(), Flt64(10.0)),
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
@@ -170,15 +170,15 @@ class BasicModelEntryTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = MathQuadraticInequality(
-            lhs = MathQuadraticPolynomial(
+        val relation = QuadraticInequality(
+            lhs = QuadraticPolynomial(
                 monomials = listOf(
-                    MathQuadraticMonomial.quadratic(Flt64.one, x, y),
-                    MathQuadraticMonomial.linear(Flt64(2.0), x)
+                    QuadraticMonomial.quadratic(Flt64.one, x, y),
+                    QuadraticMonomial.linear(Flt64(2.0), x)
                 ),
                 constant = Flt64.zero
             ),
-            rhs = MathQuadraticPolynomial(emptyList(), Flt64(5.0)),
+            rhs = QuadraticPolynomial(emptyList(), Flt64(5.0)),
             comparison = Comparison.LE
         )
         val constraint = QuadraticConstraintImpl(

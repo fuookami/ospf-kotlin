@@ -1,11 +1,11 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
@@ -26,8 +26,10 @@ import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticInequalityConstraint
@@ -97,7 +99,7 @@ private fun <V> AbstractTokenTable<V>.asSolverTokenTable(): AbstractTokenTableFl
     return this as AbstractTokenTableFlt64
 }
 
-private fun UtilsLinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
         "$constant"
     } else if (constant neq Flt64.zero) {
@@ -107,7 +109,7 @@ private fun UtilsLinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zer
     }
 }
 
-private fun UtilsQuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+private fun QuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
         "$constant"
     } else if (constant neq Flt64.zero) {
@@ -123,17 +125,17 @@ private fun UtilsQuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.
 private fun <V> V.asFlt64(): Flt64 where V : RealNumber<V>, V : NumberField<V> = this as Flt64
 
 @Suppress("UNCHECKED_CAST")
-private fun <V> UtilsLinearPolynomial<V>.asFlt64Poly(): UtilsLinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
-    return UtilsLinearPolynomial(
-        monomials.map { UtilsLinearMonomial(it.coefficient.asFlt64(), it.symbol) },
+private fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    return LinearPolynomial(
+        monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
         constant.asFlt64()
     )
 }
 
 @Suppress("UNCHECKED_CAST")
-private fun <V> UtilsQuadraticPolynomial<V>.asFlt64QuadraticPoly(): UtilsQuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
-    return UtilsQuadraticPolynomial(
-        monomials.map { UtilsQuadraticMonomial(it.coefficient.asFlt64(), it.symbol1, it.symbol2) },
+private fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    return QuadraticPolynomial(
+        monomials.map { QuadraticMonomial(it.coefficient.asFlt64(), it.symbol1, it.symbol2) },
         constant.asFlt64()
     )
 }
@@ -144,14 +146,16 @@ private fun <V> zeroOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.
 @Suppress("UNCHECKED_CAST")
 private fun <V> oneOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.one as V
 
+@Suppress("UNCHECKED_CAST")
+private fun <V> Flt64.asV(): V where V : RealNumber<V>, V : NumberField<V> = this as V
+
 sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     class SubObject<V>(
         val parent: MetaModel<V>,
         val category: ObjectCategory,
         val name: String,
         val displayName: String? = null,
-        // Flt64-internal by design: polynomial arithmetic requires Ring<V> bound not yet available here.
-        val polynomial: UtilsLinearPolynomial<Flt64>
+        val polynomial: LinearPolynomial<V>
     ) where V : RealNumber<V>, V : NumberField<V> {
         /** Flt64 view of evaluation (solver-compatible, internal). */
         fun evaluate(zeroIfNone: Boolean = false): Flt64? {
@@ -162,36 +166,62 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         fun evaluate(solution: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant
+            var result = polynomial.constant.asFlt64()
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = parent.tokens.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient * solution[idx]
+                result += m.coefficient.asFlt64() * solution[idx]
             }
             return result
         }
 
         fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant
+            var result = polynomial.constant.asFlt64()
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
                 val tokenResult = tokenTable.find(variable)?.resultFlt64 ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient * tokenResult
+                result += m.coefficient.asFlt64() * tokenResult
             }
             return result
         }
 
         fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant
+            var result = polynomial.constant.asFlt64()
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
                 val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient * results[idx]
+                result += m.coefficient.asFlt64() * results[idx]
             }
             return result
         }
 
-        /** V-typed evaluation via IntoValue<V> conversion. */
+        /** V-typed evaluation using native V arithmetic. */
+        fun evaluateV(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
+            var result: V? = null
+            for (m in polynomial.monomials) {
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
+                val token = tokenTable.find(variable) ?: return if (zeroIfNone) zeroOf<V>() else null
+                val tokenValue = token.result ?: return if (zeroIfNone) zeroOf<V>() else null
+                val term = m.coefficient * tokenValue
+                result = if (result == null) term else result + term
+            }
+            return result ?: polynomial.constant
+        }
+
+        fun evaluateV(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
+            @Suppress("UNCHECKED_CAST")
+            var result: V? = null
+            for (m in polynomial.monomials) {
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
+                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) zeroOf<V>() else null
+                val tokenValue = results[idx] as V
+                val term = m.coefficient * tokenValue
+                result = if (result == null) term else result + term
+            }
+            return result ?: polynomial.constant
+        }
+
+        /** V-typed evaluation via IntoValue<V> conversion (backward compatibility). */
         fun evaluateAsV(converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
             evaluate(zeroIfNone)?.let { converter.intoValue(it) }
 
@@ -680,7 +710,8 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
             writer.append("Objectives:\n")
             for (obj in subObjects) {
-                writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toRawString(unfold)} \n")
+                @Suppress("UNCHECKED_CAST")
+                writer.append("${obj.category} ${obj.name}: ${(obj.polynomial as LinearPolynomial<Flt64>).toRawString(unfold)} \n")
             }
             writer.append("\n")
 
@@ -724,7 +755,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     fun addConstraint(
-        constraint: UtilsLinearPolynomial<V>,
+        constraint: LinearPolynomial<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -767,7 +798,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -788,8 +819,8 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsLinearPolynomial(
-                monomials = variables.map { UtilsLinearMonomial(oneOf<V>(), it) }.toList(),
+            polynomial = LinearPolynomial(
+                monomials = variables.map { LinearMonomial(oneOf<V>(), it) }.toList(),
                 constant = zeroOf<V>()
             ),
             group = group,
@@ -811,8 +842,8 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsLinearPolynomial(
-                monomials = symbols.map { UtilsLinearMonomial(oneOf<V>(), it) }.toList(),
+            polynomial = LinearPolynomial(
+                monomials = symbols.map { LinearMonomial(oneOf<V>(), it) }.toList(),
                 constant = zeroOf<V>()
             ),
             group = group,
@@ -824,7 +855,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 
     fun partition(
-        polynomial: UtilsLinearPolynomial<V>,
+        polynomial: LinearPolynomial<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -847,7 +878,7 @@ typealias AbstractLinearMetaModelFlt64 = AbstractLinearMetaModel<Flt64>
 
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
-        constraint: UtilsQuadraticPolynomial<V>,
+        constraint: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -890,7 +921,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -911,7 +942,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsQuadraticPolynomial(
+            polynomial = QuadraticPolynomial(
                 monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
                 constant = zeroOf<V>()
             ),
@@ -924,7 +955,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 
     fun partition(
-        polynomial: UtilsQuadraticPolynomial<V>,
+        polynomial: QuadraticPolynomial<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -1028,9 +1059,9 @@ class LinearMetaModel<V>(
     configuration: MetaModelConfiguration = MetaModelConfiguration()
 ) : AbstractMetaModel<V>(Linear, configuration), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
-    internal val _relationConstraints: MutableList<LinearInequalityConstraint> = ArrayList()
+    internal val _relationConstraints: MutableList<LinearInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
-    val relationConstraints: List<LinearInequalityConstraint> by ::_relationConstraints
+    val relationConstraints: List<LinearInequalityConstraint<V>> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<V>> = ArrayList()
     @Suppress("UNCHECKED_CAST")
@@ -1042,7 +1073,7 @@ class LinearMetaModel<V>(
 
     fun addObject(
         category: ObjectCategory,
-        polynomial: UtilsLinearPolynomial<V>,
+        polynomial: LinearPolynomial<V>,
         name: String,
         displayName: String?
     ): Try {
@@ -1052,7 +1083,7 @@ class LinearMetaModel<V>(
                 category = category,
                 name = name,
                 displayName = displayName,
-                polynomial = polynomial.asFlt64Poly()
+                polynomial = polynomial
             )
         )
         return ok
@@ -1081,7 +1112,7 @@ class LinearMetaModel<V>(
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1107,7 +1138,7 @@ class LinearMetaModel<V>(
      * Add constraint using math LinearInequality (new API)
      */
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1116,9 +1147,10 @@ class LinearMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
+        @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
-            LinearInequalityConstraint(
-                inequality = relation,
+            LinearInequalityConstraint<V>(
+                inequality = relation as LinearInequality<V>,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1138,9 +1170,9 @@ class QuadraticMetaModel<V>(
     configuration: MetaModelConfiguration = MetaModelConfiguration()
 ) : AbstractMetaModel<V>(Quadratic, configuration), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
-    internal val _relationConstraints: MutableList<QuadraticInequalityConstraint> = ArrayList()
+    internal val _relationConstraints: MutableList<QuadraticInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
-    val relationConstraints: List<QuadraticInequalityConstraint> by ::_relationConstraints
+    val relationConstraints: List<QuadraticInequalityConstraint<V>> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<V>> = ArrayList()
     @Suppress("UNCHECKED_CAST")
@@ -1154,7 +1186,7 @@ class QuadraticMetaModel<V>(
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
      */
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1181,7 +1213,7 @@ class QuadraticMetaModel<V>(
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1202,7 +1234,7 @@ class QuadraticMetaModel<V>(
      * Add constraint using math QuadraticInequality (QuadraticModel interface)
      */
     override fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1242,7 +1274,7 @@ class QuadraticMetaModel<V>(
      * Add constraint using math QuadraticInequality (new API)
      */
     override fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1251,9 +1283,10 @@ class QuadraticMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
+        @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
-            QuadraticInequalityConstraint(
-                inequality = relation,
+            QuadraticInequalityConstraint<V>(
+                inequality = relation as QuadraticInequalityOf<V>,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1265,7 +1298,7 @@ class QuadraticMetaModel<V>(
 
     fun addObject(
         category: ObjectCategory,
-        polynomial: UtilsQuadraticPolynomial<V>,
+        polynomial: QuadraticPolynomial<V>,
         name: String,
         displayName: String?
     ): Try {
@@ -1284,9 +1317,9 @@ class QuadraticMetaModel<V>(
             )
         )
         // Also add a linear approximation to subObjects for compatibility
-        val linearPoly = UtilsLinearPolynomial(
-            monomials = flt64Poly.monomials.map { UtilsLinearMonomial(it.coefficient, it.symbol1) },
-            constant = flt64Poly.constant
+        val linearPoly = LinearPolynomial(
+            monomials = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol1) },
+            constant = polynomial.constant
         )
         _subObjects.add(
             MetaModel.SubObject<V>(

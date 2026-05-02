@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_symbol.function
+package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
@@ -19,13 +19,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial as MathMutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 
@@ -40,8 +40,8 @@ import fuookami.ospf.kotlin.utils.functional.ok
  *          for solver compatibility; V-typed access is via IntoValue<V> conversion.
  */
 class ProductFunction<V>(
-    val left: MathLinearPolynomial<Flt64>,
-    val right: MathLinearPolynomial<Flt64>,
+    val left: LinearPolynomial<Flt64>,
+    val right: LinearPolynomial<Flt64>,
     override var name: String = "${left}*${right}",
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.Ring<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -104,16 +104,16 @@ class ProductFunction<V>(
      * Expand left * right into a quadratic polynomial.
      * Aligns with Rust ProductFunction::to_quadratic_polynomial().
      */
-    override fun toMathQuadraticInequality(): MathQuadraticInequality {
+    override fun toMathQuadraticInequality(): QuadraticInequality {
         val leftConst = left.constant
         val rightConst = right.constant
 
-        val monomials = mutableListOf<MathQuadraticMonomial<Flt64>>()
+        val monomials = mutableListOf<QuadraticMonomial<Flt64>>()
 
         // quadratic terms: (a_i x_i) * (b_j x_j)
         for (lm in left.monomials) {
             for (rm in right.monomials) {
-                monomials.add(MathQuadraticMonomial(
+                monomials.add(QuadraticMonomial(
                     lm.coefficient * rm.coefficient,
                     lm.symbol,
                     rm.symbol
@@ -123,19 +123,19 @@ class ProductFunction<V>(
 
         // linear terms from constant cross terms
         for (lm in left.monomials) {
-            monomials.add(MathQuadraticMonomial.linear(
+            monomials.add(QuadraticMonomial.linear(
                 lm.coefficient * rightConst,
                 lm.symbol
             ))
         }
         for (rm in right.monomials) {
-            monomials.add(MathQuadraticMonomial.linear(
+            monomials.add(QuadraticMonomial.linear(
                 rm.coefficient * leftConst,
                 rm.symbol
             ))
         }
 
-        return MathQuadraticInequality(MathQuadraticPolynomial(monomials, leftConst * rightConst), MathQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return QuadraticInequality(QuadraticPolynomial(monomials, leftConst * rightConst), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override val flattenedMonomials: QuadraticFlattenDataFlt64
@@ -145,11 +145,11 @@ class ProductFunction<V>(
         }
 
     @Suppress("UNCHECKED_CAST")
-    override val polynomial: MathQuadraticPolynomial<V>
-        get() = toMathQuadraticPolynomial() as MathQuadraticPolynomial<V>
+    override val polynomial: QuadraticPolynomial<V>
+        get() = toMathQuadraticPolynomial() as QuadraticPolynomial<V>
 
     @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MathMutableQuadraticPolynomial<V> = MathMutableQuadraticPolynomial(emptyList(), Flt64.zero) as MathMutableQuadraticPolynomial<V>
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero) as MutableQuadraticPolynomial<V>
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(left, tokenList, zeroIfNone) ?: return null
@@ -214,14 +214,14 @@ class ProductFunction<V>(
      */
     fun register(model: AbstractQuadraticMechanismModelFlt64): Try {
         val poly = toMathQuadraticPolynomial()
-        val rhs = MathQuadraticPolynomial<Flt64>(constant = Flt64.zero)
-        val inequality = MathQuadraticInequality(poly, rhs, Comparison.EQ)
+        val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
+        val inequality = QuadraticInequality(poly, rhs, Comparison.EQ)
         return model.addConstraint(inequality, name = name, from = this to true)
     }
 
     companion object {
         private fun evaluateLinear(
-            poly: MathLinearPolynomial<Flt64>,
+            poly: LinearPolynomial<Flt64>,
             tokenList: AbstractTokenListFlt64,
             zeroIfNone: Boolean
         ): Flt64? {
@@ -241,7 +241,7 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromResults(
-            poly: MathLinearPolynomial<Flt64>,
+            poly: LinearPolynomial<Flt64>,
             results: List<Flt64>,
             tokenList: AbstractTokenListFlt64,
             zeroIfNone: Boolean
@@ -264,7 +264,7 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromValues(
-            poly: MathLinearPolynomial<Flt64>,
+            poly: LinearPolynomial<Flt64>,
             values: Map<Symbol, Flt64>,
             tokenList: AbstractTokenListFlt64?,
             zeroIfNone: Boolean

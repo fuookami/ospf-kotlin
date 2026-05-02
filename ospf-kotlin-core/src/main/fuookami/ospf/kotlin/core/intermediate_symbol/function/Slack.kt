@@ -1,18 +1,16 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.core.model.mechanism.geq
-import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.core.variable.VariableType
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -26,16 +24,16 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
-class SlackFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
-    val y: LinearPolynomial<T>,
-    val type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+class SlackFunction<V>(
+    val x: LinearPolynomial<V>,
+    val y: LinearPolynomial<V>,
+    val type: VariableType<*> = UContinuous,
     val withNegative: Boolean = true,
     val withPositive: Boolean = true,
     val threshold: Boolean = false,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     init {
         require(withNegative || withPositive) { "At least one of withNegative or withPositive must be true" }
     }
@@ -50,19 +48,15 @@ class SlackFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOfNotNull(negVar, posVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    val neg: LinearPolynomial<T>? by lazy {
+    val neg: LinearPolynomial<V>? by lazy {
         negVar?.let { v ->
-            LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), v)), zeroOf<T>())
+            LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), v)), zeroOf<V>())
         }
     }
 
-    val pos: LinearPolynomial<T>? by lazy {
+    val pos: LinearPolynomial<V>? by lazy {
         posVar?.let { v ->
-            LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), v)), zeroOf<T>())
+            LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), v)), zeroOf<V>())
         }
     }
 
@@ -70,28 +64,28 @@ class SlackFunction<T : Field<T>>(
         return if (type.isIntegerType) UIntVar(baseName) else URealVar(baseName)
     }
 
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val xValue = x.evaluate(values) ?: return null
-        val yValue = y.evaluate(values) ?: return null
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val xValue = x.evaluateWith(values) ?: return null
+        val yValue = y.evaluateWith(values) ?: return null
         val diff = (xValue.asFlt64() - yValue.asFlt64()).toDouble()
         return if (withNegative && withPositive) {
             @Suppress("UNCHECKED_CAST")
-            Flt64(kotlin.math.abs(diff)) as T
+            Flt64(kotlin.math.abs(diff)) as V
         } else if (withNegative) {
             val v = kotlin.math.max(0.0, -diff)
             @Suppress("UNCHECKED_CAST")
-            Flt64(v) as T
+            Flt64(v) as V
         } else if (withPositive) {
             val v = kotlin.math.max(0.0, diff)
             @Suppress("UNCHECKED_CAST")
-            Flt64(v) as T
+            Flt64(v) as V
         } else {
-            zeroOf()
+            zeroOf<V>()
         }
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val result = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
@@ -150,13 +144,13 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: AbstractVariableItem<*, *>,
             y: Flt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             SlackFunction(
                 x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
                 y = LinearPolynomial(emptyList(), y),
@@ -172,12 +166,12 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             threshold: Flt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
             withNegative: Boolean? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
+        ): LinearFunctionSymbolAdapter<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return LinearFunctionSymbolAdapter(
                 SlackFunction(
@@ -201,15 +195,15 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             y: Flt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             SlackFunction(
-                x = x.asMathLinearPolynomial(),
+                x = x.toLinearPolynomial(),
                 y = LinearPolynomial(emptyList(), y),
                 type = type,
                 withNegative = withNegative,
@@ -228,16 +222,16 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             threshold: Flt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
             withNegative: Boolean? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
+        ): LinearFunctionSymbolAdapter<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return LinearFunctionSymbolAdapter(
                 SlackFunction(
-                    x = x.asMathLinearPolynomial(),
+                    x = x.toLinearPolynomial(),
                     y = LinearPolynomial(emptyList(), threshold),
                     type = type,
                     withNegative = !positive,
@@ -256,17 +250,17 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             threshold: Flt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
             withNegative: Boolean? = null,
             constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
+        ): LinearFunctionSymbolAdapter<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return LinearFunctionSymbolAdapter(
                 SlackFunction(
-                    x = x.asMathLinearPolynomial(),
+                    x = x.toLinearPolynomial(),
                     y = LinearPolynomial(emptyList(), threshold),
                     type = type,
                     withNegative = !positive,
@@ -286,16 +280,16 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             threshold: UInt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
             withNegative: Boolean? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
+        ): LinearFunctionSymbolAdapter<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return LinearFunctionSymbolAdapter(
                 SlackFunction(
-                    x = x.asMathLinearPolynomial(),
+                    x = x.toLinearPolynomial(),
                     y = LinearPolynomial(emptyList(), threshold.toFlt64()),
                     type = type,
                     withNegative = !positive,
@@ -315,17 +309,17 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             threshold: UInt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
             withNegative: Boolean? = null,
             constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter {
+        ): LinearFunctionSymbolAdapter<Flt64> {
             val positive = withNegative?.let { !it } ?: withPositive
             return LinearFunctionSymbolAdapter(
                 SlackFunction(
-                    x = x.asMathLinearPolynomial(),
+                    x = x.toLinearPolynomial(),
                     y = LinearPolynomial(emptyList(), threshold.toFlt64()),
                     type = type,
                     withNegative = !positive,
@@ -345,16 +339,16 @@ class SlackFunction<T : Field<T>>(
         operator fun invoke(
             x: LinearIntermediateSymbolFlt64,
             y: LinearIntermediateSymbolFlt64,
-            type: fuookami.ospf.kotlin.core.variable.VariableType<*> = UContinuous,
+            type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,
             threshold: Boolean = false,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             SlackFunction(
-                x = x.asMathLinearPolynomial(),
-                y = y.asMathLinearPolynomial(),
+                x = x.toLinearPolynomial(),
+                y = y.toLinearPolynomial(),
                 type = type,
                 withNegative = withNegative,
                 withPositive = withPositive,

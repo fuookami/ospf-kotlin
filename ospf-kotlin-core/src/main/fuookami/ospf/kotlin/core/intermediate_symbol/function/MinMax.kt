@@ -1,19 +1,19 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -27,13 +27,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * Named "MinMax" because it computes the minimum of the maximum values
  * in optimization contexts. Delegates to MaxFunction internally.
  */
-class MinMaxFunction<T : Field<T>>(
-    val polynomials: List<LinearPolynomial<T>>,
-    bigM: T? = null,
+class MinMaxFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
-    private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
     private val inner = MaxFunction(polynomials, bigM, name)
 
     val resultVar: AbstractVariableItem<*, *>
@@ -44,19 +44,23 @@ class MinMaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
+    override fun evaluate(values: Map<Symbol, V>): V? {
         return inner.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         return inner.register(model)
     }
 
     companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): MinMaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MinMaxFunction(polynomials, bigM, name, displayName)
+
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
@@ -74,9 +78,9 @@ class MinMaxFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             MinMaxFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName
@@ -91,13 +95,13 @@ class MinMaxFunction<T : Field<T>>(
  * Named "MaxMin" because it computes the maximum of the minimum values
  * in optimization contexts. Delegates to MinFunction internally.
  */
-class MaxMinFunction<T : Field<T>>(
-    val polynomials: List<LinearPolynomial<T>>,
-    bigM: T? = null,
+class MaxMinFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
-    private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
     private val inner = MinFunction(polynomials, bigM, name)
 
     val resultVar: AbstractVariableItem<*, *>
@@ -108,19 +112,23 @@ class MaxMinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = inner.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
+    override fun evaluate(values: Map<Symbol, V>): V? {
         return inner.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         return inner.register(model)
     }
 
     companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): MaxMinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MaxMinFunction(polynomials, bigM, name, displayName)
+
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
@@ -138,9 +146,9 @@ class MaxMinFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             MaxMinFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName

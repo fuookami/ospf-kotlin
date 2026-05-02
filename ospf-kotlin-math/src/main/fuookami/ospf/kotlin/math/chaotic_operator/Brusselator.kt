@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 布鲁塞尔振子
  * Brusselator
  *
@@ -19,7 +19,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
@@ -28,20 +30,28 @@ import kotlin.random.Random
  * 布鲁塞尔振子
  * Brusselator
  */
-data class Brusselator(
-    val a: Flt64 = Flt64.one,
-    val b: Flt64 = Flt64.three,
-    val h: Flt64 = Flt64(0.01)
-) : Extractor<Point2, Point2> {
-    override operator fun invoke(x: Point2): Point2 {
+data class Brusselator<V : FloatingNumber<V>>(
+    val a: V,
+    val b: V,
+    val h: V
+) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
+    override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
+        val v = a
         val temp1 = a * x[0].sqr() * x[1]
         val temp2 = b * x[0]
-        val dx = temp1 - temp2 - x[0] + Flt64.one
+        val dx = temp1 - temp2 - x[0] + v.constants.one
         val dy = temp2 - temp1
-        return point2(
-            x[0] + h * dx,
-            x[1] + h * dy
-        )
+        return Point<Dim2, V>(listOf(x[0] + h * dx, x[1] + h * dy), Dim2)
+    }
+
+    companion object {
+        operator fun invoke(
+            a: Flt64 = Flt64.one,
+            b: Flt64 = Flt64.three,
+            h: Flt64 = Flt64(0.01)
+        ): Brusselator<Flt64> {
+            return Brusselator(a, b, h)
+        }
     }
 }
 
@@ -50,7 +60,7 @@ data class Brusselator(
  * Brusselator Generator
  */
 data class BrusselatorGenerator(
-    val brusselator: Brusselator = Brusselator(),
+    val brusselator: Brusselator<Flt64> = Brusselator(),
     private var _x: Point2 = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -85,9 +95,3 @@ data class BrusselatorGenerator(
         return x
     }
 }
-
-
-
-
-
-

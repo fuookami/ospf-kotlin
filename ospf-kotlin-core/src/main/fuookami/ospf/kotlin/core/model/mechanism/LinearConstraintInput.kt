@@ -1,10 +1,10 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
  * - `name` / `displayName` for identification
  *
  * Construction:
- * - From `MathLinearInequality`: `LinearConstraintInput.from(relation, lhsRange)`
+ * - From `Flt64LinearInequality`: `LinearConstraintInput.from(relation, lhsRange)`
  * - Direct: `LinearConstraintInput(flattenData, sign, lhsRange, name, displayName)`
  */
 data class LinearConstraintInput(
@@ -56,7 +56,7 @@ data class LinearConstraintInput(
          * Create LinearConstraintInput from math LinearInequality
          */
         fun from(
-            relation: MathLinearInequality,
+            relation: Flt64LinearInequality,
             lhsRange: ValueRange<Flt64>,
             rhsConstant: Flt64 = Flt64.zero,
             name: String = "",

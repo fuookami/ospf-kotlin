@@ -1,101 +1,342 @@
-# OSPF Kotlin Core Refactor Daily
+﻿# OSPF Kotlin Core Refactor Daily
 
-记录日期：2026-04-30
+记录日期：2026-05-02
 
-本轮目标：完成剩余 P8 与 P2，按小步迭代检查、修订并验收。上一个会话报告 P7 已完成，本文件将旧 daily 中已完成事项与未完成事项合并重写。
+本文件为 P9 执行清单版，目标是让每项任务可直接分配、编码、验收。
 
-审计范围：
-- 当前 Kotlin：`E:\workspace\ospf-kotlin`
-- Rust 对照：`E:\workspace\ospf-rust`
-- 原 Kotlin 对照：`E:\workspace\ospf-kotlin-main`
-- 原示例对照：`E:\workspace\ospf\examples\ospf-kotlin-example`
+---
 
-## 1. 当前完成状态
+## 0. 总体目标
 
-P7 结论保持：旧 frontend/backend 迁移遗留清理、核心变量/约束/目标/机制模型入口泛型化、framework/example 批量迁移、`@Deprecated` 清零等事项已作为基线完成。
+1. 对外泛型主线统一：`V : RealNumber<V>, NumberField<V>`。
+2. 求解器内部边界显式化：仅在 solver-boundary 使用 Flt64。
+3. 删除桥接类型与桥接路径文件，不再保留“旧路径转发壳”。
+4. 补齐二次型函数缺口，并接入 register/flatten/dump 全链路。
 
-本轮补完 P8 与 P2 后，当前状态：
+---
 
-| 项目 | 状态 | 说明 |
-| --- | --- | --- |
-| P8-0 基线与验收门禁 | 完成 | 建立大小写敏感 `F64\b` 命名扫描、`<Flt64>`/`<*>` 静态指标与 Maven 编译验收。 |
-| P8-1 Solution 与 setSolution 泛型化 | 完成 | `AbstractTokenList<T>`、`AbstractTokenTable<V>`、`Model<V>`、`MetaModel<V>` 的主 `setSolution` 已使用 `V`；求解器边界使用显式 `setSolverSolution`。 |
-| P8-2 Token/cache/IntermediateSymbol 泛型化 | 完成 | token cache 的主路径改为 `V`；solver-boundary Flt64 路径拆为 `cacheSolver*`、`prepareSolver`、`evaluateSolver`。 |
-| P8-3 F64/Flt64 命名收敛 | 完成 | 代码层大小写敏感 `F64\b` 命中为 0；保留小写 `f64` 作为变量/函数局部语义。 |
-| P8-4 值转换策略 | 完成 | core 与 conversion context 默认策略已对齐 Rust 的 `Strict`；显式调用方可选择 `AllowRounding`。 |
-| P8-5 framework/回调/启发式路径 | 完成 | framework 增加 `FrameworkSolveOptions`；列生成与 Benders 快捷入口已接入 options；callback/heuristic PSO 路径完成。 |
-| P8-6 旧 Kotlin 快捷接口策略 | 完成 | 不恢复无后缀 `LinearMetaModel` 等名称作为 Flt64 facade，避免与泛型主类型冲突；兼容层统一采用 `*Flt64` 命名。 |
-| P2-7 Rust framework SolveOptions | 完成 | `FrameworkSolveOptions` 覆盖 name、toLogModel、solutionAmount、建模/注册/求解回调、Benders 限制与 valueConversionPolicy。 |
-| P2-4 LP 导出 | 完成 | Kotlin 现有 LP/export 能力保留；framework options 的 `toLogModel` 已贯通相关快捷入口并通过 example 聚合编译验收。 |
-| P2-8 IIS 输出语义 | 完成 | 新增 Rust 风格 `SolverOutputWithIIS<IIS>` 与 `withIIS`/`withoutIIS` helper；线性/二次 infeasible 输出保持原 IIS 字段并可包装。 |
-| P2-5 结构化错误 | 完成 | 新增 `CoreError / VariableError / ModelError / SolverError` 结构化错误层，并映射到现有 `ErrorCode`/`Ret`。 |
-| P2-3 PSO 求解器 | 完成 | 新增 `ParticleSwarmHeuristicSolver`、`Particle`、速度/惯性/个体和群体学习系数、速度上限、随机与初始速度生成器扩展点。 |
-| P2-6 非线性残留 TODO 复核 | 完成 | 当前非线性/符号函数残留主要是函数内部泛型常量 cast 警告与既有 TODO，不再阻塞 P8/P2 验收。 |
+## 1. 任务分解（按工作包）
 
-## 2. 泛型化边界
+## WP-1 SubObject 求值主线收口
 
-本轮采用的边界规则：
-- 建模主路径公开 `V : RealNumber<V>` / `NumberField<V>`，业务层通过 typed `setSolution(List<V>)` 与 `setSolution(Map<..., V>)` 交互。
-- Flt64 只保留在 solver adapter、intermediate solver model、Flt64 兼容 typealias、callback Flt64 模型、测试样例和显式数值转换层。
-- solver 返回的 Flt64 解通过显式边界方法写回，不再伪装成泛型主接口。
+### 1.1 目标
 
-已知仍存在的 `<Flt64>` 主要位于：
-- solver/intermediate model 固有 Flt64 表示；
-- Flt64 兼容别名与示例；
-- 数学常量和符号函数内部的 Flt64 literal 转换；
-- callback Flt64 模型与现有求解器输出结构。
+- `MetaModel.SubObject` 与 `mechanism/SubObject` 的对外求值入口统一为泛型 `evaluate<V>`。
+- Flt64 仅保留 solver-boundary 入口，例如 `evaluateAsFlt64` / `evaluateSolver`。
 
-这些位置按当前迁移边界视为允许项，不再作为 P8 阻断。
+### 1.2 需改文件
 
-## 3. Rust 功能缺口对齐结果
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/SubObject.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt`（调用链对齐）
 
-Rust 已有但 Kotlin 旧 daily 标记缺失的能力，本轮处理结果如下：
+### 1.3 具体改动
 
-- 值转换策略：默认 `Strict`，并保留显式宽松策略入口。
-- framework options：新增统一 options，并接入列生成、Benders、LP/MILP/solution pool/async 快捷入口。
-- LP/export：能力已存在，`toLogModel` 通过 options 继续传递；不再作为能力缺口记录。
-- IIS：保留 Kotlin 线性/二次 IIS 模型输出，同时增加 `SolverOutputWithIIS` 包装层。
-- 结构化错误：新增与 Rust 分层一致的 Kotlin sealed error 层，映射回现有 `ErrorCode`。
-- PSO：新增内置 PSO 启发式求解器，支持 Rust 对齐的核心参数与扩展点。
+1. `MetaModel.SubObject`：
+- 把当前返回 `Flt64?` 的主 `evaluate` 系列改为 `V?` 主线。
+- 增加或重命名 solver 专用求值函数，明确 Flt64 语义。
 
-## 4. 与原 Kotlin 快捷接口差异
+2. `SubObject.kt`：
+- 抽象类主接口只保留泛型求值。
+- 线性/二次子类同步实现泛型主接口。
+- solver 路径统一转到显式 Flt64 边界方法。
 
-当前不做“旧源码零修改迁移” facade，原因是无后缀类型名已经作为泛型主类型使用。保留策略如下：
+3. `MechanismModel.kt`：
+- 所有 subobject 聚合计算对外路径调用泛型接口。
+- 求解器相关路径调用 solver-boundary 接口。
 
-- 主类型使用泛型名：如 `LinearMetaModel<V>`、`QuadraticMetaModel<V>`。
-- Flt64 快捷兼容名统一使用 `*Flt64` 后缀。
-- 旧 `*F64` 后缀全部迁移到 `*Flt64`。
-- 旧 package/import 差异通过迁移文档或示例改写处理，不在 core 内恢复旧 frontend/backend 包路径。
+### 1.4 验收标准
 
-## 5. 当前静态指标
+1. `MetaModel.SubObject` 主 `evaluate` 不再返回 `Flt64`。
+2. `SubObject.kt` 中 `evaluate` 主签名全为 `V`。
+3. 编译通过，线性/二次目标值计算无行为回归。
 
-按 `src/main/**/*.kt` 扫描：
+---
 
-| 模块 | `<Flt64>` 命中 | `<*>` 命中 | `@Deprecated` 命中 |
-| --- | ---: | ---: | ---: |
-| `ospf-kotlin-core` | 581 | 268 | 0 |
-| `ospf-kotlin-framework` | 4 | 22 | 0 |
-| `ospf-kotlin-example` | 169 | 1 | 0 |
+## WP-2 SlackFunction 全链路泛型化
 
-大小写敏感 `F64\b` 命中：0。
+### 2.1 目标
 
-## 6. 验收记录
+- `SlackFunction<V>` 主属性与主工厂全部泛型化。
+- 兼容 Flt64 重载保留，但只能做薄委托。
 
-已通过：
+### 2.2 需改文件
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Slack.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/SlackRange.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionSymbol.kt`
+
+### 2.3 具体改动
+
+1. `Slack.kt`：
+- `polyX: LinearPolynomial<Flt64>` -> `LinearPolynomial<V>`。
+- `CompationObject.invoke` 主重载参数改为 `LinearPolynomial<V>`、`LinearIntermediateSymbol<V>`。
+- 增加 `ToLinearPolynomial<V>` 工厂重载。
+- `LinearIntermediateSymbolFlt64` / `LinearPolynomial<Flt64>` 重载改为一次转换后委托。
+
+2. `SlackRange.kt`：
+- `upper/lower` 改为泛型多项式。
+- 增加 `ToLinearPolynomial<V>` 泛型工厂。
+- Flt64 重载保留为委托壳。
+
+3. `FunctionSymbol.kt`：
+- `pos/neg/polyX` 从 Flt64 主暴露改为泛型主暴露。
+- Flt64 导出保留为内部转换工具，不作为主接口。
+
+### 2.4 验收标准
+
+1. `SlackFunction` 主属性、主 `invoke` 无 Flt64 绑定。
+2. `SlackRange` 主构造无 Flt64 绑定。
+3. DSL 可直接传 `ToLinearPolynomial<V>`。
+4. 兼容重载仍可用且无重复业务逻辑。
+
+---
+
+## WP-3 MathFunctionSymbol.register 时机修正
+
+### 3.1 目标
+
+- register 从 `MetaModel` 构建期迁移到 `MetaModel -> MechanismModel` 转换期。
+
+### 3.2 需改文件
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt`
+
+### 3.3 具体改动
+
+1. `MetaModel.kt`：
+- 去除最终 register 副作用逻辑，仅保留符号收集与声明。
+
+2. `MechanismModel.kt`：
+- dump 时复制 `MetaModel.tokenTable`。
+- 在复制表上执行 `MathFunctionSymbol.register` 及依赖注册。
+- 将注册完成 tokenTable 注入 MechanismModel。
+- 同步修正同步/异步 dump 两条路径。
+
+3. `TokenTable.kt`：
+- 保证注释与行为一致：register 在机制模型构建阶段完成。
+- 移除可绕过 dump 的旁路注册入口（若存在）。
+
+### 3.4 验收标准
+
+1. register 不再在 MetaModel 构建时完成闭包。
+2. MechanismModel 注入 tokenTable 后可完整解析函数依赖。
+3. 并发/非并发 dump 结果一致。
+
+---
+
+## WP-4 删除桥接层
+
+### 4.1 目标
+
+- 删除桥接路径与桥接 DSL，不保留“旧包名转发壳”。
+
+### 4.2 需改文件
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/mechanism/MathInequalityDsl.kt`（删除）
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MathInequalityBridge.kt`（删除或内联后删除）
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MathInequalityDsl.kt`（仅保留主 DSL）
+4. 全仓 import 调整（core/framework/example）
+
+### 4.3 具体改动
+
+1. 删除 bridge 文件，并把调用迁移到主实现路径。
+2. 清理所有旧路径 import。
+3. 若存在名字冲突，优先修改调用方全限定名，不恢复别名导入。
+
+### 4.4 验收标准
+
+1. 指定桥接文件不存在。
+2. 全仓 `import ... as ...` 命中为 0（已完成，持续门禁）。
+3. 无旧路径 import 残留。
+
+---
+
+## WP-5 二次型函数缺口补齐
+
+### 5.1 目标
+
+对齐 `ospf-kotlin-main` quadratic_function 缺口，补齐当前 function 目录能力。
+
+### 5.2 参考与差集
+
+对照目录：
+`E:\workspace\ospf-kotlin-main\ospf-kotlin-core\src\main\fuookami\ospf\kotlin\core\frontend\expression\symbol\quadratic_function`
+
+当前缺口文件：
+1. `Linear.kt`
+2. `Min.kt`
+3. `MaskingRange.kt`
+4. `InStepRangeFunction.kt`
+
+### 5.3 新增文件
+
+新增到：
+`ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/`
+
+### 5.4 具体改动
+
+1. 每个新函数符号提供：
+- 泛型主构造。
+- `ToLinearPolynomial<V>` 工厂重载。
+- solver-boundary 显式转换参数（`IntoValue<V>` 或同等 converter）。
+
+2. 对接流程：
+- register 到 tokenTable。
+- flatten 到 linear/quadratic 数据。
+- dump 到 mechanism model。
+
+### 5.5 验收标准
+
+1. 四个缺口文件全部新增并编译通过。
+2. 每个函数具备 register + flatten + dump 路径。
+3. 无桥接壳写法。
+
+---
+
+## WP-6 泛型入口清理（防回流）
+
+### 6.1 目标
+
+把高频函数中的 Flt64 主入口下沉为兼容入口，避免后续继续默认 Flt64。
+
+### 6.2 需改文件
+
+1. `function/Masking.kt`
+2. `function/Max.kt`
+3. `function/MinMax.kt`
+4. `function/Bridge.kt`
+5. `function/QuadraticBridge.kt`
+
+### 6.3 具体改动
+
+1. 主 `invoke` 改为泛型签名。
+2. Flt64 特化重载仅保留委托。
+3. 保持行为不变，不重写约束语义。
+
+### 6.4 验收标准
+
+1. 主 `invoke` 签名不再写死 `LinearPolynomial<Flt64>` 或 `LinearIntermediateSymbolFlt64`。
+2. 现有 Flt64 调用样例继续可编译。
+
+---
+
+
+## WP-7 heuristic/callback 泛型主链清零
+
+### 7.1 目标
+
+- `solver/heuristic` 与 `model/callback` 主链完成泛型化。
+- 移除 `evaluateAsFlt64`（及等价 Flt64 专用 evaluate 入口）。
+- 主链不再依赖 Flt64 硬编码类型。
+
+### 7.2 需改文件
+
+1. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic/*.kt`
+2. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/callback/CallBackModelInterface.kt`
+3. `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/callback/CallBackModel.kt`
+4. 所有调用 callback/heuristic 的 solver 入口文件（按编译报错收敛）
+
+### 7.3 具体改动
+
+1. `solver/heuristic`：
+- 把 `Flt64` 写死的接口参数、返回值、策略参数改为泛型类型参数。
+- 仅在必要的数值策略处保留可注入 converter，不允许写死 `Flt64`。
+
+2. `model/callback`：
+- `AbstractCallBackModelInterface`、`CallBackModel`、`MultiObjectCallBackModel` 主路径改为泛型。
+- 现有 `Flt64` 专用 typealias/实现下沉为兼容层，禁止主调用链依赖。
+
+3. 求值入口：
+- 删除 `evaluateAsFlt64` 与等价专用入口。
+- 所有 evaluate 调用统一走泛型主接口。
+
+### 7.4 验收标准
+
+1. `solver/heuristic` 主链无 Flt64 硬编码。
+2. `model/callback` 主链无 Flt64 硬编码。
+3. 全仓 `evaluateAsFlt64`（及等价专用 evaluate）命中为 0。
+4. 三段 Maven 编译门禁全部通过。
+## 2. 执行顺序与依赖
+
+1. 第一步：WP-1（SubObject）
+2. 第二步：WP-2（Slack 主链）
+3. 第三步：WP-3（register 时机）
+4. 第四步：WP-4（桥接删除）
+5. 第五步：WP-5（二次型补齐）
+6. 第六步：WP-6（泛型入口防回流）
+7. 第七步：WP-7（heuristic/callback 泛型主链清零）
+
+依赖关系：
+1. WP-3 依赖 WP-1/2 的接口稳定。
+2. WP-4 需在 WP-3 后执行，避免删桥接后链路不完整。
+3. WP-5/6 可并行，但最终在同一轮编译门禁统一验收。
+
+---
+
+## 3. 回归测试清单
+
+### 3.1 单测新增/更新
+
+1. `SlackFunction`：
+- 泛型 `LinearPolynomial<V>` 构造。
+- `ToLinearPolynomial<V>` 构造。
+- Flt64 兼容重载委托正确性。
+
+2. `SubObject`：
+- `evaluate<V>` 与 solver-boundary 结果一致性。
+- 线性/二次子对象分别覆盖。
+
+3. `register` 时机：
+- MetaModel 阶段无最终副作用。
+- dump 后 tokenTable 依赖闭包完整。
+
+4. 二次型新增函数：
+- register 成功。
+- flatten 结构正确。
+- dump 可进入机制模型。
+
+### 3.2 编译门禁
 
 ```powershell
-mvn -pl ospf-kotlin-core "-Dtest=ParticleSwarmHeuristicSolverTest,CoreErrorTest,SolverOutputWithIISTest" test
+mvn -pl ospf-kotlin-core -DskipTests compile
 mvn -pl ospf-kotlin-framework -am -DskipTests compile
 mvn -pl ospf-kotlin-example -am -DskipTests compile
 ```
 
-example 聚合编译覆盖 32 个模块，全部 SUCCESS。
+---
 
-## 7. 待完成事项（合并重写）
+## 4. 量化验收口径
 
-P8 与 P2 已无阻断待办。后续只保留非阻断清理项：
+1. `import ... as ...`：命中 0（持续检查）。
+2. `Slack.kt` 主签名中的 `LinearPolynomial<Flt64>`：命中 0。
+3. `Slack.kt` 主签名中的 `LinearIntermediateSymbolFlt64`：命中 0。
+4. `MetaModel.SubObject` 主 `evaluate` 返回 Flt64：命中 0。
+5. 指定桥接文件存在性：0 文件。
+6. 二次型差集文件：4/4 已新增。
+7. 三段 Maven 编译：全部 SUCCESS。
 
-1. 继续减少符号函数内部 `Flt64` literal 转 `T` 的 unchecked cast 警告，优先从 `FunctionSymbol.zeroOf/oneOf` 和逻辑/分段函数入手。
-2. 如需要原 Kotlin 源码零修改迁移，另开 facade/migration 文档任务，集中处理旧包路径、旧无后缀快捷名和 import rename；不在本轮恢复旧包名。
-3. 对需要商业求解器许可证的真实求解集成测试另行执行；本轮已完成编译级与新增单元测试验收。
-4. 未跟踪文件 `fix_compilation.js` 不属于本轮改动，保持不处理。
+---
+
+## 5. 风险与回滚策略
+
+1. register 时机变更导致依赖顺序问题：
+- 先补测试再迁移；失败时仅回滚 register 触发点，不回滚泛型签名改动。
+
+2. 删除桥接文件导致外部 import 断裂：
+- 同提交完成 import 迁移；若影响范围扩大，先引入迁移说明再删文件。
+
+3. 二次型补齐引入行为偏差：
+- 先上线最小闭环（register/flatten/dump），再扩高级工厂重载。
+
+---
+
+## 6. 完成定义（DoD）
+
+1. WP-1 ~ WP-7 全部完成。
+2. 量化验收口径全部达标。
+3. 编译门禁全部通过。
+4. daily 与实际代码状态一致，无“文档完成/代码未完成”项。
+

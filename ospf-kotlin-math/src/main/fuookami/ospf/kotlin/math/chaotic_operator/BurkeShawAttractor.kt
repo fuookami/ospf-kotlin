@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Burke-Shaw 吸引子
  * Burke-Shaw Attractor
  *
@@ -19,38 +19,38 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
-/**
- * Burke-Shaw 吸引子
- * Burke-Shaw Attractor
- */
-data class BurkeShawAttractor(
-    val zeta: Flt64 = Flt64(10.0),
-    val nu: Flt64 = Flt64(4.272),
-    val h: Flt64 = Flt64(0.01),
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
+data class BurkeShawAttractor<V : FloatingNumber<V>>(
+    val zeta: V,
+    val nu: V,
+    val h: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
         val dx = -zeta * (x[0] + x[1])
         val dy = -x[1] - zeta * x[0] * x[2]
         val dz = zeta * x[0] * x[1] + nu
-        return point3(
-            x[0] + h * dx,
-            x[1] + h * dy,
-            x[2] + h * dz
-        )
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            zeta: Flt64 = Flt64(10.0),
+            nu: Flt64 = Flt64(4.272),
+            h: Flt64 = Flt64(0.01)
+        ): BurkeShawAttractor<Flt64> {
+            return BurkeShawAttractor(zeta, nu, h)
+        }
     }
 }
 
-/**
- * Burke-Shaw 吸引子生成器
- * Burke-Shaw Attractor Generator
- */
 data class BurkeShawAttractorGenerator(
-    val burkeShawAttractor: BurkeShawAttractor = BurkeShawAttractor(),
+    val burkeShawAttractor: BurkeShawAttractor<Flt64> = BurkeShawAttractor(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -69,11 +69,7 @@ data class BurkeShawAttractorGenerator(
             )
         ): BurkeShawAttractorGenerator {
             return BurkeShawAttractorGenerator(
-                BurkeShawAttractor(
-                    zeta = zeta,
-                    nu = nu,
-                    h = h
-                ),
+                BurkeShawAttractor(zeta, nu, h),
                 x
             )
         }
@@ -87,9 +83,3 @@ data class BurkeShawAttractorGenerator(
         return x
     }
 }
-
-
-
-
-
-

@@ -25,10 +25,10 @@ class VectorTest {
         val xAxis = vector2(Flt64.one, Flt64.zero)
         val yAxis = vector2(Flt64.zero, Flt64.one)
 
-        val angle = xAxis.angle(yAxis)
+        val angle = xAxis.angle(yAxis) as? Flt64
 
         assertNotNull(angle)
-        assertTrue(angle eq (Flt64.pi / Flt64.two))
+        assertTrue(angle!! eq (Flt64.pi / Flt64.two))
     }
 
     @Test
@@ -36,12 +36,12 @@ class VectorTest {
         val xAxis = vector2(Flt64.one, Flt64.zero)
         val yAxis = vector2(Flt64.zero, Flt64.one)
         val zero = vector2(Flt64.zero, Flt64.zero)
-        val space: InnerProductSpace<Vector<Dim2>, Flt64> = xAxis
+        val space: InnerProductSpace<Vector<Dim2, Flt64>, Flt64> = xAxis
 
         val angle = space.angle(yAxis) as? Flt64
 
         assertNotNull(angle)
-        assertTrue(angle eq (Flt64.pi / Flt64.two))
+        assertTrue(angle!! eq (Flt64.pi / Flt64.two))
         assertEquals(null, zero.angle(yAxis))
     }
 

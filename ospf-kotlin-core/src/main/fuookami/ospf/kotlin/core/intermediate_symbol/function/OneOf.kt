@@ -1,17 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -20,201 +21,114 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
 /**
- * Represents a single branch in a OneOfFunction.
+ * OneOf function: exactly one of the input polynomials must be nonzero.
  *
- * @param polynomial the linear polynomial contributed by this branch when active
- * @param condition optional inequality that must be satisfied for this branch to be active;
- *   if null, this branch is always available (subject to the at-most-one constraint)
- * @param name human-readable name for this branch
- */
-data class OneOfBranch<T : Field<T>>(
-    val polynomial: LinearPolynomial<T>,
-    val condition: MathLinearInequality? = null,
-    val name: String
-)
-
-/**
- * OneOf function symbol: selects at most one branch from a list of (condition, polynomial) pairs.
+ * Result:
+ * - y = 1 if exactly one of the input polynomials is nonzero
+ * - y = 0 otherwise
  *
- * When a branch is active, its polynomial value contributes to the output.
- * When a branch is inactive, its contribution is zero.
+ * Uses nonzero indicators with XOR-like linking constraints.
  *
- * ConstraintFlt64 pattern:
- * - Each branch has a binary activation variable `u[i]`
- * - `sum(u[i]) <= 1` (at most one branch active)
- * - Each branch's polynomial is masked via MaskingFunction: z[i] = polynomial[i] * u[i]
- * - Output `y = sum(z[i])`
- *
- * @param branches list of branches to select from
- * @param m Big-M constant for masking constraints (default 1e6)
+ * @param polynomials the list of input linear polynomials
+ * @param bigM Big-M bound (default 1e6)
+ * @param tolerance zero tolerance (default 1e-6)
+ * @param strictBoundary strict boundary value (default 0.5)
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-class OneOfFunction<T : Field<T>>(
-    val branches: List<OneOfBranch<T>>,
-    val m: Flt64 = Flt64(1e6),
-    override var name: String,
+class OneOfFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
+    tolerance: V? = null,
+    strictBoundary: V? = null,
+    override var name: String = "oneof",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
+    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
+    private val n = polynomials.size
 
     init {
-        require(branches.isNotEmpty()) { "OneOfFunction requires at least one branch" }
+        require(n >= 1) { "OneOfFunction requires at least one input polynomial" }
     }
 
-    // Selection binary per branch: u[i] = 1 if branch i is active
-    val selectionVars: List<AbstractVariableItem<*, *>> =
-        (0 until branches.size).map { BinVar("${name}_u${it}") }
-
-    // Masked output variable per branch: z[i] = polynomial[i] when u[i]=1, 0 otherwise
-    val maskedVars: List<AbstractVariableItem<*, *>> =
-        (0 until branches.size).map { URealVar("${name}_z${it}") }
-
-    // Output variable: y = sum(z[i])
-    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
+    val resultVar: AbstractVariableItem<*, *> = BinVar("${name}_oneof")
+    val indicatorVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_oneof_nz${it}") }
+    val sideVars: List<AbstractVariableItem<*, *>> = (0 until n).map { BinVar("${name}_oneof_side${it}") }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(resultVar) + selectionVars + maskedVars
+        get() = listOf(resultVar) + indicatorVars + sideVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    /** Linear polynomial representing the output y. */
-    val y: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), resultVar)), zeroOf<T>())
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        // Find which branch is active (selection var = 1)
-        for (i in branches.indices) {
-            val uVal = values[selectionVars[i]]?.asFlt64()?.toDouble() ?: return null
-            if (uVal > 0.5) {
-                // This branch is active
-                return branches[i].polynomial.evaluate(values)
-            }
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        var count = 0
+        for (poly in polynomials) {
+            val v = poly.evaluateWith(values) ?: return null
+            if (v.asFlt64().toDouble() != 0.0) count++
         }
-        // No branch active
-        return zeroOf<T>()
+        return if (count == 1) oneOf<V>() else zeroOf<V>()
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
-        val allConstraints = mutableListOf<MathLinearInequality>()
-        val mVal = m
+        val mD = bigM
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
-        // For each branch: mask the polynomial using Big-M constraints
-        // z[i] <= M * u[i]
-        // z[i] >= -M * u[i]
-        // z[i] - poly[i] <= M * (1 - u[i])
-        // z[i] - poly[i] >= -M * (1 - u[i])
-        for (i in branches.indices) {
-            val zVar = maskedVars[i]
-            val uVar = selectionVars[i]
-            val branchPoly = branches[i].polynomial.asFlt64Poly()
-            val branchName = branches[i].name
-
-            val zMon = LinearMonomial(Flt64.one, zVar)
-
-            // z[i] <= M * u[i]  =>  z[i] - M*u[i] <= 0
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(
-                    listOf(zMon, LinearMonomial(-mVal, uVar)),
-                    Flt64.zero
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.LE, "${name}_mask_ub_${i}")
-
-            // z[i] >= -M * u[i]  =>  z[i] + M*u[i] >= 0
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(
-                    listOf(zMon, LinearMonomial(mVal, uVar)),
-                    Flt64.zero
-                ),
-                LinearPolynomial(emptyList(), Flt64.zero),
-                Comparison.GE, "${name}_mask_lb_${i}")
-
-            // z[i] - poly[i] <= M * (1 - u[i])
-            // => z[i] - poly[i] + M*u[i] <= M
-            val diffUpMonos = listOf(zMon) +
-                branchPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mVal, uVar)
-            val diffUpConst = branchPoly.constant.unaryMinus()
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(diffUpMonos, diffUpConst),
-                LinearPolynomial(emptyList(), mVal),
-                Comparison.LE, "${name}_eq_ub_${i}")
-
-            // z[i] - poly[i] >= -M * (1 - u[i])
-            // => z[i] - poly[i] - M*u[i] >= -M
-            val diffLbMonos = listOf(zMon) +
-                branchPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(-mVal, uVar)
-            val diffLbConst = branchPoly.constant.unaryMinus()
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(diffLbMonos, diffLbConst),
-                LinearPolynomial(emptyList(), -mVal),
-                Comparison.GE, "${name}_eq_lb_${i}")
+        // Nonzero indicators for each polynomial
+        for (i in polynomials.indices) {
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
         }
 
-        // sum(u[i]) <= 1  (at most one branch active)
-        if (selectionVars.isNotEmpty()) {
-            val sumMonos = selectionVars.map { LinearMonomial(Flt64.one, it) }
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(sumMonos, Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.one),
-                Comparison.LE, "${name}_at_most_one")
-        }
+        // Exactly one indicator must be 1: sum(indicators) = 1
+        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
 
-        // y = sum(z[i])  =>  y - sum(z[i]) = 0
-        val resultMonos = listOf(LinearMonomial(Flt64.one, resultVar)) +
-            maskedVars.map { LinearMonomial(-Flt64.one, it) }
-        allConstraints += MathLinearInequality(
-            LinearPolynomial(resultMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.EQ, "${name}_result_eq")
+        // result = 1 (since exactly one indicator must be 1)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
 
-        return addConstraints(model, allConstraints) ?: ok
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
     }
 
     companion object {
-        @JvmName("fromBranches")
-        operator fun invoke(
-            branches: List<OneOfBranch<Flt64>>,
-            m: Flt64 = Flt64(1e6),
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
             name: String,
             displayName: String? = null
-        ): OneOfFunction<Flt64> = OneOfFunction(
-            branches = branches,
-            m = m,
-            name = name,
-            displayName = displayName
-        )
+        ): OneOfFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            OneOfFunction(polynomials, bigM, name = name, displayName = displayName)
 
-        /**
-         * Convenience factory for creating a OneOfFunction from polynomials only
-         * (no conditions, at-most-one selection).
-         */
-        @JvmName("fromPolynomials")
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
-            m: Flt64 = Flt64(1e6),
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): OneOfFunction<Flt64> {
-            val branchList = polynomials.mapIndexed { i, poly ->
-                OneOfBranch(poly, null, "${name}_branch_${i}")
-            }
-            return OneOfFunction(
-                branches = branchList,
-                m = m,
+        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, name = name, displayName = displayName)
+
+        @JvmStatic
+        @JvmName("fromLinearPolynomials")
+        fun fromLinearPolynomials(
+            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            OneOfFunction<Flt64>(
+                polynomials = polynomials.map { it.toLinearPolynomial() },
+                bigM = bigM,
                 name = name,
                 displayName = displayName
             )
-        }
+        )
     }
 }

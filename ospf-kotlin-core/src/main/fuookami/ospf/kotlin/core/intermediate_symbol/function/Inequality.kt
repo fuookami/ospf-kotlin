@@ -1,16 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.core.variable.URealVar
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -25,164 +27,115 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * - 1 if the inequality is satisfied
  * - 0 if the inequality is violated
  *
- * Supported comparisons: LE (<=), GE (>=), EQ (==), NE (!=)
- *
- * Note: LT (<) and GT (>) are treated as LE (<=) and GE (>=) respectively,
- * since strict inequalities cannot be modeled in MIP.
- * NE (!=) is not supported and will return an error.
- *
- * @param lhs the left-hand side linear polynomial (representing lhs <op> rhs)
- * @param rhs the right-hand side constant
+ * @param lhs the left-hand side linear polynomial
+ * @param rhs the right-hand side constant value
  * @param sign the comparison type
- * @param m Big-M upper bound (default 1e6)
+ * @param bigM Big-M bound (default 1e6)
+ * @param tolerance zero tolerance (default 1e-6)
+ * @param strictBoundary strict boundary value (default 0.5)
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-class InequalityFunction<T : Field<T>>(
-    val lhs: LinearPolynomial<T>,
-    val rhs: Flt64,
+class InequalityFunction<V>(
+    val lhs: LinearPolynomial<V>,
+    val rhs: V,
     val sign: Comparison,
-    val m: Flt64 = Flt64(1e6),
-    override var name: String,
+    bigM: V? = null,
+    tolerance: V? = null,
+    strictBoundary: V? = null,
+    override var name: String = "ineq",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
+    private val tolerance: V = tolerance ?: Flt64(NONZERO_TOLERANCE) as V
+    private val strictBoundary: V = strictBoundary ?: Flt64(STRICT_BOUNDARY) as V
 
     private val flagVar: AbstractVariableItem<*, *> by lazy { BinVar("${name}_flag") }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(flagVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
+    val result: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), flagVar)), zeroOf<V>())
     }
 
-    /**
-     * The binary indicator: 1 if satisfied, 0 if violated.
-     */
-    val result: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), flagVar)), zeroOf<T>())
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val lhsValue = lhs.evaluate(values) ?: return null
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val lhsValue = lhs.evaluateWith(values) ?: return null
         val lhsDouble = lhsValue.asFlt64().toDouble()
-        val rhsDouble = rhs.toDouble()
+        val rhsDouble = rhs.asFlt64().toDouble()
         val satisfied = when (sign) {
             Comparison.LE, Comparison.LT -> lhsDouble <= rhsDouble
             Comparison.GE, Comparison.GT -> lhsDouble >= rhsDouble
             Comparison.EQ -> kotlin.math.abs(lhsDouble - rhsDouble) < 1e-9
             Comparison.NE -> kotlin.math.abs(lhsDouble - rhsDouble) > 1e-9
         }
-        @Suppress("UNCHECKED_CAST")
-        return (if (satisfied) Flt64.one else Flt64.zero) as T
+        return if (satisfied) oneOf<V>() else zeroOf<V>()
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        // Add binary flag variable
-        when (val result = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
 
-        val lhsPoly = lhs.asFlt64Poly()
-        val mVal = m
-        val eps = Flt64(1e-6)
+        val mF = bigM.asFlt64()
+        val epsF = tolerance.asFlt64()
+        val rhsF = rhs.asFlt64()
+        val lhsF = lhs.asFlt64Poly()
+        val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         when (sign) {
             Comparison.LE, Comparison.LT -> {
-                // ConstraintFlt64: lhs <= rhs + M*(1-flag)
-                // => lhs - M*(1-flag) <= rhs
-                // => lhs + M*flag <= rhs + M
-                val leqLhs = LinearPolynomial(
-                    lhsPoly.monomials + listOf(LinearMonomial(mVal, flagVar)),
-                    lhsPoly.constant
+                // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
+                    LinearPolynomial(emptyList(), rhsF + mF),
+                    Comparison.LE, "${name}_satisfied"
                 )
-                val leqRhs = LinearPolynomial(emptyList(), rhs + mVal)
-                val leqConstraint = MathLinearInequality(leqLhs, leqRhs, Comparison.LE, "${name}_satisfied")
-                when (val result = model.addConstraint(relation = leqConstraint, name = leqConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
 
-                // ConstraintFlt64: lhs >= rhs + epsilon - M*flag
-                // => lhs - M*flag >= rhs + epsilon - M
-                // This ensures flag=1 => lhs >= rhs + epsilon - M (no-op when flag=1)
-                //                     flag=0 => lhs >= rhs + epsilon
-                val geqLhs = LinearPolynomial(
-                    lhsPoly.monomials + listOf(LinearMonomial(-mVal, flagVar)),
-                    lhsPoly.constant
+                // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
+                    LinearPolynomial(emptyList(), rhsF + epsF),
+                    Comparison.GE, "${name}_violated"
                 )
-                val geqRhs = LinearPolynomial(emptyList(), rhs + eps - mVal)
-                val geqConstraint = MathLinearInequality(geqLhs, geqRhs, Comparison.GE, "${name}_violated")
-                when (val result = model.addConstraint(relation = geqConstraint, name = geqConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
             }
 
             Comparison.GE, Comparison.GT -> {
-                // ConstraintFlt64: lhs >= rhs - M*(1-flag)
-                // => lhs + M*flag >= rhs
-                val geqLhs = LinearPolynomial(
-                    lhsPoly.monomials + listOf(LinearMonomial(mVal, flagVar)),
-                    lhsPoly.constant
+                // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
+                    LinearPolynomial(emptyList(), rhsF),
+                    Comparison.GE, "${name}_satisfied"
                 )
-                val geqRhs = LinearPolynomial(emptyList(), rhs)
-                val geqConstraint = MathLinearInequality(geqLhs, geqRhs, Comparison.GE, "${name}_satisfied")
-                when (val result = model.addConstraint(relation = geqConstraint, name = geqConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
 
-                // ConstraintFlt64: lhs <= rhs - epsilon + M*flag
-                val leqLhs = LinearPolynomial(
-                    lhsPoly.monomials + listOf(LinearMonomial(-mVal, flagVar)),
-                    lhsPoly.constant
+                // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
+                    LinearPolynomial(emptyList(), rhsF - epsF + mF),
+                    Comparison.LE, "${name}_violated"
                 )
-                val leqRhs = LinearPolynomial(emptyList(), rhs - eps + mVal)
-                val leqConstraint = MathLinearInequality(leqLhs, leqRhs, Comparison.LE, "${name}_violated")
-                when (val result = model.addConstraint(relation = leqConstraint, name = leqConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
             }
 
             Comparison.EQ -> {
-                // For equality, flag=1 means |lhs - rhs| < epsilon
-                // lhs - rhs <= M*(1-flag) + epsilon
-                // lhs - rhs >= -M*(1-flag) - epsilon
-                val diffPoly = LinearPolynomial(lhsPoly.monomials, lhsPoly.constant - rhs)
+                val diffMonos = lhsMonos
+                val diffConst = lhsF.constant - rhsF
 
-                // diff <= M*(1-flag) + epsilon => diff - M*(1-flag) <= epsilon
-                val upperLhs = LinearPolynomial(
-                    diffPoly.monomials + listOf(LinearMonomial(mVal, flagVar)),
-                    diffPoly.constant
+                // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), mF + epsF),
+                    Comparison.LE, "${name}_eq_upper"
                 )
-                val upperRhs = LinearPolynomial(emptyList(), mVal + eps)
-                val upperConstraint = MathLinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_eq_upper")
-                when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
 
-                // diff >= -M*(1-flag) - epsilon => diff + M*(1-flag) >= -epsilon
-                val lowerLhs = LinearPolynomial(
-                    diffPoly.monomials + listOf(LinearMonomial(-mVal, flagVar)),
-                    diffPoly.constant
+                // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), -mF - epsF),
+                    Comparison.GE, "${name}_eq_lower"
                 )
-                val lowerRhs = LinearPolynomial(emptyList(), -mVal - eps)
-                val lowerConstraint = MathLinearInequality(lowerLhs, lowerRhs, Comparison.GE, "${name}_eq_lower")
-                when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
             }
 
             Comparison.NE -> {
@@ -195,22 +148,33 @@ class InequalityFunction<T : Field<T>>(
             }
         }
 
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
 
     companion object {
+        operator fun <V> invoke(
+            lhs: LinearPolynomial<V>,
+            rhs: V,
+            sign: Comparison,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): InequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            InequalityFunction(lhs = lhs, rhs = rhs, sign = sign, bigM = bigM, name = name, displayName = displayName)
+
         operator fun invoke(
             lhs: LinearPolynomial<Flt64>,
             rhs: Flt64,
             sign: Comparison,
-            m: Flt64 = Flt64(1e6),
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): InequalityFunction<Flt64> = InequalityFunction(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
-            m = m,
+            bigM = bigM,
             name = name,
             displayName = displayName
         )
@@ -219,14 +183,14 @@ class InequalityFunction<T : Field<T>>(
             lhs: LinearMonomial<Flt64>,
             rhs: Flt64,
             sign: Comparison,
-            m: Flt64 = Flt64(1e6),
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
         ): InequalityFunction<Flt64> = InequalityFunction(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,
-            m = m,
+            bigM = bigM,
             name = name,
             displayName = displayName
         )

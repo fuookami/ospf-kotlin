@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 高斯映射
  * Gauss Map
  *
@@ -26,14 +26,23 @@ import kotlin.random.Random
  * 高斯映射
  * Gauss Map
  */
-data class GaussMap(
-    val mu: Flt64 = Random.nextFlt64(Flt64.one, Flt64.ten)
-) : Extractor<Flt64, Flt64> {
-    override operator fun invoke(x: Flt64): Flt64 {
-        return if (x eq Flt64.zero) {
-            Flt64.zero
+data class GaussMap<V : FloatingNumber<V>>(
+    val mu: V
+) : Extractor<V, V> {
+    override operator fun invoke(x: V): V {
+        val v = mu
+        return if (x eq v.constants.zero) {
+            v.constants.zero
         } else {
             mu / x
+        }
+    }
+
+    companion object {
+        operator fun invoke(
+            mu: Flt64 = Random.nextFlt64(Flt64.one, Flt64.ten)
+        ): GaussMap<Flt64> {
+            return GaussMap(mu)
         }
     }
 }
@@ -43,7 +52,7 @@ data class GaussMap(
  * Gauss Map Generator
  */
 data class GaussMapGenerator(
-    val gaussMap: GaussMap = GaussMap(),
+    val gaussMap: GaussMap<Flt64> = GaussMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
@@ -66,10 +75,3 @@ data class GaussMapGenerator(
         return x
     }
 }
-
-
-
-
-
-
-

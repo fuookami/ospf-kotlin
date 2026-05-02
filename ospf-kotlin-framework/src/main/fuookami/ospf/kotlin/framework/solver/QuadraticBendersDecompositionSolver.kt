@@ -1,12 +1,12 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
@@ -85,13 +85,13 @@ interface LinearBendersDecompositionSolver {
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface LinearSubResult {
-        val cuts: List<MathLinearInequality>?
+        val cuts: List<Flt64LinearInequality>?
     }
 
     data class LinearFeasibleResult(
         val result: FeasibleSolverOutput,
         val dualSolution: LinearDualSolution,
-        override val cuts: List<MathLinearInequality>?
+        override val cuts: List<Flt64LinearInequality>?
     ) : LinearSubResult {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
@@ -102,7 +102,7 @@ interface LinearBendersDecompositionSolver {
 
     data class LinearInfeasibleResult(
         val farkasDualSolution: LinearDualSolution,
-        override val cuts: List<MathLinearInequality>?
+        override val cuts: List<Flt64LinearInequality>?
     ) : LinearSubResult
 
     suspend fun solveSub(
@@ -235,15 +235,15 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface QuadraticSubResult {
-        val linearCuts: List<MathLinearInequality>?
-        val quadraticCuts: List<MathQuadraticInequality>?
+        val linearCuts: List<Flt64LinearInequality>?
+        val quadraticCuts: List<QuadraticInequality>?
     }
 
     data class QuadraticFeasibleResult(
         val result: FeasibleSolverOutput,
         val dualSolution: QuadraticDualSolution,
-        override val linearCuts: List<MathLinearInequality>?,
-        override val quadraticCuts: List<MathQuadraticInequality>?,
+        override val linearCuts: List<Flt64LinearInequality>?,
+        override val quadraticCuts: List<QuadraticInequality>?,
     ) : QuadraticSubResult {
         val obj: Flt64 by result::obj
         val solution: Solution by result::solution
@@ -254,8 +254,8 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     data class QuadraticInfeasibleResult(
         val farkasDualSolution: QuadraticDualSolution,
-        override val linearCuts: List<MathLinearInequality>?,
-        override val quadraticCuts: List<MathQuadraticInequality>?,
+        override val linearCuts: List<Flt64LinearInequality>?,
+        override val quadraticCuts: List<QuadraticInequality>?,
     ) : QuadraticSubResult
 
     suspend fun solveSub(

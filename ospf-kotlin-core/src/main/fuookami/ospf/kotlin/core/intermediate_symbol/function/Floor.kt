@@ -1,17 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -19,137 +20,110 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
-private typealias MathLinearInequality = LinearInequality<Flt64>
-
 /**
- * Floor division function symbol: `y = floor(x / d)` where `x` is a LinearPolynomial.
+ * Floor function: y = floor(x).
  *
- * Decomposition:
- * - Create helper variables: `q` (IntVar for quotient) and `r` (URealVar for remainder, 0 <= r < d)
- * - ConstraintFlt64: `x = d * q + r`
- * - The floor result is `q`
- *
- * @param x the input linear polynomial
- * @param d the divisor (default 1)
- * @param epsilon small positive value to enforce strict upper bound on remainder (default 1e-6)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * Uses integer variable k = floor(x) with fractional binary variable b.
+ * k <= x < k+1, b = x - k (0 or fractional), result = k.
  */
-class FloorFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
-    val d: Flt64 = Flt64.one,
-    val epsilon: Flt64 = Flt64(1e-6),
-    override var name: String,
+class FloorFunction<V>(
+    val x: LinearPolynomial<V>,
+    bigM: V? = null,
+    override var name: String = "floor",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
 
-    private val qVar: AbstractVariableItem<*, *> by lazy { IntVar("${name}_q") }
-    private val rVar: AbstractVariableItem<*, *> by lazy { URealVar("${name}_r") }
+    val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
+    val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
+    val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_floor")
+
+    val result: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), resultVar)), zeroOf<V>())
+    }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(qVar, rVar)
+        get() = listOf(kVar, bVar, resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    /**
-     * Linear polynomial representing the quotient (floor result): `q`.
-     * Exposed for framework reference (e.g. in objectives).
-     */
-    val q: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), qVar)), zeroOf<T>())
-    }
-
-    /**
-     * Linear polynomial representing the remainder: `r`.
-     * Exposed for framework reference.
-     */
-    val r: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), rVar)), zeroOf<T>())
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val xValue = x.evaluate(values) ?: return null
-        val doubleVal = xValue.asFlt64().toDouble()
-        val dVal = d.toDouble()
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val xVal = x.evaluateWith(values) ?: return null
         @Suppress("UNCHECKED_CAST")
-        return Flt64(kotlin.math.floor(doubleVal / dVal)) as T
+        return Flt64(kotlin.math.floor(xVal.asFlt64().toDouble())) as V
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        // Add helper variables to the model
-        when (val result = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
 
-        val xPoly = x.asFlt64Poly()
-        val dVal = d
+        val mF = bigM.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // ConstraintFlt64: x = d * q + r  =>  x - d*q - r = 0  =>  x eq (d*q + r)
-        val dqPoly = LinearPolynomial(listOf(LinearMonomial(dVal, qVar)), Flt64.zero)
-        val rPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rhs = LinearPolynomial(dqPoly.monomials + rPoly.monomials, dqPoly.constant + rPoly.constant)
-        val eqConstraint = MathLinearInequality(xPoly, rhs, Comparison.EQ, "${name}_div_eq")
-        when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // k <= x
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_floor_lb")
 
-        // Bound constraints on remainder: 0 <= r < d
-        // r >= 0 (URealVar is already non-negative by default, but we add explicit bound for clarity)
-        val rLower = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rLowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        val rLowerConstraint = MathLinearInequality(rLower, rLowerRhs, Comparison.GE, "${name}_r_ge_0")
-        when (val result = model.addConstraint(relation = rLowerConstraint, name = rLowerConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // k + 1 >= x => x <= k + 1
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_floor_ub")
 
-        // r <= d - epsilon  (to enforce r < d strictly)
-        val rUpper = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rUpperRhs = LinearPolynomial(emptyList(), dVal - epsilon)
-        val rUpperConstraint = MathLinearInequality(rUpper, rUpperRhs, Comparison.LE, "${name}_r_lt_d")
-        when (val result = model.addConstraint(relation = rUpperConstraint, name = rUpperConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // b = x - k => b + k - x = 0
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, bVar),
+                LinearMonomial(Flt64.one, kVar)
+            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
+                -xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_decompose")
 
+        // result = k
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, resultVar),
+                LinearMonomial(-Flt64.one, kVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
 
     companion object {
-        operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            d: Flt64 = Flt64.one,
-            epsilon: Flt64 = Flt64(1e-6),
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            bigM: V? = null,
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(
-            x = x,
-            d = d,
-            epsilon = epsilon,
-            name = name,
-            displayName = displayName
-        )
+        ): FloorFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            FloorFunction(x, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
-            d: Flt64 = Flt64.one,
-            epsilon: Flt64 = Flt64(1e-6),
+            x: LinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            d = d,
-            epsilon = epsilon,
-            name = name,
-            displayName = displayName
+        ): FloorFunction<Flt64> = FloorFunction(x, bigM, name = name, displayName = displayName)
+
+        @JvmStatic
+        @JvmName("fromLinearPolynomial")
+        fun fromLinearPolynomial(
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            FloorFunction<Flt64>(
+                x = x.toLinearPolynomial(),
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
         )
     }
 }

@@ -1,17 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IntVar
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -20,134 +21,109 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
 /**
- * Modulo function symbol: `y = x mod d` where `x` is a LinearPolynomial.
+ * Modulo function: y = x mod d.
  *
- * Decomposition:
- * - Create helper variables: `q` (IntVar for quotient) and `r` (URealVar for remainder, 0 <= r < d)
- * - ConstraintFlt64: `x = d * q + r`
- * - The modulo result is `r`
- *
- * @param x the input linear polynomial
- * @param d the divisor (default 1)
- * @param epsilon small positive value to enforce strict upper bound on remainder (default 1e-6)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * y = x - d*q where q = floor(x/d).
  */
-class ModFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
-    val d: Flt64 = Flt64.one,
-    val epsilon: Flt64 = Flt64(1e-6),
-    override var name: String,
+class ModFunction<V>(
+    val x: LinearPolynomial<V>,
+    val d: V,
+    bigM: V? = null,
+    override var name: String = "mod",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
 
-    private val qVar: AbstractVariableItem<*, *> by lazy { IntVar("${name}_q") }
-    private val rVar: AbstractVariableItem<*, *> by lazy { URealVar("${name}_r") }
+    val qVar: AbstractVariableItem<*, *> = IntVar("${name}_q")
+    val rVar: AbstractVariableItem<*, *> = URealVar("${name}_r")
+    val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_mod")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(qVar, rVar)
+        get() = listOf(qVar, rVar, resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    /**
-     * Linear polynomial representing the modulo result (remainder): `r`.
-     * Exposed for framework reference (e.g. in objectives).
-     */
-    val r: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), rVar)), zeroOf<T>())
-    }
-
-    /**
-     * Linear polynomial representing the quotient: `q`.
-     * Exposed for framework reference.
-     */
-    val q: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), qVar)), zeroOf<T>())
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val xValue = x.evaluate(values) ?: return null
-        val doubleVal = xValue.asFlt64().toDouble()
-        val dVal = d.toDouble()
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val xVal = x.evaluateWith(values) ?: return null
+        val xD = xVal.asFlt64().toDouble()
+        val dD = d.asFlt64().toDouble()
         @Suppress("UNCHECKED_CAST")
-        return Flt64(doubleVal % dVal) as T
+        return Flt64(xD % dD) as V
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        // Add helper variables to the model
-        when (val result = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
 
-        val xPoly = x.asFlt64Poly()
-        val dVal = d
+        val mF = bigM.asFlt64()
+        val dF = d.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // ConstraintFlt64: x = d * q + r  =>  x eq (d*q + r)
-        val dqPoly = LinearPolynomial(listOf(LinearMonomial(dVal, qVar)), Flt64.zero)
-        val rPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rhs = LinearPolynomial(dqPoly.monomials + rPoly.monomials, dqPoly.constant + rPoly.constant)
-        val eqConstraint = MathLinearInequality(xPoly, rhs, Comparison.EQ, "${name}_mod_eq")
-        when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // r = x - d*q
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, rVar),
+                LinearMonomial(dF, qVar)
+            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
+                -xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_decompose")
 
-        // Bound constraints on remainder: 0 <= r < d
-        // r >= 0 (URealVar is already non-negative by default)
-        val rLower = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rLowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        val rLowerConstraint = MathLinearInequality(rLower, rLowerRhs, Comparison.GE, "${name}_r_ge_0")
-        when (val result = model.addConstraint(relation = rLowerConstraint, name = rLowerConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // r >= 0 (from URealVar)
+        // r < d => r <= d - epsilon
+        val eps = Flt64(NONZERO_TOLERANCE)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero),
+            LinearPolynomial(emptyList(), dF - eps), Comparison.LE, "${name}_mod_r_ub")
 
-        // r <= d - epsilon  (to enforce r < d strictly)
-        val rUpper = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rUpperRhs = LinearPolynomial(emptyList(), dVal - epsilon)
-        val rUpperConstraint = MathLinearInequality(rUpper, rUpperRhs, Comparison.LE, "${name}_r_lt_d")
-        when (val result = model.addConstraint(relation = rUpperConstraint, name = rUpperConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // result = r
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, resultVar),
+                LinearMonomial(-Flt64.one, rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_result")
 
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
 
     companion object {
-        operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            d: Flt64 = Flt64.one,
-            epsilon: Flt64 = Flt64(1e-6),
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            d: V,
+            bigM: V? = null,
             name: String,
             displayName: String? = null
-        ): ModFunction<Flt64> = ModFunction(
-            x = x,
-            d = d,
-            epsilon = epsilon,
-            name = name,
-            displayName = displayName
-        )
+        ): ModFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            ModFunction(x, d, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
-            d: Flt64 = Flt64.one,
-            epsilon: Flt64 = Flt64(1e-6),
+            x: LinearPolynomial<Flt64>,
+            d: Flt64,
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): ModFunction<Flt64> = ModFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            d = d,
-            epsilon = epsilon,
-            name = name,
-            displayName = displayName
+        ): ModFunction<Flt64> = ModFunction(x, d, bigM, name = name, displayName = displayName)
+
+        @JvmStatic
+        @JvmName("fromLinearPolynomial")
+        fun fromLinearPolynomial(
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            d: Flt64,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            ModFunction<Flt64>(
+                x = x.toLinearPolynomial(),
+                d = d,
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
         )
     }
 }

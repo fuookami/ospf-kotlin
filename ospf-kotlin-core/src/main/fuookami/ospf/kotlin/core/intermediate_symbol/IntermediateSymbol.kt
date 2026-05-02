@@ -1,13 +1,13 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as UtilsMutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial as UtilsMutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -17,8 +17,8 @@ import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
@@ -137,7 +137,7 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequ
             displayName: String? = null
         ): LinearIntermediateSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
                 ),
@@ -155,31 +155,31 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequ
         @Suppress("UNCHECKED_CAST")
         get() = flattenedMonomials as LinearFlattenData<V>
 
-    val polynomial: UtilsLinearPolynomial<V>
+    val polynomial: LinearPolynomial<V>
 
-    fun asMutable(): UtilsMutableLinearPolynomial<V>
+    fun asMutable(): MutableLinearPolynomial<V>
 
-    override fun toMathLinearInequality(): MathLinearInequality {
-        val lhs = UtilsLinearPolynomial(
+    override fun toMathLinearInequality(): Flt64LinearInequality {
+        val lhs = LinearPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(it.coefficient, it.symbol) },
             constant = flattenedMonomials.constant
         )
-        return MathLinearInequality(lhs, UtilsLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return Flt64LinearInequality(lhs, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toMathQuadraticInequality(): MathQuadraticInequality {
+    override fun toMathQuadraticInequality(): QuadraticInequality {
         val linearPoly = toMathLinearPolynomial()
-        return MathQuadraticInequality(
-            UtilsQuadraticPolynomial(
+        return QuadraticInequality(
+            QuadraticPolynomial(
                 monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.linear(it.coefficient, it.symbol) },
                 constant = linearPoly.constant
             ),
-            UtilsQuadraticPolynomial(emptyList(), Flt64.one),
+            QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
         )
     }
 
-    override fun toLinearPolynomial(): UtilsLinearPolynomial<V> = polynomial
+    override fun toLinearPolynomial(): LinearPolynomial<V> = polynomial
 }
 
 interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadraticInequality, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
@@ -190,7 +190,7 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadrati
             displayName: String? = null
         ): QuadraticIntermediateSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
                 ),
@@ -208,19 +208,19 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadrati
         @Suppress("UNCHECKED_CAST")
         get() = flattenedMonomials as QuadraticFlattenData<V>
 
-    val polynomial: UtilsQuadraticPolynomial<V>
+    val polynomial: QuadraticPolynomial<V>
 
-    fun asMutable(): UtilsMutableQuadraticPolynomial<V>
+    fun asMutable(): MutableQuadraticPolynomial<V>
 
-    override fun toMathQuadraticInequality(): MathQuadraticInequality {
-        val lhs = UtilsQuadraticPolynomial(
+    override fun toMathQuadraticInequality(): QuadraticInequality {
+        val lhs = QuadraticPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
             constant = flattenedMonomials.constant
         )
-        return MathQuadraticInequality(lhs, UtilsQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return QuadraticInequality(lhs, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toQuadraticPolynomial(): UtilsQuadraticPolynomial<V> = polynomial
+    override fun toQuadraticPolynomial(): QuadraticPolynomial<V> = polynomial
 }
 
 internal fun IntermediateSymbol<*>.shouldPrepare(
@@ -396,7 +396,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
 }
 
 class LinearExpressionSymbol<V>(
-    internal val _utilsPolynomial: UtilsMutableLinearPolynomial<V>,
+    internal val _utilsPolynomial: MutableLinearPolynomial<V>,
     category: Category = Linear,
     parent: IntermediateSymbol<*>? = null,
     name: String = "",
@@ -426,8 +426,8 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
-                    monomials = listOf(UtilsLinearMonomial(Flt64.one, item)),
+                _utilsPolynomial = MutableLinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, item)),
                     constant = Flt64.zero
                 ),
                 category = Linear,
@@ -444,8 +444,8 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
-                    monomials = listOf(UtilsLinearMonomial(Flt64.one, symbol)),
+                _utilsPolynomial = MutableLinearPolynomial(
+                    monomials = listOf(LinearMonomial(Flt64.one, symbol)),
                     constant = Flt64.zero
                 ),
                 category = Linear,
@@ -456,13 +456,13 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            polynomial: UtilsLinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = polynomial.monomials,
                     constant = polynomial.constant
                 ),
@@ -474,13 +474,13 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            monomial: UtilsLinearMonomial<Flt64>,
+            monomial: LinearMonomial<Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = listOf(monomial),
                     constant = Flt64.zero
                 ),
@@ -492,7 +492,7 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            polynomial: UtilsMutableLinearPolynomial<Flt64>,
+            polynomial: MutableLinearPolynomial<Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
@@ -513,7 +513,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
                 ),
@@ -531,7 +531,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
                 ),
@@ -549,7 +549,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
                 ),
@@ -567,7 +567,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
                 ),
@@ -585,7 +585,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
                 ),
@@ -603,7 +603,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
                 ),
@@ -620,7 +620,7 @@ class LinearExpressionSymbol<V>(
             displayName: String? = null
         ): LinearExpressionSymbolFlt64 {
             return LinearExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableLinearPolynomial(
+                _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
                 ),
@@ -634,10 +634,10 @@ class LinearExpressionSymbol<V>(
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
     @Suppress("UNCHECKED_CAST")
-    private val _polyFlt64: UtilsMutableLinearPolynomial<Flt64> get() = _utilsPolynomial as UtilsMutableLinearPolynomial<Flt64>
+    private val _polyFlt64: MutableLinearPolynomial<Flt64> get() = _utilsPolynomial as MutableLinearPolynomial<Flt64>
 
     // polynomial property returns immutable version
-    override val polynomial: UtilsLinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
+    override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
     // flattenedMonomials: extract from monomials
     @Suppress("DEPRECATION")
@@ -653,8 +653,8 @@ class LinearExpressionSymbol<V>(
             constant = _utilsPolynomial.constant
         )
 
-    // asMutable returns UtilsMutableLinearPolynomial<V>
-    override fun asMutable(): UtilsMutableLinearPolynomial<V> {
+    // asMutable returns MutableLinearPolynomial<V>
+    override fun asMutable(): MutableLinearPolynomial<V> {
         return _utilsPolynomial
     }
 
@@ -972,7 +972,7 @@ class LinearExpressionSymbol<V>(
 }
 
 class QuadraticExpressionSymbol<V>(
-    internal val _utilsPolynomial: UtilsMutableQuadraticPolynomial<V>,
+    internal val _utilsPolynomial: MutableQuadraticPolynomial<V>,
     category: Category = _utilsPolynomial.category,
     parent: IntermediateSymbol<*>? = null,
     name: String = "",
@@ -1002,8 +1002,8 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, item)),
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, item)),
                     constant = Flt64.zero
                 ),
                 category = Quadratic,
@@ -1020,8 +1020,8 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
                 ),
                 category = Quadratic,
@@ -1038,8 +1038,8 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
-                    monomials = listOf(UtilsQuadraticMonomial.linear(Flt64.one, symbol)),
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
                 ),
                 category = Quadratic,
@@ -1056,7 +1056,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
                 ),
@@ -1074,7 +1074,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
                 ),
@@ -1092,7 +1092,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
                 ),
@@ -1110,7 +1110,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
                 ),
@@ -1128,7 +1128,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
                 ),
@@ -1146,7 +1146,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
                 ),
@@ -1163,7 +1163,7 @@ class QuadraticExpressionSymbol<V>(
             displayName: String? = null
         ): QuadraticExpressionSymbolFlt64 {
             return QuadraticExpressionSymbolFlt64(
-                _utilsPolynomial = UtilsMutableQuadraticPolynomial(
+                _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
                 ),
@@ -1177,10 +1177,10 @@ class QuadraticExpressionSymbol<V>(
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
     @Suppress("UNCHECKED_CAST")
-    private val _polyFlt64: UtilsMutableQuadraticPolynomial<Flt64> get() = _utilsPolynomial as UtilsMutableQuadraticPolynomial<Flt64>
+    private val _polyFlt64: MutableQuadraticPolynomial<Flt64> get() = _utilsPolynomial as MutableQuadraticPolynomial<Flt64>
 
     // polynomial property returns immutable version
-    override val polynomial: UtilsQuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
+    override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
     // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
     @Suppress("DEPRECATION")
@@ -1196,8 +1196,8 @@ class QuadraticExpressionSymbol<V>(
             constant = _utilsPolynomial.constant
         )
 
-    // asMutable returns UtilsMutableQuadraticPolynomial<V>
-    override fun asMutable(): UtilsMutableQuadraticPolynomial<V> {
+    // asMutable returns MutableQuadraticPolynomial<V>
+    override fun asMutable(): MutableQuadraticPolynomial<V> {
         return _utilsPolynomial
     }
 
@@ -1624,16 +1624,16 @@ operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity
     return Quantity(this, rhs.reciprocal())
 }
 
-operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     val lhs = this.toMathLinearPolynomial()
     val rhsPoly = rhs.toMathLinearPolynomial()
-    return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
+    return LinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
 }
 
-operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): UtilsLinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     val lhs = this.toMathLinearPolynomial()
     val rhsPoly = rhs.toMathLinearPolynomial()
-    return UtilsLinearPolynomial(lhs.monomials + rhsPoly.monomials.map { UtilsLinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
+    return LinearPolynomial(lhs.monomials + rhsPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
 }
 
 typealias IntermediateSymbolFlt64 = IntermediateSymbol<Flt64>

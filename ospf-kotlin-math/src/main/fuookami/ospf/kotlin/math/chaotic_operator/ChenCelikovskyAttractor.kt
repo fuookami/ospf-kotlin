@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Chen-Celikovsky 吸引子
  * Chen-Celikovsky Attractor
  *
@@ -19,43 +19,44 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
-/**
- * Chen-Celikovsky 吸引子
- * Chen-Celikovsky Attractor
- */
-data class ChenCelikovskyAttractor(
-    val alpha: Flt64 = Flt64(36.0),
-    val beta: Flt64 = Flt64(3.0),
-    val delta: Flt64 = Flt64(20.0),
-    val h: Flt64 = Flt64(0.01)
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
+data class ChenCelikovskyAttractor<V : FloatingNumber<V>>(
+    val alpha: V,
+    val beta: V,
+    val delta: V,
+    val h: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
         val dx = alpha * (x[1] - x[0])
         val dy = -x[0] * x[2] + delta * x[1]
         val dz = x[0] * x[1] - beta * x[2]
-        return point3(
-            x[0] + h * dx,
-            x[1] + h * dy,
-            x[2] + h * dz
-        )
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            alpha: Flt64 = Flt64(36.0),
+            beta: Flt64 = Flt64(3.0),
+            delta: Flt64 = Flt64(20.0),
+            h: Flt64 = Flt64(0.01)
+        ): ChenCelikovskyAttractor<Flt64> {
+            return ChenCelikovskyAttractor(alpha, beta, delta, h)
+        }
     }
 }
 
-/**
- * Chen-Celikovsky 吸引子生成器
- * Chen-Celikovsky Attractor Generator
- */
 data class ChenCelikovskyAttractorGenerator(
-    val chenCelikovskyAttractor: ChenCelikovskyAttractor = ChenCelikovskyAttractor(),
+    val chenCelikovskyAttractor: ChenCelikovskyAttractor<Flt64> = ChenCelikovskyAttractor(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+        Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
 ) : Generator<Point3> {
     companion object {
@@ -67,16 +68,11 @@ data class ChenCelikovskyAttractorGenerator(
             x: Point3 = point3(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+                Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
         ): ChenCelikovskyAttractorGenerator {
             return ChenCelikovskyAttractorGenerator(
-                ChenCelikovskyAttractor(
-                    alpha = alpha,
-                    beta = beta,
-                    delta = delta,
-                    h = h
-                ),
+                ChenCelikovskyAttractor(alpha, beta, delta, h),
                 x
             )
         }
@@ -90,9 +86,3 @@ data class ChenCelikovskyAttractorGenerator(
         return x
     }
 }
-
-
-
-
-
-

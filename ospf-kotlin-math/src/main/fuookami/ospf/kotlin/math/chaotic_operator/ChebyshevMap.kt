@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 切比雪夫映射
  * Chebyshev Map
  *
@@ -26,14 +26,24 @@ import kotlin.random.Random
  * 切比雪夫映射
  * Chebyshev Map
  */
-data class ChebyshevMap(
-    val a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten),
-) : Extractor<Flt64, Flt64> {
-    override operator fun invoke(x: Flt64): Flt64 {
-        return if (x geq -Flt64.one && x leq Flt64.one) {
-            (a * x.acos()!!).cos()
+data class ChebyshevMap<V : FloatingNumber<V>>(
+    val a: V
+) : Extractor<V, V> {
+    override operator fun invoke(x: V): V {
+        val v = a
+        return if (x geq -v.constants.one && x leq v.constants.one) {
+            @Suppress("UNCHECKED_CAST")
+            (a * (x.acos() as V)).cos() as V
         } else {
-            Flt64.zero
+            v.constants.zero
+        }
+    }
+
+    companion object {
+        operator fun invoke(
+            a: Flt64 = Random.nextFlt64(Flt64.two, Flt64.ten)
+        ): ChebyshevMap<Flt64> {
+            return ChebyshevMap(a)
         }
     }
 }
@@ -43,7 +53,7 @@ data class ChebyshevMap(
  * Chebyshev Map Generator
  */
 data class ChebyshevMapGenerator(
-    val chebyshevMap: ChebyshevMap = ChebyshevMap(),
+    val chebyshevMap: ChebyshevMap<Flt64> = ChebyshevMap(),
     private var _x: Flt64 = Random.nextFlt64(-Flt64.one, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
@@ -66,10 +76,3 @@ data class ChebyshevMapGenerator(
         return x
     }
 }
-
-
-
-
-
-
-

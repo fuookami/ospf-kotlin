@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Anishchenko-Astakhov 吸引子
  * Anishchenko-Astakhov Attractor
  *
@@ -19,7 +19,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
@@ -28,25 +30,32 @@ import kotlin.random.Random
  * Anishchenko-Astakhov 吸引子
  * Anishchenko-Astakhov Attractor
  */
-data class AnishchenkoAstakhovAttractor(
-    val mu: Flt64 = Flt64(1.2),
-    val eta: Flt64 = Flt64(0.5),
-    val h: Flt64 = Flt64(0.01)
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
-        val i = if (x[0] geq Flt64.zero) {
-            Flt64.one
+data class AnishchenkoAstakhovAttractor<V : FloatingNumber<V>>(
+    val mu: V,
+    val eta: V,
+    val h: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
+        val v = mu
+        val i = if (x[0] geq v.constants.zero) {
+            v.constants.one
         } else {
-            Flt64.zero
+            v.constants.zero
         }
         val dx = mu * x[0] + x[1] - x[0] * x[2]
         val dy = -x[0]
         val dz = -eta * x[2] + eta * i * x[0].sqr()
-        return point3(
-            x[0] + h * dx,
-            x[1] + h * dy,
-            x[2] + h * dz
-        )
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            mu: Flt64 = Flt64(1.2),
+            eta: Flt64 = Flt64(0.5),
+            h: Flt64 = Flt64(0.01)
+        ): AnishchenkoAstakhovAttractor<Flt64> {
+            return AnishchenkoAstakhovAttractor(mu, eta, h)
+        }
     }
 }
 
@@ -55,7 +64,7 @@ data class AnishchenkoAstakhovAttractor(
  * Anishchenko-Astakhov Attractor Generator
  */
 data class AnishchenkoAstakhovAttractorGenerator(
-    val anishchenkoAstakhovAttractor: AnishchenkoAstakhovAttractor = AnishchenkoAstakhovAttractor(),
+    val anishchenkoAstakhovAttractor: AnishchenkoAstakhovAttractor<Flt64> = AnishchenkoAstakhovAttractor(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
@@ -92,9 +101,3 @@ data class AnishchenkoAstakhovAttractorGenerator(
         return x
     }
 }
-
-
-
-
-
-

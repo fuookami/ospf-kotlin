@@ -86,8 +86,8 @@ data object Demo12 {
             "assignment",
             Shape1(products.size)
         ) { i, _ ->
-            BinaryzationFunction(
-                input = LinearPolynomial(x[i]),
+            BinaryzationFunction.fromLinearPolynomial(
+                polynomial = LinearPolynomial(x[i]),
                 name = "assignment_$i"
             )
         }

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
@@ -23,12 +23,12 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as Flt64MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf as MathQuadraticInequalityOf
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 // ========== Polynomial Kind Marker Types ==========
 
@@ -53,7 +53,7 @@ object Quadratic : PolynomialKind
  * Symbolic wrapper for a math-layer LinearInequality<V>.
  * Holds the inequality without flattening, preserving the symbolic form.
  */
-class SymbolicLinearInequality<V : Ring<V>>(val inequality: MathLinearInequality<V>)
+class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
 
 typealias SymbolicLinearInequalityFlt64 = SymbolicLinearInequality<Flt64>
 
@@ -61,7 +61,7 @@ typealias SymbolicLinearInequalityFlt64 = SymbolicLinearInequality<Flt64>
  * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
  * Holds the inequality without flattening, preserving the symbolic form.
  */
-class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: MathQuadraticInequalityOf<V>)
+class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
 
 typealias SymbolicQuadraticInequalityFlt64 = SymbolicQuadraticInequality<Flt64>
 
@@ -258,7 +258,7 @@ typealias LinearConstraint = Constraint<Flt64, Linear>
 typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
 
 internal fun <V> createLinearCells(
-    monomials: List<UtilsLinearMonomial<Flt64>>,
+    monomials: List<LinearMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<LinearCell<V>>()
@@ -273,7 +273,7 @@ internal fun <V> createLinearCells(
 }
 
 internal fun <V> createQuadraticCells(
-    monomials: List<UtilsQuadraticMonomial<Flt64>>,
+    monomials: List<QuadraticMonomial<Flt64>>,
     tokens: AbstractTokenTable<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<QuadraticCell<V>>()

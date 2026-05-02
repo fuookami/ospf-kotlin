@@ -5,13 +5,13 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
 import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
@@ -84,15 +84,15 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return identifier == combination.identifier
     }
 
-    override fun toMathLinearInequality(): MathLinearInequality {
-        val poly = UtilsLinearPolynomial(monomials = listOf(UtilsLinearMonomial(Flt64.one, this)), constant = Flt64.zero)
-        return MathLinearInequality(poly, UtilsLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    override fun toMathLinearInequality(): Flt64LinearInequality {
+        val poly = LinearPolynomial(monomials = listOf(LinearMonomial(Flt64.one, this)), constant = Flt64.zero)
+        return Flt64LinearInequality(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toMathQuadraticInequality(): MathQuadraticInequality {
-        val mono = UtilsQuadraticMonomial(Flt64.one, this, this)
-        val poly = UtilsQuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
-        return MathQuadraticInequality(poly, UtilsQuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    override fun toMathQuadraticInequality(): QuadraticInequality {
+        val mono = QuadraticMonomial(Flt64.one, this, this)
+        val poly = QuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
+        return QuadraticInequality(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun hashCode() = key.hashCode()

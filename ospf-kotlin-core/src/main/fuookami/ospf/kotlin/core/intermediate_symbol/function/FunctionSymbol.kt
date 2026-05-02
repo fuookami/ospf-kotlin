@@ -1,33 +1,30 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial as MathMutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -39,9 +36,9 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * Base interface for math-symbol-based function symbols.
  * Each function symbol creates helper variables and generates linear constraints.
  *
- * @param T the numeric type (must implement Field). Currently only Flt64 is supported for register().
+ * @param V the numeric type (must implement RealNumber and NumberField).
  */
-interface MathFunctionSymbol<T : Field<T>> {
+interface MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     var name: String
     var displayName: String?
 
@@ -54,45 +51,29 @@ interface MathFunctionSymbol<T : Field<T>> {
     /**
      * Evaluate this function symbol given resolved symbol values.
      */
-    fun evaluate(values: Map<Symbol, T>): T?
+    fun evaluate(values: Map<Symbol, V>): V?
 
     /**
      * Register this function symbol with the model.
-     * Note: Currently only supports T=Flt64 since the solver layer uses Flt64 constraints.
      *
-     * Implementations should call [registerAuxiliaryTokens] as the first step
-     * to add helper variables, then add constraints.
+     * Implementations should register helper variables via [model.add] as the first step,
+     * then add constraints via [model.addConstraint].
      */
-    fun register(model: AbstractLinearMetaModelFlt64): Try
-
-    /**
-     * Register auxiliary tokens (helper variables) needed by this function symbol.
-     *
-     * This separates "register variables" from "register constraints" for clarity.
-     * Called by [register] as the first step before adding constraints.
-     * The default implementation registers [helperVariables] if non-empty.
-     *
-     * Override this when the function registers auxiliary variables that are not
-     * captured by [helperVariables] (e.g. variables created lazily or dynamically).
-     */
-    fun registerAuxiliaryTokens(tokens: AddableTokenCollectionFlt64): Try {
-        val vars = helperVariables
-        return if (vars.isNotEmpty()) tokens.add(vars) else ok
-    }
+    fun register(model: AbstractLinearMetaModel<V>): Try
 }
 
 /**
- * Adapter that wraps a [MathFunctionSymbol]<Flt64> to also implement
- * [LinearIntermediateSymbol]. This allows function symbols to be stored in
+ * Adapter that wraps a [MathFunctionSymbol]<V> to also implement
+ * [LinearIntermediateSymbol]<V>. This allows function symbols to be stored in
  * `LinearIntermediateSymbols1/2` containers used throughout the framework.
  *
  * All [LinearIntermediateSymbol] members have sensible defaults since function
  * symbols generate constraints via [MathFunctionSymbol.register] rather than
  * through the traditional prepare/flatten pipeline.
  */
-class LinearFunctionSymbolAdapter(
-    private val delegate: MathFunctionSymbol<Flt64>
-) : LinearIntermediateSymbolFlt64, MathFunctionSymbol<Flt64> {
+class LinearFunctionSymbolAdapter<V>(
+    val delegate: MathFunctionSymbol<V>
+) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     override var name: String
         get() = delegate.name
         set(value) { delegate.name = value }
@@ -105,47 +86,47 @@ class LinearFunctionSymbolAdapter(
         get() = delegate.helperVariables
 
     /**
-     * Expose positive slack variable as a MathLinearPolynomial<Flt64>, for framework compatibility.
+     * Expose positive slack variable as a LinearPolynomial<Flt64>, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction with withPositive=true.
      */
-    val pos: MathLinearPolynomial<Flt64>? by lazy {
+    val pos: LinearPolynomial<Flt64>? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         slack.posVar?.let { v ->
-            MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64.one, v)),
+            LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64.one, v)),
                 constant = Flt64.zero
             )
         }
     }
 
     /**
-     * Expose negative slack variable as a MathLinearPolynomial<Flt64>, for framework compatibility.
+     * Expose negative slack variable as a LinearPolynomial<Flt64>, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction with withNegative=true.
      */
-    val neg: MathLinearPolynomial<Flt64>? by lazy {
+    val neg: LinearPolynomial<Flt64>? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         slack.negVar?.let { v ->
-            MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64.one, v)),
+            LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64.one, v)),
                 constant = Flt64.zero
             )
         }
     }
 
     /**
-     * Expose the full slack expression (x + neg - pos) as a MathLinearPolynomial<Flt64>, for framework compatibility.
+     * Expose the full slack expression (x + neg - pos) as a LinearPolynomial<Flt64>, for framework compatibility.
      * Only meaningful when the delegate is a SlackFunction.
      */
-    val polyX: MathLinearPolynomial<Flt64>? by lazy {
+    val polyX: LinearPolynomial<Flt64>? by lazy {
         val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
         val xPoly = slack.x.asFlt64Poly()
         val coreMonomials = xPoly.monomials.mapNotNull { mono ->
             val sym = mono.symbol
             when (sym) {
                 is fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *> ->
-                    MathLinearMonomial(mono.coefficient, sym)
+                    LinearMonomial(mono.coefficient, sym)
                 is fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol<*> ->
-                    MathLinearMonomial(mono.coefficient, sym)
+                    LinearMonomial(mono.coefficient, sym)
                 is fuookami.ospf.kotlin.math.symbol.Symbol -> {
                     // Math-level symbols can't be directly represented as core monomials
                     null
@@ -153,28 +134,24 @@ class LinearFunctionSymbolAdapter(
                 else -> null
             }
         }
-        var result = MathLinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
+        var result = LinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
         if (slack.withNegative && slack.negVar != null) {
-            result = MathLinearPolynomial(
-                monomials = result.monomials + MathLinearMonomial(Flt64.one, slack.negVar!!),
+            result = LinearPolynomial(
+                monomials = result.monomials + LinearMonomial(Flt64.one, slack.negVar!!),
                 constant = result.constant
             )
         }
         if (slack.withPositive && slack.posVar != null) {
-            result = MathLinearPolynomial(
-                monomials = result.monomials + MathLinearMonomial(-Flt64.one, slack.posVar!!),
+            result = LinearPolynomial(
+                monomials = result.monomials + LinearMonomial(-Flt64.one, slack.posVar!!),
                 constant = result.constant
             )
         }
         result
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = delegate.evaluate(values)
-    override fun register(model: AbstractLinearMetaModelFlt64): Try = delegate.register(model)
-
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return delegate.registerAuxiliaryTokens(tokens)
-    }
+    override fun evaluate(values: Map<Symbol, V>): V? = delegate.evaluate(values)
+    override fun register(model: AbstractLinearMetaModel<V>): Try = delegate.register(model)
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
@@ -185,86 +162,89 @@ class LinearFunctionSymbolAdapter(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    override val flattenedMonomialsAsV: fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-        get() = flattenedMonomials
+    override val polynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(emptyList(), Flt64.zero as V)
 
-    override val polynomial: MathLinearPolynomial<Flt64>
-        get() = MathLinearPolynomial(emptyList(), Flt64.zero)
-
-    override fun asMutable(): MathMutableLinearPolynomial<Flt64> {
-        return MathMutableLinearPolynomial(emptyList(), Flt64.zero)
+    override fun asMutable(): MutableLinearPolynomial<V> {
+        return MutableLinearPolynomial(emptyList(), Flt64.zero as V)
     }
 
-    override fun toMathLinearInequality(): MathLinearInequality {
-        return MathLinearInequality(MathLinearPolynomial(emptyList(), Flt64.zero), MathLinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    override fun toMathLinearInequality(): Flt64LinearInequality {
+        return Flt64LinearInequality(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toMathQuadraticInequality(): MathQuadraticInequality {
-        return MathQuadraticInequality(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    override fun toMathQuadraticInequality(): QuadraticInequality {
+        return QuadraticInequality(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? = delegate.evaluate(values)
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        return delegate.evaluate(values as Map<Symbol, V>)?.asFlt64()
+    }
 
     // V-typed evaluate overrides (P4-5) — delegate to Flt64-boundary evaluate + converter
-    override fun evaluate(tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableFlt64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
-        delegate.evaluate(values)?.let { converter.intoValue(it) }
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        @Suppress("UNCHECKED_CAST")
+        val v = delegate.evaluate(values as Map<Symbol, V>) ?: return null
+        return converter.intoValue(v.asFlt64())
+    }
 }
 
 /**
- * Evaluate a math LinearPolynomial given a map of Symbol -> T values.
+ * Evaluate a math LinearPolynomial given a map of Symbol -> V values.
  * Returns null if any symbol in the polynomial is missing from the map.
  */
 @Suppress("UNCHECKED_CAST")
-fun <T : Field<T>> MathLinearPolynomial<T>.evaluate(values: Map<Symbol, T>): T? {
+fun <V> LinearPolynomial<V>.evaluate(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
     val monomialsWithValues = monomials.mapNotNull { mono ->
         val sv = values[mono.symbol] ?: return null
         mono.coefficient * sv
     }
-    var sum: T? = null
+    var sum: V? = null
     for (term in monomialsWithValues) {
         sum = if (sum == null) term else sum + term
     }
-    return (sum ?: constant) as T
+    return (sum ?: constant) as V
 }
 
-/** Internal helper: cast T to Flt64 for constraint generation. Only valid when T=Flt64. */
+/** Internal helper: cast V to Flt64 for constraint generation. Only valid when V=Flt64. */
 @Suppress("UNCHECKED_CAST")
-internal fun <T : Field<T>> T.asFlt64(): Flt64 = this as Flt64
+internal fun <V> V.asFlt64(): Flt64 where V : RealNumber<V>, V : NumberField<V> = this as Flt64
 
-/** Internal helper: get zero for type T. */
-internal fun <T : Field<T>> zeroOf(): T = Flt64.zero as T
+/** Internal helper: get zero for type V. */
+@Suppress("UNCHECKED_CAST")
+internal fun <V> zeroOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.zero as V
 
-/** Internal helper: get one for type T. */
-internal fun <T : Field<T>> oneOf(): T = Flt64.one as T
+/** Internal helper: get one for type V. */
+@Suppress("UNCHECKED_CAST")
+internal fun <V> oneOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.one as V
 
-/** Internal helper: check if T is near zero. */
-internal fun <T : Field<T>> T.isNearZero(tolerance: Double = NONZERO_TOLERANCE): Boolean {
+/** Internal helper: check if V is near zero. */
+internal fun <V> V.isNearZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
     val d = this.asFlt64().toDouble()
     return d <= tolerance && d >= -tolerance
 }
 
-/** Internal helper: check if T is nonzero. */
-internal fun <T : Field<T>> T.isNonZero(tolerance: Double = NONZERO_TOLERANCE): Boolean {
+/** Internal helper: check if V is nonzero. */
+internal fun <V> V.isNonZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
     val d = this.asFlt64().toDouble()
     return d > tolerance || d < -tolerance
 }
 
-/** Internal helper: convert MathLinearPolynomial<T> to MathLinearPolynomial<Flt64> for constraint generation. */
+/** Internal helper: convert LinearPolynomial<V> to LinearPolynomial<Flt64> for constraint generation. */
 @Suppress("UNCHECKED_CAST")
-internal fun <T : Field<T>> MathLinearPolynomial<T>.asFlt64Poly(): MathLinearPolynomial<Flt64> {
-    return MathLinearPolynomial(
-        monomials.map { MathLinearMonomial(it.coefficient.asFlt64(), it.symbol) },
+internal fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    return LinearPolynomial(
+        monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
         constant.asFlt64()
     )
 }
-
-

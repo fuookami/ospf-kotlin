@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
@@ -17,12 +17,12 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -89,13 +89,13 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol<*>, Boolean>? = null,
     ): Try
 
     fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         name: String? = null,
         from: IntermediateSymbol<*>?,
     ): Try {
@@ -112,13 +112,13 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         name: String? = null,
         from: Pair<IntermediateSymbol<*>, Boolean>? = null
     ): Try
 
     fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         name: String? = null,
         from: IntermediateSymbol<*>?
     ): Try {
@@ -497,7 +497,7 @@ class LinearMechanismModel<V>(
     }
 
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
@@ -518,7 +518,7 @@ class LinearMechanismModel<V>(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: LinearDualSolution
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         val constants = linearConstraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
@@ -539,17 +539,17 @@ class LinearMechanismModel<V>(
                 }
             }
         }
-        val rhs = MathLinearPolynomial(
-            monomials = polynomials.map { MathLinearMonomial(it.value, it.key) },
+        val rhs = LinearPolynomial(
+            monomials = polynomials.map { LinearMonomial(it.value, it.key) },
             constant = constants
         )
         return when (this.objectFunction.category) {
             ObjectCategory.Maximum -> {
-                listOf((MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, objectVariable)), Flt64.zero) le rhs).normalize())
+                listOf((LinearPolynomial(listOf(LinearMonomial(Flt64.one, objectVariable)), Flt64.zero) le rhs).normalize())
             }
 
             ObjectCategory.Minimum -> {
-                listOf((MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, objectVariable)), Flt64.zero) ge rhs).normalize())
+                listOf((LinearPolynomial(listOf(LinearMonomial(Flt64.one, objectVariable)), Flt64.zero) ge rhs).normalize())
             }
         }
     }
@@ -558,7 +558,7 @@ class LinearMechanismModel<V>(
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: LinearDualSolution
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -586,8 +586,8 @@ class LinearMechanismModel<V>(
             constants *= -Flt64.one
             polynomials.replaceAll { _, v -> -v }
         }
-        val lhs = MathLinearPolynomial(
-            monomials = polynomials.map { MathLinearMonomial(it.value, it.key) },
+        val lhs = LinearPolynomial(
+            monomials = polynomials.map { LinearMonomial(it.value, it.key) },
             constant = constants
         )
         return listOf((lhs le Flt64.zero).normalize())
@@ -611,7 +611,7 @@ class LinearMechanismModel<V>(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolutionById: Map<String, Flt64>
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         validateDualById(linearConstraints, dualSolutionById, logger)
         val dualSolution: LinearDualSolution = buildMap {
             for (c in linearConstraints) {
@@ -635,7 +635,7 @@ class LinearMechanismModel<V>(
     fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         validateDualById(linearConstraints, farkasDualSolutionById, logger)
         val farkasDualSolution: LinearDualSolution = buildMap {
             for (c in linearConstraints) {
@@ -665,7 +665,7 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualValues: Solution,
         triadModel: LinearTriadModelView
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         val dualSolution = triadModel.tidyDualSolution(dualValues)
         return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
@@ -687,7 +687,7 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualValues: Solution,
         triadModel: LinearTriadModelView
-    ): List<MathLinearInequality> {
+    ): List<Flt64LinearInequality> {
         val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
         return generateFeasibleCut(fixedVariables, farkasDualSolution)
     }
@@ -922,7 +922,7 @@ class QuadraticMechanismModel<V>(
     }
 
     override fun addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
@@ -938,7 +938,7 @@ class QuadraticMechanismModel<V>(
     }
 
     override fun addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
@@ -994,14 +994,14 @@ class QuadraticMechanismModel<V>(
 
         val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
         if (!hasQuadratic) {
-            val rhs = MathLinearPolynomial(
+            val rhs = LinearPolynomial(
                 monomials = linearPolynomial
                     .filterValues { it neq Flt64.zero }
-                    .map { MathLinearMonomial(it.value, it.key) },
+                    .map { LinearMonomial(it.value, it.key) },
                 constant = constants
             )
-            val lhs = MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64.one, objectVariable)),
+            val lhs = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64.one, objectVariable)),
                 constant = Flt64.zero
             )
             val cut = when (this.objectFunction.category) {
@@ -1016,17 +1016,17 @@ class QuadraticMechanismModel<V>(
             return Ok(listOf(cut))
         }
 
-        val rhs = MathQuadraticPolynomial(
+        val rhs = QuadraticPolynomial(
             monomials = linearPolynomial
                 .filterValues { it neq Flt64.zero }
-                .map { MathQuadraticMonomial.linear(it.value, it.key) } +
+                .map { QuadraticMonomial.linear(it.value, it.key) } +
                 quadraticPolynomial
                     .filterValues { it neq Flt64.zero }
-                    .map { MathQuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+                    .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
             constant = constants
         )
-        val lhs = MathQuadraticPolynomial(
-            monomials = listOf(MathQuadraticMonomial.linear(Flt64.one, objectVariable)),
+        val lhs = QuadraticPolynomial(
+            monomials = listOf(QuadraticMonomial.linear(Flt64.one, objectVariable)),
             constant = Flt64.zero
         )
         val cut = when (this.objectFunction.category) {
@@ -1088,25 +1088,25 @@ class QuadraticMechanismModel<V>(
 
         val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
         if (!hasQuadratic) {
-            val lhs = MathLinearPolynomial(
+            val lhs = LinearPolynomial(
                 monomials = linearPolynomial
                     .filterValues { it neq Flt64.zero }
-                    .map { MathLinearMonomial(it.value, it.key) },
+                    .map { LinearMonomial(it.value, it.key) },
                 constant = constants
             )
             return Ok(listOf((lhs le Flt64.zero).normalize()))
         }
 
-        val lhs = MathQuadraticPolynomial(
+        val lhs = QuadraticPolynomial(
             monomials = linearPolynomial
                 .filterValues { it neq Flt64.zero }
-                .map { MathQuadraticMonomial.linear(it.value, it.key) } +
+                .map { QuadraticMonomial.linear(it.value, it.key) } +
                 quadraticPolynomial
                     .filterValues { it neq Flt64.zero }
-                    .map { MathQuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
+                    .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
             constant = constants
         )
-        val rhs = MathQuadraticPolynomial<Flt64>(emptyList(), Flt64.zero)
+        val rhs = QuadraticPolynomial<Flt64>(emptyList(), Flt64.zero)
         return Ok(listOf((lhs le rhs).normalize()))
     }
 

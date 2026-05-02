@@ -11,11 +11,11 @@ import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
@@ -36,7 +36,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param displayName optional human-readable display name
  */
 class QuadraticLinearBridgeFunction<V>(
-    val input: MathQuadraticPolynomial<Flt64>,
+    val input: QuadraticPolynomial<Flt64>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -45,9 +45,9 @@ class QuadraticLinearBridgeFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
 
-    val result: MathLinearPolynomial<V> by lazy {
+    val result: LinearPolynomial<V> by lazy {
         @Suppress("UNCHECKED_CAST")
-        MathLinearPolynomial(listOf(MathLinearMonomial(Flt64.one, resultVar)), Flt64.zero) as MathLinearPolynomial<V>
+        LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero) as LinearPolynomial<V>
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
@@ -78,12 +78,12 @@ class QuadraticLinearBridgeFunction<V>(
             val qModel = model as AbstractQuadraticMetaModel<V>
 
             // input - result_var = 0
-            val negResultMonomials = input.monomials + MathQuadraticMonomial.linear(
+            val negResultMonomials = input.monomials + QuadraticMonomial.linear(
                 -Flt64.one, resultVar
             )
-            val lhs = MathQuadraticPolynomial(negResultMonomials, input.constant)
-            val rhs = MathQuadraticPolynomial<Flt64>(constant = Flt64.zero)
-            val constraint = MathQuadraticInequality(lhs, rhs, Comparison.EQ, name)
+            val lhs = QuadraticPolynomial(negResultMonomials, input.constant)
+            val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
+            val constraint = QuadraticInequality(lhs, rhs, Comparison.EQ, name)
             when (val r = qModel.addConstraint(relation = constraint, group = null, name = name)) {
                 is fuookami.ospf.kotlin.utils.functional.Ok -> {}
                 is fuookami.ospf.kotlin.utils.functional.Failed -> return fuookami.ospf.kotlin.utils.functional.Failed(r.error)
@@ -101,7 +101,7 @@ class QuadraticLinearBridgeFunction<V>(
         @JvmStatic
         @JvmName("of")
         operator fun <V> invoke(
-            input: MathQuadraticPolynomial<Flt64>,
+            input: QuadraticPolynomial<Flt64>,
             name: String,
             displayName: String? = null
         ): QuadraticLinearBridgeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
@@ -111,7 +111,7 @@ class QuadraticLinearBridgeFunction<V>(
          * Flt64 factory.
          */
         operator fun invoke(
-            input: MathQuadraticPolynomial<Flt64>,
+            input: QuadraticPolynomial<Flt64>,
             name: String,
             displayName: String? = null
         ): QuadraticLinearBridgeFunction<Flt64> =
@@ -123,8 +123,8 @@ class QuadraticLinearBridgeFunction<V>(
         @JvmStatic
         @JvmName("ofProduct")
         operator fun <V> invoke(
-            left: MathLinearPolynomial<Flt64>,
-            right: MathLinearPolynomial<Flt64>,
+            left: LinearPolynomial<Flt64>,
+            right: LinearPolynomial<Flt64>,
             name: String,
             displayName: String? = null
         ): QuadraticLinearBridgeFunction<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -138,8 +138,8 @@ class QuadraticLinearBridgeFunction<V>(
         @JvmStatic
         @JvmName("fromProduct")
         operator fun invoke(
-            left: MathLinearPolynomial<Flt64>,
-            right: MathLinearPolynomial<Flt64>,
+            left: LinearPolynomial<Flt64>,
+            right: LinearPolynomial<Flt64>,
             name: String,
             displayName: String? = null
         ): QuadraticLinearBridgeFunction<Flt64> {

@@ -37,10 +37,21 @@ class PassengerFlightChangeConstraint(
                         timeWindow.valueOf(passenger.prev.flight.arr.passengerTransferTime)
                     )
                     val estCondition = IfFunction(
-                        inequality = earliestStartTime leq Flt64.zero,
+                        condition = -earliestStartTime,
                         name = "${passenger}_${toFlight}_est"
                     )
-                    when (val result = model.add(estCondition)) {
+                    when (val result = model.add(estCondition.helperVariables)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
+                    }
+                    when (val result = estCondition.register(model)) {
                         is Ok -> {}
 
                         is Failed -> {
@@ -54,7 +65,7 @@ class PassengerFlightChangeConstraint(
 
                     for (cls in PassengerClass.entries) {
                         val rhs = LinearPolynomial(
-                            listOf(LinearMonomial(passenger.amount.toFlt64(), estCondition)),
+                            listOf(LinearMonomial(passenger.amount.toFlt64(), estCondition.resultVar)),
                             Flt64.zero
                         )
                         when (val result = model.addConstraint(
@@ -86,10 +97,21 @@ class PassengerFlightChangeConstraint(
                         timeWindow.valueOf(next.flight.dep.passengerTransferTime)
                     )
                     val eetCondition = IfFunction(
-                        inequality = lastestEndTime leq Flt64.zero,
+                        condition = -lastestEndTime,
                         name = "${passenger}_${toFlight}_eet"
                     )
-                    when (val result = model.add(eetCondition)) {
+                    when (val result = model.add(eetCondition.helperVariables)) {
+                        is Ok -> {}
+
+                        is Failed -> {
+                            return Failed(result.error)
+                        }
+
+                        is Fatal -> {
+                            return Fatal(result.errors)
+                        }
+                    }
+                    when (val result = eetCondition.register(model)) {
                         is Ok -> {}
 
                         is Failed -> {
@@ -103,7 +125,7 @@ class PassengerFlightChangeConstraint(
 
                     for (cls in PassengerClass.entries) {
                         val rhs = LinearPolynomial(
-                            listOf(LinearMonomial(passenger.amount.toFlt64(), eetCondition)),
+                            listOf(LinearMonomial(passenger.amount.toFlt64(), eetCondition.resultVar)),
                             Flt64.zero
                         )
                         when (val result = model.addConstraint(

@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 圆映射
  * Circle Map
  *
@@ -26,16 +26,26 @@ import kotlin.random.Random
  * 圆映射
  * Circle Map
  */
-data class CircleMap(
-    val alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, pi2)
-) : Extractor<Flt64, Flt64> {
+data class CircleMap<V : FloatingImpl<V>>(
+    val alpha: V,
+    val beta: V
+) : Extractor<V, V> {
     companion object {
-        val pi2 = Flt64.pi * Flt64.two
+        operator fun invoke(
+            alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)
+        ): CircleMap<Flt64> {
+            return CircleMap(alpha, beta)
+        }
     }
 
-    override fun invoke(x: Flt64): Flt64 {
-        return (x + alpha - beta * (x * pi2).sin() / pi2) mod Flt64.one
+    override fun invoke(x: V): V {
+        val v = alpha
+        val pi2 = v.constants.pi * v.constants.two
+        @Suppress("UNCHECKED_CAST")
+        val sinVal = (x * pi2).sin() as V
+        val raw = x + alpha - beta * sinVal / pi2
+        return raw - (raw / v.constants.one).floor() * v.constants.one
     }
 }
 
@@ -44,13 +54,13 @@ data class CircleMap(
  * Circle Map Generator
  */
 data class CircleMapGenerator(
-    val circleMap: CircleMap = CircleMap(),
+    val circleMap: CircleMap<Flt64> = CircleMap(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
         operator fun invoke(
             alpha: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-            beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, CircleMap.pi2),
+            beta: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two),
             x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
         ): CircleMapGenerator {
             return CircleMapGenerator(
@@ -68,10 +78,3 @@ data class CircleMapGenerator(
         return x
     }
 }
-
-
-
-
-
-
-

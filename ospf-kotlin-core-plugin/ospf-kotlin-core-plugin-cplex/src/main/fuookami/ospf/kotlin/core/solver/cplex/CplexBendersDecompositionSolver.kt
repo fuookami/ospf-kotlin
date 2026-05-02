@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.cplex
+package fuookami.ospf.kotlin.core.solver.cplex
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -419,8 +419,8 @@ class CplexQuadraticBendersDecompositionSolver(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
-                                linearCuts = cuts.filterIsInstance<MathLinearInequality>(),
-                                quadraticCuts = cuts.filterIsInstance<MathQuadraticInequality>()
+                                linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                             )
                         )
                     }

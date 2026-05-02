@@ -1,19 +1,19 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -23,20 +23,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
 
 // ========== Max Function ==========
 
-/**
- * Max function: result = max(polynomials[0], polynomials[1], ...).
- *
- * Creates a continuous result variable and binary selector variables.
- * Uses Big-M method to enforce that result >= each polynomial and
- * result <= polynomial_i + M*(1 - selector_i).
- */
-class MaxFunction<T : Field<T>>(
-    val polynomials: List<LinearPolynomial<T>>,
-    bigM: T? = null,
-    override var name: String,
+class MaxFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
+    override var name: String = "max",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
-    private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
     private val n = polynomials.size
 
     init {
@@ -49,15 +42,11 @@ class MaxFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        var maxVal: T? = null
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        var maxVal: V? = null
         var maxValD: Double = Double.NEGATIVE_INFINITY
         for (poly in polynomials) {
-            val v = poly.evaluate(values) ?: return null
+            val v = poly.evaluateWith(values) ?: return null
             val vD = v.asFlt64().toDouble()
             if (maxVal == null || vD > maxValD) {
                 maxVal = v
@@ -67,48 +56,56 @@ class MaxFunction<T : Field<T>>(
         return maxVal
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val allConstraints = mutableListOf<MathLinearInequality>()
+        val mF = bigM.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
-        // For each polynomial: result >= poly (lower bound)
+        // result >= poly[i] for each i
         for (i in polynomials.indices) {
-            val poly = polynomials[i].asFlt64Poly()
-            val lbMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(lbMonos, -poly.constant),
+            val polyF = polynomials[i].asFlt64Poly()
+            val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
 
-        // For each polynomial: result - poly <= M*(1 - sel_i)
-        // => result - poly + M*sel_i <= M
-        val mD = bigM.asFlt64()
+        // result - poly[i] + M*sel[i] <= M
         for (i in polynomials.indices) {
-            val poly = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly()
             val ubMonos = listOf(resultMon) +
-                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mD, selectorVars[i])
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(ubMonos, -poly.constant),
-                LinearPolynomial(emptyList(), mD), Comparison.LE)
+                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(mF, selectorVars[i])
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(ubMonos, -polyF.constant),
+                LinearPolynomial(emptyList(), mF), Comparison.LE)
         }
 
-        // sum(sel_i) = 1 (exactly one selector active)
+        // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += MathLinearInequality(
+        allConstraints += Flt64LinearInequality(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
-        return addConstraints(model, allConstraints) ?: ok
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
     }
 
     companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): MaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MaxFunction(polynomials, bigM, name, displayName)
+
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
@@ -116,11 +113,6 @@ class MaxFunction<T : Field<T>>(
             displayName: String? = null
         ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, name, displayName)
 
-        /**
-         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
-         * Each symbol is converted to a single-term polynomial.
-         * Parameter named 'polynomials' to match callers using named arguments.
-         */
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
@@ -128,9 +120,9 @@ class MaxFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             MaxFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName
@@ -141,20 +133,13 @@ class MaxFunction<T : Field<T>>(
 
 // ========== Min Function ==========
 
-/**
- * Min function: result = min(polynomials[0], polynomials[1], ...).
- *
- * Creates a continuous result variable and binary selector variables.
- * Uses Big-M method to enforce that result <= each polynomial and
- * result >= polynomial_i - M*(1 - selector_i).
- */
-class MinFunction<T : Field<T>>(
-    val polynomials: List<LinearPolynomial<T>>,
-    bigM: T? = null,
-    override var name: String,
+class MinFunction<V>(
+    val polynomials: List<LinearPolynomial<V>>,
+    bigM: V? = null,
+    override var name: String = "min",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
-    private val bigM: T = bigM ?: Flt64(BIG_M_DEFAULT) as T
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
     private val n = polynomials.size
 
     init {
@@ -167,15 +152,11 @@ class MinFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        var minVal: T? = null
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        var minVal: V? = null
         var minValD: Double = Double.POSITIVE_INFINITY
         for (poly in polynomials) {
-            val v = poly.evaluate(values) ?: return null
+            val v = poly.evaluateWith(values) ?: return null
             val vD = v.asFlt64().toDouble()
             if (minVal == null || vD < minValD) {
                 minVal = v
@@ -185,48 +166,56 @@ class MinFunction<T : Field<T>>(
         return minVal
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
         }
 
         val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val allConstraints = mutableListOf<MathLinearInequality>()
+        val mF = bigM.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
 
-        // For each polynomial: result <= poly (upper bound)
+        // result <= poly[i] for each i
         for (i in polynomials.indices) {
-            val poly = polynomials[i].asFlt64Poly()
-            val ubMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(ubMonos, -poly.constant),
+            val polyF = polynomials[i].asFlt64Poly()
+            val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(ubMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
         }
 
-        // For each polynomial: result - poly >= -M*(1 - sel_i)
-        // => result - poly + M*sel_i >= 0
-        val mD = bigM.asFlt64()
+        // result - poly[i] + M*sel[i] >= 0
         for (i in polynomials.indices) {
-            val poly = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly()
             val lbMonos = listOf(resultMon) +
-                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mD, selectorVars[i])
-            allConstraints += MathLinearInequality(
-                LinearPolynomial(lbMonos, -poly.constant),
+                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(mF, selectorVars[i])
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
 
-        // sum(sel_i) = 1 (exactly one selector active)
+        // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += MathLinearInequality(
+        allConstraints += Flt64LinearInequality(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
-        return addConstraints(model, allConstraints) ?: ok
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
     }
 
     companion object {
+        operator fun <V> invoke(
+            polynomials: List<LinearPolynomial<V>>,
+            bigM: V? = null,
+            name: String,
+            displayName: String? = null
+        ): MinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            MinFunction(polynomials, bigM, name, displayName)
+
         operator fun invoke(
             polynomials: List<LinearPolynomial<Flt64>>,
             bigM: Flt64? = null,
@@ -234,9 +223,6 @@ class MinFunction<T : Field<T>>(
             displayName: String? = null
         ): MinFunction<Flt64> = MinFunction(polynomials, bigM, name, displayName)
 
-        /**
-         * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
-         */
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
@@ -244,9 +230,9 @@ class MinFunction<T : Field<T>>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             MinFunction(
-                polynomials = polynomials.map { it.asMathLinearPolynomial() },
+                polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 name = name,
                 displayName = displayName

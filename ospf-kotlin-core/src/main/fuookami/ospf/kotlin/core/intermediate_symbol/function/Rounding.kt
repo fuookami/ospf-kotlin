@@ -1,18 +1,18 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
-import fuookami.ospf.kotlin.core.variable.URealVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -21,184 +21,137 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 
 /**
- * Rounding function symbol: `y = round(x / d)` where `x` is a LinearPolynomial.
+ * Rounding function: y = round(x).
  *
- * Decomposition:
- * - Create helper variables: `q` (IntVar for quotient) and `r` (URealVar for remainder, -d/2 <= r < d/2)
- * - ConstraintFlt64: `x = d * q + r`
- * - The round result is `q`
- *
- * Note: Since URealVar is non-negative, we use two remainder variables or shift the
- * remainder range. Here we use `r >= 0` with `r < d` and interpret:
- * - If r < d/2: q = floor(x/d) = round(x/d)
- * - If r >= d/2: q = floor(x/d) but we need q+1 for rounding
- *
- * A simpler approach: use `x = d*q + r` with `0 <= r < d`, then the rounding
- * is `q` when `r < d/2` and `q+1` when `r >= d/2`. For MILP, we can add a binary
- * variable to handle the rounding threshold.
- *
- * @param x the input linear polynomial
- * @param d the divisor (default 1)
- * @param name unique name for this function
- * @param displayName optional human-readable display name
+ * Uses integer variable k and binary r to handle the 0.5 case.
  */
-class RoundingFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
-    val d: Flt64 = Flt64.one,
-    override var name: String,
+class RoundingFunction<V>(
+    val x: LinearPolynomial<V>,
+    bigM: V? = null,
+    override var name: String = "round",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
 
-    private val qVar: AbstractVariableItem<*, *> by lazy { IntVar("${name}_q") }
-    private val rVar: AbstractVariableItem<*, *> by lazy { URealVar("${name}_r") }
-    private val bVar: AbstractVariableItem<*, *> by lazy { BinVar("${name}_b") }
+    val kVar: AbstractVariableItem<*, *> = IntVar("${name}_k")
+    val rVar: AbstractVariableItem<*, *> = BinVar("${name}_r")
+    val bVar: AbstractVariableItem<*, *> = BinVar("${name}_b")
+    val resultVar: AbstractVariableItem<*, *> = IntVar("${name}_round")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(qVar, rVar, bVar)
+        get() = listOf(kVar, rVar, bVar, resultVar)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    /**
-     * Linear polynomial representing the quotient (round result): `q + b`.
-     * Exposed for framework reference (e.g. in objectives).
-     * When r < d/2, b=0 so result=q. When r >= d/2, b=1 so result=q+1.
-     */
-    val result: LinearPolynomial<T> by lazy {
-        LinearPolynomial(
-            listOf(
-                LinearMonomial(oneOf<T>(), qVar),
-                LinearMonomial(oneOf<T>(), bVar)
-            ),
-            zeroOf<T>()
-        )
-    }
-
-    /**
-     * Linear polynomial representing the remainder: `r`.
-     * Exposed for framework reference.
-     */
-    val r: LinearPolynomial<T> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<T>(), rVar)), zeroOf<T>())
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
-        val xValue = x.evaluate(values) ?: return null
-        val doubleVal = xValue.asFlt64().toDouble()
-        val dVal = d.toDouble()
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val xVal = x.evaluateWith(values) ?: return null
         @Suppress("UNCHECKED_CAST")
-        return Flt64(kotlin.math.round(doubleVal / dVal)) as T
+        return Flt64(kotlin.math.round(xVal.asFlt64().toDouble())) as V
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        // Add helper variables to the model
-        when (val result = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
 
-        val xPoly = x.asFlt64Poly()
-        val dVal = d
-        val halfD = dVal / Flt64(2.0)
-        val mVal = Flt64(1e6)
+        val mF = bigM.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
-        // ConstraintFlt64: x = d * q + r  =>  x eq (d*q + r)
-        val dqPoly = LinearPolynomial(listOf(LinearMonomial(dVal, qVar)), Flt64.zero)
-        val rPoly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rhs = LinearPolynomial(dqPoly.monomials + rPoly.monomials, dqPoly.constant + rPoly.constant)
-        val eqConstraint = MathLinearInequality(xPoly, rhs, Comparison.EQ, "${name}_div_eq")
-        when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // k = floor(x), same as FloorFunction constraints
+        // k <= x
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_k_lb")
 
-        // Bound constraints on remainder: 0 <= r < d
-        // r >= 0 (URealVar is already non-negative by default)
-        val rLower = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rLowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        val rLowerConstraint = MathLinearInequality(rLower, rLowerRhs, Comparison.GE, "${name}_r_ge_0")
-        when (val result = model.addConstraint(relation = rLowerConstraint, name = rLowerConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // x < k + 1 => x <= k + 1 - eps
+        val eps = Flt64(NONZERO_TOLERANCE)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.LE, "${name}_round_k_ub")
 
-        // r <= d (upper bound)
-        val rUpper = LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero)
-        val rUpperRhs = LinearPolynomial(emptyList(), dVal)
-        val rUpperConstraint = MathLinearInequality(rUpper, rUpperRhs, Comparison.LE, "${name}_r_le_d")
-        when (val result = model.addConstraint(relation = rUpperConstraint, name = rUpperConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // b = x - k (fractional part)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, bVar),
+                LinearMonomial(Flt64.one, kVar)
+            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
+                -xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_decompose")
 
-        // Rounding logic: b=1 when r >= d/2, b=0 when r < d/2
-        // Use Big-M to link b with the rounding threshold:
-        // r >= d/2 - M*(1-b)   => if b=1: r >= d/2; if b=0: r >= d/2 - M (no constraint)
-        // r <= d/2 + M*b - eps  => if b=0: r <= d/2 - eps; if b=1: r <= d/2 + M (no constraint)
+        // r = 1 if b >= 0.5 (round up)
+        // b >= 0.5*r
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, bVar),
+                LinearMonomial(-Flt64(0.5), rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_r_lb")
 
-        // r >= d/2 - M*(1-b)  =>  r + M*(1-b) >= d/2  =>  r - M*b >= d/2 - M
-        val rGeHalfLhs = LinearPolynomial(
-            listOf(
-                LinearMonomial(Flt64.one, rVar),
-                LinearMonomial(-mVal, bVar)
-            ),
-            Flt64.zero
-        )
-        val rGeHalfRhs = LinearPolynomial(emptyList(), halfD - mVal)
-        val rGeHalfConstraint = MathLinearInequality(rGeHalfLhs, rGeHalfRhs, Comparison.GE, "${name}_r_ge_half_d")
-        when (val result = model.addConstraint(relation = rGeHalfConstraint, name = rGeHalfConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // b <= 0.5 + 0.5*(1-r) = 1 - 0.5*r => b + 0.5*r <= 1... wait
+        // b <= 0.5 + (1-r)*0.5 + r*0 = 0.5 + 0.5 - 0.5*r = 1 - 0.5*r
+        // Simplified: if b < 0.5 then r = 0, if b >= 0.5 then r = 1
+        // b - 0.5*r <= 1 - r ... no.
+        // b <= 0.5 + M*(1-r) => b + M*r <= M + 0.5
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, bVar),
+                LinearMonomial(mF, rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), mF + Flt64(0.5)), Comparison.LE, "${name}_round_r_ub")
 
-        // r <= d/2 + M*b - eps  =>  r - M*b <= d/2 - eps
-        val rLeHalfLhs = LinearPolynomial(
-            listOf(
-                LinearMonomial(Flt64.one, rVar),
-                LinearMonomial(-mVal, bVar)
-            ),
-            Flt64.zero
-        )
-        val rLeHalfRhs = LinearPolynomial(emptyList(), halfD - Flt64(1e-6))
-        val rLeHalfConstraint = MathLinearInequality(rLeHalfLhs, rLeHalfRhs, Comparison.LE, "${name}_r_le_half_d")
-        when (val result = model.addConstraint(relation = rLeHalfConstraint, name = rLeHalfConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
+        // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, bVar),
+                LinearMonomial(-mF, rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64(0.5) - mF), Comparison.GE, "${name}_round_r_lb2")
 
+        // result = k + r
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, resultVar),
+                LinearMonomial(-Flt64.one, kVar),
+                LinearMonomial(-Flt64.one, rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
 
     companion object {
-        operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            d: Flt64 = Flt64.one,
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            bigM: V? = null,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(
-            x = x,
-            d = d,
-            name = name,
-            displayName = displayName
-        )
+        ): RoundingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            RoundingFunction(x, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
-            d: Flt64 = Flt64.one,
+            x: LinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            d = d,
-            name = name,
-            displayName = displayName
+        ): RoundingFunction<Flt64> = RoundingFunction(x, bigM, name = name, displayName = displayName)
+
+        @JvmStatic
+        @JvmName("fromLinearPolynomial")
+        fun fromLinearPolynomial(
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            bigM: Flt64? = null,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            RoundingFunction<Flt64>(
+                x = x.toLinearPolynomial(),
+                bigM = bigM,
+                name = name,
+                displayName = displayName
+            )
         )
     }
 }

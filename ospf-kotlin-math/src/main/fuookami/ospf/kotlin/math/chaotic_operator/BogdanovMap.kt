@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Bogdanov 映射
  * Bogdanov Map
  *
@@ -19,7 +19,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
@@ -28,17 +30,25 @@ import kotlin.random.Random
  * Bogdanov 映射
  * Bogdanov Map
  */
-data class BogdanovMap(
-    val epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val mu: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
-) : Extractor<Point2, Point2> {
-    override operator fun invoke(x: Point2): Point2 {
-        val temp = x[1] + epsilon * x[1] + kappa * x[0] * (Flt64.one - x[0]) + mu * x[0] * x[1]
-        return point2(
-            x[0] + temp,
-            temp
-        )
+data class BogdanovMap<V : FloatingNumber<V>>(
+    val epsilon: V,
+    val kappa: V,
+    val mu: V
+) : Extractor<Point<Dim2, V>, Point<Dim2, V>> {
+    override operator fun invoke(x: Point<Dim2, V>): Point<Dim2, V> {
+        val v = epsilon
+        val temp = x[1] + epsilon * x[1] + kappa * x[0] * (v.constants.one - x[0]) + mu * x[0] * x[1]
+        return Point<Dim2, V>(listOf(x[0] + temp, temp), Dim2)
+    }
+
+    companion object {
+        operator fun invoke(
+            epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            mu: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
+        ): BogdanovMap<Flt64> {
+            return BogdanovMap(epsilon, kappa, mu)
+        }
     }
 }
 
@@ -47,7 +57,7 @@ data class BogdanovMap(
  * Bogdanov Map Generator
  */
 data class BogdanovMapGenerator(
-    val bogdanovMap: BogdanovMap = BogdanovMap(),
+    val bogdanovMap: BogdanovMap<Flt64> = BogdanovMap(),
     private var _x: Point2 = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -82,9 +92,3 @@ data class BogdanovMapGenerator(
         return x
     }
 }
-
-
-
-
-
-

@@ -2,10 +2,11 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -35,14 +36,14 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-class SameAsFunction<T : Field<T>>(
+class SameAsFunction<V>(
     val inequalities: List<LinearInequality<Flt64>>,
     val constraint: Boolean = true,
     val epsilon: Flt64 = Flt64(1e-6),
     val m: Flt64 = Flt64(1e6),
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
 
     init {
         require(inequalities.isNotEmpty()) { "SameAsFunction requires at least one inequality" }
@@ -60,12 +61,8 @@ class SameAsFunction<T : Field<T>>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + satisfactionFlags
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
     @Suppress("UNCHECKED_CAST")
-    override fun evaluate(values: Map<Symbol, T>): T? {
+    override fun evaluate(values: Map<Symbol, V>): V? {
         val flt64Values = values.mapValues { it.value.asFlt64() }
         val flags = mutableListOf<Boolean>()
         for (ineq in inequalities) {
@@ -81,11 +78,11 @@ class SameAsFunction<T : Field<T>>(
             flags += satisfied
         }
         val allSame = flags.all { it == flags[0] }
-        return if (allSame) oneOf<T>() else zeroOf<T>()
+        return if (allSame) oneOf<V>() else zeroOf<V>()
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
-        when (val r = registerAuxiliaryTokens(model)) {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
+        when (val r = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
@@ -96,7 +93,7 @@ class SameAsFunction<T : Field<T>>(
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
             allConstraints += simpleIndicatorConstraints(
-                inequalities[i], satisfactionFlags[i], m, "${name}_ineq_${i}")
+                inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, "${name}_ineq_${i}")
         }
 
         // Link constraints: enforce all satisfaction flags are equal

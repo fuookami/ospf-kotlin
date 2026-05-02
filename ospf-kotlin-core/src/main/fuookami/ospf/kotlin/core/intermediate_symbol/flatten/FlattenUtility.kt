@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 /**
  * Flatten Utility - Unified flatten operations for expression system
@@ -26,7 +26,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadr
  * @return Merged LinearFlattenDataFlt64 with combined coefficients
  */
 internal fun mergeLinearMonomials(
-    monomials: List<UtilsLinearMonomial<Flt64>>,
+    monomials: List<LinearMonomial<Flt64>>,
     constant: Flt64
 ): LinearFlattenDataFlt64 {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -42,7 +42,7 @@ internal fun mergeLinearMonomials(
     return LinearFlattenDataFlt64(
         monomials = mergedMonomials
             .filter { it.value neq Flt64.zero }
-            .map { UtilsLinearMonomial(it.value, it.key) },
+            .map { LinearMonomial(it.value, it.key) },
         constant = totalConstant
     )
 }
@@ -68,7 +68,7 @@ internal fun mergeLinearFlattenDataFlt64(
  * @return Merged QuadraticFlattenDataFlt64 with combined coefficients
  */
 internal fun mergeQuadraticMonomials(
-    monomials: List<UtilsQuadraticMonomial<Flt64>>,
+    monomials: List<QuadraticMonomial<Flt64>>,
     constant: Flt64
 ): QuadraticFlattenDataFlt64 {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
@@ -98,7 +98,7 @@ internal fun mergeQuadraticMonomials(
     return QuadraticFlattenDataFlt64(
         monomials = mergedMonomials
             .filter { it.value neq Flt64.zero }
-            .map { UtilsQuadraticMonomial(it.value, it.key.first, it.key.second) },
+            .map { QuadraticMonomial(it.value, it.key.first, it.key.second) },
         constant = totalConstant
     )
 }
@@ -127,12 +127,12 @@ internal fun multiplyLinear(
     lhs: LinearFlattenDataFlt64,
     rhs: LinearFlattenDataFlt64
 ): QuadraticFlattenDataFlt64 {
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // m1 * m2 terms (quadratic)
     for (m1 in lhs.monomials) {
         for (m2 in rhs.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = m1.coefficient * m2.coefficient,
                 symbol1 = m1.symbol as AbstractVariableItem<*, *>,
                 symbol2 = m2.symbol as AbstractVariableItem<*, *>
@@ -143,7 +143,7 @@ internal fun multiplyLinear(
     // m1 * c2 terms (linear from lhs)
     if (rhs.constant neq Flt64.zero) {
         for (m1 in lhs.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = m1.coefficient * rhs.constant,
                 symbol1 = m1.symbol as AbstractVariableItem<*, *>,
                 symbol2 = null
@@ -154,7 +154,7 @@ internal fun multiplyLinear(
     // c1 * m2 terms (linear from rhs)
     if (lhs.constant neq Flt64.zero) {
         for (m2 in rhs.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = lhs.constant * m2.coefficient,
                 symbol1 = m2.symbol as AbstractVariableItem<*, *>,
                 symbol2 = null
@@ -174,7 +174,7 @@ internal fun multiplyLinearQuadratic(
     linear: LinearFlattenDataFlt64,
     quadratic: QuadraticFlattenDataFlt64
 ): QuadraticFlattenDataFlt64 {
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // Linear monomials * Quadratic monomials -> Quadratic (cubic would require higher order)
     // Since we only support quadratic, this is handled differently
@@ -189,7 +189,7 @@ internal fun multiplyLinearQuadratic(
     // Linear monomials * Quadratic constant -> Linear
     if (quadratic.constant neq Flt64.zero) {
         for (lm in linear.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = lm.coefficient * quadratic.constant,
                 symbol1 = lm.symbol as AbstractVariableItem<*, *>,
                 symbol2 = null
@@ -200,7 +200,7 @@ internal fun multiplyLinearQuadratic(
     // Linear constant * Quadratic monomials -> Quadratic
     if (linear.constant neq Flt64.zero) {
         for (qm in quadratic.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = linear.constant * qm.coefficient,
                 symbol1 = qm.symbol1 as AbstractVariableItem<*, *>,
                 symbol2 = qm.symbol2 as AbstractVariableItem<*, *>?
@@ -222,12 +222,12 @@ internal fun multiplyQuadratic(
 ): QuadraticFlattenDataFlt64 {
     // Quadratic * Quadratic is not fully supported
     // Only handle constant multiplication
-    val monomials = ArrayList<UtilsQuadraticMonomial<Flt64>>()
+    val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // lhs monomials * rhs constant
     if (rhs.constant neq Flt64.zero) {
         for (m in lhs.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = m.coefficient * rhs.constant,
                 symbol1 = m.symbol1 as AbstractVariableItem<*, *>,
                 symbol2 = m.symbol2 as AbstractVariableItem<*, *>?
@@ -238,7 +238,7 @@ internal fun multiplyQuadratic(
     // lhs constant * rhs monomials
     if (lhs.constant neq Flt64.zero) {
         for (m in rhs.monomials) {
-            monomials.add(UtilsQuadraticMonomial(
+            monomials.add(QuadraticMonomial(
                 coefficient = lhs.constant * m.coefficient,
                 symbol1 = m.symbol1 as AbstractVariableItem<*, *>,
                 symbol2 = m.symbol2 as AbstractVariableItem<*, *>?

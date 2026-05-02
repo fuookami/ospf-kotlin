@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -149,9 +150,11 @@ class PreciseAssignment(
                 name = "u",
                 shape = Shape2(bins.size, layers.size)
             ) { _, v ->
-                BinaryzationFunction(
-                    input = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
-                    name = "u_$v",
+                LinearFunctionSymbolAdapter(
+                    BinaryzationFunction(
+                        polynomial = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
+                        name = "u_$v",
+                    )
                 )
             }
         }
@@ -172,9 +175,11 @@ class PreciseAssignment(
                 name = "v",
                 shape = Shape1(bins.size)
             ) { i, _ ->
-                BinaryzationFunction(
-                    input = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
-                    name = "v_$i",
+                LinearFunctionSymbolAdapter(
+                    BinaryzationFunction(
+                        polynomial = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
+                        name = "v_$i",
+                    )
                 )
             }
         }

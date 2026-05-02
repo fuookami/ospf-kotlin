@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Coullet 吸引子
  * Coullet Attractor
  *
@@ -19,40 +19,42 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Point3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
-/**
- * Coullet 吸引子
- * Coullet Attractor
- */
-data class CoulletAttractor(
-    val alpha: Flt64 = Flt64(0.8),
-    val beta: Flt64 = Flt64(-1.1),
-    val delta: Flt64 = Flt64(-1.0),
-    val zeta: Flt64 = Flt64(-0.45),
-    val h: Flt64 = Flt64(0.01)
-) : Extractor<Point3, Point3> {
-    override operator fun invoke(x: Point3): Point3 {
+data class CoulletAttractor<V : FloatingNumber<V>>(
+    val alpha: V,
+    val beta: V,
+    val delta: V,
+    val zeta: V,
+    val h: V
+) : Extractor<Point<Dim3, V>, Point<Dim3, V>> {
+    override operator fun invoke(x: Point<Dim3, V>): Point<Dim3, V> {
         val dx = x[1]
         val dy = x[2]
         val dz = alpha * x[0] + beta * x[1] + delta * x[2] + delta * x[0].cub()
-        return point3(
-            x[0] + h * dx,
-            x[1] + h * dy,
-            x[2] + h * dz
-        )
+        return Point<Dim3, V>(listOf(x[0] + h * dx, x[1] + h * dy, x[2] + h * dz), Dim3)
+    }
+
+    companion object {
+        operator fun invoke(
+            alpha: Flt64 = Flt64(0.8),
+            beta: Flt64 = Flt64(-1.1),
+            delta: Flt64 = Flt64(-1.0),
+            zeta: Flt64 = Flt64(-0.45),
+            h: Flt64 = Flt64(0.01)
+        ): CoulletAttractor<Flt64> {
+            return CoulletAttractor(alpha, beta, delta, zeta, h)
+        }
     }
 }
 
-/**
- * Coullet 吸引子生成器
- * Coullet Attractor Generator
- */
 data class CoulletAttractorGenerator(
-    val coulletAttractor: CoulletAttractor = CoulletAttractor(),
+    val coulletAttractor: CoulletAttractor<Flt64> = CoulletAttractor(),
     private var _x: Point3 = point3(
         Random.nextFlt64(Flt64.zero, Flt64.one),
         Random.nextFlt64(Flt64.zero, Flt64.one),
@@ -73,13 +75,7 @@ data class CoulletAttractorGenerator(
             )
         ): CoulletAttractorGenerator {
             return CoulletAttractorGenerator(
-                CoulletAttractor(
-                    alpha = alpha,
-                    beta = beta,
-                    delta = delta,
-                    zeta = zeta,
-                    h = h
-                ),
+                CoulletAttractor(alpha, beta, delta, zeta, h),
                 x
             )
         }
@@ -93,9 +89,3 @@ data class CoulletAttractorGenerator(
         return x
     }
 }
-
-
-
-
-
-

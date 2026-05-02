@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
+package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
@@ -7,8 +7,8 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
@@ -30,11 +30,11 @@ class LinearPolynomialBaselineTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val polynomial = MathLinearPolynomial(
+        val polynomial = LinearPolynomial(
             monomials = listOf(
-                MathLinearMonomial(Flt64(2.0), x),
-                MathLinearMonomial(Flt64(-1.0), y),
-                MathLinearMonomial(Flt64.one, x)
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(-1.0), y),
+                LinearMonomial(Flt64.one, x)
             ),
             constant = Flt64(3.0)
         )
@@ -52,10 +52,10 @@ class LinearPolynomialBaselineTest {
     fun evaluate_shouldRespectZeroIfNoneSwitch() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = MathLinearPolynomial(
+        val polynomial = LinearPolynomial(
             monomials = listOf(
-                MathLinearMonomial(Flt64(2.0), x),
-                MathLinearMonomial(Flt64.one, y)
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64.one, y)
             ),
             constant = Flt64.one
         )
@@ -82,8 +82,8 @@ class LinearPolynomialBaselineTest {
         tokenTable.setSolution(mapOf(x to Flt64(9.0)))
 
         val expression = LinearExpressionSymbol(
-            polynomial = MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64(2.0), x)),
+            polynomial = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr"
@@ -120,8 +120,8 @@ class LinearPolynomialBaselineTest {
         val results = listOf(Flt64(4.0))
 
         val expression = LinearExpressionSymbol(
-            polynomial = MathLinearPolynomial(
-                monomials = listOf(MathLinearMonomial(Flt64(2.0), x)),
+            polynomial = LinearPolynomial(
+                monomials = listOf(LinearMonomial(Flt64(2.0), x)),
                 constant = Flt64.one
             ),
             name = "expr_results"
@@ -152,9 +152,9 @@ class LinearPolynomialBaselineTest {
 
         val flattenData = LinearFlattenDataFlt64(
             monomials = listOf(
-                MathLinearMonomial(Flt64.one, x),
-                MathLinearMonomial(Flt64(2.0), x),
-                MathLinearMonomial(Flt64(-3.0), y)
+                LinearMonomial(Flt64.one, x),
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(-3.0), y)
             ),
             constant = Flt64(5.0)
         )

@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.token
 
@@ -10,20 +10,20 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import java.util.Collections
 import java.util.WeakHashMap
 
 data class LinearFlattenData<T : Ring<T>>(
-    val monomials: List<UtilsLinearMonomial<T>>,
+    val monomials: List<LinearMonomial<T>>,
     val constant: T
 )
 
 typealias LinearFlattenDataFlt64 = LinearFlattenData<Flt64>
 
 data class QuadraticFlattenData<T : Ring<T>>(
-    val monomials: List<UtilsQuadraticMonomial<T>>,
+    val monomials: List<QuadraticMonomial<T>>,
     val constant: T
 )
 
@@ -283,7 +283,7 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
 
 internal fun LinearFlattenDataFlt64.toQuadraticFlattenData(): QuadraticFlattenDataFlt64 {
     val monomials = this.monomials.map {
-        UtilsQuadraticMonomial(
+        QuadraticMonomial(
             coefficient = it.coefficient,
             symbol1 = it.symbol as AbstractVariableItem<*, *>,
             symbol2 = null

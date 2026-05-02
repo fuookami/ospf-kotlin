@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Bouali 吸引子
  * Bouali Attractor
  *
@@ -87,9 +87,3 @@ data class BoualiAttractorGenerator(
         return x
     }
 }
-
-
-
-
-
-

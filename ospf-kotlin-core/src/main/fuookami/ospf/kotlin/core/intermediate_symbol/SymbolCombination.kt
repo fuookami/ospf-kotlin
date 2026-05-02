@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
@@ -254,7 +254,7 @@ data object QuadraticIntermediateSymbols {
 fun <T> map(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
 ): LinearExpressionSymbols1<Flt64> {
     val l = objs.toList()
@@ -272,7 +272,7 @@ fun <T> map(
 fun <T> flatMap(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
 ): LinearExpressionSymbols1<Flt64> {
     val l = objs.toList()
@@ -291,7 +291,7 @@ fun <T1, T2> map(
     name: String,
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
-    ctor: (T1, T2) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
 ): LinearExpressionSymbols2<Flt64> {
     val l1 = objs1.toList()
@@ -311,7 +311,7 @@ fun <T1, T2> flatMap(
     name: String,
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
-    ctor: (T1, T2) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
 ): LinearExpressionSymbols2<Flt64> {
     val l1 = objs1.toList()
@@ -332,7 +332,7 @@ fun <T1, T2, T3> map(
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
-    ctor: (T1, T2, T3) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
 ): LinearExpressionSymbols3<Flt64> {
     val l1 = objs1.toList()
@@ -360,7 +360,7 @@ fun <T1, T2, T3> flatMap(
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
-    ctor: (T1, T2, T3) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
 ): LinearExpressionSymbols3<Flt64> {
     val l1 = objs1.toList()
@@ -389,7 +389,7 @@ fun <T1, T2, T3, T4> map(
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
     objs4: Iterable<T4>,
-    ctor: (T1, T2, T3, T4) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3, T4) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
 ): LinearExpressionSymbols4<Flt64> {
@@ -421,7 +421,7 @@ fun <T1, T2, T3, T4> flatMap(
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
     objs4: Iterable<T4>,
-    ctor: (T1, T2, T3, T4) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3, T4) -> LinearPolynomial<Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
 ): LinearExpressionSymbols4<Flt64> {
@@ -451,7 +451,7 @@ fun <T1, T2, T3, T4> flatMap(
 fun map(
     name: String,
     objs: Iterable<Iterable<Any>>,
-    ctor: (List<Any>) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (List<Any>) -> LinearPolynomial<Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
 ): DynLinearExpressionSymbols<Flt64> {
     val ls = objs.map { it.toList() }
@@ -470,7 +470,7 @@ fun map(
 fun flatMap(
     name: String,
     objs: List<Iterable<Any>>,
-    ctor: (List<Any>) -> UtilsLinearPolynomial<Flt64>,
+    ctor: (List<Any>) -> LinearPolynomial<Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
 ): DynLinearExpressionSymbols<Flt64> {
     val ls = objs.map { it.toList() }

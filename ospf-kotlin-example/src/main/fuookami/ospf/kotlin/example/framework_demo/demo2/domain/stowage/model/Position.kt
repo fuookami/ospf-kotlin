@@ -1,9 +1,9 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.toUInt64 as toMathUInt64
+import fuookami.ospf.kotlin.math.algebra.number.toUInt64
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*

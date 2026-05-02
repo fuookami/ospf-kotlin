@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.mindopt
+package fuookami.ospf.kotlin.core.solver.mindopt
 
 import com.alibaba.damo.mindopt.MDO
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -460,8 +460,8 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
                                 result = result.value,
                                 dualSolution = tidyDualSolution,
-                                linearCuts = cuts.filterIsInstance<MathLinearInequality>(),
-                                quadraticCuts = cuts.filterIsInstance<MathQuadraticInequality>()
+                                linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                             )
                         )
                     }
@@ -488,8 +488,8 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
-                                    linearCuts = cuts.filterIsInstance<MathLinearInequality>(),
-                                    quadraticCuts = cuts.filterIsInstance<MathQuadraticInequality>()
+                                    linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                    quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                                 )
                             )
                         } else {

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
@@ -8,13 +8,15 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as UtilsLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as UtilsQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as UtilsLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as UtilsQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality as MathLinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality as MathQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -87,8 +89,8 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsLinearPolynomial(
-                monomials = variables.map { UtilsLinearMonomial(Flt64.one, it) }.toList(),
+            polynomial = LinearPolynomial(
+                monomials = variables.map { LinearMonomial(Flt64.one, it) }.toList(),
                 constant = Flt64.zero
             ),
             group = this@MetaConstraintGroup,
@@ -109,8 +111,8 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsLinearPolynomial(
-                monomials = symbols.map { UtilsLinearMonomial(Flt64.one, it) }.toList(),
+            polynomial = LinearPolynomial(
+                monomials = symbols.map { LinearMonomial(Flt64.one, it) }.toList(),
                 constant = Flt64.zero
             ),
             group = this@MetaConstraintGroup,
@@ -149,7 +151,7 @@ interface MetaConstraintGroup {
         args: Any? = null
     ): Try {
         return partition(
-            polynomial = UtilsQuadraticPolynomial(
+            polynomial = QuadraticPolynomial(
                 monomials = symbols.flatMap { it.toMathQuadraticPolynomial().monomials }.toList(),
                 constant = Flt64.zero
             ),
@@ -167,7 +169,7 @@ interface MetaConstraintGroup {
      * Add constraint using math LinearInequality
      */
     fun AbstractLinearMetaModelFlt64.addConstraint(
-        relation: MathLinearInequality,
+        relation: Flt64LinearInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -189,7 +191,7 @@ interface MetaConstraintGroup {
      * Add constraint using math QuadraticInequality
      */
     fun AbstractQuadraticMetaModelFlt64.addConstraint(
-        relation: MathQuadraticInequality,
+        relation: QuadraticInequality,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -230,27 +232,26 @@ interface MathConstraint {
 }
 
 /**
- * LinearInequalityConstraint - ConstraintFlt64 using math LinearInequality
- *
- * This type uses LinearFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
+ * LinearInequalityConstraint - Constraint using math LinearInequality<V>
  */
-data class LinearInequalityConstraint(
-    val inequality: MathLinearInequality,
+data class LinearInequalityConstraint<V>(
+    val inequality: LinearInequality<V>,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
     override val priority: Int? = null
-) : MathConstraint {
-    val flattenData: LinearFlattenDataFlt64 get() = inequality.flattenData
+) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    val flattenData: LinearFlattenDataFlt64 get() = (inequality as LinearInequality<Flt64>).flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
-    override fun <V> isTrue(
+    override fun <V1> isTrue(
         solution: List<Flt64>,
-        tokenTable: AbstractTokenTable<V>,
+        tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
-    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+    ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
         val lhsValue = evaluateFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -262,27 +263,26 @@ data class LinearInequalityConstraint(
 }
 
 /**
- * QuadraticInequalityConstraint - ConstraintFlt64 using math QuadraticInequality
- *
- * This type uses QuadraticFlattenDataFlt64 directly, avoiding dependency on frontend/inequality.
+ * QuadraticInequalityConstraint - Constraint using math QuadraticInequalityOf<V>
  */
-data class QuadraticInequalityConstraint(
-    val inequality: MathQuadraticInequality,
+data class QuadraticInequalityConstraint<V>(
+    val inequality: QuadraticInequalityOf<V>,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
     override val priority: Int? = null
-) : MathConstraint {
-    val flattenData: QuadraticFlattenDataFlt64 get() = inequality.flattenData
+) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("UNCHECKED_CAST")
+    val flattenData: QuadraticFlattenDataFlt64 get() = (inequality as QuadraticInequalityOf<Flt64>).flattenData
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
-    override fun <V> isTrue(
+    override fun <V1> isTrue(
         solution: List<Flt64>,
-        tokenTable: AbstractTokenTable<V>,
+        tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
-    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+    ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
         val lhsValue = evaluateQuadraticFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
@@ -295,18 +295,6 @@ data class QuadraticInequalityConstraint(
 
 // ========== NEW FlattenData-based SubObject Types ==========
 
-/**
- * LinearFlattenSubObject - SubObject using LinearFlattenDataFlt64 (new API)
- *
- * This type uses LinearFlattenDataFlt64 directly for objective functions,
- * avoiding dependency on frontend/expression types.
- */
-data class LinearFlattenSubObject(
-    val category: ObjectCategory,
-    val flattenData: LinearFlattenDataFlt64,
-    val name: String = "",
-    val displayName: String? = null
-)
 
 /**
  * QuadraticFlattenSubObject - SubObject using QuadraticFlattenDataFlt64 (new API)

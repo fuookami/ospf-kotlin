@@ -1,4 +1,4 @@
-﻿/**
+/**
  * Arnold 舌
  * Arnold Tongue
  *
@@ -26,12 +26,24 @@ import kotlin.random.Random
  * Arnold 舌
  * Arnold Tongue
  */
-data class ArnoldTongue(
-    val omega: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-    val kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two),
-) : Extractor<Flt64, Flt64> {
-    override operator fun invoke(x: Flt64): Flt64 {
-        return x + omega - kappa / (Flt64.pi * Flt64.two) * (Flt64.pi * Flt64.two * x).sin()
+data class ArnoldTongue<V : FloatingNumber<V>>(
+    val omega: V,
+    val kappa: V
+) : Extractor<V, V> {
+    override operator fun invoke(x: V): V {
+        val v = omega
+        val pi2 = v.constants.pi * v.constants.two
+        @Suppress("UNCHECKED_CAST")
+        return x + omega - kappa / pi2 * (pi2 * x).sin() as V
+    }
+
+    companion object {
+        operator fun invoke(
+            omega: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
+            kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi * Flt64.two)
+        ): ArnoldTongue<Flt64> {
+            return ArnoldTongue(omega, kappa)
+        }
     }
 }
 
@@ -40,7 +52,7 @@ data class ArnoldTongue(
  * Arnold Tongue Generator
  */
 data class ArnoldTongueGenerator(
-    val arnoldTongue: ArnoldTongue = ArnoldTongue(),
+    val arnoldTongue: ArnoldTongue<Flt64> = ArnoldTongue(),
     private var _x: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
 ) : Generator<Flt64> {
     companion object {
@@ -64,10 +76,3 @@ data class ArnoldTongueGenerator(
         return x
     }
 }
-
-
-
-
-
-
-

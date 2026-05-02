@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfThenFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.geq
@@ -596,7 +597,7 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfFunction(
+                                IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
                                         lhsRange = estimateEndTime[task].range.range!!
@@ -641,7 +642,7 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfFunction(
+                                IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
                                         lhsRange = estimateEndTime[task].range.range!!
@@ -720,7 +721,7 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfFunction(
+                                IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
                                         lhsRange = estimateEndTime[task].range.range!!
@@ -765,7 +766,7 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfFunction(
+                                IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
                                         lhsRange = estimateEndTime[task].range.range!!

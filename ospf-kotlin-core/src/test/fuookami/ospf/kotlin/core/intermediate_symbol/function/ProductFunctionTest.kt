@@ -8,8 +8,8 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial as MathLinearMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial as MathLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -21,12 +21,12 @@ class ProductFunctionTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val left = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64.one, x)),
+        val left = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        val right = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64.one, y)),
+        val right = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, y)),
             constant = Flt64.zero
         )
 
@@ -59,12 +59,12 @@ class ProductFunctionTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val left = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64(2.0), x)),
+        val left = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64(2.0), x)),
             constant = Flt64(3.0)
         )
-        val right = MathLinearPolynomial(
-            monomials = listOf(MathLinearMonomial(Flt64(5.0), y)),
+        val right = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64(5.0), y)),
             constant = Flt64(7.0)
         )
 

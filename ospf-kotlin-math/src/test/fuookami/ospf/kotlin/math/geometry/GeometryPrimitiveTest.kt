@@ -81,7 +81,7 @@ class GeometryPrimitiveTest {
     fun circleConstructedByRadiusVectorShouldNormalizeDirection() {
         val circle = Circle2(
             center = point2(),
-            radius = vector2(Flt64(3.0), Flt64(4.0))
+            radiusVec = vector2(Flt64(3.0), Flt64(4.0))
         )
 
         assertTrue(circle.radius eq Flt64(5.0))

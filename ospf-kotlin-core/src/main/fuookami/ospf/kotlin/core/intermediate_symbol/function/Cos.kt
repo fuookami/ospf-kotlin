@@ -1,10 +1,11 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.math.algebra.concept.Field
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -24,43 +25,61 @@ import fuookami.ospf.kotlin.utils.functional.ok
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
-class CosFunction<T : Field<T>>(
-    val x: LinearPolynomial<T>,
+class CosFunction<V>(
+    val x: LinearPolynomial<V>,
     val samplingPoints: List<Point2>,
     override var name: String = "cos",
     override var displayName: String? = null
-) : MathFunctionSymbol<T> {
+) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
 
-    private val impl: UnivariateLinearPiecewiseFunction<T> = UnivariateLinearPiecewiseFunction(
-        x = x,
-        points = samplingPoints,
-        name = "${name}_impl",
-        displayName = displayName
-    )
+    private val impl: UnivariateLinearPiecewiseFunction<V> by lazy {
+        val breakpoints = samplingPoints.map { it[0] as V }
+        val slopes = mutableListOf<V>()
+        val intercepts = mutableListOf<V>()
+        for (i in 0 until samplingPoints.size - 1) {
+            val x0 = samplingPoints[i][0].toDouble()
+            val y0 = samplingPoints[i][1].toDouble()
+            val x1 = samplingPoints[i + 1][0].toDouble()
+            val y1 = samplingPoints[i + 1][1].toDouble()
+            @Suppress("UNCHECKED_CAST")
+            val slope = Flt64((y1 - y0) / (x1 - x0)) as V
+            @Suppress("UNCHECKED_CAST")
+            val intercept = Flt64(y0 - slope.asFlt64().toDouble() * x0) as V
+            slopes.add(slope)
+            intercepts.add(intercept)
+        }
+        UnivariateLinearPiecewiseFunction(
+            x = x,
+            breakpoints = breakpoints,
+            slopes = slopes,
+            intercepts = intercepts,
+            name = "${name}_impl",
+            displayName = displayName
+        )
+    }
 
-    val result: LinearPolynomial<T> by lazy { impl.result }
+    val result: LinearPolynomial<V> by lazy { impl.result }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = impl.helperVariables
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
-        return super.registerAuxiliaryTokens(tokens)
-    }
-
-    override fun evaluate(values: Map<Symbol, T>): T? {
+    override fun evaluate(values: Map<Symbol, V>): V? {
         return impl.evaluate(values)
     }
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         return impl.register(model)
     }
 
     companion object {
-        /**
-         * Generate standard sampling points for cos(x) over [-pi, pi].
-         *
-         * Points: (-pi, -1), (-pi/2, 0), (0, 1), (pi/2, 0), (pi, -1)
-         */
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            samplingPoints: List<Point2> = defaultPoints(),
+            name: String,
+            displayName: String? = null
+        ): CosFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            CosFunction(x = x, samplingPoints = samplingPoints, name = name, displayName = displayName)
+
         fun defaultPoints(): List<Point2> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)
@@ -73,9 +92,6 @@ class CosFunction<T : Field<T>>(
             )
         }
 
-        /**
-         * Factory for Flt64-typed cosine function.
-         */
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             name: String,
@@ -87,9 +103,6 @@ class CosFunction<T : Field<T>>(
             displayName = displayName
         )
 
-        /**
-         * Factory for Flt64-typed cosine function with LinearMonomial input.
-         */
         operator fun invoke(
             x: LinearMonomial<Flt64>,
             name: String,

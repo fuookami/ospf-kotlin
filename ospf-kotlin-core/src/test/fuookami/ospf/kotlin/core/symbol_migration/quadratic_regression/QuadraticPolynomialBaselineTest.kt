@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial as MathQuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial as MathQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
@@ -21,12 +21,12 @@ class QuadraticPolynomialBaselineTest {
     fun evaluate_shouldMatchCurrentQuadraticBehavior() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = MathQuadraticPolynomial(
+        val polynomial = QuadraticPolynomial(
             monomials = listOf(
-                MathQuadraticMonomial.quadratic(Flt64.one, x, x),
-                MathQuadraticMonomial.quadratic(Flt64.one, x, y),
-                MathQuadraticMonomial.quadratic(Flt64.one, y, x),
-                MathQuadraticMonomial.linear(Flt64(3.0), x)
+                QuadraticMonomial.quadratic(Flt64.one, x, x),
+                QuadraticMonomial.quadratic(Flt64.one, x, y),
+                QuadraticMonomial.quadratic(Flt64.one, y, x),
+                QuadraticMonomial.linear(Flt64(3.0), x)
             ),
             constant = Flt64(4.0)
         )
@@ -44,10 +44,10 @@ class QuadraticPolynomialBaselineTest {
     fun evaluate_shouldRespectZeroIfNoneSwitch() {
         val x = RealVar("x")
         val y = RealVar("y")
-        val polynomial = MathQuadraticPolynomial(
+        val polynomial = QuadraticPolynomial(
             monomials = listOf(
-                MathQuadraticMonomial.quadratic(Flt64.one, x, x),
-                MathQuadraticMonomial.quadratic(Flt64.one, y, y)
+                QuadraticMonomial.quadratic(Flt64.one, x, x),
+                QuadraticMonomial.quadratic(Flt64.one, y, y)
             ),
             constant = Flt64.one
         )
