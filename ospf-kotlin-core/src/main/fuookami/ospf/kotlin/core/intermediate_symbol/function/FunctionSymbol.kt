@@ -197,31 +197,31 @@ fun <V> LinearPolynomial<V>.evaluate(values: Map<Symbol, V>): V? where V : RealN
     return (sum ?: constant) as V
 }
 
-/** Internal helper: cast V to Flt64 for constraint generation. Only valid when V=Flt64. */
+/** Internal helper: cast V to Flt64 for constraint generation. Only valid when V=Flt64. @Deprecated Use IntoValue.fromValue instead */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> V.asFlt64(): Flt64 where V : RealNumber<V>, V : NumberField<V> = this as Flt64
 
-/** Internal helper: get zero for type V. */
+/** Internal helper: get zero for type V. @Deprecated Use IntoValue.zero instead */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> zeroOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.zero as V
 
-/** Internal helper: get one for type V. */
+/** Internal helper: get one for type V. @Deprecated Use IntoValue.one instead */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> oneOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.one as V
 
-/** Internal helper: check if V is near zero. */
+/** Internal helper: check if V is near zero. @Deprecated Use V.toFlt64().toDouble() instead */
 internal fun <V> V.isNearZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
     val d = this.asFlt64().toDouble()
     return d <= tolerance && d >= -tolerance
 }
 
-/** Internal helper: check if V is nonzero. */
+/** Internal helper: check if V is nonzero. @Deprecated Use V.toFlt64().toDouble() instead */
 internal fun <V> V.isNonZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
     val d = this.asFlt64().toDouble()
     return d > tolerance || d < -tolerance
 }
 
-/** Internal helper: convert LinearPolynomial<V> to LinearPolynomial<Flt64> for constraint generation. */
+/** Internal helper: convert LinearPolynomial<V> to LinearPolynomial<Flt64> for constraint generation. @Deprecated Use IntoValue.fromValue per coefficient instead */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
@@ -230,7 +230,7 @@ internal fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> wher
     )
 }
 
-/** Internal helper: convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> for constraint generation. */
+/** Internal helper: convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> for constraint generation. @Deprecated Use IntoValue.fromValue per coefficient instead */
 @Suppress("UNCHECKED_CAST")
 internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
