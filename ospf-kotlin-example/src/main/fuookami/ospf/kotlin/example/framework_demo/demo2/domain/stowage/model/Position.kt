@@ -192,7 +192,7 @@ data class PositionStowageTaboo(
 
     operator fun get(item: Item): TabooRange? {
         return taboos.find {
-            item.uld?.code == it.uld && it.noRange.contains(item.uld.name.substring(3, 8).toMathUInt64())
+            item.uld?.code == it.uld && it.noRange.contains(item.uld.name.substring(3, 8).toUInt64())
         }
     }
 
