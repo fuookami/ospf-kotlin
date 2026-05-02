@@ -41,11 +41,11 @@ class SlackRangeFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(upperVar, lowerVar)
 
-    val upper: LinearPolynomial<Flt64> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(Flt64.one, upperVar)), Flt64.zero)
+    val upper: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), upperVar)), zeroOf<V>())
     }
-    val lower: LinearPolynomial<Flt64> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(Flt64.one, lowerVar)), Flt64.zero)
+    val lower: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), lowerVar)), zeroOf<V>())
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {

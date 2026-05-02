@@ -20,8 +20,10 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
@@ -86,66 +88,45 @@ class LinearFunctionSymbolAdapter<V>(
         get() = delegate.helperVariables
 
     /**
-     * Expose positive slack variable as a LinearPolynomial<Flt64>, for framework compatibility.
+     * Expose positive slack variable as a LinearPolynomial<V>.
      * Only meaningful when the delegate is a SlackFunction with withPositive=true.
      */
-    val pos: LinearPolynomial<Flt64>? by lazy {
-        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
+    val pos: LinearPolynomial<V>? by lazy {
+        val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.posVar?.let { v ->
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, v)),
-                constant = Flt64.zero
+                monomials = listOf(LinearMonomial(oneOf<V>(), v)),
+                constant = zeroOf<V>()
             )
         }
     }
 
     /**
-     * Expose negative slack variable as a LinearPolynomial<Flt64>, for framework compatibility.
+     * Expose negative slack variable as a LinearPolynomial<V>.
      * Only meaningful when the delegate is a SlackFunction with withNegative=true.
      */
-    val neg: LinearPolynomial<Flt64>? by lazy {
-        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
+    val neg: LinearPolynomial<V>? by lazy {
+        val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.negVar?.let { v ->
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, v)),
-                constant = Flt64.zero
+                monomials = listOf(LinearMonomial(oneOf<V>(), v)),
+                constant = zeroOf<V>()
             )
         }
     }
 
     /**
-     * Expose the full slack expression (x + neg - pos) as a LinearPolynomial<Flt64>, for framework compatibility.
+     * Expose the full slack expression (x + neg - pos) as a LinearPolynomial<V>.
      * Only meaningful when the delegate is a SlackFunction.
      */
-    val polyX: LinearPolynomial<Flt64>? by lazy {
-        val slack = delegate as? SlackFunction<Flt64> ?: return@lazy null
-        val xPoly = slack.x.asFlt64Poly()
-        val coreMonomials = xPoly.monomials.mapNotNull { mono ->
-            val sym = mono.symbol
-            when (sym) {
-                is fuookami.ospf.kotlin.core.variable.AbstractVariableItem<*, *> ->
-                    LinearMonomial(mono.coefficient, sym)
-                is fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol<*> ->
-                    LinearMonomial(mono.coefficient, sym)
-                is fuookami.ospf.kotlin.math.symbol.Symbol -> {
-                    // Math-level symbols can't be directly represented as core monomials
-                    null
-                }
-                else -> null
-            }
-        }
-        var result = LinearPolynomial(monomials = coreMonomials, constant = xPoly.constant)
+    val polyX: LinearPolynomial<V>? by lazy {
+        val slack = delegate as? SlackFunction<V> ?: return@lazy null
+        var result = LinearPolynomial(slack.x.monomials.toMutableList(), slack.x.constant)
         if (slack.withNegative && slack.negVar != null) {
-            result = LinearPolynomial(
-                monomials = result.monomials + LinearMonomial(Flt64.one, slack.negVar!!),
-                constant = result.constant
-            )
+            result = LinearPolynomial(result.monomials + LinearMonomial(oneOf<V>(), slack.negVar!!), result.constant)
         }
         if (slack.withPositive && slack.posVar != null) {
-            result = LinearPolynomial(
-                monomials = result.monomials + LinearMonomial(-Flt64.one, slack.posVar!!),
-                constant = result.constant
-            )
+            result = LinearPolynomial(result.monomials + LinearMonomial(-oneOf<V>(), slack.posVar!!), result.constant)
         }
         result
     }
@@ -245,6 +226,15 @@ internal fun <V> V.isNonZero(tolerance: Double = NONZERO_TOLERANCE): Boolean whe
 internal fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
+        constant.asFlt64()
+    )
+}
+
+/** Internal helper: convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> for constraint generation. */
+@Suppress("UNCHECKED_CAST")
+internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    return QuadraticPolynomial(
+        monomials.map { QuadraticMonomial(it.coefficient.asFlt64(), it.symbol1, it.symbol2) },
         constant.asFlt64()
     )
 }

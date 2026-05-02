@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
@@ -123,19 +124,69 @@ class SlackFunction<V>(
         return ok
     }
 
-    val polyX: LinearPolynomial<Flt64> by lazy {
-        val xPoly = x.asFlt64Poly()
-        var result = LinearPolynomial(xPoly.monomials.toMutableList(), xPoly.constant)
+    val polyX: LinearPolynomial<V> by lazy {
+        var result = LinearPolynomial(x.monomials.toMutableList(), x.constant)
         if (withNegative && negVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(Flt64.one, negVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(oneOf<V>(), negVar!!), result.constant)
         }
         if (withPositive && posVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(-Flt64.one, posVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(-oneOf<V>(), posVar!!), result.constant)
         }
         result
     }
 
     companion object {
+        /** Generic V-typed invoke: primary entry point. */
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            lower: LinearPolynomial<V>? = null,
+            upper: LinearPolynomial<V>? = null,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
+            return SlackFunction(
+                x = x,
+                lower = lower,
+                upper = upper,
+                name = name ?: "",
+                displayName = displayName
+            )
+        }
+
+        /** Generic V-typed invoke with LinearIntermediateSymbol<V>. */
+        operator fun <V> invoke(
+            x: LinearIntermediateSymbol<V>,
+            lower: LinearPolynomial<V>? = null,
+            upper: LinearPolynomial<V>? = null,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
+            return invoke(
+                x = x.polynomial,
+                lower = lower,
+                upper = upper,
+                name = name,
+                displayName = displayName
+            )
+        }
+
+        /** Generic V-typed invoke with ToLinearPolynomial<V>. */
+        operator fun <V> invoke(
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>,
+            lower: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>? = null,
+            upper: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>? = null,
+            name: String? = null,
+            displayName: String? = null
+        ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
+            return invoke(
+                x = x.toLinearPolynomial(),
+                lower = lower?.toLinearPolynomial(),
+                upper = upper?.toLinearPolynomial(),
+                name = name,
+                displayName = displayName
+            )
+        }
+
         /**
          * Factory: accept AbstractVariableItem for x and Flt64 for y.
          * For framework code passing variable items directly.
