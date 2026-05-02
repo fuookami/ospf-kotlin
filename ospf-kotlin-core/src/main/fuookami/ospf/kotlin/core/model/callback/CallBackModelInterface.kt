@@ -1,3 +1,5 @@
+@file:Suppress("unused")
+
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.Model
@@ -6,6 +8,7 @@ import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -86,64 +89,82 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
     }
 }
 
-typealias AbstractCallBackModelInterface<Obj, V> = AbstractCallBackModelInterfaceV<Obj, V, Flt64>
+/** Generic callback interface where objective and token value types are both V. */
+typealias AbstractCallBackModelInterface<Obj, V> = AbstractCallBackModelInterfaceV<Obj, V, V>
 
-interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> where V : RealNumber<V>, V : NumberField<V>
-
-interface CallBackModelInterface : CallBackModelInterfaceV<Flt64> {
-    override val defaultObjective: Flt64
+interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> where V : RealNumber<V>, V : NumberField<V> {
+    override val defaultObjective: V
         get() = if (objectCategory == ObjectCategory.Minimum) {
-            Flt64.negativeInfinity
+            negativeInfinity()
         } else {
-            Flt64.infinity
+            infinity()
         }
 
-    override fun objectiveValue(): Flt64 {
-        return Flt64.zero
+    override fun objectiveValue(): V {
+        return converter().zero
     }
 
-    override fun objectiveValue(obj: Flt64): Flt64 {
+    override fun objectiveValue(obj: V): V {
         return obj
     }
 
-    override fun operation(lhs: Flt64, rhs: Flt64): Flt64 {
+    override fun operation(lhs: V, rhs: V): V {
         return lhs + rhs
     }
+
+    /** Provide the IntoValue<V> converter for this V type. */
+    fun converter(): IntoValue<V>
+
+    /** Provide negative infinity for this V type. */
+    fun negativeInfinity(): V
+
+    /** Provide positive infinity for this V type. */
+    fun infinity(): V
 }
+
+/** Flt64 convenience specialization. */
+typealias CallBackModelInterface = CallBackModelInterfaceV<Flt64>
 
 interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<MulObj, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
-}
 
-interface MultiObjectiveModelInterface : MultiObjectiveModelInterfaceV<Flt64> {
-    override val defaultObjective: List<Flt64>
+    override val defaultObjective: List<V>
         get() = if (objectCategory == ObjectCategory.Minimum) {
-            (0 until objectiveSize).map { Flt64.negativeInfinity }
+            (0 until objectiveSize).map { negativeInfinity() }
         } else {
-            (0 until objectiveSize).map { Flt64.infinity }
+            (0 until objectiveSize).map { infinity() }
         }
 
-    override fun objectiveValue(): List<Flt64> {
-        return (0 until objectiveSize).map { Flt64.zero }
+    override fun objectiveValue(): List<V> {
+        return (0 until objectiveSize).map { converter().zero }
     }
 
-    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<Flt64> {
-        return (0 until objectiveSize).map {
-            obj.sumOf { (loc, v) ->
-                if (it == loc.priority.toInt()) {
-                    v * loc.weight
+    override fun objectiveValue(obj: MulObj): List<V> {
+        return (0 until objectiveSize).map { index ->
+            obj.fold(converter().zero) { acc, (loc, objective) ->
+                if (index == loc.priority.toInt()) {
+                    acc + converter().intoValue(objective) * converter().intoValue(loc.weight)
                 } else {
-                    Flt64.zero
+                    acc
                 }
             }
         }
     }
 
-    override fun operation(lhs: List<Flt64>, rhs: List<Flt64>): List<Flt64> {
+    override fun operation(lhs: List<V>, rhs: List<V>): List<V> {
         return (0 until objectiveSize).map { lhs[it] + rhs[it] }
     }
+
+    /** Provide the IntoValue<V> converter for this V type. */
+    fun converter(): IntoValue<V>
+
+    /** Provide negative infinity for this V type. */
+    fun negativeInfinity(): V
+
+    /** Provide positive infinity for this V type. */
+    fun infinity(): V
 }
 
-
-
+/** Flt64 convenience specialization. */
+typealias MultiObjectiveModelInterface = MultiObjectiveModelInterfaceV<Flt64>

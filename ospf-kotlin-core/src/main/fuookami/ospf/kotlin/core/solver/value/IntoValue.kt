@@ -22,6 +22,9 @@ interface IntoValue<V : RealNumber<V>> {
     val zero: V
     val one: V
 
+    val negativeInfinity: V get() = intoValue(Flt64.negativeInfinity)
+    val infinity: V get() = intoValue(Flt64.infinity)
+
     fun fromValue(value: V): Flt64
 
     companion object {

@@ -747,8 +747,10 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        val fltPoly = constraint.asFlt64Poly()
+        val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
-            relation = constraint.asFlt64Poly() eq Flt64.one,
+            relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -846,8 +848,10 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         displayName: String? = null,
         args: Any? = null
     ): Try {
+        val fltPoly = polynomial.asFlt64Poly()
+        val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
-            relation = polynomial.asFlt64Poly() eq Flt64.one,
+            relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -870,8 +874,10 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
+        val fltPoly = constraint.asFlt64QuadraticPoly()
+        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
-            relation = constraint.asFlt64QuadraticPoly() eq Flt64.one,
+            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -890,8 +896,10 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
+        val fltPoly = constraint.toQuadraticPolynomial().asFlt64QuadraticPoly()
+        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
-            relation = constraint.toQuadraticPolynomial().asFlt64QuadraticPoly() eq Flt64.one,
+            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -946,8 +954,10 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         displayName: String? = null,
         args: Any? = null
     ): Try {
+        val fltPoly = polynomial.asFlt64QuadraticPoly()
+        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
-            relation = polynomial.asFlt64QuadraticPoly() eq Flt64.one,
+            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
