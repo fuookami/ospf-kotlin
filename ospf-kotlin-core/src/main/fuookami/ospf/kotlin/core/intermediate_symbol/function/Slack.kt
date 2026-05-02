@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -85,6 +86,48 @@ class SlackFunction<V>(
         }
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val xPoly = x.asFlt64Poly()
+        val yPoly = y.asFlt64Poly()
+
+        if (!threshold) {
+            val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
+            when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        } else {
+            if (withNegative && negVar != null) {
+                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
+                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
+                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+            } else if (withPositive && posVar != null) {
+                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
+                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
+                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
+                }
+            }
+        }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

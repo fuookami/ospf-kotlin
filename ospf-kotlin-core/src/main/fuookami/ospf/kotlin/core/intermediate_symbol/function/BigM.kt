@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -52,6 +53,24 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
  * so all constraints must be Flt64-typed regardless of V.
  */
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<Flt64LinearInequality>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    for (c in constraints) {
+        when (val r = model.addConstraint(relation = c, name = c.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+    }
+    return null
+}
+
+/**
+ * Add a list of constraints to the MechanismModel, returning early on failure.
+ * Returns null on success, or the error result on failure.
+ *
+ * This overload accepts [AbstractLinearMechanismModelFlt64] for use in
+ * [MathFunctionSymbol.registerConstraints].
+ */
+internal fun addConstraints(model: AbstractLinearMechanismModelFlt64, constraints: List<Flt64LinearInequality>): Try? {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
             is Ok -> {}

@@ -372,10 +372,14 @@ class LinearMechanismModel<V>(
             }
             System.gc()
 
-            logger.trace { "Registering symbols for $metaModel" }
+            logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
                 (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
-                    sym.register(metaModel)
+                    when (val result = sym.registerConstraints(model)) {
+                        is Ok -> {}
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
 
                 if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -395,7 +399,7 @@ class LinearMechanismModel<V>(
                     )
                 )
             }
-            logger.trace { "Symbols registered for $metaModel" }
+            logger.trace { "Function symbol constraints registered for $metaModel" }
 
             logger.info { "LinearMechanismModelFlt64 created for $metaModel" }
             System.gc()
@@ -797,10 +801,14 @@ class QuadraticMechanismModel<V>(
             }
             System.gc()
 
-            logger.trace { "Registering symbols for $metaModel" }
+            logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
                 (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
-                    sym.register(metaModel)
+                    when (val result = sym.registerConstraints(model)) {
+                        is Ok -> {}
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
                 }
 
                 if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -820,7 +828,7 @@ class QuadraticMechanismModel<V>(
                     )
                 )
             }
-            logger.trace { "Symbols registered for $metaModel" }
+            logger.trace { "Function symbol constraints registered for $metaModel" }
 
             logger.info { "QuadraticMechanismModelFlt64 created for $metaModel" }
             System.gc()

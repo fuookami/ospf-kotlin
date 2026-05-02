@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.IntVar
@@ -49,6 +50,50 @@ class ModFunction<V>(
         return Flt64(xD % dD) as V
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val dF = d.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+
+        // r = x - d*q
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, rVar),
+                LinearMonomial(dF, qVar)
+            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
+                -xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_decompose")
+
+        // r >= 0 (from URealVar)
+        // r < d => r <= d - epsilon
+        val eps = Flt64(NONZERO_TOLERANCE)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero),
+            LinearPolynomial(emptyList(), dF - eps), Comparison.LE, "${name}_mod_r_ub")
+
+        // result = r
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, resultVar),
+                LinearMonomial(-Flt64.one, rVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

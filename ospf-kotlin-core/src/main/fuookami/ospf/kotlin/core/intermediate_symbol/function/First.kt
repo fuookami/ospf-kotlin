@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -92,6 +93,68 @@ class FirstFunction<V>(
         return Flt64(n.toDouble()) as V
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        // Register all binary function constraints (tokens already registered in registerAuxiliaryTokens)
+        for (binFunc in binaryFunctions) {
+            when (val r = binFunc.registerConstraints(model)) {
+                is Ok -> {}
+                is Failed -> return Failed(r.error)
+                is Fatal -> return Fatal(r.errors)
+            }
+        }
+
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        for (i in polynomials.indices) {
+            val binResult = binaryFunctions[i].resultVar
+            val yi = _yVars[i]
+
+            // y[i] <= bin[i]
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
+                Comparison.LE, "${name}_ub1_$i"
+            )
+
+            if (i == 0) {
+                // y[0] >= bin[0]
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
+                    Comparison.GE, "${name}_lb_0"
+                )
+            } else {
+                // y[i] >= bin[i] - sum(y[0]..y[i-1])
+                // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
+                val prevYMonos = (0 until i).map { j -> LinearMonomial(Flt64.one, _yVars[j]) }
+                val lhsMonos = listOf(LinearMonomial(Flt64.one, yi)) + prevYMonos
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos, Flt64.zero),
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
+                    Comparison.GE, "${name}_lb_$i"
+                )
+
+                // y[i] <= y[i-1] (monotonicity)
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
+                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, _yVars[i - 1])), Flt64.zero),
+                    Comparison.LE, "${name}_y_$i"
+                )
+            }
+        }
+
+        return addConstraints(model, allConstraints) ?: ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         // Add helper variables first
         when (val result = model.add(helperVariables)) {

@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
@@ -65,6 +66,67 @@ class MaskingFunction<V>(
         return input.evaluate(values)
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val resultIdx = LinearMonomial(Flt64.one, resultVar)
+        val mD = bigM.asFlt64()
+        val inputPoly = input.asFlt64Poly()
+
+        // c1: y - x + M*mask <= M + x_const  =>  y - x <= M*(1 - mask) + x_const
+        val c1LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar)
+        val c1Lhs = LinearPolynomial(c1LhsMonos, -inputPoly.constant)
+        val c1RhsPoly = LinearPolynomial(listOf(LinearMonomial(mD, mask)), mD)
+        val c1 = Flt64LinearInequality(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
+        when (val r = model.addConstraint(relation = c1, name = c1.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c2: y - x >= -M*mask + x_const  =>  y - x >= -M*mask + x_const
+        val c2LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar)
+        val c2Lhs = LinearPolynomial(c2LhsMonos, -inputPoly.constant)
+        val c2RhsPoly = LinearPolynomial(listOf(LinearMonomial(-mD, mask)), Flt64.zero)
+        val c2 = Flt64LinearInequality(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
+        when (val r = model.addConstraint(relation = c2, name = c2.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c3: y - M*mask <= 0
+        val c3Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(-mD, mask)), Flt64.zero)
+        val c3Rhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val c3 = Flt64LinearInequality(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
+        when (val r = model.addConstraint(relation = c3, name = c3.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c4: y + M*mask >= 0
+        val c4Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(mD, mask)), Flt64.zero)
+        val c4Rhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val c4 = Flt64LinearInequality(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
+        when (val r = model.addConstraint(relation = c4, name = c4.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -266,6 +328,83 @@ class MaskingWithPolyMaskFunction<V>(
         return input.evaluateWith(values)
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val inputPoly = input.asFlt64Poly()
+        val maskPolyF = maskPoly.asFlt64Poly()
+        val mF = bigM.asFlt64()
+
+        // maskPoly = maskVar constraint
+        val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, maskVar)
+        val maskConstraint = Flt64LinearInequality(
+            LinearPolynomial(monomials = maskMonos, constant = -maskPolyF.constant),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.EQ, "${name}_mask_eq")
+        when (val r = model.addConstraint(relation = maskConstraint, name = maskConstraint.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c1: result - input <= M*(1 - mask_var_normalized)
+        val c1Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(mF, maskVar)
+        val c1 = Flt64LinearInequality(
+            LinearPolynomial(monomials = c1Monos, constant = -inputPoly.constant),
+            LinearPolynomial(monomials = emptyList(), constant = mF), Comparison.LE, "${name}_ub")
+        when (val r = model.addConstraint(relation = c1, name = c1.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c2: result - input >= -M*mask_var
+        val c2Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(mF, maskVar)
+        val c2 = Flt64LinearInequality(
+            LinearPolynomial(monomials = c2Monos, constant = -inputPoly.constant),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_lb")
+        when (val r = model.addConstraint(relation = c2, name = c2.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c3: result <= M*mask_var
+        val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-mF, maskVar))
+        val c3 = Flt64LinearInequality(
+            LinearPolynomial(monomials = c3Monos, constant = Flt64.zero),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.LE, "${name}_zero_ub")
+        when (val r = model.addConstraint(relation = c3, name = c3.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // c4: result >= -M*mask_var
+        val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(mF, maskVar))
+        val c4 = Flt64LinearInequality(
+            LinearPolynomial(monomials = c4Monos, constant = Flt64.zero),
+            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_zero_lb")
+        when (val r = model.addConstraint(relation = c4, name = c4.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -374,6 +513,50 @@ class MaskingRangeFunction<V>(
         return Flt64(yVal.coerceIn(lb, ub)) as V
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val resultMon = LinearMonomial(Flt64.one, resultVar)
+        val maskPoly = mask.asFlt64Poly()
+        val lowerD = lower.asFlt64().toDouble()
+        val upperD = upper.asFlt64().toDouble()
+
+        // Upper: y - upper*mask <= 0
+        val upperFlt = Flt64(upperD)
+        val upperMonos = listOf(resultMon) +
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperFlt, it.symbol) }
+        val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperFlt)
+        val upperRhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val upper = Flt64LinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
+        when (val r = model.addConstraint(relation = upper, name = upper.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        // Lower: y - lower*mask >= 0
+        val lowerFlt = Flt64(lowerD)
+        val lowerMonos = listOf(resultMon) +
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerFlt, it.symbol) }
+        val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerFlt)
+        val lowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
+        val lowerC = Flt64LinearInequality(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
+        when (val r = model.addConstraint(relation = lowerC, name = lowerC.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

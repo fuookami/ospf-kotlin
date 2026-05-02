@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -68,6 +69,43 @@ class IfThenFunction<V>(
         }
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val thenF = thenPoly.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicator for condition
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
+
+        // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
+        val yMono = LinearMonomial(Flt64.one, resultVar)
+        val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
+            LinearPolynomial(emptyList(), mF),
+            Comparison.LE, "${name}_then_ub"
+        )
+
+        // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
+            LinearPolynomial(emptyList(), -mF),
+            Comparison.GE, "${name}_then_lb"
+        )
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

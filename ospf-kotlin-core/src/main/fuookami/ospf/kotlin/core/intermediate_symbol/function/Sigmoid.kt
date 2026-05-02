@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -47,6 +48,30 @@ class SigmoidFunction<V>(
         return if (condValue.asFlt64().toDouble() > 0.0) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val tolF = tolerance.asFlt64()
+        val sbF = strictBoundary.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicator: indicator = 1 iff condition != 0
+        allConstraints += nonzeroIndicatorConstraints(condition.asFlt64Poly(), indicatorVar, sideVar, mF, tolF, sbF, "${name}_sig_nz")
+
+        // indicator serves as the result: indicator = 1 when condition > 0
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

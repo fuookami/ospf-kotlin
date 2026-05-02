@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
@@ -123,6 +124,132 @@ open class SatisfiedAmountInequalityFunction<V>(
         return input.sign.compare(lhsValue, Flt64.zero)
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val eps = epsilon
+        val nInputs = inputs.size
+
+        for ((i, input) in inputs.withIndex()) {
+            val lb = input.lowerBound
+            val ub = input.upperBound
+            val flag = flagVars[i]
+
+            if (lb != null && ub != null) {
+                val inRange = Flt64.zero geq lb && Flt64.zero leq ub
+                if (inRange) {
+                    // Simple encoding: when 0 is within [lb, ub],
+                    // flag = 1 means constraint satisfied (lhs ~ 0 within bounds)
+                    // flag = 0 means violated
+                    // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
+                    val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
+
+                    // Convert LinearFlattenDataFlt64 to LinearPolynomial<Flt64>
+                    val polyFlt64 = LinearPolynomial(
+                        input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
+                        input.flattenData.constant
+                    )
+
+                    // When flag=1: lhs <= epsilon and lhs >= -epsilon (satisfied)
+                    // When flag=0: lhs <= M and lhs >= -M (no constraint)
+                    val upperLhs = LinearPolynomial(
+                        polyFlt64.monomials + listOf(LinearMonomial(m, flag)),
+                        polyFlt64.constant
+                    )
+                    val upperRhs = LinearPolynomial(emptyList(), m + eps)
+                    model.addConstraint(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                            upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
+                        ),
+                        name = "${name}_i${i}_upper"
+                    ).takeUnless { it.ok }?.let { return it }
+
+                    val lowerLhs = LinearPolynomial(
+                        polyFlt64.monomials + listOf(LinearMonomial(-m, flag)),
+                        polyFlt64.constant
+                    )
+                    val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
+                    model.addConstraint(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                            lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
+                        ),
+                        name = "${name}_i${i}_lower"
+                    ).takeUnless { it.ok }?.let { return it }
+                } else {
+                    // When 0 is NOT within [lb, ub], the constraint is trivially satisfied or violated
+                    val triviallySatisfied = when (input.sign) {
+                        Comparison.LE, Comparison.LT -> ub ls Flt64.zero
+                        Comparison.GE, Comparison.GT -> lb gr Flt64.zero
+                        Comparison.EQ -> false
+                        Comparison.NE -> true
+                    }
+                    // Fix flag to the trivial value
+                    val fixedValue = if (triviallySatisfied) Flt64.one else Flt64.zero
+                    val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
+                    val rhs = LinearPolynomial(emptyList(), fixedValue)
+                    model.addConstraint(
+                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                            poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
+                        ),
+                        name = "${name}_i${i}_flag"
+                    ).takeUnless { it.ok }?.let { return it }
+                }
+            }
+        }
+
+        // Amount range constraint: lb <= sum(u) <= ub, with binary y indicator
+        val currentAmount = amount
+        if (currentAmount != null) {
+            val y = amountFlagVar!!
+            val sumPoly = LinearPolynomial(
+                flagVars.map { LinearMonomial(oneOf<V>(), it) },
+                zeroOf<V>()
+            )
+            val sumPolyFlt64 = sumPoly.asFlt64Poly()
+
+            // sum(u) >= amount.lowerBound - n*(1-y)
+            val lbPoly = LinearPolynomial(
+                sumPolyFlt64.monomials + listOf(LinearMonomial(Flt64(nInputs), y)),
+                sumPolyFlt64.constant
+            )
+            val lbRhs = LinearPolynomial(
+                emptyList(),
+                Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
+            )
+            model.addConstraint(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                    lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
+                ),
+                name = "${name}_amount_lb"
+            ).takeUnless { it.ok }?.let { return it }
+
+            // sum(u) <= amount.upperBound + n*(1-y)
+            val ubPoly = LinearPolynomial(
+                sumPolyFlt64.monomials + listOf(LinearMonomial(-Flt64(nInputs), y)),
+                sumPolyFlt64.constant
+            )
+            val ubRhs = LinearPolynomial(
+                emptyList(),
+                Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
+            )
+            model.addConstraint(
+                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                    ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
+                ),
+                name = "${name}_amount_ub"
+            ).takeUnless { it.ok }?.let { return it }
+        }
+
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         // Register flag variables
         when (val result = model.add(flagVars)) {

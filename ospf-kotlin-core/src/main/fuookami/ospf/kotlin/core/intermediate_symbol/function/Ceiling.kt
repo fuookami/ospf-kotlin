@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -48,6 +49,56 @@ class CeilingFunction<V>(
         return Flt64(kotlin.math.ceil(xVal.asFlt64().toDouble())) as V
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+
+        // x <= k
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_ceil_ub")
+
+        // x > k - 1 => x >= k - 1 + epsilon
+        val eps = Flt64(NONZERO_TOLERANCE)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
+            LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.GE, "${name}_ceil_lb")
+
+        // b = x - floor(x) => k = x + 1 - b => b - k + x = -1 + ... simplified:
+        // k = x + b, so k - x = b
+        // k - x - b = 0
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, kVar),
+                LinearMonomial(-Flt64.one, bVar)
+            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
+                -xF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_decompose")
+
+        // result = k
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(
+                LinearMonomial(Flt64.one, resultVar),
+                LinearMonomial(-Flt64.one, kVar)
+            ), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

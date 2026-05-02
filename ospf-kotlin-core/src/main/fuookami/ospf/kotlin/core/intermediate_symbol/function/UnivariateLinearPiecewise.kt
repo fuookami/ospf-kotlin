@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -67,6 +68,64 @@ class UnivariateLinearPiecewiseFunction<V>(
         return null
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = m.asFlt64()
+        val xF = x.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Exactly one segment must be active: sum(s[i]) = 1
+        val sumMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(sumMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_select_one")
+
+        for (i in 0 until numSegments) {
+            val sVar = selectorVars[i]
+            val bpLowF = breakpoints[i].asFlt64()
+            val bpHighF = breakpoints[i + 1].asFlt64()
+            val slopeF = slopes[i].asFlt64()
+            val interceptF = intercepts[i].asFlt64()
+
+            // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+                    LinearMonomial(-mF, sVar), xF.constant + mF),
+                LinearPolynomial(emptyList(), bpLowF), Comparison.GE, "${name}_seg_${i}_lb")
+
+            // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+                    LinearMonomial(mF, sVar), xF.constant),
+                LinearPolynomial(emptyList(), bpHighF + mF), Comparison.LE, "${name}_seg_${i}_ub")
+
+            // y = slope*x + intercept when s[i]=1
+            // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
+            val negSlopeXMonos = xF.monomials.map { LinearMonomial(-it.coefficient * slopeF, it.symbol) }
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
+                    negSlopeXMonos + LinearMonomial(mF, sVar), -interceptF),
+                LinearPolynomial(emptyList(), mF), Comparison.LE, "${name}_seg_${i}_eq_ub")
+
+            // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
+                    negSlopeXMonos + LinearMonomial(-mF, sVar), -interceptF),
+                LinearPolynomial(emptyList(), -mF), Comparison.GE, "${name}_seg_${i}_eq_lb")
+        }
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

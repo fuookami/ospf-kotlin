@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -72,6 +73,89 @@ class InequalityFunction<V>(
         return if (satisfied) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val epsF = tolerance.asFlt64()
+        val rhsF = rhs.asFlt64()
+        val lhsF = lhs.asFlt64Poly()
+        val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        when (sign) {
+            Comparison.LE, Comparison.LT -> {
+                // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
+                    LinearPolynomial(emptyList(), rhsF + mF),
+                    Comparison.LE, "${name}_satisfied"
+                )
+
+                // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
+                    LinearPolynomial(emptyList(), rhsF + epsF),
+                    Comparison.GE, "${name}_violated"
+                )
+            }
+
+            Comparison.GE, Comparison.GT -> {
+                // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
+                    LinearPolynomial(emptyList(), rhsF),
+                    Comparison.GE, "${name}_satisfied"
+                )
+
+                // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
+                    LinearPolynomial(emptyList(), rhsF - epsF + mF),
+                    Comparison.LE, "${name}_violated"
+                )
+            }
+
+            Comparison.EQ -> {
+                val diffMonos = lhsMonos
+                val diffConst = lhsF.constant - rhsF
+
+                // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), mF + epsF),
+                    Comparison.LE, "${name}_eq_upper"
+                )
+
+                // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
+                allConstraints += Flt64LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), -mF - epsF),
+                    Comparison.GE, "${name}_eq_lower"
+                )
+            }
+
+            Comparison.NE -> {
+                return Failed(
+                    fuookami.ospf.kotlin.utils.error.Err(
+                        fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationFailed,
+                        "InequalityFunction: NE comparison not supported for MIP encoding"
+                    )
+                )
+            }
+        }
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

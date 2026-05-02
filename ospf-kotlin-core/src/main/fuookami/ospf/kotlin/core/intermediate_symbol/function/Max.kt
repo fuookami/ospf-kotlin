@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -56,6 +57,50 @@ class MaxFunction<V>(
         return maxVal
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val resultMon = LinearMonomial(Flt64.one, resultVar)
+        val mF = bigM.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // result >= poly[i] for each i
+        for (i in polynomials.indices) {
+            val polyF = polynomials[i].asFlt64Poly()
+            val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(lbMonos, -polyF.constant),
+                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
+        }
+
+        // result - poly[i] + M*sel[i] <= M
+        for (i in polynomials.indices) {
+            val polyF = polynomials[i].asFlt64Poly()
+            val ubMonos = listOf(resultMon) +
+                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(mF, selectorVars[i])
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(ubMonos, -polyF.constant),
+                LinearPolynomial(emptyList(), mF), Comparison.LE)
+        }
+
+        // sum(sel[i]) = 1
+        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(selMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -166,6 +211,50 @@ class MinFunction<V>(
         return minVal
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val resultMon = LinearMonomial(Flt64.one, resultVar)
+        val mF = bigM.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // result <= poly[i] for each i
+        for (i in polynomials.indices) {
+            val polyF = polynomials[i].asFlt64Poly()
+            val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(ubMonos, -polyF.constant),
+                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
+        }
+
+        // result - poly[i] + M*sel[i] >= 0
+        for (i in polynomials.indices) {
+            val polyF = polynomials[i].asFlt64Poly()
+            val lbMonos = listOf(resultMon) +
+                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(mF, selectorVars[i])
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(lbMonos, -polyF.constant),
+                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
+        }
+
+        // sum(sel[i]) = 1
+        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(selMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

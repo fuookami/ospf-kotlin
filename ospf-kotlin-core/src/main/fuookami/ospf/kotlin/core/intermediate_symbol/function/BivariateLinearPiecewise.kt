@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVariable1
@@ -125,6 +126,88 @@ class BivariateLinearPiecewiseFunction<V>(
         return u to v
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
+        val xMonos = mutableListOf<LinearMonomial<Flt64>>()
+        for (i in triangles.indices) {
+            val tri = triangles[i]
+            val lambdas = lambdaVars[i]
+            xMonos += LinearMonomial(-tri.p1.x, lambdas[0])
+            xMonos += LinearMonomial(-tri.p2.x, lambdas[1])
+            xMonos += LinearMonomial(-tri.p3.x, lambdas[2])
+        }
+        val xPoly = x.asFlt64Poly()
+        xMonos += xPoly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos, xPoly.constant),
+            LinearPolynomial(emptyList(), Flt64.zero),
+            Comparison.EQ, "${name}_x_eq"
+        )
+
+        // y constraint: y = sum over all triangles and vertices of (y_coord * lambda)
+        val yMonos = mutableListOf<LinearMonomial<Flt64>>()
+        for (i in triangles.indices) {
+            val tri = triangles[i]
+            val lambdas = lambdaVars[i]
+            yMonos += LinearMonomial(-tri.p1.y, lambdas[0])
+            yMonos += LinearMonomial(-tri.p2.y, lambdas[1])
+            yMonos += LinearMonomial(-tri.p3.y, lambdas[2])
+        }
+        val yPoly = y.asFlt64Poly()
+        yMonos += yPoly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(yMonos, yPoly.constant),
+            LinearPolynomial(emptyList(), Flt64.zero),
+            Comparison.EQ, "${name}_y_eq"
+        )
+
+        // sum(all lambda) = 1
+        val sumLambdaMonos = lambdaVars.flatMap { it.items.map { l -> LinearMonomial(Flt64.one, l) } }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(sumLambdaMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one),
+            Comparison.EQ, "${name}_sum_lambda"
+        )
+
+        // SOS2: for each triangle, sum(lambda_i_j) <= 3 * z_i
+        for (i in triangles.indices) {
+            val lambdas = lambdaVars[i]
+            val zi = zVars[i]
+            val triLambdaMonos = lambdas.items.map { LinearMonomial(Flt64.one, it) } +
+                LinearMonomial(Flt64(-3.0), zi)
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(triLambdaMonos, Flt64.zero),
+                LinearPolynomial(emptyList(), Flt64.zero),
+                Comparison.LE, "${name}_tri_lambda_$i"
+            )
+        }
+
+        // sum(z_i) = 1 (exactly one triangle active)
+        val sumZMonos = zVars.items.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(sumZMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one),
+            Comparison.EQ, "${name}_sum_z"
+        )
+
+        // lambda_i_j >= 0 (PctVariable already enforces this, but let's be explicit)
+        // lambda_i_j <= 1 (PctVariable already enforces this)
+        // These are handled by the variable type (Percentage = [0, 1])
+
+        return addConstraints(model, allConstraints) ?: ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         // Register all lambda and z variables
         when (val r = model.add(helperVariables)) {

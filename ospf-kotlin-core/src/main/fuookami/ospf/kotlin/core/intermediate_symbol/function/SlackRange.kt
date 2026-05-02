@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -60,6 +61,50 @@ class SlackRangeFunction<V>(
         }
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val xPoly = x.asFlt64Poly()
+        val threshPoly = LinearPolynomial(emptyList(), threshold.asFlt64())
+
+        // upper >= x - threshold
+        val lhsUpper = LinearPolynomial(
+            xPoly.monomials + LinearMonomial(-Flt64.one, upperVar),
+            xPoly.constant
+        )
+        val upperConstraint = LinearInequality<Flt64>(
+            lhsUpper, threshPoly, Comparison.GE, "${name}_upper"
+        )
+        when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        // lower >= threshold - x
+        val lhsLower = LinearPolynomial(
+            xPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-Flt64.one, lowerVar),
+            -xPoly.constant
+        )
+        val lowerConstraint = LinearInequality<Flt64>(
+            lhsLower, LinearPolynomial(emptyList(), -threshold.asFlt64()), Comparison.GE, "${name}_lower"
+        )
+        when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

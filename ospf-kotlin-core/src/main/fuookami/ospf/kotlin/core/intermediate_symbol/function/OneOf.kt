@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -69,6 +70,39 @@ class OneOfFunction<V>(
         return if (count == 1) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mD = bigM
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicators for each polynomial
+        for (i in polynomials.indices) {
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
+        }
+
+        // Exactly one indicator must be 1: sum(indicators) = 1
+        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
+
+        // result = 1 (since exactly one indicator must be 1)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

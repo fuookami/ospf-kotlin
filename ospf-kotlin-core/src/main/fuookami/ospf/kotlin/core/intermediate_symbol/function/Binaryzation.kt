@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -42,6 +43,36 @@ class BinaryzationFunction<V>(
         return if (v.asFlt64().toDouble() > 0.0) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val polyF = polynomial.asFlt64Poly()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // x <= M*y
+        val xMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-mF, resultVar), polyF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_bin_ub")
+
+        // x >= epsilon*y
+        val eps = Flt64(NONZERO_TOLERANCE)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polyF.constant),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_bin_lb")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}

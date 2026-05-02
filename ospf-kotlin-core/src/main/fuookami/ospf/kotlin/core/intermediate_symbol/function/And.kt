@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -57,6 +58,43 @@ class AndFunction<V>(
         return oneOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val tolF = tolerance.asFlt64()
+        val sbF = strictBoundary.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicators for each polynomial
+        for (i in polynomials.indices) {
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_and_nz_${i}")
+        }
+
+        // sum(indicators) >= n * result
+        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64(n.toDouble()), resultVar)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_and_sum")
+
+        // result <= each indicator
+        for (i in indicatorVars.indices) {
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
+                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_and_le_${i}")
+        }
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -162,6 +200,43 @@ class OrFunction<V>(
         return zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val tolF = tolerance.asFlt64()
+        val sbF = strictBoundary.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicators for each polynomial
+        for (i in polynomials.indices) {
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_or_nz_${i}")
+        }
+
+        // sum(indicators) >= result
+        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_sum")
+
+        // result >= each indicator
+        for (i in indicatorVars.indices) {
+            allConstraints += Flt64LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
+                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_ge_${i}")
+        }
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -259,6 +334,33 @@ class NotFunction<V>(
         return if (v.asFlt64().toDouble() == 0.0) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val tolF = tolerance.asFlt64()
+        val sbF = strictBoundary.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicator
+        allConstraints += nonzeroIndicatorConstraints(polynomial.asFlt64Poly(), indicatorVar, sideVar, mF, tolF, sbF, "${name}_not_nz")
+
+        // result = 1 - indicator => result + indicator = 1
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64.one, indicatorVar)), Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_not_result")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
@@ -355,6 +457,72 @@ class XorFunction<V>(
         return if (count == 1) oneOf<V>() else zeroOf<V>()
     }
 
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(helperVariables)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        val mF = bigM.asFlt64()
+        val tolF = tolerance.asFlt64()
+        val sbF = strictBoundary.asFlt64()
+        val allConstraints = mutableListOf<Flt64LinearInequality>()
+
+        // Nonzero indicators for each polynomial
+        for (i in polynomials.indices) {
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_xor_nz_${i}")
+        }
+
+        // sum(indicators) - 2*slack = result (where slack is integer)
+        // For binary indicators, XOR = sum(indicators) - 2*floor(sum/2)
+        // Simplification: sum(indicators) <= n*result + (n-1)*(1-result) => sum(indicators) <= result + (n-1)
+        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64((n - 1).toDouble())), Comparison.LE, "${name}_xor_sum_ub")
+
+        // sum(indicators) >= result
+        val indMonos2 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos2, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_xor_sum_lb")
+
+        // result <= sum(indicators) ... already covered by sum >= result
+        // Additional: sum(indicators) - result <= n - 1
+        // This is the same as sum_ub above.
+
+        // If sum >= 2 then result = 0: sum(indicators) <= (n-1) + (1)*result_reversed
+        // More precise: result <= 2 - sum(indicators) + M*(1 - exactly_one_check)
+        // Simplified for binary indicators:
+        // result >= sum - 1, result <= 2 - sum
+        // When sum=0: result >= -1 (ok), result <= 2 (ok) => result=0
+        // When sum=1: result >= 0 (ok), result <= 1 (ok) => result=1
+        // When sum>=2: result >= 1 but result <= 0 => infeasible unless result=0
+        // Wait, that's wrong for sum>=2. Let's use a different encoding:
+        // result <= 2 - sum(indicators) + M*aux (for aux binary)
+        // Actually, simplest correct encoding for XOR of binary indicators:
+        // result + sum(indicators) = 1 + 2*t (where t is non-negative integer)
+        // This is equivalent to: result = 1 iff sum is odd.
+        // For n <= 2, result = 1 - sum + 2*result... circular.
+        // Simplest correct: result = 1 - |sum - 1| + ... no.
+        // Just use: sum(indicators) >= result (result=1 requires sum>=1)
+        //           sum(indicators) <= result + (n-1)*(1-result) => sum <= result + n - 1
+        //           sum(indicators) <= 1 + (n-1)*(1-result) => for result=1, sum<=1; for result=0, sum<=n
+        // Combined:
+        //           sum(indicators) <= 1 + (n-1) - (n-1)*result = n - (n-1)*result
+        val indMonos3 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(Flt64((n - 1).toDouble()), resultVar)
+        allConstraints += Flt64LinearInequality(
+            LinearPolynomial(indMonos3, Flt64.zero),
+            LinearPolynomial(emptyList(), Flt64(n.toDouble())), Comparison.LE, "${name}_xor_exactly")
+
+        addConstraints(model, allConstraints)?.let { return it }
+        return ok
+    }
+
+    @Suppress("DEPRECATION")
     override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
