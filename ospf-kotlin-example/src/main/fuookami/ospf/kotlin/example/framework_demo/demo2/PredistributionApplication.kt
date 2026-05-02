@@ -30,6 +30,10 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.BendersStrategy
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnostics
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.FeasibilityDiagnostics
+import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.SolveMode
 
 class PredistributionApplication {
     suspend operator fun invoke(
@@ -62,6 +66,7 @@ private class PredistributionAlgorithmImpl {
     ): Pair<ResponseDTO, RenderDTO?> {
         val startTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis())
         val parameter = request.parameter
+        val notes = mutableListOf<String>()
 
         when (val result = init(request)) {
             is Ok -> {}
@@ -75,38 +80,85 @@ private class PredistributionAlgorithmImpl {
             }
         }
 
-        val solution = when (aircraftContext.aggregation.aircraftModel.type) {
-            AircraftType.B737, AircraftType.B757 -> {
-                when (val result = solveWithMILP(
-                    id = request.id,
+        FeasibilityDiagnostics.appendCoreFeasibilityDiagnostics(request, notes)
+        if (notes.isNotEmpty()) {
+            return ResponseDTO.noSolution("NoSolution", notes) to null
+        }
+
+        if (!BendersStrategy.supportedAircraft(request.aircraftType)) {
+            notes.add("unsupported aircraft type for predistribution path: ${request.aircraftType}")
+            return ResponseDTO.noSolution("UnsupportedAircraft", notes) to null
+        }
+
+        val solveMode = BendersStrategy.resolveSolveMode(request, notes)
+
+        val solution = when (solveMode) {
+            is SolveMode.Benders -> {
+                notes.add("solver_path=benders")
+                when (val result = solveWithBendersAlgorithm(
                     parameter = parameter,
-                    startTime = startTime,
                     runningHeartBeatCallBack = runningHeartBeatCallBack
                 )) {
-                    is Ok -> {
-                        result.value
-                    }
-
+                    is Ok -> result.value
                     is Failed -> {
-                        return ResponseDTO(request, result.error) to null
+                        if (request.solvePolicy.bendersFallbackToMilp) {
+                            notes.add("Benders failed, falling back to MILP")
+                            Diagnostics.pushGroupedNote(
+                                notes, Diagnostics.LEVEL_DIAGNOSTIC, Diagnostics.GROUP_SOLVER,
+                                Diagnostics.CODE_BENDERS_FAILED, "benders failed, fallback to milp"
+                            )
+                            when (val milpResult = solveWithMILP(
+                                id = request.id,
+                                parameter = parameter,
+                                startTime = startTime,
+                                runningHeartBeatCallBack = runningHeartBeatCallBack
+                            )) {
+                                is Ok -> milpResult.value
+                                is Failed -> return ResponseDTO(request, milpResult.error) to null
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                            }
+                        } else {
+                            return ResponseDTO.noSolution("BendersFailed", notes) to null
+                        }
                     }
-
                     is Fatal -> {
-                        return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                        if (request.solvePolicy.bendersFallbackToMilp) {
+                            notes.add("Benders fatal, falling back to MILP")
+                            when (val milpResult = solveWithMILP(
+                                id = request.id,
+                                parameter = parameter,
+                                startTime = startTime,
+                                runningHeartBeatCallBack = runningHeartBeatCallBack
+                            )) {
+                                is Ok -> milpResult.value
+                                is Failed -> return ResponseDTO(request, milpResult.error) to null
+                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                            }
+                        } else {
+                            return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                        }
                     }
                 }
             }
-
-            AircraftType.B767 -> {
-                TODO("not implemented yet")
-            }
-
-            AircraftType.B747 -> {
-                TODO("not implemented yet")
-            }
-
-            null -> {
-                TODO("not implemented yet")
+            is SolveMode.Milp -> {
+                notes.add("solver_path=milp_direct")
+                when (aircraftContext.aggregation.aircraftModel.type) {
+                    AircraftType.B737, AircraftType.B757 -> {
+                        when (val result = solveWithMILP(
+                            id = request.id,
+                            parameter = parameter,
+                            startTime = startTime,
+                            runningHeartBeatCallBack = runningHeartBeatCallBack
+                        )) {
+                            is Ok -> result.value
+                            is Failed -> return ResponseDTO(request, result.error) to null
+                            is Fatal -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                        }
+                    }
+                    AircraftType.B767 -> TODO("not implemented yet")
+                    AircraftType.B747 -> TODO("not implemented yet")
+                    null -> TODO("not implemented yet")
+                }
             }
         }
 

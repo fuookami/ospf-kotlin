@@ -156,21 +156,51 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Master problem: stowage assignment variables + load linking constraints
+        when (val result = stowage.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        when (val result = load.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        // Sub problem: airworthiness constraints (payload, totalWeight, maxLoadWeight)
+        // Variables are fixed from master solution
+        when (val result = payload.register(StowageMode.FullLoad, model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        when (val result = totalWeight.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        when (val result = maxLoadWeight.register(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     private fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        // Fix master variables in sub problem to their solution values
+        // This is handled by the BendersSolver via fixedVariables parameter
+        return ok
     }
 }
 

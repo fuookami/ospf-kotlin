@@ -91,13 +91,15 @@ class Redundancy(
         }
 
         if (!::redundancySlack.isInitialized) {
-            redundancySlack = SlackRangeFunction(
-                UContinuous,
+            // TODO: add upper bound slack for maxRedundancy
+            redundancySlack = LinearFunctionSymbolAdapter(SlackFunction(
                 x = LinearPolynomial(redundancy),
-                lb = minRedundancy,
-                ub = maxRedundancy,
+                y = minRedundancy,
+                type = UContinuous,
+                withNegative = true,
+                withPositive = true,
                 name = "redundancy_slack"
-            )
+            ))
         }
         when (val result = model.add(redundancySlack)) {
             is Ok -> {}

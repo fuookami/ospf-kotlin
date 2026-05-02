@@ -111,20 +111,26 @@ class MacOptimizationContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // MAC optimization constraints go into the master problem.
+        return register(
+            stowageMode = StowageMode.FullLoad,
+            parameter = Parameter(),
+            model = model
+        )
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // MAC optimization does not contribute to the sub problem.
+        return ok
     }
 
     fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

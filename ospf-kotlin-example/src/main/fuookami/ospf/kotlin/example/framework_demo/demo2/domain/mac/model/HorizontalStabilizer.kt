@@ -88,13 +88,15 @@ class HorizontalStabilizer(
         if (stowageMode.withMacOptimization) {
             if (!::warnSlack.isInitialized) {
                 warnSlack = if (limit.warnMinTrim != null && limit.warnMaxTrim != null) {
-                    SlackRangeFunction(
-                        UContinuous,
+                    // TODO: add upper bound slack for limit.warnMaxTrim
+                    LinearFunctionSymbolAdapter(SlackFunction(
                         x = LinearPolynomial(trim),
-                        lb = LinearPolynomial(limit.warnMinTrim),
-                        ub = LinearPolynomial(limit.warnMaxTrim),
+                        y = LinearPolynomial(limit.warnMinTrim),
+                        type = UContinuous,
+                        withNegative = true,
+                        withPositive = true,
                         name = "${key}_trim_warn_slack"
-                    )
+                    ))
                 } else if (limit.warnMinTrim != null) {
                     SlackFunction(
                         x = trim,

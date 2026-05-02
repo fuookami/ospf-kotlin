@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -48,9 +47,11 @@ class RelativeOrder(
                 val j2 = positions.indexOf(position2)
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
-                    IfFunction(
-                        (stowage.stowage[i1, j2] + stowage.stowage[i2, j1]) geq Flt64.two,
-                        name = "item_priority_reverse_${item1}_${item2}_${position1}_${position2}"
+                    LinearFunctionSymbolAdapter(
+                        IfFunction(
+                            condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1] - Flt64.two,
+                            name = "item_priority_reverse_${item1}_${item2}_${position1}_${position2}"
+                        )
                     )
                 } else {
                     LinearExpressionSymbol(

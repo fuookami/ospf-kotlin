@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -57,9 +56,11 @@ class TrailerLoading(
                     item in trailer1.items
                 }
 
-                IfFunction(
-                    (loadAmount1 + loadAmount2) geq Flt64.two,
-                    name = "trailer_change_${trailer1}_${trailer2}_${position1}_${position2}"
+                LinearFunctionSymbolAdapter(
+                    IfFunction(
+                        condition = loadAmount1 + loadAmount2 - Flt64.two,
+                        name = "trailer_change_${trailer1}_${trailer2}_${position1}_${position2}"
+                    )
                 )
             }
         }
@@ -85,9 +86,11 @@ class TrailerLoading(
                 val j2 = positions.indexOf(position2)
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
-                    IfFunction(
-                        (stowage.stowage[i2, j1] + stowage.stowage[i1, j2]) geq Flt64.two,
-                        name = "trailer_circling_${item1}_${item2}_${position1}_${position2}"
+                    LinearFunctionSymbolAdapter(
+                        IfFunction(
+                            condition = stowage.stowage[i2, j1] + stowage.stowage[i1, j2] - Flt64.two,
+                            name = "trailer_circling_${item1}_${item2}_${position1}_${position2}"
+                        )
                     )
                 } else {
                     LinearExpressionSymbol(

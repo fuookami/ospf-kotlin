@@ -147,7 +147,7 @@ class PositionMaximumLoadWeight(
 
     private val piecewise by lazy {
         if (points.size > 2) {
-            UnivariateLinearPiecewiseFunction(
+            UnivariateLinearPiecewiseFunction.fromPoints(
                 x = LinearPolynomial(),
                 points = points.map {
                     Point2(

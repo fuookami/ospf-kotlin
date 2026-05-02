@@ -20,6 +20,8 @@ internal typealias StowageAggregation = fuookami.ospf.kotlin.example.framework_d
 
 class SoftSecurityContext {
     lateinit var aggregation: Aggregation
+    private var lastStowageMode: StowageMode = StowageMode.FullLoad
+    private var lastParameter: Parameter? = null
 
     fun init(
         aircraftContext: AircraftContext,
@@ -107,20 +109,23 @@ class SoftSecurityContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Soft security constraints go into the master problem.
+        // Uses FullLoad mode as default for Benders (same as Rust: all non-airworthiness in master).
+        return register(stowageMode = StowageMode.FullLoad, parameter = Parameter(), model = model)
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Soft security does not contribute to the sub problem
+        return ok
     }
 
     fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

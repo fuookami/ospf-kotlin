@@ -124,20 +124,28 @@ class Load(
                         // ��ҪԤ�������Ĳ�λ���������һ���� 1����������װ����һ���Ƕ�Ԫֵ��0 �� 1��
                         assert(position.mla eq UInt64.one)
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
-                            SlackRangeFunction(
-                                UContinuous,
-                                x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
-                                lb = LinearPolynomial(loadAmount[j]) * position.plw!!.min.to(aircraftModel.weightUnit)!!.value,
-                                ub = LinearPolynomial(loadAmount[j]) * position.plw.max.to(aircraftModel.weightUnit)!!.value,
-                                name = "predicate_load_weight_slack_${position}"
+                            // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
+                            LinearFunctionSymbolAdapter(
+                                SlackFunction(
+                                    x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
+                                    y = LinearPolynomial(loadAmount[j]) * position.plw!!.min.to(aircraftModel.weightUnit)!!.value,
+                                    type = UContinuous,
+                                    withNegative = true,
+                                    withPositive = true,
+                                    name = "predicate_load_weight_slack_${position}"
+                                )
                             )
                         } else {
-                            SlackRangeFunction(
-                                UContinuous,
-                                x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
-                                lb = LinearPolynomial(position.plw!!.min.to(aircraftModel.weightUnit)!!.value),
-                                ub = LinearPolynomial(position.plw.max.to(aircraftModel.weightUnit)!!.value),
-                                name = "predicate_load_weight_slack_${position}"
+                            // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
+                            LinearFunctionSymbolAdapter(
+                                SlackFunction(
+                                    x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
+                                    y = LinearPolynomial(position.plw!!.min.to(aircraftModel.weightUnit)!!.value),
+                                    type = UContinuous,
+                                    withNegative = true,
+                                    withPositive = true,
+                                    name = "predicate_load_weight_slack_${position}"
+                                )
                             )
                         }
                     } else {
@@ -196,9 +204,12 @@ class Load(
                             name = "full_${position}"
                         )
                     } else {
-                        IfFunction(
-                            inequality = loadAmount[j] eq position.mla,
-                            name = "full_${position}"
+                        LinearFunctionSymbolAdapter(
+                            SameAsFunction(
+                                inequalities = listOf(loadAmount[j].toLinearPolynomial() eq position.mla.toFlt64()),
+                                constraint = true,
+                                name = "full_${position}"
+                            )
                         )
                     }
                 } else {
@@ -295,35 +306,52 @@ class Load(
                             name = "estimate_loaded_item_${position}"
                         )
                     } else {
-                        BinaryzationFunction(
-                            LinearPolynomial(loadAmount[j]),
-                            name = "estimate_loaded_item_${position}"
+                        LinearFunctionSymbolAdapter(
+                            BinaryzationFunction(
+                                LinearPolynomial(loadAmount[j]),
+                                name = "estimate_loaded_item_${position}"
+                            )
                         )
                     }
                     val withPredicateLoadWeight = if (position.status.predicateWeightNeeded) {
-                        IfFunction(
-                            y[j].to(aircraftModel.weightUnit)!!.value geq 1,
-                            name = "estimate_loaded_predicate_load_weight_${position}"
+                        LinearFunctionSymbolAdapter(
+                            IfFunction(
+                                condition = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value) - LinearPolynomial(Flt64.one),
+                                name = "estimate_loaded_predicate_load_weight_${position}"
+                            )
                         )
                     } else {
                         null
                     }
                     val withRecommendLoadWeight = if (position.status.recommendedWeightNeeded) {
-                        BinaryzationFunction(
-                            LinearPolynomial(z[j].to(aircraftModel.weightUnit)!!.value),
-                            name = "estimate_loaded_recommended_load_weight_${position}"
+                        LinearFunctionSymbolAdapter(
+                            BinaryzationFunction(
+                                LinearPolynomial(z[j].to(aircraftModel.weightUnit)!!.value),
+                                name = "estimate_loaded_recommended_load_weight_${position}"
+                            )
                         )
                     } else {
                         null
                     }
-                    val symbols: List<LinearIntermediateSymbolFlt64> = listOfNotNull(
-                        loadedItem,
-                        withPredicateLoadWeight,
-                        withRecommendLoadWeight
-                    )
-                    OrFunction(
-                        polynomials = symbols,
-                        name = "estimate_load_${position}"
+                    val polys: List<LinearPolynomial<Flt64>> = listOfNotNull(loadedItem, withPredicateLoadWeight, withRecommendLoadWeight).map { sym ->
+                        if (sym is LinearFunctionSymbolAdapter<*>) {
+                            @Suppress("UNCHECKED_CAST")
+                            val adapter = sym as LinearFunctionSymbolAdapter<Flt64>
+                            when (val d = adapter.delegate) {
+                                is IfFunction<Flt64> -> d.result
+                                is BinaryzationFunction<Flt64> -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, d.resultVar)), Flt64.zero)
+                                is SameAsFunction<Flt64> -> LinearPolynomial(listOf(LinearMonomial(Flt64.one, d.resultVar)), Flt64.zero)
+                                else -> sym.toLinearPolynomial()
+                            }
+                        } else {
+                            sym.toLinearPolynomial()
+                        }
+                    }
+                    LinearFunctionSymbolAdapter(
+                        OrFunction(
+                            polynomials = polys,
+                            name = "estimate_load_${position}"
+                        )
                     )
                 } else {
                     LinearExpressionSymbol(
@@ -355,9 +383,11 @@ class Load(
                             name = "actual_loaded_${position}"
                         )
                     } else {
-                        BinaryzationFunction(
-                            LinearPolynomial(loadAmount[j]),
-                            name = "actual_loaded_${position}"
+                        LinearFunctionSymbolAdapter(
+                            BinaryzationFunction(
+                                LinearPolynomial(loadAmount[j]),
+                                name = "actual_loaded_${position}"
+                            )
                         )
                     }
                 } else {

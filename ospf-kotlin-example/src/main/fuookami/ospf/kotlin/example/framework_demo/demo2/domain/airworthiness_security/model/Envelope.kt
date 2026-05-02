@@ -37,8 +37,7 @@ interface AbstractEnvelope {
         val points: List<Point>
     ) {
         val piecewise by lazy {
-            UnivariateLinearPiecewiseFunction(
-                // ռλ��ʹ������Ĳ�ֵ����
+            UnivariateLinearPiecewiseFunction.fromPoints(
                 x = LinearPolynomial(),
                 points = points.map {
                     Point2(
@@ -163,7 +162,7 @@ class ConditionalEnvelope(
     val lhsSide2: AbstractEnvelope.Side,
     val rhsSide2: AbstractEnvelope.Side,
     val valueCondition: () -> Boolean?,
-    val symbolCondition: (String) -> Either<LinearPolynomial<Flt64>, LinearFunctionSymbolAdapter>,
+    val symbolCondition: (String) -> Either<LinearPolynomial<Flt64>, LinearFunctionSymbolAdapter<Flt64>>,
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
     lateinit var condition: LinearIntermediateSymbolFlt64
@@ -175,11 +174,9 @@ class ConditionalEnvelope(
     ): Try {
         when (valueCondition()) {
             true -> {
-                // ȡ��һ�ְ���
                 if (!::minIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     minIndex = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ�������Сָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(lhsSide1(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -188,7 +185,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ����������Сָ���Ĺ�ϵ
                         lhsSide1.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                 }
@@ -207,7 +203,6 @@ class ConditionalEnvelope(
                 if (!::maxIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     maxIndex = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ��������ָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(rhsSide1(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -216,7 +211,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ�����������ָ���Ĺ�ϵ
                         rhsSide1.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                 }
@@ -234,11 +228,9 @@ class ConditionalEnvelope(
             }
 
             false -> {
-                // ȡ�ڶ��ְ���
                 if (!::minIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     minIndex = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ�������Сָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(lhsSide2(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -247,7 +239,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ����������Сָ���Ĺ�ϵ
                         lhsSide2.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                 }
@@ -266,7 +257,6 @@ class ConditionalEnvelope(
                 if (!::maxIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     maxIndex = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ��������ָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(rhsSide2(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -275,7 +265,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ�����������ָ���Ĺ�ϵ
                         rhsSide2.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                 }
@@ -293,7 +282,6 @@ class ConditionalEnvelope(
             }
 
             null -> {
-                // ʹ����������ʽѡ�����
                 if (!::condition.isInitialized) {
                     condition = when (val condition = symbolCondition("${name}_${phase.name.lowercase(Locale.getDefault())}_condition")) {
                         is Either.Left -> {
@@ -323,7 +311,6 @@ class ConditionalEnvelope(
                 if (!::minIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     val minIndex1 = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ�������Сָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(lhsSide1(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -332,11 +319,9 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ����������Сָ���Ĺ�ϵ
                         lhsSide1.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                     val minIndex2 = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ�������Сָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(lhsSide2(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -345,7 +330,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ����������Сָ���Ĺ�ϵ
                         lhsSide2.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                     minIndex = minIndex1
@@ -365,7 +349,6 @@ class ConditionalEnvelope(
                 if (!::maxIndex.isInitialized) {
                     val thisTotalWeight = totalWeight.computedTotalWeight[phase]
                     val maxIndex1 = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ��������ָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(rhsSide1(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -374,11 +357,9 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ�����������ָ���Ĺ�ϵ
                         rhsSide1.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                     val maxIndex2 = if (thisTotalWeight != null) {
-                        // Ԥ���ء�ȫ����ģʽ�£������Ǹ�ȷ��ֵ�����Կ���ͨ�����Բ�ֱֵ��������ָ��
                         Quantity(
                             LinearExpressionSymbol(
                                 LinearPolynomial(rhsSide2(thisTotalWeight).to(aircraftModel.weightUnit)!!.value),
@@ -387,7 +368,6 @@ class ConditionalEnvelope(
                             aircraftModel.torqueUnit
                         )
                     } else {
-                        // �������Բ�ֵ��һԪ�������ֶ����Ժ�����ӳ�����������ָ���Ĺ�ϵ
                         rhsSide2.piecewise(totalWeight.estimateTotalWeight[phase]!!)
                     }
                     maxIndex = maxIndex1

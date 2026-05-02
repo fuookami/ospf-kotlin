@@ -98,20 +98,36 @@ class StowageContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        when (val result = aggregation.registerForBendersMP(model)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModelFlt64,
+        solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        when (val result = aggregation.registerForBendersSP(model, solution)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        when (val result = aggregation.registerForBendersSP(model, solution)) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     fun analyze(

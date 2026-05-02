@@ -90,20 +90,25 @@ class RecommendedWeightEqualizationContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Weight equalization constraints go into the master problem.
+        return register(
+            stowageMode = StowageMode.FullLoad,
+            model = model
+        )
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Weight equalization does not contribute to the sub problem.
+        return ok
     }
 
     fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

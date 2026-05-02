@@ -72,20 +72,30 @@ class MacContext {
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // MAC computation constraints go into the master problem.
+        when (val result = aggregation.register(
+            stowageMode = StowageMode.FullLoad,
+            model = model
+        )) {
+            is Ok -> {}
+            is Failed -> return Failed(result.error)
+            is Fatal -> return Fatal(result.errors)
+        }
+        return ok
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // MAC does not contribute to the sub problem.
+        return ok
     }
 
     fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

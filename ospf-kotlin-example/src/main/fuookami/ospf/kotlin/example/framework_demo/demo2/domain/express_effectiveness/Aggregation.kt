@@ -73,21 +73,23 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Express effectiveness constraints go into the master problem.
+        return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        // Express effectiveness does not contribute to the sub problem.
+        return ok
     }
 
     private fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

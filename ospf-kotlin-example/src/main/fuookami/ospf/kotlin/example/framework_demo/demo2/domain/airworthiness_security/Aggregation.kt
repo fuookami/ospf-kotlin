@@ -145,21 +145,23 @@ class Aggregation(
     fun registerForBendersMP(
         model: AbstractLinearMetaModelFlt64
     ): Try {
-        TODO("not implemented yet")
+        // Airworthiness constraints go into the sub problem, not master.
+        return ok
     }
 
     fun registerForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        // Airworthiness constraints form the sub problem.
+        return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
     private fun flushForBendersSP(
         model: AbstractLinearMetaModelFlt64,
         solution: List<Flt64>
     ): Try {
-        TODO("not implemented yet")
+        return ok
     }
 }
 

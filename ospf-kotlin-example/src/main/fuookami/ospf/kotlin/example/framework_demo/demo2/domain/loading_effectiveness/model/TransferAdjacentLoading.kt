@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
-import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
@@ -42,9 +41,11 @@ class TransferAdjacentLoading(
                 }
 
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
-                    IfFunction(
-                        (loadAmount1 + loadAmount2) geq Flt64.two,
-                        name = "same_source_adjacent_${source}_${position1}_${position2}",
+                    LinearFunctionSymbolAdapter(
+                        IfFunction(
+                            condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            name = "same_source_adjacent_${source}_${position1}_${position2}",
+                        )
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
@@ -85,9 +86,11 @@ class TransferAdjacentLoading(
                 }
 
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
-                    IfFunction(
-                        (loadAmount1 + loadAmount2) geq Flt64.two,
-                        name = "same_destination_adjacent_${destination}_${position1}_${position2}",
+                    LinearFunctionSymbolAdapter(
+                        IfFunction(
+                            condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            name = "same_destination_adjacent_${destination}_${position1}_${position2}",
+                        )
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
