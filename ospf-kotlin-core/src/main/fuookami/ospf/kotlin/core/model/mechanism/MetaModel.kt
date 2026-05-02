@@ -157,46 +157,15 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         val displayName: String? = null,
         val polynomial: LinearPolynomial<V>
     ) where V : RealNumber<V>, V : NumberField<V> {
-        /** Flt64 view of evaluation (solver-compatible, internal). */
-        fun evaluate(zeroIfNone: Boolean = false): Flt64? {
+        /** Primary V-typed evaluation. */
+        fun evaluate(zeroIfNone: Boolean = false): V? {
             return evaluate(
                 tokenTable = parent.tokens,
                 zeroIfNone = zeroIfNone
             )
         }
 
-        fun evaluate(solution: List<Flt64>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant.asFlt64()
-            for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val idx = parent.tokens.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient.asFlt64() * solution[idx]
-            }
-            return result
-        }
-
-        fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant.asFlt64()
-            for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val tokenResult = tokenTable.find(variable)?.resultFlt64 ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient.asFlt64() * tokenResult
-            }
-            return result
-        }
-
-        fun evaluate(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant.asFlt64()
-            for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient.asFlt64() * results[idx]
-            }
-            return result
-        }
-
-        /** V-typed evaluation using native V arithmetic. */
-        fun evaluateV(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
+        fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             var result: V? = null
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
@@ -208,31 +177,46 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
             return result ?: polynomial.constant
         }
 
-        fun evaluateV(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
-            @Suppress("UNCHECKED_CAST")
+        fun evaluate(results: List<V>, zeroIfNone: Boolean = false): V? {
+            return evaluate(
+                results = results,
+                tokenTable = parent.tokens,
+                zeroIfNone = zeroIfNone
+            )
+        }
+
+        fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
             var result: V? = null
             for (m in polynomial.monomials) {
                 val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
                 val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) zeroOf<V>() else null
-                val tokenValue = results[idx] as V
+                val tokenValue = results[idx]
                 val term = m.coefficient * tokenValue
                 result = if (result == null) term else result + term
             }
             return result ?: polynomial.constant
         }
 
-        /** V-typed evaluation via IntoValue<V> conversion (backward compatibility). */
-        fun evaluateAsV(converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-            evaluate(zeroIfNone)?.let { converter.intoValue(it) }
+        /** Flt64 evaluation for solver-boundary callers (internal). */
+        fun evaluateFlt64(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
+            var result = polynomial.constant.asFlt64()
+            for (m in polynomial.monomials) {
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
+                val tokenResult = tokenTable.find(variable)?.resultFlt64 ?: return if (zeroIfNone) Flt64.zero else null
+                result += m.coefficient.asFlt64() * tokenResult
+            }
+            return result
+        }
 
-        fun evaluateAsV(solution: List<Flt64>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-            evaluate(solution, zeroIfNone)?.let { converter.intoValue(it) }
-
-        fun evaluateAsV(tokenTable: AbstractTokenTable<V>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-            evaluate(tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
-
-        fun evaluateAsV(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: fuookami.ospf.kotlin.core.solver.value.IntoValue<V>, zeroIfNone: Boolean = false): V? =
-            evaluate(results, tokenTable, zeroIfNone)?.let { converter.intoValue(it) }
+        fun evaluateFlt64(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
+            var result = polynomial.constant.asFlt64()
+            for (m in polynomial.monomials) {
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
+                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
+                result += m.coefficient.asFlt64() * results[idx]
+            }
+            return result
+        }
 
         fun flush(force: Boolean = false) {
             // Math polynomials don't have caching

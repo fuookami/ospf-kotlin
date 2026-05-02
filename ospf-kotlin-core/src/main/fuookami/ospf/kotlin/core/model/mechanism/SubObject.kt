@@ -3,9 +3,7 @@
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
@@ -18,8 +16,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
- * Generic SubObject<V> with typed public evaluation and Flt64 solver evaluation.
- * 泛型 SubObject<V>：公开求值使用 V，求解器边界求值使用 Flt64。
+ * Generic SubObject<V> with V-typed public evaluation.
+ * 泛型 SubObject<V>：公开求值使用 V。
  */
 sealed class SubObject<V : RealNumber<V>>(
     val category: ObjectCategory,
@@ -27,21 +25,17 @@ sealed class SubObject<V : RealNumber<V>>(
 ) {
     abstract val cells: List<Cell<V>>
 
-    /** Flt64 constant for solver-boundary callers. / 面向求解器边界的 Flt64 常量。 */
-    abstract val constantFlt64: Flt64
-
     /** V-typed constant for public callers. / 面向调用方的 V 类型常量。 */
     abstract val constant: V
 
-    /** Flt64 evaluation for solver-boundary callers. / 面向求解器边界的 Flt64 求值。 */
-    fun evaluateFlt64(): Flt64? {
-        var ret = constantFlt64
-        for (cell in cells) {
-            ret += cell.evaluateFlt64() ?: return null
-        }
-        return ret
-    }
+    /** Flt64 constant for solver-boundary callers. / 面向求解器边界的 Flt64 常量。 */
+    abstract val constantFlt64: Flt64
 
+    /** V-typed evaluation for public callers. / 面向调用方的 V 类型求值。 */
+    abstract fun evaluate(): V?
+    abstract fun evaluate(results: List<V>): V?
+
+    /** Flt64 evaluation for solver-boundary callers (via wildcard reference). / 面向求解器边界的 Flt64 求值。 */
     fun evaluateFlt64(results: Solution): Flt64? {
         var ret = constantFlt64
         for (cell in cells) {
@@ -49,16 +43,6 @@ sealed class SubObject<V : RealNumber<V>>(
         }
         return ret
     }
-
-    /** V-typed evaluation for public callers. / 面向调用方的 V 类型求值。 */
-    abstract fun evaluate(): V?
-    abstract fun evaluate(results: List<V>): V?
-
-    /** Explicit conversion helper kept for compatibility. / 保留给兼容路径使用的显式转换工具。 */
-    fun evaluateAsV(converter: IntoValue<V>): V? = evaluateFlt64()?.let { converter.intoValue(it) }
-
-    /** Explicit constant conversion helper kept for compatibility. / 保留给兼容路径使用的常量转换工具。 */
-    fun constantAsV(converter: IntoValue<V>): V = converter.intoValue(constantFlt64)
 }
 
 class LinearSubObject<V : RealNumber<V>>(
@@ -68,8 +52,8 @@ class LinearSubObject<V : RealNumber<V>>(
     private val _constantFlt64: Flt64 = Flt64.zero,
     name: String = ""
 ) : SubObject<V>(category, name) {
-    override val constantFlt64: Flt64 get() = _constantFlt64
     override val constant: V get() = _constant
+    override val constantFlt64: Flt64 get() = _constantFlt64
 
     override fun evaluate(): V? {
         var ret = constant
@@ -148,8 +132,8 @@ class QuadraticSubObject<V : RealNumber<V>>(
     private val _constantFlt64: Flt64 = Flt64.zero,
     name: String = ""
 ) : SubObject<V>(category, name) {
-    override val constantFlt64: Flt64 get() = _constantFlt64
     override val constant: V get() = _constant
+    override val constantFlt64: Flt64 get() = _constantFlt64
 
     override fun evaluate(): V? {
         var ret = constant
