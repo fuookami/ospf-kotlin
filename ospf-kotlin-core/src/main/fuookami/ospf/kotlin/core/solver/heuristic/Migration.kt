@@ -4,9 +4,11 @@ import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.minMaxWithPartialThreeWayComparatorOrNull
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
-interface Migration<V> {
+interface Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -16,7 +18,7 @@ interface Migration<V> {
 
 data class RandomMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -37,7 +39,7 @@ data class RandomMigration<V>(
 
 data class BetterToWorseMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -58,7 +60,7 @@ data class BetterToWorseMigration<V>(
 
 data class MoreToLessMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -75,7 +77,7 @@ data class MoreToLessMigration<V>(
 
 data class MigrationMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -96,7 +98,7 @@ data class MigrationMigration<V>(
 
 data class RingExchangeMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -115,7 +117,7 @@ data class RingExchangeMigration<V>(
 
 data class RandomDiffusionMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -134,7 +136,7 @@ data class RandomDiffusionMigration<V>(
 
 data class ElitistMigrationMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,
@@ -158,7 +160,7 @@ data class ElitistMigrationMigration<V>(
 
 data class PopulationMergeMigration<V>(
     private val randomGenerator: Generator<Flt64>,
-) : Migration<V> {
+) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
     override operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         populations: List<Population<T, V>>,

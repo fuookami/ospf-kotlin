@@ -4,6 +4,8 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Generator
@@ -54,7 +56,7 @@ class ParticleSwarmHeuristicSolver<V>(
     val solveOnObjectiveMiss: Boolean = true,
     private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
     private val initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero }
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
 
     fun withRandomGenerator(randomGenerator: Generator<Flt64>): ParticleSwarmHeuristicSolver<V> {
@@ -275,7 +277,7 @@ class ParticleSwarmHeuristicSolver<V>(
             particles = newParticles
         }
 
-        model.setSolution(bestParticle.solution)
+        model.tokens.setSolverSolution(bestParticle.solution)
         return Ok(
             HeuristicResult(
                 bestSolution = bestParticle.solution,

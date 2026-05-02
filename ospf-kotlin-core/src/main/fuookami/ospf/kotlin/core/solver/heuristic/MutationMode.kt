@@ -2,11 +2,13 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.algebra.value_range.coerceIn
 
-interface MutationMode<V> {
+interface MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -18,7 +20,7 @@ interface MutationMode<V> {
 
 data class StaticMutationMode<V>(
     val mutationRate: Flt64? = null
-) : MutationMode<V> {
+) : MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -34,7 +36,7 @@ data class StaticMutationMode<V>(
 
 data class RandomMutationMode<V>(
     private val randomGenerator: Generator<Flt64>
-) : MutationMode<V> {
+) : MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -48,7 +50,7 @@ data class RandomMutationMode<V>(
     }
 }
 
-class AdaptiveDynamicMutationMode<V> : MutationMode<V> {
+class AdaptiveDynamicMutationMode<V> : MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,

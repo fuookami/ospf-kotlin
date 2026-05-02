@@ -2,11 +2,13 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.utils.functional.Generator
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
-interface CrossMode<V> {
+interface CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     enum class Method {
         WeightedRing,
         WeightedBidirectional,
@@ -23,7 +25,7 @@ interface CrossMode<V> {
     ): List<List<T>>
 }
 
-class OneParentCrossMode<V> : CrossMode<V> {
+class OneParentCrossMode<V> : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -37,7 +39,7 @@ class OneParentCrossMode<V> : CrossMode<V> {
 
 class TwoParentCrossMode<V>(
     val method: CrossMode.Method
-) : CrossMode<V> {
+) : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
@@ -92,12 +94,12 @@ class TwoParentCrossMode<V>(
 class MultiParentCrossMode<V>(
     val method: CrossMode.Method,
     val parentAmountCalculator: (Iteration, List<Flt64>, ValueRange<UInt64>) -> UInt64
-) : CrossMode<V> {
+) : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
             method: CrossMode.Method,
             randomGenerator: Generator<Flt64>
-        ): MultiParentCrossMode<V> {
+        ): MultiParentCrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
             return MultiParentCrossMode(method) { _, _, range ->
                 range.fixedValue
                     ?: (range.lowerBound.value.unwrap() + (randomGenerator()!! * range.diff.unwrap().toFlt64()).round().toUInt64())
@@ -190,7 +192,7 @@ class MultiParentCrossMode<V>(
 data object AdaptiveMultiParentCrossMode {
     operator fun <V> invoke(
         method: CrossMode.Method
-    ): MultiParentCrossMode<V> {
+    ): MultiParentCrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
         return MultiParentCrossMode(method) { _, weights, range ->
             if (range.fixedValue != null) {
                 return@MultiParentCrossMode range.fixedValue!!

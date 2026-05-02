@@ -2,10 +2,12 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.math.functional.sum
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface ObjectiveNormalization<V> {
+interface ObjectiveNormalization<V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>

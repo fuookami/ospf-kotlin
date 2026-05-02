@@ -2,6 +2,8 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
@@ -28,7 +30,7 @@ data class Population<T : Individual<V>, V>(
     val densityRange: ValueRange<UInt64>,
     val mutationRateRange: ValueRange<Flt64>,
     val parentAmountRange: ValueRange<UInt64>
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     val density by individuals::size
 }
 
@@ -42,7 +44,7 @@ fun <T : Individual<V>, V> refreshGoodIndividuals(
     newIndividuals: List<T>,
     model: AbstractCallBackModelInterface<*, V>,
     solutionAmount: UInt64 = goodIndividuals.usize
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     var i = 0
     var j = 0
     while (i != goodIndividuals.size && j != newIndividuals.size) {
