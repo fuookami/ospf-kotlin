@@ -186,7 +186,7 @@ class MaskingFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaskingWithPolyMaskFunction = MaskingWithPolyMaskFunction(
+        ): MaskingWithPolyMaskFunction<Flt64> = MaskingWithPolyMaskFunction(
             input = x.toLinearPolynomial(),
             maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
@@ -202,14 +202,14 @@ class MaskingFunction<V>(
  * Creates an internal variable `m` with constraint m = maskPoly, then applies
  * standard Big-M masking constraints with m as the binary mask.
  */
-class MaskingWithPolyMaskFunction(
-    val input: LinearPolynomial<Flt64>,
-    val maskPoly: LinearPolynomial<Flt64>,
-    bigM: Flt64? = null,
+class MaskingWithPolyMaskFunction<V>(
+    val input: LinearPolynomial<V>,
+    val maskPoly: LinearPolynomial<V>,
+    bigM: V? = null,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbolFlt64, MathFunctionSymbol<Flt64> {
-    private val bigM: Flt64 = bigM ?: Flt64(BIG_M_DEFAULT)
+) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+    private val bigM: V = bigM ?: Flt64(BIG_M_DEFAULT) as V
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
 
@@ -225,13 +225,13 @@ class MaskingWithPolyMaskFunction(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>): Flt64? = null
+    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun toRawString(unfold: UInt64): String = name
 
     override val flattenedMonomials: LinearFlattenDataFlt64 get() = LinearFlattenDataFlt64(emptyList(), Flt64.zero)
 
-    override val polynomial: LinearPolynomial<Flt64> get() = LinearPolynomial(emptyList(), Flt64.zero)
-    override fun asMutable(): MutableLinearPolynomial<Flt64> = MutableLinearPolynomial(emptyList(), Flt64.zero)
+    override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), zeroOf<V>())
+    override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), zeroOf<V>())
 
     override fun toMathLinearInequality(): Flt64LinearInequality {
         return Flt64LinearInequality(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
@@ -243,34 +243,45 @@ class MaskingWithPolyMaskFunction(
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<Flt64>).evaluate(values)
-
-    // V-typed evaluate overrides (P4-5)
-    override fun evaluate(tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTableFlt64, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTableFlt64?, converter: IntoValue<Flt64>, zeroIfNone: Boolean): Flt64? =
-        (this as MathFunctionSymbol<Flt64>).evaluate(values)?.let { converter.intoValue(it) }
-
-    override fun evaluate(values: Map<Symbol, Flt64>): Flt64? {
-        val maskValue = maskPoly.evaluate(values) ?: return Flt64.zero
-        val maskD = maskValue.toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return Flt64.zero
-        return input.evaluate(values)
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? {
+        @Suppress("UNCHECKED_CAST")
+        return delegate().evaluate(values as Map<Symbol, V>)?.asFlt64()
     }
 
-    override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
+    // V-typed evaluate overrides
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        @Suppress("UNCHECKED_CAST")
+        val v = delegate().evaluate(values as Map<Symbol, V>) ?: return null
+        return converter.intoValue(v.asFlt64())
+    }
+
+    private fun delegate(): MathFunctionSymbol<V> = this
+
+    override fun evaluate(values: Map<Symbol, V>): V? {
+        val maskValue = maskPoly.evaluateWith(values) ?: return zeroOf<V>()
+        val maskD = maskValue.asFlt64().toDouble()
+        if (maskD <= 1e-12 && maskD >= -1e-12) return zeroOf<V>()
+        return input.evaluateWith(values)
+    }
+
+    override fun register(model: AbstractLinearMetaModel<V>): Try {
         when (val result = model.add(helperVariables)) {
             is Ok -> {}
             is Failed -> return Failed(result.error)
             is Fatal -> return Fatal(result.errors)
         }
 
+        val inputPoly = input.asFlt64Poly()
+        val maskPolyF = maskPoly.asFlt64Poly()
+        val mF = bigM.asFlt64()
+
         // maskPoly = maskVar constraint
-        val maskMonos = maskPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+        val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, maskVar)
         val maskConstraint = Flt64LinearInequality(
-            LinearPolynomial(monomials = maskMonos, constant = -maskPoly.constant),
+            LinearPolynomial(monomials = maskMonos, constant = -maskPolyF.constant),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.EQ, "${name}_mask_eq")
         when (val r = model.addConstraint(relation = maskConstraint, name = maskConstraint.name)) {
             is Ok -> {}
@@ -278,15 +289,13 @@ class MaskingWithPolyMaskFunction(
             is Fatal -> return Fatal(r.errors)
         }
 
-        val mD = bigM.toDouble()
-
         // c1: result - input <= M*(1 - mask_var_normalized)
-        val c1Monos = input.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+        val c1Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar) +
-            LinearMonomial(Flt64(mD), maskVar)
+            LinearMonomial(mF, maskVar)
         val c1 = Flt64LinearInequality(
-            LinearPolynomial(monomials = c1Monos, constant = -input.constant),
-            LinearPolynomial(monomials = emptyList(), constant = Flt64(mD)), Comparison.LE, "${name}_ub")
+            LinearPolynomial(monomials = c1Monos, constant = -inputPoly.constant),
+            LinearPolynomial(monomials = emptyList(), constant = mF), Comparison.LE, "${name}_ub")
         when (val r = model.addConstraint(relation = c1, name = c1.name)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
@@ -294,11 +303,11 @@ class MaskingWithPolyMaskFunction(
         }
 
         // c2: result - input >= -M*mask_var
-        val c2Monos = input.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+        val c2Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar) +
-            LinearMonomial(Flt64(mD), maskVar)
+            LinearMonomial(mF, maskVar)
         val c2 = Flt64LinearInequality(
-            LinearPolynomial(monomials = c2Monos, constant = -input.constant),
+            LinearPolynomial(monomials = c2Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_lb")
         when (val r = model.addConstraint(relation = c2, name = c2.name)) {
             is Ok -> {}
@@ -307,7 +316,7 @@ class MaskingWithPolyMaskFunction(
         }
 
         // c3: result <= M*mask_var
-        val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64(mD), maskVar))
+        val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-mF, maskVar))
         val c3 = Flt64LinearInequality(
             LinearPolynomial(monomials = c3Monos, constant = Flt64.zero),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.LE, "${name}_zero_ub")
@@ -318,7 +327,7 @@ class MaskingWithPolyMaskFunction(
         }
 
         // c4: result >= -M*mask_var
-        val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64(mD), maskVar))
+        val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(mF, maskVar))
         val c4 = Flt64LinearInequality(
             LinearPolynomial(monomials = c4Monos, constant = Flt64.zero),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_zero_lb")
