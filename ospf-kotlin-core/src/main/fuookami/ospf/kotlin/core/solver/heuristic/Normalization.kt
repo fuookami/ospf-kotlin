@@ -9,7 +9,7 @@ interface ObjectiveNormalization<V> {
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>
-    ): List<Flt64>
+    ): List<V>
 }
 
 data object MinMaxNormalization : ObjectiveNormalization<Flt64> {

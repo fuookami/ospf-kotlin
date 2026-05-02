@@ -88,7 +88,9 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
 
 typealias AbstractCallBackModelInterface<Obj, V> = AbstractCallBackModelInterfaceV<Obj, V, Flt64>
 
-interface CallBackModelInterface : AbstractCallBackModelInterfaceV<Flt64, Flt64, Flt64> {
+interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> where V : RealNumber<V>, V : NumberField<V>
+
+interface CallBackModelInterface : CallBackModelInterfaceV<Flt64> {
     override val defaultObjective: Flt64
         get() = if (objectCategory == ObjectCategory.Minimum) {
             Flt64.negativeInfinity
@@ -109,10 +111,12 @@ interface CallBackModelInterface : AbstractCallBackModelInterfaceV<Flt64, Flt64,
     }
 }
 
-interface MultiObjectiveModelInterface : AbstractCallBackModelInterfaceV<MulObj, List<Flt64>, Flt64> {
+interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<MulObj, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
+}
 
+interface MultiObjectiveModelInterface : MultiObjectiveModelInterfaceV<Flt64> {
     override val defaultObjective: List<Flt64>
         get() = if (objectCategory == ObjectCategory.Minimum) {
             (0 until objectiveSize).map { Flt64.negativeInfinity }

@@ -105,7 +105,8 @@ class GAPolicy<V>(
             population = population,
             model = model
         )
-        val weights = normalization(model, population.individuals.map { it.fitness })
+        @Suppress("UNCHECKED_CAST")
+        val weights = normalization(model, population.individuals.map { it.fitness }) as List<Flt64>
         val indexes = selection(
             iteration = iteration,
             weights = weights,
@@ -126,7 +127,8 @@ class GAPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<Chromosome<V>> {
-        val weights = normalization(model, population.map { it.fitness })
+        @Suppress("UNCHECKED_CAST")
+        val weights = normalization(model, population.map { it.fitness }) as List<Flt64>
         val parentGroups = crossMode(
             iteration = iteration,
             population = population,
@@ -166,7 +168,8 @@ class GAPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         mutationRateRange: ValueRange<Flt64>
     ): List<Chromosome<V>> {
-        val weights = normalization(model, population.map { it.fitness })
+        @Suppress("UNCHECKED_CAST")
+        val weights = normalization(model, population.map { it.fitness }) as List<Flt64>
         val mutationRate = mutationMode(
             iteration = iteration,
             population = population,

@@ -107,7 +107,8 @@ open class MVOPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>
     ): List<Flt64> {
-        return whiteHoleRateCalculator(model, objs)
+        @Suppress("UNCHECKED_CAST")
+        return whiteHoleRateCalculator(model, objs) as List<Flt64>
     }
 
     override fun transformUniverses(
