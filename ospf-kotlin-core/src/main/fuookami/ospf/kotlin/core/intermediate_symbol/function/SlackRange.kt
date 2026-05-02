@@ -43,10 +43,12 @@ class SlackRangeFunction<V>(
         get() = listOf(upperVar, lowerVar)
 
     val upper: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), upperVar)), zeroOf<V>())
+        val unit = x.constant / x.constant
+        LinearPolynomial(listOf(LinearMonomial(unit, upperVar)), x.constant - x.constant)
     }
     val lower: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), lowerVar)), zeroOf<V>())
+        val unit = x.constant / x.constant
+        LinearPolynomial(listOf(LinearMonomial(unit, lowerVar)), x.constant - x.constant)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {

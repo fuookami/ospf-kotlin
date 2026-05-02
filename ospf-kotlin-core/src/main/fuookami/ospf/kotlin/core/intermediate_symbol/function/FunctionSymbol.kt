@@ -117,9 +117,10 @@ class LinearFunctionSymbolAdapter<V>(
     val pos: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.posVar?.let { v ->
+            val unit = slack.x.constant / slack.x.constant
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(oneOf<V>(), v)),
-                constant = zeroOf<V>()
+                monomials = listOf(LinearMonomial(unit, v)),
+                constant = slack.x.constant - slack.x.constant
             )
         }
     }
@@ -131,9 +132,10 @@ class LinearFunctionSymbolAdapter<V>(
     val neg: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.negVar?.let { v ->
+            val unit = slack.x.constant / slack.x.constant
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(oneOf<V>(), v)),
-                constant = zeroOf<V>()
+                monomials = listOf(LinearMonomial(unit, v)),
+                constant = slack.x.constant - slack.x.constant
             )
         }
     }
@@ -144,12 +146,13 @@ class LinearFunctionSymbolAdapter<V>(
      */
     val polyX: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
+        val unit = slack.x.constant / slack.x.constant
         var result = LinearPolynomial(slack.x.monomials.toMutableList(), slack.x.constant)
         if (slack.withNegative && slack.negVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(oneOf<V>(), slack.negVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(unit, slack.negVar!!), result.constant)
         }
         if (slack.withPositive && slack.posVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(-oneOf<V>(), slack.posVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(-unit, slack.posVar!!), result.constant)
         }
         result
     }

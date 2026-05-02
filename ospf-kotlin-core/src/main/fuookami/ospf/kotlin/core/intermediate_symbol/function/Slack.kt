@@ -52,13 +52,15 @@ class SlackFunction<V>(
 
     val neg: LinearPolynomial<V>? by lazy {
         negVar?.let { v ->
-            LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), v)), zeroOf<V>())
+            val unit = x.constant / x.constant
+            LinearPolynomial(listOf(LinearMonomial(unit, v)), x.constant - x.constant)
         }
     }
 
     val pos: LinearPolynomial<V>? by lazy {
         posVar?.let { v ->
-            LinearPolynomial(listOf(LinearMonomial(oneOf<V>(), v)), zeroOf<V>())
+            val unit = x.constant / x.constant
+            LinearPolynomial(listOf(LinearMonomial(unit, v)), x.constant - x.constant)
         }
     }
 
@@ -168,29 +170,36 @@ class SlackFunction<V>(
     }
 
     val polyX: LinearPolynomial<V> by lazy {
+        val unit = x.constant / x.constant
         var result = LinearPolynomial(x.monomials.toMutableList(), x.constant)
         if (withNegative && negVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(oneOf<V>(), negVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(unit, negVar!!), result.constant)
         }
         if (withPositive && posVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(-oneOf<V>(), posVar!!), result.constant)
+            result = LinearPolynomial(result.monomials + LinearMonomial(-unit, posVar!!), result.constant)
         }
         result
     }
 
     companion object {
-        /** Generic V-typed invoke: primary entry point. */
+        /** Generic V-typed invoke: primary entry point with x and y polynomials. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
-            lower: LinearPolynomial<V>? = null,
-            upper: LinearPolynomial<V>? = null,
+            y: LinearPolynomial<V>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
             return SlackFunction(
                 x = x,
-                lower = lower,
-                upper = upper,
+                y = y,
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
                 name = name ?: "",
                 displayName = displayName
             )
@@ -199,15 +208,21 @@ class SlackFunction<V>(
         /** Generic V-typed invoke with LinearIntermediateSymbol<V>. */
         operator fun <V> invoke(
             x: LinearIntermediateSymbol<V>,
-            lower: LinearPolynomial<V>? = null,
-            upper: LinearPolynomial<V>? = null,
+            y: LinearPolynomial<V>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
             return invoke(
                 x = x.polynomial,
-                lower = lower,
-                upper = upper,
+                y = y,
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
                 name = name,
                 displayName = displayName
             )
@@ -216,15 +231,21 @@ class SlackFunction<V>(
         /** Generic V-typed invoke with ToLinearPolynomial<V>. */
         operator fun <V> invoke(
             x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>,
-            lower: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>? = null,
-            upper: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>? = null,
+            y: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<V>,
+            type: VariableType<*> = UContinuous,
+            withNegative: Boolean = true,
+            withPositive: Boolean = true,
+            threshold: Boolean = false,
             name: String? = null,
             displayName: String? = null
         ): SlackFunction<V> where V : RealNumber<V>, V : NumberField<V> {
             return invoke(
                 x = x.toLinearPolynomial(),
-                lower = lower?.toLinearPolynomial(),
-                upper = upper?.toLinearPolynomial(),
+                y = y.toLinearPolynomial(),
+                type = type,
+                withNegative = withNegative,
+                withPositive = withPositive,
+                threshold = threshold,
                 name = name,
                 displayName = displayName
             )
