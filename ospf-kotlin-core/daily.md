@@ -9,9 +9,26 @@
 ## 0. 总体目标
 
 1. 对外泛型主线统一：`V : RealNumber<V>, NumberField<V>`。
-2. 求解器内部边界显式化：仅在 solver-boundary 使用 Flt64。
+2. core 主业务链（model/mechanism/intermediate_symbol/callback/heuristic）不允许 Flt64 硬编码。
 3. 删除桥接类型与桥接路径文件，不再保留“旧路径转发壳”。
 4. 补齐二次型函数缺口，并接入 register/flatten/dump 全链路。
+5. Flt64 仅允许存在于外部求解器适配层（plugin/solver adapter），不进入 core 主链 API。
+
+## 0.1 策略数值层例外（新增）
+
+为保证启发式算法可维护性，允许“策略数值层”继续使用 `Flt64`，但必须满足以下边界：
+
+1. 允许范围：
+- `solver/heuristic` 中仅用于概率、权重、温度、变异率、分布采样等策略参数。
+- 与策略参数直接相关的数学函数（如 exp、round、归一化）可继续基于 `Flt64`。
+
+2. 禁止范围：
+- callback/model/mechanism/intermediate_symbol 的主业务对象、求值接口、符号值类型不得写死 `Flt64`。
+- 任何对外主 API（包括 `evaluate`、objective 结构、callback 主接口）不得以 `Flt64` 作为唯一类型。
+
+3. 实施要求：
+- 策略层 `Flt64` 必须与业务值类型解耦，不能反向约束 `V` 为 `Flt64`。
+- 在文档与验收中将其标记为“例外项”，不计入主链 Flt64 硬编码违规。
 
 ---
 
@@ -22,7 +39,7 @@
 ### 1.1 目标
 
 - `MetaModel.SubObject` 与 `mechanism/SubObject` 的对外求值入口统一为泛型 `evaluate<V>`。
-- Flt64 仅保留 solver-boundary 入口，例如 `evaluateAsFlt64` / `evaluateSolver`。
+- 删除 `evaluateAsFlt64`（及等价 Flt64 专用 evaluate 入口），求值主线仅保留泛型接口。
 
 ### 1.2 需改文件
 
@@ -34,22 +51,23 @@
 
 1. `MetaModel.SubObject`：
 - 把当前返回 `Flt64?` 的主 `evaluate` 系列改为 `V?` 主线。
-- 增加或重命名 solver 专用求值函数，明确 Flt64 语义。
+- 删除专用 Flt64 求值入口，调用方统一迁移到泛型 evaluate。
 
 2. `SubObject.kt`：
 - 抽象类主接口只保留泛型求值。
 - 线性/二次子类同步实现泛型主接口。
-- solver 路径统一转到显式 Flt64 边界方法。
+- 清理等价 Flt64 专用求值实现。
 
 3. `MechanismModel.kt`：
-- 所有 subobject 聚合计算对外路径调用泛型接口。
-- 求解器相关路径调用 solver-boundary 接口。
+- 所有 subobject 聚合计算统一调用泛型 evaluate。
+- 清理依赖专用 Flt64 求值入口的逻辑。
 
 ### 1.4 验收标准
 
 1. `MetaModel.SubObject` 主 `evaluate` 不再返回 `Flt64`。
 2. `SubObject.kt` 中 `evaluate` 主签名全为 `V`。
-3. 编译通过，线性/二次目标值计算无行为回归。
+3. 全仓 `evaluateAsFlt64`（及等价专用 evaluate）命中为 0。
+4. 编译通过，线性/二次目标值计算无行为回归。
 
 ---
 
@@ -181,7 +199,7 @@
 1. 每个新函数符号提供：
 - 泛型主构造。
 - `ToLinearPolynomial<V>` 工厂重载。
-- solver-boundary 显式转换参数（`IntoValue<V>` 或同等 converter）。
+- 可注入转换参数（`IntoValue<V>` 或同等 converter），不得写死 Flt64。
 
 2. 对接流程：
 - register 到 tokenTable。
@@ -223,7 +241,6 @@
 
 ---
 
-
 ## WP-7 heuristic/callback 泛型主链清零
 
 ### 7.1 目标
@@ -242,8 +259,9 @@
 ### 7.3 具体改动
 
 1. `solver/heuristic`：
-- 把 `Flt64` 写死的接口参数、返回值、策略参数改为泛型类型参数。
-- 仅在必要的数值策略处保留可注入 converter，不允许写死 `Flt64`。
+- 主业务接口（individual/model objective/callback 交互）改为泛型类型参数。
+- 策略数值参数（权重、概率、温度、变异率）允许保留 `Flt64`，作为例外项。
+- 例外项不得反向约束主业务类型为 `Flt64`。
 
 2. `model/callback`：
 - `AbstractCallBackModelInterface`、`CallBackModel`、`MultiObjectCallBackModel` 主路径改为泛型。
@@ -255,10 +273,11 @@
 
 ### 7.4 验收标准
 
-1. `solver/heuristic` 主链无 Flt64 硬编码。
+1. `solver/heuristic` 主业务链无 Flt64 硬编码（策略数值层例外除外）。
 2. `model/callback` 主链无 Flt64 硬编码。
 3. 全仓 `evaluateAsFlt64`（及等价专用 evaluate）命中为 0。
 4. 三段 Maven 编译门禁全部通过。
+
 ## 2. 执行顺序与依赖
 
 1. 第一步：WP-1（SubObject）
@@ -273,6 +292,7 @@
 1. WP-3 依赖 WP-1/2 的接口稳定。
 2. WP-4 需在 WP-3 后执行，避免删桥接后链路不完整。
 3. WP-5/6 可并行，但最终在同一轮编译门禁统一验收。
+4. WP-7 在 WP-1/2 完成后执行，避免求值接口迁移反复改动。
 
 ---
 
@@ -286,7 +306,7 @@
 - Flt64 兼容重载委托正确性。
 
 2. `SubObject`：
-- `evaluate<V>` 与 solver-boundary 结果一致性。
+- `evaluate<V>` 结果一致性（删除专用 evaluate 入口后）。
 - 线性/二次子对象分别覆盖。
 
 3. `register` 时机：
@@ -297,6 +317,10 @@
 - register 成功。
 - flatten 结构正确。
 - dump 可进入机制模型。
+
+5. `heuristic/callback`：
+- 泛型策略参数、泛型 objective 比较、泛型初始解生成链路可用。
+- 无 Flt64-only 主链调用。
 
 ### 3.2 编译门禁
 
@@ -314,9 +338,13 @@ mvn -pl ospf-kotlin-example -am -DskipTests compile
 2. `Slack.kt` 主签名中的 `LinearPolynomial<Flt64>`：命中 0。
 3. `Slack.kt` 主签名中的 `LinearIntermediateSymbolFlt64`：命中 0。
 4. `MetaModel.SubObject` 主 `evaluate` 返回 Flt64：命中 0。
-5. 指定桥接文件存在性：0 文件。
-6. 二次型差集文件：4/4 已新增。
-7. 三段 Maven 编译：全部 SUCCESS。
+5. `solver/heuristic` 主业务链 Flt64 硬编码：命中 0（策略数值层例外除外）。
+6. `model/callback` 主链 Flt64 硬编码：命中 0。
+7. `evaluateAsFlt64`（及等价专用 evaluate 入口）：命中 0。
+8. 指定桥接文件存在性：0 文件。
+9. 二次型差集文件：4/4 已新增。
+10. 三段 Maven 编译：全部 SUCCESS。
+11. 策略数值层例外仅出现在权重/概率/温度/变异率相关代码，不得出现在 callback/model/mechanism/intermediate_symbol 主接口。
 
 ---
 
@@ -331,12 +359,30 @@ mvn -pl ospf-kotlin-example -am -DskipTests compile
 3. 二次型补齐引入行为偏差：
 - 先上线最小闭环（register/flatten/dump），再扩高级工厂重载。
 
+4. heuristic/callback 泛型化影响面大：
+- 按提交级清单分步推进，每步维持可编译；必要时先引入兼容适配层再删除。
+
 ---
 
-## 6. 完成定义（DoD）
+## 6. 提交级清单（与 WP 对齐）
+
+1. Commit-1：WP-1（SubObject 主接口收口 + 删除专用 evaluate 入口）。
+2. Commit-2：WP-2（Slack/SlackRange/FunctionSymbol 泛型主链）。
+3. Commit-3：WP-3（register 时机迁移到 dump 注入）。
+4. Commit-4：WP-4（桥接文件删除与 import 迁移）。
+5. Commit-5：WP-5（二次型 4 个缺口文件新增与接线）。
+6. Commit-6：WP-6（Masking/Max/MinMax/Bridge/QuadraticBridge 主入口泛型化）。
+7. Commit-7：WP-7（heuristic/callback 泛型主链改造 + 调用方收敛）。
+8. Commit-8：回归测试与门禁收尾（compile + 定向 test）。
+9. Commit-9：daily 同步回填（状态与风险）。
+
+---
+
+## 7. 完成定义（DoD）
 
 1. WP-1 ~ WP-7 全部完成。
 2. 量化验收口径全部达标。
 3. 编译门禁全部通过。
 4. daily 与实际代码状态一致，无“文档完成/代码未完成”项。
+
 
