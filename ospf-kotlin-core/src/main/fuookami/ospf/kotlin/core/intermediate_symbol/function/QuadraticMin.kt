@@ -51,7 +51,7 @@ class QuadraticMinFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_min")
@@ -114,17 +114,28 @@ class QuadraticMinFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * Register this min function with the quadratic mechanism model.
-     * Adds result variable, binary selection variables (if exact), and constraints.
-     * Variable registration is handled separately by the MetaModel.
+     * Register helper variables (resultVar, binVars) with the token collection.
      */
-    fun register(model: AbstractQuadraticMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        val allVars = mutableListOf<AbstractVariableItem<*, *>>(resultVar)
+        allVars.addAll(binVars)
+        return when (val result = tokens.add(allVars)) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    /**
+     * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
+     */
+    override fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try {
+        val mF = converter.fromValue(bigM)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
 
         // y <= pi for each polynomial
         for ((i, poly) in polynomials.withIndex()) {
-            val flt64Poly = poly.asFlt64QuadraticPoly()
+            val flt64Poly = poly.asFlt64QuadraticPoly(converter)
             val negatedMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
             val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
@@ -140,7 +151,7 @@ class QuadraticMinFunction<V>(
             // y >= pi - M*(1 - ui) for each polynomial
             for ((i, poly) in polynomials.withIndex()) {
                 val uVar = binVars[i]
-                val flt64Poly = poly.asFlt64QuadraticPoly()
+                val flt64Poly = poly.asFlt64QuadraticPoly(converter)
                 val negatedPolyMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
                 val bigMTerm = QuadraticMonomial.linear(mF, uVar)
                 val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon) + listOf(bigMTerm), -flt64Poly.constant)

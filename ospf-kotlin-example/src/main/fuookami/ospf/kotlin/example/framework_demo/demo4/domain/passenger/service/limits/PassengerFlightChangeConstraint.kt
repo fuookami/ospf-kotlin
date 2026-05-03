@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -51,7 +52,7 @@ class PassengerFlightChangeConstraint(
                             return Fatal(result.errors)
                         }
                     }
-                    when (val result = estCondition.register(model)) {
+                    when (val result = model.add(LinearFunctionSymbolAdapter(estCondition, IntoValue.Flt64))) {
                         is Ok -> {}
 
                         is Failed -> {
@@ -111,7 +112,7 @@ class PassengerFlightChangeConstraint(
                             return Fatal(result.errors)
                         }
                     }
-                    when (val result = eetCondition.register(model)) {
+                    when (val result = model.add(LinearFunctionSymbolAdapter(eetCondition, IntoValue.Flt64))) {
                         is Ok -> {}
 
                         is Failed -> {

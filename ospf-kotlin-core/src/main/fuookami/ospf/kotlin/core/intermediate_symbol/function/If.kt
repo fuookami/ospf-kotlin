@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -61,7 +60,7 @@ class IfFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (condValue.asFlt64().toDouble() > 0.0) converter.one else converter.zero
+        return if (converter.fromValue(condValue).toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -72,11 +71,11 @@ class IfFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    private fun buildConstraints(): List<Flt64LinearInequality> {
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_if_nz")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_if_nz")
 
         // result = indicator (if condition > 0, result = 1)
         allConstraints += Flt64LinearInequality(
@@ -88,34 +87,11 @@ class IfFunction<V>(
             Comparison.EQ, "${name}_if_eq"
         )
 
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
+        return allConstraints
     }
 
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_if_nz")
-
-        // result = indicator (if condition > 0, result = 1)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(
-                listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVar)),
-                Flt64.zero
-            ),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.EQ, "${name}_if_eq"
-        )
-
-        addConstraints(model, allConstraints)?.let { return it }
+    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+        addConstraints(model, buildConstraints())?.let { return it }
         return ok
     }
 
@@ -165,7 +141,9 @@ class IfFunction<V>(
                 inequality.flattenData.constant
             )
             return LinearFunctionSymbolAdapter(
-                IfFunction(conditionPoly, bigM, name = name, displayName = displayName)
+                IfFunction(conditionPoly, bigM, name = name, displayName = displayName),
+            converter = IntoValue.Flt64
+        
             )
         }
     }

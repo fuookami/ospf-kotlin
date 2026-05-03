@@ -3,6 +3,9 @@
 package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
@@ -17,6 +20,18 @@ interface AbstractHeuristicPolicy {
     ): Flt64 {
         val token = model.tokens[index]
         return value.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
+    }
+
+    fun <V> coerceIn(
+        iteration: Iteration,
+        index: Int,
+        value: V,
+        model: AbstractCallBackModelInterface<*, *>,
+        converter: IntoValue<V>
+    ): V where V : RealNumber<V>, V : NumberField<V> {
+        val flt64Value = converter.fromValue(value)
+        val fixed = coerceIn(iteration, index, flt64Value, model)
+        return converter.intoValue(fixed)
     }
 
     fun update(

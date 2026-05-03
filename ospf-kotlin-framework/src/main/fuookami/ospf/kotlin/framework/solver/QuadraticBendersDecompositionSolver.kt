@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
@@ -89,12 +89,12 @@ interface LinearBendersDecompositionSolver {
     }
 
     data class LinearFeasibleResult(
-        val result: FeasibleSolverOutput,
+        val result: FeasibleSolverOutputFlt64,
         val dualSolution: LinearDualSolution,
         override val cuts: List<Flt64LinearInequality>?
     ) : LinearSubResult {
         val obj: Flt64 by result::obj
-        val solution: Solution by result::solution
+        val solution: Solution<Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap
@@ -240,13 +240,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     data class QuadraticFeasibleResult(
-        val result: FeasibleSolverOutput,
+        val result: FeasibleSolverOutputFlt64,
         val dualSolution: QuadraticDualSolution,
         override val linearCuts: List<Flt64LinearInequality>?,
         override val quadraticCuts: List<QuadraticInequality>?,
     ) : QuadraticSubResult {
         val obj: Flt64 by result::obj
-        val solution: Solution by result::solution
+        val solution: Solution<Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap

@@ -3,8 +3,9 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
@@ -36,26 +37,14 @@ import fuookami.ospf.kotlin.utils.functional.ok
 
 
 /**
- * Base interface for math-symbol-based function symbols.
- * Each function symbol creates helper variables and generates linear constraints.
+ * Non-generic base for function symbol registration lifecycle.
  *
- * @param V the numeric type (must implement RealNumber and NumberField).
+ * Both [registerAuxiliaryTokens] and [registerConstraints] operate on Flt64-typed
+ * boundaries (token collection and mechanism model). This base interface allows
+ * the framework to call registration methods without knowing the generic type V,
+ * eliminating the need for `MathFunctionSymbol<Flt64>` casts.
  */
-interface MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    var name: String
-    var displayName: String?
-
-    /**
-     * Helper variables created by this function (e.g. pos/neg slack variables).
-     * Exposed so the framework can reference them in objectives.
-     */
-    val helperVariables: List<AbstractVariableItem<*, *>>
-
-    /**
-     * Evaluate this function symbol given resolved symbol values.
-     */
-    fun evaluate(values: Map<Symbol, V>): V?
-
+interface MathFunctionSymbolBase {
     /**
      * Register helper variables (tokens) with the token collection.
      *
@@ -76,15 +65,39 @@ interface MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
      * @param model the MechanismModel to add constraints to
      */
     fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try
+}
+
+/**
+ * Base interface for math-symbol-based function symbols.
+ * Each function symbol creates helper variables and generates linear constraints.
+ *
+ * @param V the numeric type (must implement RealNumber and NumberField).
+ */
+interface MathFunctionSymbol<V> : MathFunctionSymbolBase where V : RealNumber<V>, V : NumberField<V> {
+    var name: String
+    var displayName: String?
 
     /**
-     * @deprecated Use [registerAuxiliaryTokens] for helper variables and
-     * [registerConstraints] for constraints. This single-phase method modifies
-     * the original MetaModel, which is incorrect — helper variables should be
-     * registered on the tokenTable copy, and constraints on the MechanismModel.
+     * Helper variables created by this function (e.g. pos/neg slack variables).
+     * Exposed so the framework can reference them in objectives.
      */
-    @Deprecated("Use registerAuxiliaryTokens + registerConstraints instead", level = DeprecationLevel.WARNING)
-    fun register(model: AbstractLinearMetaModel<V>): Try
+    val helperVariables: List<AbstractVariableItem<*, *>>
+
+    /**
+     * Evaluate this function symbol given resolved symbol values.
+     */
+    fun evaluate(values: Map<Symbol, V>): V?
+}
+
+/**
+ * Non-generic base for quadratic function symbol registration.
+ *
+ * Mirrors [MathFunctionSymbolBase] but for quadratic mechanism models.
+ * Eliminates the need for `QuadraticXxxFunction<Flt64>` casts in MechanismModel.
+ */
+interface QuadraticMathFunctionSymbolBase {
+    fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try
+    fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try
 }
 
 /**
@@ -98,7 +111,7 @@ interface MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
  */
 class LinearFunctionSymbolAdapter<V>(
     val delegate: MathFunctionSymbol<V>,
-    private val converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
+    private val converter: IntoValue<V>
 ) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     override var name: String
         get() = delegate.name
@@ -164,9 +177,6 @@ class LinearFunctionSymbolAdapter<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try = delegate.registerConstraints(model)
 
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try = delegate.register(model)
-
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = Linear
@@ -200,7 +210,8 @@ class LinearFunctionSymbolAdapter<V>(
     override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
     override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? {
         @Suppress("UNCHECKED_CAST")
-        return delegate.evaluate(values as Map<Symbol, V>)?.asFlt64()
+        val v = delegate.evaluate(values as Map<Symbol, V>) ?: return null
+        return converter.fromValue(v)
     }
 
     // V-typed evaluate overrides (P4-5) — delegate to Flt64-boundary evaluate + converter
@@ -208,8 +219,7 @@ class LinearFunctionSymbolAdapter<V>(
     override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         @Suppress("UNCHECKED_CAST")
-        val v = delegate.evaluate(values as Map<Symbol, V>) ?: return null
-        return converter.intoValue(v.asFlt64())
+        return delegate.evaluate(values as Map<Symbol, V>)
     }
 }
 
@@ -230,44 +240,20 @@ fun <V> LinearPolynomial<V>.evaluate(values: Map<Symbol, V>): V? where V : RealN
     return (sum ?: constant) as V
 }
 
-/** Internal helper: cast V to Flt64 for constraint generation. Only valid when V=Flt64. @Deprecated Use IntoValue.fromValue instead */
-@Suppress("UNCHECKED_CAST")
-internal fun <V> V.asFlt64(): Flt64 where V : RealNumber<V>, V : NumberField<V> = this as Flt64
+// ---- Converter-based helpers (safe, no unchecked casts) ----
 
-/** Internal helper: get zero for type V. @Deprecated Use IntoValue.zero instead */
-@Suppress("UNCHECKED_CAST")
-internal fun <V> zeroOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.zero as V
-
-/** Internal helper: get one for type V. @Deprecated Use IntoValue.one instead */
-@Suppress("UNCHECKED_CAST")
-internal fun <V> oneOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.one as V
-
-/** Internal helper: check if V is near zero. @Deprecated Use V.toFlt64().toDouble() instead */
-internal fun <V> V.isNearZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
-    val d = this.asFlt64().toDouble()
-    return d <= tolerance && d >= -tolerance
-}
-
-/** Internal helper: check if V is nonzero. @Deprecated Use V.toFlt64().toDouble() instead */
-internal fun <V> V.isNonZero(tolerance: Double = NONZERO_TOLERANCE): Boolean where V : RealNumber<V>, V : NumberField<V> {
-    val d = this.asFlt64().toDouble()
-    return d > tolerance || d < -tolerance
-}
-
-/** Internal helper: convert LinearPolynomial<V> to LinearPolynomial<Flt64> for constraint generation. @Deprecated Use IntoValue.fromValue per coefficient instead */
-@Suppress("UNCHECKED_CAST")
-internal fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+/** Convert LinearPolynomial<V> to LinearPolynomial<Flt64> using the provided converter. */
+internal fun <V> LinearPolynomial<V>.asFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
-        monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
-        constant.asFlt64()
+        monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
+        converter.fromValue(constant)
     )
 }
 
-/** Internal helper: convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> for constraint generation. @Deprecated Use IntoValue.fromValue per coefficient instead */
-@Suppress("UNCHECKED_CAST")
-internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+/** Convert QuadraticPolynomial<V> to QuadraticPolynomial<Flt64> using the provided converter. */
+internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
-        monomials.map { QuadraticMonomial(it.coefficient.asFlt64(), it.symbol1, it.symbol2) },
-        constant.asFlt64()
+        monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
+        converter.fromValue(constant)
     )
 }

@@ -1,7 +1,6 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
@@ -17,43 +16,26 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * Generic SubObject<V> with V-typed public evaluation.
- * 泛型 SubObject<V>：公开求值使用 V。
+ * Flt64 evaluation is handled by the solver adapter, not the core chain.
  */
 sealed class SubObject<V : RealNumber<V>>(
     val category: ObjectCategory,
     val name: String = ""
 ) {
     abstract val cells: List<Cell<V>>
-
-    /** V-typed constant for public callers. / 面向调用方的 V 类型常量。 */
     abstract val constant: V
 
-    /** Flt64 constant for solver-boundary callers. / 面向求解器边界的 Flt64 常量。 */
-    abstract val constantFlt64: Flt64
-
-    /** V-typed evaluation for public callers. / 面向调用方的 V 类型求值。 */
     abstract fun evaluate(): V?
     abstract fun evaluate(results: List<V>): V?
-
-    /** Flt64 evaluation for solver-boundary callers (via wildcard reference). / 面向求解器边界的 Flt64 求值。 */
-    fun evaluateFlt64(results: Solution): Flt64? {
-        var ret = constantFlt64
-        for (cell in cells) {
-            ret += cell.evaluateFlt64(results) ?: return null
-        }
-        return ret
-    }
 }
 
 class LinearSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<LinearCell<V>>,
     private val _constant: V,
-    private val _constantFlt64: Flt64 = Flt64.zero,
     name: String = ""
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
-    override val constantFlt64: Flt64 get() = _constantFlt64
 
     override fun evaluate(): V? {
         var ret = constant
@@ -72,10 +54,6 @@ class LinearSubObject<V : RealNumber<V>>(
     }
 
     companion object {
-        /**
-         * Create LinearSubObject from LinearFlattenDataFlt64.
-         * 从 LinearFlattenDataFlt64 创建 LinearSubObject。
-         */
         operator fun invoke(
             category: ObjectCategory,
             flattenData: LinearFlattenDataFlt64,
@@ -87,7 +65,6 @@ class LinearSubObject<V : RealNumber<V>>(
                 category = category,
                 cells = cells,
                 _constant = flattenData.constant,
-                _constantFlt64 = flattenData.constant,
                 name = name
             )
         }
@@ -118,7 +95,6 @@ class LinearSubObject<V : RealNumber<V>>(
                 category = category,
                 cells = cells,
                 _constant = converter.intoValue(flattenData.constant),
-                _constantFlt64 = flattenData.constant,
                 name = name
             )
         }
@@ -129,11 +105,9 @@ class QuadraticSubObject<V : RealNumber<V>>(
     category: ObjectCategory,
     override val cells: ArrayList<QuadraticCell<V>>,
     private val _constant: V,
-    private val _constantFlt64: Flt64 = Flt64.zero,
     name: String = ""
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
-    override val constantFlt64: Flt64 get() = _constantFlt64
 
     override fun evaluate(): V? {
         var ret = constant
@@ -152,10 +126,6 @@ class QuadraticSubObject<V : RealNumber<V>>(
     }
 
     companion object {
-        /**
-         * Create QuadraticSubObject from QuadraticFlattenDataFlt64.
-         * 从 QuadraticFlattenDataFlt64 创建 QuadraticSubObject。
-         */
         operator fun invoke(
             category: ObjectCategory,
             flattenData: QuadraticFlattenDataFlt64,
@@ -167,7 +137,6 @@ class QuadraticSubObject<V : RealNumber<V>>(
                 category = category,
                 cells = cells,
                 _constant = flattenData.constant,
-                _constantFlt64 = flattenData.constant,
                 name = name
             )
         }
@@ -204,7 +173,6 @@ class QuadraticSubObject<V : RealNumber<V>>(
                 category = category,
                 cells = cells,
                 _constant = converter.intoValue(flattenData.constant),
-                _constantFlt64 = flattenData.constant,
                 name = name
             )
         }

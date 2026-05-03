@@ -239,7 +239,7 @@ class BendersCutApiTest {
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(3.0))
         val dualSolution: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
-        val dualValues: Solution = listOf(Flt64.one)
+        val dualValues: Solution<Flt64> = listOf(Flt64.one)
 
         val triadModel = RecordingLinearTriadModelView(dualSolution)
 
@@ -284,7 +284,7 @@ class BendersCutApiTest {
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0))
         val farkasDual: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
-        val farkasDualValues: Solution = listOf(Flt64.one)
+        val farkasDualValues: Solution<Flt64> = listOf(Flt64.one)
 
         val triadModel = RecordingLinearTriadModelView(farkasDual)
 
@@ -339,7 +339,7 @@ class BendersCutApiTest {
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64.one, y to Flt64(2.0))
         val dualSolution: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
-        val dualValues: Solution = listOf(Flt64(2.0))
+        val dualValues: Solution<Flt64> = listOf(Flt64(2.0))
 
         val tetradModel = RecordingQuadraticTetradModelView(dualSolution)
 
@@ -390,7 +390,7 @@ class BendersCutApiTest {
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0), y to Flt64(3.0))
         val farkasDual: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
-        val farkasDualValues: Solution = listOf(Flt64.one)
+        val farkasDualValues: Solution<Flt64> = listOf(Flt64.one)
 
         val tetradModel = RecordingQuadraticTetradModelView(farkasDual)
 
@@ -469,10 +469,10 @@ class BendersCutApiTest {
 private class RecordingLinearTriadModelView(
     private val fixedDualSolution: LinearDualSolution
 ) : LinearTriadModelView {
-    var lastSolution: Solution = emptyList()
+    var lastSolution: Solution<Flt64> = emptyList()
         private set
 
-    override fun tidyDualSolution(solution: Solution): LinearDualSolution {
+    override fun tidyDualSolution(solution: Solution<Flt64>): LinearDualSolution {
         lastSolution = solution
         return fixedDualSolution
     }
@@ -494,10 +494,10 @@ private class RecordingLinearTriadModelView(
 private class RecordingQuadraticTetradModelView(
     private val fixedDualSolution: QuadraticDualSolution
 ) : QuadraticTetradModelView {
-    var lastSolution: Solution = emptyList()
+    var lastSolution: Solution<Flt64> = emptyList()
         private set
 
-    override fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
+    override fun tidyDualSolution(solution: Solution<Flt64>): QuadraticDualSolution {
         lastSolution = solution
         return fixedDualSolution
     }

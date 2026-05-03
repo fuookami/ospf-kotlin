@@ -46,7 +46,7 @@ class RoundingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        return converter.intoValue(Flt64(kotlin.math.round(xVal.asFlt64().toDouble())))
+        return converter.intoValue(Flt64(kotlin.math.round(converter.fromValue(xVal).toDouble())))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -58,8 +58,8 @@ class RoundingFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val xF = x.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val xF = x.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
@@ -125,83 +125,6 @@ class RoundingFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val xF = x.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-
-        // k = floor(x), same as FloorFunction constraints
-        // k <= x
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_k_lb")
-
-        // x < k + 1 => x <= k + 1 - eps
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.LE, "${name}_round_k_ub")
-
-        // b = x - k (fractional part)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(Flt64.one, kVar)
-            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_decompose")
-
-        // r = 1 if b >= 0.5 (round up)
-        // b >= 0.5*r
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(-Flt64(0.5), rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_r_lb")
-
-        // b <= 0.5 + 0.5*(1-r) = 1 - 0.5*r => b + 0.5*r <= 1... wait
-        // b <= 0.5 + (1-r)*0.5 + r*0 = 0.5 + 0.5 - 0.5*r = 1 - 0.5*r
-        // Simplified: if b < 0.5 then r = 0, if b >= 0.5 then r = 1
-        // b - 0.5*r <= 1 - r ... no.
-        // b <= 0.5 + M*(1-r) => b + M*r <= M + 0.5
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(mF, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), mF + Flt64(0.5)), Comparison.LE, "${name}_round_r_ub")
-
-        // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(-mF, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64(0.5) - mF), Comparison.GE, "${name}_round_r_lb2")
-
-        // result = k + r
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, kVar),
-                LinearMonomial(-Flt64.one, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_result")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
@@ -233,7 +156,9 @@ class RoundingFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

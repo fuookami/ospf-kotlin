@@ -51,7 +51,7 @@ class FloorFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        return converter.intoValue(Flt64(kotlin.math.floor(xVal.asFlt64().toDouble())))
+        return converter.intoValue(Flt64(kotlin.math.floor(converter.fromValue(xVal).toDouble())))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -63,8 +63,8 @@ class FloorFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val xF = x.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val xF = x.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
@@ -98,51 +98,6 @@ class FloorFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val xF = x.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-
-        // k <= x
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_floor_lb")
-
-        // k + 1 >= x => x <= k + 1
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_floor_ub")
-
-        // b = x - k => b + k - x = 0
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(Flt64.one, kVar)
-            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_decompose")
-
-        // result = k
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, kVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_result")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
@@ -174,7 +129,9 @@ class FloorFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

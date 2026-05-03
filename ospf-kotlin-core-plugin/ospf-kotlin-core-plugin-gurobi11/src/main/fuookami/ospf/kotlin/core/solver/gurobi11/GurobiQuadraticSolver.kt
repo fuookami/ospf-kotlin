@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.gurobi11
 
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -41,7 +41,7 @@ class GurobiQuadraticSolver(
     override suspend fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return GurobiQuadraticSolverImpl(
             config = config,
             callBack = callBack,
@@ -57,11 +57,11 @@ class GurobiQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution>()
+            val results = ArrayList<Solution<Flt64>>()
             GurobiQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
@@ -101,7 +101,7 @@ private class GurobiQuadraticSolverImpl(
 ) : GurobiSolver() {
     private lateinit var grbVars: List<GRBVar>
     private lateinit var grbConstraints: List<GRBQConstr>
-    private lateinit var output: FeasibleSolverOutput
+    private lateinit var output: FeasibleSolverOutputFlt64
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
@@ -109,7 +109,7 @@ private class GurobiQuadraticSolverImpl(
     private var bestSolution: List<Flt64>? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutputFlt64> {
         val gurobiConfig = config.extraConfig as? GurobiSolverConfig
         val server = gurobiConfig?.server
         val password = gurobiConfig?.password
@@ -402,7 +402,7 @@ private class GurobiQuadraticSolverImpl(
                 for (grbVar in grbVars) {
                     results.add(Flt64(grbVar.get(GRB.DoubleAttr.X)))
                 }
-                output = FeasibleSolverOutput(
+                output = FeasibleSolverOutputFlt64(
                     obj = Flt64(grbModel.get(GRB.DoubleAttr.ObjVal)),
                     solution = results,
                     time = grbModel.get(GRB.DoubleAttr.Runtime).seconds,

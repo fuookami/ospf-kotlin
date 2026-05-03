@@ -73,7 +73,7 @@ class SlackFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
         val yValue = y.evaluateWith(values) ?: return null
-        val diff = (xValue.asFlt64() - yValue.asFlt64()).toDouble()
+        val diff = (converter.fromValue(xValue) - converter.fromValue(yValue)).toDouble()
         return if (withNegative && withPositive) {
             converter.intoValue(Flt64(kotlin.math.abs(diff)))
         } else if (withNegative) {
@@ -96,8 +96,8 @@ class SlackFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val xPoly = x.asFlt64Poly()
-        val yPoly = y.asFlt64Poly()
+        val xPoly = x.asFlt64Poly(converter)
+        val yPoly = y.asFlt64Poly(converter)
 
         if (!threshold) {
             val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
@@ -127,47 +127,6 @@ class SlackFunction<V>(
         }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val xPoly = x.asFlt64Poly()
-        val yPoly = y.asFlt64Poly()
-
-        if (!threshold) {
-            val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
-            when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
-        } else {
-            if (withNegative && negVar != null) {
-                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
-                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            } else if (withPositive && posVar != null) {
-                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
-                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
     val polyX: LinearPolynomial<V> by lazy {
         val unit = x.constant / x.constant
         var result = LinearPolynomial(x.monomials.toMutableList(), x.constant)
@@ -347,7 +306,9 @@ class SlackFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
 
         operator fun invoke(
@@ -371,7 +332,9 @@ class SlackFunction<V>(
                     converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
-                )
+                ),
+            converter = IntoValue.Flt64
+        
             )
         }
 
@@ -400,7 +363,9 @@ class SlackFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
 
         /**
@@ -429,7 +394,9 @@ class SlackFunction<V>(
                     converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
-                )
+                ),
+            converter = IntoValue.Flt64
+        
             )
         }
 
@@ -459,7 +426,9 @@ class SlackFunction<V>(
                     converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
-                )
+                ),
+            converter = IntoValue.Flt64
+        
             )
         }
 
@@ -489,7 +458,9 @@ class SlackFunction<V>(
                     converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
-                )
+                ),
+            converter = IntoValue.Flt64
+        
             )
         }
 
@@ -520,7 +491,9 @@ class SlackFunction<V>(
                     converter = IntoValue.Flt64,
                     name = name,
                     displayName = displayName
-                )
+                ),
+            converter = IntoValue.Flt64
+        
             )
         }
 
@@ -549,7 +522,9 @@ class SlackFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

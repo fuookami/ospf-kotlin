@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.pso
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -16,7 +17,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
-interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun accelerate(
         iteration: Iteration,
         particle: Particle<V>,
@@ -38,12 +39,13 @@ open class PSOPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractPSOPolicy<V> {
+), AbstractPSOPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     override fun accelerate(
         iteration: Iteration,
         particle: Particle<V>,
@@ -52,10 +54,13 @@ open class PSOPolicy<V>(
     ): Particle<V> {
         return particle.new(
             newVelocity = (0 until particle.size).map {
+                val posFlt64 = converter.fromValue(particle.solution[it])
+                val personalBestFlt64 = particle.currentBest?.solution?.get(it)
+                    ?.let { pos -> converter.fromValue(pos) }
+                val globalBestFlt64 = converter.fromValue(bestParticle.solution[it])
                 val newVelocity = w * particle.velocity[it] +
-                        c1 * randomGenerator()!! * (particle.currentBest?.position?.get(it)
-                    ?.let { pos -> pos - particle.position[it] } ?: Flt64.zero) +
-                        c2 * randomGenerator()!! * (bestParticle.position[it] - particle.position[it])
+                        c1 * randomGenerator()!! * (personalBestFlt64?.let { pb -> pb - posFlt64 } ?: Flt64.zero) +
+                        c2 * randomGenerator()!! * (globalBestFlt64 - posFlt64)
                 if (newVelocity gr maxVelocity) {
                     maxVelocity
                 } else if (newVelocity ls -maxVelocity) {
@@ -75,8 +80,10 @@ open class PSOPolicy<V>(
 class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractPSOPolicy<V> = PSOPolicy()
-) {
+    val policy: AbstractPSOPolicy<V> = PSOPolicy(),
+    // Safe when V=Flt64 (used by PSO/MulObjPSO typealiases); non-Flt64 callers must provide explicit converter
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
@@ -88,8 +95,9 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             .map {
                 Particle(
                     fitness = model.objective(it).ifNull { model.defaultObjective },
-                    position = it,
-                    velocity = it.indices.map { index -> initialVelocityGenerator(UInt64(index)) }
+                    solution = it,
+                    velocity = it.indices.map { index -> initialVelocityGenerator(UInt64(index)) },
+                    converter = converter
                 )
             }
             .sortedWithPartialThreeWayComparator { lhs, rhs -> model.compareObjective(lhs.fitness, rhs.fitness) }
@@ -147,7 +155,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
             .take(solutionAmount.toInt())
             .map {
                 SolutionWithFitness(
-                    solution = it.position,
+                    solution = it.solution,
                     fitness = it.fitness
                 )
             }

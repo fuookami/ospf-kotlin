@@ -46,8 +46,8 @@ class ModFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        val xD = xVal.asFlt64().toDouble()
-        val dD = d.asFlt64().toDouble()
+        val xD = converter.fromValue(xVal).toDouble()
+        val dD = converter.fromValue(d).toDouble()
         return converter.intoValue(Flt64(xD % dD))
     }
 
@@ -60,9 +60,9 @@ class ModFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val dF = d.asFlt64()
-        val xF = x.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val dF = converter.fromValue(d)
+        val xF = x.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
@@ -93,49 +93,6 @@ class ModFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val dF = d.asFlt64()
-        val xF = x.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-
-        // r = x - d*q
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, rVar),
-                LinearMonomial(dF, qVar)
-            ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_decompose")
-
-        // r >= 0 (from URealVar)
-        // r < d => r <= d - epsilon
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), dF - eps), Comparison.LE, "${name}_mod_r_ub")
-
-        // result = r
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_result")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
@@ -171,7 +128,9 @@ class ModFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

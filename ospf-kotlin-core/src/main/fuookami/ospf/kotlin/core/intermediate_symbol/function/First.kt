@@ -85,7 +85,7 @@ class FirstFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         for ((i, poly) in polynomials.withIndex()) {
             val value = poly.evaluateWith(values) ?: return null
-            if (value.asFlt64().toDouble() > epsilon.toDouble()) {
+            if (converter.fromValue(value).toDouble() > epsilon.toDouble()) {
                 return converter.intoValue(Flt64(i.toDouble()))
             }
         }
@@ -152,68 +152,6 @@ class FirstFunction<V>(
 
         return addConstraints(model, allConstraints) ?: ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        // Add helper variables first
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        // Register all binary functions (they register their own auxiliary tokens + constraints)
-        for (binFunc in binaryFunctions) {
-            when (val r = binFunc.register(model)) {
-                is Ok -> {}
-                is Failed -> return Failed(r.error)
-                is Fatal -> return Fatal(r.errors)
-            }
-        }
-
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        for (i in polynomials.indices) {
-            val binResult = binaryFunctions[i].resultVar
-            val yi = _yVars[i]
-
-            // y[i] <= bin[i]
-            allConstraints += Flt64LinearInequality(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
-                Comparison.LE, "${name}_ub1_$i"
-            )
-
-            if (i == 0) {
-                // y[0] >= bin[0]
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
-                    Comparison.GE, "${name}_lb_0"
-                )
-            } else {
-                // y[i] >= bin[i] - sum(y[0]..y[i-1])
-                // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
-                val prevYMonos = (0 until i).map { j -> LinearMonomial(Flt64.one, _yVars[j]) }
-                val lhsMonos = listOf(LinearMonomial(Flt64.one, yi)) + prevYMonos
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(lhsMonos, Flt64.zero),
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
-                    Comparison.GE, "${name}_lb_$i"
-                )
-
-                // y[i] <= y[i-1] (monotonicity)
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, _yVars[i - 1])), Flt64.zero),
-                    Comparison.LE, "${name}_y_$i"
-                )
-            }
-        }
-
-        return addConstraints(model, allConstraints) ?: ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,

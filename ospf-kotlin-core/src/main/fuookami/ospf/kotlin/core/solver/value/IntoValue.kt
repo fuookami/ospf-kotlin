@@ -28,11 +28,12 @@ interface IntoValue<V : RealNumber<V>> {
     fun fromValue(value: V): Flt64
 
     companion object {
-        val Flt64: IntoValue<Flt64> = object : IntoValue<Flt64> {
-            override fun intoValue(value: Flt64): Flt64 = value
-            override val zero: Flt64 get() = Flt64.zero
-            override val one: Flt64 get() = Flt64.one
-            override fun fromValue(value: Flt64): Flt64 = value
+        @JvmField
+        val Flt64: IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            override fun intoValue(value: fuookami.ospf.kotlin.math.algebra.number.Flt64): fuookami.ospf.kotlin.math.algebra.number.Flt64 = value
+            override val zero: fuookami.ospf.kotlin.math.algebra.number.Flt64 get() = fuookami.ospf.kotlin.math.algebra.number.Flt64.zero
+            override val one: fuookami.ospf.kotlin.math.algebra.number.Flt64 get() = fuookami.ospf.kotlin.math.algebra.number.Flt64.one
+            override fun fromValue(value: fuookami.ospf.kotlin.math.algebra.number.Flt64): fuookami.ospf.kotlin.math.algebra.number.Flt64 = value
         }
     }
 }

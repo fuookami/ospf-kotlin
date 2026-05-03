@@ -68,7 +68,7 @@ class GenericTokenTableRegressionTest {
         val token = tokenTable.find(x)!!
         val cell: LinearCellImpl<Flt64> = LinearCellImplFlt64(tokenTable, Flt64.one, token)
         assertTrue(cell is LinearCellImplFlt64)
-        assertEquals(Flt64.one, cell.coefficientFlt64)
+        assertEquals(Flt64.one, cell.coefficient)
     }
 
     @Test
@@ -82,7 +82,7 @@ class GenericTokenTableRegressionTest {
         val token2 = tokenTable.find(x2)!!
         val cell: QuadraticCellImpl<Flt64> = QuadraticCellImplFlt64(tokenTable, Flt64.one, token1, token2)
         assertTrue(cell is QuadraticCellImplFlt64)
-        assertEquals(Flt64.one, cell.coefficientFlt64)
+        assertEquals(Flt64.one, cell.coefficient)
     }
 
     @Test

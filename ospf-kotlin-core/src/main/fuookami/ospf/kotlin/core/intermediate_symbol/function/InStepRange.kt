@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 class InStepRangeFunction<V>(
     val lb: LinearPolynomial<V>,
     val ub: LinearPolynomial<V>,
-    val step: Flt64 = Flt64.one,
+    val step: V,
     m: V? = null,
     private val converter: IntoValue<V>,
     override var name: String = "inStepRange",
@@ -61,9 +61,9 @@ class InStepRangeFunction<V>(
     val result: LinearPolynomial<V> by lazy {
         val qResult = floorFunc.result
         val scaledMonomials = qResult.monomials.map {
-            LinearMonomial(converter.intoValue(it.coefficient.asFlt64() * step), it.symbol)
+            LinearMonomial(it.coefficient * step, it.symbol)
         }
-        val scaledConstant = converter.intoValue(qResult.constant.asFlt64() * step)
+        val scaledConstant = qResult.constant * step
         LinearPolynomial(
             scaledMonomials + lb.monomials,
             scaledConstant + lb.constant
@@ -73,10 +73,10 @@ class InStepRangeFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val lbValue = lb.evaluateWith(values) ?: return null
         val ubValue = ub.evaluateWith(values) ?: return null
-        val diffDouble = (ubValue.asFlt64() - lbValue.asFlt64()).toDouble()
-        val stepDouble = step.toDouble()
+        val diffDouble = (converter.fromValue(ubValue) - converter.fromValue(lbValue)).toDouble()
+        val stepDouble = converter.fromValue(step).toDouble()
         val qDouble = kotlin.math.floor(diffDouble / stepDouble)
-        return converter.intoValue(lbValue.asFlt64() + Flt64(qDouble * stepDouble))
+        return converter.intoValue(converter.fromValue(lbValue) + Flt64(qDouble * stepDouble))
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -86,17 +86,11 @@ class InStepRangeFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return floorFunc.registerConstraints(model)
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        return floorFunc.register(model)
-    }
-
     companion object {
         operator fun <V> invoke(
             lb: LinearPolynomial<V>,
             ub: LinearPolynomial<V>,
-            step: Flt64 = Flt64.one,
+            step: V,
             m: V? = null,
             converter: IntoValue<V>,
             name: String,

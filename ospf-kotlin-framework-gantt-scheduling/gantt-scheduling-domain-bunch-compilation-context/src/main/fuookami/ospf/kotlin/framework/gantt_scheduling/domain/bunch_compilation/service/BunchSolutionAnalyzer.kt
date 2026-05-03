@@ -28,7 +28,7 @@ data object BunchSolutionAnalyzer {
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution? = null
+        solution: Solution<Flt64>? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         val assignedBunches = ArrayList<B>()
         val canceledTasks = ArrayList<T>()

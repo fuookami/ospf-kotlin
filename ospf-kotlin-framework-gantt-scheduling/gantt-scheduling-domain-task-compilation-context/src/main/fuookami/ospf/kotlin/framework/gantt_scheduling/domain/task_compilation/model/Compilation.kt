@@ -2,7 +2,9 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.OrFunction
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -57,8 +59,6 @@ class TaskCompilation<
     override lateinit var executorCompilation: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
-        val linearModel = model as AbstractLinearMetaModel<Flt64>
-
         if (!::x.isInitialized) {
             x = BinVariable2(
                 "x",
@@ -208,39 +208,40 @@ class TaskCompilation<
         }
 
         if (!::executorCompilation.isInitialized) {
-            try {
-                executorCompilation = LinearIntermediateSymbols1<Flt64>(
-                    name = "executor_compilation",
-                    shape = Shape1(executors.size)
-                ) { i, _ ->
-                    val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
-                    val or = OrFunction(
-                        polynomials = orPolynomials,
-                        name = "executor_compilation_or_${executors[i]}"
-                    )
-                    when (val result = or.register(linearModel)) {
-                        is Ok -> {}
-
-                        is Failed -> {
-                            throw IllegalStateException(result.error.message)
-                        }
-
-                        is Fatal -> {
-                            throw IllegalStateException(result.errors.joinToString(", ") { it.message })
-                        }
-                    }
-                    val polynomial = if (withExecutorLeisure) {
-                        LinearPolynomial(or.resultVar) + LinearPolynomial(z[executors[i]])
-                    } else {
-                        LinearPolynomial(or.resultVar)
-                    }
-                    LinearExpressionSymbol(
-                        polynomial = polynomial,
-                        name = "executor_compilation_${executors[i]}"
-                    )
+            val orFunctions = ArrayList<OrFunction<Flt64>>()
+            executorCompilation = LinearIntermediateSymbols1<Flt64>(
+                name = "executor_compilation",
+                shape = Shape1(executors.size)
+            ) { i, _ ->
+                val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
+                val or = OrFunction(
+                    polynomials = orPolynomials,
+                    converter = IntoValue.Flt64,
+                    name = "executor_compilation_or_${executors[i]}"
+                )
+                orFunctions.add(or)
+                val polynomial = if (withExecutorLeisure) {
+                    LinearPolynomial(or.resultVar) + LinearPolynomial(z[executors[i]])
+                } else {
+                    LinearPolynomial(or.resultVar)
                 }
-            } catch (e: IllegalStateException) {
-                return Failed(Err(ErrorCode.ApplicationError, e.message ?: "Unknown error"))
+                LinearExpressionSymbol(
+                    polynomial = polynomial,
+                    name = "executor_compilation_${executors[i]}"
+                )
+            }
+            for (or in orFunctions) {
+                when (val result = model.add(LinearFunctionSymbolAdapter(or, IntoValue.Flt64))) {
+                    is Ok -> {}
+
+                    is Failed -> {
+                        return Failed(result.error)
+                    }
+
+                    is Fatal -> {
+                        return Fatal(result.errors)
+                    }
+                }
             }
         }
         when (val result = model.add(executorCompilation)) {

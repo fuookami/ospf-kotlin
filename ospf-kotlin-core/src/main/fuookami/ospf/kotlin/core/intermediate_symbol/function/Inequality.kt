@@ -65,8 +65,8 @@ class InequalityFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val lhsValue = lhs.evaluateWith(values) ?: return null
-        val lhsDouble = lhsValue.asFlt64().toDouble()
-        val rhsDouble = rhs.asFlt64().toDouble()
+        val lhsDouble = converter.fromValue(lhsValue).toDouble()
+        val rhsDouble = converter.fromValue(rhs).toDouble()
         val satisfied = when (sign) {
             Comparison.LE, Comparison.LT -> lhsDouble <= rhsDouble
             Comparison.GE, Comparison.GT -> lhsDouble >= rhsDouble
@@ -85,10 +85,10 @@ class InequalityFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val epsF = tolerance.asFlt64()
-        val rhsF = rhs.asFlt64()
-        val lhsF = lhs.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val epsF = converter.fromValue(tolerance)
+        val rhsF = converter.fromValue(rhs)
+        val lhsF = lhs.asFlt64Poly(converter)
         val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
@@ -157,88 +157,6 @@ class InequalityFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val epsF = tolerance.asFlt64()
-        val rhsF = rhs.asFlt64()
-        val lhsF = lhs.asFlt64Poly()
-        val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        when (sign) {
-            Comparison.LE, Comparison.LT -> {
-                // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
-                    LinearPolynomial(emptyList(), rhsF + mF),
-                    Comparison.LE, "${name}_satisfied"
-                )
-
-                // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
-                    LinearPolynomial(emptyList(), rhsF + epsF),
-                    Comparison.GE, "${name}_violated"
-                )
-            }
-
-            Comparison.GE, Comparison.GT -> {
-                // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
-                    LinearPolynomial(emptyList(), rhsF),
-                    Comparison.GE, "${name}_satisfied"
-                )
-
-                // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
-                    LinearPolynomial(emptyList(), rhsF - epsF + mF),
-                    Comparison.LE, "${name}_violated"
-                )
-            }
-
-            Comparison.EQ -> {
-                val diffMonos = lhsMonos
-                val diffConst = lhsF.constant - rhsF
-
-                // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), mF + epsF),
-                    Comparison.LE, "${name}_eq_upper"
-                )
-
-                // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
-                allConstraints += Flt64LinearInequality(
-                    LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), -mF - epsF),
-                    Comparison.GE, "${name}_eq_lower"
-                )
-            }
-
-            Comparison.NE -> {
-                return Failed(
-                    fuookami.ospf.kotlin.utils.error.Err(
-                        fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationFailed,
-                        "InequalityFunction: NE comparison not supported for MIP encoding"
-                    )
-                )
-            }
-        }
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             lhs: LinearPolynomial<V>,

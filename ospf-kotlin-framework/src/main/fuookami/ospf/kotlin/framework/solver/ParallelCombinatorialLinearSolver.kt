@@ -2,10 +2,11 @@
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
@@ -42,13 +43,13 @@ class ParallelCombinatorialLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput? = null
+                var result: FeasibleSolverOutputFlt64? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -194,13 +195,13 @@ class ParallelCombinatorialLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<FeasibleSolverOutput, List<Solution>>? = null
+                var result: Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->

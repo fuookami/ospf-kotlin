@@ -4,7 +4,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.application.service.bunch
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
@@ -846,7 +846,7 @@ class BranchAndPriceAlgorithm<
         mainProblemSolvingTime += feasibleLpResult.result.time
     }
 
-    private fun refresh(ipResult: FeasibleSolverOutput) {
+    private fun refresh(ipResult: FeasibleSolverOutputFlt64) {
         mainProblemSolvingTimes += UInt64.one
         mainProblemSolvingTime += ipResult.time
     }

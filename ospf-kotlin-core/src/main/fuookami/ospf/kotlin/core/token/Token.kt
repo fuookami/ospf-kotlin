@@ -77,6 +77,16 @@ data class Token<V : RealNumber<V>>(
             null
         }
 
+    /**
+     * Check if a V-typed value is within this token's bounds.
+     * Converts V to Flt64 internally for range checking.
+     * Returns true if no bounds are set.
+     */
+    fun containsInBounds(value: V, converter: IntoValue<V>): Boolean {
+        val r = range ?: return true
+        return r.contains(converter.fromValue(value))
+    }
+
     /** Flt64 view of bounds (solver-compatible). */
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound

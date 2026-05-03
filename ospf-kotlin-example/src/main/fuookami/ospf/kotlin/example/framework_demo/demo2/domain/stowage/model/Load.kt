@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
@@ -126,26 +127,30 @@ class Load(
                         if (position.status.stowageNeeded || position.status.adjustmentNeeded) {
                             // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
                             LinearFunctionSymbolAdapter(
-                                SlackFunction(
+                                delegate = SlackFunction(
                                     x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
                                     y = LinearPolynomial(loadAmount[j]) * position.plw!!.min.to(aircraftModel.weightUnit)!!.value,
                                     type = UContinuous,
                                     withNegative = true,
                                     withPositive = true,
+                                    converter = IntoValue.Flt64,
                                     name = "predicate_load_weight_slack_${position}"
-                                )
+                                ),
+                                converter = IntoValue.Flt64
                             )
                         } else {
                             // TODO: upper bound constraint (x <= ub) not yet enforced with new SlackFunction API
                             LinearFunctionSymbolAdapter(
-                                SlackFunction(
+                                delegate = SlackFunction(
                                     x = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value),
                                     y = LinearPolynomial(position.plw!!.min.to(aircraftModel.weightUnit)!!.value),
                                     type = UContinuous,
                                     withNegative = true,
                                     withPositive = true,
+                                    converter = IntoValue.Flt64,
                                     name = "predicate_load_weight_slack_${position}"
-                                )
+                                ),
+                                converter = IntoValue.Flt64
                             )
                         }
                     } else {
@@ -205,11 +210,12 @@ class Load(
                         )
                     } else {
                         LinearFunctionSymbolAdapter(
-                            SameAsFunction(
+                            delegate = SameAsFunction(
                                 inequalities = listOf(loadAmount[j].toLinearPolynomial() eq position.mla.toFlt64()),
                                 constraint = true,
                                 name = "full_${position}"
-                            )
+                            ),
+                            converter = IntoValue.Flt64
                         )
                     }
                 } else {
@@ -307,28 +313,34 @@ class Load(
                         )
                     } else {
                         LinearFunctionSymbolAdapter(
-                            BinaryzationFunction(
+                            delegate = BinaryzationFunction(
                                 LinearPolynomial(loadAmount[j]),
+                                converter = IntoValue.Flt64,
                                 name = "estimate_loaded_item_${position}"
-                            )
+                            ),
+                            converter = IntoValue.Flt64
                         )
                     }
                     val withPredicateLoadWeight = if (position.status.predicateWeightNeeded) {
                         LinearFunctionSymbolAdapter(
-                            IfFunction(
+                            delegate = IfFunction(
                                 condition = LinearPolynomial(y[j].to(aircraftModel.weightUnit)!!.value) - LinearPolynomial(Flt64.one),
+                                converter = IntoValue.Flt64,
                                 name = "estimate_loaded_predicate_load_weight_${position}"
-                            )
+                            ),
+                            converter = IntoValue.Flt64
                         )
                     } else {
                         null
                     }
                     val withRecommendLoadWeight = if (position.status.recommendedWeightNeeded) {
                         LinearFunctionSymbolAdapter(
-                            BinaryzationFunction(
+                            delegate = BinaryzationFunction(
                                 LinearPolynomial(z[j].to(aircraftModel.weightUnit)!!.value),
+                                converter = IntoValue.Flt64,
                                 name = "estimate_loaded_recommended_load_weight_${position}"
-                            )
+                            ),
+                            converter = IntoValue.Flt64
                         )
                     } else {
                         null
@@ -348,10 +360,12 @@ class Load(
                         }
                     }
                     LinearFunctionSymbolAdapter(
-                        OrFunction(
+                        delegate = OrFunction(
                             polynomials = polys,
+                            converter = IntoValue.Flt64,
                             name = "estimate_load_${position}"
-                        )
+                        ),
+                        converter = IntoValue.Flt64
                     )
                 } else {
                     LinearExpressionSymbol(
@@ -384,10 +398,12 @@ class Load(
                         )
                     } else {
                         LinearFunctionSymbolAdapter(
-                            BinaryzationFunction(
+                            delegate = BinaryzationFunction(
                                 LinearPolynomial(loadAmount[j]),
+                                converter = IntoValue.Flt64,
                                 name = "actual_loaded_${position}"
-                            )
+                            ),
+                            converter = IntoValue.Flt64
                         )
                     }
                 } else {

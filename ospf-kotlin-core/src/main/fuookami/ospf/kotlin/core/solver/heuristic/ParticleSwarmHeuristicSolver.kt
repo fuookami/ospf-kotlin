@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -23,7 +24,7 @@ enum class HeuristicSolutionStatus {
 }
 
 data class HeuristicResult<V>(
-    val bestSolution: Solution?,
+    val bestSolution: Solution<V>?,
     val bestObjective: V?,
     val status: HeuristicSolutionStatus,
     val iteration: Iteration
@@ -40,11 +41,12 @@ class BasicHeuristicPolicy(
 )
 
 data class Particle<V>(
-    override val fitness: V,
-    override val solution: Solution,
+    val fitness: V,
+    val solution: Solution<V>,
     val velocity: List<Flt64>,
-    val currentBest: SolutionWithFitness<V>? = null
-) : Individual<V>
+    val bestPosition: Solution<V>? = null,
+    val bestFitness: V? = null
+) where V : RealNumber<V>, V : NumberField<V>
 
 class ParticleSwarmHeuristicSolver<V>(
     val particleAmount: UInt64 = UInt64(100),
@@ -55,7 +57,8 @@ class ParticleSwarmHeuristicSolver<V>(
     val maxVelocity: Flt64 = Flt64(10000),
     val solveOnObjectiveMiss: Boolean = true,
     private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
-    private val initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero }
+    private val initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero },
+    private val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
 
@@ -69,7 +72,8 @@ class ParticleSwarmHeuristicSolver<V>(
             maxVelocity = maxVelocity,
             solveOnObjectiveMiss = solveOnObjectiveMiss,
             randomGenerator = randomGenerator,
-            initialVelocityGenerator = initialVelocityGenerator
+            initialVelocityGenerator = initialVelocityGenerator,
+            converter = converter
         )
     }
 
@@ -85,7 +89,8 @@ class ParticleSwarmHeuristicSolver<V>(
             maxVelocity = maxVelocity,
             solveOnObjectiveMiss = solveOnObjectiveMiss,
             randomGenerator = randomGenerator,
-            initialVelocityGenerator = initialVelocityGenerator
+            initialVelocityGenerator = initialVelocityGenerator,
+            converter = converter
         )
     }
 
@@ -99,7 +104,8 @@ class ParticleSwarmHeuristicSolver<V>(
             maxVelocity = maxVelocity,
             solveOnObjectiveMiss = enabled,
             randomGenerator = randomGenerator,
-            initialVelocityGenerator = initialVelocityGenerator
+            initialVelocityGenerator = initialVelocityGenerator,
+            converter = converter
         )
     }
 
@@ -124,7 +130,7 @@ class ParticleSwarmHeuristicSolver<V>(
 
     private fun evaluateFitness(
         model: AbstractCallBackModelInterface<*, V>,
-        solution: Solution
+        solution: Solution<V>
     ): V? {
         return when (model.constraintSatisfied(solution)) {
             false -> null
@@ -138,7 +144,7 @@ class ParticleSwarmHeuristicSolver<V>(
 
     private fun buildParticle(
         model: AbstractCallBackModelInterface<*, V>,
-        solution: Solution
+        solution: Solution<V>
     ): Particle<V>? {
         val fitness = evaluateFitness(model, solution) ?: return null
         return Particle(
@@ -176,43 +182,50 @@ class ParticleSwarmHeuristicSolver<V>(
         model: AbstractCallBackModelInterface<*, V>,
         policy: AbstractHeuristicPolicy
     ): Particle<V> {
-        val localBest = particle.currentBest?.solution ?: particle.solution
-        val newSolution = ArrayList<Flt64>(particle.solution.size)
+        val localBest = particle.bestPosition ?: particle.solution
+        val newSolution = ArrayList<V>(particle.solution.size)
         val newVelocity = ArrayList<Flt64>(particle.solution.size)
         for (index in particle.solution.indices) {
-            val position = particle.solution[index]
+            val positionFlt64 = converter.fromValue(particle.solution[index])
             val velocity = particle.velocity.getOrElse(index) { Flt64.zero }
-            val personalBest = localBest.getOrElse(index) { position }
-            val globalBest = bestParticle.solution.getOrElse(index) { position }
+            val personalBestFlt64 = converter.fromValue(localBest.getOrElse(index) { particle.solution[index] })
+            val globalBestFlt64 = converter.fromValue(bestParticle.solution.getOrElse(index) { particle.solution[index] })
             val velocityNext = clampVelocity(
                 w * velocity
-                        + c1 * random() * (personalBest - position)
-                        + c2 * random() * (globalBest - position)
+                        + c1 * random() * (personalBestFlt64 - positionFlt64)
+                        + c2 * random() * (globalBestFlt64 - positionFlt64)
             )
-            val positionNext = policy.coerceIn(
-                iteration = iteration,
-                index = index,
-                value = position + velocityNext,
-                model = model
+            val positionNextFlt64 = positionFlt64 + velocityNext
+            val positionNext = converter.intoValue(
+                policy.coerceIn(
+                    iteration = iteration,
+                    index = index,
+                    value = positionNextFlt64,
+                    model = model
+                )
             )
             newSolution.add(positionNext)
             newVelocity.add(velocityNext)
         }
 
         val newFitness = evaluateFitness(model, newSolution) ?: particle.fitness
-        val candidateBest = SolutionWithFitness(newSolution, newFitness)
-        val baselineBest = particle.currentBest ?: SolutionWithFitness(particle.solution, particle.fitness)
-        val retainedBest = if (better(model, candidateBest.fitness, baselineBest.fitness)) {
-            candidateBest
+        val retainedBestPosition: Solution<V>
+        val retainedBestFitness: V
+        val baselineFitness = particle.bestFitness ?: particle.fitness
+        if (better(model, newFitness, baselineFitness)) {
+            retainedBestPosition = newSolution
+            retainedBestFitness = newFitness
         } else {
-            baselineBest
+            retainedBestPosition = particle.bestPosition ?: particle.solution
+            retainedBestFitness = baselineFitness
         }
 
         return Particle(
             fitness = newFitness,
             solution = newSolution,
             velocity = newVelocity,
-            currentBest = retainedBest
+            bestPosition = retainedBestPosition,
+            bestFitness = retainedBestFitness
         )
     }
 
@@ -277,7 +290,7 @@ class ParticleSwarmHeuristicSolver<V>(
             particles = newParticles
         }
 
-        model.tokens.setSolverSolution(bestParticle.solution)
+        model.tokens.setSolverSolution(bestParticle.solution.map { converter.fromValue(it) })
         return Ok(
             HeuristicResult(
                 bestSolution = bestParticle.solution,
@@ -285,6 +298,31 @@ class ParticleSwarmHeuristicSolver<V>(
                 status = HeuristicSolutionStatus.Feasible,
                 iteration = iteration
             )
+        )
+    }
+
+    companion object {
+        operator fun invoke(
+            particleAmount: UInt64 = UInt64(100),
+            solutionAmount: UInt64 = UInt64.one,
+            w: Flt64 = Flt64(0.4),
+            c1: Flt64 = Flt64.two,
+            c2: Flt64 = Flt64.two,
+            maxVelocity: Flt64 = Flt64(10000),
+            solveOnObjectiveMiss: Boolean = true,
+            randomGenerator: Generator<Flt64> = { Flt64(0.5) },
+            initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero }
+        ): ParticleSwarmHeuristicSolver<Flt64> = ParticleSwarmHeuristicSolver(
+            particleAmount = particleAmount,
+            solutionAmount = solutionAmount,
+            w = w,
+            c1 = c1,
+            c2 = c2,
+            maxVelocity = maxVelocity,
+            solveOnObjectiveMiss = solveOnObjectiveMiss,
+            randomGenerator = randomGenerator,
+            initialVelocityGenerator = initialVelocityGenerator,
+            converter = IntoValue.Flt64
         )
     }
 }

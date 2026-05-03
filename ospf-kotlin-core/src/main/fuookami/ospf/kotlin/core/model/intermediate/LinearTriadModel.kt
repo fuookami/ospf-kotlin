@@ -508,7 +508,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
-    fun tidyDualSolution(solution: Solution): LinearDualSolution {
+    fun tidyDualSolution(solution: Solution<Flt64>): LinearDualSolution {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {

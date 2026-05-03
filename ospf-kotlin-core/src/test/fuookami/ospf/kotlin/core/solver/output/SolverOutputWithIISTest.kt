@@ -10,7 +10,7 @@ import kotlin.time.Duration.Companion.seconds
 class SolverOutputWithIISTest {
     @Test
     fun solverOutputShouldWrapOptionalIis() {
-        val output = FeasibleSolverOutput(
+        val output = FeasibleSolverOutput<Flt64>(
             obj = Flt64.one,
             solution = emptyList(),
             time = 1.seconds,

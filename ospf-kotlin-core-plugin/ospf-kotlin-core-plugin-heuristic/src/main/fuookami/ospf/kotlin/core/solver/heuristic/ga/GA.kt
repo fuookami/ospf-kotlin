@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.ga
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -22,7 +23,7 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
-interface AbstractGAPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractGAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -62,12 +63,13 @@ class GAPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractGAPolicy<V> {
+), AbstractGAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     override suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,
@@ -105,8 +107,7 @@ class GAPolicy<V>(
             population = population,
             model = model
         )
-        @Suppress("UNCHECKED_CAST")
-        val weights = normalization(model, population.individuals.map { it.fitness }) as List<Flt64>
+        val weights = normalization(model, population.individuals.map { it.fitness })
         val indexes = selection(
             iteration = iteration,
             weights = weights,
@@ -127,8 +128,7 @@ class GAPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<Chromosome<V>> {
-        @Suppress("UNCHECKED_CAST")
-        val weights = normalization(model, population.map { it.fitness }) as List<Flt64>
+        val weights = normalization(model, population.map { it.fitness })
         val parentGroups = crossMode(
             iteration = iteration,
             population = population,
@@ -145,12 +145,14 @@ class GAPolicy<V>(
                         model = model
                     ).map { newIndividual ->
                         val fixIndividual = newIndividual.mapIndexed { i, value ->
-                            coerceIn(
+                            val flt64Value = converter.fromValue(value)
+                            val fixedFlt64 = coerceIn(
                                 iteration = iteration,
                                 index = i,
-                                value = value,
+                                value = flt64Value,
                                 model = model
                             )
+                            converter.intoValue(fixedFlt64)
                         }
                         Chromosome(
                             solution = fixIndividual,
@@ -168,8 +170,7 @@ class GAPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         mutationRateRange: ValueRange<Flt64>
     ): List<Chromosome<V>> {
-        @Suppress("UNCHECKED_CAST")
-        val weights = normalization(model, population.map { it.fitness }) as List<Flt64>
+        val weights = normalization(model, population.map { it.fitness })
         val mutationRate = mutationMode(
             iteration = iteration,
             population = population,
@@ -187,13 +188,15 @@ class GAPolicy<V>(
                             model = model,
                             mutationRate = mutationRate[i]
                         )
-                        val fixIndividual = newIndividual.mapIndexed { i, value ->
-                            coerceIn(
+                        val fixIndividual = newIndividual.mapIndexed { j, value ->
+                            val flt64Value = converter.fromValue(value)
+                            val fixedFlt64 = coerceIn(
                                 iteration = iteration,
-                                index = i,
-                                value = value,
+                                index = j,
+                                value = flt64Value,
                                 model = model
                             )
+                            converter.intoValue(fixedFlt64)
                         }
                         Chromosome(
                             solution = fixIndividual,
@@ -214,7 +217,7 @@ class GeneAlgorithm<Obj, V>(
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGAPolicy<V>,
-) {
+) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         runningCallBack: ((Iteration, Chromosome<V>, List<Chromosome<V>>, List<AbstractPopulation<V>>) -> Try)? = null

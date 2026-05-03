@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.scip
 
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -50,7 +50,7 @@ class ScipLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return ScipLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -66,11 +66,11 @@ class ScipLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution>()
+            val results = ArrayList<Solution<Flt64>>()
             ScipLinearSolverImpl(
                 config = config,
                 callBack = callBack
@@ -121,7 +121,7 @@ private class ScipLinearSolverImpl(
 
     private lateinit var scipVars: List<jscip.Variable>
     private lateinit var scipConstraints: List<jscip.Constraint>
-    private lateinit var output: FeasibleSolverOutput
+    private lateinit var output: FeasibleSolverOutputFlt64
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
@@ -137,7 +137,7 @@ private class ScipLinearSolverImpl(
         super.close()
     }
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutputFlt64> {
         mip = model.containsNotBinaryInteger
         val processes = arrayOf(
             { it.init(model.name) },
@@ -443,7 +443,7 @@ private class ScipLinearSolverImpl(
             } else {
                 Flt64.zero
             }
-            output = FeasibleSolverOutput(
+            output = FeasibleSolverOutputFlt64(
                 obj = obj,
                 solution = results,
                 time = solvingTime!!,

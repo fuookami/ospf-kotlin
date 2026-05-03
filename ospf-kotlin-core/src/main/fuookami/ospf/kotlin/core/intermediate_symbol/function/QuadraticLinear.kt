@@ -44,7 +44,7 @@ class QuadraticLinearFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
 
     private val isLinear: Boolean by lazy {
         _polynomial.monomials.none { it.isQuadratic }
@@ -82,12 +82,12 @@ class QuadraticLinearFunction<V>(
     override fun toMathQuadraticInequality(): QuadraticInequality {
         return if (isLinear) {
             QuadraticInequality(
-                QuadraticPolynomial(_polynomial.monomials.map { QuadraticMonomial.linear(it.coefficient.asFlt64(), it.symbol1) }, _polynomial.constant.asFlt64()),
+                QuadraticPolynomial(_polynomial.monomials.map { QuadraticMonomial.linear(converter.fromValue(it.coefficient), it.symbol1) }, converter.fromValue(_polynomial.constant)),
                 QuadraticPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ
             )
         } else {
-            val flt64Poly = _polynomial.asFlt64QuadraticPoly()
+            val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
             QuadraticInequality(
                 flt64Poly,
                 QuadraticPolynomial(emptyList(), Flt64.one),
@@ -97,7 +97,7 @@ class QuadraticLinearFunction<V>(
     }
 
     override val flattenedMonomials: QuadraticFlattenDataFlt64
-        get() = _polynomial.asFlt64QuadraticPoly().let { QuadraticFlattenDataFlt64(it.monomials, it.constant) }
+        get() = _polynomial.asFlt64QuadraticPoly(converter).let { QuadraticFlattenDataFlt64(it.monomials, it.constant) }
 
     @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
@@ -116,13 +116,25 @@ class QuadraticLinearFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * Register this function with the quadratic mechanism model.
-     * If the polynomial contains quadratic terms, adds a constraint y = polynomial.
-     * Variable registration is handled separately by the MetaModel.
+     * Register helper variable y with the token collection (only if quadratic).
      */
-    fun register(model: AbstractQuadraticMechanismModelFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
         if (!isLinear && y != null) {
-            val flt64Poly = _polynomial.asFlt64QuadraticPoly()
+            return when (val result = tokens.add(listOf(y!!))) {
+                is Ok -> ok
+                is Failed -> Failed(result.error)
+                is Fatal -> Fatal(result.errors)
+            }
+        }
+        return ok
+    }
+
+    /**
+     * Register the quadratic equality constraint y = polynomial (only if quadratic).
+     */
+    override fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try {
+        if (!isLinear && y != null) {
+            val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
             val yMon = QuadraticMonomial.linear(Flt64.one, y!!)
             val lhs = QuadraticPolynomial(listOf(yMon) + flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }, -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)

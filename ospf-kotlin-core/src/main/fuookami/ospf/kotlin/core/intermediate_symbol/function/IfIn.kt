@@ -68,9 +68,9 @@ class IfInFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xDouble = xValue.asFlt64().toDouble()
-        val lo = lower.asFlt64().toDouble()
-        val hi = upper.asFlt64().toDouble()
+        val xDouble = converter.fromValue(xValue).toDouble()
+        val lo = converter.fromValue(lower).toDouble()
+        val hi = converter.fromValue(upper).toDouble()
         return if (xDouble >= lo && xDouble <= hi) converter.one else converter.zero
     }
 
@@ -88,11 +88,11 @@ class IfInFunction<V>(
 
         // x - lower >= 0 indicator (x >= lower)
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
+        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ge")
 
         // upper - x >= 0 indicator (x <= upper)
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
+        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, converter, "${name}_le")
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
         allConstraints += Flt64LinearInequality(
@@ -119,52 +119,6 @@ class IfInFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mVal = bigM
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // x - lower >= 0 indicator (x >= lower)
-        val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
-
-        // upper - x >= 0 indicator (x <= upper)
-        val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
-
-        // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE, "${name}_link_ge"
-        )
-
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, leVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE, "${name}_link_le"
-        )
-
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(
-                listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar), LinearMonomial(-Flt64.one, leVar)),
-                Flt64.zero
-            ),
-            LinearPolynomial(emptyList(), -Flt64.one),
-            Comparison.GE, "${name}_link_lb"
-        )
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,

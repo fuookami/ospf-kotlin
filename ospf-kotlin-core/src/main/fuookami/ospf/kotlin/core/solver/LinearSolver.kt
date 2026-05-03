@@ -5,9 +5,15 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
+import fuookami.ospf.kotlin.core.solver.output.convertTo
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
@@ -28,7 +34,7 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleSolverOutput>
+    ): Ret<FeasibleSolverOutputFlt64>
 
     suspend operator fun invoke(
         model: LinearTriadModel,
@@ -48,8 +54,8 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -82,14 +88,14 @@ interface AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>>
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>
 
     suspend operator fun invoke(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
         return solveWithOptionsAndIISForSolutionPool(
             model = model,
             options = SolveOptions(
@@ -105,8 +111,8 @@ interface AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        callBack: ((Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -124,8 +130,8 @@ interface AbstractLinearSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
-        callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
+        callBack: ((Ret<Pair<SolverOutput, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -141,7 +147,7 @@ interface AbstractLinearSolver {
     suspend operator fun invoke(
         model: LinearMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return solveWithOptions(
             model = model,
             options = SolveOptions(
@@ -168,8 +174,8 @@ interface AbstractLinearSolver {
     fun solveAsync(
         model: LinearMechanismModelFlt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
         return solveAsync(
             model = model,
             options = SolveOptions(
@@ -201,7 +207,7 @@ interface AbstractLinearSolver {
         model: LinearMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return dump(model).use { intermediateModel ->
             this(
                 model = intermediateModel,
@@ -216,7 +222,7 @@ interface AbstractLinearSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
         return solveWithOptionsAndIISForSolutionPool(
             model = model,
             options = SolveOptions(
@@ -232,8 +238,8 @@ interface AbstractLinearSolver {
         model: LinearMechanismModelFlt64,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        callBack: ((Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -251,8 +257,8 @@ interface AbstractLinearSolver {
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
-        callBack: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
+        callBack: ((Ret<Pair<SolverOutput, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -270,7 +276,7 @@ interface AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return when (val result = dump(
             model = model,
             registrationStatusCallBack = registrationStatusCallBack,
@@ -321,8 +327,8 @@ interface AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+        callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -363,7 +369,7 @@ interface AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return when (val result = dump(
             model = model,
             registrationStatusCallBack = registrationStatusCallBack,
@@ -396,7 +402,7 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig
-    ): Ret<Pair<SolverOutput, List<Solution>>> {
+    ): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
         return solveWithOptionsAndIISForSolutionPool(
             model = model,
             options = SolveOptions(
@@ -416,8 +422,8 @@ interface AbstractLinearSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
-        callback: ((Ret<Pair<FeasibleSolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+        callback: ((Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -439,8 +445,8 @@ interface AbstractLinearSolver {
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
-        callback: ((Ret<Pair<SolverOutput, List<Solution>>>) -> Unit)? = null
-    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution>>>> {
+        callback: ((Ret<Pair<SolverOutput, List<Solution<Flt64>>>>) -> Unit)? = null
+    ): CompletableFuture<Ret<Pair<SolverOutput, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             val result = this@AbstractLinearSolver.invoke(
                 model = model,
@@ -452,6 +458,64 @@ interface AbstractLinearSolver {
             )
             callback?.invoke(result)
             return@future result
+        }
+    }
+
+    // ========== Generic V overloads (adapter boundary: Flt64 -> V) ==========
+
+    suspend fun <V> solveV(
+        model: LinearTriadModelView,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = invoke(model, solvingStatusCallBack)) {
+            is Ok -> Ok(result.value.convertTo(converter))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    suspend fun <V> solveV(
+        model: LinearTriadModelView,
+        solutionAmount: UInt64,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
+            is Ok -> {
+                val (output, solutions) = result.value
+                Ok(Pair(output.convertTo(converter), solutions.map { it.map { v -> converter.intoValue(v) } }))
+            }
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    suspend fun <V> solveV(
+        model: LinearMechanismModelFlt64,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = invoke(model, solvingStatusCallBack)) {
+            is Ok -> Ok(result.value.convertTo(converter))
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    suspend fun <V> solveV(
+        model: LinearMechanismModelFlt64,
+        solutionAmount: UInt64,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
+            is Ok -> {
+                val (output, solutions) = result.value
+                Ok(Pair(output.convertTo(converter), solutions.map { it.map { v -> converter.intoValue(v) } }))
+            }
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
         }
     }
 

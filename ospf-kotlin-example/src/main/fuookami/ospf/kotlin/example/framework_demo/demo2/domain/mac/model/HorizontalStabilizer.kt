@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.MAC
@@ -89,14 +90,18 @@ class HorizontalStabilizer(
             if (!::warnSlack.isInitialized) {
                 warnSlack = if (limit.warnMinTrim != null && limit.warnMaxTrim != null) {
                     // TODO: add upper bound slack for limit.warnMaxTrim
-                    LinearFunctionSymbolAdapter(SlackFunction(
-                        x = LinearPolynomial(trim),
-                        y = LinearPolynomial(limit.warnMinTrim),
-                        type = UContinuous,
-                        withNegative = true,
-                        withPositive = true,
-                        name = "${key}_trim_warn_slack"
-                    ))
+                    LinearFunctionSymbolAdapter(
+                        delegate = SlackFunction(
+                            x = LinearPolynomial(trim),
+                            y = LinearPolynomial(limit.warnMinTrim),
+                            type = UContinuous,
+                            withNegative = true,
+                            withPositive = true,
+                            converter = IntoValue.Flt64,
+                            name = "${key}_trim_warn_slack"
+                        ),
+                        converter = IntoValue.Flt64
+                    )
                 } else if (limit.warnMinTrim != null) {
                     SlackFunction(
                         x = trim,

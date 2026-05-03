@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfThenFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
@@ -1171,7 +1172,7 @@ open class IterativeTaskSchedulingTaskTime<
                             } else {
                                 with(timeWindow) { time.start.value }.floor()
                             }
-                            val slack = LinearFunctionSymbolAdapter(SlackFunction(
+                            val slack = LinearFunctionSymbolAdapter(delegate = SlackFunction(
                                 x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[task])), Flt64.zero),
                                 y = LinearPolynomial(emptyList(), y),
                                 type = if (timeWindow.continues) {
@@ -1182,7 +1183,7 @@ open class IterativeTaskSchedulingTaskTime<
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_${task}"
-                            ))
+                            ), converter = IntoValue.Flt64)
                             slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack
                         }

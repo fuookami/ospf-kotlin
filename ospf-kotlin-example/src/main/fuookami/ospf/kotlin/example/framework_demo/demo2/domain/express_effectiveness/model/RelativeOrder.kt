@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
@@ -48,10 +49,12 @@ class RelativeOrder(
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(
-                        IfFunction(
+                        delegate = IfFunction(
                             condition = stowage.stowage[i1, j2] + stowage.stowage[i2, j1] - Flt64.two,
+                            converter = IntoValue.Flt64,
                             name = "item_priority_reverse_${item1}_${item2}_${position1}_${position2}"
-                        )
+                        ),
+                        converter = IntoValue.Flt64
                     )
                 } else {
                     LinearExpressionSymbol(

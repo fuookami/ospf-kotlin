@@ -43,7 +43,7 @@ class BinaryzationFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (v.asFlt64().toDouble() > 0.0) converter.one else converter.zero
+        return if (converter.fromValue(v).toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -55,8 +55,8 @@ class BinaryzationFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val polyF = polynomial.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val polyF = polynomial.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // x <= M*y
@@ -74,35 +74,6 @@ class BinaryzationFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val polyF = polynomial.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // x <= M*y
-        val xMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-mF, resultVar), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_bin_ub")
-
-        // x >= epsilon*y
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_bin_lb")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
@@ -134,7 +105,9 @@ class BinaryzationFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

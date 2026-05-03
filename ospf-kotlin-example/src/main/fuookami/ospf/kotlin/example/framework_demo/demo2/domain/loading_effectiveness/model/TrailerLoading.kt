@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
@@ -57,10 +58,12 @@ class TrailerLoading(
                 }
 
                 LinearFunctionSymbolAdapter(
-                    IfFunction(
+                    delegate = IfFunction(
                         condition = loadAmount1 + loadAmount2 - Flt64.two,
+                        converter = IntoValue.Flt64,
                         name = "trailer_change_${trailer1}_${trailer2}_${position1}_${position2}"
-                    )
+                    ),
+                    converter = IntoValue.Flt64
                 )
             }
         }
@@ -87,10 +90,12 @@ class TrailerLoading(
 
                 if (Stowage.stowageNeeded(item2, position1) && Stowage.stowageNeeded(item1, position2)) {
                     LinearFunctionSymbolAdapter(
-                        IfFunction(
+                        delegate = IfFunction(
                             condition = stowage.stowage[i2, j1] + stowage.stowage[i1, j2] - Flt64.two,
+                            converter = IntoValue.Flt64,
                             name = "trailer_circling_${item1}_${item2}_${position1}_${position2}"
-                        )
+                        ),
+                        converter = IntoValue.Flt64
                     )
                 } else {
                     LinearExpressionSymbol(

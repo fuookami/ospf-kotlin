@@ -200,7 +200,7 @@ interface BunchCompilationContext<
         iteration: UInt64,
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution? = null
+        solution: Solution<Flt64>? = null
     ): Ret<TaskSolution<T, E, A>> {
         return TaskSolutionAnalyzer(
             iteration = iteration,
@@ -216,7 +216,7 @@ interface BunchCompilationContext<
         iteration: UInt64,
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution? = null
+        solution: Solution<Flt64>? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         return BunchSolutionAnalyzer(
             iteration = iteration,

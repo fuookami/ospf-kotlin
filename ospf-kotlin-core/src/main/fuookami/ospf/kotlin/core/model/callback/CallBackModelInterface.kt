@@ -22,11 +22,11 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
     val defaultObjective: V
 
     val tokens: AbstractMutableTokenTable<TV>
-    val constraints: List<Pair<Extractor<Boolean?, Solution>, String>>
+    val constraints: List<Pair<Extractor<Boolean?, Solution<TV>>, String>>
 
-    val objectiveFunctions: List<Pair<Extractor<Obj?, Solution>, String>>
+    val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<TV>>, String>>
 
-    fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution> {
+    fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<TV>> {
         return emptyList()
     }
 
@@ -35,7 +35,7 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
     fun objectiveValue(): V
     fun objectiveValue(obj: Obj): V
 
-    fun objective(solution: Solution): V? {
+    fun objective(solution: Solution<TV>): V? {
         var obj = objectiveValue()
         for ((objectiveFunction, _) in objectiveFunctions) {
             val thisObj = objectiveFunction(solution) ?: return null
@@ -60,27 +60,7 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
         }
     }
 
-    fun constraintSatisfied(solution: Solution): Boolean? {
-        for (token in tokens.tokens) {
-            val index = tokens.indexOf(token) ?: continue
-            if (token.range?.contains(solution[index]) != true) {
-                return false
-            }
-        }
-        for ((constraint, _) in constraints) {
-            when (constraint(solution)) {
-                true -> {}
-                false -> {
-                    return false
-                }
-
-                null -> {
-                    return null
-                }
-            }
-        }
-        return true
-    }
+    fun constraintSatisfied(solution: Solution<TV>): Boolean?
 
     fun flush()
 
@@ -110,6 +90,24 @@ interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> 
 
     override fun operation(lhs: V, rhs: V): V {
         return lhs + rhs
+    }
+
+    override fun constraintSatisfied(solution: Solution<V>): Boolean? {
+        val conv = converter()
+        for (token in tokens.tokens) {
+            val index = tokens.indexOf(token) ?: continue
+            if (!token.containsInBounds(solution[index], conv)) {
+                return false
+            }
+        }
+        for ((constraint, _) in constraints) {
+            when (constraint(solution)) {
+                true -> {}
+                false -> { return false }
+                null -> { return null }
+            }
+        }
+        return true
     }
 
     /** Provide the IntoValue<V> converter for this V type. */
@@ -154,6 +152,24 @@ interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<Mul
 
     override fun operation(lhs: List<V>, rhs: List<V>): List<V> {
         return (0 until objectiveSize).map { lhs[it] + rhs[it] }
+    }
+
+    override fun constraintSatisfied(solution: Solution<V>): Boolean? {
+        val conv = converter()
+        for (token in tokens.tokens) {
+            val index = tokens.indexOf(token) ?: continue
+            if (!token.containsInBounds(solution[index], conv)) {
+                return false
+            }
+        }
+        for ((constraint, _) in constraints) {
+            when (constraint(solution)) {
+                true -> {}
+                false -> { return false }
+                null -> { return null }
+            }
+        }
+        return true
     }
 
     /** Provide the IntoValue<V> converter for this V type. */

@@ -22,7 +22,7 @@ class Demo1 {
         val model = CallBackModel()
         val x = RealVar("x")
         model.add(x)
-        model.addObject(ObjectCategory.Minimum, { solution: Solution -> (solution[0] - Flt64.one).pow(2) })
+        model.addObject(ObjectCategory.Minimum, { solution: Solution<Flt64> -> (solution[0] - Flt64.one).pow(2) })
         val solver = PSO(policy = PSOPolicy(timeLimit = 10.seconds))
         val result = solver(model)
         return ok

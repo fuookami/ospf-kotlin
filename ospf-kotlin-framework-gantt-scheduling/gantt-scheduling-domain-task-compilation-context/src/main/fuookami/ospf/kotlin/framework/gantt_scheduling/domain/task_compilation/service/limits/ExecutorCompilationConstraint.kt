@@ -27,7 +27,7 @@ class ExecutorCompilationConstraint<
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (executor in executors) {
             when (val result = model.addConstraint(
-                compilation.executorCompilation[executor].toLinearPolynomial() eq Flt64.one,
+                compilation.executorCompilation[executor] eq 1,
                 name = "${name}_$executor",
                 args = ExecutorCompilationShadowPriceKey(executor)
             )) {

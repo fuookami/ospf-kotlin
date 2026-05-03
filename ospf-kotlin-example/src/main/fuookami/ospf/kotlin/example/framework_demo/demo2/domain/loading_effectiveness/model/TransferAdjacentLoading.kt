@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -42,10 +43,12 @@ class TransferAdjacentLoading(
 
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
-                        IfFunction(
+                        delegate = IfFunction(
                             condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            converter = IntoValue.Flt64,
                             name = "same_source_adjacent_${source}_${position1}_${position2}",
-                        )
+                        ),
+                        converter = IntoValue.Flt64
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
@@ -87,10 +90,12 @@ class TransferAdjacentLoading(
 
                 if (position1.status.stowageNeeded || position1.status.adjustmentNeeded) {
                     LinearFunctionSymbolAdapter(
-                        IfFunction(
+                        delegate = IfFunction(
                             condition = loadAmount1 + loadAmount2 - Flt64.two,
+                            converter = IntoValue.Flt64,
                             name = "same_destination_adjacent_${destination}_${position1}_${position2}",
-                        )
+                        ),
+                        converter = IntoValue.Flt64
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(

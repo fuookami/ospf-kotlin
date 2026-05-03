@@ -55,8 +55,8 @@ class SlackRangeFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xFlt = xValue.asFlt64().toDouble()
-        val threshFlt = threshold.asFlt64().toDouble()
+        val xFlt = converter.fromValue(xValue).toDouble()
+        val threshFlt = converter.fromValue(threshold).toDouble()
         if (xFlt > threshFlt) {
             return converter.intoValue(Flt64(xFlt - threshFlt))
         } else {
@@ -73,8 +73,8 @@ class SlackRangeFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val xPoly = x.asFlt64Poly()
-        val threshPoly = LinearPolynomial(emptyList(), threshold.asFlt64())
+        val xPoly = x.asFlt64Poly(converter)
+        val threshPoly = LinearPolynomial(emptyList(), converter.fromValue(threshold))
 
         // upper >= x - threshold
         val lhsUpper = LinearPolynomial(
@@ -96,7 +96,7 @@ class SlackRangeFunction<V>(
             -xPoly.constant
         )
         val lowerConstraint = LinearInequality<Flt64>(
-            lhsLower, LinearPolynomial(emptyList(), -threshold.asFlt64()), Comparison.GE, "${name}_lower"
+            lhsLower, LinearPolynomial(emptyList(), -converter.fromValue(threshold)), Comparison.GE, "${name}_lower"
         )
         when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
             is Ok -> {}
@@ -106,49 +106,6 @@ class SlackRangeFunction<V>(
 
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val xPoly = x.asFlt64Poly()
-        val threshPoly = LinearPolynomial(emptyList(), threshold.asFlt64())
-
-        // upper >= x - threshold
-        val lhsUpper = LinearPolynomial(
-            xPoly.monomials + LinearMonomial(-Flt64.one, upperVar),
-            xPoly.constant
-        )
-        val upperConstraint = LinearInequality<Flt64>(
-            lhsUpper, threshPoly, Comparison.GE, "${name}_upper"
-        )
-        when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        // lower >= threshold - x
-        val lhsLower = LinearPolynomial(
-            xPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-Flt64.one, lowerVar),
-            -xPoly.constant
-        )
-        val lowerConstraint = LinearInequality<Flt64>(
-            lhsLower, LinearPolynomial(emptyList(), -threshold.asFlt64()), Comparison.GE, "${name}_lower"
-        )
-        when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        return ok
-    }
-
     companion object {
         /**
          * Factory: accept LinearPolynomial<Flt64> for x and Flt64 threshold.
@@ -179,7 +136,9 @@ class SlackRangeFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
 
         /**
@@ -200,7 +159,9 @@ class SlackRangeFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
 
         /**
@@ -221,7 +182,9 @@ class SlackRangeFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
 
         /**
@@ -242,7 +205,9 @@ class SlackRangeFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.hexaly
 
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -44,7 +44,7 @@ class HexalyQuadraticSolver(
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return HexalyQuadraticSolverImpl(
             config = config,
             callBack = callBack,
@@ -60,11 +60,11 @@ class HexalyQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution>()
+            val results = ArrayList<Solution<Flt64>>()
             HexalyQuadraticSolverImpl(
                 config = config,
                 callBack = callBack
@@ -93,14 +93,14 @@ private class HexalyQuadraticSolverImpl(
     private lateinit var hexalyVars: List<HxExpression>
     private lateinit var hexalyConstraints: List<HxExpression>
     private lateinit var hexalyObjective: HxExpression
-    private lateinit var output: FeasibleSolverOutput
+    private lateinit var output: FeasibleSolverOutputFlt64
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
+    suspend operator fun invoke(model: QuadraticTetradModelView): Ret<FeasibleSolverOutputFlt64> {
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },
@@ -399,7 +399,7 @@ private class HexalyQuadraticSolverImpl(
                 for (hexalyVar in hexalyVars) {
                     results.add(Flt64(hexalyVar.doubleValue))
                 }
-                output = FeasibleSolverOutput(
+                output = FeasibleSolverOutputFlt64(
                     obj = Flt64(hexalyObjective.doubleValue),
                     solution = results,
                     time = solvingTime!!,

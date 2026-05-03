@@ -47,7 +47,7 @@ class SigmoidFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (condValue.asFlt64().toDouble() > 0.0) converter.one else converter.zero
+        return if (converter.fromValue(condValue).toDouble() > 0.0) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -59,42 +59,19 @@ class SigmoidFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val tolF = tolerance.asFlt64()
-        val sbF = strictBoundary.asFlt64()
+        val mF = converter.fromValue(bigM)
+        val tolF = converter.fromValue(tolerance)
+        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraints(condition.asFlt64Poly(), indicatorVar, sideVar, mF, tolF, sbF, "${name}_sig_nz")
+        allConstraints += nonzeroIndicatorConstraints(condition.asFlt64Poly(converter), indicatorVar, sideVar, mF, tolF, sbF, "${name}_sig_nz")
 
         // indicator serves as the result: indicator = 1 when condition > 0
 
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val tolF = tolerance.asFlt64()
-        val sbF = strictBoundary.asFlt64()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraints(condition.asFlt64Poly(), indicatorVar, sideVar, mF, tolF, sbF, "${name}_sig_nz")
-
-        // indicator serves as the result: indicator = 1 when condition > 0
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
@@ -126,7 +103,9 @@ class SigmoidFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

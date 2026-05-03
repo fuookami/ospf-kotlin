@@ -45,7 +45,7 @@ class AbsFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (v.asFlt64().toDouble() >= 0.0) v else -v
+        return if (converter.fromValue(v).toDouble() >= 0.0) v else -v
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
@@ -57,8 +57,8 @@ class AbsFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val polyF = polynomial.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val polyF = polynomial.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // result = pos - neg
@@ -88,47 +88,6 @@ class AbsFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val polyF = polynomial.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // result = pos - neg
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, posVar),
-                LinearMonomial(Flt64.one, negVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_abs_result")
-
-        // poly = pos - neg
-        val polyMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(polyMonos + listOf(
-                LinearMonomial(-Flt64.one, posVar),
-                LinearMonomial(Flt64.one, negVar)
-            ), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_abs_decompose")
-
-        // pos <= M (already guaranteed by URealVar upper bound)
-        // neg <= M (already guaranteed by URealVar upper bound)
-        // Complementarity: pos * neg = 0 is enforced implicitly by the solver
-        // for typical LP/MIP problems. For strict enforcement, additional
-        // binary variables would be needed.
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomial: LinearPolynomial<V>,
@@ -160,7 +119,9 @@ class AbsFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

@@ -11,7 +11,7 @@ interface ObjectiveNormalization<V> where V : RealNumber<V>, V : NumberField<V> 
     operator fun invoke(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>
-    ): List<V>
+    ): List<Flt64>
 }
 
 data object MinMaxNormalization : ObjectiveNormalization<Flt64> {

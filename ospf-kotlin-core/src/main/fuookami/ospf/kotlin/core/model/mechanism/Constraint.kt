@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
 import fuookami.ospf.kotlin.core.model.intermediate.CellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
@@ -32,52 +31,28 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 // ========== Polynomial Kind Marker Types ==========
 
-/**
- * Type parameter for Constraint<V, P> tracking polynomial kind.
- */
 sealed interface PolynomialKind
-
-/**
- * Marker for linear constraints: Constraint<V, Linear> holds SymbolicLinearInequality<V>.
- */
 object Linear : PolynomialKind
-
-/**
- * Marker for quadratic constraints: Constraint<V, Quadratic> holds SymbolicQuadraticInequality<V>.
- */
 object Quadratic : PolynomialKind
 
 // ========== Symbolic Inequality Wrapper Types ==========
 
-/**
- * Symbolic wrapper for a math-layer LinearInequality<V>.
- * Holds the inequality without flattening, preserving the symbolic form.
- */
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
-
 typealias SymbolicLinearInequalityFlt64 = SymbolicLinearInequality<Flt64>
 
-/**
- * Symbolic wrapper for a math-layer QuadraticInequalityOf<V>.
- * Holds the inequality without flattening, preserving the symbolic form.
- */
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
-
 typealias SymbolicQuadraticInequalityFlt64 = SymbolicQuadraticInequality<Flt64>
 
 // ========== Constraint<V, P> ==========
 
 /**
- * Generic constraint with typed public values and Flt64 solver values.
- * 泛型约束：公开值使用 V，求解器边界值使用 Flt64。
+ * Generic constraint with V-typed values.
+ * Flt64 evaluation is handled by the solver adapter, not the core chain.
  */
 interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : PolynomialKind {
     val lhs: List<Cell<V>>
     val sign: ConstraintRelation
-    /** V-typed rhs for public callers. / 面向调用方的 V 类型右端项。 */
     val rhs: V
-    /** Flt64 rhs for solver-boundary callers. / 面向求解器边界的 Flt64 右端项。 */
-    val rhsFlt64: Flt64
     val lazy: Boolean
     val name: String
     val origin: MathConstraint?
@@ -127,14 +102,12 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
     override val lhs: List<Cell<V>>,
     override val sign: ConstraintRelation,
     private val _rhs: V,
-    private val _rhsFlt64: Flt64,
     override val lazy: Boolean,
     override val name: String = "",
     override val origin: MathConstraint? = null,
     override val from: Pair<IntermediateSymbol<*>, Boolean>? = null
 ) : Constraint<V, P> where V : RealNumber<V>, V : NumberField<V> {
     override val rhs: V get() = _rhs
-    override val rhsFlt64: Flt64 get() = _rhsFlt64
 
     fun isTrue(): Boolean? {
         var lhsValue = _rhs - _rhs
@@ -151,22 +124,6 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
         }
         return sign(lhsValue, _rhs)
     }
-
-    fun isTrueFlt64(): Boolean? {
-        var lhsValue = Flt64.zero
-        for (cell in lhs) {
-            lhsValue += cell.evaluateFlt64() ?: return null
-        }
-        return sign(lhsValue, _rhsFlt64)
-    }
-
-    fun isTrueFlt64(results: Solution): Boolean? {
-        var lhsValue = Flt64.zero
-        for (cell in lhs) {
-            lhsValue += cell.evaluateFlt64(results) ?: return null
-        }
-        return sign(lhsValue, _rhsFlt64)
-    }
 }
 
 class LinearConstraintImpl(
@@ -181,7 +138,6 @@ class LinearConstraintImpl(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
-    _rhsFlt64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,
@@ -223,7 +179,6 @@ class QuadraticConstraintImpl(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
-    _rhsFlt64 = rhs,
     lazy = lazy,
     name = name,
     origin = origin,

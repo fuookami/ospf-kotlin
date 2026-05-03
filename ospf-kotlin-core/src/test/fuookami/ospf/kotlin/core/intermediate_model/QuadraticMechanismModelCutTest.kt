@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -42,7 +43,7 @@ class QuadraticMechanismModelCutTest {
             name = "qc-optimal"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel(name = "cut-parent-optimal"),
+            parent = QuadraticMetaModel(name = "cut-parent-optimal", converter = IntoValue.Flt64),
             name = "cut-model-optimal",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),
@@ -85,7 +86,7 @@ class QuadraticMechanismModelCutTest {
             name = "qc-linear-fallback"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel(name = "cut-parent-linear"),
+            parent = QuadraticMetaModel(name = "cut-parent-linear", converter = IntoValue.Flt64),
             name = "cut-model-linear",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList()),

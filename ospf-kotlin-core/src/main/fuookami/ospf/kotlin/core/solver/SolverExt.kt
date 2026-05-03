@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.computeIIS
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.resolveInfeasibleUnifiedFields
@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
@@ -35,14 +36,14 @@ import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.time.TimeSource
 
-suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput> {
+suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     when (val validation = validateLinearModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -63,14 +64,14 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractLinearSolver.solve(model: LinearMetaModelFlt64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractLinearSolver.solve(model: LinearMetaModelFlt64): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearMetaModelFlt64,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
         { status -> callback(status.toModelBuildingStatus(model.name)) }
     }
@@ -92,7 +93,7 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelFlt64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelFlt64): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -102,7 +103,7 @@ suspend fun AbstractLinearSolver.solve(model: LinearMechanismModelFlt64): Ret<Fe
  */
 suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>
-): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+): Ret<FeasibleSolverOutputFlt64> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
@@ -117,24 +118,24 @@ suspend fun <V> AbstractLinearSolver.solve(
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearMechanismModelFlt64,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     return dump(model).use {
         solveWithOptions(it, options)
     }
 }
 
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModelFlt64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModelFlt64): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     when (val validation = validateQuadraticModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -158,7 +159,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticMetaModelFlt64,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
         { status -> callback(status.toModelBuildingStatus(model.name)) }
     }
@@ -180,7 +181,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelFlt64): Ret<FeasibleSolverOutput> {
+suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelFlt64): Ret<FeasibleSolverOutputFlt64> {
     return solveWithOptions(model, SolveOptions())
 }
 
@@ -190,7 +191,7 @@ suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModelFlt64): 
  */
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>
-): Ret<FeasibleSolverOutput> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+): Ret<FeasibleSolverOutputFlt64> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
         is Ok -> result.value
         is Failed -> return Failed(result.error)
@@ -205,7 +206,7 @@ suspend fun <V> AbstractQuadraticSolver.solve(
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticMechanismModelFlt64,
     options: SolveOptions
-): Ret<FeasibleSolverOutput> {
+): Ret<FeasibleSolverOutputFlt64> {
     return dump(model).use {
         solveWithOptions(it, options)
     }
@@ -276,7 +277,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     when (val validation = validateLinearModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -377,7 +378,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     return dump(model).use {
         solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
     }
@@ -417,7 +418,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
     dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
         { status -> callback(status.toModelBuildingStatus(model.name)) }
     }
@@ -504,7 +505,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     when (val validation = validateQuadraticModelValueConversion(model, options.effectiveValueConversionPolicy)) {
         is Failed -> return Failed(validation.error)
         is Fatal -> return Fatal(validation.errors)
@@ -605,7 +606,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticMechanismModelFlt64,
     options: SolveOptions,
     iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     return dump(model).use {
         solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
     }
@@ -645,7 +646,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     iisConfig: IISConfig,
     registrationStatusCallBack: RegistrationStatusCallBack? = null,
     dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<Pair<SolverOutput, List<Solution>>> {
+): Ret<Pair<SolverOutput, List<Solution<Flt64>>>> {
     val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
         { status -> callback(status.toModelBuildingStatus(model.name)) }
     }
@@ -667,7 +668,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
-private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput, List<Solution>>>): Ret<FeasibleSolverOutput> {
+private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>): Ret<FeasibleSolverOutputFlt64> {
     return when (result) {
         is Ok -> {
             Ok(result.value.first)
@@ -687,8 +688,8 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput, List<Solution>
 fun AbstractLinearSolver.solveAsync(
     model: LinearMetaModelFlt64,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -700,8 +701,8 @@ fun AbstractLinearSolver.solveAsync(
 fun AbstractLinearSolver.solveAsync(
     model: LinearMechanismModelFlt64,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -713,8 +714,8 @@ fun AbstractLinearSolver.solveAsync(
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -726,8 +727,8 @@ fun AbstractLinearSolver.solveAsync(
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMetaModelFlt64,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -739,8 +740,8 @@ fun AbstractQuadraticSolver.solveAsync(
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMechanismModelFlt64,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
@@ -752,8 +753,8 @@ fun AbstractQuadraticSolver.solveAsync(
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    callBack: ((Ret<FeasibleSolverOutputFlt64>) -> Unit)? = null
+): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
     return GlobalScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)

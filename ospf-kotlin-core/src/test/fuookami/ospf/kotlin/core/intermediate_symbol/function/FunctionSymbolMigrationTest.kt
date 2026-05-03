@@ -32,7 +32,7 @@ class FunctionSymbolMigrationTest {
             converter = IntoValue.Flt64,
             name = "test_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack)
+        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
 
         assertEquals(Linear, adapter.category)
         assertFalse(adapter.cached)
@@ -52,7 +52,7 @@ class FunctionSymbolMigrationTest {
             converter = IntoValue.Flt64,
             name = "my_func", displayName = "My Function"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack)
+        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
 
         assertEquals("my_func", adapter.name)
         assertEquals("My Function", adapter.displayName)
@@ -83,7 +83,7 @@ class FunctionSymbolMigrationTest {
     }
 
     @Test
-    fun `SlackFunction register adds helper variables to model`() {
+    fun `SlackFunction registerAuxiliaryTokens succeeds`() {
         val x = RealVar("aux_test_x")
         val xPoly = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, x)),
@@ -98,13 +98,14 @@ class FunctionSymbolMigrationTest {
             name = "aux_slack"
         )
 
-        val model = LinearMetaModel<Flt64>(name = "stub_model")
-        val result = slack.register(model)
-        assertTrue(result is Ok, "register should succeed")
+        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
+        tokens.add(listOf(x))
+        val result = slack.registerAuxiliaryTokens(tokens)
+        assertTrue(result is Ok, "registerAuxiliaryTokens should succeed")
     }
 
     @Test
-    fun `LinearFunctionSymbolAdapter register delegates to inner function`() {
+    fun `LinearFunctionSymbolAdapter registerAuxiliaryTokens delegates to inner function`() {
         val x = RealVar("adapter_aux_x")
         val xPoly = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, x)),
@@ -118,11 +119,12 @@ class FunctionSymbolMigrationTest {
             converter = IntoValue.Flt64,
             name = "adapter_aux"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack)
+        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
 
-        val model = LinearMetaModel<Flt64>(name = "stub_model")
-        val result = adapter.register(model)
-        assertTrue(result is Ok, "adapter.register should succeed")
+        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
+        tokens.add(listOf(x))
+        val result = adapter.registerAuxiliaryTokens(tokens)
+        assertTrue(result is Ok, "adapter.registerAuxiliaryTokens should succeed")
     }
 
     @Test
@@ -138,7 +140,7 @@ class FunctionSymbolMigrationTest {
             converter = IntoValue.Flt64,
             name = "eval_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack)
+        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(5.0))
         val result = adapter.evaluate(values)
@@ -156,15 +158,15 @@ class FunctionSymbolMigrationTest {
             converter = IntoValue.Flt64,
             name = "flatten_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack)
+        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
 
         assertTrue(adapter.flattenedMonomials.monomials.isEmpty())
         assertEquals(Flt64.zero, adapter.flattenedMonomials.constant)
     }
 
     @Test
-    fun `MathFunctionSymbol register adds helper variables`() {
-        val model = LinearMetaModel<Flt64>(name = "independent_test_model")
+    fun `MathFunctionSymbol two-phase register lifecycle works`() {
+        val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
 
         val testFunc = object : MathFunctionSymbol<Flt64> {
             override var name: String = "independent_test"
@@ -173,12 +175,9 @@ class FunctionSymbolMigrationTest {
             override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = null
             override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try = ok
             override fun registerConstraints(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64): Try = ok
-            override fun register(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel<Flt64>): Try {
-                return ok
-            }
         }
 
-        val result = testFunc.register(model)
-        assertTrue(result is Ok, "register should succeed")
+        val result = testFunc.registerAuxiliaryTokens(tokens)
+        assertTrue(result is Ok, "registerAuxiliaryTokens should succeed")
     }
 }

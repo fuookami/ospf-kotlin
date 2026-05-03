@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
-import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -21,7 +21,7 @@ import kotlin.time.ExperimentalTime
 
 typealias Universe<V> = SolutionWithFitness<V>
 
-interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * calculate WEP (Wormhole Existence Probability)
      */
@@ -39,12 +39,12 @@ interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy {
 
     fun transformUniverses(
         iteration: Iteration,
-        bestSolution: Solution,
+        bestSolution: Solution<V>,
         solutions: List<Universe<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
-    ): List<Solution>
+    ): List<Solution<V>>
 }
 
 /**
@@ -61,12 +61,13 @@ open class MVOPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractMVOPolicy<V> {
+), AbstractMVOPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             minWEP: Flt64 = Flt64(0.2),
@@ -107,61 +108,65 @@ open class MVOPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>,
         objs: List<V>
     ): List<Flt64> {
-        @Suppress("UNCHECKED_CAST")
-        return whiteHoleRateCalculator(model, objs) as List<Flt64>
+        return whiteHoleRateCalculator(model, objs)
     }
 
     override fun transformUniverses(
         iteration: Iteration,
-        bestSolution: Solution,
+        bestSolution: Solution<V>,
         solutions: List<Universe<V>>,
         model: AbstractCallBackModelInterface<*, V>,
         wep: Flt64,
         tdr: Flt64
-    ): List<Solution> {
-        val newSolutions = ArrayList<Solution>()
+    ): List<Solution<V>> {
+        val newSolutions = ArrayList<Solution<V>>()
         val whiteHoleRates = whiteHoleRates(model, solutions.map { it.fitness })
+        val bestFlt64 = bestSolution.map { converter.fromValue(it) }
         for ((i, solution) in solutions.withIndex()) {
             val newSolution = solution.solution.toMutableList()
             for ((dimension, value) in solution.solution.withIndex()) {
                 val token = model.tokens[dimension]
-                var newValue = if (randomGenerator()!! ls whiteHoleRates[i]) {
-                    solutions[whiteHoleSelector(iteration, whiteHoleRates).toInt()].solution[dimension]
+                val newFlt64 = if (randomGenerator()!! ls whiteHoleRates[i]) {
+                    val selected = solutions[whiteHoleSelector(iteration, whiteHoleRates).toInt()].solution[dimension]
+                    converter.fromValue(selected)
                 } else {
-                    value
+                    converter.fromValue(value)
                 }
-                newValue = if (randomGenerator()!! ls wep) {
+                val finalFlt64 = if (randomGenerator()!! ls wep) {
                     applyWormhole(
-                        bestSolution = bestSolution,
+                        bestSolutionFlt64 = bestFlt64,
                         dimension = dimension,
-                        token = token,
+                        lowerBound = token.lowerBound!!.value.unwrap(),
+                        upperBound = token.upperBound!!.value.unwrap(),
                         tdr = tdr
                     )
                 } else {
-                    newValue
+                    newFlt64
                 }
-                newSolution[dimension] = coerceIn(
+                newSolution[dimension] = converter.intoValue(coerceIn(
                     iteration = iteration,
                     index = dimension,
-                    value = newValue,
+                    value = finalFlt64,
                     model = model
-                )
+                ))
             }
+            newSolutions.add(newSolution)
         }
         return newSolutions
     }
 
     private fun applyWormhole(
-        bestSolution: Solution,
+        bestSolutionFlt64: List<Flt64>,
         dimension: Int,
-        token: Token<Flt64>,
+        lowerBound: Flt64,
+        upperBound: Flt64,
         tdr: Flt64
     ): Flt64 {
-        val range = token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()
+        val range = upperBound - lowerBound
         return if (randomGenerator()!! ls Flt64(0.5)) {
-            bestSolution[dimension] + tdr * (range * randomGenerator()!! + token.lowerBound!!.value.unwrap())
+            bestSolutionFlt64[dimension] + tdr * (range * randomGenerator()!! + lowerBound)
         } else {
-            bestSolution[dimension] - tdr * (range * randomGenerator()!! + token.lowerBound!!.value.unwrap())
+            bestSolutionFlt64[dimension] - tdr * (range * randomGenerator()!! + lowerBound)
         }
     }
 }
@@ -171,7 +176,7 @@ class MultiVerseOptimizer<Obj, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractMVOPolicy<V>
-) {
+) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         runningCallBack: ((Iteration, Universe<V>, List<Universe<V>>) -> Try)? = null

@@ -78,12 +78,6 @@ class SinFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return impl.registerConstraints(model)
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        return impl.register(model)
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,

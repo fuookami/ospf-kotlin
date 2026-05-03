@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.Order
 
 interface Individual<V> {
-    val solution: Solution
+    val solution: Solution<V>
     val fitness: V
 }
 
@@ -35,7 +35,7 @@ data class Population<T : Individual<V>, V>(
 }
 
 data class SolutionWithFitness<V>(
-    override val solution: Solution,
+    override val solution: Solution<V>,
     override val fitness: V
 ) : Individual<V>
 

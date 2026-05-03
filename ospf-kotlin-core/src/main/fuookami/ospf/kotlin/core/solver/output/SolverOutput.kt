@@ -5,6 +5,9 @@ package fuookami.ospf.kotlin.core.solver.output
 import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
@@ -20,9 +23,9 @@ sealed interface UnifiedSolverOutput : SolverOutput {
 sealed interface LinearSolverOutput : SolverOutput {}
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
-data class FeasibleSolverOutput(
+data class FeasibleSolverOutput<V>(
     val obj: Flt64,
-    val solution: Solution,
+    val solution: Solution<V>,
     val time: Duration,
     val possibleBestObj: Flt64,
     val gap: Flt64,
@@ -32,6 +35,24 @@ data class FeasibleSolverOutput(
     override val mipGap: Flt64 = gap,
     override val solveTime: Duration = time
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
+
+typealias FeasibleSolverOutputFlt64 = FeasibleSolverOutput<Flt64>
+
+fun <V> FeasibleSolverOutputFlt64.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    return FeasibleSolverOutput(
+        obj = obj,
+        solution = solution.map { converter.intoValue(it) },
+        time = time,
+        possibleBestObj = possibleBestObj,
+        gap = gap,
+        iterations = iterations,
+        nodeCount = nodeCount,
+        bestBound = bestBound,
+        mipGap = mipGap,
+        solveTime = solveTime
+    )
+}
 
 data class LinearInfeasibleSolverOutput(
     val iis: BasicLinearTriadModelView,

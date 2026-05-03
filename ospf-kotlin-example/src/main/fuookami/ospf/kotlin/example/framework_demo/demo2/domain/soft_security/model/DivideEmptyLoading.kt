@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 
 class DivideEmptyLoading(
@@ -50,10 +51,14 @@ class DivideEmptyLoading(
                         name = "empty_between_cargo_${position1}_${position2}"
                     )
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
-                    LinearFunctionSymbolAdapter(IfFunction(
-                        condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
-                        name = "empty_between_cargo_${position1}_${position2}"
-                    ))
+                    LinearFunctionSymbolAdapter(
+                        delegate = IfFunction(
+                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
+                            converter = IntoValue.Flt64,
+                            name = "empty_between_cargo_${position1}_${position2}"
+                        ),
+                        converter = IntoValue.Flt64
+                    )
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,
@@ -97,10 +102,14 @@ class DivideEmptyLoading(
                         name = "empty_cargo_between_cargo_${position1}_${position2}"
                     )
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
-                    LinearFunctionSymbolAdapter(IfFunction(
-                        condition = (LinearPolynomial(loadAmount1) + LinearPolynomial(loadAmount2)) - Flt64.two,
-                        name = "empty_cargo_between_cargo_${position1}_${position2}"
-                    ))
+                    LinearFunctionSymbolAdapter(
+                        delegate = IfFunction(
+                            condition = (LinearPolynomial(loadAmount1) + LinearPolynomial(loadAmount2)) - Flt64.two,
+                            converter = IntoValue.Flt64,
+                            name = "empty_cargo_between_cargo_${position1}_${position2}"
+                        ),
+                        converter = IntoValue.Flt64
+                    )
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,
@@ -142,10 +151,14 @@ class DivideEmptyLoading(
                         name = "empty_between_empty_cargo_${position1}_${position2}"
                     )
                 } else if (position2.status.stowageNeeded || position2.status.adjustmentNeeded) {
-                    LinearFunctionSymbolAdapter(IfFunction(
-                        condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
-                        name = "empty_between_empty_cargo_${position1}_${position2}"
-                    ))
+                    LinearFunctionSymbolAdapter(
+                        delegate = IfFunction(
+                            condition = LinearPolynomial(loadAmount1) - (LinearPolynomial(loadAmount2) + Flt64.one),
+                            converter = IntoValue.Flt64,
+                            name = "empty_between_empty_cargo_${position1}_${position2}"
+                        ),
+                        converter = IntoValue.Flt64
+                    )
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,

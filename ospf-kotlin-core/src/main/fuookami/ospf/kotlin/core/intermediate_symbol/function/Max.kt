@@ -50,7 +50,7 @@ class MaxFunction<V>(
         var maxValD: Double = Double.NEGATIVE_INFINITY
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            val vD = v.asFlt64().toDouble()
+            val vD = converter.fromValue(v).toDouble()
             if (maxVal == null || vD > maxValD) {
                 maxVal = v
                 maxValD = vD
@@ -69,12 +69,12 @@ class MaxFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = bigM.asFlt64()
+        val mF = converter.fromValue(bigM)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // result >= poly[i] for each i
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly(converter)
             val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
             allConstraints += Flt64LinearInequality(
                 LinearPolynomial(lbMonos, -polyF.constant),
@@ -83,7 +83,7 @@ class MaxFunction<V>(
 
         // result - poly[i] + M*sel[i] <= M
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly(converter)
             val ubMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
@@ -101,49 +101,6 @@ class MaxFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = bigM.asFlt64()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // result >= poly[i] for each i
-        for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
-            val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += Flt64LinearInequality(
-                LinearPolynomial(lbMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
-        }
-
-        // result - poly[i] + M*sel[i] <= M
-        for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
-            val ubMonos = listOf(resultMon) +
-                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mF, selectorVars[i])
-            allConstraints += Flt64LinearInequality(
-                LinearPolynomial(ubMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), mF), Comparison.LE)
-        }
-
-        // sum(sel[i]) = 1
-        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(selMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
@@ -175,7 +132,9 @@ class MaxFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }
@@ -207,7 +166,7 @@ class MinFunction<V>(
         var minValD: Double = Double.POSITIVE_INFINITY
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            val vD = v.asFlt64().toDouble()
+            val vD = converter.fromValue(v).toDouble()
             if (minVal == null || vD < minValD) {
                 minVal = v
                 minValD = vD
@@ -226,12 +185,12 @@ class MinFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = bigM.asFlt64()
+        val mF = converter.fromValue(bigM)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // result <= poly[i] for each i
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly(converter)
             val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
             allConstraints += Flt64LinearInequality(
                 LinearPolynomial(ubMonos, -polyF.constant),
@@ -240,7 +199,7 @@ class MinFunction<V>(
 
         // result - poly[i] + M*sel[i] >= 0
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
+            val polyF = polynomials[i].asFlt64Poly(converter)
             val lbMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
@@ -258,49 +217,6 @@ class MinFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = bigM.asFlt64()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // result <= poly[i] for each i
-        for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
-            val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += Flt64LinearInequality(
-                LinearPolynomial(ubMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
-        }
-
-        // result - poly[i] + M*sel[i] >= 0
-        for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly()
-            val lbMonos = listOf(resultMon) +
-                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mF, selectorVars[i])
-            allConstraints += Flt64LinearInequality(
-                LinearPolynomial(lbMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
-        }
-
-        // sum(sel[i]) = 1
-        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(selMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
@@ -331,7 +247,9 @@ class MinFunction<V>(
                 bigM = bigM,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

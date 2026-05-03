@@ -37,7 +37,7 @@ data object SolutionAnalyzer {
         compilation: TaskCompilation<T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (executor: E?) -> A?,
-        solution: Solution? = null,
+        solution: Solution<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -97,7 +97,7 @@ data object SolutionAnalyzer {
         results: List<Flt64>,
         model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
-        solution: Solution? = null,
+        solution: Solution<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -186,7 +186,7 @@ data object SolutionAnalyzer {
         tasks: List<List<IT>>,
         compilation: IterativeTaskCompilation<IT, T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution? = null,
+        solution: Solution<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()

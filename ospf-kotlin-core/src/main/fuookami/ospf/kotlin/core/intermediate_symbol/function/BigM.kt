@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -97,13 +98,14 @@ fun <V> nonzeroIndicatorConstraints(
     bigM: V,
     tolerance: V,
     strictBoundary: V,
+    converter: IntoValue<V>,
     namePrefix: String
 ): List<Flt64LinearInequality> where V : RealNumber<V>, V : NumberField<V> {
     val constraints = mutableListOf<Flt64LinearInequality>()
-    val polyF = poly.asFlt64Poly()
-    val mF = bigM.asFlt64()
-    val tolF = tolerance.asFlt64()
-    val sbF = strictBoundary.asFlt64()
+    val polyF = poly.asFlt64Poly(converter)
+    val mF = converter.fromValue(bigM)
+    val tolF = converter.fromValue(tolerance)
+    val sbF = converter.fromValue(strictBoundary)
 
     // band_ub: poly - M*ind <= tol
     val ubMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
@@ -152,14 +154,15 @@ fun <V> simpleIndicatorConstraints(
     bigM: V,
     tolerance: V,
     strictBoundary: V,
+    converter: IntoValue<V>,
     namePrefix: String
 ): List<Flt64LinearInequality> where V : RealNumber<V>, V : NumberField<V> {
     val constraints = mutableListOf<Flt64LinearInequality>()
-    val mF = bigM.asFlt64()
-    val tolF = tolerance.asFlt64()
-    val sbF = strictBoundary.asFlt64()
-    val lhsF = ineq.lhs.asFlt64Poly()
-    val rhsF = ineq.rhs.asFlt64Poly()
+    val mF = converter.fromValue(bigM)
+    val tolF = converter.fromValue(tolerance)
+    val sbF = converter.fromValue(strictBoundary)
+    val lhsF = ineq.lhs.asFlt64Poly(converter)
+    val rhsF = ineq.rhs.asFlt64Poly(converter)
     val polyMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val shiftedConst = lhsF.constant - rhsF.constant
 

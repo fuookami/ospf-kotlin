@@ -67,7 +67,7 @@ class OneOfFunction<V>(
         var count = 0
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (v.asFlt64().toDouble() != 0.0) count++
+            if (converter.fromValue(v).toDouble() != 0.0) count++
         }
         return if (count == 1) converter.one else converter.zero
     }
@@ -86,7 +86,7 @@ class OneOfFunction<V>(
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, converter, "${name}_oneof_nz_${i}")
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1
@@ -103,38 +103,6 @@ class OneOfFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mD = bigM
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // Nonzero indicators for each polynomial
-        for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
-        }
-
-        // Exactly one indicator must be 1: sum(indicators) = 1
-        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(indMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
-
-        // result = 1 (since exactly one indicator must be 1)
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
@@ -166,7 +134,9 @@ class OneOfFunction<V>(
                 converter = IntoValue.Flt64,
        name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

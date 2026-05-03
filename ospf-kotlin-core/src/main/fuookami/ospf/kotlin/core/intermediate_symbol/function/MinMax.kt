@@ -58,12 +58,6 @@ class MinMaxFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return inner.registerConstraints(model)
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        return inner.register(model)
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
@@ -98,7 +92,9 @@ class MinMaxFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }
@@ -138,12 +134,6 @@ class MaxMinFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return inner.registerConstraints(model)
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        return inner.register(model)
-    }
-
     companion object {
         operator fun <V> invoke(
             polynomials: List<LinearPolynomial<V>>,
@@ -178,7 +168,9 @@ class MaxMinFunction<V>(
                 converter = IntoValue.Flt64,
                 name = name,
                 displayName = displayName
-            )
+            ),
+            converter = IntoValue.Flt64
+        
         )
     }
 }

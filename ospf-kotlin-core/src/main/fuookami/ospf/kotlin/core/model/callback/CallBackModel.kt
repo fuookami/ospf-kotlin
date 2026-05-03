@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.MulObj
@@ -44,7 +45,8 @@ interface CallBackModelPolicy<V> {
         }
     }
 
-    fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution> {
+    // Initial solutions are generated as Flt64 (solver-standard); adapter boundary converts to V.
+    fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<Flt64>> {
         return listOf((UInt64.zero until variableAmount).map { Flt64.zero })
     }
 }
@@ -84,7 +86,7 @@ class FunctionalCallBackModelPolicy<V>(
     override fun initialSolutions(
         initialSolutionAmount: UInt64,
         variableAmount: UInt64
-    ): List<Solution> {
+    ): List<Solution<Flt64>> {
         return (UInt64.zero until initialSolutionAmount).map { solution ->
             (UInt64.zero until variableAmount).map {
                 initialSolutionsGenerator(
@@ -99,8 +101,8 @@ class CallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val tokens: AbstractMutableTokenTable<V> = ManualTokenTable(category),
-    private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
-    private val _objectiveFunctions: MutableList<Pair<Extractor<V?, Solution>, String>> = ArrayList(),
+    private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution<V>>, String>> = ArrayList(),
+    private val _objectiveFunctions: MutableList<Pair<Extractor<V?, Solution<V>>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<V>,
     private val _converter: IntoValue<V>
 ) : CallBackModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -168,19 +170,17 @@ class CallBackModel<V> internal constructor(
             val tokens = model.tokens.copy()
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution -> constraint.isTrue(solution, tokens) },
+                    { solution: Solution<Flt64> -> constraint.isTrue(solution, tokens) },
                     constraint.toString()
                 )
             }.toMutableList()
             val objectiveFunction = model.subObjects.map { objective ->
                 Pair(
-                    { solution: Solution ->
+                    { solution: Solution<Flt64> ->
                         if (objective.category == model.objectCategory) {
                             objective.evaluate(solution)
                         } else {
-                            objective.evaluate(solution)?.let {
-                                -it
-                            }
+                            objective.evaluate(solution)?.let { -it }
                         }
                     },
                     objective.name
@@ -212,19 +212,19 @@ class CallBackModel<V> internal constructor(
             }
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution -> (constraint as ConstraintImpl<Flt64, *>).isTrue(solution) },
+                    { solution: Solution<Flt64> -> (constraint as ConstraintImpl<Flt64, *>).isTrue(solution) },
                     constraint.name
                 )
             }.toMutableList()
-            val objectiveFunction = model.objectFunction.subObjects.map { objective ->
+            @Suppress("UNCHECKED_CAST")
+            val subObjects = model.objectFunction.subObjects as List<SubObject<Flt64>>
+            val objectiveFunction = subObjects.map { objective ->
                 Pair(
-                    { solution: Solution ->
+                    { solution: Solution<Flt64> ->
                         if (objective.category == model.objectFunction.category) {
-                            objective.evaluateFlt64(solution)
+                            objective.evaluate(solution)
                         } else {
-                            objective.evaluateFlt64(solution)?.let {
-                                -it
-                            }
+                            objective.evaluate(solution)?.let { -it }
                         }
                     },
                     objective.name
@@ -254,8 +254,9 @@ class CallBackModel<V> internal constructor(
 
     override fun infinity(): V = _converter.infinity
 
-    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
-        return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
+    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
+        val flt64Solutions = policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
+        return flt64Solutions.map { solution -> solution.map { _converter.intoValue(it) } }
     }
 
     override fun compareObjective(lhs: V, rhs: V): Order {
@@ -290,7 +291,7 @@ class CallBackModel<V> internal constructor(
     ) {
         _constraints.add(
             Pair(
-                { solution: Solution -> inequality.isTrue(solution, tokens) },
+                { solution: Solution<V> -> inequality.isTrue(solution, _converter, tokens) },
                 name ?: String()
             )
         )
@@ -304,7 +305,7 @@ class CallBackModel<V> internal constructor(
     ): Try {
         return addObject(
             category = category,
-            func = { solution: Solution -> tokens.find(variable)?.result },
+            func = { solution: Solution<V> -> tokens.find(variable)?.result },
             name = name,
             displayName = displayName
         )
@@ -319,7 +320,7 @@ class CallBackModel<V> internal constructor(
         val vConstant = _converter.intoValue(constant.toFlt64())
         return addObject(
             category = category,
-            func = { solution: Solution -> vConstant },
+            func = { solution: Solution<V> -> vConstant },
             name = name,
             displayName = displayName
         )
@@ -328,13 +329,13 @@ class CallBackModel<V> internal constructor(
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
-        func: Extractor<V?, Solution>,
+        func: Extractor<V?, Solution<V>>,
         name: String? = null,
         displayName: String? = null
     ): Try {
         _objectiveFunctions.add(
             Pair(
-                { solution: Solution ->
+                { solution: Solution<V> ->
                     if (category == objectCategory) {
                         func(solution)
                     } else {
@@ -348,7 +349,7 @@ class CallBackModel<V> internal constructor(
     }
 
     fun maximize(
-        func: Extractor<V?, Solution>,
+        func: Extractor<V?, Solution<V>>,
         name: String?,
         displayName: String?
     ): Try {
@@ -361,7 +362,7 @@ class CallBackModel<V> internal constructor(
     }
 
     fun minimize(
-        func: Extractor<V?, Solution>,
+        func: Extractor<V?, Solution<V>>,
         name: String?,
         displayName: String?
     ): Try {
@@ -397,8 +398,8 @@ class MultiObjectCallBackModel<V> internal constructor(
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     override val objectiveLocation: List<MultiObjectLocation>,
     override val tokens: AbstractMutableTokenTable<V> = ManualTokenTable(category),
-    private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution>, String>> = ArrayList(),
-    private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution>, String>> = ArrayList(),
+    private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution<V>>, String>> = ArrayList(),
+    private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution<V>>, String>> = ArrayList(),
     private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
     private val _converter: IntoValue<V>
 ) : MultiObjectiveModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -449,10 +450,10 @@ class MultiObjectCallBackModel<V> internal constructor(
   private val defaultLocation: MultiObjectLocation
         get() = objectiveLocation.first()
 
-    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution> {
+    override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
         return (UInt64.zero until initialSolutionAmount).map { solution ->
             (UInt64.zero until UInt64(tokens.tokensInSolver.size)).map { variable ->
-                initialSolutionsGenerator(solution to variable)
+                _converter.intoValue(initialSolutionsGenerator(solution to variable))
             }
         }
     }
@@ -525,7 +526,7 @@ class MultiObjectCallBackModel<V> internal constructor(
     ) {
         _constraints.add(
             Pair(
-                { solution: Solution -> inequality.isTrue(solution, tokens) },
+                { solution: Solution<V> -> inequality.isTrue(solution, _converter, tokens) },
                 name ?: String()
             )
         )
@@ -539,7 +540,7 @@ class MultiObjectCallBackModel<V> internal constructor(
     ): Try {
         return addObject(
             category = category,
-            func = { solution: Solution -> tokens.find(variable)?.result },
+            func = { solution: Solution<V> -> tokens.find(variable)?.result },
             location = defaultLocation,
             name = name,
             displayName = displayName
@@ -555,7 +556,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         val vConstant = _converter.intoValue(constant.toFlt64())
         return addObject(
             category = category,
-            func = { solution: Solution -> vConstant },
+            func = { solution: Solution<V> -> vConstant },
             location = defaultLocation,
             name = name,
             displayName = displayName
@@ -565,14 +566,14 @@ class MultiObjectCallBackModel<V> internal constructor(
     @Suppress("UNUSED_PARAMETER")
     fun addObject(
         category: ObjectCategory,
-        func: Extractor<V?, Solution>,
+        func: Extractor<V?, Solution<V>>,
         location: MultiObjectLocation,
         name: String? = null,
         displayName: String? = null
     ): Try {
         _objectiveFunctions.add(
             Pair(
-                { solution: Solution ->
+                { solution: Solution<V> ->
                     func(solution)?.let {
                         val fltValue = _converter.fromValue(if (category == objectCategory) it else -it)
                         listOf(location to fltValue)

@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -17,7 +16,7 @@ import kotlin.test.assertTrue
 
 class ProductFunctionTest {
     @Test
-    fun registerShouldAddConstraintToModel() {
+    fun registerConstraintsShouldAddConstraintToModel() {
         val x = RealVar("x")
         val y = RealVar("y")
 
@@ -30,7 +29,7 @@ class ProductFunctionTest {
             constant = Flt64.zero
         )
 
-        val product = ProductFunction<Flt64>(left, right, name = "x_times_y")
+        val product = ProductFunction(left, right, name = "x_times_y")
 
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
@@ -44,7 +43,7 @@ class ProductFunctionTest {
             tokens = tokens
         )
 
-        val result = product.register(model)
+        val result = product.registerConstraints(model)
         assertTrue(result is Ok)
         assertEquals(1, model.constraints.size)
         val constraint = model.constraints.first()
@@ -68,7 +67,7 @@ class ProductFunctionTest {
             constant = Flt64(7.0)
         )
 
-        val product = ProductFunction<Flt64>(left, right, name = "test")
+        val product = ProductFunction(left, right, name = "test")
         val poly = product.toMathQuadraticPolynomial()
 
         // (2x + 3)(5y + 7) = 10xy + 14x + 15y + 21

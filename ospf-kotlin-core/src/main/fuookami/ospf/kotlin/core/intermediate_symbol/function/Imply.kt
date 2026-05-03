@@ -64,7 +64,7 @@ class ImplyFunction<V>(
         val conValue = consequent.evaluateWith(values) ?: return null
         // Implication: if antecedent > 0, then consequent must be > 0
         // Returns 1 if the implication holds, 0 otherwise
-        return if (antValue.asFlt64().toDouble() <= 0.0 || conValue.asFlt64().toDouble() > 0.0) {
+        return if (converter.fromValue(antValue).toDouble() <= 0.0 || converter.fromValue(conValue).toDouble() > 0.0) {
             converter.one
         } else {
             converter.zero
@@ -84,8 +84,8 @@ class ImplyFunction<V>(
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // Nonzero indicators
-        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
+        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ant")
+        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_con")
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero
@@ -104,40 +104,6 @@ class ImplyFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mVal = bigM
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // Nonzero indicators
-        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
-
-        // Implication: antecedent_indicator <= consequent_indicator
-        // If antecedent is nonzero, consequent must also be nonzero
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(
-                listOf(
-                    LinearMonomial(Flt64.one, antecedentIndicatorVar),
-                    LinearMonomial(-Flt64.one, consequentIndicatorVar)
-                ),
-                Flt64.zero
-            ),
-            LinearPolynomial(emptyList(), Flt64.zero),
-            Comparison.LE, "${name}_imply_link"
-        )
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             antecedent: LinearPolynomial<V>,

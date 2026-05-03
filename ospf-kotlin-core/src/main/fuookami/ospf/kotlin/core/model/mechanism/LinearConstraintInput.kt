@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -103,6 +104,20 @@ data class LinearConstraintInput(
         val lhsValue = evaluateFlattenDataWithResults(flattenData, results, tokenTable, zeroIfNone = zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
+    }
+
+    /**
+     * Evaluate constraint with V-typed solution values.
+     * Converts V to Flt64 via converter, then delegates to Flt64 evaluation.
+     */
+    fun <V> isTrue(
+        results: List<V>,
+        converter: IntoValue<V>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean = false
+    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+        val flt64Results = results.map { converter.fromValue(it) }
+        return isTrue(flt64Results, tokenTable, zeroIfNone)
     }
 
     fun isTrue(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean = false): Boolean? {
@@ -212,7 +227,7 @@ internal fun <V> evaluateFlattenDataWithResults(
  */
 internal fun <V> evaluateQuadraticFlattenDataWithResults(
     data: QuadraticFlattenDataFlt64,
-    results: Solution,
+    results: Solution<Flt64>,
     tokenTable: AbstractTokenTable<V>,
     zeroIfNone: Boolean
 ): Flt64? where V : RealNumber<V>, V : NumberField<V> {

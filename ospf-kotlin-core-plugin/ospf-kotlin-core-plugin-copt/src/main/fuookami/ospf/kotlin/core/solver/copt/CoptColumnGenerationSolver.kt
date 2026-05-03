@@ -5,7 +5,7 @@ import copt.get
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
@@ -32,7 +32,7 @@ class CoptColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -111,7 +111,7 @@ class CoptColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -156,7 +156,7 @@ class CoptColumnGenerationSolver(
                     })
                 }
 
-                val results = ArrayList<Solution>()
+                val results = ArrayList<Solution<Flt64>>()
                 val solver = CoptLinearSolver(
                     config = config,
                     callBack = callBack.copy()

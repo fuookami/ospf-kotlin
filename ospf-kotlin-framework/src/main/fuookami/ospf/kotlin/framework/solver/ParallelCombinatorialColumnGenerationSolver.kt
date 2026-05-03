@@ -1,6 +1,6 @@
 ﻿package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -45,10 +45,10 @@ class ParallelCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput? = null
+                var result: FeasibleSolverOutputFlt64? = null
                 val lock = Any()
                 try {
                     coroutineScope {

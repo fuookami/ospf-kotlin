@@ -65,7 +65,7 @@ class IfThenFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (condValue.asFlt64().toDouble() > 0.0) {
+        return if (converter.fromValue(condValue).toDouble() > 0.0) {
             thenPoly.evaluateWith(values) ?: return null
         } else {
             converter.zero
@@ -81,12 +81,12 @@ class IfThenFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val thenF = thenPoly.asFlt64Poly()
+        val mF = converter.fromValue(bigM)
+        val thenF = thenPoly.asFlt64Poly(converter)
         val allConstraints = mutableListOf<Flt64LinearInequality>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_cond")
 
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
         val yMono = LinearMonomial(Flt64.one, resultVar)
@@ -107,42 +107,6 @@ class IfThenFunction<V>(
         addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        when (val result = model.add(helperVariables)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
-
-        val mF = bigM.asFlt64()
-        val thenF = thenPoly.asFlt64Poly()
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
-
-        // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
-
-        // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
-        val yMono = LinearMonomial(Flt64.one, resultVar)
-        val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
-            LinearPolynomial(emptyList(), mF),
-            Comparison.LE, "${name}_then_ub"
-        )
-
-        // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
-        allConstraints += Flt64LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
-            LinearPolynomial(emptyList(), -mF),
-            Comparison.GE, "${name}_then_lb"
-        )
-
-        addConstraints(model, allConstraints)?.let { return it }
-        return ok
-    }
-
     companion object {
         operator fun <V> invoke(
             condition: LinearPolynomial<V>,
@@ -195,7 +159,9 @@ class IfThenFunction<V>(
                 inequality.flattenData.constant
             )
             return LinearFunctionSymbolAdapter(
-                IfThenFunction(conditionPoly, thenPoly, bigM, name = name, displayName = displayName)
+                IfThenFunction(conditionPoly, thenPoly, bigM, name = name, displayName = displayName),
+            converter = IntoValue.Flt64
+        
             )
         }
     }

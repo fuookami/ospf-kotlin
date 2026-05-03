@@ -178,7 +178,7 @@ interface IterativeTaskCompilationContext<
         iteration: UInt64,
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution? = null
+        solution: Solution<Flt64>? = null
     ): Ret<TaskSolution<T, E, A>> {
         return SolutionAnalyzer(
             iteration = iteration,

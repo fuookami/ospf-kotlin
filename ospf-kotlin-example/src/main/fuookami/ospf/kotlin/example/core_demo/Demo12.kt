@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -18,6 +19,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example12.html
@@ -99,13 +101,15 @@ data object Demo12 {
         ) { i, _ ->
             val product = products[i]
             LinearFunctionSymbolAdapter(
-                MaxFunction(
+                delegate = MaxFunction(
                     listOf(
                         LinearPolynomial(product.premium * x[i]),
                         LinearPolynomial(product.minPremium * assignment[i])
                     ),
+                    converter = IntoValue.Flt64,
                     name = "premium_$i"
-                )
+                ),
+                converter = IntoValue.Flt64
             )
         }
         metaModel.add(premium)

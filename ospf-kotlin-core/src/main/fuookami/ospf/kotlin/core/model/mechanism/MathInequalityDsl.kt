@@ -54,10 +54,12 @@ infix fun LinearPolynomial<Flt64>.leq(rhs: LinearPolynomial<Flt64>): Flt64Linear
 infix fun LinearPolynomial<Flt64>.geq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(this, rhs, Comparison.GE)
 infix fun LinearPolynomial<Flt64>.neq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(this, rhs, Comparison.NE)
 
+infix fun LinearPolynomial<Flt64>.eq(rhs: Flt64): Flt64LinearInequality = Flt64LinearInequality(this, LinearPolynomial(emptyList(), rhs), Comparison.EQ)
 infix fun LinearPolynomial<Flt64>.leq(rhs: Flt64): Flt64LinearInequality = Flt64LinearInequality(this, LinearPolynomial(emptyList(), rhs), Comparison.LE)
 infix fun LinearPolynomial<Flt64>.geq(rhs: Flt64): Flt64LinearInequality = Flt64LinearInequality(this, LinearPolynomial(emptyList(), rhs), Comparison.GE)
 infix fun LinearPolynomial<Flt64>.neq(rhs: Flt64): Flt64LinearInequality = Flt64LinearInequality(this, LinearPolynomial(emptyList(), rhs), Comparison.NE)
 
+infix fun Flt64.eq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(LinearPolynomial(emptyList(), this), rhs, Comparison.EQ)
 infix fun Flt64.leq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(LinearPolynomial(emptyList(), this), rhs, Comparison.LE)
 infix fun Flt64.geq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(LinearPolynomial(emptyList(), this), rhs, Comparison.GE)
 infix fun Flt64.neq(rhs: LinearPolynomial<Flt64>): Flt64LinearInequality = Flt64LinearInequality(LinearPolynomial(emptyList(), this), rhs, Comparison.NE)

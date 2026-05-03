@@ -30,7 +30,7 @@ class TaskCompilationConstraint<
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
             when (val result = model.addConstraint(
-                compilation.taskCompilation[task] eq Flt64.one,
+                compilation.taskCompilation[task] eq 1,
                 name = "${name}_${task}",
                 args = TaskCompilationShadowPriceKey(task)
             )) {

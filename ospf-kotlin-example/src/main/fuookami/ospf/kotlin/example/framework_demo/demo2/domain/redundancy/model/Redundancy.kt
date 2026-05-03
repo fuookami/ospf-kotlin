@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
@@ -92,14 +93,18 @@ class Redundancy(
 
         if (!::redundancySlack.isInitialized) {
             // TODO: add upper bound slack for maxRedundancy
-            redundancySlack = LinearFunctionSymbolAdapter(SlackFunction(
-                x = LinearPolynomial(redundancy),
-                y = minRedundancy,
-                type = UContinuous,
-                withNegative = true,
-                withPositive = true,
-                name = "redundancy_slack"
-            ))
+            redundancySlack = LinearFunctionSymbolAdapter(
+                delegate = SlackFunction(
+                    x = LinearPolynomial(redundancy),
+                    y = minRedundancy,
+                    type = UContinuous,
+                    withNegative = true,
+                    withPositive = true,
+                    converter = IntoValue.Flt64,
+                    name = "redundancy_slack"
+                ),
+                converter = IntoValue.Flt64
+            )
         }
         when (val result = model.add(redundancySlack)) {
             is Ok -> {}

@@ -60,11 +60,11 @@ class QuadraticInStepRangeFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     init {
-        require(lower.asFlt64().toDouble() <= upper.asFlt64().toDouble()) {
+        require(converter.fromValue(lower).toDouble() <= converter.fromValue(upper).toDouble()) {
             "QuadraticInStepRange lower bound must be <= upper bound"
         }
     }
@@ -124,14 +124,24 @@ class QuadraticInStepRangeFunction<V>(
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 
     /**
-     * Register this in-step-range function with the quadratic mechanism model.
-     * Adds Big-M constraints. Variable registration is handled separately by the MetaModel.
+     * Register helper variables (z, y) with the token collection.
      */
-    fun register(model: AbstractQuadraticMechanismModelFlt64): Try {
-        val mF = bigM.asFlt64()
-        val lowerF = lower.asFlt64()
-        val upperF = upper.asFlt64()
-        val flt64X = x.asFlt64QuadraticPoly()
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+        return when (val result = tokens.add(listOf(z, y))) {
+            is Ok -> ok
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    /**
+     * Register Big-M constraints for the in-step-range function.
+     */
+    override fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try {
+        val mF = converter.fromValue(bigM)
+        val lowerF = converter.fromValue(lower)
+        val upperF = converter.fromValue(upper)
+        val flt64X = x.asFlt64QuadraticPoly(converter)
         val yMon = QuadraticMonomial.linear(Flt64.one, y)
         val zMon = QuadraticMonomial.linear(mF, z)
         val negZMon = QuadraticMonomial.linear(-mF, z)

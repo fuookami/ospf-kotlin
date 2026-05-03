@@ -12,5 +12,5 @@ interface Mutation<V> where V : RealNumber<V>, V : NumberField<V> {
         individual: T,
         model: AbstractCallBackModelInterface<*, V>,
         mutationRate: Flt64
-    ): Solution
+    ): Solution<V>
 }

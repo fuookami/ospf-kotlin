@@ -80,7 +80,7 @@ class BalanceTernaryzationFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xDouble = xValue.asFlt64().toDouble()
+        val xDouble = converter.fromValue(xValue).toDouble()
         val epsDouble = epsilon.toDouble()
         return when {
             xDouble > epsDouble -> converter.one
@@ -96,12 +96,6 @@ class BalanceTernaryzationFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return impl.registerConstraints(model)
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        return impl.register(model)
-    }
-
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,

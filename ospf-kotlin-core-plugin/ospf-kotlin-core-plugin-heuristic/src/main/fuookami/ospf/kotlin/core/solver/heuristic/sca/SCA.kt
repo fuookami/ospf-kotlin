@@ -5,6 +5,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic.sca
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -25,7 +26,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
-interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun r1(iteration: Iteration): Flt64
 
     fun r2(
@@ -78,12 +79,13 @@ class SCAPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSCAPolicy<V> {
+), AbstractSCAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     private val qTable = mutableMapOf<UInt64, MutableList<Flt64>>()
     private var currentState: UInt64 = UInt64.zero
 
@@ -145,12 +147,15 @@ class SCAPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>
     ): SolutionWithFitness<V> {
         val newSolution = solution.solution.mapIndexed { index, position ->
-            val delta = r3[index] * bestSolution.solution[index] - position
-            if (randomGenerator()!! < Flt64.two.reciprocal()) {
-                position + r1 * r2[index].sin() * abs(delta)
+            val posFlt64 = converter.fromValue(position)
+            val bestFlt64 = converter.fromValue(bestSolution.solution[index])
+            val delta = r3[index] * bestFlt64 - posFlt64
+            val newPosFlt64 = if (randomGenerator()!! < Flt64.two.reciprocal()) {
+                posFlt64 + r1 * r2[index].sin() * abs(delta)
             } else {
-                position + r1 * r2[index].cos() * abs(delta)
+                posFlt64 + r1 * r2[index].cos() * abs(delta)
             }
+            converter.intoValue(newPosFlt64)
         }
         return SolutionWithFitness(
             newSolution,
@@ -199,28 +204,35 @@ class SCAPolicy<V>(
         actions[bestAction] += alpha * (reward + gamma * maxNextQ - actions[bestAction])
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun calculateDensity(
         population: List<Individual<*>>
     ): Flt64 {
-        val center = population.flatMap { it.solution }.average()
-        return population.sumOf { individual ->
-            individual.solution.sumOf { position ->
+        val typedPopulation = population as List<Individual<V>>
+        val flt64Solutions = typedPopulation.map { ind -> ind.solution.map { converter.fromValue(it) } }
+        val center = flt64Solutions.flatMap { it }.average()
+        return flt64Solutions.sumOf { solution ->
+            solution.sumOf { position ->
                 (position - center).abs()
             }
-        } / Flt64(population.size * population.first().solution.size)
+        } / Flt64(population.size * flt64Solutions.first().size)
     }
 
+    @Suppress("UNCHECKED_CAST")
     private fun calculateDistance(
         population: List<Individual<*>>,
         best: Individual<*>,
         model: AbstractCallBackModelInterface<*, *>
     ): Flt64 {
+        val typedBest = best as Individual<V>
+        val bestFlt64 = typedBest.solution.map { converter.fromValue(it) }
         val maxDistance = model.tokens.tokens.sumOf {
             (it.upperBound!!.value.unwrap() - it.lowerBound!!.value.unwrap()).sqr()
         }.sqrt()
-        return population.sumOf { individual ->
-            individual.solution.withIndex().sumOf { (index, position) ->
-                (position - best.solution[index]).sqr()
+        return (population as List<Individual<V>>).sumOf { individual ->
+            val solFlt64 = individual.solution.map { converter.fromValue(it) }
+            solFlt64.withIndex().sumOf { (index, position) ->
+                (position - bestFlt64[index]).sqr()
             }.sqrt()
         } / (Flt64(population.size) * maxDistance)
     }
@@ -231,7 +243,7 @@ class SineCosineAlgorithm<Obj, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractSCAPolicy<V>
-) {
+) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         runningCallBack: ((Iteration, SolutionWithFitness<V>) -> Try)? = null

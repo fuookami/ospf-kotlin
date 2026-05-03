@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -24,14 +25,14 @@ import kotlin.time.ExperimentalTime
  *
  * @property markovLength               the length of the markov chain
  */
-interface AbstractSAAPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractSAAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val markovLength: UInt64
 
     fun transformSolution(
         iteration: Iteration,
-        solution: Solution,
+        solution: Solution<V>,
         model: AbstractCallBackModelInterface<*, V>
-    ): Solution
+    ): Solution<V>
 
     fun accept(
         iteration: Iteration,
@@ -65,12 +66,13 @@ open class SAAPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSAAPolicy<V> {
+), AbstractSAAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             initialTemperature: Flt64 = Flt64(100.0),
@@ -107,26 +109,26 @@ open class SAAPolicy<V>(
 
     override fun transformSolution(
         iteration: Iteration,
-        solution: Solution,
+        solution: Solution<V>,
         model: AbstractCallBackModelInterface<*, V>
-    ): Solution {
-        val newSolution = solution.toMutableList()
+    ): Solution<V> {
+        val flt64Solution = solution.map { converter.fromValue(it) }.toMutableList()
         val disturbancePoints: MutableSet<Int> = HashSet()
         while (disturbancePoints.size < disturbanceAmount.toInt()) {
-            val point = (randomGenerator()!! * Flt64(newSolution.size)).round().toUInt64().toInt()
+            val point = (randomGenerator()!! * Flt64(flt64Solution.size)).round().toUInt64().toInt()
             disturbancePoints.add(point)
         }
         for (point in disturbancePoints) {
             val token = model.tokens[point]
-            val newValue = newSolution[point] + step * (token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()) * randomGenerator()!!
-            newSolution[point] = coerceIn(
+            val newValue = flt64Solution[point] + step * (token.upperBound!!.value.unwrap() - token.lowerBound!!.value.unwrap()) * randomGenerator()!!
+            flt64Solution[point] = coerceIn(
                 iteration = iteration,
                 index = point,
                 value = newValue,
                 model = model
             )
         }
-        return newSolution
+        return flt64Solution.map { converter.intoValue(it) }
     }
 
     override fun accept(iteration: Iteration, currentObjective: V, newObjective: V): Boolean {
@@ -156,7 +158,7 @@ open class SAAPolicy<V>(
 @OptIn(ExperimentalTime::class)
 class SimulatedAnnealingAlgorithm<Obj, V>(
     val policy: AbstractSAAPolicy<V>
-) {
+) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(): SimulatedAnnealingAlgorithm<Flt64, Flt64> {
             return SimulatedAnnealingAlgorithm(SAAPolicy())

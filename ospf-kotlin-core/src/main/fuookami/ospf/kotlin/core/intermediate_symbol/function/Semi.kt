@@ -51,13 +51,6 @@ class SemiFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
         return ok
     }
-
-    @Suppress("DEPRECATION")
-    override fun register(model: AbstractLinearMetaModel<V>): Try {
-        // No additional constraints needed; solver handles semi-continuous natively
-        return fuookami.ospf.kotlin.utils.functional.ok
-    }
-
     companion object {
         operator fun <V> invoke(
             lb: V? = null,

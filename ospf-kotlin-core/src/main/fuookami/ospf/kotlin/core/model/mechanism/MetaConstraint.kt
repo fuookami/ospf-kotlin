@@ -22,6 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
@@ -222,13 +223,27 @@ interface MathConstraint {
     val priority: Int?
 
     /**
-     * Evaluate whether this constraint is satisfied given solution values.
+     * Evaluate whether this constraint is satisfied given Flt64 solution values.
      */
     fun <V> isTrue(
         solution: List<Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean = false
     ): Boolean? where V : RealNumber<V>, V : NumberField<V>
+
+    /**
+     * Evaluate whether this constraint is satisfied given V-typed solution values.
+     * Converts V to Flt64 via converter, then delegates to Flt64 evaluation.
+     */
+    fun <V> isTrue(
+        solution: List<V>,
+        converter: IntoValue<V>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean = false
+    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
+        val flt64Solution = solution.map { converter.fromValue(it) }
+        return isTrue(flt64Solution, tokenTable, zeroIfNone)
+    }
 }
 
 /**

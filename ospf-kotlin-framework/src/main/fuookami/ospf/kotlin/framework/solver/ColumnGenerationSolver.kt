@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
@@ -26,12 +26,12 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleSolverOutput>
+    ): Ret<FeasibleSolverOutputFlt64>
 
     suspend fun solveMILP(
         metaModel: LinearMetaModelFlt64,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         val solutionAmount = options.solutionAmount
         return if (solutionAmount != null) {
             solveMILP(
@@ -60,7 +60,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
@@ -76,7 +76,7 @@ interface ColumnGenerationSolver {
     fun solveMILPAsync(
         metaModel: LinearMetaModelFlt64,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<FeasibleSolverOutput>> {
+    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 metaModel = metaModel,
@@ -92,7 +92,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return solveMILP(
             name = name,
             metaModel = metaModel,
@@ -106,7 +106,7 @@ interface ColumnGenerationSolver {
     suspend fun solveMILPWithSolutionPool(
         metaModel: LinearMetaModelFlt64,
         options: FrameworkSolveOptions
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return solveMILP(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
@@ -125,7 +125,7 @@ interface ColumnGenerationSolver {
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
@@ -142,7 +142,7 @@ interface ColumnGenerationSolver {
     fun solveMILPWithSolutionPoolAsync(
         metaModel: LinearMetaModelFlt64,
         options: FrameworkSolveOptions
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput, List<Solution>>>> {
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILPWithSolutionPool(
                 metaModel = metaModel,
@@ -152,11 +152,11 @@ interface ColumnGenerationSolver {
     }
 
     data class LPResult(
-        val result: FeasibleSolverOutput,
+        val result: FeasibleSolverOutputFlt64,
         val dualSolution: LinearDualSolution
     ) {
         val obj: Flt64 by result::obj
-        val solution: Solution by result::solution
+        val solution: Solution<Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap

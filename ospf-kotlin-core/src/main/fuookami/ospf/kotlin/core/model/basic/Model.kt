@@ -29,7 +29,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 
-typealias Solution = List<Flt64>
+typealias Solution<V> = List<V>
+typealias SolutionFlt64 = Solution<Flt64>
 
 interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory

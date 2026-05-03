@@ -5,7 +5,10 @@ package fuookami.ospf.kotlin.core.solver.heuristic.gwo
 import fuookami.ospf.kotlin.core.solver.heuristic.*
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -23,7 +26,7 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
-interface AbstractGWOPolicy<V> : AbstractHeuristicPolicy {
+interface AbstractGWOPolicy<V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
     fun a(iteration: Iteration): List<Flt64>
 
     fun perturb(
@@ -51,12 +54,14 @@ class GWOPolicy<V>(
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
-    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+    val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
+    // Safe when V=Flt64 (used by GWO/MulObjGWO typealiases); non-Flt64 callers must provide explicit converter
+    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractGWOPolicy<V> {
+), AbstractGWOPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
             ((iteration.iteration.toFlt64() * Flt64.pi)
@@ -77,12 +82,14 @@ class GWOPolicy<V>(
     ): List<Wolf<V>> {
         fun Wolf<V>.randomWalk(): Wolf<V> {
             val newSolution = solution.mapIndexed { i, position ->
-                coerceIn(
+                val posFlt64 = converter.fromValue(position)
+                val newPosFlt64 = coerceIn(
                     iteration = iteration,
                     index = i,
-                    value = position + (randomGenerator()!! * Flt64.two - Flt64.one) * a[i],
+                    value = posFlt64 + (randomGenerator()!! * Flt64.two - Flt64.one) * a[i],
                     model
                 )
+                converter.intoValue(newPosFlt64)
             }
             return Wolf(
                 newSolution,
@@ -105,22 +112,26 @@ class GWOPolicy<V>(
         model: AbstractCallBackModelInterface<*, V>
     ): Wolf<V> {
         val newSolution = wolf.solution.mapIndexed { i, position ->
+            val posFlt64 = converter.fromValue(position)
+            val alphaFlt64 = converter.fromValue(leaders.alpha.solution[i])
+            val betaFlt64 = converter.fromValue(leaders.beta.solution[i])
+            val deltaFlt64 = converter.fromValue(leaders.delta.solution[i])
             val a1 = a[0] * (Flt64.two * randomGenerator()!! - Flt64.one)
             val a2 = a[1] * (Flt64.two * randomGenerator()!! - Flt64.one)
             val a3 = a[2] * (Flt64.two * randomGenerator()!! - Flt64.one)
             val c1 = Flt64.two * randomGenerator()!!
             val c2 = Flt64.two * randomGenerator()!!
             val c3 = Flt64.two * randomGenerator()!!
-            val x1 = leaders.alpha.solution[i] - a1 * (c1 * leaders.alpha.solution[i] - position).abs()
-            val x2 = leaders.beta.solution[i] - a2 * (c2 * leaders.beta.solution[i] - position).abs()
-            val x3 = leaders.delta.solution[i] - a3 * (c3 * leaders.delta.solution[i] - position).abs()
+            val x1 = alphaFlt64 - a1 * (c1 * alphaFlt64 - posFlt64).abs()
+            val x2 = betaFlt64 - a2 * (c2 * betaFlt64 - posFlt64).abs()
+            val x3 = deltaFlt64 - a3 * (c3 * deltaFlt64 - posFlt64).abs()
             val newPosition = (x1 + x2 + x3) / Flt64.three
-            coerceIn(
+            converter.intoValue(coerceIn(
                 iteration = iteration,
                 index = i,
                 value = newPosition,
                 model = model
-            )
+            ))
         }
         return Wolf(
             newSolution,
@@ -134,7 +145,7 @@ class GreyWolfOptimizer<Obj, V>(
     val population: List<PopulationBuilder>,
     val solutionAmount: UInt64 = UInt64.one,
     val policy: AbstractGWOPolicy<V>,
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     suspend operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         runningCallBack: ((Iteration, Wolf<V>, List<Wolf<V>>, List<AbstractPopulation<V>>) -> Try)? = null
@@ -191,9 +202,9 @@ class GreyWolfOptimizer<Obj, V>(
                                 iteration = iteration,
                                 wolf = wolf,
                                 leaders = listOf(
-                                    population.alpha,
-                                    population.beta,
-                                    population.delta
+                                    population.alpha(),
+                                    population.beta(),
+                                    population.delta()
                                 ),
                                 a = a,
                                 model = model

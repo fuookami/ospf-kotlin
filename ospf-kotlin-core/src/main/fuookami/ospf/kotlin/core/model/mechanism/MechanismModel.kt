@@ -16,7 +16,8 @@ import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusC
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -139,11 +140,6 @@ interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber
 }
 
 typealias SingleObjectMechanismModelFlt64 = SingleObjectMechanismModel<Flt64>
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> AbstractTokenTable<V>.asSolverTokenTable(): AbstractTokenTableFlt64 where V : RealNumber<V>, V : NumberField<V> {
-    return this as AbstractTokenTableFlt64
-}
 
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,
@@ -290,8 +286,6 @@ class LinearMechanismModel<V>(
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
-    private val solverTokenTable: AbstractTokenTableFlt64
-        get() = tokens.asSolverTokenTable()
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -374,7 +368,7 @@ class LinearMechanismModel<V>(
 
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
+                (symbol as? MathFunctionSymbolBase)?.let { sym ->
                     when (val result = sym.registerConstraints(model)) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)
@@ -508,7 +502,7 @@ class LinearMechanismModel<V>(
         _constraints.add(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(relation.flattenData, relation.comparison),
-                tokens = solverTokenTable,
+                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -667,7 +661,7 @@ class LinearMechanismModel<V>(
     fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualValues: Solution,
+        dualValues: Solution<Flt64>,
         triadModel: LinearTriadModelView
     ): List<Flt64LinearInequality> {
         val dualSolution = triadModel.tidyDualSolution(dualValues)
@@ -689,7 +683,7 @@ class LinearMechanismModel<V>(
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualValues: Solution,
+        farkasDualValues: Solution<Flt64>,
         triadModel: LinearTriadModelView
     ): List<Flt64LinearInequality> {
         val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
@@ -719,8 +713,6 @@ class QuadraticMechanismModel<V>(
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
     private val logger = logger()
-    private val solverTokenTable: AbstractTokenTableFlt64
-        get() = tokens.asSolverTokenTable()
 
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
@@ -803,7 +795,7 @@ class QuadraticMechanismModel<V>(
 
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbol<Flt64>)?.let { sym ->
+                (symbol as? MathFunctionSymbolBase)?.let { sym ->
                     when (val result = sym.registerConstraints(model)) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)
@@ -827,6 +819,16 @@ class QuadraticMechanismModel<V>(
                         model = metaModel
                     )
                 )
+            }
+            logger.trace { "Registering quadratic function symbol constraints for $metaModel" }
+            for (symbol in tokens.symbols) {
+                (symbol as? QuadraticMathFunctionSymbolBase)?.let { sym ->
+                    when (val result = sym.registerConstraints(model)) {
+                        is Ok -> {}
+                        is Failed -> return Failed(result.error)
+                        is Fatal -> return Fatal(result.errors)
+                    }
+                }
             }
             logger.trace { "Function symbol constraints registered for $metaModel" }
 
@@ -865,13 +867,22 @@ class QuadraticMechanismModel<V>(
                 }
             )
 
-            return QuadraticMechanismModelFlt64(
+            val model = QuadraticMechanismModelFlt64(
                 parent = metaModel,
                 name = metaModel.name,
                 constraints = constraints.toMutableList(),
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
             )
+
+            // Register quadratic function symbol constraints
+            for (symbol in tokens.symbols) {
+                (symbol as? QuadraticMathFunctionSymbolBase)?.let { sym ->
+                    sym.registerConstraints(model)
+                }
+            }
+
+            return model
         }
 
         private suspend fun unfold(
@@ -936,7 +947,7 @@ class QuadraticMechanismModel<V>(
     ): Try {
         _constraints.add(
             relation.toQuadraticConstraint(
-                tokens = solverTokenTable,
+                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -953,7 +964,7 @@ class QuadraticMechanismModel<V>(
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
-                tokens = solverTokenTable,
+                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -1192,7 +1203,7 @@ class QuadraticMechanismModel<V>(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualValues: Solution,
+        dualValues: Solution<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val dualSolution = tetradModel.tidyDualSolution(dualValues)
@@ -1214,7 +1225,7 @@ class QuadraticMechanismModel<V>(
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualValues: Solution,
+        farkasDualValues: Solution<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val farkasDualSolution = tetradModel.tidyDualSolution(farkasDualValues)

@@ -512,7 +512,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     fun feasibility(): QuadraticTetradModelView
     fun elastic(): QuadraticTetradModelView
 
-    fun tidyDualSolution(solution: Solution): QuadraticDualSolution {
+    fun tidyDualSolution(solution: Solution<Flt64>): QuadraticDualSolution {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index) {

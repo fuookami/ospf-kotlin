@@ -50,6 +50,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.withContext
@@ -84,20 +85,6 @@ private fun createTokenTable(
     }
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun <V> createTokenTableAs(
-    category: Category,
-    concurrent: Boolean,
-    manualTokenAddition: Boolean,
-    checkTokenExists: Boolean
-): AbstractMutableTokenTable<V> where V : RealNumber<V>, V : NumberField<V> {
-    return createTokenTable(category, concurrent, manualTokenAddition, checkTokenExists) as AbstractMutableTokenTable<V>
-}
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> AbstractTokenTable<V>.asSolverTokenTable(): AbstractTokenTableFlt64 where V : RealNumber<V>, V : NumberField<V> {
-    return this as AbstractTokenTableFlt64
-}
 
 private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
@@ -119,37 +106,24 @@ private fun QuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero)
     }
 }
 
-// ========== V-typed → Flt64 conversion helpers ==========
+// ========== V → Flt64 conversion via IntoValue converter ==========
 
-@Suppress("UNCHECKED_CAST")
-private fun <V> V.asFlt64(): Flt64 where V : RealNumber<V>, V : NumberField<V> = this as Flt64
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> LinearPolynomial<V>.asFlt64Poly(): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
-        monomials.map { LinearMonomial(it.coefficient.asFlt64(), it.symbol) },
-        constant.asFlt64()
+        monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
+        converter.fromValue(constant)
     )
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+private fun <V> QuadraticPolynomial<V>.toFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
-        monomials.map { QuadraticMonomial(it.coefficient.asFlt64(), it.symbol1, it.symbol2) },
-        constant.asFlt64()
+        monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
+        converter.fromValue(constant)
     )
 }
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> zeroOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.zero as V
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> oneOf(): V where V : RealNumber<V>, V : NumberField<V> = Flt64.one as V
-
-@Suppress("UNCHECKED_CAST")
-private fun <V> Flt64.asV(): V where V : RealNumber<V>, V : NumberField<V> = this as V
 
 sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
+    val converter: IntoValue<V>
     class SubObject<V>(
         val parent: MetaModel<V>,
         val category: ObjectCategory,
@@ -166,11 +140,12 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         fun evaluate(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
+            val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
             for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
-                val token = tokenTable.find(variable) ?: return if (zeroIfNone) zeroOf<V>() else null
-                val tokenValue = token.result ?: return if (zeroIfNone) zeroOf<V>() else null
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) vZero else null
+                val token = tokenTable.find(variable) ?: return if (zeroIfNone) vZero else null
+                val tokenValue = token.result ?: return if (zeroIfNone) vZero else null
                 val term = m.coefficient * tokenValue
                 result = if (result == null) term else result + term
             }
@@ -186,36 +161,16 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): V? {
+            val vZero = polynomial.constant - polynomial.constant
             var result: V? = null
             for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) zeroOf<V>() else null
-                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) zeroOf<V>() else null
+                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) vZero else null
+                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) vZero else null
                 val tokenValue = results[idx]
                 val term = m.coefficient * tokenValue
                 result = if (result == null) term else result + term
             }
             return result ?: polynomial.constant
-        }
-
-        /** Flt64 evaluation for solver-boundary callers (internal). */
-        fun evaluateFlt64(tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant.asFlt64()
-            for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val tokenResult = tokenTable.find(variable)?.resultFlt64 ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient.asFlt64() * tokenResult
-            }
-            return result
-        }
-
-        fun evaluateFlt64(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, zeroIfNone: Boolean = false): Flt64? {
-            var result = polynomial.constant.asFlt64()
-            for (m in polynomial.monomials) {
-                val variable = m.symbol as? AbstractVariableItem<*, *> ?: return if (zeroIfNone) Flt64.zero else null
-                val idx = tokenTable.indexOf(variable) ?: return if (zeroIfNone) Flt64.zero else null
-                result += m.coefficient.asFlt64() * results[idx]
-            }
-            return result
         }
 
         fun flush(force: Boolean = false) {
@@ -563,7 +518,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         tokens.setSolution(solution)
     }
 
-    fun setSolverSolution(solution: Solution) {
+    fun setSolverSolution(solution: Solution<Flt64>) {
         tokens.setSolverSolution(solution)
     }
 
@@ -694,8 +649,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
             writer.append("Objectives:\n")
             for (obj in subObjects) {
-                @Suppress("UNCHECKED_CAST")
-                writer.append("${obj.category} ${obj.name}: ${(obj.polynomial as LinearPolynomial<Flt64>).toRawString(unfold)} \n")
+                writer.append("${obj.category} ${obj.name}: ${obj.polynomial.toFlt64Poly(converter).toRawString(unfold)} \n")
             }
             writer.append("\n")
 
@@ -747,7 +701,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        val fltPoly = constraint.asFlt64Poly()
+        val fltPoly = constraint.toFlt64Poly(converter)
         val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
             relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
@@ -806,8 +760,8 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     ): Try {
         return partition(
             polynomial = LinearPolynomial(
-                monomials = variables.map { LinearMonomial(oneOf<V>(), it) }.toList(),
-                constant = zeroOf<V>()
+                monomials = variables.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
             ),
             group = group,
             lazy = lazy,
@@ -829,8 +783,8 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     ): Try {
         return partition(
             polynomial = LinearPolynomial(
-                monomials = symbols.map { LinearMonomial(oneOf<V>(), it) }.toList(),
-                constant = zeroOf<V>()
+                monomials = symbols.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
             ),
             group = group,
             lazy = lazy,
@@ -848,7 +802,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        val fltPoly = polynomial.asFlt64Poly()
+        val fltPoly = polynomial.toFlt64Poly(converter)
         val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
             relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
@@ -874,7 +828,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val fltPoly = constraint.asFlt64QuadraticPoly()
+        val fltPoly = constraint.toFlt64QuadraticPoly(converter)
         val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
             relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
@@ -896,7 +850,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val fltPoly = constraint.toQuadraticPolynomial().asFlt64QuadraticPoly()
+        val fltPoly = constraint.toQuadraticPolynomial().toFlt64QuadraticPoly(converter)
         val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
             relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
@@ -936,7 +890,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         return partition(
             polynomial = QuadraticPolynomial(
                 monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
-                constant = zeroOf<V>()
+                constant = converter.zero
             ),
             group = group,
             lazy = lazy,
@@ -954,7 +908,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        val fltPoly = polynomial.asFlt64QuadraticPoly()
+        val fltPoly = polynomial.toFlt64QuadraticPoly(converter)
         val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
         return addConstraint(
             relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
@@ -978,18 +932,20 @@ data class MetaModelConfiguration(
     internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
 )
 
+@Suppress("UNCHECKED_CAST")
 abstract class AbstractMetaModel<V>(
     val category: Category,
-    internal val configuration: MetaModelConfiguration
+    internal val configuration: MetaModelConfiguration,
+    // Default: safe when V=Flt64; non-Flt64 callers must supply an explicit converter.
+    override val converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
 ) : BasicModel<V>(
     name = "",
-    tokens = createTokenTableAs(
-        category,
-        configuration.concurrent,
-        configuration.manualTokenAddition,
-        configuration.checkTokenExists
-    )
+    tokens = createTokenTable(category, configuration.concurrent, configuration.manualTokenAddition, configuration.checkTokenExists) as AbstractMutableTokenTable<V>
 ), MetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    // Safe cast: internal token storage is always Flt64-based.
+    // This reference is used for adapter-boundary operations (e.g., LinearSubObject.invoke).
+    @Suppress("UNCHECKED_CAST")
+    internal val flt64Tokens: AbstractMutableTokenTableFlt64 get() = tokens as AbstractMutableTokenTableFlt64
     // BasicModel provides: name, tokens, symbols, constraints (MetaConstraint), symbolDependencies,
     // add(variable), addSymbol, addSymbolWithDependencies, removeSymbol, addConstraint, flush, close.
     // The MetaModel<V> sealed interface is also implemented; its abstract members
@@ -1050,8 +1006,10 @@ typealias AbstractMetaModelFlt64 = AbstractMetaModel<Flt64>
 class LinearMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    configuration: MetaModelConfiguration = MetaModelConfiguration()
-) : AbstractMetaModel<V>(Linear, configuration), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    configuration: MetaModelConfiguration = MetaModelConfiguration(),
+    @Suppress("UNCHECKED_CAST")
+    converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
+) : AbstractMetaModel<V>(Linear, configuration, converter), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<LinearInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
@@ -1095,7 +1053,7 @@ class LinearMetaModel<V>(
         val subObject = LinearSubObject.invoke(
             category = category,
             flattenData = flattenData,
-            tokens = tokens.asSolverTokenTable(),
+            tokens = flt64Tokens,
             name = name
         )
         _flattenSubObjects.add(subObject)
@@ -1141,6 +1099,8 @@ class LinearMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
+        // Adapter boundary: Flt64LinearInequality → LinearInequality<V> safe only when V=Flt64.
+        // Non-Flt64 callers should use the V-typed addConstraint overload.
         @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
             LinearInequalityConstraint<V>(
@@ -1161,8 +1121,10 @@ typealias LinearMetaModelFlt64 = LinearMetaModel<Flt64>
 class QuadraticMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    configuration: MetaModelConfiguration = MetaModelConfiguration()
-) : AbstractMetaModel<V>(Quadratic, configuration), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    configuration: MetaModelConfiguration = MetaModelConfiguration(),
+    @Suppress("UNCHECKED_CAST")
+    converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
+) : AbstractMetaModel<V>(Quadratic, configuration, converter), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
     internal val _relationConstraints: MutableList<QuadraticInequalityConstraint<V>> = ArrayList()
     override val constraints: List<MathConstraint> get() = _relationConstraints
@@ -1277,6 +1239,7 @@ class QuadraticMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
+        // Adapter boundary: QuadraticInequality → QuadraticInequalityOf<V> safe only when V=Flt64.
         @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
             QuadraticInequalityConstraint<V>(
@@ -1296,7 +1259,7 @@ class QuadraticMetaModel<V>(
         name: String,
         displayName: String?
     ): Try {
-        val flt64Poly = polynomial.asFlt64QuadraticPoly()
+        val flt64Poly = polynomial.toFlt64QuadraticPoly(converter)
         // Convert to QuadraticFlattenDataFlt64 for the new API
         val flattenData = QuadraticFlattenDataFlt64(
             monomials = flt64Poly.monomials,

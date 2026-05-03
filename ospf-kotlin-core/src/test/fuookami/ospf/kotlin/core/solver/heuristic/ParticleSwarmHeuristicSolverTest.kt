@@ -34,7 +34,7 @@ class ParticleSwarmHeuristicSolverTest {
             displayName = null
         )
 
-        val solver = ParticleSwarmHeuristicSolver<Flt64>(
+        val solver = ParticleSwarmHeuristicSolver(
             particleAmount = UInt64(3),
             solutionAmount = UInt64(2),
             w = Flt64.zero,

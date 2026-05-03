@@ -61,7 +61,7 @@ object BendersSolver {
                 is Fatal -> return Fatal(result.errors)
             }
 
-            val masterFeasible = masterOutput as? FeasibleSolverOutput
+            val masterFeasible = masterOutput as? FeasibleSolverOutputFlt64
                 ?: return Failed(fuookami.ospf.kotlin.utils.error.Err(fuookami.ospf.kotlin.utils.error.ErrorCode.ORModelInfeasible))
 
             val masterObj = masterFeasible.obj.toDouble()

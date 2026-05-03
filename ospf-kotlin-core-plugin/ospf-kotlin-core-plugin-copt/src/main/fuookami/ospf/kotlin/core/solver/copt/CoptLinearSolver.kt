@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.core.solver.config.CoptSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -40,7 +40,7 @@ class CoptLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         return CoptLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -56,11 +56,11 @@ class CoptLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput, List<Solution>>> {
+    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution>()
+            val results = ArrayList<Solution<Flt64>>()
             CoptLinearSolverImpl(
                 config = config,
                 callBack = callBack
@@ -97,14 +97,14 @@ private class CoptLinearSolverImpl(
 ) : CoptSolver() {
     private lateinit var coptVars: List<Var>
     private lateinit var coptConstraints: List<Constraint>
-    private lateinit var output: FeasibleSolverOutput
+    private lateinit var output: FeasibleSolverOutputFlt64
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutputFlt64> {
         val coptConfig = config.extraConfig as? CoptSolverConfig
         val server = coptConfig?.server
         val port = coptConfig?.port
@@ -394,7 +394,7 @@ private class CoptLinearSolverImpl(
                 for (coptVar in coptVars) {
                     results.add(Flt64(coptVar.get(COPT.DoubleInfo.Value)))
                 }
-                output = FeasibleSolverOutput(
+                output = FeasibleSolverOutputFlt64(
                     obj = if (coptModel.get(COPT.IntAttr.IsMIP) != 0) {
                         Flt64(coptModel.get(COPT.DoubleAttr.BestObj))
                     } else {

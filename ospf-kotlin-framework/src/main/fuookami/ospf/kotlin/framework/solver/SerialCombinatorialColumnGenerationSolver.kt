@@ -1,6 +1,6 @@
 ﻿package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
@@ -45,7 +45,7 @@ class SerialCombinatorialColumnGenerationSolver(
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput> {
+    ): Ret<FeasibleSolverOutputFlt64> {
         for ((i, solver) in solvers.withIndex()) {
             when (val result = solver.value.solveMILP(
                 name = name,
