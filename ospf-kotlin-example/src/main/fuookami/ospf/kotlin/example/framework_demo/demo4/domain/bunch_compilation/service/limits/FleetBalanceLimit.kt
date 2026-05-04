@@ -58,7 +58,7 @@ class FleetBalanceLimit(
             )
         }
         when (val result = model.minimize(
-            obj = LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant)),
+            LinearExpressionSymbol(LinearPolynomial(poly.monomials, poly.constant)),
             name = "fleet balance")
         ) {
             is Ok -> {}

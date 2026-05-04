@@ -55,22 +55,20 @@ data class LinearConstraintInput(
 
     companion object {
         /**
-         * Create LinearConstraintInput from math LinearInequality<V>.
-         * Adapter boundary: casts to Flt64LinearInequality for flattenData access; safe when V=Flt64.
+         * Create LinearConstraintInput from math LinearInequality<V> using an explicit converter.
          */
         fun <V> from(
             relation: LinearInequality<V>,
+            converter: IntoValue<V>,
             lhsRange: ValueRange<Flt64>,
             rhsConstant: Flt64 = Flt64.zero,
             name: String = "",
             displayName: String? = null
         ): LinearConstraintInput where V : RealNumber<V>, V : NumberField<V> {
-            @Suppress("UNCHECKED_CAST")
-            val flt64Relation = relation as Flt64LinearInequality
-            val flattenData = flt64Relation.flattenData
+            val flattenData = relation.toLinearFlattenDataFlt64(converter)
             return LinearConstraintInput(
                 flattenData = flattenData,
-                sign = flt64Relation.comparison,
+                sign = relation.comparison,
                 lhsRange = lhsRange,
                 name = name,
                 displayName = displayName,

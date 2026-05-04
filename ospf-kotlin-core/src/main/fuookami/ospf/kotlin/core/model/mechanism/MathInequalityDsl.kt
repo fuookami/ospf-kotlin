@@ -269,11 +269,11 @@ infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): Flt64LinearInequality = F
 // ========== QuadraticIntermediateSymbolFlt64 vs Boolean ==========
 
 infix fun QuadraticIntermediateSymbolFlt64.eq(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toMathQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
 infix fun QuadraticIntermediateSymbolFlt64.le(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toMathQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
 infix fun QuadraticIntermediateSymbolFlt64.ge(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toMathQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
 infix fun QuadraticIntermediateSymbolFlt64.leq(rhs: Boolean): QuadraticInequality = this le rhs
 infix fun QuadraticIntermediateSymbolFlt64.geq(rhs: Boolean): QuadraticInequality = this ge rhs
 

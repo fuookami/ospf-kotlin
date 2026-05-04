@@ -141,7 +141,7 @@ class IfFunction<V>(
                 inequality.flattenData.constant
             )
             return LinearFunctionSymbolAdapter(
-                IfFunction(conditionPoly, bigM, name = name, displayName = displayName),
+                IfFunction(conditionPoly, IntoValue.Flt64, bigM, name = name, displayName = displayName),
             converter = IntoValue.Flt64
         
             )

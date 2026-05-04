@@ -153,7 +153,7 @@ interface MetaConstraintGroup {
     ): Try {
         return partition(
             polynomial = QuadraticPolynomial(
-                monomials = symbols.flatMap { it.toMathQuadraticPolynomial().monomials }.toList(),
+                monomials = symbols.flatMap { it.toQuadraticPolynomial().monomials }.toList(),
                 constant = Flt64.zero
             ),
             group = this@MetaConstraintGroup,
@@ -256,8 +256,7 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    @Suppress("UNCHECKED_CAST")
-    val flattenData: LinearFlattenDataFlt64 get() = (inequality as LinearInequality<Flt64>).flattenData
+    val flattenData: LinearFlattenDataFlt64 get() = @Suppress("UNCHECKED_CAST") inequality.toLinearFlattenDataFlt64(IntoValue.Flt64 as IntoValue<V>)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -287,8 +286,7 @@ data class QuadraticInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    @Suppress("UNCHECKED_CAST")
-    val flattenData: QuadraticFlattenDataFlt64 get() = (inequality as QuadraticInequalityOf<Flt64>).flattenData
+    val flattenData: QuadraticFlattenDataFlt64 get() = @Suppress("UNCHECKED_CAST") inequality.toQuadraticFlattenDataFlt64(IntoValue.Flt64 as IntoValue<V>)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null

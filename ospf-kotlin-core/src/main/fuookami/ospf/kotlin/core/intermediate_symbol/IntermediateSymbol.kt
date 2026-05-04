@@ -2,53 +2,40 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
-import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.adapter.ValueProvider
-import fuookami.ospf.kotlin.math.symbol.adapter.MapValueProvider
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
-import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.newTokenCacheKey
-import fuookami.ospf.kotlin.core.token.boundTokenTableContext
-import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.utils.functional.Variant3
 import fuookami.ospf.kotlin.math.*
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.Ring
 
 
 interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberField<V> {
@@ -129,7 +116,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 }
 
 
-interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequality, ToMathQuadraticInequality, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
@@ -159,7 +146,7 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequ
 
     fun asMutable(): MutableLinearPolynomial<V>
 
-    override fun toMathLinearInequality(): Flt64LinearInequality {
+    fun toMathLinearInequality(): Flt64LinearInequality {
         val lhs = LinearPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(it.coefficient, it.symbol) },
             constant = flattenedMonomials.constant
@@ -167,22 +154,18 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathLinearInequ
         return Flt64LinearInequality(lhs, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toMathQuadraticInequality(): QuadraticInequality {
-        val linearPoly = toMathLinearPolynomial()
-        return QuadraticInequality(
-            QuadraticPolynomial(
-                monomials = linearPoly.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.linear(it.coefficient, it.symbol) },
-                constant = linearPoly.constant
-            ),
-            QuadraticPolynomial(emptyList(), Flt64.one),
-            Comparison.EQ
+    fun toMathQuadraticInequality(): QuadraticInequality {
+        val lhs = QuadraticPolynomial(
+            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.linear(it.coefficient, it.symbol) },
+            constant = flattenedMonomials.constant
         )
+        return QuadraticInequality(lhs, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun toLinearPolynomial(): LinearPolynomial<V> = polynomial
 }
 
-interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadraticInequality, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
         fun empty(
             parent: IntermediateSymbol<*>? = null,
@@ -212,7 +195,7 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToMathQuadrati
 
     fun asMutable(): MutableQuadraticPolynomial<V>
 
-    override fun toMathQuadraticInequality(): QuadraticInequality {
+    fun toMathQuadraticInequality(): QuadraticInequality {
         val lhs = QuadraticPolynomial(
             monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
             constant = flattenedMonomials.constant
@@ -1626,14 +1609,18 @@ operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity
 }
 
 operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    val lhs = this.toMathLinearPolynomial()
-    val rhsPoly = rhs.toMathLinearPolynomial()
+    @Suppress("UNCHECKED_CAST")
+    val lhs = this.toLinearPolynomial() as LinearPolynomial<Flt64>
+    @Suppress("UNCHECKED_CAST")
+    val rhsPoly = rhs.toLinearPolynomial() as LinearPolynomial<Flt64>
     return LinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
 }
 
 operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    val lhs = this.toMathLinearPolynomial()
-    val rhsPoly = rhs.toMathLinearPolynomial()
+    @Suppress("UNCHECKED_CAST")
+    val lhs = this.toLinearPolynomial() as LinearPolynomial<Flt64>
+    @Suppress("UNCHECKED_CAST")
+    val rhsPoly = rhs.toLinearPolynomial() as LinearPolynomial<Flt64>
     return LinearPolynomial(lhs.monomials + rhsPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
 }
 

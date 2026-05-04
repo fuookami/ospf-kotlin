@@ -106,7 +106,7 @@ class ProductFunction<V>(
     /**
      * Expand left * right into a Flt64 quadratic polynomial (solver boundary).
      */
-    override fun toMathQuadraticInequality(): QuadraticInequality {
+    private fun expandedQuadraticPolyFlt64(): QuadraticPolynomial<Flt64> {
         val leftC = leftFlt64
         val rightC = rightFlt64
         val leftConst = leftC.constant
@@ -137,17 +137,21 @@ class ProductFunction<V>(
             ))
         }
 
-        return QuadraticInequality(QuadraticPolynomial(monomials, leftConst * rightConst), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return QuadraticPolynomial(monomials, leftConst * rightConst)
+    }
+
+    override fun toMathQuadraticInequality(): QuadraticInequality {
+        return QuadraticInequality(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override val flattenedMonomials: QuadraticFlattenDataFlt64
         get() {
-            val poly = toMathQuadraticPolynomial()
+            val poly = expandedQuadraticPolyFlt64()
             return QuadraticFlattenDataFlt64(poly.monomials, poly.constant)
         }
 
     override val polynomial: QuadraticPolynomial<V>
-        get() = toMathQuadraticPolynomial().asVQuadraticPoly(converter)
+        get() = expandedQuadraticPolyFlt64().asVQuadraticPoly(converter)
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
@@ -211,7 +215,7 @@ class ProductFunction<V>(
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try = ok
 
     override fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try {
-        val poly = toMathQuadraticPolynomial()
+        val poly = expandedQuadraticPolyFlt64()
         val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
         val inequality = QuadraticInequality(poly, rhs, Comparison.EQ)
         return model.addConstraint(inequality, name = name, from = this to true)

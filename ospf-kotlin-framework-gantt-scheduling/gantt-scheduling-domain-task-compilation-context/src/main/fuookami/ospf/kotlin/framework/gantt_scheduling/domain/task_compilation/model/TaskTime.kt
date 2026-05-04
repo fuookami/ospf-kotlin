@@ -601,6 +601,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
+                                        converter = IntoValue.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "on_last_end_time_${task}"
@@ -646,6 +647,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
+                                        converter = IntoValue.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "on_earliest_end_time_${task}"
@@ -725,6 +727,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
+                                        converter = IntoValue.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "not_on_last_end_time_${task}"
@@ -770,6 +773,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
+                                        converter = IntoValue.Flt64,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "not_on_earliest_end_time_${task}"

@@ -499,13 +499,10 @@ class LinearMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
-        // All numerical data is Flt64 at runtime; this cast is safe when V=Flt64.
-        @Suppress("UNCHECKED_CAST")
-        val flt64Relation = relation as Flt64LinearInequality
+        val flattenData = relation.toLinearFlattenDataFlt64(parent.converter)
         _constraints.add(
             LinearConstraintImpl(
-                relation = LinearRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
+                relation = LinearRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
@@ -809,12 +806,15 @@ class QuadraticMechanismModel<V>(
 
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbolBase)?.let { sym ->
-                    when (val result = sym.registerConstraints(model)) {
-                        is Ok -> {}
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
-                    }
+                val result = when (symbol) {
+                    is QuadraticMathFunctionSymbolBase -> symbol.registerConstraints(model)
+                    is MathFunctionSymbolBase -> symbol.registerConstraints(model)
+                    else -> ok
+                }
+                when (result) {
+                    is Ok -> {}
+                    is Failed -> return Failed(result.error)
+                    is Fatal -> return Fatal(result.errors)
                 }
 
                 if (dumpingStatusCallBack != null && i % 100 == 0) {
@@ -833,16 +833,6 @@ class QuadraticMechanismModel<V>(
                         model = metaModel
                     )
                 )
-            }
-            logger.trace { "Registering quadratic function symbol constraints for $metaModel" }
-            for (symbol in tokens.symbols) {
-                (symbol as? QuadraticMathFunctionSymbolBase)?.let { sym ->
-                    when (val result = sym.registerConstraints(model)) {
-                        is Ok -> {}
-                        is Failed -> return Failed(result.error)
-                        is Fatal -> return Fatal(result.errors)
-                    }
-                }
             }
             logger.trace { "Function symbol constraints registered for $metaModel" }
 
@@ -889,13 +879,9 @@ class QuadraticMechanismModel<V>(
                 tokens = tokens
             )
 
-            // Register quadratic function symbol constraints
-            for (symbol in tokens.symbols) {
-                (symbol as? QuadraticMathFunctionSymbolBase)?.let { sym ->
-                    sym.registerConstraints(model)
-                }
-            }
-
+            // Function symbol constraints are NOT registered here — they are
+            // registered in the outer invoke() so that Try results are properly
+            // propagated and registration happens exactly once.
             return model
         }
 

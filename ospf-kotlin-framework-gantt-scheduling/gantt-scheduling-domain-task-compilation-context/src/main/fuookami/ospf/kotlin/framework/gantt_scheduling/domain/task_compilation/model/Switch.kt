@@ -4,6 +4,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.
 
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.leq
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AndFunction
@@ -60,6 +61,7 @@ class TaskSchedulingSwitch<
                         IfFunction(
                             inequality = LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
+                                converter = IntoValue.Flt64,
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!
                             ),
                             name = "front_of_${task1}_$task2"

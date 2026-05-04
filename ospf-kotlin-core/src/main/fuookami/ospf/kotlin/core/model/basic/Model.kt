@@ -2,8 +2,6 @@
 
 package fuookami.ospf.kotlin.core.model.basic
 
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathLinearInequality
-import fuookami.ospf.kotlin.core.model.mechanism.ToMathQuadraticInequality
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
@@ -301,59 +299,34 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         )
     }
 
-    fun minimize(
-        symbol: LinearIntermediateSymbolFlt64,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            flattenData = symbol.flattenedMonomials,
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
-    fun maximize(
-        symbol: LinearIntermediateSymbolFlt64,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            flattenData = symbol.flattenedMonomials,
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
     // ========== Unified entry points ==========
 
     fun minimize(
-        obj: ToMathLinearInequality,
+        symbol: LinearIntermediateSymbol<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return minimize(obj.toMathLinearPolynomial(), name, displayName)
+        @Suppress("UNCHECKED_CAST")
+        return minimize(symbol.toLinearPolynomial() as LinearPolynomial<Flt64>, name, displayName)
     }
 
     fun maximize(
-        obj: ToMathLinearInequality,
+        symbol: LinearIntermediateSymbol<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return maximize(obj.toMathLinearPolynomial(), name, displayName)
+        @Suppress("UNCHECKED_CAST")
+        return maximize(symbol.toLinearPolynomial() as LinearPolynomial<Flt64>, name, displayName)
     }
 
-    // Adapter boundary: ToMathLinearInequality returns Flt64LinearInequality; safe when V=Flt64.
-    @Suppress("UNCHECKED_CAST")
     fun addConstraint(
-        obj: ToMathLinearInequality,
+        obj: LinearIntermediateSymbol<*>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        @Suppress("UNCHECKED_CAST")
         return addConstraint(obj.toMathLinearInequality() as LinearInequality<V>, lazy, name, displayName, withRangeSet)
     }
 }
@@ -462,59 +435,34 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 
-    fun minimize(
-        symbol: QuadraticIntermediateSymbolFlt64,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Minimum,
-            flattenData = symbol.flattenedMonomials,
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
-    fun maximize(
-        symbol: QuadraticIntermediateSymbolFlt64,
-        name: String? = null,
-        displayName: String? = null
-    ): Try {
-        return addObject(
-            category = ObjectCategory.Maximum,
-            flattenData = symbol.flattenedMonomials,
-            name = name ?: "",
-            displayName = displayName
-        )
-    }
-
     // ========== Unified entry points ==========
 
     fun minimize(
-        obj: ToMathQuadraticInequality,
+        symbol: QuadraticIntermediateSymbol<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return minimize(obj.toMathQuadraticPolynomial(), name, displayName)
+        @Suppress("UNCHECKED_CAST")
+        return minimize(symbol.toQuadraticPolynomial() as QuadraticPolynomial<Flt64>, name, displayName)
     }
 
     fun maximize(
-        obj: ToMathQuadraticInequality,
+        symbol: QuadraticIntermediateSymbol<*>,
         name: String? = null,
         displayName: String? = null
     ): Try {
-        return maximize(obj.toMathQuadraticPolynomial(), name, displayName)
+        @Suppress("UNCHECKED_CAST")
+        return maximize(symbol.toQuadraticPolynomial() as QuadraticPolynomial<Flt64>, name, displayName)
     }
 
-    // Adapter boundary: ToMathQuadraticInequality returns QuadraticInequality (Flt64); safe when V=Flt64.
-    @Suppress("UNCHECKED_CAST")
     fun addConstraint(
-        obj: ToMathQuadraticInequality,
+        obj: QuadraticIntermediateSymbol<*>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
+        @Suppress("UNCHECKED_CAST")
         return addConstraint(obj.toMathQuadraticInequality() as QuadraticInequalityOf<V>, lazy, name, displayName, withRangeSet)
     }
 }
