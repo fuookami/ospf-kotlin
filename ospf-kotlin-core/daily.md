@@ -2,9 +2,7 @@
 
 记录日期：2026-05-04
 
-## P10 泛型化已完成
-
-所有 P10 提交级改进已执行完毕，验收标准全部通过。
+## P10 泛型化已完成（含审阅修正）
 
 ---
 
@@ -17,17 +15,35 @@
 | `*Bridge*.kt` 文件 | 0 |
 | `ToMathLinearInequality` / `ToMathQuadraticInequality` 命中 | 0 |
 | `relation as Flt64LinearInequality` 在 mechanism | 0 |
-| `IntoValue.Flt64 as IntoValue<V>` 在 heuristic plugin | 0 |
+| `IntoValue.Flt64 as IntoValue<V>` 在 core main | 0 |
+| `as LinearInequality<V>` / `as QuadraticInequalityOf<V>` 在 model | 0 |
 | core 编译 | BUILD SUCCESS |
 | 50 定向测试 | 全部通过 |
 
-### 保留的 UNCHECKED_CAST（均为合法 adapter boundary）
+### 保留的 UNCHECKED_CAST（均为合法 adapter boundary，共 12 处）
 
 | 位置 | 类型 | 说明 |
 |------|------|------|
 | Constraint.kt:160,204 | `flattenData.constant as V` | ConstraintImpl invoke: flattenData 是 Flt64，V=Flt64 时安全 |
 | MechanismModel.kt:73 | `convertMechanismModelToFlt64` | 类型转换工具函数 |
-| MechanismModel.kt:523,566,622,649 | `tokens as AbstractTokenTableFlt64` | solver 消费需要 Flt64 tokens |
+| MechanismModel.kt:523,566,622,649 | Benders cut solver boundary | solver 返回 Flt64 dual |
+| MechanismModel.kt:997,1085,1173,1200 | Benders cut solver boundary | solver 返回 Flt64 dual |
+| MetaModel.kt:949 | `tokens as AbstractMutableTokenTableFlt64` | 内部 token 存储 Flt64 |
+
+### 审阅修正（P10-9）
+
+审阅指出两个高优先级问题已修正：
+
+1. **Model.kt / MetaModel.kt 中 `addConstraint(obj)` 的 Flt64→V 不安全 cast** — 已消除：
+   - 移除 `addConstraint(AbstractVariableItem)` 和 `addConstraint(IntermediateSymbol<*>)` 的 unsafe default 方法
+   - `minimize/maximize(symbol)` 改用 `symbol.flattenedMonomials` 代替 `toLinearPolynomial() as LinearPolynomial<Flt64>`
+   - MetaModel 中 `addConstraint(AbstractVariableItem)` 改用 converter 构建 V-typed `LinearInequality`
+   - MetaModel 中 `addConstraint(LinearIntermediateSymbol<V>)` 改用 `toLinearPolynomial()` + converter 构建
+
+2. **MetaModel/MetaConstraint 中 `IntoValue.Flt64 as IntoValue<V>`** — 已消除：
+   - `converter` 改为必填构造参数（3 处默认值移除）
+   - `LinearInequalityConstraint<V>` 和 `QuadraticInequalityConstraint<V>` 新增 `converter` 字段，`flattenData` 使用显式 converter
+   - Flt64 companion factory 提供 `IntoValue.Flt64` 默认值
 | MechanismModel.kt:997,1085,1173,1200 | Benders cut solver boundary | solver 返回 Flt64 dual values |
 | MetaConstraint.kt:259,289 | `IntoValue.Flt64 as IntoValue<V>` | flattenData 给 solver 消费 |
 | MetaModel.kt:687,731 | tokens cast | solver 消费 |
