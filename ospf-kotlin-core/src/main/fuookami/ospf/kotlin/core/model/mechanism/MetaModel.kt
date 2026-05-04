@@ -1151,11 +1151,16 @@ class QuadraticMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Adapter boundary: convert LinearInequality<V> to Flt64 for toQuadraticInequality()
-        @Suppress("UNCHECKED_CAST")
-        val flt64Relation = relation as Flt64LinearInequality
-        @Suppress("UNCHECKED_CAST")
-        val quadraticRelation = flt64Relation.toQuadraticInequality() as QuadraticInequalityOf<V>
+        // Promote linear inequality to quadratic: each linear monomial c*x becomes quadratic c*x*null
+        val qLhs = QuadraticPolynomial(
+            monomials = relation.lhs.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) },
+            constant = relation.lhs.constant
+        )
+        val qRhs = QuadraticPolynomial(
+            monomials = relation.rhs.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) },
+            constant = relation.rhs.constant
+        )
+        val quadraticRelation = QuadraticInequalityOf<V>(qLhs, qRhs, relation.comparison)
         return addConstraint(
             relation = quadraticRelation,
             group = group,

@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
@@ -951,12 +952,13 @@ class QuadraticMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
-        // Linear inequality is promoted to quadratic for the quadratic model.
-        @Suppress("UNCHECKED_CAST")
-        val flt64Relation = relation as Flt64LinearInequality
+        val flattenData = relation.toLinearFlattenDataFlt64(parent.converter)
+        // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
+        val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
+        val qFlattenData = QuadraticFlattenDataFlt64(qMonomials, flattenData.constant)
         _constraints.add(
-            flt64Relation.toQuadraticConstraint(
+            QuadraticConstraintImpl(
+                relation = QuadraticRelationImpl(qFlattenData, relation.comparison),
                 tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
@@ -971,12 +973,10 @@ class QuadraticMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
-        @Suppress("UNCHECKED_CAST")
-        val flt64Relation = relation as QuadraticInequality
+        val flattenData = relation.toQuadraticFlattenDataFlt64(parent.converter)
         _constraints.add(
             QuadraticConstraintImpl(
-                relation = QuadraticRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
+                relation = QuadraticRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
