@@ -670,6 +670,9 @@ class LinearMechanismModel<V>(
      * @param dualValues      raw dual values from the solver output
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
+     *
+     * Solver boundary: dualValues and return type are Flt64 because they represent
+     * raw solver output. The V-typed model delegates to these for solver integration.
      */
     fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
@@ -693,6 +696,9 @@ class LinearMechanismModel<V>(
      * @param farkasDualValues raw Farkas dual values from the solver output
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
+     *
+     * Solver boundary: farkasDualValues and return type are Flt64 because they represent
+     * raw solver output. The V-typed model delegates to these for solver integration.
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -1217,6 +1223,9 @@ class QuadraticMechanismModel<V>(
      * @param dualValues      raw dual values from the solver output
      * @param tetradModel     the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
+     *
+     * Solver boundary: dualValues and return type are Flt64 because they represent
+     * raw solver output. The V-typed model delegates to these for solver integration.
      */
     fun generateOptimalCutFromOutput(
         objective: Flt64,
@@ -1241,6 +1250,9 @@ class QuadraticMechanismModel<V>(
      * @param farkasDualValues  raw Farkas dual values from the solver output
      * @param tetradModel       the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
+     *
+     * Solver boundary: farkasDualValues and return type are Flt64 because they represent
+     * raw solver output. The V-typed model delegates to these for solver integration.
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,

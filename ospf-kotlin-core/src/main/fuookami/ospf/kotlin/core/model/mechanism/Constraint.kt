@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
