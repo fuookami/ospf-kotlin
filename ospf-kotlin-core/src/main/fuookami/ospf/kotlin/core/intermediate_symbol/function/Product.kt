@@ -286,6 +286,16 @@ class ProductFunction<V>(
             return value
         }
 
+        // V-generic main factory
+        operator fun <V> invoke(
+            left: LinearPolynomial<V>,
+            right: LinearPolynomial<V>,
+            converter: IntoValue<V>,
+            name: String = "product",
+            displayName: String? = null
+        ): ProductFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
+            ProductFunction(left, right, converter, name, displayName)
+
         // Flt64-specific convenience factory
         operator fun invoke(
             left: LinearPolynomial<Flt64>,

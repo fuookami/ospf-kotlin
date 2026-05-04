@@ -49,15 +49,10 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
 /**
  * Add a list of constraints to the model, returning early on failure.
  * Returns null on success, or the error result on failure.
- *
- * Note: AbstractLinearMetaModel<V>.addConstraint requires Flt64LinearInequality (= LinearInequality<Flt64>),
- * so all constraints must be Flt64-typed regardless of V.
  */
-internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<Flt64LinearInequality>): Try? where V : RealNumber<V>, V : NumberField<V> {
+internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
-        // Adapter boundary: Flt64LinearInequality = LinearInequality<Flt64>; safe when V=Flt64.
-        @Suppress("UNCHECKED_CAST")
-        when (val r = model.addConstraint(relation = c as LinearInequality<V>, name = c.name)) {
+        when (val r = model.addConstraint(relation = c, name = c.name)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
