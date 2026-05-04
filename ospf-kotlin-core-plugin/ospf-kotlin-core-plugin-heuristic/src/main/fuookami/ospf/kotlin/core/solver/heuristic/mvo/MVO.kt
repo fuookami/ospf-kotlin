@@ -62,7 +62,7 @@ open class MVOPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
@@ -85,7 +85,8 @@ open class MVOPolicy<V>(
                 iterationLimit = iterationLimit,
                 notBetterIterationLimit = notBetterIterationLimit,
                 timeLimit = timeLimit,
-                randomGenerator = randomGenerator
+                randomGenerator = randomGenerator,
+                converter = IntoValue.Flt64
             )
         }
     }

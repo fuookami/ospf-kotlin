@@ -80,12 +80,32 @@ class SCAPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractSCAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    companion object {
+        operator fun invoke(
+            alpha: Flt64 = Flt64(0.1),
+            gamma: Flt64 = Flt64(0.9),
+            iterationLimit: UInt64 = UInt64.maximum,
+            notBetterIterationLimit: UInt64 = UInt64.maximum,
+            timeLimit: Duration = 30.minutes,
+            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+        ): SCAPolicy<Flt64> {
+            return SCAPolicy(
+                alpha = alpha,
+                gamma = gamma,
+                iterationLimit = iterationLimit,
+                notBetterIterationLimit = notBetterIterationLimit,
+                timeLimit = timeLimit,
+                randomGenerator = randomGenerator,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     private val qTable = mutableMapOf<UInt64, MutableList<Flt64>>()
     private var currentState: UInt64 = UInt64.zero
 

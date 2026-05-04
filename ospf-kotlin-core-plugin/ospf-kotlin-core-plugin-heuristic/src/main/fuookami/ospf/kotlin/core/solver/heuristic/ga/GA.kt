@@ -64,12 +64,44 @@ class GAPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractGAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    companion object {
+        operator fun invoke(
+            migration: Migration<Flt64>,
+            selectionMode: SelectionMode<Flt64>,
+            selection: Selection,
+            crossMode: CrossMode<Flt64>,
+            cross: Cross<Flt64>,
+            mutationMode: MutationMode<Flt64>,
+            mutation: Mutation<Flt64>,
+            normalization: ObjectiveNormalization<Flt64>,
+            iterationLimit: UInt64 = UInt64.maximum,
+            notBetterIterationLimit: UInt64 = UInt64.maximum,
+            timeLimit: Duration = 30.minutes,
+            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+        ): GAPolicy<Flt64> {
+            return GAPolicy(
+                migration = migration,
+                selectionMode = selectionMode,
+                selection = selection,
+                crossMode = crossMode,
+                cross = cross,
+                mutationMode = mutationMode,
+                mutation = mutation,
+                normalization = normalization,
+                iterationLimit = iterationLimit,
+                notBetterIterationLimit = notBetterIterationLimit,
+                timeLimit = timeLimit,
+                randomGenerator = randomGenerator,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     override suspend fun migrate(
         iteration: Iteration,
         populations: List<AbstractPopulation<V>>,

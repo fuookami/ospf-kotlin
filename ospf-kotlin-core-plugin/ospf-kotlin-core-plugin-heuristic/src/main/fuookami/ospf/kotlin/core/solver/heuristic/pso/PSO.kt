@@ -40,12 +40,36 @@ open class PSOPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractPSOPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    companion object {
+        operator fun invoke(
+            w: Flt64 = Flt64(0.4),
+            c1: Flt64 = Flt64.two,
+            c2: Flt64 = Flt64.two,
+            maxVelocity: Flt64 = Flt64(10000.0),
+            iterationLimit: UInt64 = UInt64.maximum,
+            notBetterIterationLimit: UInt64 = UInt64.maximum,
+            timeLimit: Duration = 30.minutes,
+            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+        ): PSOPolicy<Flt64> {
+            return PSOPolicy(
+                w = w,
+                c1 = c1,
+                c2 = c2,
+                maxVelocity = maxVelocity,
+                iterationLimit = iterationLimit,
+                notBetterIterationLimit = notBetterIterationLimit,
+                timeLimit = timeLimit,
+                randomGenerator = randomGenerator,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     override fun accelerate(
         iteration: Iteration,
         particle: Particle<V>,
@@ -80,10 +104,24 @@ open class PSOPolicy<V>(
 class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractPSOPolicy<V> = PSOPolicy(),
-    // Safe when V=Flt64 (used by PSO/MulObjPSO typealiases); non-Flt64 callers must provide explicit converter
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    val policy: AbstractPSOPolicy<V>,
+    // converter must be provided explicitly; use PSOPolicy.Flt64 companion for V=Flt64 convenience
+    private val converter: IntoValue<V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    companion object {
+        operator fun invoke(
+            particleAmount: UInt64 = UInt64(100UL),
+            solutionAmount: UInt64 = UInt64.one,
+            policy: AbstractPSOPolicy<Flt64> = PSOPolicy()
+        ): ParticleSwarmOptimizationAlgorithm<Flt64, Flt64> {
+            return ParticleSwarmOptimizationAlgorithm(
+                particleAmount = particleAmount,
+                solutionAmount = solutionAmount,
+                policy = policy,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     operator fun invoke(
         model: AbstractCallBackModelInterface<Obj, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },

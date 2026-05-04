@@ -55,13 +55,39 @@ class GWOPolicy<V>(
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
     val randomGenerator: Generator<Flt64> = { Random.nextFlt64() },
-    // Safe when V=Flt64 (used by GWO/MulObjGWO typealiases); non-Flt64 callers must provide explicit converter
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    // converter must be provided explicitly; use GWOPolicy.Flt64 companion for V=Flt64 convenience
+    private val converter: IntoValue<V>
 ) : HeuristicPolicy(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
 ), AbstractGWOPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
+    companion object {
+        operator fun invoke(
+            minA: Flt64 = Flt64(0.02),
+            maxA: Flt64 = Flt64(2.2),
+            b: Flt64 = Flt64(1.0),
+            growthRateAlpha: Flt64 = Flt64.two,
+            growthRateBeta: Flt64 = Flt64.three,
+            iterationLimit: UInt64 = UInt64.maximum,
+            notBetterIterationLimit: UInt64 = UInt64.maximum,
+            timeLimit: Duration = 30.minutes,
+            randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
+        ): GWOPolicy<Flt64> {
+            return GWOPolicy(
+                minA = minA,
+                maxA = maxA,
+                b = b,
+                growthRateAlpha = growthRateAlpha,
+                growthRateBeta = growthRateBeta,
+                iterationLimit = iterationLimit,
+                notBetterIterationLimit = notBetterIterationLimit,
+                timeLimit = timeLimit,
+                randomGenerator = randomGenerator,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     override fun a(iteration: Iteration): List<Flt64> {
         val iterationCoefficient = min(
             ((iteration.iteration.toFlt64() * Flt64.pi)

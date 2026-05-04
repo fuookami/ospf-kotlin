@@ -14,9 +14,25 @@ data class Particle<V>(
     override val solution: List<V>,
     val velocity: List<Flt64>,
     val currentBest: Particle<V>? = null,
-    // Safe when V=Flt64 (used by PSO/MulObjPSO typealiases); non-Flt64 callers must provide explicit converter
-    private val converter: IntoValue<V> = @Suppress("UNCHECKED_CAST") (IntoValue.Flt64 as IntoValue<V>)
+    // converter must be provided explicitly; use Particle.Flt64 companion for V=Flt64 convenience
+    private val converter: IntoValue<V>
 ) : Individual<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+    companion object {
+        operator fun invoke(
+            fitness: Flt64,
+            solution: List<Flt64>,
+            velocity: List<Flt64>,
+            currentBest: Particle<Flt64>? = null
+        ): Particle<Flt64> {
+            return Particle(
+                fitness = fitness,
+                solution = solution,
+                velocity = velocity,
+                currentBest = currentBest,
+                converter = IntoValue.Flt64
+            )
+        }
+    }
     init {
         assert(solution.size == velocity.size)
     }
