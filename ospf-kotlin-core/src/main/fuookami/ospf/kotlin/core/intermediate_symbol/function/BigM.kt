@@ -55,7 +55,9 @@ fun <V> LinearPolynomial<V>.evaluateWith(values: Map<Symbol, V>): V? where V : R
  */
 internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: List<Flt64LinearInequality>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
-        when (val r = model.addConstraint(relation = c, name = c.name)) {
+        // Adapter boundary: Flt64LinearInequality = LinearInequality<Flt64>; safe when V=Flt64.
+        @Suppress("UNCHECKED_CAST")
+        when (val r = model.addConstraint(relation = c as LinearInequality<V>, name = c.name)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)

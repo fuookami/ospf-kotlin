@@ -518,10 +518,12 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         tokens.setSolution(solution)
     }
 
+    /** Solver-boundary adapter: sets solution from Flt64 solver output. */
     fun setSolverSolution(solution: Solution<Flt64>) {
         tokens.setSolverSolution(solution)
     }
 
+    /** Solver-boundary adapter: sets solution from Flt64 solver output. */
     fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         tokens.setSolverSolution(solution)
     }
@@ -681,8 +683,11 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        // Adapter boundary: Symbol.eq(Boolean) returns Flt64LinearInequality; safe when V=Flt64.
+        @Suppress("UNCHECKED_CAST")
+        val relation = (constraint as fuookami.ospf.kotlin.math.symbol.Symbol).eq(true) as LinearInequality<V>
         return addConstraint(
-            relation =constraint eq true,
+            relation = relation,
             group = group,
             lazy = lazy,
             name = name,
@@ -701,10 +706,9 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        val fltPoly = constraint.toFlt64Poly(converter)
-        val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
+        val onePoly = LinearPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
-            relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
+            relation = LinearInequality<V>(constraint, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -723,8 +727,11 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        // Adapter boundary: Symbol.eq(Boolean) returns Flt64LinearInequality; safe when V=Flt64.
+        @Suppress("UNCHECKED_CAST")
+        val relation = (constraint eq true) as LinearInequality<V>
         return addConstraint(
-            relation = constraint eq true,
+            relation = relation,
             group = group,
             lazy = lazy,
             name = name,
@@ -738,7 +745,7 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -802,10 +809,9 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        val fltPoly = polynomial.toFlt64Poly(converter)
-        val onePoly = LinearPolynomial<Flt64>(emptyList(), Flt64.one)
+        val onePoly = LinearPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
-            relation = Flt64LinearInequality(fltPoly, onePoly, Comparison.EQ),
+            relation = LinearInequality<V>(polynomial, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -828,10 +834,9 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val fltPoly = constraint.toFlt64QuadraticPoly(converter)
-        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
+        val onePoly = QuadraticPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
-            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
+            relation = QuadraticInequalityOf<V>(constraint, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -850,10 +855,10 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        val fltPoly = constraint.toQuadraticPolynomial().toFlt64QuadraticPoly(converter)
-        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
+        val vPoly = constraint.toQuadraticPolynomial()
+        val onePoly = QuadraticPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
-            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
+            relation = QuadraticInequalityOf<V>(vPoly, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -867,7 +872,7 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean = false,
         name: String? = null,
@@ -908,10 +913,9 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
         displayName: String? = null,
         args: Any? = null
     ): Try {
-        val fltPoly = polynomial.toFlt64QuadraticPoly(converter)
-        val onePoly = QuadraticPolynomial<Flt64>(emptyList(), Flt64.one)
+        val onePoly = QuadraticPolynomial<V>(emptyList(), converter.one)
         return addConstraint(
-            relation = QuadraticInequality(fltPoly, onePoly, Comparison.EQ),
+            relation = QuadraticInequalityOf<V>(polynomial, onePoly, Comparison.EQ),
             group = group,
             lazy = lazy,
             name = name,
@@ -932,18 +936,18 @@ data class MetaModelConfiguration(
     internal val checkTokenExists: Boolean = System.getProperty("env", "prod") != "prod"
 )
 
+// Adapter boundary: safe when V=Flt64; non-Flt64 callers must supply an explicit converter.
 @Suppress("UNCHECKED_CAST")
 abstract class AbstractMetaModel<V>(
     val category: Category,
     internal val configuration: MetaModelConfiguration,
-    // Default: safe when V=Flt64; non-Flt64 callers must supply an explicit converter.
     override val converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
 ) : BasicModel<V>(
     name = "",
     tokens = createTokenTable(category, configuration.concurrent, configuration.manualTokenAddition, configuration.checkTokenExists) as AbstractMutableTokenTable<V>
 ), MetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
-    // Safe cast: internal token storage is always Flt64-based.
-    // This reference is used for adapter-boundary operations (e.g., LinearSubObject.invoke).
+    // Adapter boundary: internal token storage is always Flt64-based.
+    // Used for Flt64-specific SubObject creation (Commit-D will generalize this).
     @Suppress("UNCHECKED_CAST")
     internal val flt64Tokens: AbstractMutableTokenTableFlt64 get() = tokens as AbstractMutableTokenTableFlt64
     // BasicModel provides: name, tokens, symbols, constraints (MetaConstraint), symbolDependencies,
@@ -1003,11 +1007,12 @@ abstract class AbstractMetaModel<V>(
 // Backward compatibility: typealias aliases
 typealias AbstractMetaModelFlt64 = AbstractMetaModel<Flt64>
 
+// Adapter boundary: safe when V=Flt64; non-Flt64 callers must supply an explicit converter.
+@Suppress("UNCHECKED_CAST")
 class LinearMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
-    @Suppress("UNCHECKED_CAST")
     converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
 ) : AbstractMetaModel<V>(Linear, configuration, converter), AbstractLinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
@@ -1016,7 +1021,6 @@ class LinearMetaModel<V>(
     val relationConstraints: List<LinearInequalityConstraint<V>> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<V>> = ArrayList()
-    @Suppress("UNCHECKED_CAST")
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
@@ -1064,7 +1068,7 @@ class LinearMetaModel<V>(
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1090,7 +1094,7 @@ class LinearMetaModel<V>(
      * Add constraint using math LinearInequality (new API)
      */
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1099,12 +1103,9 @@ class LinearMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Adapter boundary: Flt64LinearInequality → LinearInequality<V> safe only when V=Flt64.
-        // Non-Flt64 callers should use the V-typed addConstraint overload.
-        @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
             LinearInequalityConstraint<V>(
-                inequality = relation as LinearInequality<V>,
+                inequality = relation,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1115,14 +1116,14 @@ class LinearMetaModel<V>(
     }
 }
 
-// Backward compatibility: typealias aliases
 typealias LinearMetaModelFlt64 = LinearMetaModel<Flt64>
 
+// Adapter boundary: safe when V=Flt64; non-Flt64 callers must supply an explicit converter.
+@Suppress("UNCHECKED_CAST")
 class QuadraticMetaModel<V>(
     override var name: String = "",
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
     configuration: MetaModelConfiguration = MetaModelConfiguration(),
-    @Suppress("UNCHECKED_CAST")
     converter: IntoValue<V> = IntoValue.Flt64 as IntoValue<V>
 ) : AbstractMetaModel<V>(Quadratic, configuration, converter), AbstractLinearMetaModel<V>, AbstractQuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
     // Math inequality-based constraints storage
@@ -1131,7 +1132,6 @@ class QuadraticMetaModel<V>(
     val relationConstraints: List<QuadraticInequalityConstraint<V>> by ::_relationConstraints
 
     internal val _subObjects: MutableList<MetaModel.SubObject<V>> = ArrayList()
-    @Suppress("UNCHECKED_CAST")
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
@@ -1142,7 +1142,7 @@ class QuadraticMetaModel<V>(
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
      */
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1151,10 +1151,13 @@ class QuadraticMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert to math QuadraticInequality using unified extension function
-        // 使用统一扩展函数转换为 math QuadraticInequality
+        // Adapter boundary: convert LinearInequality<V> to Flt64 for toQuadraticInequality()
+        @Suppress("UNCHECKED_CAST")
+        val flt64Relation = relation as Flt64LinearInequality
+        @Suppress("UNCHECKED_CAST")
+        val quadraticRelation = flt64Relation.toQuadraticInequality() as QuadraticInequalityOf<V>
         return addConstraint(
-            relation = relation.toQuadraticInequality(),
+            relation = quadraticRelation,
             group = group,
             lazy = lazy,
             name = name,
@@ -1169,19 +1172,20 @@ class QuadraticMetaModel<V>(
      * Add constraint using math LinearInequality (LinearModel interface)
      */
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         lazy: Boolean,
         name: String?,
         displayName: String?,
         withRangeSet: Boolean?
     ): Try {
-        // Convert to math QuadraticInequality using unified extension function
-        // 使用统一扩展函数转换为 math QuadraticInequality
         return addConstraint(
-            relation = relation.toQuadraticInequality(),
+            relation = relation,
+            group = null,
             lazy = lazy,
             name = name,
             displayName = displayName,
+            args = null,
+            priority = null,
             withRangeSet = withRangeSet
         )
     }
@@ -1190,7 +1194,7 @@ class QuadraticMetaModel<V>(
      * Add constraint using math QuadraticInequality (QuadraticModel interface)
      */
     override fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         lazy: Boolean,
         name: String?,
         displayName: String?,
@@ -1230,7 +1234,7 @@ class QuadraticMetaModel<V>(
      * Add constraint using math QuadraticInequality (new API)
      */
     override fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         group: MetaConstraintGroup?,
         lazy: Boolean,
         name: String?,
@@ -1239,11 +1243,9 @@ class QuadraticMetaModel<V>(
         priority: Int?,
         withRangeSet: Boolean?
     ): Try {
-        // Adapter boundary: QuadraticInequality → QuadraticInequalityOf<V> safe only when V=Flt64.
-        @Suppress("UNCHECKED_CAST")
         _relationConstraints.add(
             QuadraticInequalityConstraint<V>(
-                inequality = relation as QuadraticInequalityOf<V>,
+                inequality = relation,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1311,6 +1313,5 @@ class QuadraticMetaModel<V>(
     }
 }
 
-// Backward compatibility: typealias aliases
 typealias QuadraticMetaModelFlt64 = QuadraticMetaModel<Flt64>
 

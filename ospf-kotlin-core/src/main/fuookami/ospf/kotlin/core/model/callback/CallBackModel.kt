@@ -30,7 +30,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface CallBackModelPolicy<V> {
+interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
 
     fun compareObjective(lhs: V?, rhs: V?): Order? {
@@ -45,16 +45,16 @@ interface CallBackModelPolicy<V> {
         }
     }
 
-    // Initial solutions are generated as Flt64 (solver-standard); adapter boundary converts to V.
-    fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<Flt64>> {
-        return listOf((UInt64.zero until variableAmount).map { Flt64.zero })
+    fun initialSolutions(initialSolutionAmount: UInt64, variableAmount: UInt64): List<Solution<V>> {
+        return listOf((UInt64.zero until variableAmount).map { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") })
     }
 }
 
 class FunctionalCallBackModelPolicy<V>(
     val objectiveComparator: PartialComparator<V>,
-    val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-) : CallBackModelPolicy<V> {
+    private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null
+) : CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
+
     override val comparator: ThreeWayComparator<V> = { lhs, rhs ->
         if (objectiveComparator(lhs, rhs) == true || objectiveComparator(rhs, lhs) == false) {
             Order.Less(-1)
@@ -86,12 +86,11 @@ class FunctionalCallBackModelPolicy<V>(
     override fun initialSolutions(
         initialSolutionAmount: UInt64,
         variableAmount: UInt64
-    ): List<Solution<Flt64>> {
+    ): List<Solution<V>> {
+        val gen = _initialSolutionsGenerator ?: return emptyList()
         return (UInt64.zero until initialSolutionAmount).map { solution ->
             (UInt64.zero until variableAmount).map {
-                initialSolutionsGenerator(
-                    Pair(solution, it)
-                )
+                gen(Pair(solution, it))
             }
         }
     }
@@ -117,25 +116,25 @@ class CallBackModel<V> internal constructor(
 
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             converter: IntoValue<V>
         ) where V : RealNumber<V>, V : NumberField<V> = CallBackModel(
             objectCategory = objectCategory,
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = dumpObjectiveComparator(objectCategory, converter),
-                initialSolutionsGenerator = initialSolutionGenerator
+                _initialSolutionsGenerator = initialSolutionGenerator
             ),
             _converter = converter
         )
 
         operator fun <V> invoke(
             objectiveComparator: PartialComparator<V>,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             converter: IntoValue<V>
         ) where V : RealNumber<V>, V : NumberField<V> = CallBackModel(
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = objectiveComparator,
-                initialSolutionsGenerator = initialSolutionGenerator
+                _initialSolutionsGenerator = initialSolutionGenerator
             ),
             _converter = converter
         )
@@ -147,7 +146,7 @@ class CallBackModel<V> internal constructor(
             objectCategory = objectCategory,
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = dumpObjectiveComparator(objectCategory, IntoValue.Flt64),
-                initialSolutionsGenerator = initialSolutionGenerator
+                _initialSolutionsGenerator = initialSolutionGenerator
             ),
             _converter = IntoValue.Flt64
         )
@@ -158,7 +157,7 @@ class CallBackModel<V> internal constructor(
         ): CallBackModel<Flt64> = CallBackModel(
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = objectiveComparator,
-                initialSolutionsGenerator = initialSolutionGenerator
+                _initialSolutionsGenerator = initialSolutionGenerator
             ),
             _converter = IntoValue.Flt64
         )
@@ -194,7 +193,7 @@ class CallBackModel<V> internal constructor(
                 _objectiveFunctions = objectiveFunction,
                 policy = FunctionalCallBackModelPolicy(
                     dumpObjectiveComparator(model.objectCategory, IntoValue.Flt64),
-                    initialSolutionGenerator
+                    _initialSolutionsGenerator = initialSolutionGenerator
                 ),
                 _converter = IntoValue.Flt64
             )
@@ -238,7 +237,7 @@ class CallBackModel<V> internal constructor(
                 _objectiveFunctions = objectiveFunction,
                 policy = FunctionalCallBackModelPolicy(
                     dumpObjectiveComparator(model.objectFunction.category, IntoValue.Flt64),
-                    initialSolutionGenerator
+                    _initialSolutionsGenerator = initialSolutionGenerator
                 ),
                 _converter = IntoValue.Flt64
             )
@@ -255,8 +254,7 @@ class CallBackModel<V> internal constructor(
     override fun infinity(): V = _converter.infinity
 
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
-        val flt64Solutions = policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
-        return flt64Solutions.map { solution -> solution.map { _converter.intoValue(it) } }
+        return policy.initialSolutions(initialSolutionAmount, UInt64(tokens.tokensInSolver.size))
     }
 
     override fun compareObjective(lhs: V, rhs: V): Order {
@@ -400,19 +398,19 @@ class MultiObjectCallBackModel<V> internal constructor(
     override val tokens: AbstractMutableTokenTable<V> = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution<V>>, String>> = ArrayList(),
     private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution<V>>, String>> = ArrayList(),
-    private val initialSolutionsGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+    private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
     private val _converter: IntoValue<V>
 ) : MultiObjectiveModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             objectiveLocation: List<MultiObjectLocation> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             converter: IntoValue<V>
         ) where V : RealNumber<V>, V : NumberField<V> = MultiObjectCallBackModel(
             objectCategory = objectCategory,
             objectiveLocation = objectiveLocation,
-            initialSolutionsGenerator = initialSolutionGenerator,
+            _initialSolutionsGenerator = initialSolutionGenerator,
             _converter = converter
         )
 
@@ -423,7 +421,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         ): MultiObjectCallBackModel<Flt64> = MultiObjectCallBackModel(
             objectCategory = objectCategory,
             objectiveLocation = objectiveLocation,
-            initialSolutionsGenerator = initialSolutionGenerator,
+            _initialSolutionsGenerator = { pair -> initialSolutionGenerator(pair) },
             _converter = IntoValue.Flt64
         )
     }
@@ -451,9 +449,10 @@ class MultiObjectCallBackModel<V> internal constructor(
         get() = objectiveLocation.first()
 
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
+        val gen = _initialSolutionsGenerator ?: return emptyList()
         return (UInt64.zero until initialSolutionAmount).map { solution ->
             (UInt64.zero until UInt64(tokens.tokensInSolver.size)).map { variable ->
-                _converter.intoValue(initialSolutionsGenerator(solution to variable))
+                gen(solution to variable)
             }
         }
     }

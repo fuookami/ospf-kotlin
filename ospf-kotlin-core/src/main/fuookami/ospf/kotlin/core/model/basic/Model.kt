@@ -10,8 +10,8 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -186,8 +186,11 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        // Adapter boundary: Symbol.eq(Boolean) returns Flt64LinearInequality; safe when V=Flt64.
+        @Suppress("UNCHECKED_CAST")
+        val relation = (constraint as fuookami.ospf.kotlin.math.symbol.Symbol).eq(true) as LinearInequality<V>
         return addConstraint(
-            relation = (constraint as fuookami.ospf.kotlin.math.symbol.Symbol).eq(true),
+            relation = relation,
             lazy = lazy,
             name = name,
             displayName = displayName,
@@ -199,7 +202,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -342,6 +345,8 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         return maximize(obj.toMathLinearPolynomial(), name, displayName)
     }
 
+    // Adapter boundary: ToMathLinearInequality returns Flt64LinearInequality; safe when V=Flt64.
+    @Suppress("UNCHECKED_CAST")
     fun addConstraint(
         obj: ToMathLinearInequality,
         lazy: Boolean = false,
@@ -349,7 +354,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try {
-        return addConstraint(obj.toMathLinearInequality(), lazy, name, displayName, withRangeSet)
+        return addConstraint(obj.toMathLinearInequality() as LinearInequality<V>, lazy, name, displayName, withRangeSet)
     }
 }
 
@@ -358,7 +363,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         lazy: Boolean = false,
         name: String? = null,
         displayName: String? = null,
@@ -501,6 +506,8 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         return maximize(obj.toMathQuadraticPolynomial(), name, displayName)
     }
 
+    // Adapter boundary: ToMathQuadraticInequality returns QuadraticInequality (Flt64); safe when V=Flt64.
+    @Suppress("UNCHECKED_CAST")
     fun addConstraint(
         obj: ToMathQuadraticInequality,
         lazy: Boolean = false,
@@ -508,7 +515,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         displayName: String? = null,
         withRangeSet: Boolean? = null
     ): Try {
-        return addConstraint(obj.toMathQuadraticInequality(), lazy, name, displayName, withRangeSet)
+        return addConstraint(obj.toMathQuadraticInequality() as QuadraticInequalityOf<V>, lazy, name, displayName, withRangeSet)
     }
 }
 

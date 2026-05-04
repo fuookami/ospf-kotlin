@@ -88,7 +88,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
             }
         } else {
             prepareSolver(values, tokenTable, converter)?.let {
-                tokenTable.cacheSolver(cacheKey = this, fixedValues = values, value = it)
+                tokenTable.cacheSolver(cacheKey = this, fixedValues = values, value = it, converter = converter)
             }
         }
     }
@@ -340,7 +340,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
     calculator: () -> V?
 ): V? where V : RealNumber<V>, V : NumberField<V> {
     return if (tokenTable.cachedSolution) {
-        tokenTable.cacheSolverIfNotCached(this, results) {
+        tokenTable.cacheSolverIfNotCached(this, results, {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
                     @Suppress("UNCHECKED_CAST")
@@ -353,9 +353,9 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
                 }
             }
             calculator()
-        }
+        }, converter)
     } else {
-        tokenTable.cachedSolverValue(this, results)
+        tokenTable.cachedSolverValue(this, results, converter)
     }
 }
 
@@ -370,13 +370,14 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolver(
             cacheKey = this,
             fixedValues = values,
-            value = converter.intoValue(value)
+            value = converter.intoValue(value),
+            converter = converter
         )
         return converter.intoValue(value)
     }
 
     return if (values.isNotEmpty() || tokenTable.cachedSolution) {
-        tokenTable.cacheSolverIfNotCached(this, values) {
+        tokenTable.cacheSolverIfNotCached(this, values, {
             for (dependency in dependencies) {
                 if (values.isNotEmpty() || tokenTable.cachedSolution) {
                     @Suppress("UNCHECKED_CAST")
@@ -389,9 +390,9 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
                 }
             }
             calculator()
-        }
+        }, converter)
     } else {
-        tokenTable.cachedSolverValue(this, values)
+        tokenTable.cachedSolverValue(this, values, converter)
     }
 }
 

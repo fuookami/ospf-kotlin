@@ -73,11 +73,13 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         tokenList.setSolution(solution)
     }
 
+    /** Solver-boundary adapter: sets solution from Flt64 solver output directly into internal storage. */
     fun setSolverSolution(solution: List<Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
     }
 
+    /** Solver-boundary adapter: sets solution from Flt64 solver output directly into internal storage. */
     fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
@@ -93,34 +95,30 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     fun cache(cacheKey: Any, solution: List<V>? = null, value: V): V = value
     fun cache(cacheKey: Any, fixedValues: Map<Symbol, V>, value: V): V = value
 
-    @Suppress("UNCHECKED_CAST")
-    fun cachedSolver(cacheKey: Any, solution: List<Flt64>? = null): Boolean? {
-        return cached(cacheKey, solution as List<V>?)
+    // --- Solver-boundary cache adapters (Flt64 -> V via converter) ---
+
+    fun cachedSolver(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): Boolean? {
+        return cached(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cachedSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): Boolean? {
-        return cached(cacheKey, fixedValues as Map<Symbol, V>)
+    fun cachedSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>): Boolean? {
+        return cached(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cachedSolverValue(cacheKey: Any, solution: List<Flt64>? = null): V? {
-        return cachedValue(cacheKey, solution as List<V>?)
+    fun cachedSolverValue(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): V? {
+        return cachedValue(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cachedSolverValue(cacheKey: Any, fixedValues: Map<Symbol, Flt64>): V? {
-        return cachedValue(cacheKey, fixedValues as Map<Symbol, V>)
+    fun cachedSolverValue(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>): V? {
+        return cachedValue(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cacheSolver(cacheKey: Any, solution: List<Flt64>? = null, value: V): V {
-        return cache(cacheKey, solution as List<V>?, value)
+    fun cacheSolver(cacheKey: Any, solution: List<Flt64>? = null, value: V, converter: IntoValue<V>): V {
+        return cache(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cacheSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V): V {
-        return cache(cacheKey, fixedValues as Map<Symbol, V>, value)
+    fun cacheSolver(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: V, converter: IntoValue<V>): V {
+        return cache(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) }, value)
     }
 
     // Generic cache methods (V-typed)
@@ -172,14 +170,12 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return cachedValue
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?): V? {
-        return cacheIfNotCached(cacheKey, solution as List<V>?, value)
+    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
+        return cacheIfNotCached(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
-    @Suppress("UNCHECKED_CAST")
-    fun cacheSolverIfNotCached(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> V?): V? {
-        return cacheIfNotCached(cacheKey, fixedValues as Map<Symbol, V>, value)
+    fun cacheSolverIfNotCached(cacheKey: Any, fixedValues: Map<Symbol, Flt64>, value: () -> V?, converter: IntoValue<V>): V? {
+        return cacheIfNotCached(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) }, value)
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
@@ -206,28 +202,28 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         for ((symbol, value) in symbols) { cache(cacheKey = symbol, fixedValues = fixedValues, value = value) }
     }
 
-    @Suppress("UNCHECKED_CAST", "INAPPLICABLE_JVM_NAME")
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null) {
-        cache(symbols, solution as List<V>?)
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
+        cache(symbols, solution?.map { converter.intoValue(it) })
     }
 
-    @Suppress("UNCHECKED_CAST", "INAPPLICABLE_JVM_NAME")
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, fixedValues: Map<Symbol, Flt64>) {
-        cache(symbols, fixedValues as Map<Symbol, V>)
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>) {
+        cache(symbols, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
-    @Suppress("UNCHECKED_CAST", "INAPPLICABLE_JVM_NAME")
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null) {
-        cache(symbols, solution as List<V>?)
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
+        cache(symbols, solution?.map { converter.intoValue(it) })
     }
 
-    @Suppress("UNCHECKED_CAST", "INAPPLICABLE_JVM_NAME")
+    @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, fixedValues: Map<Symbol, Flt64>) {
-        cache(symbols, fixedValues as Map<Symbol, V>)
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, fixedValues: Map<Symbol, Flt64>, converter: IntoValue<V>) {
+        cache(symbols, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
     override fun close() { tokenList.close() }

@@ -22,7 +22,9 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
@@ -90,13 +92,13 @@ interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumb
      * Add constraint using math LinearInequality
      */
     fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         name: String? = null,
         from: Pair<IntermediateSymbol<*>, Boolean>? = null,
     ): Try
 
     fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         name: String? = null,
         from: IntermediateSymbol<*>?,
     ): Try {
@@ -113,13 +115,13 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
      * Add constraint using math QuadraticInequality
      */
     fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         name: String? = null,
         from: Pair<IntermediateSymbol<*>, Boolean>? = null
     ): Try
 
     fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         name: String? = null,
         from: IntermediateSymbol<*>?
     ): Try {
@@ -290,12 +292,12 @@ class LinearMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints = constraints.toMutableList()
+    private val _constraints: MutableList<Constraint<V, *>> = constraints.map { it as Constraint<V, *> }.toMutableList()
     internal val concurrent by parent.configuration::concurrent
-    @Suppress("UNCHECKED_CAST")
-    override val constraints: List<Constraint<V, *>> get() = _constraints as List<Constraint<V, *>>
+    override val constraints: List<Constraint<V, *>> get() = _constraints
     /** Directly typed access to the underlying linear constraints. */
-    internal val linearConstraints: List<LinearConstraintImpl> get() = _constraints
+    @Suppress("UNCHECKED_CAST")
+    internal val linearConstraints: List<LinearConstraintImpl> get() = _constraints as List<LinearConstraintImpl>
 
     companion object {
         private val logger = logger()
@@ -495,18 +497,25 @@ class LinearMechanismModel<V>(
     }
 
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
+        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
+        // All numerical data is Flt64 at runtime; this cast is safe when V=Flt64.
+        @Suppress("UNCHECKED_CAST")
+        val flt64Relation = relation as Flt64LinearInequality
+        @Suppress("UNCHECKED_CAST")
+        val flt64Tokens = tokens as AbstractTokenTableFlt64
+        @Suppress("UNCHECKED_CAST")
         _constraints.add(
             LinearConstraintImpl(
-                relation = LinearRelationImpl(relation.flattenData, relation.comparison),
-                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
+                relation = LinearRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
+                tokens = flt64Tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
+            ) as Constraint<V, *>
         )
         return ok
     }
@@ -717,12 +726,12 @@ class QuadraticMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints = constraints.toMutableList()
+    private val _constraints: MutableList<Constraint<V, *>> = constraints.map { it as Constraint<V, *> }.toMutableList()
     internal val concurrent by parent.configuration::concurrent
-    @Suppress("UNCHECKED_CAST")
-    override val constraints: List<Constraint<V, *>> get() = _constraints as List<Constraint<V, *>>
+    override val constraints: List<Constraint<V, *>> get() = _constraints
     /** Directly typed access to the underlying quadratic constraints. */
-    internal val quadraticConstraints: List<QuadraticConstraintImpl> get() = _constraints
+    @Suppress("UNCHECKED_CAST")
+    internal val quadraticConstraints: List<QuadraticConstraintImpl> get() = _constraints as List<QuadraticConstraintImpl>
 
     companion object {
         private val logger = logger()
@@ -941,34 +950,47 @@ class QuadraticMechanismModel<V>(
     }
 
     override fun addConstraint(
-        relation: Flt64LinearInequality,
+        relation: LinearInequality<V>,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
+        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
+        // Linear inequality is promoted to quadratic for the quadratic model.
+        @Suppress("UNCHECKED_CAST")
+        val flt64Relation = relation as Flt64LinearInequality
+        @Suppress("UNCHECKED_CAST")
+        val flt64Tokens = tokens as AbstractTokenTableFlt64
+        @Suppress("UNCHECKED_CAST")
         _constraints.add(
-            relation.toQuadraticConstraint(
-                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
+            flt64Relation.toQuadraticConstraint(
+                tokens = flt64Tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
+            ) as Constraint<V, *>
         )
         return ok
     }
 
     override fun addConstraint(
-        relation: QuadraticInequality,
+        relation: QuadraticInequalityOf<V>,
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
+        // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
+        @Suppress("UNCHECKED_CAST")
+        val flt64Relation = relation as QuadraticInequality
+        @Suppress("UNCHECKED_CAST")
+        val flt64Tokens = tokens as AbstractTokenTableFlt64
+        @Suppress("UNCHECKED_CAST")
         _constraints.add(
             QuadraticConstraintImpl(
-                relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
-                tokens = @Suppress("UNCHECKED_CAST") (tokens as AbstractTokenTableFlt64),
+                relation = QuadraticRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
+                tokens = flt64Tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            )
+            ) as Constraint<V, *>
         )
         return ok
     }

@@ -290,7 +290,7 @@ class ParticleSwarmHeuristicSolver<V>(
             particles = newParticles
         }
 
-        model.tokens.setSolverSolution(bestParticle.solution.map { converter.fromValue(it) })
+        model.tokens.setSolution(bestParticle.solution)
         return Ok(
             HeuristicResult(
                 bestSolution = bestParticle.solution,

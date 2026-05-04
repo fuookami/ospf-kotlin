@@ -177,6 +177,7 @@ interface MetaConstraintGroup {
         args: Any? = null,
         withRangeSet: Boolean? = false
     ): Try {
+        // Flt64LinearInequality = LinearInequality<Flt64> = LinearInequality<V> when V=Flt64
         return this.addConstraint(
             relation = relation,
             group = this@MetaConstraintGroup,
@@ -199,6 +200,7 @@ interface MetaConstraintGroup {
         args: Any? = null,
         withRangeSet: Boolean? = null
     ): Try {
+        // QuadraticInequality = QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<V> when V=Flt64
         return this.addConstraint(
             relation = relation,
             group = this@MetaConstraintGroup,
