@@ -257,3 +257,11 @@ internal fun <V> QuadraticPolynomial<V>.asFlt64QuadraticPoly(converter: IntoValu
         converter.fromValue(constant)
     )
 }
+
+/** Convert QuadraticPolynomial<Flt64> to QuadraticPolynomial<V> using the provided converter. */
+internal fun <V> QuadraticPolynomial<Flt64>.asVQuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    return QuadraticPolynomial(
+        monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
+        converter.intoValue(constant)
+    )
+}

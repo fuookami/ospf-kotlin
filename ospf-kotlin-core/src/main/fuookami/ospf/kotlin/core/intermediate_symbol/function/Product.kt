@@ -146,12 +146,10 @@ class ProductFunction<V>(
             return QuadraticFlattenDataFlt64(poly.monomials, poly.constant)
         }
 
-    @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
-        get() = toMathQuadraticPolynomial() as QuadraticPolynomial<V>
+        get() = toMathQuadraticPolynomial().asVQuadraticPoly(converter)
 
-    @Suppress("UNCHECKED_CAST")
-    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), Flt64.zero) as MutableQuadraticPolynomial<V>
+    override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(leftFlt64, tokenList, zeroIfNone) ?: return null

@@ -100,7 +100,6 @@ class QuadraticMinFunction<V>(
     override val polynomial: QuadraticPolynomial<V>
         get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
 
-    @Suppress("UNCHECKED_CAST")
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null

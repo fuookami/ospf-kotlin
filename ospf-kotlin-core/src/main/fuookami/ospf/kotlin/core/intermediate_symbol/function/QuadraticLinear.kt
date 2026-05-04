@@ -99,7 +99,6 @@ class QuadraticLinearFunction<V>(
     override val flattenedMonomials: QuadraticFlattenDataFlt64
         get() = _polynomial.asFlt64QuadraticPoly(converter).let { QuadraticFlattenDataFlt64(it.monomials, it.constant) }
 
-    @Suppress("UNCHECKED_CAST")
     override val polynomial: QuadraticPolynomial<V>
         get() = _polynomial
 
