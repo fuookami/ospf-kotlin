@@ -17,8 +17,8 @@ class TailBinLoadingRateMinimization(
     private val capacity: Capacity,
     private val coefficient: (Bin<BinLayer>) -> Flt64,
     override val name: String = "tail_bin_loading_rate_minimization"
-) : Pipeline<AbstractLinearMetaModel<*>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             polynomial = sum(bins.mapIndexed { i, bin ->
                 LinearMonomial(coefficient(bin), capacity.tailLoadingRate[i])

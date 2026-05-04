@@ -8,14 +8,15 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capaci
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.PreciseAssignment
 import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BinLoadingOrderConstraint(
     private val bins: List<Bin<BinLayer>>,
     private val assignment: PreciseAssignment,
     private val capacity: Capacity,
     override val name: String = "bin_loading_order_constraint"
-) : Pipeline<AbstractLinearMetaModel<*>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (i in bins.indices) {
             if (i == 0) {
                 continue

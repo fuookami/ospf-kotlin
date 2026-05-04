@@ -27,7 +27,7 @@ class ItemDemandConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "item_demand"
 ) : AbstractBPP3DCGPipeline<Args, T> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((item, demand, demandRange) in items) {
             if (load.overEnabled && !demandRange.fixed && demandRange.upperBound.value.unwrap() neq demand) {
                 when (val overLoad = load.overLoad[item]) {
@@ -149,7 +149,7 @@ class ItemDemandConstraint<
 
     override fun refresh(
         map: AbstractBPP3DShadowPriceMap<Args, T>,
-        model: AbstractLinearMetaModel<*>,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         TODO("Not yet implemented")

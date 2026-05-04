@@ -7,13 +7,14 @@ import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model.Capacity
 import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BinDepthConstraint(
     private val bins: List<Bin<BinLayer>>,
     private val capacity: Capacity,
     override val name: String = "bin_depth_constraint"
-) : Pipeline<AbstractLinearMetaModel<*>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, bin) in bins.withIndex()) {
             when (val result = model.addConstraint(
                 capacity.loadDepth[i] leq bin.depth,

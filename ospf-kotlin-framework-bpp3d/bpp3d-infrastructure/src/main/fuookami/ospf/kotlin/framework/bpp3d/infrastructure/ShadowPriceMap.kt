@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.model.AbstractShadowPriceMap
 import fuookami.ospf.kotlin.framework.model.CGPipeline
 import fuookami.ospf.kotlin.framework.model.ShadowPriceExtractor
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 interface AbstractBPP3DShadowPriceArguments<
         out T : Cuboid<@UnsafeVariance T>
@@ -25,9 +26,9 @@ typealias AbstractBPP3DShadowPriceExtractor<Args, T> = ShadowPriceExtractor<
         >
 
 typealias AbstractBPP3DCGPipeline<Args, T> = CGPipeline<
-        Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>
+        Args, AbstractLinearMetaModel<Flt64>, AbstractBPP3DShadowPriceMap<Args, T>
         >
 
 typealias AbstractBPP3DCGPipelineList<Args, T> = List<
-        CGPipeline<Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>>
+        CGPipeline<Args, AbstractLinearMetaModel<Flt64>, AbstractBPP3DShadowPriceMap<Args, T>>
         >

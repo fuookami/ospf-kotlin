@@ -16,8 +16,8 @@ class BetterLayerMaximization(
     private val assignment: PreciseAssignment,
     private val coefficient: (BinLayer, Bin<BinLayer>) -> Flt64,
     override val name: String = "better_layer_maximization"
-) : Pipeline<AbstractLinearMetaModel<*>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.maximize(
             polynomial = sum(bins.flatMapIndexed { i, bin ->
                 layers.mapIndexed { j, layer ->

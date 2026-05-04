@@ -19,8 +19,8 @@ class VolumeMinimization<
     private val assignment: ImpreciseAssignment,
     private val coefficient: Flt64,
     override val name: String = "volume_minimization",
-) : CGPipeline<Args, AbstractLinearMetaModel<*>, AbstractBPP3DShadowPriceMap<Args, T>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : CGPipeline<Args, AbstractLinearMetaModel<Flt64>, AbstractBPP3DShadowPriceMap<Args, T>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             monomial = LinearMonomial(coefficient, assignment.volume),
             name = "volume"

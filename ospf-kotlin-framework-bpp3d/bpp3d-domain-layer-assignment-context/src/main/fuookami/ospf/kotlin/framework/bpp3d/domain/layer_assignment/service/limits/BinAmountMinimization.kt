@@ -15,8 +15,8 @@ class BinAmountMinimization(
     private val assignment: PreciseAssignment,
     private val coefficient: (Bin<BinLayer>) -> Flt64,
     override val name: String = "bin_amount_minimization"
-) : Pipeline<AbstractLinearMetaModel<*>> {
-    override fun invoke(model: AbstractLinearMetaModel<*>): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             polynomial = sum(bins.mapIndexed { i, bin ->
                 LinearMonomial(coefficient(bin), assignment.v[i])
