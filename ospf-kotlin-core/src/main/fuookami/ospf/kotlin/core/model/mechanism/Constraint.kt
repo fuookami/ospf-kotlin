@@ -57,6 +57,9 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
     val name: String
     val origin: MathConstraint?
     val from: Pair<IntermediateSymbol<*>, Boolean>?
+
+    fun isTrue(): Boolean?
+    fun isTrue(results: List<V>): Boolean?
 }
 
 typealias ConstraintFlt64<P> = Constraint<Flt64, P>
@@ -109,7 +112,7 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
 ) : Constraint<V, P> where V : RealNumber<V>, V : NumberField<V> {
     override val rhs: V get() = _rhs
 
-    fun isTrue(): Boolean? {
+    override fun isTrue(): Boolean? {
         var lhsValue = _rhs - _rhs
         for (cell in lhs) {
             lhsValue += cell.evaluate() ?: return null
@@ -117,7 +120,7 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
         return sign(lhsValue, _rhs)
     }
 
-    fun isTrue(results: List<V>): Boolean? {
+    override fun isTrue(results: List<V>): Boolean? {
         var lhsValue = _rhs - _rhs
         for (cell in lhs) {
             lhsValue += cell.evaluate(results) ?: return null

@@ -3,19 +3,17 @@
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.TokenTable
-import fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
-import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
-import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModelFlt64
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -162,20 +160,21 @@ class CallBackModel<V> internal constructor(
             _converter = IntoValue.Flt64
         )
 
-        operator fun invoke(
-            model: AbstractMetaModelFlt64,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<Flt64> {
+        operator fun <V> invoke(
+            model: AbstractMetaModel<V>,
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
+            converter: IntoValue<V>
+        ): CallBackModel<V> where V : RealNumber<V>, V : NumberField<V> {
             val tokens = model.tokens.copy()
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution<Flt64> -> constraint.isTrue(solution, tokens) },
+                    { solution: Solution<V> -> constraint.isTrue(solution, converter, tokens) },
                     constraint.toString()
                 )
             }.toMutableList()
             val objectiveFunction = model.subObjects.map { objective ->
                 Pair(
-                    { solution: Solution<Flt64> ->
+                    { solution: Solution<V> ->
                         if (objective.category == model.objectCategory) {
                             objective.evaluate(solution)
                         } else {
@@ -192,34 +191,42 @@ class CallBackModel<V> internal constructor(
                 _constraints = constraints,
                 _objectiveFunctions = objectiveFunction,
                 policy = FunctionalCallBackModelPolicy(
-                    dumpObjectiveComparator(model.objectCategory, IntoValue.Flt64),
+                    dumpObjectiveComparator(model.objectCategory, converter),
                     _initialSolutionsGenerator = initialSolutionGenerator
                 ),
-                _converter = IntoValue.Flt64
+                _converter = converter
             )
         }
 
         operator fun invoke(
-            model: SingleObjectMechanismModelFlt64,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
-            concurrent: Boolean = true
-        ): CallBackModel<Flt64> {
+            model: AbstractMetaModelFlt64,
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, IntoValue.Flt64)
+
+        operator fun <V> invoke(
+            model: SingleObjectMechanismModel<V>,
+            initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
+            concurrent: Boolean = true,
+            converter: IntoValue<V>
+        ): CallBackModel<V> where V : RealNumber<V>, V : NumberField<V> {
             val tokens = if (concurrent) {
-                ConcurrentManualAddTokenTable<Flt64>(model.tokens.category)
+                ConcurrentManualAddTokenTable<V>(model.tokens.category)
             } else {
-                ManualTokenTable<Flt64>(model.tokens.category)
+                ManualTokenTable<V>(model.tokens.category)
             }
             val constraints = model.constraints.map { constraint ->
+                @Suppress("UNCHECKED_CAST")
+                val impl = constraint as ConstraintImpl<V, *>
                 Pair(
-                    { solution: Solution<Flt64> -> (constraint as ConstraintImpl<Flt64, *>).isTrue(solution) },
+                    { solution: Solution<V> -> impl.isTrue(solution) },
                     constraint.name
                 )
             }.toMutableList()
             @Suppress("UNCHECKED_CAST")
-            val subObjects = model.objectFunction.subObjects as List<SubObject<Flt64>>
+            val subObjects = model.objectFunction.subObjects as List<SubObject<V>>
             val objectiveFunction = subObjects.map { objective ->
                 Pair(
-                    { solution: Solution<Flt64> ->
+                    { solution: Solution<V> ->
                         if (objective.category == model.objectFunction.category) {
                             objective.evaluate(solution)
                         } else {
@@ -236,12 +243,18 @@ class CallBackModel<V> internal constructor(
                 _constraints = constraints,
                 _objectiveFunctions = objectiveFunction,
                 policy = FunctionalCallBackModelPolicy(
-                    dumpObjectiveComparator(model.objectFunction.category, IntoValue.Flt64),
+                    dumpObjectiveComparator(model.objectFunction.category, converter),
                     _initialSolutionsGenerator = initialSolutionGenerator
                 ),
-                _converter = IntoValue.Flt64
+                _converter = converter
             )
         }
+
+        operator fun invoke(
+            model: SingleObjectMechanismModelFlt64,
+            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+            concurrent: Boolean = true
+        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, concurrent, IntoValue.Flt64)
     }
 
     override val constraints by ::_constraints
