@@ -292,12 +292,10 @@ class LinearMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints: MutableList<Constraint<V, *>> = constraints.toMutableList() as MutableList<Constraint<V, *>>
+    private val _constraints: MutableList<LinearConstraintImpl<V>> = constraints.toMutableList()
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
-    /** Directly typed access to the underlying linear constraints. */
-    @Suppress("UNCHECKED_CAST")
-    internal val linearConstraints: List<LinearConstraintImpl<V>> get() = _constraints as List<LinearConstraintImpl<V>>
+    internal val linearConstraints: List<LinearConstraintImpl<V>> get() = _constraints
 
     companion object {
         private val logger = logger()
@@ -735,12 +733,10 @@ class QuadraticMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints: MutableList<Constraint<V, *>> = constraints.toMutableList() as MutableList<Constraint<V, *>>
+    private val _constraints: MutableList<QuadraticConstraintImpl<V>> = constraints.toMutableList()
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
-    /** Directly typed access to the underlying quadratic constraints. */
-    @Suppress("UNCHECKED_CAST")
-    internal val quadraticConstraints: List<QuadraticConstraintImpl<V>> get() = _constraints as List<QuadraticConstraintImpl<V>>
+    internal val quadraticConstraints: List<QuadraticConstraintImpl<V>> get() = _constraints
 
     companion object {
         private val logger = logger()
