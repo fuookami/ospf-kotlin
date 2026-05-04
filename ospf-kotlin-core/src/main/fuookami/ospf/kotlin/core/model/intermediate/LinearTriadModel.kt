@@ -44,7 +44,7 @@ import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
 
-typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl<Flt64>
 
 private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrixFlt64 {
     val mat = SparseMatrixFlt64()

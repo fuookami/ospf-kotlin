@@ -43,7 +43,7 @@ import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
 
-typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
+typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl<Flt64>
 
 private fun buildSparseLhs(rows: List<List<QuadraticConstraintCell>>): SparseQuadraticMatrix {
     val mat = SparseQuadraticMatrix()

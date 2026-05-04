@@ -126,15 +126,15 @@ sealed class ConstraintImpl<V, P : PolynomialKind>(
     }
 }
 
-class LinearConstraintImpl(
-    override val lhs: List<LinearCellFlt64>,
+class LinearConstraintImpl<V>(
+    override val lhs: List<LinearCell<V>>,
     sign: ConstraintRelation,
-    rhs: Flt64,
+    rhs: V,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-) : ConstraintImpl<Flt64, Linear>(
+) : ConstraintImpl<V, Linear>(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
@@ -142,22 +142,25 @@ class LinearConstraintImpl(
     name = name,
     origin = origin,
     from = from
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun invoke(
+        operator fun <V> invoke(
             relation: LinearRelation,
-            tokens: AbstractTokenTableFlt64,
+            tokens: AbstractTokenTable<V>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): LinearConstraintImpl {
+        ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, tokens)
+            // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
+            @Suppress("UNCHECKED_CAST")
+            val rhs: V = (-flattenData.constant) as V
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
-                rhs = -flattenData.constant,
+                rhs = rhs,
                 lazy = lazy,
                 name = name ?: relation.name,
                 origin = origin,
@@ -167,15 +170,15 @@ class LinearConstraintImpl(
     }
 }
 
-class QuadraticConstraintImpl(
-    override val lhs: List<QuadraticCellFlt64>,
+class QuadraticConstraintImpl<V>(
+    override val lhs: List<QuadraticCell<V>>,
     sign: ConstraintRelation,
-    rhs: Flt64,
+    rhs: V,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null
-) : ConstraintImpl<Flt64, Quadratic>(
+) : ConstraintImpl<V, Quadratic>(
     lhs = lhs,
     sign = sign,
     _rhs = rhs,
@@ -183,22 +186,25 @@ class QuadraticConstraintImpl(
     name = name,
     origin = origin,
     from = from
-) {
+) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun invoke(
+        operator fun <V> invoke(
             relation: QuadraticRelation,
-            tokens: AbstractTokenTableFlt64,
+            tokens: AbstractTokenTable<V>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-        ): QuadraticConstraintImpl {
+        ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, tokens)
+            // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
+            @Suppress("UNCHECKED_CAST")
+            val rhs: V = (-flattenData.constant) as V
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
-                rhs = -flattenData.constant,
+                rhs = rhs,
                 lazy = lazy,
                 name = name ?: relation.name,
                 origin = origin,
@@ -211,6 +217,8 @@ class QuadraticConstraintImpl(
 // Type aliases for Constraint<V, P> with specific polynomial kinds
 typealias LinearConstraint = Constraint<Flt64, Linear>
 typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
+typealias LinearConstraintImplFlt64 = LinearConstraintImpl<Flt64>
+typealias QuadraticConstraintImplFlt64 = QuadraticConstraintImpl<Flt64>
 
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<Flt64>>,

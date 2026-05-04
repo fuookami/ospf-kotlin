@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.model.mechanism
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -54,19 +55,22 @@ data class LinearConstraintInput(
 
     companion object {
         /**
-         * Create LinearConstraintInput from math LinearInequality
+         * Create LinearConstraintInput from math LinearInequality<V>.
+         * Adapter boundary: casts to Flt64LinearInequality for flattenData access; safe when V=Flt64.
          */
-        fun from(
-            relation: Flt64LinearInequality,
+        fun <V> from(
+            relation: LinearInequality<V>,
             lhsRange: ValueRange<Flt64>,
             rhsConstant: Flt64 = Flt64.zero,
             name: String = "",
             displayName: String? = null
-        ): LinearConstraintInput {
-            val flattenData = relation.flattenData
+        ): LinearConstraintInput where V : RealNumber<V>, V : NumberField<V> {
+            @Suppress("UNCHECKED_CAST")
+            val flt64Relation = relation as Flt64LinearInequality
+            val flattenData = flt64Relation.flattenData
             return LinearConstraintInput(
                 flattenData = flattenData,
-                sign = relation.comparison,
+                sign = flt64Relation.comparison,
                 lhsRange = lhsRange,
                 name = name,
                 displayName = displayName,

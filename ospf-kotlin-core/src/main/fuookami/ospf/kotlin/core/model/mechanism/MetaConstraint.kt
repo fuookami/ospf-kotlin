@@ -167,17 +167,16 @@ interface MetaConstraintGroup {
     // ========== Math Inequality-based API ==========
 
     /**
-     * Add constraint using math LinearInequality
+     * Add constraint using math LinearInequality<V>
      */
-    fun AbstractLinearMetaModelFlt64.addConstraint(
-        relation: Flt64LinearInequality,
+    fun <V> AbstractLinearMetaModel<V>.addConstraint(
+        relation: LinearInequality<V>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
         withRangeSet: Boolean? = false
-    ): Try {
-        // Flt64LinearInequality = LinearInequality<Flt64> = LinearInequality<V> when V=Flt64
+    ): Try where V : RealNumber<V>, V : NumberField<V> {
         return this.addConstraint(
             relation = relation,
             group = this@MetaConstraintGroup,
@@ -190,17 +189,16 @@ interface MetaConstraintGroup {
     }
 
     /**
-     * Add constraint using math QuadraticInequality
+     * Add constraint using math QuadraticInequalityOf<V>
      */
-    fun AbstractQuadraticMetaModelFlt64.addConstraint(
-        relation: QuadraticInequality,
+    fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
+        relation: QuadraticInequalityOf<V>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
         withRangeSet: Boolean? = null
-    ): Try {
-        // QuadraticInequality = QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<V> when V=Flt64
+    ): Try where V : RealNumber<V>, V : NumberField<V> {
         return this.addConstraint(
             relation = relation,
             group = this@MetaConstraintGroup,

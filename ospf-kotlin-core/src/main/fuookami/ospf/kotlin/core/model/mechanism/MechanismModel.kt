@@ -164,8 +164,8 @@ private data class OrderedVariablePair(
     }
 }
 
-private fun <C : Constraint<Flt64, *>> validateDualById(
-    constraints: List<C>,
+private fun validateDualById(
+    constraints: List<Constraint<*, *>>,
     dualById: Map<String, Flt64>,
     log: org.apache.logging.log4j.kotlin.KotlinLogger
 ) {
@@ -282,7 +282,7 @@ private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
 class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
-    constraints: List<LinearConstraintImpl>,
+    constraints: List<LinearConstraintImpl<V>>,
     override val objectFunction: SingleObject<LinearSubObjectFlt64>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
@@ -292,12 +292,12 @@ class LinearMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints: MutableList<Constraint<V, *>> = constraints.map { it as Constraint<V, *> }.toMutableList()
+    private val _constraints: MutableList<Constraint<V, *>> = constraints.toMutableList() as MutableList<Constraint<V, *>>
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
     /** Directly typed access to the underlying linear constraints. */
     @Suppress("UNCHECKED_CAST")
-    internal val linearConstraints: List<LinearConstraintImpl> get() = _constraints as List<LinearConstraintImpl>
+    internal val linearConstraints: List<LinearConstraintImpl<V>> get() = _constraints as List<LinearConstraintImpl<V>>
 
     companion object {
         private val logger = logger()
@@ -505,17 +505,14 @@ class LinearMechanismModel<V>(
         // All numerical data is Flt64 at runtime; this cast is safe when V=Flt64.
         @Suppress("UNCHECKED_CAST")
         val flt64Relation = relation as Flt64LinearInequality
-        @Suppress("UNCHECKED_CAST")
-        val flt64Tokens = tokens as AbstractTokenTableFlt64
-        @Suppress("UNCHECKED_CAST")
         _constraints.add(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
-                tokens = flt64Tokens,
+                tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            ) as Constraint<V, *>
+            )
         )
         return ok
     }
@@ -526,11 +523,14 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: LinearDualSolution
     ): List<Flt64LinearInequality> {
-        val constants = linearConstraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in linearConstraints) {
+        for (constraint in constraints) {
             val dual = dualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -566,10 +566,13 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: LinearDualSolution
     ): List<Flt64LinearInequality> {
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in linearConstraints) {
+        for (constraint in constraints) {
             val dual = farkasDualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -619,9 +622,12 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolutionById: Map<String, Flt64>
     ): List<Flt64LinearInequality> {
-        validateDualById(linearConstraints, dualSolutionById, logger)
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        validateDualById(constraints, dualSolutionById, logger)
         val dualSolution: LinearDualSolution = buildMap {
-            for (c in linearConstraints) {
+            for (c in constraints) {
                 val v = dualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
             }
@@ -643,9 +649,12 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>
     ): List<Flt64LinearInequality> {
-        validateDualById(linearConstraints, farkasDualSolutionById, logger)
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        validateDualById(constraints, farkasDualSolutionById, logger)
         val farkasDualSolution: LinearDualSolution = buildMap {
-            for (c in linearConstraints) {
+            for (c in constraints) {
                 val v = farkasDualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
             }
@@ -716,7 +725,7 @@ typealias LinearMechanismModelFlt64 = LinearMechanismModel<Flt64>
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
-    constraints: List<QuadraticConstraintImpl>,
+    constraints: List<QuadraticConstraintImpl<V>>,
     override val objectFunction: SingleObject<QuadraticSubObjectFlt64>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
@@ -726,12 +735,12 @@ class QuadraticMechanismModel<V>(
     /**
      * Constraints storage. Inherits query helpers (numVariables) from BasicMechanismModel.
      */
-    private val _constraints: MutableList<Constraint<V, *>> = constraints.map { it as Constraint<V, *> }.toMutableList()
+    private val _constraints: MutableList<Constraint<V, *>> = constraints.toMutableList() as MutableList<Constraint<V, *>>
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
     /** Directly typed access to the underlying quadratic constraints. */
     @Suppress("UNCHECKED_CAST")
-    internal val quadraticConstraints: List<QuadraticConstraintImpl> get() = _constraints as List<QuadraticConstraintImpl>
+    internal val quadraticConstraints: List<QuadraticConstraintImpl<V>> get() = _constraints as List<QuadraticConstraintImpl<V>>
 
     companion object {
         private val logger = logger()
@@ -958,16 +967,13 @@ class QuadraticMechanismModel<V>(
         // Linear inequality is promoted to quadratic for the quadratic model.
         @Suppress("UNCHECKED_CAST")
         val flt64Relation = relation as Flt64LinearInequality
-        @Suppress("UNCHECKED_CAST")
-        val flt64Tokens = tokens as AbstractTokenTableFlt64
-        @Suppress("UNCHECKED_CAST")
         _constraints.add(
             flt64Relation.toQuadraticConstraint(
-                tokens = flt64Tokens,
+                tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            ) as Constraint<V, *>
+            )
         )
         return ok
     }
@@ -980,17 +986,14 @@ class QuadraticMechanismModel<V>(
         // Adapter boundary: ConstraintImpl requires Flt64 flatten data for solver consumption.
         @Suppress("UNCHECKED_CAST")
         val flt64Relation = relation as QuadraticInequality
-        @Suppress("UNCHECKED_CAST")
-        val flt64Tokens = tokens as AbstractTokenTableFlt64
-        @Suppress("UNCHECKED_CAST")
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(flt64Relation.flattenData, flt64Relation.comparison),
-                tokens = flt64Tokens,
+                tokens = tokens,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
-            ) as Constraint<V, *>
+            )
         )
         return ok
     }
@@ -1002,12 +1005,15 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: QuadraticDualSolution,
     ): Ret<List<Any>> {
-        val constants = quadraticConstraints.fold(Flt64.zero) { acc, constraint ->
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        val constants = constraints.fold(Flt64.zero) { acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
         val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
         val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in quadraticConstraints) {
+        for (constraint in constraints) {
             val dual = dualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -1087,11 +1093,14 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: QuadraticDualSolution,
     ): Ret<List<Any>> {
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
         var value = Flt64.zero
         var constants = Flt64.zero
         val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
         val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in quadraticConstraints) {
+        for (constraint in constraints) {
             val dual = farkasDualSolution[constraint] ?: continue
             if (dual eq Flt64.zero) {
                 continue
@@ -1172,9 +1181,12 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
-        validateDualById(quadraticConstraints, dualSolutionById, logger)
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        validateDualById(constraints, dualSolutionById, logger)
         val dualSolution: QuadraticDualSolution = buildMap {
-            for (c in quadraticConstraints) {
+            for (c in constraints) {
                 val v = dualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
             }
@@ -1196,9 +1208,12 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
-        validateDualById(quadraticConstraints, farkasDualSolutionById, logger)
+        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
+        @Suppress("UNCHECKED_CAST")
+        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        validateDualById(constraints, farkasDualSolutionById, logger)
         val farkasDualSolution: QuadraticDualSolution = buildMap {
-            for (c in quadraticConstraints) {
+            for (c in constraints) {
                 val v = farkasDualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
             }
