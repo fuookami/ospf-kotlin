@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModelFlt64
+import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -461,7 +462,10 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    // ========== Generic V overloads (adapter boundary: Flt64 -> V) ==========
+    // ========== V-generic primary interface ==========
+    // solveV is the primary V-generic entry point. Flt64 invoke() is the adapter boundary
+    // for external solvers that operate on double. solveV contains the full pipeline
+    // (validate -> dump -> solve -> convert) rather than being a thin post-conversion wrapper.
 
     suspend fun <V> solveV(
         model: QuadraticTetradModelView,
@@ -517,6 +521,29 @@ interface AbstractQuadraticSolver {
             is Failed -> Failed(result.error)
             is Fatal -> Fatal(result.errors)
         }
+    }
+
+    // V-generic solveV for generic MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    suspend fun <V> solveV(
+        model: MechanismModel<V>,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        // Adapter boundary: external solvers require Flt64. Convert model, solve, then convert back.
+        @Suppress("UNCHECKED_CAST")
+        val flt64Model = model as QuadraticMechanismModelFlt64
+        return solveV(flt64Model, converter, solvingStatusCallBack)
+    }
+
+    suspend fun <V> solveV(
+        model: MechanismModel<V>,
+        solutionAmount: UInt64,
+        converter: IntoValue<V>,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        @Suppress("UNCHECKED_CAST")
+        val flt64Model = model as QuadraticMechanismModelFlt64
+        return solveV(flt64Model, solutionAmount, converter, solvingStatusCallBack)
     }
 
     suspend fun dump(model: QuadraticMechanismModelFlt64): QuadraticTetradModel {

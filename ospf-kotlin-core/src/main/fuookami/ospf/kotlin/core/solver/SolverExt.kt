@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.iis.computeIIS
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.LinearInfeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.QuadraticInfeasibleSolverOutput
@@ -14,6 +15,9 @@ import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
 import fuookami.ospf.kotlin.core.model.basic.Solution
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
@@ -760,4 +764,51 @@ fun AbstractQuadraticSolver.solveAsync(
         callBack?.invoke(result)
         result
     }
+}
+
+// ========== V-generic primary solve extensions ==========
+// These are the recommended V-generic entry points. They delegate to solveV which
+// contains the full pipeline (validate -> dump -> solve -> convert).
+// Flt64 solve() overloads above are adapter boundary for backward compatibility.
+
+suspend fun <V> AbstractLinearSolver.solve(
+    model: LinearTriadModelView,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
+}
+
+suspend fun <V> AbstractLinearSolver.solve(
+    model: LinearMechanismModelFlt64,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
+}
+
+suspend fun <V> AbstractLinearSolver.solve(
+    model: MechanismModel<V>,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
+}
+
+suspend fun <V> AbstractQuadraticSolver.solve(
+    model: QuadraticTetradModelView,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
+}
+
+suspend fun <V> AbstractQuadraticSolver.solve(
+    model: QuadraticMechanismModelFlt64,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
+}
+
+suspend fun <V> AbstractQuadraticSolver.solve(
+    model: MechanismModel<V>,
+    converter: IntoValue<V>
+): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+    return solveV(model, converter)
 }
