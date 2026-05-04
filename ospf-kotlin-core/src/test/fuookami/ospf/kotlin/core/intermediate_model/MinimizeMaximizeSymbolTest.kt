@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.intermediate_model
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -14,7 +15,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `LinearMetaModel minimize with LinearIntermediateSymbol`() {
-        val model = LinearMetaModel<Flt64>(name = "test_min_linear_symbol")
+        val model = LinearMetaModel<Flt64>(name = "test_min_linear_symbol", converter = IntoValue.Flt64)
         val x = RealVar("x")
         model.add(x)
 
@@ -29,7 +30,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `LinearMetaModel maximize with LinearIntermediateSymbol`() {
-        val model = LinearMetaModel<Flt64>(name = "test_max_linear_symbol")
+        val model = LinearMetaModel<Flt64>(name = "test_max_linear_symbol", converter = IntoValue.Flt64)
         val x = RealVar("x")
         model.add(x)
 
@@ -44,7 +45,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `QuadraticMetaModel minimize with QuadraticIntermediateSymbol`() {
-        val model = QuadraticMetaModel<Flt64>(name = "test_min_quad_symbol")
+        val model = QuadraticMetaModel<Flt64>(name = "test_min_quad_symbol", converter = IntoValue.Flt64)
         val x = RealVar("x")
         model.add(x)
 
@@ -59,7 +60,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `QuadraticMetaModel maximize with QuadraticIntermediateSymbol`() {
-        val model = QuadraticMetaModel<Flt64>(name = "test_max_quad_symbol")
+        val model = QuadraticMetaModel<Flt64>(name = "test_max_quad_symbol", converter = IntoValue.Flt64)
         val x = RealVar("x")
         model.add(x)
 

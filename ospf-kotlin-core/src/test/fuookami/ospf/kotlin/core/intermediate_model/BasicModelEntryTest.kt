@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.variable.Variable
@@ -79,7 +80,7 @@ class BasicModelEntryTest {
             name = "c1"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "factory-parent"),
+            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = IntoValue.Flt64),
             name = "factory-model",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -187,7 +188,7 @@ class BasicModelEntryTest {
             name = "qc1"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q"),
+            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = IntoValue.Flt64),
             name = "factory-model-q",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),

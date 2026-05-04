@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.utils.error.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
@@ -333,7 +334,7 @@ private class FullLoadAlgorithmImpl {
         startTime: kotlinx.datetime.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val model = LinearMetaModelFlt64()
+        val model = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         when (val result = register(parameter, model)) {
             is Ok -> {}
 

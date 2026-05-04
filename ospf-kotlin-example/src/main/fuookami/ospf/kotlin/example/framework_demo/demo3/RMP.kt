@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.solver.*
 
@@ -35,7 +36,7 @@ class RMP(
     private val yield = LinearExpressionSymbols1Flt64("output", Shape1(products.size)) { _, v ->
         LinearExpressionSymbol(name = "output_${v[0]}")
     }
-    private val metaModel = LinearMetaModelFlt64("demo3")
+    private val metaModel = LinearMetaModelFlt64("demo3", converter = IntoValue.Flt64)
     private val solver: ColumnGenerationSolver = ScipColumnGenerationSolver()
 
     init {

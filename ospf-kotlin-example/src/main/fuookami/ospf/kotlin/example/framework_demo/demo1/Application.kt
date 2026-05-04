@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
@@ -33,7 +34,7 @@ class SSP {
 
             is Ok -> {}
         }
-        val model = LinearMetaModelFlt64("demo1")
+        val model = LinearMetaModelFlt64("demo1", converter = IntoValue.Flt64)
         when (val result = construct(model)) {
             is Failed -> {
                 return Failed(result.error)

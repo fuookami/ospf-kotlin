@@ -2,6 +2,7 @@
 
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -16,7 +17,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(x)
 
-        val metaModel = LinearMetaModel<Flt64>(name = "test-linear")
+        val metaModel = LinearMetaModel<Flt64>(name = "test-linear", converter = IntoValue.Flt64)
         val model = LinearMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",
@@ -38,7 +39,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(x)
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic")
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic", converter = IntoValue.Flt64)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",

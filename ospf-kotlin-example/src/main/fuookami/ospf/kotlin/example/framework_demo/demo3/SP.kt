@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.solver.*
 
 object InitialSolutionGenerator {
@@ -39,7 +40,7 @@ class SP {
         products: List<Product>,
         shadowPrice: ShadowPriceMap
     ): Ret<CuttingPlan> {
-        val model = LinearMetaModelFlt64("demo1-sp-$iteration")
+        val model = LinearMetaModelFlt64("demo1-sp-$iteration", converter = IntoValue.Flt64)
 
         val y = UIntVariable1("y", Shape1(products.size))
         for (product in products) {

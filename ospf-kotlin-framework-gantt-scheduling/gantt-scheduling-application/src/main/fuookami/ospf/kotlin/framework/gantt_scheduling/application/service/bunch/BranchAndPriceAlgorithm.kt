@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
 import fuookami.ospf.kotlin.framework.gantt_scheduling.application.model.bunch.Iteration
@@ -102,7 +103,7 @@ class BranchAndPriceAlgorithm<
 
         val beginTime = Clock.System.now()
         lateinit var bestSolution: BunchSolution<B, T, E, A>
-        return LinearMetaModelFlt64(id).use { model ->
+        return LinearMetaModelFlt64(id, converter = IntoValue.Flt64).use { model ->
             try {
 
                 var iteration = Iteration<T, E, A>()

@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
@@ -34,7 +35,7 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear")
+        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear", converter = IntoValue.Flt64)
         metaModel.add(listOf(x, y))
 
         val lhs = LinearPolynomial(
@@ -64,7 +65,7 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic")
+        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic", converter = IntoValue.Flt64)
         metaModel.add(listOf(x, y))
 
         val quadLhs = QuadraticPolynomial(

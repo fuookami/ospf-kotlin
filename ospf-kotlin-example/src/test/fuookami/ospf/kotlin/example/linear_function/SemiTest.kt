@@ -2,6 +2,7 @@
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SemiFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -29,7 +30,7 @@ class SemiTest {
         val semi = SemiFunction(px - py, name = "semi")
         val solver = ScipLinearSolver()
 
-        val model1 = LinearMetaModelFlt64()
+        val model1 = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         model1.add(x)
         model1.add(y)
         semi.register(model1)
@@ -38,7 +39,7 @@ class SemiTest {
         assert(result1.value!!.obj eq Flt64.zero)
         assert(result1.value!!.solution[1] geq result1.value!!.solution[0])
 
-        val model2 = LinearMetaModelFlt64()
+        val model2 = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         model2.add(x)
         model2.add(y)
         semi.register(model2)

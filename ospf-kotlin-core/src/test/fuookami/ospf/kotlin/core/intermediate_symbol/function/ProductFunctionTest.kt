@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -34,7 +35,7 @@ class ProductFunctionTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product")
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product", converter = IntoValue.Flt64)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",

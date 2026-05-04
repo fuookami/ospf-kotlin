@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.plus
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.XorFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.variable.BinVar
 import kotlinx.coroutines.runBlocking
@@ -25,7 +26,7 @@ class XorTest {
         val xor = XorFunction(listOf(px, py), name = "xor")
         val solver = ScipLinearSolver()
 
-        val model1 = LinearMetaModelFlt64()
+        val model1 = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         model1.add(x)
         model1.add(y)
         xor.register(model1)
@@ -34,7 +35,7 @@ class XorTest {
         val result1 = runBlocking { solver(model1) }
         assert(result1.value!!.obj eq Flt64.one)
 
-        val model2 = LinearMetaModelFlt64()
+        val model2 = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         model2.add(x)
         model2.add(y)
         xor.register(model2)

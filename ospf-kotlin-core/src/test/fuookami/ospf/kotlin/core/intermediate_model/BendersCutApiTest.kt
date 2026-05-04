@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -49,7 +50,7 @@ class BendersCutApiTest {
             name = "lc-opt"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt"),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt", converter = IntoValue.Flt64),
             name = "cut-model-lin-opt",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -89,7 +90,7 @@ class BendersCutApiTest {
             name = "lc-feas"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas"),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas", converter = IntoValue.Flt64),
             name = "cut-model-lin-feas",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -139,7 +140,7 @@ class BendersCutApiTest {
             name = "qc-opt"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt"),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt", converter = IntoValue.Flt64),
             name = "cut-model-qc-opt",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -185,7 +186,7 @@ class BendersCutApiTest {
             name = "qc-feas"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas"),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas", converter = IntoValue.Flt64),
             name = "cut-model-qc-feas",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -230,7 +231,7 @@ class BendersCutApiTest {
             name = "lc-opt-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out"),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out", converter = IntoValue.Flt64),
             name = "cut-model-lin-opt-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -275,7 +276,7 @@ class BendersCutApiTest {
             name = "lc-feas-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out"),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out", converter = IntoValue.Flt64),
             name = "cut-model-lin-feas-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -330,7 +331,7 @@ class BendersCutApiTest {
             name = "qc-opt-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out"),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out", converter = IntoValue.Flt64),
             name = "cut-model-qc-opt-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -381,7 +382,7 @@ class BendersCutApiTest {
             name = "qc-feas-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out"),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out", converter = IntoValue.Flt64),
             name = "cut-model-qc-feas-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),

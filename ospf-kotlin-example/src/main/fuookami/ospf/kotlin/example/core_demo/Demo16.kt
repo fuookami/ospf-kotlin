@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example16.html
@@ -46,7 +47,7 @@ data object Demo16 {
     lateinit var storageCost: LinearIntermediateSymbolFlt64
     lateinit var produceCost: LinearIntermediateSymbolFlt64
 
-    val metaModel = LinearMetaModelFlt64("demo16")
+    val metaModel = LinearMetaModelFlt64("demo16", converter = IntoValue.Flt64)
 
     private val subProcesses = listOf(
         Demo16::initVariable,

@@ -49,7 +49,7 @@ data object Demo12 {
     lateinit var risk: LinearExpressionSymbolFlt64
     lateinit var yield: LinearIntermediateSymbolFlt64
 
-    val metaModel = LinearMetaModelFlt64("demo12")
+    val metaModel = LinearMetaModelFlt64("demo12", converter = IntoValue.Flt64)
 
     private val subProcesses = listOf(
         Demo12::initVariable,

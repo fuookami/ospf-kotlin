@@ -27,10 +27,11 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.heuristic.pso.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 class Demo2 {
     operator fun invoke(): Try {
-        val metaModel = LinearMetaModelFlt64()
+        val metaModel = LinearMetaModelFlt64(converter = IntoValue.Flt64)
         val x = URealVar("x")
         val y = URealVar("y")
         x.range.leq(Flt64.two)

@@ -251,12 +251,13 @@ interface MathConstraint {
  */
 data class LinearInequalityConstraint<V>(
     val inequality: LinearInequality<V>,
+    val converter: IntoValue<V>,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: LinearFlattenDataFlt64 get() = @Suppress("UNCHECKED_CAST") inequality.toLinearFlattenDataFlt64(IntoValue.Flt64 as IntoValue<V>)
+    val flattenData: LinearFlattenDataFlt64 get() = inequality.toLinearFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -281,12 +282,13 @@ data class LinearInequalityConstraint<V>(
  */
 data class QuadraticInequalityConstraint<V>(
     val inequality: QuadraticInequalityOf<V>,
+    val converter: IntoValue<V>,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: QuadraticFlattenDataFlt64 get() = @Suppress("UNCHECKED_CAST") inequality.toQuadraticFlattenDataFlt64(IntoValue.Flt64 as IntoValue<V>)
+    val flattenData: QuadraticFlattenDataFlt64 get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
