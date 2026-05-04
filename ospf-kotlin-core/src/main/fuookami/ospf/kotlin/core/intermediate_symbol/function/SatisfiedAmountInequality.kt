@@ -250,6 +250,23 @@ open class SatisfiedAmountInequalityFunction<V>(
         return ok
     }
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            amount: ValueRange<UInt64>? = null,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            SatisfiedAmountInequalityFunction(
+                inputs = inputs,
+                amount = amount,
+                epsilon = converter.intoValue(epsilon),
+                converter = converter,
+                name = name,
+                displayName = displayName
+            )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             amount: ValueRange<UInt64>? = null,
@@ -287,6 +304,20 @@ class AnyFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AnyFunction<V> where V : RealNumber<V>, V : NumberField<V> = AnyFunction(
+            inputs = inputs,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -322,6 +353,20 @@ class AllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AllFunction<V> where V : RealNumber<V>, V : NumberField<V> = AllFunction(
+            inputs = inputs,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -363,6 +408,22 @@ class AtLeastInequalityFunction<V>(
     }
 
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            k: UInt64,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AtLeastInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> = AtLeastInequalityFunction(
+            inputs = inputs,
+            k = k,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             k: UInt64,
@@ -400,6 +461,20 @@ class NotAllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): NotAllFunction<V> where V : RealNumber<V>, V : NumberField<V> = NotAllFunction(
+            inputs = inputs,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
@@ -434,6 +509,22 @@ class NumerableFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            amount: ValueRange<UInt64>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): NumerableFunction<V> where V : RealNumber<V>, V : NumberField<V> = NumerableFunction(
+            inputs = inputs,
+            amount = amount,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             amount: ValueRange<UInt64>,

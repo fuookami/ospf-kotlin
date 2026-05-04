@@ -108,6 +108,19 @@ class SlackRangeFunction<V>(
     }
     companion object {
         /**
+         * V-generic factory: accept LinearPolynomial<V> for x and V threshold.
+         */
+        operator fun <V> invoke(
+            x: LinearPolynomial<V>,
+            threshold: V,
+            type: VariableType<*> = UContinuous,
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): SlackRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            SlackRangeFunction(x, threshold, type, converter, name, displayName)
+
+        /**
          * Factory: accept LinearPolynomial<Flt64> for x and Flt64 threshold.
          */
         operator fun invoke(
