@@ -13,13 +13,13 @@ import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.serde.canonicalInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.canonicalPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.linearInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.linearPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.quadraticInequalityFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.quadraticPolynomialFromJson
-import fuookami.ospf.kotlin.math.symbol.serde.toJsonString
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.canonicalInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.canonicalPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.linearInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.linearPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.quadraticInequalityFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.quadraticPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toJsonString
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 

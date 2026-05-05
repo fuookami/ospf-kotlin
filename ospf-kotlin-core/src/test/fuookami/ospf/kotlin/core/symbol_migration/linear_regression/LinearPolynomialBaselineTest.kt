@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.adapter.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull

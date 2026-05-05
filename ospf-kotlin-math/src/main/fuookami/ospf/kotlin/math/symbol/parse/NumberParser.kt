@@ -2,12 +2,11 @@
  * 数值解析器
  * Number Parser
  *
- * 定义数值解析器接口及 Flt64、Int64 的解析实现。
- * Defines the number parser interface and Flt64, Int64 parsing implementations.
+ * 定义数值解析器接口及 Int64 的解析实现。
+ * Defines the number parser interface and Int64 parsing implementation.
  */
 package fuookami.ospf.kotlin.math.symbol.parse
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 
 /**
@@ -25,16 +24,6 @@ fun interface NumberParser<T> {
      * @return 解析结果，失败返回 null / The parsed value, or null if parsing fails
      */
     fun parse(text: String): T?
-}
-
-/**
- * Flt64 数值解析器
- * Flt64 number parser
- */
-data object Flt64NumberParser : NumberParser<Flt64> {
-    override fun parse(text: String): Flt64? {
-        return text.toDoubleOrNull()?.let(::Flt64)
-    }
 }
 
 /**

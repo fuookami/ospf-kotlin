@@ -1,4 +1,4 @@
-﻿/**
+/**
  * 值提供者适配器
  * Value Provider Adapter
  *
@@ -8,7 +8,7 @@
  * used to retrieve numeric values for symbols during expression evaluation.
  * Supports different value sources such as Map, function calls, or custom implementations.
  */
-package fuookami.ospf.kotlin.math.symbol.adapter
+package fuookami.ospf.kotlin.math.symbol.adapter.flt64
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -93,7 +93,3 @@ enum class MissingValuePolicy {
      */
     Fail
 }
-
-
-
-

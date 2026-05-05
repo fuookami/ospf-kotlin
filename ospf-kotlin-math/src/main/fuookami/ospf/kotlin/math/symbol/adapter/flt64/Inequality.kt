@@ -1,0 +1,97 @@
+@file:Suppress("unused")
+
+package fuookami.ospf.kotlin.math.symbol.adapter.flt64
+
+import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+
+// ========== Comparison.satisfiedBy ==========
+
+fun Comparison.satisfiedBy(lhs: Flt64, rhs: Flt64): Boolean {
+    return when (this) {
+        Comparison.LT -> lhs < rhs
+        Comparison.LE -> lhs <= rhs
+        Comparison.EQ -> lhs == rhs
+        Comparison.NE -> lhs != rhs
+        Comparison.GE -> lhs >= rhs
+        Comparison.GT -> lhs > rhs
+    }
+}
+
+// ========== Symbol-level DSL ==========
+
+private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
+    return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
+}
+
+private fun Flt64.asLinearPolynomial(): LinearPolynomial<Flt64> {
+    return LinearPolynomial(emptyList(), this)
+}
+
+infix fun Symbol.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Symbol.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Symbol.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Symbol.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Symbol.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Symbol.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+
+infix fun Flt64.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Flt64.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Flt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Flt64.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Flt64.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Flt64.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+
+infix fun Symbol.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Symbol.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Symbol.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Symbol.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Symbol.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+
+// ========== isSatisfied ==========
+
+fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+    val lhsValue = lhs.evaluate(values) ?: return null
+    val rhsValue = rhs.evaluate(values) ?: return null
+    return comparison.satisfiedBy(lhsValue, rhsValue)
+}
+
+fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
+    return comparison.satisfiedBy(
+        lhs = lhs.evaluateOrdered(order, values),
+        rhs = rhs.evaluateOrdered(order, values)
+    )
+}
+
+fun QuadraticInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+    val lhsValue = lhs.evaluate(values) ?: return null
+    val rhsValue = rhs.evaluate(values) ?: return null
+    return comparison.satisfiedBy(lhsValue, rhsValue)
+}
+
+fun QuadraticInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
+    return comparison.satisfiedBy(
+        lhs = lhs.evaluateOrdered(order, values),
+        rhs = rhs.evaluateOrdered(order, values)
+    )
+}
+
+fun CanonicalInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+    val lhsValue = lhs.evaluate(values) ?: return null
+    val rhsValue = rhs.evaluate(values) ?: return null
+    return comparison.satisfiedBy(lhsValue, rhsValue)
+}
+
+fun CanonicalInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
+    return comparison.satisfiedBy(
+        lhs = lhs.evaluateOrdered(order, values),
+        rhs = rhs.evaluateOrdered(order, values)
+    )
+}

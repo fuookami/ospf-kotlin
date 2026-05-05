@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.variable.*
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.model.basic.*

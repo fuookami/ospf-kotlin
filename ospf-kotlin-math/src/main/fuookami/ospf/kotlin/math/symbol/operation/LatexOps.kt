@@ -27,6 +27,12 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 // Latex Operations (Ring-based, no Generic conversion)
 // ============================================================================
 
+data class LatexOptions(
+    val compact: Boolean = true,
+    val showOnes: Boolean = false,
+    val useCdot: Boolean = false
+)
+
 data class LatexNumberOps<T>(
     val isZero: (T) -> Boolean,
     val isOne: (T) -> Boolean,

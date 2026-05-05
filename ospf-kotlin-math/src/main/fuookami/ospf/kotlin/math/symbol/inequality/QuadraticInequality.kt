@@ -6,11 +6,8 @@ package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
-import fuookami.ospf.kotlin.math.symbol.operation.evaluateOrdered
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
@@ -145,15 +142,3 @@ fun <T : Ring<T>> QuadraticPolynomial<T>.ge(rhs: T, name: String, displayName: S
 fun <T : Ring<T>> QuadraticPolynomial<T>.gt(rhs: T, name: String, displayName: String = ""): QuadraticInequalityOf<T> =
     QuadraticInequalityOf(this, rhs.asQuadraticPolynomial(), Comparison.GT, name, displayName)
 
-fun QuadraticInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
-    val lhsValue = lhs.evaluate(values) ?: return null
-    val rhsValue = rhs.evaluate(values) ?: return null
-    return comparison.satisfiedBy(lhsValue, rhsValue)
-}
-
-fun QuadraticInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
-    return comparison.satisfiedBy(
-        lhs = lhs.evaluateOrdered(order, values),
-        rhs = rhs.evaluateOrdered(order, values)
-    )
-}

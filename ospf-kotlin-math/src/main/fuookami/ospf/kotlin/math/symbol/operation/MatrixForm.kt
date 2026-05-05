@@ -4,60 +4,23 @@
  *
  * 提供多项式与矩阵形式之间的双向转换。
  * 线性多项式可表示为 c'x + d，二次多项式可表示为 x'Qx + c'x + d。
- * 支持泛型 Ring<T> 和 Flt64 特化版本。
+ * 支持泛型 Ring<T>。
  * Provides bidirectional conversion between polynomials and matrix form.
  * Linear polynomials can be represented as c'x + d,
  * quadratic polynomials as x'Qx + c'x + d.
- * Supports generic Ring<T> and Flt64 specialized versions.
+ * Supports generic Ring<T>.
  */
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Fatal
-import fuookami.ospf.kotlin.utils.functional.Ok
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
-
-// ============================================================================
-// Typed Matrix Form Data Classes for DoubleArray/Flt64
-// ============================================================================
-
-/**
- * 线性矩阵形式
- * Linear matrix form
- *
- * 表示线性多项式 c'x + d 的矩阵形式。
- * Represents the matrix form of a linear polynomial c'x + d.
- */
-data class LinearMatrixForm(
-    val c: DoubleArray,
-    val d: Flt64,
-    val order: List<Symbol>
-)
-
-/**
- * 二次矩阵形式
- * Quadratic matrix form
- *
- * 表示二次多项式 x'Qx + c'x + d 的矩阵形式。
- * Represents the matrix form of a quadratic polynomial x'Qx + c'x + d.
- */
-data class QuadraticMatrixForm(
-    val q: Array<DoubleArray>,
-    val c: DoubleArray,
-    val d: Flt64,
-    val order: List<Symbol>
-)
 
 // ============================================================================
 // Typed Matrix Form Data Classes for Generic Ring<T>
@@ -98,38 +61,12 @@ private fun validateOrder(order: List<Symbol>) {
     require(order.toSet().size == order.size) { "Symbol order contains duplicated symbols." }
 }
 
-private fun validateLinearMatrixDimensions(
-    c: DoubleArray,
-    order: List<Symbol>
-) {
-    require(c.size == order.size) {
-        "Linear matrix form dimension mismatch: c.size=${c.size}, order.size=${order.size}."
-    }
-}
-
 private fun <T> validateLinearMatrixDimensions(
     c: List<T>,
     order: List<Symbol>
 ) {
     require(c.size == order.size) {
         "Linear matrix form dimension mismatch: c.size=${c.size}, order.size=${order.size}."
-    }
-}
-
-private fun validateQuadraticMatrixDimensions(
-    q: Array<DoubleArray>,
-    c: DoubleArray,
-    order: List<Symbol>
-) {
-    val n = order.size
-    require(q.size == n) {
-        "Quadratic matrix form dimension mismatch: q.size=${q.size}, order.size=$n."
-    }
-    require(q.all { it.size == n }) {
-        "Quadratic matrix form requires square q with size order.size=$n."
-    }
-    require(c.size == n) {
-        "Quadratic matrix form dimension mismatch: c.size=${c.size}, order.size=$n."
     }
 }
 
@@ -390,126 +327,4 @@ fun <T> typedQuadraticPolynomialFromMatrixForm(
         mergeOffDiagonal = mergeOffDiagonal,
         symbolComparator = symbolComparator
     )
-}
-
-// ============================================================================
-// Flt64-specific Matrix Form Operations (DoubleArray-based)
-// ============================================================================
-
-fun LinearPolynomial<Flt64>.toMatrixForm(
-    order: List<Symbol>,
-    combineTerms: Boolean = true
-): LinearMatrixForm {
-    val form = toTypedMatrixForm(
-        order = order,
-        zero = Flt64.zero,
-        combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
-    )
-
-    return LinearMatrixForm(
-        c = form.c.map { it.toDouble() }.toDoubleArray(),
-        d = form.d,
-        order = form.order
-    )
-}
-
-fun linearPolynomialFromMatrixForm(
-    c: DoubleArray,
-    d: Flt64,
-    order: List<Symbol>
-): LinearPolynomial<Flt64> {
-    return typedLinearPolynomialFromMatrixForm(
-        c = c.map { Flt64(it) },
-        d = d,
-        order = order,
-        zero = Flt64.zero,
-        isZero = { it == Flt64.zero }
-    )
-}
-
-fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt64> {
-    return linearPolynomialFromMatrixForm(
-        c = form.c,
-        d = form.d,
-        order = form.order
-    )
-}
-
-fun QuadraticPolynomial<Flt64>.toMatrixForm(
-    order: List<Symbol>,
-    combineTerms: Boolean = true
-): QuadraticMatrixForm {
-    val form = toTypedMatrixForm(
-        order = order,
-        zero = Flt64.zero,
-        splitOffDiagonal = { coefficient ->
-            val half = coefficient / Flt64.two
-            half to half
-        },
-        combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
-    )
-
-    return QuadraticMatrixForm(
-        q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
-        c = form.c.map { it.toDouble() }.toDoubleArray(),
-        d = form.d,
-        order = form.order
-    )
-}
-
-fun quadraticPolynomialFromMatrixForm(
-    q: Array<DoubleArray>,
-    c: DoubleArray,
-    d: Flt64,
-    order: List<Symbol>
-): QuadraticPolynomial<Flt64> {
-    return typedQuadraticPolynomialFromMatrixForm(
-        q = q.map { row -> row.map { Flt64(it) } },
-        c = c.map { Flt64(it) },
-        d = d,
-        order = order,
-        zero = Flt64.zero,
-        isZero = { it == Flt64.zero },
-        mergeOffDiagonal = { lhs, rhs -> lhs + rhs }
-    )
-}
-
-fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
-    return quadraticPolynomialFromMatrixForm(
-        q = form.q,
-        c = form.c,
-        d = form.d,
-        order = form.order
-    )
-}
-
-fun CanonicalPolynomial<Flt64>.toMatrixForm(
-    order: List<Symbol>,
-    combineTerms: Boolean = true,
-    symbolComparator: java.util.Comparator<Symbol>? = null
-): QuadraticMatrixForm {
-    val source = if (combineTerms) {
-        this.combineTerms(symbolComparator)
-    } else {
-        this
-    }
-    return when (val quadratic = source.toQuadraticPolynomialRet(symbolComparator)) {
-        is Ok -> {
-            quadratic.value.toMatrixForm(order = order, combineTerms = false)
-        }
-
-        is Failed -> {
-            throw IllegalArgumentException(
-                "Cannot convert canonical polynomial to quadratic matrix form: ${quadratic.error.message}"
-            )
-        }
-
-        is Fatal -> {
-            throw IllegalArgumentException(
-                "Cannot convert canonical polynomial to quadratic matrix form: ${quadratic.errors.joinToString { it.message }}"
-            )
-        }
-    }
 }
