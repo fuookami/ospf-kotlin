@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class MAC(
     private val aircraftModel: AircraftModel,
@@ -21,10 +22,10 @@ class MAC(
     private val totalWeight: TotalWeight,
     private val torque: Torque
 ) {
-    lateinit var mac: LinearIntermediateSymbolFlt64
+    lateinit var mac: LinearIntermediateSymbol<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::mac.isInitialized) {
             val tow = totalWeight.computedTotalWeight[FlightPhase.TakeOff]

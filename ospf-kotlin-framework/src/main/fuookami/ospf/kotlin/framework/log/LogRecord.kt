@@ -72,8 +72,6 @@ data class LogRecordPO<T : Any>(
         availableTime = (Clock.System.now() + availableTime).toLocalDateTime(TimeZone.currentSystemDefault()),
         value = value
     )
-
-    @Suppress("UNCHECKED_CAST")
     @OptIn(InternalSerializationApi::class)
     val rpo by lazy {
         byteRPO {

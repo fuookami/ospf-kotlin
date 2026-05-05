@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -14,7 +13,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -22,6 +20,8 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 /**
  * FirstFunction - Returns the index of the first polynomial in the list that evaluates to > 0.
@@ -92,7 +92,7 @@ class FirstFunction<V>(
         return converter.intoValue(Flt64(n.toDouble()))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -100,7 +100,7 @@ class FirstFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         // Register all binary function constraints (tokens already registered in registerAuxiliaryTokens)
         for (binFunc in binaryFunctions) {
             when (val r = binFunc.registerConstraints(model)) {
@@ -110,14 +110,14 @@ class FirstFunction<V>(
             }
         }
 
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         for (i in polynomials.indices) {
             val binResult = binaryFunctions[i].resultVar
             val yi = _yVars[i]
 
             // y[i] <= bin[i]
-            allConstraints += Flt64LinearInequality(
+            allConstraints += LinearInequality<Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                 Comparison.LE, "${name}_ub1_$i"
@@ -125,7 +125,7 @@ class FirstFunction<V>(
 
             if (i == 0) {
                 // y[0] >= bin[0]
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                     Comparison.GE, "${name}_lb_0"
@@ -135,14 +135,14 @@ class FirstFunction<V>(
                 // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
                 val prevYMonos = (0 until i).map { j -> LinearMonomial(Flt64.one, _yVars[j]) }
                 val lhsMonos = listOf(LinearMonomial(Flt64.one, yi)) + prevYMonos
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(lhsMonos, Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                     Comparison.GE, "${name}_lb_$i"
                 )
 
                 // y[i] <= y[i-1] (monotonicity)
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, _yVars[i - 1])), Flt64.zero),
                     Comparison.LE, "${name}_y_$i"

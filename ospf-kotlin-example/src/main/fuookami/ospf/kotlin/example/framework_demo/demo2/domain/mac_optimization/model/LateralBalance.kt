@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class LateralBalance(
     private val aircraftModel: AircraftModel,
@@ -23,7 +24,7 @@ class LateralBalance(
     lateinit var slack: QuantityLinearIntermediateSymbol
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::slack.isInitialized) {
             slack = Quantity(

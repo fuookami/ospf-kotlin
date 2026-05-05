@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPrice
 import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 private data class FleetBalanceShadowPriceKey(
     val airport: Airport,
@@ -31,7 +32,7 @@ class FleetBalanceLimit(
     private val coefficient: (Airport, AircraftMinorType) -> Flt64,
     override val name: String = "fleet_balance_limit"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((l, checkPoint) in fleetBalance.limits.withIndex()) {
             when (val result = model.addConstraint(
                 relation = fleetBalance.slack[l] geq checkPoint.second.amount,
@@ -98,7 +99,7 @@ class FleetBalanceLimit(
 
     override fun refresh(
         map: ShadowPriceMap,
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup(this)) {

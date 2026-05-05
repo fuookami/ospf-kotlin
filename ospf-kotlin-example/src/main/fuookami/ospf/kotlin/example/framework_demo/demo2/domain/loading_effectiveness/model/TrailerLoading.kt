@@ -15,6 +15,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class TrailerLoading(
     private val items: List<Item>,
@@ -39,14 +47,14 @@ class TrailerLoading(
         }
     }
 
-    lateinit var trailerChange: LinearIntermediateSymbols2Flt64
-    lateinit var trailerCircling: LinearIntermediateSymbols2Flt64
+    lateinit var trailerChange: LinearIntermediateSymbols2<Flt64>
+    lateinit var trailerCircling: LinearIntermediateSymbols2<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::trailerChange.isInitialized) {
-            trailerChange = LinearIntermediateSymbols2Flt64("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->
+            trailerChange = LinearIntermediateSymbols2<Flt64>("trailer_change", Shape2(orderedTrailers.size, adjacentPositions.size)) { _, v ->
                 val (trailer1, trailer2) = orderedTrailers[v[0]]
                 val (position1, position2) = adjacentPositions[v[1]]
 
@@ -60,10 +68,10 @@ class TrailerLoading(
                 LinearFunctionSymbolAdapter(
                     delegate = IfFunction(
                         condition = loadAmount1 + loadAmount2 - Flt64.two,
-                        converter = IntoValue.Flt64,
+                        converter = flt64Converter,
                         name = "trailer_change_${trailer1}_${trailer2}_${position1}_${position2}"
                     ),
-                    converter = IntoValue.Flt64
+                    converter = flt64Converter
                 )
             }
         }
@@ -80,7 +88,7 @@ class TrailerLoading(
         }
 
         if (!::trailerCircling.isInitialized) {
-            trailerCircling = LinearIntermediateSymbols2Flt64("trailer_circling", Shape2(orderedItemsInTrailers.size, adjacentPositions.size)) { _, v ->
+            trailerCircling = LinearIntermediateSymbols2<Flt64>("trailer_circling", Shape2(orderedItemsInTrailers.size, adjacentPositions.size)) { _, v ->
                 val (item1, item2) = orderedItemsInTrailers[v[0]]
                 val i1 = items.indexOf(item1)
                 val i2 = items.indexOf(item2)
@@ -92,10 +100,10 @@ class TrailerLoading(
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
                             condition = stowage.stowage[i2, j1] + stowage.stowage[i1, j2] - Flt64.two,
-                            converter = IntoValue.Flt64,
+                            converter = flt64Converter,
                             name = "trailer_circling_${item1}_${item2}_${position1}_${position2}"
                         ),
-                        converter = IntoValue.Flt64
+                        converter = flt64Converter
                     )
                 } else {
                     LinearExpressionSymbol(

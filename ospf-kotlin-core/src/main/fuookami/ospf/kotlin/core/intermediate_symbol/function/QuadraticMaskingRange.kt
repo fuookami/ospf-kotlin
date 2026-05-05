@@ -3,11 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.AbstractTokenListFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -34,6 +30,16 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.token.AbstractTokenList
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * Quadratic masking range: when z = 1, y is forced to equal polynomial;
@@ -90,17 +96,17 @@ class QuadraticMaskingRangeFunction<V>(
         )
     }
 
-    override val flattenedMonomials: QuadraticFlattenDataFlt64
-        get() = QuadraticFlattenDataFlt64(emptyList(), Flt64.zero)
+    override val flattenedMonomials: QuadraticFlattenData<Flt64>
+        get() = QuadraticFlattenData<Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: QuadraticPolynomial<V>
         get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    override fun evaluate(tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenListFlt64, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenListFlt64?, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
@@ -111,7 +117,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * Register helper variable (resultVar) with the token collection.
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(listOf(resultVar))) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -122,7 +128,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * Register Big-M masking constraints.
      */
-    override fun registerConstraints(model: AbstractQuadraticMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
         val mF = converter.fromValue(bigM)
         val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
@@ -186,6 +192,6 @@ class QuadraticMaskingRangeFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticMaskingRangeFunction<Flt64> = QuadraticMaskingRangeFunction(polynomial, z, bigM, IntoValue.Flt64, name, displayName)
+        ): QuadraticMaskingRangeFunction<Flt64> = QuadraticMaskingRangeFunction(polynomial, z, bigM, flt64Converter, name, displayName)
     }
 }

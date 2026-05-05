@@ -51,7 +51,7 @@ class RecommendedWeightEqualizationContext {
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         val generator = PipelineListGenerator(aggregation)
         val pipelines = when (val result = generator.invoke(
@@ -88,7 +88,7 @@ class RecommendedWeightEqualizationContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Weight equalization constraints go into the master problem.
         return register(
@@ -98,14 +98,14 @@ class RecommendedWeightEqualizationContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Weight equalization does not contribute to the sub problem.
         return ok
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

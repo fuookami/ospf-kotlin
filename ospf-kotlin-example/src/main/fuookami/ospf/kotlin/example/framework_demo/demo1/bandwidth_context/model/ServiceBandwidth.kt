@@ -13,17 +13,18 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Nod
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.NormalNode
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ServiceBandwidth(
     private val graph: Graph,
     private val services: List<Service>,
     private val edgeBandwidth: EdgeBandwidth
 ) {
-    lateinit var inDegree: LinearIntermediateSymbols2Flt64
-    lateinit var outDegree: LinearIntermediateSymbols2Flt64
-    lateinit var outFlow: LinearIntermediateSymbols2Flt64
+    lateinit var inDegree: LinearIntermediateSymbols2<Flt64>
+    lateinit var outDegree: LinearIntermediateSymbols2<Flt64>
+    lateinit var outFlow: LinearIntermediateSymbols2<Flt64>
 
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         val y = edgeBandwidth.y
         val to: (Node) -> Predicate<Edge> =
             { fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.to(it) }

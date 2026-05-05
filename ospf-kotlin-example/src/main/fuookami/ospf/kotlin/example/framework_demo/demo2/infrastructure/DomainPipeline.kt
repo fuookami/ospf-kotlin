@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * Common domain pipeline context for FullLoad and Predistribution modes.
@@ -63,7 +64,7 @@ class FullLoadPipelineContext {
         return ok
     }
 
-    fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModelFlt64): Try {
+    fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModel<Flt64>): Try {
         stowageContext.register(stowageMode = stowageMode, model = model).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }
@@ -125,7 +126,7 @@ class PredistributionPipelineContext {
         return ok
     }
 
-    fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModelFlt64): Try {
+    fun register(stowageMode: StowageMode, parameter: Parameter, model: AbstractLinearMetaModel<Flt64>): Try {
         fullLoad.register(stowageMode = stowageMode, parameter = parameter, model = model).orReturn(
             failedHandler = { return Failed(it) },
             fatalHandler = { return Fatal(it) }

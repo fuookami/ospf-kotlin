@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.variable
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -22,6 +21,8 @@ import fuookami.ospf.kotlin.utils.functional.ord
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.quantities.unit.PhysicalUnit
 import fuookami.ospf.kotlin.quantities.unit.reciprocal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 data class VariableItemKey(
     val identifier: UInt64,
@@ -82,9 +83,9 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return identifier == combination.identifier
     }
 
-    fun toMathLinearInequality(): Flt64LinearInequality {
+    fun toMathLinearInequality(): LinearInequality<Flt64> {
         val poly = LinearPolynomial(monomials = listOf(LinearMonomial(Flt64.one, this)), constant = Flt64.zero)
-        return Flt64LinearInequality(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return LinearInequality<Flt64>(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     fun toMathQuadraticInequality(): QuadraticInequality {

@@ -10,14 +10,15 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 data class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
     operator fun invoke(
         stowageMode: StowageMode
-    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
-        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         pipelines.add(
             ItemAssignmentLimit(

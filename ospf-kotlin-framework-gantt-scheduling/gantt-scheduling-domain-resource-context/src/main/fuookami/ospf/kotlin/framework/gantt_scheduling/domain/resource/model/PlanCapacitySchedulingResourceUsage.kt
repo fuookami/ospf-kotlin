@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
@@ -16,6 +15,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
 /**
  * Plan 模式的产能调度资源使用量管理
@@ -120,7 +120,7 @@ class PlanCapacitySchedulingResourceUsage<
         }
     }
 
-    override fun register(model: LinearMetaModelFlt64): Try {
+    override fun register(model: LinearMetaModel<Flt64>): Try {
         return addQuantityToModel(model, timeSlots)
     }
 

@@ -436,8 +436,6 @@ open class AbstractPlannedTask<out P : AbstractTaskPlan<E>, out E : Executor, ou
                 assignmentPolicy?.executor != null
             }
         }
-
-    @Suppress("UNCHECKED_CAST")
     override fun partialEq(rhs: AbstractTask<@UnsafeVariance E, @UnsafeVariance A>): Boolean? {
         if (this === rhs) return true
         if (this::class != rhs::class) return false

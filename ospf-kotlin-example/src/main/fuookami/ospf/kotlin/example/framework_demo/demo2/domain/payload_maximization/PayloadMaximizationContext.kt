@@ -36,7 +36,7 @@ class PayloadMaximizationContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         val generator = PipelineListGenerator(aggregation)
         val pipelines = when (val result = generator.invoke(
@@ -74,7 +74,7 @@ class PayloadMaximizationContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Payload maximization objective goes into the master problem.
         return register(
@@ -85,14 +85,14 @@ class PayloadMaximizationContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Payload maximization does not contribute to the sub problem.
         return ok
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

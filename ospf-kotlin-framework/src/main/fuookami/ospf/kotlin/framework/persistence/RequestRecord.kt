@@ -121,8 +121,6 @@ data class RequestRecordPO<T>(
         time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         request = request
     )
-
-    @Suppress("UNCHECKED_CAST")
     @OptIn(InternalSerializationApi::class)
     val rpo: RequestRecordRPO by lazy {
         rpo {
@@ -286,8 +284,6 @@ data class ResponseRecordPO<T>(
         time = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()),
         response = response
     )
-
-    @Suppress("UNCHECKED_CAST")
     @OptIn(InternalSerializationApi::class)
     val rpo: ResponseRecordRPO by lazy {
         rpo {

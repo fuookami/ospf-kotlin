@@ -20,6 +20,13 @@ import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.solver.*
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 object InitialSolutionGenerator {
     operator fun invoke(length: UInt64, products: List<Product>): Ret<List<CuttingPlan>> {
         val solution = ArrayList<CuttingPlan>()
@@ -40,7 +47,7 @@ class SP {
         products: List<Product>,
         shadowPrice: ShadowPriceMap
     ): Ret<CuttingPlan> {
-        val model = LinearMetaModelFlt64("demo1-sp-$iteration", converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>("demo1-sp-$iteration", converter = flt64Converter)
 
         val y = UIntVariable1("y", Shape1(products.size))
         for (product in products) {
@@ -72,7 +79,7 @@ class SP {
         }
     }
 
-    private fun analyze(model: LinearMetaModelFlt64, products: List<Product>, result: List<Flt64>): CuttingPlan {
+    private fun analyze(model: LinearMetaModel<Flt64>, products: List<Product>, result: List<Flt64>): CuttingPlan {
         val cuttingPlan = HashMap<Product, UInt64>()
         for (token in model.tokens.tokens) {
             if (result[token.solverIndex] geq Flt64.one) {

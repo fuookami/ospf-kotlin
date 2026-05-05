@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Edg
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class EdgeBandwidthConstraint(
     private val edges: List<Edge>,
@@ -24,8 +25,8 @@ class EdgeBandwidthConstraint(
     private val assignment: Assignment,
     private val edgeBandwidth: EdgeBandwidth,
     override val name: String = "edge_bandwidth_constraint"
-) : Pipeline<LinearMetaModelFlt64> {
-    override fun invoke(model: LinearMetaModelFlt64): Try {
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
         val y = edgeBandwidth.y
         val assignment = assignment.serviceAssignment
 

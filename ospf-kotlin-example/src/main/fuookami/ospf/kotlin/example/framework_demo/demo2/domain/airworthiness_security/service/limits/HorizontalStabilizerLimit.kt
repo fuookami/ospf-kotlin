@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class HorizontalStabilizerLimit(
     private val horizontalStabilizers: Map<HorizontalStabilizer.Key, HorizontalStabilizer>,
     private val stowageMode: StowageMode,
     override val name: String = "horizontal_stabilizer_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((key, horizontalStabilizer) in horizontalStabilizers) {
             if (stowageMode == StowageMode.WeightRecommendation && horizontalStabilizer.limit.warnMaxTrim != null) {
                 when (val result = model.addConstraint(

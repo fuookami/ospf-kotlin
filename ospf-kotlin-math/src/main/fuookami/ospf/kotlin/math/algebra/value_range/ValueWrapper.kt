@@ -110,7 +110,6 @@ class ValueWrapperSerializer<T>(
          *
          * @return 新的 ValueWrapperSerializer 实例
          */
-        @Suppress("UNCHECKED_CAST")
         @OptIn(InternalSerializationApi::class)
         inline operator fun <reified T> invoke(): ValueWrapperSerializer<T> where T : RealNumber<T>, T : NumberField<T> {
             return invoke(resolveRealNumberConstants<T>("ValueWrapper"))
@@ -225,7 +224,6 @@ sealed class ValueWrapper<T>(
          * @param value 要包装的数值
          * @return 创建结果（成功返回值包装器，失败返回错误）
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueWrapper<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -270,7 +268,6 @@ sealed class ValueWrapper<T>(
          *
          * @return 正无穷值包装器
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             _inf: GlobalInfinity
         ): ValueWrapper<T> where T : RealNumber<T>, T : NumberField<T> {

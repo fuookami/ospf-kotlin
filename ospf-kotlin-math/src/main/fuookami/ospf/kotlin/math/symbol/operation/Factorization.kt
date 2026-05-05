@@ -136,7 +136,6 @@ fun <T> solveQuadratic(coefficients: QuadraticCoefficients<T>): PolynomialRoots<
         }
         else -> {
             // 两个不同的实根 / Two distinct real roots
-            @Suppress("UNCHECKED_CAST")
             val sqrtD = discriminant.sqrt() as T
             val twoA = constants.two * a
             val root1 = (-b + sqrtD) / twoA

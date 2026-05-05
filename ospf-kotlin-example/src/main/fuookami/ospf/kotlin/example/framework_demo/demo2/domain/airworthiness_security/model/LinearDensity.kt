@@ -50,13 +50,13 @@ class LinearDensity(
         }
     }
 
-    lateinit var linearDensity: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var linearDensity: QuantityLinearIntermediateSymbols1<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::linearDensity.isInitialized) {
-            linearDensity = QuantityLinearIntermediateSymbols1Flt64("linear_density", Shape1(positions.size)) { j, _ ->
+            linearDensity = QuantityLinearIntermediateSymbols1<Flt64>("linear_density", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val coefficient = Flt64.one / position.shape.length.to(aircraftModel.lengthUnit)!!.value
                 Quantity(

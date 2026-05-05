@@ -2,8 +2,6 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -13,6 +11,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 /**
  * Base layer of the model hierarchy: variables + constraints + symbols + caches (no objective).

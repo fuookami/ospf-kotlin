@@ -28,10 +28,18 @@ import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.heuristic.pso.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class Demo2 {
     operator fun invoke(): Try {
-        val metaModel = LinearMetaModelFlt64(converter = IntoValue.Flt64)
+        val metaModel = LinearMetaModel<Flt64>(converter = flt64Converter)
         val x = URealVar("x")
         val y = URealVar("y")
         x.range.leq(Flt64.two)

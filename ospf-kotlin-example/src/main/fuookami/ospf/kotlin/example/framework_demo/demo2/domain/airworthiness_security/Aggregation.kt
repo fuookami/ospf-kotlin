@@ -71,7 +71,7 @@ class Aggregation(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = linearDensity.register(model)) {
             is Ok -> {}
@@ -143,14 +143,14 @@ class Aggregation(
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Airworthiness constraints go into the sub problem, not master.
         return ok
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         // Airworthiness constraints form the sub problem.
@@ -158,7 +158,7 @@ class Aggregation(
     }
 
     private fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

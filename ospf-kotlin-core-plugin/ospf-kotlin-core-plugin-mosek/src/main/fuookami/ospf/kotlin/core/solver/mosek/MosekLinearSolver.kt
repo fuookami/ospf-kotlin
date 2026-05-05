@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.solver.mosek
 
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -12,7 +11,6 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
@@ -31,6 +29,7 @@ import mosek.boundkey
 import mosek.objsense
 import mosek.variabletype
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 class MosekLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -41,7 +40,7 @@ class MosekLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         return MosekLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -57,11 +56,11 @@ class MosekLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution<Flt64>>()
+            val results = ArrayList<List<Flt64>>()
             MosekLinearSolverImpl(
                 config = config,
                 callBack = callBack
@@ -87,13 +86,13 @@ class MosekLinearSolverImpl(
     private val callBack: MosekSolverCallBack? = null,
     private val statusCallBack: SolvingStatusCallBack? = null
 ) : MosekSolver() {
-    private lateinit var output: FeasibleSolverOutputFlt64
+    private lateinit var output: FeasibleSolverOutput<Flt64>
 
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutputFlt64> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
         val processes = arrayOf(
             { it.init(model.name, callBack?.creatingEnvironmentFunction) },
             { it.dump(model) },

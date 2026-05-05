@@ -16,6 +16,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 class Redundancy(
     private val aircraftModel: AircraftModel,
     private val flight: Flight,
@@ -25,9 +32,9 @@ class Redundancy(
     private val load: Load,
     private val payload: Payload
 ) {
-    lateinit var redundancy: LinearIntermediateSymbolFlt64
-    lateinit var predicateRedundancy: LinearIntermediateSymbolFlt64
-    lateinit var redundancySlack: LinearIntermediateSymbolFlt64
+    lateinit var redundancy: LinearIntermediateSymbol<Flt64>
+    lateinit var predicateRedundancy: LinearIntermediateSymbol<Flt64>
+    lateinit var redundancySlack: LinearIntermediateSymbol<Flt64>
 
     val minRedundancy: LinearPolynomial<Flt64> by lazy {
         TODO("not implemented yet")
@@ -38,7 +45,7 @@ class Redundancy(
     }
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::redundancy.isInitialized) {
             val poly = MutableLinearPolynomial()
@@ -100,10 +107,10 @@ class Redundancy(
                     type = UContinuous,
                     withNegative = true,
                     withPositive = true,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = "redundancy_slack"
                 ),
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
         when (val result = model.add(redundancySlack)) {

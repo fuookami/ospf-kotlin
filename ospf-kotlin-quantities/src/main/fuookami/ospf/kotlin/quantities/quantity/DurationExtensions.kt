@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import kotlin.time.Duration
 import kotlin.time.DurationUnit
 import kotlin.time.toDuration
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 时间物理量与 kotlin.time.Duration 互转换扩展
@@ -155,7 +156,6 @@ private val converters = mutableMapOf<Class<*>, DurationConverter<*>>(
  * 获取指定类型的转换器
  * Get converter for specified type
  */
-@Suppress("UNCHECKED_CAST")
 fun <V> getConverter(valueClass: Class<V>): Ret<DurationConverter<V>> {
     val converter = converters[valueClass] as? DurationConverter<V>
     return if (converter != null) {
@@ -284,7 +284,6 @@ inline fun <reified V> Duration.toQuantity(unit: PhysicalUnit): Ret<Quantity<V>>
     // 计算目标单位下的值
     return when (val valueResult = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            @Suppress("UNCHECKED_CAST")
             Ok((valueResult.value * unit) as Quantity<V>)
         }
         is Failed -> Failed(valueResult.error)
@@ -324,7 +323,6 @@ fun <V> Duration.toQuantity(unit: PhysicalUnit, converter: DurationConverter<V>)
     // 计算目标单位下的值
     return when (val valueResult = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            @Suppress("UNCHECKED_CAST")
             Ok((valueResult.value * unit) as Quantity<V>)
         }
         is Failed -> Failed(valueResult.error)
@@ -488,7 +486,6 @@ inline fun <reified V> Duration.toQuantityBestFit(threshold: Double = 1000.0): R
 
     return when (val r = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            @Suppress("UNCHECKED_CAST")
             Ok((r.value * unit) as Quantity<V>)
         }
         is Failed -> Failed(r.error)

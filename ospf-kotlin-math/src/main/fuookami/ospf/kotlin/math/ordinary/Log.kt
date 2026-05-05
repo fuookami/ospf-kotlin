@@ -25,8 +25,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import java.math.RoundingMode
-
-@Suppress("UNCHECKED_CAST")
 fun <T : FloatingNumber<T>> ln(
     x: T,
     constants: FloatingNumberConstants<T>,
@@ -72,8 +70,6 @@ fun <T : FloatingNumber<T>> ln(
         ln(m, constants)!! + k * constants.lg2
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> ln(
     x: T,
     digits: Int = x.constants.decimalDigits!!,
@@ -110,8 +106,6 @@ fun <T : FloatingNumber<T>> log(
         }
     } ?: constants.nan
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> log(
     x: T,
     base: T,

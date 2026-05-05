@@ -47,7 +47,6 @@ class MandelbrotSet<V : FloatingNumber<V>>(
     operator fun invoke(z: Point<Dim2, V>): Point<Dim2, V> {
         val two = z[0].constants.two
         val real = z[0].pow(2) - z[1].pow(2) + c[0]
-        @Suppress("UNCHECKED_CAST")
         val imag = two * z[0] * z[1] + c[1]
         return Point<Dim2, V>(listOf(real, imag), Dim2)
     }

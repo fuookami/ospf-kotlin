@@ -43,8 +43,6 @@ interface Cuboid<T : Cuboid<T>> : AbstractCuboid {
                     && (withRotation || !it.rotated)
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     fun view(orientation: Orientation = Orientation.Upright): CuboidView<T>? {
         return CuboidView(this as T, orientation)
     }

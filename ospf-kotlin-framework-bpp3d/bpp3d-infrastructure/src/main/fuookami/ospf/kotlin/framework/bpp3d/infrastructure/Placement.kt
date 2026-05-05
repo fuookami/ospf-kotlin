@@ -99,8 +99,6 @@ data class Placement2<
             null
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     fun toPlacement3(): List<Placement3<T>> {
         return when (projection) {
             is PlaneProjection<*, *> -> {

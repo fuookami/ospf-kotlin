@@ -25,7 +25,6 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val perimeter: V by lazy { e1.length + e2.length + e3.length }
 
     val centroid: P by lazy {
-        @Suppress("UNCHECKED_CAST")
         val v = p1[0]
         val three = v.constants.three
         p1.indices.map { (p1[it] + p2[it] + p3[it]) / three }.let {
@@ -54,7 +53,6 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         val two = v.constants.two
         val p = (a + b + c) / two
         val s = p * (p - a) * (p - b) * (p - c)
-        @Suppress("UNCHECKED_CAST")
         s.sqrt() as V
     }
 

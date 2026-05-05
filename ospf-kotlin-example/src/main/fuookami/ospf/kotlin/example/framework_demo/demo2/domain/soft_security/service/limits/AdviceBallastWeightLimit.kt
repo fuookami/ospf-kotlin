@@ -15,14 +15,15 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class AdviceBallastWeightLimit(
     private val aircraftModel: AircraftModel,
     private val ballast: Ballast,
     private val coefficient: () -> Flt64 = { Flt64.one },
     override val name: String = "advice_ballast_weight_limit",
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (ballast.adviceBallastWeight != null) {
             val slack = SlackFunction(
                 x = LinearPolynomial(ballast.ballastWeight.value),

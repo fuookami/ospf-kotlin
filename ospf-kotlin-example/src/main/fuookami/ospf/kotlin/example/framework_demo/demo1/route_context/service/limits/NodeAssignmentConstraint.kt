@@ -10,13 +10,14 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class NodeAssignmentConstraint(
     private val nodes: List<Node>,
     private val assignment: Assignment,
     override val name: String = "node_assignment"
-) : Pipeline<LinearMetaModelFlt64> {
-    override fun invoke(model: LinearMetaModelFlt64): Try {
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
         for (node in nodes.filter(normal)) {
             model.addConstraint(
                 assignment.nodeAssignment[node] leq 1,

@@ -3,7 +3,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -17,6 +18,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example14.html
@@ -77,11 +86,11 @@ data object Demo14 {
 
     lateinit var x: UIntVariable2
 
-    lateinit var cost: LinearIntermediateSymbolFlt64
-    lateinit var transOut: LinearIntermediateSymbols1Flt64
-    lateinit var transIn: LinearIntermediateSymbols1Flt64
+    lateinit var cost: LinearIntermediateSymbol<Flt64>
+    lateinit var transOut: LinearIntermediateSymbols1<Flt64>
+    lateinit var transIn: LinearIntermediateSymbols1<Flt64>
 
-    val metaModel = LinearMetaModelFlt64("demo14", converter = IntoValue.Flt64)
+    val metaModel = LinearMetaModel<Flt64>("demo14", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo14::initVariable,
@@ -143,7 +152,7 @@ data object Demo14 {
         )
         metaModel.add(cost)
 
-        transOut = LinearIntermediateSymbols1Flt64(
+        transOut = LinearIntermediateSymbols1<Flt64>(
             "out",
             Shape1(nodes.size)
         ) { i, _ ->
@@ -155,7 +164,7 @@ data object Demo14 {
         }
         metaModel.add(transOut)
 
-        transIn = LinearIntermediateSymbols1Flt64(
+        transIn = LinearIntermediateSymbols1<Flt64>(
             "in",
             Shape1(nodes.size)
         ) { i, _ ->

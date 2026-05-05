@@ -17,20 +17,21 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class AdviceLoading(
     private val aircraftModel: AircraftModel,
     private val positions: List<Position>,
     private val load: Load
 ) {
-    lateinit var amountSlack: LinearIntermediateSymbols1Flt64
-    lateinit var weightSlack: LinearIntermediateSymbols1Flt64
+    lateinit var amountSlack: LinearIntermediateSymbols1<Flt64>
+    lateinit var weightSlack: LinearIntermediateSymbols1<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::amountSlack.isInitialized) {
-            amountSlack = LinearIntermediateSymbols1Flt64("advice_amount_slack", Shape1(positions.size)) { j, _ ->
+            amountSlack = LinearIntermediateSymbols1<Flt64>("advice_amount_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.ala != null) {
                     SlackFunction(
@@ -63,7 +64,7 @@ class AdviceLoading(
         }
 
         if (!::weightSlack.isInitialized) {
-            weightSlack = LinearIntermediateSymbols1Flt64("advice_weight_slack", Shape1(positions.size)) { j, _ ->
+            weightSlack = LinearIntermediateSymbols1<Flt64>("advice_weight_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.alw != null) {
                     SlackFunction(

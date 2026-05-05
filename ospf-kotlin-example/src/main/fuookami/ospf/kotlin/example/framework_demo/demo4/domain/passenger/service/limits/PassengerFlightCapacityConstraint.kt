@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
 import fuookami.ospf.kotlin.utils.functional.get
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PassengerFlightCapacityConstraint(
     private val flights: List<FlightTask>,
@@ -19,7 +20,7 @@ class PassengerFlightCapacityConstraint(
     private val capacity: FlightCapacity,
     override val name: String = "passenger_flight_capacity_constraint"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (flight in flights) {
             for (cls in PassengerClass.entries) {
                 when (val result = model.addConstraint(

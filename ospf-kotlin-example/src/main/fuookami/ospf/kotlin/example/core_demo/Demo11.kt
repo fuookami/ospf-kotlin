@@ -3,7 +3,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -16,6 +17,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example11.html
@@ -66,10 +75,10 @@ data object Demo11 {
     lateinit var x: UIntVariable2
     lateinit var flow: UIntVar
 
-    lateinit var flowIn: LinearIntermediateSymbols1Flt64
-    lateinit var flowOut: LinearIntermediateSymbols1Flt64
+    lateinit var flowIn: LinearIntermediateSymbols1<Flt64>
+    lateinit var flowOut: LinearIntermediateSymbols1<Flt64>
 
-    val metaModel = LinearMetaModelFlt64("demo11", converter = IntoValue.Flt64)
+    val metaModel = LinearMetaModel<Flt64>("demo11", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo11::initVariable,
@@ -117,7 +126,7 @@ data object Demo11 {
     }
 
     private suspend fun initSymbol(): Try {
-        flowIn = LinearIntermediateSymbols1Flt64(
+        flowIn = LinearIntermediateSymbols1<Flt64>(
             "flow_in",
             Shape1(nodes.size)
         ) { i, _ ->
@@ -127,7 +136,7 @@ data object Demo11 {
             )
         }
         metaModel.add(flowIn)
-        flowOut = LinearIntermediateSymbols1Flt64(
+        flowOut = LinearIntermediateSymbols1<Flt64>(
             "flow_out",
             Shape1(nodes.size)
         ) { i, _ ->

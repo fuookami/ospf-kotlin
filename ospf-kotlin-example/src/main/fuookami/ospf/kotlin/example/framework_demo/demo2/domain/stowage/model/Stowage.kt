@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Stowage(
     private val items: List<Item>,
@@ -42,11 +43,11 @@ class Stowage(
     lateinit var x: BinVariable2
     lateinit var u: BTerVariable2
 
-    lateinit var stowage: LinearIntermediateSymbols2Flt64
-    lateinit var loaded: LinearIntermediateSymbols1Flt64
+    lateinit var stowage: LinearIntermediateSymbols2<Flt64>
+    lateinit var loaded: LinearIntermediateSymbols1<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::x.isInitialized) {
             x = BinVariable2("x", Shape2(items.size, positions.size))
@@ -109,7 +110,7 @@ class Stowage(
         }
 
         if (!::stowage.isInitialized) {
-            stowage = LinearIntermediateSymbols2Flt64("stowage", Shape2(items.size, positions.size)) { _, v ->
+            stowage = LinearIntermediateSymbols2<Flt64>("stowage", Shape2(items.size, positions.size)) { _, v ->
                 val item = items[v[0]]
                 val position = positions[v[1]]
                 val poly = MutableLinearPolynomial()
@@ -154,7 +155,7 @@ class Stowage(
         }
 
         if (!::loaded.isInitialized) {
-            loaded = LinearIntermediateSymbols1Flt64("loaded", Shape1(items.size)) { i, _ ->
+            loaded = LinearIntermediateSymbols1<Flt64>("loaded", Shape1(items.size)) { i, _ ->
                 val item = items[i]
                 LinearExpressionSymbol(
                     sum(stowage[i, _a]),

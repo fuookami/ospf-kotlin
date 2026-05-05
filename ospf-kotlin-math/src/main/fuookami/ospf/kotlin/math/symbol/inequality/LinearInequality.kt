@@ -56,7 +56,6 @@ data class LinearInequality<T : Ring<T>>(
 }
 
 /** Flt64 兼容类型别名 / Flt64 compatibility typealias */
-typealias Flt64LinearInequality = LinearInequality<Flt64>
 
 // ========== Private helper functions ==========
 
@@ -128,29 +127,29 @@ private fun Symbol.asLinearPolynomial(): LinearPolynomial<Flt64> {
     return LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 }
 
-private fun linearIneq(lhs: LinearPolynomial<Flt64>, rhs: LinearPolynomial<Flt64>, cmp: Comparison): Flt64LinearInequality =
+private fun linearIneq(lhs: LinearPolynomial<Flt64>, rhs: LinearPolynomial<Flt64>, cmp: Comparison): LinearInequality<Flt64> =
     LinearInequality(lhs, rhs, cmp)
 
-infix fun Symbol.lt(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
-infix fun Symbol.le(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
-infix fun Symbol.eq(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
-infix fun Symbol.ne(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
-infix fun Symbol.ge(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
-infix fun Symbol.gt(rhs: Flt64): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+infix fun Symbol.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Symbol.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Symbol.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Symbol.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Symbol.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Symbol.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
-infix fun Flt64.lt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
-infix fun Flt64.le(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
-infix fun Flt64.eq(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
-infix fun Flt64.ne(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
-infix fun Flt64.ge(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
-infix fun Flt64.gt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+infix fun Flt64.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Flt64.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Flt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Flt64.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Flt64.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Flt64.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
-infix fun Symbol.lt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
-infix fun Symbol.le(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
-infix fun Symbol.eq(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
-infix fun Symbol.ne(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
-infix fun Symbol.ge(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
-infix fun Symbol.gt(rhs: Symbol): Flt64LinearInequality = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
+infix fun Symbol.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LT)
+infix fun Symbol.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.LE)
+infix fun Symbol.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.EQ)
+infix fun Symbol.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.NE)
+infix fun Symbol.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GE)
+infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asLinearPolynomial(), rhs.asLinearPolynomial(), Comparison.GT)
 
 // ========== Named inequality constructors ==========
 
@@ -194,7 +193,7 @@ fun <T : Ring<T>> LinearPolynomial<T>.gt(rhs: T, name: String, displayName: Stri
  * @return 是否满足不等式，或 null（赋值不完整时）
  *         Whether the inequality is satisfied, or null if assignment is incomplete
  */
-fun Flt64LinearInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val lhsValue = lhs.evaluate(values) ?: return null
     val rhsValue = rhs.evaluate(values) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
@@ -214,7 +213,7 @@ fun Flt64LinearInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
  * @param values 与 order 一一对应的值列表 / List of values corresponding to order
  * @return 是否满足不等式 / Whether the inequality is satisfied
  */
-fun Flt64LinearInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
+fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
     return comparison.satisfiedBy(
         lhs = lhs.evaluateOrdered(order, values),
         rhs = rhs.evaluateOrdered(order, values)

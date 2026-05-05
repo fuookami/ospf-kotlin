@@ -92,7 +92,6 @@ open class SlotBasedBunchCompilation<
             bunchesBySlot.getOrPut(bunch.slot) { mutableListOf() }.add(bunch)
         }
         if (bunchesBySlot.isEmpty()) {
-            @Suppress("UNCHECKED_CAST")
             return Ok(bunchesBySlot.mapValues { it.value.toList() } as Map<TimeSlot, List<B>>)
         }
 
@@ -105,8 +104,6 @@ open class SlotBasedBunchCompilation<
                 slotVariables.add(currentX)
             }
         }
-
-        @Suppress("UNCHECKED_CAST")
         return Ok(bunchesBySlot.mapValues { it.value.toList() } as Map<TimeSlot, List<B>>)
     }
 

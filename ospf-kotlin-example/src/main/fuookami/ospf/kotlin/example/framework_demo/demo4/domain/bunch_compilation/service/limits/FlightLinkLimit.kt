@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.framework.model.ShadowPriceKey
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 private data class FlightLinkShadowPriceKey(
     val link: Link
@@ -31,7 +32,7 @@ class FlightLinkLimit(
     private val coefficient: (Link) -> Flt64,
     override val name: String = "flight_link_limit"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((k, _) in flightLink.links.withIndex()) {
             when (val result = model.addConstraint(
                 relation = flightLink.slack[k] geq Flt64.one,
@@ -100,7 +101,7 @@ class FlightLinkLimit(
 
     override fun refresh(
         map: ShadowPriceMap,
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
         for (constraint in model.constraintsOfGroup(this)) {

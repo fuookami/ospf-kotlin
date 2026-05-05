@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
 import fuookami.ospf.kotlin.utils.functional.get
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PassengerClassChangeMinimization(
     private val passengers: List<FlightPassenger>,
@@ -23,7 +24,7 @@ class PassengerClassChangeMinimization(
     private val coefficient: (FlightPassenger, PassengerClass) -> Flt64 = { _, _ -> Flt64.one },
     override val name: String = "passenger_class_change_minimization"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val poly = MutableLinearPolynomial()
         for (passenger in passengers) {
             for (cls in PassengerClass.entries) {

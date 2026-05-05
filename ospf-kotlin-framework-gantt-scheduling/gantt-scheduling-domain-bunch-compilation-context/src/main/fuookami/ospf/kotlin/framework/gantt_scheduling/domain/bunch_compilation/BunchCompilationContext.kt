@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation
 
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
@@ -200,7 +199,7 @@ interface BunchCompilationContext<
         iteration: UInt64,
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution<Flt64>? = null
+        solution: List<Flt64>? = null
     ): Ret<TaskSolution<T, E, A>> {
         return TaskSolutionAnalyzer(
             iteration = iteration,
@@ -216,7 +215,7 @@ interface BunchCompilationContext<
         iteration: UInt64,
         tasks: List<T>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution<Flt64>? = null
+        solution: List<Flt64>? = null
     ): Ret<BunchSolution<B, T, E, A>> {
         return BunchSolutionAnalyzer(
             iteration = iteration,

@@ -6,9 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.times
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -96,7 +94,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = LinearFlattenDataFlt64(
+        val flattenData = LinearFlattenData<Flt64>(
             monomials = listOf(
                 LinearMonomial(Flt64(2.0), x),
                 LinearMonomial(Flt64(3.0), y)
@@ -133,7 +131,7 @@ class SubObjectTest {
         tokens.add(x)
         tokens.add(y)
 
-        val flattenData = QuadraticFlattenDataFlt64(
+        val flattenData = QuadraticFlattenData<Flt64>(
             monomials = listOf(
                 QuadraticMonomial(Flt64.one, x, y),
                 QuadraticMonomial(Flt64(2.0), x, null)

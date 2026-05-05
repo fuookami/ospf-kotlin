@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
@@ -17,6 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
 class ResourceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -37,7 +37,7 @@ class ResourceOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (slots.isNotEmpty()) {
             val cost = MutableLinearPolynomial(constant = Flt64.zero)
             for (slot in slots) {

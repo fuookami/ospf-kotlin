@@ -45,11 +45,11 @@ class BandwidthContext(
         return ok
     }
 
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
     }
 
-    fun construct(model: LinearMetaModelFlt64): Try {
+    fun construct(model: LinearMetaModel<Flt64>): Try {
         val routeAggregation = routeContext.aggregation
 
         val generator = PipelineListGenerator(
@@ -85,7 +85,7 @@ class BandwidthContext(
         return ok
     }
 
-    fun analyze(model: LinearMetaModelFlt64, result: List<Flt64>): Ret<List<List<Node>>> {
+    fun analyze(model: LinearMetaModel<Flt64>, result: List<Flt64>): Ret<List<List<Node>>> {
         val routeAggregation = routeContext.aggregation
 
         val analyzer = SolutionAnalyzer(

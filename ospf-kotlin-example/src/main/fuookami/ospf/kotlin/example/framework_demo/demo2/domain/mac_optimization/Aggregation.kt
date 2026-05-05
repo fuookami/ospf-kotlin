@@ -45,7 +45,7 @@ class Aggregation(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = longitudinalBalance.register(stowageMode, model)) {
             is Ok -> {}
@@ -77,14 +77,14 @@ class Aggregation(
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // MAC optimization constraints go into the master problem.
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         // MAC optimization does not contribute to the sub problem.
@@ -92,7 +92,7 @@ class Aggregation(
     }
 
     private fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

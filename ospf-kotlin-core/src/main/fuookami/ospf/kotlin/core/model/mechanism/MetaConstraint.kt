@@ -1,19 +1,14 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
@@ -23,26 +18,28 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
 
-    fun MetaModelFlt64.registerConstraintGroup() {
+    fun MetaModel<Flt64>.registerConstraintGroup() {
         this.registerConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModelFlt64.indicesOfConstraintGroup(): IntRange? {
+    fun MetaModel<Flt64>.indicesOfConstraintGroup(): IntRange? {
         return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModelFlt64.constraintsOfGroup(): List<MathConstraint> {
+    fun MetaModel<Flt64>.constraintsOfGroup(): List<MathConstraint> {
         return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
             indices.map { constraints[it] }
         } ?: emptyList()
     }
 
-    fun AbstractLinearMetaModelFlt64.addConstraint(
+    fun AbstractLinearMetaModel<Flt64>.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -61,8 +58,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractLinearMetaModelFlt64.addConstraint(
-        constraint: LinearIntermediateSymbolFlt64,
+    fun AbstractLinearMetaModel<Flt64>.addConstraint(
+        constraint: LinearIntermediateSymbol<Flt64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -82,7 +79,7 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
-    fun AbstractLinearMetaModelFlt64.partition(
+    fun AbstractLinearMetaModel<Flt64>.partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
         lazy: Boolean? = null,
         name: String? = null,
@@ -104,8 +101,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
-    fun AbstractLinearMetaModelFlt64.partition(
-        symbols: Iterable<LinearIntermediateSymbolFlt64>,
+    fun AbstractLinearMetaModel<Flt64>.partition(
+        symbols: Iterable<LinearIntermediateSymbol<Flt64>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -124,8 +121,8 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractQuadraticMetaModelFlt64.addConstraint(
-        constraint: QuadraticIntermediateSymbolFlt64,
+    fun AbstractQuadraticMetaModel<Flt64>.addConstraint(
+        constraint: QuadraticIntermediateSymbol<Flt64>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -144,8 +141,8 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
-    fun AbstractQuadraticMetaModelFlt64.partition(
-        symbols: Iterable<QuadraticIntermediateSymbolFlt64>,
+    fun AbstractQuadraticMetaModel<Flt64>.partition(
+        symbols: Iterable<QuadraticIntermediateSymbol<Flt64>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
@@ -257,7 +254,7 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: LinearFlattenDataFlt64 get() = inequality.toLinearFlattenDataFlt64(converter)
+    val flattenData: LinearFlattenData<Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -288,7 +285,7 @@ data class QuadraticInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: QuadraticFlattenDataFlt64 get() = inequality.toQuadraticFlattenDataFlt64(converter)
+    val flattenData: QuadraticFlattenData<Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -312,14 +309,14 @@ data class QuadraticInequalityConstraint<V>(
 
 
 /**
- * QuadraticFlattenSubObject - SubObject using QuadraticFlattenDataFlt64 (new API)
+ * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData<Flt64> (new API)
  *
- * This type uses QuadraticFlattenDataFlt64 directly for objective functions,
+ * This type uses QuadraticFlattenData<Flt64> directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class QuadraticFlattenSubObject(
     val category: ObjectCategory,
-    val flattenData: QuadraticFlattenDataFlt64,
+    val flattenData: QuadraticFlattenData<Flt64>,
     val name: String = "",
     val displayName: String? = null
 )

@@ -4,16 +4,11 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
-import fuookami.ospf.kotlin.core.model.intermediate.CellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
-import fuookami.ospf.kotlin.core.model.intermediate.LinearCellFlt64
-import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Either
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -22,11 +17,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 // ========== Polynomial Kind Marker Types ==========
 
@@ -37,10 +36,8 @@ object Quadratic : PolynomialKind
 // ========== Symbolic Inequality Wrapper Types ==========
 
 class SymbolicLinearInequality<V : Ring<V>>(val inequality: LinearInequality<V>)
-typealias SymbolicLinearInequalityFlt64 = SymbolicLinearInequality<Flt64>
 
 class SymbolicQuadraticInequality<V : Ring<V>>(val inequality: QuadraticInequalityOf<V>)
-typealias SymbolicQuadraticInequalityFlt64 = SymbolicQuadraticInequality<Flt64>
 
 // ========== Constraint<V, P> ==========
 
@@ -64,8 +61,6 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
 typealias ConstraintFlt64<P> = Constraint<Flt64, P>
 
 typealias DualSolution<P> = Map<ConstraintFlt64<P>, Flt64>
-typealias LinearDualSolution = Map<LinearConstraint, Flt64>
-typealias QuadraticDualSolution = Map<QuadraticConstraint, Flt64>
 
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
@@ -73,7 +68,7 @@ data class MetaDualSolution(
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
-fun LinearDualSolution.toMeta(): MetaDualSolution {
+fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -87,7 +82,7 @@ fun LinearDualSolution.toMeta(): MetaDualSolution {
 }
 
 @JvmName("quadraticDualSolutionToMetaDualSolution")
-fun QuadraticDualSolution.toMeta(): MetaDualSolution {
+fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -157,7 +152,6 @@ class LinearConstraintImpl<V>(
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, tokens)
             // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
-            @Suppress("UNCHECKED_CAST")
             val rhs: V = (-flattenData.constant) as V
             return LinearConstraintImpl(
                 lhs = lhs,
@@ -201,7 +195,6 @@ class QuadraticConstraintImpl<V>(
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, tokens)
             // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
-            @Suppress("UNCHECKED_CAST")
             val rhs: V = (-flattenData.constant) as V
             return QuadraticConstraintImpl(
                 lhs = lhs,
@@ -217,10 +210,6 @@ class QuadraticConstraintImpl<V>(
 }
 
 // Type aliases for Constraint<V, P> with specific polynomial kinds
-typealias LinearConstraint = Constraint<Flt64, Linear>
-typealias QuadraticConstraint = Constraint<Flt64, Quadratic>
-typealias LinearConstraintImplFlt64 = LinearConstraintImpl<Flt64>
-typealias QuadraticConstraintImplFlt64 = QuadraticConstraintImpl<Flt64>
 
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<Flt64>>,

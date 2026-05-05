@@ -27,7 +27,7 @@ class TotalWeight(
     lateinit var actualTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::estimateTotalWeight.isInitialized) {
             estimateTotalWeight = FlightPhase.entries.associateWith { phase ->

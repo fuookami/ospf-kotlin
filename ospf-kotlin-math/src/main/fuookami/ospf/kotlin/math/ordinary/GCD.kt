@@ -81,8 +81,6 @@ fun <I> gcdImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
     }
     return acc
 }
-
-@Suppress("UNCHECKED_CAST")
 fun <I> gcd(x: I, y: I): I where I : Integer<I>, I : Minus<I, I> {
     return gcdImpl(x, y)
 }

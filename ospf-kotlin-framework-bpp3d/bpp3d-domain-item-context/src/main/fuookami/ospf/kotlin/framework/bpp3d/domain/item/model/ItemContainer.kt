@@ -114,8 +114,6 @@ fun <S : ItemContainer<S>> Placement3<S>.dump(offset: Point3 = point3()): List<I
 fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
     return unit.dump(absolutePosition + offset)
 }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
 suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
     bottomItems: List<Placement2<*, Side>>,
@@ -145,8 +143,6 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Side>.enabledStackingOn(
         return false
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemContainerPlacement2FrontEnabledStackingOn")
 suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
     bottomItems: List<Placement2<*, Front>>,
@@ -176,8 +172,6 @@ suspend fun <S : ItemContainer<S>> Placement2<S, Front>.enabledStackingOn(
         return false
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemContainerPlacement3EnabledStackingOn")
 suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
     bottomItems: List<Placement3<*>>,

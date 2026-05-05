@@ -13,7 +13,6 @@ interface MongoPersistenceApiController {
     val mongoClient: MongoDatabase?
 
     @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
-    @Suppress("UNCHECKED_CAST")
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -51,7 +50,6 @@ interface MongoPersistenceApiController {
     }
 
     @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
-    @Suppress("UNCHECKED_CAST")
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>, SyncRep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -118,8 +116,7 @@ interface MongoPersistenceApiController {
 //class PersistenceInterfaceAspect {
 //    @OptIn(DelicateCoroutinesApi::class, InternalSerializationApi::class)
 //    @Around("@annotation(annotation)")
-//    @Suppress("UNCHECKED_CAST")
-//    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>> syncProcess(point: ProceedingJoinPoint, annotation: SyncPersistenceInterface<Req, Rep>): Any {
+//    //    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>> syncProcess(point: ProceedingJoinPoint, annotation: SyncPersistenceInterface<Req, Rep>): Any {
 //        val args = point.args
 //        val request = args.find { it is RequestDTO<*> }?.let { it as Req }
 //        if (request != null) {
@@ -162,8 +159,7 @@ interface MongoPersistenceApiController {
 //
 //    @OptIn(DelicateCoroutinesApi::class, InternalSerializationApi::class)
 //    @Around("@annotation(annotation)")
-//    @Suppress("UNCHECKED_CAST")
-//    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>, SynRep: ResponseDTO<SynRep>> asyncProcess(point: ProceedingJoinPoint, annotation: AsyncPersistenceInterface<Req, Rep, SynRep>): Any {
+//    //    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>, SynRep: ResponseDTO<SynRep>> asyncProcess(point: ProceedingJoinPoint, annotation: AsyncPersistenceInterface<Req, Rep, SynRep>): Any {
 //        val args = point.args
 //        val request = args.find { it is RequestDTO<*> }?.let { it as Req }
 //        if (request != null) {

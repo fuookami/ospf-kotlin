@@ -46,7 +46,7 @@ class StowageContext {
     
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -96,7 +96,7 @@ class StowageContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.registerForBendersMP(model)) {
             is Ok -> {}
@@ -107,7 +107,7 @@ class StowageContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         when (val result = aggregation.registerForBendersSP(model, solution)) {
@@ -119,7 +119,7 @@ class StowageContext {
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         when (val result = aggregation.registerForBendersSP(model, solution)) {
@@ -132,7 +132,7 @@ class StowageContext {
 
     fun analyze(
         solution: List<Flt64>,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
         val analyzer = SolutionAnalyzer(aggregation)
         val stowageSolution = when (val result = analyzer(solution, model)) {

@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Aggregation(
     val timeWindow: TimeWindow,
@@ -35,7 +36,7 @@ class Aggregation(
         change = change
     )
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = cancel.register(model)) {
             is Ok -> {}
 

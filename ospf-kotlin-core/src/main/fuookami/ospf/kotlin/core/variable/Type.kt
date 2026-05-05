@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.concept.IntegerNumber
 import fuookami.ospf.kotlin.math.algebra.concept.UIntegerNumber
 import fuookami.ospf.kotlin.math.algebra.value_range.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 sealed interface VariableTypeInterface<T> where T : RealNumber<T>, T : NumberField<T> {
     val name: String

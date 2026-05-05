@@ -9,9 +9,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatMap
 import fuookami.ospf.kotlin.core.intermediate_symbol.map
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -22,6 +20,15 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.multiarray.Shape2
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * 产能编译决策对象（无顺序�?
@@ -72,7 +79,7 @@ class CapacityCompilation<A : ProductionAction>(
      * 注册到模�?
      * Register to model
      */
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         // Register x variable
         // 注册 x 变量
         if (!::x.isInitialized) {
@@ -163,7 +170,7 @@ class CapacityCompilation<A : ProductionAction>(
      * 解析�?
      * Extract solution from model
      */
-    override fun extractSolution(model: AbstractLinearMetaModelFlt64): Ret<CapacitySchedulingSolution<A>> {
+    override fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>> {
         val actionAllocations = mutableListOf<ActionAllocation<A>>()
 
         for ((a, action) in actions.withIndex()) {
@@ -192,7 +199,7 @@ class CapacityCompilation<A : ProductionAction>(
         val executorCapacities = mutableListOf<ExecutorCapacityResult>()
         for ((e, executor) in executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
-                val capValue = capacity[e, s].evaluate(model.tokens, IntoValue.Flt64)
+                val capValue = capacity[e, s].evaluate(model.tokens, flt64Converter)
                 val totalDuration = if (capValue != null && capValue > Flt64.zero) {
                     timeWindow.durationOf(capValue)
                 } else {

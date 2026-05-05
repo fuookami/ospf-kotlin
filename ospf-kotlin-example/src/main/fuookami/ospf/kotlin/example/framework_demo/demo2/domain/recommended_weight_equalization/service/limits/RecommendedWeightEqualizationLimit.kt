@@ -13,14 +13,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class RecommendedWeightEqualizationLimit(
     private val aircraftModel: AircraftModel,
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "recommended_weight_equalization_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((j1, position1) in positions.withIndex()) {
             if (!position1.status.recommendedWeightNeeded) {
                 continue

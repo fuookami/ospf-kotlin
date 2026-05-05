@@ -10,13 +10,14 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class EnvelopeLimit(
     private val torque: Torque,
     private val envelopes: Map<FlightPhase, List<AbstractEnvelope>>,
     override val name: String = "envelope_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((phase, thisEnvelopes) in envelopes) {
             val index = torque.index[phase]!!
             for (envelope in thisEnvelopes) {

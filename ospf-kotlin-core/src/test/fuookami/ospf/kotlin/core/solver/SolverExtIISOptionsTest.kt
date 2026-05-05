@@ -6,12 +6,10 @@ import fuookami.ospf.kotlin.core.model.intermediate.BasicLinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.BasicQuadraticTetradModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
-import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrixFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
 import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraint
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
@@ -25,7 +23,6 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -41,6 +38,8 @@ import kotlin.test.assertNull
 import kotlin.test.assertTrue
 import kotlin.test.fail
 import kotlin.time.Duration.Companion.seconds
+import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 
 class SolverExtIISOptionsTest {
     @Test
@@ -377,7 +376,7 @@ private class InfeasibleThenDeletionFilteringLinearSolver : AbstractLinearSolver
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return Ok(dummyFeasibleOutput() to emptyList())
     }
 }
@@ -418,7 +417,7 @@ private class InfeasibleThenDeletionFilteringQuadraticSolver : AbstractQuadratic
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return Ok(dummyFeasibleOutput() to emptyList())
     }
 }
@@ -456,7 +455,7 @@ private class InfeasibleThenElasticFeasibleQuadraticSolver : AbstractQuadraticSo
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return Ok(dummyFeasibleOutput() to emptyList())
     }
 }
@@ -478,7 +477,7 @@ private class RecordingLinearSolver : AbstractLinearSolver {
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         lastSolutionAmount = solutionAmount
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(dummyFeasibleOutput() to listOf(listOf(Flt64(2.0))))
@@ -502,7 +501,7 @@ private class RecordingQuadraticSolver : AbstractQuadraticSolver {
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         lastSolutionAmount = solutionAmount
         solvingStatusCallBack?.invoke(dummyStatus(name))
         return Ok(dummyFeasibleOutput() to listOf(listOf(Flt64(3.0))))
@@ -543,7 +542,7 @@ private class InfeasibleThenFeasibleLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return Ok(dummyFeasibleOutput() to emptyList())
     }
 }
@@ -568,7 +567,7 @@ private class InfeasibleQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         if (emitStatusOnFailure) {
             statusOnFailure?.let { solvingStatusCallBack?.invoke(it) }
         }
@@ -578,7 +577,7 @@ private class InfeasibleQuadraticSolver(
 
 private fun emptyLinearModel(): LinearTriadModel {
     val constraints = LinearConstraintBatch(
-        sparseLhs = SparseMatrixFlt64(),
+        sparseLhs = SparseMatrix<Flt64>(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),
@@ -609,7 +608,7 @@ private fun boundedLinearModel(): LinearTriadModel {
         name = "x"
     )
     val constraints = LinearConstraintBatch(
-        sparseLhs = SparseMatrixFlt64(),
+        sparseLhs = SparseMatrix<Flt64>(),
         signs = emptyList(),
         rhs = emptyList(),
         names = emptyList(),

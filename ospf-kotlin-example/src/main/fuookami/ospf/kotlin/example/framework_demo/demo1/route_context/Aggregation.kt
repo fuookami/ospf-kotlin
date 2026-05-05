@@ -8,13 +8,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Graph
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Aggregation(
     val graph: Graph,
     val services: List<Service>,
     val assignment: Assignment
 ) {
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf assignment.register(model) }
         )

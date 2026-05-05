@@ -131,11 +131,11 @@ abstract class ModelConstraint<ConCell>(
     }
 }
 
-class Objective<CellFlt64 : Copyable<CellFlt64>>(
+class Objective<C : Copyable<C>>(
     val category: ObjectCategory,
-    val objective: List<CellFlt64>,
+    val objective: List<C>,
     val constant: Flt64 = Flt64(0.0)
-) : Cloneable, Copyable<Objective<CellFlt64>> {
+) : Cloneable, Copyable<Objective<C>> {
     override fun copy() = Objective(category, objective.toList())
     override fun clone() = copy()
 }

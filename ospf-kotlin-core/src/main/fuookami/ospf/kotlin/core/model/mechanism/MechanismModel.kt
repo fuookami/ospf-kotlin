@@ -1,15 +1,9 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTableFlt64
-import fuookami.ospf.kotlin.core.token.MutableTokenTableFlt64
-import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTableFlt64
 import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatus
@@ -24,13 +18,11 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -46,6 +38,13 @@ import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.MutableTokenTable
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
@@ -59,7 +58,7 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
 }
 
 /**
- * Convert a generic [MechanismModel]<V> to a Flt64-specific [MechanismModelFlt64].
+ * Convert a generic [MechanismModel]<V> to a Flt64-specific [MechanismModel<Flt64>].
  *
  * Validates that V is compatible with Flt64 by verifying the model is an instance
  * of a concrete MechanismModel subclass. Since all internal numerical data is
@@ -70,14 +69,13 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
  * This function is intended to replace inlined V-to-Flt64 conversion logic in
  * invoke() methods.
  */
-@Suppress("UNCHECKED_CAST")
-fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModelFlt64> where V : RealNumber<V>, V : NumberField<V> {
+fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {
-            Ok(model as LinearMechanismModelFlt64)
+            Ok(model as LinearMechanismModel<Flt64>)
         }
         is QuadraticMechanismModel<*> -> {
-            Ok(model as QuadraticMechanismModelFlt64)
+            Ok(model as QuadraticMechanismModel<Flt64>)
         }
         else -> {
             Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to Flt64: unexpected model type ${model::class.simpleName}"))
@@ -86,7 +84,6 @@ fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismMod
 }
 
 // Backward compatibility: typealias aliases
-typealias MechanismModelFlt64 = MechanismModel<Flt64>
 
 interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
@@ -135,14 +132,11 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
 }
 
 // Backward compatibility: typealias aliases
-typealias AbstractLinearMechanismModelFlt64 = AbstractLinearMechanismModel<Flt64>
-typealias AbstractQuadraticMechanismModelFlt64 = AbstractQuadraticMechanismModel<Flt64>
 
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<*>
 }
 
-typealias SingleObjectMechanismModelFlt64 = SingleObjectMechanismModel<Flt64>
 
 private data class OrderedVariablePair(
     val first: AbstractVariableItem<*, *>,
@@ -236,7 +230,7 @@ private suspend fun <T, R> dumpItemsAsync(
 }
 
 private suspend fun <RC, SO, C, S> dumpMechanismPartsAsync(
-    metaModel: MetaModelFlt64,
+    metaModel: MetaModel<Flt64>,
     relationConstraints: List<RC>,
     subObjects: List<SO>,
     scope: CoroutineScope,
@@ -284,7 +278,7 @@ class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
     constraints: List<LinearConstraintImpl<V>>,
-    override val objectFunction: SingleObject<LinearSubObjectFlt64>,
+    override val objectFunction: SingleObject<LinearSubObject<Flt64>>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractLinearMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -303,14 +297,14 @@ class LinearMechanismModel<V>(
 
         @Suppress("DEPRECATION")
         suspend operator fun invoke(
-            metaModel: LinearMetaModelFlt64,
+            metaModel: LinearMetaModel<Flt64>,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null,
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<LinearMechanismModelFlt64> {
-            logger.info { "Creating LinearMechanismModelFlt64 for $metaModel" }
+        ): Ret<LinearMechanismModel<Flt64>> {
+            logger.info { "Creating LinearMechanismModel<Flt64> for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -345,7 +339,7 @@ class LinearMechanismModel<V>(
                     }
                 }
             } else {
-                LinearMechanismModelFlt64(
+                LinearMechanismModel<Flt64>(
                     parent = metaModel,
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
@@ -357,7 +351,7 @@ class LinearMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant),
+                            flattenData = LinearFlattenData<Flt64>(it.polynomial.monomials, it.polynomial.constant),
                             tokens = tokens,
                             name = it.name
                         )
@@ -396,18 +390,18 @@ class LinearMechanismModel<V>(
             }
             logger.trace { "Function symbol constraints registered for $metaModel" }
 
-            logger.info { "LinearMechanismModelFlt64 created for $metaModel" }
+            logger.info { "LinearMechanismModel<Flt64> created for $metaModel" }
             System.gc()
             return Ok(model)
         }
 
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
-            metaModel: LinearMetaModelFlt64,
-            tokens: AbstractTokenTableFlt64,
+            metaModel: LinearMetaModel<Flt64>,
+            tokens: AbstractTokenTable<Flt64>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): LinearMechanismModelFlt64 {
+        ): LinearMechanismModel<Flt64> {
             val (constraints, subObjects) = dumpMechanismPartsAsync(
                 metaModel = metaModel,
                 relationConstraints = metaModel._relationConstraints,
@@ -424,14 +418,14 @@ class LinearMechanismModel<V>(
                 createSubObject = {
                     LinearSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant),
+                        flattenData = LinearFlattenData<Flt64>(it.polynomial.monomials, it.polynomial.constant),
                         tokens = tokens,
                         name = it.name
                     )
                 }
             )
 
-            return LinearMechanismModelFlt64(
+            return LinearMechanismModel<Flt64>(
                 parent = metaModel,
                 name = metaModel.name,
                 constraints = constraints.toMutableList(),
@@ -441,13 +435,13 @@ class LinearMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTableFlt64,
+            tokens: AbstractMutableTokenTable<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTableFlt64> {
+        ): Ret<AbstractTokenTable<Flt64>> {
             return when (tokens) {
-                is MutableTokenTableFlt64 -> {
-                    val temp = tokens.copy() as MutableTokenTableFlt64
+                is MutableTokenTable<Flt64> -> {
+                    val temp = tokens.copy() as MutableTokenTable<Flt64>
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -467,8 +461,8 @@ class LinearMechanismModel<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTableFlt64 -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTableFlt64
+                is ConcurrentMutableTokenTable<Flt64> -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable<Flt64>
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -517,11 +511,10 @@ class LinearMechanismModel<V>(
     fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualSolution: LinearDualSolution
-    ): List<Flt64LinearInequality> {
+        dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<Flt64>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        val constraints = linearConstraints as List<LinearConstraintImpl<Flt64>>
         val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
@@ -560,11 +553,10 @@ class LinearMechanismModel<V>(
     @Suppress("DEPRECATION")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualSolution: LinearDualSolution
-    ): List<Flt64LinearInequality> {
+        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<Flt64>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        val constraints = linearConstraints as List<LinearConstraintImpl<Flt64>>
         var value = Flt64.zero
         var constants = Flt64.zero
         val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -603,7 +595,7 @@ class LinearMechanismModel<V>(
      * Generate optimal Benders cut using constraint-name-based dual solution lookup.
      *
      * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
-     * (constraint name → dual value) instead of `Map<LinearConstraint, Flt64>`.
+     * (constraint name → dual value) instead of `Map<Constraint<Flt64, Linear>, Flt64>`.
      * Use when the caller has dual values keyed by constraint name (e.g., from
      * serialized results, cross-process communication, or log output) rather than
      * direct Constraint object references.
@@ -617,12 +609,11 @@ class LinearMechanismModel<V>(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolutionById: Map<String, Flt64>
-    ): List<Flt64LinearInequality> {
+    ): List<LinearInequality<Flt64>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        val constraints = linearConstraints as List<LinearConstraintImpl<Flt64>>
         validateDualById(constraints, dualSolutionById, logger)
-        val dualSolution: LinearDualSolution = buildMap {
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> = buildMap {
             for (c in constraints) {
                 val v = dualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
@@ -635,7 +626,7 @@ class LinearMechanismModel<V>(
      * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
      *
      * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
-     * (constraint name → Farkas dual value) instead of `Map<LinearConstraint, Flt64>`.
+     * (constraint name → Farkas dual value) instead of `Map<Constraint<Flt64, Linear>, Flt64>`.
      *
      * @param fixedVariables  variables fixed in the sub-problem and their values
      * @param farkasDualSolutionById  constraint name → Farkas dual value mapping
@@ -644,12 +635,11 @@ class LinearMechanismModel<V>(
     fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>
-    ): List<Flt64LinearInequality> {
+    ): List<LinearInequality<Flt64>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = linearConstraints as List<LinearConstraintImplFlt64>
+        val constraints = linearConstraints as List<LinearConstraintImpl<Flt64>>
         validateDualById(constraints, farkasDualSolutionById, logger)
-        val farkasDualSolution: LinearDualSolution = buildMap {
+        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> = buildMap {
             for (c in constraints) {
                 val v = farkasDualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
@@ -678,9 +668,9 @@ class LinearMechanismModel<V>(
     fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualValues: Solution<Flt64>,
+        dualValues: List<Flt64>,
         triadModel: LinearTriadModelView
-    ): List<Flt64LinearInequality> {
+    ): List<LinearInequality<Flt64>> {
         val dualSolution = triadModel.tidyDualSolution(dualValues)
         return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
@@ -703,9 +693,9 @@ class LinearMechanismModel<V>(
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualValues: Solution<Flt64>,
+        farkasDualValues: List<Flt64>,
         triadModel: LinearTriadModelView
-    ): List<Flt64LinearInequality> {
+    ): List<LinearInequality<Flt64>> {
         val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
         return generateFeasibleCut(fixedVariables, farkasDualSolution)
     }
@@ -722,13 +712,12 @@ class LinearMechanismModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias LinearMechanismModelFlt64 = LinearMechanismModel<Flt64>
 
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
     override var name: String,
     constraints: List<QuadraticConstraintImpl<V>>,
-    override val objectFunction: SingleObject<QuadraticSubObjectFlt64>,
+    override val objectFunction: SingleObject<QuadraticSubObject<Flt64>>,
     override val tokens: AbstractTokenTable<V>
 ) : BasicMechanismModel<V>(name, tokens), AbstractQuadraticMechanismModel<V>, SingleObjectMechanismModel<V>
         where V : RealNumber<V>, V : NumberField<V> {
@@ -747,14 +736,14 @@ class QuadraticMechanismModel<V>(
 
         @Suppress("DEPRECATION")
         suspend operator fun invoke(
-            metaModel: QuadraticMetaModelFlt64,
+            metaModel: QuadraticMetaModel<Flt64>,
             concurrent: Boolean? = null,
             blocking: Boolean? = null,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             registrationStatusCallBack: RegistrationStatusCallBack? = null,
             dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<QuadraticMechanismModelFlt64> {
-            logger.info { "Creating QuadraticMechanismModelFlt64 for $metaModel" }
+        ): Ret<QuadraticMechanismModel<Flt64>> {
+            logger.info { "Creating QuadraticMechanismModel<Flt64> for $metaModel" }
 
             logger.trace { "Unfolding tokens for $metaModel" }
             val tokens = when (val result = unfold(
@@ -789,7 +778,7 @@ class QuadraticMechanismModel<V>(
                     }
                 }
             } else {
-                QuadraticMechanismModelFlt64(
+                QuadraticMechanismModel<Flt64>(
                     parent = metaModel,
                     name = metaModel.name,
                     constraints = metaModel._relationConstraints.map {
@@ -801,7 +790,7 @@ class QuadraticMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                            flattenData = LinearFlattenData<Flt64>(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                             tokens = tokens,
                             name = it.name
                         )
@@ -843,18 +832,18 @@ class QuadraticMechanismModel<V>(
             }
             logger.trace { "Function symbol constraints registered for $metaModel" }
 
-            logger.info { "QuadraticMechanismModelFlt64 created for $metaModel" }
+            logger.info { "QuadraticMechanismModel<Flt64> created for $metaModel" }
             System.gc()
             return Ok(model)
         }
 
         @Suppress("DEPRECATION")
         private suspend fun dumpAsync(
-            metaModel: QuadraticMetaModelFlt64,
-            tokens: AbstractTokenTableFlt64,
+            metaModel: QuadraticMetaModel<Flt64>,
+            tokens: AbstractTokenTable<Flt64>,
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
-        ): QuadraticMechanismModelFlt64 {
+        ): QuadraticMechanismModel<Flt64> {
             val (constraints, subObjects) = dumpMechanismPartsAsync(
                 metaModel = metaModel,
                 relationConstraints = metaModel._relationConstraints,
@@ -871,14 +860,14 @@ class QuadraticMechanismModel<V>(
                 createSubObject = {
                     QuadraticSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenDataFlt64(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
+                        flattenData = LinearFlattenData<Flt64>(it.polynomial.monomials, it.polynomial.constant).toQuadraticFlattenData(),
                         tokens = tokens,
                         name = it.name
                     )
                 }
             )
 
-            val model = QuadraticMechanismModelFlt64(
+            val model = QuadraticMechanismModel<Flt64>(
                 parent = metaModel,
                 name = metaModel.name,
                 constraints = constraints.toMutableList(),
@@ -893,13 +882,13 @@ class QuadraticMechanismModel<V>(
         }
 
         private suspend fun unfold(
-            tokens: AbstractMutableTokenTableFlt64,
+            tokens: AbstractMutableTokenTable<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             callBack: RegistrationStatusCallBack? = null
-        ): Ret<AbstractTokenTableFlt64> {
+        ): Ret<AbstractTokenTable<Flt64>> {
             return when (tokens) {
-                is MutableTokenTableFlt64 -> {
-                    val temp = tokens.copy() as MutableTokenTableFlt64
+                is MutableTokenTable<Flt64> -> {
+                    val temp = tokens.copy() as MutableTokenTable<Flt64>
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -919,8 +908,8 @@ class QuadraticMechanismModel<V>(
                     }
                 }
 
-                is ConcurrentMutableTokenTableFlt64 -> {
-                    val temp = tokens.copy() as ConcurrentMutableTokenTableFlt64
+                is ConcurrentMutableTokenTable<Flt64> -> {
+                    val temp = tokens.copy() as ConcurrentMutableTokenTable<Flt64>
                     when (val result = tokens.symbols.register(
                         tokenTable = temp,
                         fixedValues = fixedVariables?.mapKeys { it.key },
@@ -955,7 +944,7 @@ class QuadraticMechanismModel<V>(
         val flattenData = relation.toLinearFlattenDataFlt64(parent.converter)
         // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
-        val qFlattenData = QuadraticFlattenDataFlt64(qMonomials, flattenData.constant)
+        val qFlattenData = QuadraticFlattenData<Flt64>(qMonomials, flattenData.constant)
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(qFlattenData, relation.comparison),
@@ -991,11 +980,10 @@ class QuadraticMechanismModel<V>(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualSolution: QuadraticDualSolution,
+        dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        val constraints = quadraticConstraints as List<QuadraticConstraintImpl<Flt64>>
         val constants = constraints.fold(Flt64.zero) { acc, constraint ->
             acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
         }
@@ -1079,11 +1067,10 @@ class QuadraticMechanismModel<V>(
     @Suppress("UNUSED_PARAMETER")
     fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualSolution: QuadraticDualSolution,
+        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        val constraints = quadraticConstraints as List<QuadraticConstraintImpl<Flt64>>
         var value = Flt64.zero
         var constants = Flt64.zero
         val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
@@ -1152,7 +1139,7 @@ class QuadraticMechanismModel<V>(
      * Generate optimal Benders cut using constraint-name-based dual solution lookup.
      *
      * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
-     * (constraint name → dual value) instead of `Map<QuadraticConstraint, Flt64>`.
+     * (constraint name → dual value) instead of `Map<Constraint<Flt64, Quadratic>, Flt64>`.
      * Use when the caller has dual values keyed by constraint name (e.g., from
      * serialized results, cross-process communication, or log output) rather than
      * direct Constraint object references.
@@ -1170,10 +1157,9 @@ class QuadraticMechanismModel<V>(
         dualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        val constraints = quadraticConstraints as List<QuadraticConstraintImpl<Flt64>>
         validateDualById(constraints, dualSolutionById, logger)
-        val dualSolution: QuadraticDualSolution = buildMap {
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> = buildMap {
             for (c in constraints) {
                 val v = dualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
@@ -1186,7 +1172,7 @@ class QuadraticMechanismModel<V>(
      * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
      *
      * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
-     * (constraint name → Farkas dual value) instead of `Map<QuadraticConstraint, Flt64>`.
+     * (constraint name → Farkas dual value) instead of `Map<Constraint<Flt64, Quadratic>, Flt64>`.
      *
      * @param fixedVariables         variables fixed in the sub-problem and their values
      * @param farkasDualSolutionById constraint name → Farkas dual value mapping
@@ -1197,10 +1183,9 @@ class QuadraticMechanismModel<V>(
         farkasDualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
         // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        @Suppress("UNCHECKED_CAST")
-        val constraints = quadraticConstraints as List<QuadraticConstraintImplFlt64>
+        val constraints = quadraticConstraints as List<QuadraticConstraintImpl<Flt64>>
         validateDualById(constraints, farkasDualSolutionById, logger)
-        val farkasDualSolution: QuadraticDualSolution = buildMap {
+        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> = buildMap {
             for (c in constraints) {
                 val v = farkasDualSolutionById[c.name]
                 if (v != null && v neq Flt64.zero) put(c, v)
@@ -1231,7 +1216,7 @@ class QuadraticMechanismModel<V>(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        dualValues: Solution<Flt64>,
+        dualValues: List<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val dualSolution = tetradModel.tidyDualSolution(dualValues)
@@ -1256,7 +1241,7 @@ class QuadraticMechanismModel<V>(
      */
     fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
-        farkasDualValues: Solution<Flt64>,
+        farkasDualValues: List<Flt64>,
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val farkasDualSolution = tetradModel.tidyDualSolution(farkasDualValues)
@@ -1275,5 +1260,4 @@ class QuadraticMechanismModel<V>(
 }
 
 // Backward compatibility: typealias aliases
-typealias QuadraticMechanismModelFlt64 = QuadraticMechanismModel<Flt64>
 

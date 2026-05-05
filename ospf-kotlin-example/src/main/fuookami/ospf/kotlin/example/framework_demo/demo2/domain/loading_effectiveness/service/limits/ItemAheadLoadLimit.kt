@@ -12,13 +12,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ItemAheadLoadLimit(
     private val items: List<Item>,
     private val stowage: Stowage,
     private val coefficient: (Item) -> Flt64 = { Flt64.one },
     override val name: String = "item_ahead_load_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     companion object {
         private val predicates = listOf(
             // �ѵ�����
@@ -30,7 +31,7 @@ class ItemAheadLoadLimit(
         )
     }
 
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val predicate = predicates.find { pred -> items.any(pred) }
         if (predicate != null) {
             when (val result = model.minimize(

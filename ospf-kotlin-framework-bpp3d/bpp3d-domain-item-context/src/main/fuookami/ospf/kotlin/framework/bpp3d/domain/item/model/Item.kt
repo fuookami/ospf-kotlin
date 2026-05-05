@@ -508,8 +508,6 @@ val ItemPlacement3.topFlat: Boolean
     get() {
         return view.topFlat
     }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemPlacement2SideEnabledStackingOn")
 suspend fun ItemPlacement2<Side>.enabledStackingOn(
     bottomItems: List<Placement2<*, Side>>,
@@ -562,8 +560,6 @@ suspend fun ItemPlacement2<Side>.enabledStackingOn(
         return false
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemPlacement2FrontEnabledStackingOn")
 suspend fun ItemPlacement2<Front>.enabledStackingOn(
     bottomItems: List<Placement2<*, Front>>,
@@ -616,8 +612,6 @@ suspend fun ItemPlacement2<Front>.enabledStackingOn(
         return false
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 @JvmName("itemPlacement3EnabledStackingOn")
 suspend fun ItemPlacement3.enabledStackingOn(
     bottomItems: List<Placement3<*>>,

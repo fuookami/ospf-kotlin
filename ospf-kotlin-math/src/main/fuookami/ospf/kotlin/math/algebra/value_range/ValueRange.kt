@@ -239,7 +239,6 @@ data class ValueRange<T>(
          * @param value 单点值
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             value: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -277,7 +276,6 @@ data class ValueRange<T>(
          * @param ubInterval 上边界区间类型，默认为闭区间
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             lb: T,
             ub: T,
@@ -355,7 +353,6 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类型，默认为闭区间
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             lb: T,
             ub: Infinity,
@@ -475,7 +472,6 @@ data class ValueRange<T>(
          * @param lbInterval 下边界区间类型，默认为闭区间
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> geq(
             lb: T,
             lbInterval: Interval = Interval.Closed
@@ -494,7 +490,6 @@ data class ValueRange<T>(
          * @param lb 下边界值
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> gr(
             lb: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -570,7 +565,6 @@ data class ValueRange<T>(
          * @param lbInterval 上边界区间类型，默认为闭区间
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> leq(
             ub: T,
             lbInterval: Interval = Interval.Closed
@@ -589,7 +583,6 @@ data class ValueRange<T>(
          * @param ub 上边界值
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline fun <reified T> ls(
             ub: T
         ): Ret<ValueRange<T>> where T : RealNumber<T>, T : NumberField<T> {
@@ -667,7 +660,6 @@ data class ValueRange<T>(
          * @param ubInterval 上边界区间类型
          * @return 创建结果
          */
-        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             lb: ValueWrapper<T>,
             ub: ValueWrapper<T>,
@@ -1171,7 +1163,6 @@ data class ValueRange<T>(
      * @param other 要比较的对象
      * @return 是否相等
      */
-    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false

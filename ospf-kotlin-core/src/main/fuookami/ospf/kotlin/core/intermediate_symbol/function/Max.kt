@@ -2,9 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -15,13 +13,22 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 // ========== Max Function ==========
 
@@ -59,7 +66,7 @@ class MaxFunction<V>(
         return maxVal
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -67,16 +74,16 @@ class MaxFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
         val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // result >= poly[i] for each i
         for (i in polynomials.indices) {
             val polyF = polynomials[i].asFlt64Poly(converter)
             val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += Flt64LinearInequality(
+            allConstraints += LinearInequality<Flt64>(
                 LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
@@ -87,14 +94,14 @@ class MaxFunction<V>(
             val ubMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
-            allConstraints += Flt64LinearInequality(
+            allConstraints += LinearInequality<Flt64>(
                 LinearPolynomial(ubMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), mF), Comparison.LE)
         }
 
         // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
@@ -116,12 +123,12 @@ class MaxFunction<V>(
             bigM: Flt64? = null,
             name: String = "max",
             displayName: String? = null
-        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
+        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbolFlt64>,
+            polynomials: List<LinearIntermediateSymbol<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -129,11 +136,11 @@ class MaxFunction<V>(
             MaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }
@@ -175,7 +182,7 @@ class MinFunction<V>(
         return minVal
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -183,16 +190,16 @@ class MinFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
         val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // result <= poly[i] for each i
         for (i in polynomials.indices) {
             val polyF = polynomials[i].asFlt64Poly(converter)
             val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += Flt64LinearInequality(
+            allConstraints += LinearInequality<Flt64>(
                 LinearPolynomial(ubMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
         }
@@ -203,14 +210,14 @@ class MinFunction<V>(
             val lbMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
-            allConstraints += Flt64LinearInequality(
+            allConstraints += LinearInequality<Flt64>(
                 LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
 
         // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
@@ -232,12 +239,12 @@ class MinFunction<V>(
             bigM: Flt64? = null,
             name: String = "min",
             displayName: String? = null
-        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
+        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbolFlt64>,
+            polynomials: List<LinearIntermediateSymbol<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -248,7 +255,7 @@ class MinFunction<V>(
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }

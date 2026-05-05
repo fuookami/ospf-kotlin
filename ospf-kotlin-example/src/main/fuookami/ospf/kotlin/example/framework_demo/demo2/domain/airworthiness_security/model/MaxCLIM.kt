@@ -51,7 +51,7 @@ class MaxCLIM(
     lateinit var maxCLIM: QuantityLinearIntermediateSymbol
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::maxCLIM.isInitialized) {
             val tow = totalWeight.computedTotalWeight[FlightPhase.TakeOff]

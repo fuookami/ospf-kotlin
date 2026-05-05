@@ -14,14 +14,15 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class EmptyHatedLimit(
     private val positions: List<Position>,
     private val load: Load,
     private val coefficient: (Position) -> Flt64 = { Flt64.one },
     override val name: String = "empty_hated_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val poly = MutableLinearPolynomial()
         for ((j, position) in positions.withIndex()) {
             if (position.type.contains(PositionTypeCode.EmptyHated)) {

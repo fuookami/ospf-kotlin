@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BiologicalBulkConflictLimit(
     private val items: List<Item>,
@@ -18,8 +19,8 @@ class BiologicalBulkConflictLimit(
     private val biologicalLimit: BiologicalLimit,
     private val stowage: Stowage,
     override val name: String = "biological_bulk_conflict_limit"
-): Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+): Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((j, position) in positions.withIndex()) {
             if (position.status.unavailable || !position.location.bulk) {
                 continue

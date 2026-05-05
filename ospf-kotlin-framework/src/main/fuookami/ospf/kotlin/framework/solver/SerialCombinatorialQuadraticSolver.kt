@@ -2,9 +2,7 @@ package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.solver.AbstractQuadraticSolver
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -13,6 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 class SerialCombinatorialQuadraticSolver(
     private val solvers: List<Lazy<AbstractQuadraticSolver>>,
@@ -43,7 +42,7 @@ class SerialCombinatorialQuadraticSolver(
     override suspend operator fun invoke(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
@@ -70,7 +69,7 @@ class SerialCombinatorialQuadraticSolver(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {

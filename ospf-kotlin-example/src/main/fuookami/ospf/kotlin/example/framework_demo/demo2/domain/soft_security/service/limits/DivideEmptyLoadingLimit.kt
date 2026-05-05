@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class DivideEmptyLoadingLimit(
     private val adjacentPositions: List<PositionPair>,
@@ -21,8 +22,8 @@ class DivideEmptyLoadingLimit(
     private val emptyCargoBetweenCargoCoefficient: (Position, Position) -> Flt64 = { _, _ -> Flt64.one },
     private val emptyBetweenEmptyCargoCoefficient: (Position, Position) -> Flt64 = { _, _ -> Flt64.one },
     override val name: String = "divide_empty_loading_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             sum(adjacentPositions.mapIndexed { p, (position1, position2) ->
                 emptyBetweenCargoCoefficient(position1, position2) * divideEmptyLoading.emptyBetweenCargo[p]

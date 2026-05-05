@@ -25,6 +25,13 @@ import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface Compilation {
     val taskCancelEnabled: Boolean
     val withExecutorLeisure: Boolean
@@ -216,7 +223,7 @@ class TaskCompilation<
                 val orPolynomials = tasks.map { LinearPolynomial(x[it, executors[i]]) }
                 val or = OrFunction(
                     polynomials = orPolynomials,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = "executor_compilation_or_${executors[i]}"
                 )
                 orFunctions.add(or)
@@ -231,7 +238,7 @@ class TaskCompilation<
                 )
             }
             for (or in orFunctions) {
-                when (val result = model.add(LinearFunctionSymbolAdapter(or, IntoValue.Flt64))) {
+                when (val result = model.add(LinearFunctionSymbolAdapter(or, flt64Converter))) {
                     is Ok -> {}
 
                     is Failed -> {

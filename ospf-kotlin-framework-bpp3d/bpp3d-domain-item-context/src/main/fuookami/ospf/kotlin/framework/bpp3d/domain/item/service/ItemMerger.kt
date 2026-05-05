@@ -592,7 +592,6 @@ data object ItemMerger {
     }
 
     @JvmName("dumpPlacements")
-    @Suppress("UNCHECKED_CAST")
     fun dump(
         placements: List<Placement3<*>>,
         offset: Vector3 = vector3()

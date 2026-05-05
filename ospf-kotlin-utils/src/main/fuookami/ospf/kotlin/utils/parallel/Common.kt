@@ -210,7 +210,6 @@ internal suspend inline fun <R, T> executeWithWorkerPool(
                 }
             }
             jobs.forEach { it.await() }
-            @Suppress("UNCHECKED_CAST")
             results.mapIndexed { _, v -> v as R }
         }
     }
@@ -347,7 +346,6 @@ internal suspend inline fun <R, T> executeTryWithWorkerPool(
                 is Fatal -> return@coroutineScope Fatal(ret.errors)
             }
         }
-        @Suppress("UNCHECKED_CAST")
         Ok(orderedResults.map { it as R })
     }
 }
@@ -430,7 +428,6 @@ internal suspend inline fun <R, T> executeExTryWithWorkerPool(
                 is Failed, is Fatal -> errors.appendFrom(ret)
             }
         }
-        @Suppress("UNCHECKED_CAST")
         exResultOf(orderedResults.map { it as R }, errors)
     }
 }

@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -13,6 +12,14 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * In-Step-Range function: `y = lb + floor((ub - lb) / step) * step`.
@@ -79,11 +86,11 @@ class InStepRangeFunction<V>(
         return converter.intoValue(converter.fromValue(lbValue) + Flt64(qDouble * stepDouble))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return floorFunc.registerAuxiliaryTokens(tokens)
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         return floorFunc.registerConstraints(model)
     }
     companion object {
@@ -110,7 +117,7 @@ class InStepRangeFunction<V>(
             ub = ub,
             step = step,
             m = m,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -127,7 +134,7 @@ class InStepRangeFunction<V>(
             ub = LinearPolynomial(listOf(ub), Flt64.zero),
             step = step,
             m = m,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

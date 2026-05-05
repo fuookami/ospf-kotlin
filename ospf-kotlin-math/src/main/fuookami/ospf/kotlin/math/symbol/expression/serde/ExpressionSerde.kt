@@ -207,7 +207,6 @@ internal fun ScalarExpression<*>.toData(): ScalarExpressionData = when (this) {
  * 从序列化数据恢复 ScalarExpression
  * Restore ScalarExpression from serialization data
  */
-@Suppress("UNCHECKED_CAST")
 internal fun ScalarExpressionData.toScalarExpression(): ScalarExpression<Any> = when (this) {
     is ScalarExpressionData.Constant -> {
         val v: Any? = when (value) {

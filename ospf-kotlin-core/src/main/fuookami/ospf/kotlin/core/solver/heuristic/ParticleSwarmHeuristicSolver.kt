@@ -16,6 +16,13 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 typealias InitialVelocityGenerator = (index: Int) -> Flt64
 
 enum class HeuristicSolutionStatus {
@@ -322,7 +329,7 @@ class ParticleSwarmHeuristicSolver<V>(
             solveOnObjectiveMiss = solveOnObjectiveMiss,
             randomGenerator = randomGenerator,
             initialVelocityGenerator = initialVelocityGenerator,
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         )
     }
 }

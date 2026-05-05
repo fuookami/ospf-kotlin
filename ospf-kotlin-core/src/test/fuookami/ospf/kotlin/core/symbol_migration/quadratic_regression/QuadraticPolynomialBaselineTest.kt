@@ -16,6 +16,13 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 class QuadraticPolynomialBaselineTest {
     @Test
     fun evaluate_shouldMatchCurrentQuadraticBehavior() {
@@ -87,7 +94,7 @@ class QuadraticPolynomialBaselineTest {
                 x to Flt64(3.0)
             ),
             tokenTable = tokenTable,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             zeroIfNone = false
         )
         assertNotNull(overridden)
@@ -96,7 +103,7 @@ class QuadraticPolynomialBaselineTest {
         val fromValues = symbol.evaluate(
             values = mapOf<Symbol, Flt64>(x to Flt64(3.0)),
             tokenTable = tokenTable,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             zeroIfNone = false
         )
         assertNotNull(fromValues)

@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.solver.output.*
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 data class BendersIterationSnapshot(
     val masterObj: Double,
@@ -30,8 +31,8 @@ data class BendersResult(
 object BendersSolver {
     suspend fun solve(
         solver: LinearBendersDecompositionSolver,
-        masterModel: AbstractLinearMetaModelFlt64,
-        subModel: LinearMetaModelFlt64,
+        masterModel: AbstractLinearMetaModel<Flt64>,
+        subModel: LinearMetaModel<Flt64>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         config: EffectiveBendersAdaptiveConfig,
@@ -51,7 +52,7 @@ object BendersSolver {
 
         for (iteration in 1..maxIterations) {
             val masterOutput = when (val result = solver.solveMaster(
-                metaModel = masterModel as LinearMetaModelFlt64,
+                metaModel = masterModel as LinearMetaModel<Flt64>,
                 options = FrameworkSolveOptions.build {
                     bendersIterationLimit = fuookami.ospf.kotlin.math.algebra.number.UInt64(1)
                 }
@@ -61,7 +62,7 @@ object BendersSolver {
                 is Fatal -> return Fatal(result.errors)
             }
 
-            val masterFeasible = masterOutput as? FeasibleSolverOutputFlt64
+            val masterFeasible = masterOutput as? FeasibleSolverOutput<Flt64>
                 ?: return Failed(fuookami.ospf.kotlin.utils.error.Err(fuookami.ospf.kotlin.utils.error.ErrorCode.ORModelInfeasible))
 
             val masterObj = masterFeasible.obj.toDouble()

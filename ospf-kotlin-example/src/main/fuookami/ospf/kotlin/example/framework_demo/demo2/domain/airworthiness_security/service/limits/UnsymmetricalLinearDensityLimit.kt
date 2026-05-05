@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class UnsymmetricalLinearDensityLimit(
     private val aircraftModel: AircraftModel,
@@ -20,8 +21,8 @@ class UnsymmetricalLinearDensityLimit(
     private val linearDensity: LinearDensity,
     private val positions: List<Position>,
     override val name: String = "unsymmetrical_linear_density_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (zone in maxUnsymmetricalLinearDensity.limitZones) {
             for (line in zone.lines) {
                 if (line.positions.none { it.status.available }) {

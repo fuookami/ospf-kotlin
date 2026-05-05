@@ -10,6 +10,13 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 class ConvertMechanismModelTest {
     @Test
     fun shouldConvertLinearMechanismModelToFlt64() {
@@ -17,7 +24,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         tokens.add(x)
 
-        val metaModel = LinearMetaModel<Flt64>(name = "test-linear", converter = IntoValue.Flt64)
+        val metaModel = LinearMetaModel<Flt64>(name = "test-linear", converter = flt64Converter)
         val model = LinearMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",
@@ -39,7 +46,7 @@ class ConvertMechanismModelTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(x)
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic", converter = IntoValue.Flt64)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-quadratic", converter = flt64Converter)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",

@@ -1,14 +1,14 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbolFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbolFlt64
-import fuookami.ospf.kotlin.core.token.newTokenCacheKey
+import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Linear
+import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -20,7 +20,7 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "api_compat_symbol"
         )
-        val privateKey = newTokenCacheKey(Linear, "__api_compat_key__")
+        val privateKey = Any()
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
         listOf(symbol).register(tokenTable)
@@ -109,15 +109,15 @@ class ApiCompatibilityTest {
             constant = Flt64.one,
             name = "typealias_check_linear"
         )
-        val linearFlt64: LinearExpressionSymbolFlt64 = linear
-        assertTrue(linear === linearFlt64, "LinearExpressionSymbolFlt64 should be typealias for LinearExpressionSymbol<Flt64>")
+        val linearFlt64: LinearExpressionSymbol<Flt64> = linear
+        assertTrue(linear === linearFlt64, "LinearExpressionSymbol<Flt64> should be typealias for LinearExpressionSymbol<Flt64>")
 
         val quadratic: QuadraticExpressionSymbol<Flt64> = QuadraticExpressionSymbol(
             constant = Flt64.one,
             name = "typealias_check_quadratic"
         )
-        val quadraticFlt64: QuadraticExpressionSymbolFlt64 = quadratic
-        assertTrue(quadratic === quadraticFlt64, "QuadraticExpressionSymbolFlt64 should be typealias for QuadraticExpressionSymbol<Flt64>")
+        val quadraticFlt64: QuadraticExpressionSymbol<Flt64> = quadratic
+        assertTrue(quadratic === quadraticFlt64, "QuadraticExpressionSymbol<Flt64> should be typealias for QuadraticExpressionSymbol<Flt64>")
     }
 
     @Test

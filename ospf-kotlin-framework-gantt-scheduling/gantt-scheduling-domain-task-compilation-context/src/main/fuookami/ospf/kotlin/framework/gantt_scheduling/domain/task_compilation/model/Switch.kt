@@ -21,6 +21,13 @@ import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray.Shape3
 import fuookami.ospf.kotlin.multiarray._a
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface Switch {
     val switch: LinearIntermediateSymbols3<Flt64>
     val switchTime: LinearIntermediateSymbols2<Flt64>
@@ -61,7 +68,7 @@ class TaskSchedulingSwitch<
                         IfFunction(
                             inequality = LinearConstraintInput.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
-                                converter = IntoValue.Flt64,
+                                converter = flt64Converter,
                                 lhsRange = taskTime.estimateStartTime[task1].range.range!!
                             ),
                             name = "front_of_${task1}_$task2"

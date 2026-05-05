@@ -15,6 +15,13 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 class ProductFunctionTest {
     @Test
     fun registerConstraintsShouldAddConstraintToModel() {
@@ -35,7 +42,7 @@ class ProductFunctionTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         tokens.add(listOf(x, y))
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product", converter = IntoValue.Flt64)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "test-product", converter = flt64Converter)
         val model = QuadraticMechanismModel<Flt64>(
             parent = metaModel,
             name = "test-mech",

@@ -17,15 +17,16 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Nor
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.from
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class EdgeBandwidth(
     private val edges: List<Edge>,
     private val services: List<Service>
 ) {
     lateinit var y: UIntVariable2
-    lateinit var bandwidth: LinearIntermediateSymbols1Flt64
+    lateinit var bandwidth: LinearIntermediateSymbols1<Flt64>
 
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::y.isInitialized) {
             y = UIntVariable2("y", Shape2(edges.size, services.size))
             for (service in services) {

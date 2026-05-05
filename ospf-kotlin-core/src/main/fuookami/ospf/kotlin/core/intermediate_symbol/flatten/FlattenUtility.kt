@@ -1,11 +1,11 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.flatten
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 /**
  * Flatten Utility - Unified flatten operations for expression system
@@ -23,12 +23,12 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
  *
  * @param monomials List of linear monomials to merge
  * @param constant Base constant value
- * @return Merged LinearFlattenDataFlt64 with combined coefficients
+ * @return Merged LinearFlattenData<Flt64> with combined coefficients
  */
 internal fun mergeLinearMonomials(
     monomials: List<LinearMonomial<Flt64>>,
     constant: Flt64
-): LinearFlattenDataFlt64 {
+): LinearFlattenData<Flt64> {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
     var totalConstant = constant
 
@@ -39,7 +39,7 @@ internal fun mergeLinearMonomials(
         }
     }
 
-    return LinearFlattenDataFlt64(
+    return LinearFlattenData<Flt64>(
         monomials = mergedMonomials
             .filter { it.value neq Flt64.zero }
             .map { LinearMonomial(it.value, it.key) },
@@ -48,12 +48,12 @@ internal fun mergeLinearMonomials(
 }
 
 /**
- * Merge multiple LinearFlattenDataFlt64 by combining all monomials and constants.
+ * Merge multiple LinearFlattenData<Flt64> by combining all monomials and constants.
  */
 internal fun mergeLinearFlattenDataFlt64(
-    flattenDataList: List<LinearFlattenDataFlt64>,
+    flattenDataList: List<LinearFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
-): LinearFlattenDataFlt64 {
+): LinearFlattenData<Flt64> {
     val allMonomials = flattenDataList.flatMap { it.monomials }
     val totalConstant = flattenDataList.fold(initialConstant) { acc, data -> acc + data.constant }
     return mergeLinearMonomials(allMonomials, totalConstant)
@@ -65,12 +65,12 @@ internal fun mergeLinearFlattenDataFlt64(
  *
  * @param monomials List of quadratic monomials to merge
  * @param constant Base constant value
- * @return Merged QuadraticFlattenDataFlt64 with combined coefficients
+ * @return Merged QuadraticFlattenData<Flt64> with combined coefficients
  */
 internal fun mergeQuadraticMonomials(
     monomials: List<QuadraticMonomial<Flt64>>,
     constant: Flt64
-): QuadraticFlattenDataFlt64 {
+): QuadraticFlattenData<Flt64> {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
     var totalConstant = constant
 
@@ -95,7 +95,7 @@ internal fun mergeQuadraticMonomials(
         }
     }
 
-    return QuadraticFlattenDataFlt64(
+    return QuadraticFlattenData<Flt64>(
         monomials = mergedMonomials
             .filter { it.value neq Flt64.zero }
             .map { QuadraticMonomial(it.value, it.key.first, it.key.second) },
@@ -104,12 +104,12 @@ internal fun mergeQuadraticMonomials(
 }
 
 /**
- * Merge multiple QuadraticFlattenDataFlt64 by combining all monomials and constants.
+ * Merge multiple QuadraticFlattenData<Flt64> by combining all monomials and constants.
  */
 internal fun mergeQuadraticFlattenDataFlt64(
-    flattenDataList: List<QuadraticFlattenDataFlt64>,
+    flattenDataList: List<QuadraticFlattenData<Flt64>>,
     initialConstant: Flt64 = Flt64.zero
-): QuadraticFlattenDataFlt64 {
+): QuadraticFlattenData<Flt64> {
     val allMonomials = flattenDataList.flatMap { it.monomials }
     val totalConstant = flattenDataList.fold(initialConstant) { acc, data -> acc + data.constant }
     return mergeQuadraticMonomials(allMonomials, totalConstant)
@@ -124,9 +124,9 @@ internal fun mergeQuadraticFlattenDataFlt64(
  * (a1*x + c1) * (a2*y + c2) = a1*a2*xy + a1*c2*x + a2*c1*y + c1*c2
  */
 internal fun multiplyLinear(
-    lhs: LinearFlattenDataFlt64,
-    rhs: LinearFlattenDataFlt64
-): QuadraticFlattenDataFlt64 {
+    lhs: LinearFlattenData<Flt64>,
+    rhs: LinearFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
     val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // m1 * m2 terms (quadratic)
@@ -171,9 +171,9 @@ internal fun multiplyLinear(
  * Linear * Quadratic -> Quadratic
  */
 internal fun multiplyLinearQuadratic(
-    linear: LinearFlattenDataFlt64,
-    quadratic: QuadraticFlattenDataFlt64
-): QuadraticFlattenDataFlt64 {
+    linear: LinearFlattenData<Flt64>,
+    quadratic: QuadraticFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
     val monomials = ArrayList<QuadraticMonomial<Flt64>>()
 
     // Linear monomials * Quadratic monomials -> Quadratic (cubic would require higher order)
@@ -217,9 +217,9 @@ internal fun multiplyLinearQuadratic(
  * This function handles the parts that stay within quadratic bounds.
  */
 internal fun multiplyQuadratic(
-    lhs: QuadraticFlattenDataFlt64,
-    rhs: QuadraticFlattenDataFlt64
-): QuadraticFlattenDataFlt64 {
+    lhs: QuadraticFlattenData<Flt64>,
+    rhs: QuadraticFlattenData<Flt64>
+): QuadraticFlattenData<Flt64> {
     // Quadratic * Quadratic is not fully supported
     // Only handle constant multiplication
     val monomials = ArrayList<QuadraticMonomial<Flt64>>()
@@ -254,8 +254,8 @@ internal fun multiplyQuadratic(
 /**
  * Normalize linear flatten data by removing zero coefficients.
  */
-internal fun normalizeLinear(data: LinearFlattenDataFlt64): LinearFlattenDataFlt64 {
-    return LinearFlattenDataFlt64(
+internal fun normalizeLinear(data: LinearFlattenData<Flt64>): LinearFlattenData<Flt64> {
+    return LinearFlattenData<Flt64>(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },
         constant = data.constant
     )
@@ -264,7 +264,7 @@ internal fun normalizeLinear(data: LinearFlattenDataFlt64): LinearFlattenDataFlt
 /**
  * Normalize quadratic flatten data by removing zero coefficients and canonicalizing keys.
  */
-internal fun normalizeQuadratic(data: QuadraticFlattenDataFlt64): QuadraticFlattenDataFlt64 {
+internal fun normalizeQuadratic(data: QuadraticFlattenData<Flt64>): QuadraticFlattenData<Flt64> {
     return mergeQuadraticMonomials(
         monomials = data.monomials.filter { it.coefficient neq Flt64.zero },
         constant = data.constant

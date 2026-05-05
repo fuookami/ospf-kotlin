@@ -47,8 +47,6 @@ class MybatisBooleanTranslator<T : Any>(
             is BooleanCustom -> wrapper
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translateComparison(wrapper: QueryWrapper<T>, expr: Comparison<*>): QueryWrapper<T> {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -89,8 +87,6 @@ class MybatisBooleanTranslator<T : Any>(
 
         return wrapper
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translateIn(wrapper: QueryWrapper<T>, expr: InExpression<*>): QueryWrapper<T> {
         val ref = expr.value as? ScalarReference<*> ?: return wrapper
         val column = resolveColumnName(ref.path.value) ?: return wrapper
@@ -104,8 +100,6 @@ class MybatisBooleanTranslator<T : Any>(
             wrapper.`in`(column, values)
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translatePatternMatch(wrapper: QueryWrapper<T>, expr: PatternMatch<*>): QueryWrapper<T> {
         val ref = expr.value as? ScalarReference<*> ?: return wrapper
         val column = resolveColumnName(ref.path.value) ?: return wrapper

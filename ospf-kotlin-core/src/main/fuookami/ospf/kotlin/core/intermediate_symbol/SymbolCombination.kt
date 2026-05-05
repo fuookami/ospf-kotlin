@@ -486,39 +486,9 @@ fun flatMap(
 }
 
 // Flt64 convenience type aliases
-typealias LinearExpressionSymbols1Flt64 = LinearExpressionSymbols1<Flt64>
-typealias LinearExpressionSymbols2Flt64 = LinearExpressionSymbols2<Flt64>
-typealias LinearExpressionSymbols3Flt64 = LinearExpressionSymbols3<Flt64>
-typealias LinearExpressionSymbols4Flt64 = LinearExpressionSymbols4<Flt64>
-typealias DynLinearExpressionSymbolsFlt64 = DynLinearExpressionSymbols<Flt64>
 
-typealias QuantityLinearExpressionSymbols1Flt64 = QuantityLinearExpressionSymbols1<Flt64>
-typealias QuantityLinearExpressionSymbols2Flt64 = QuantityLinearExpressionSymbols2<Flt64>
-typealias QuantityLinearExpressionSymbols3Flt64 = QuantityLinearExpressionSymbols3<Flt64>
-typealias QuantityLinearExpressionSymbols4Flt64 = QuantityLinearExpressionSymbols4<Flt64>
-typealias DynQuantityLinearExpressionSymbolsFlt64 = DynQuantityLinearExpressionSymbols<Flt64>
 
-typealias LinearIntermediateSymbols1Flt64 = LinearIntermediateSymbols1<Flt64>
-typealias LinearIntermediateSymbols2Flt64 = LinearIntermediateSymbols2<Flt64>
-typealias LinearIntermediateSymbols3Flt64 = LinearIntermediateSymbols3<Flt64>
-typealias LinearIntermediateSymbols4Flt64 = LinearIntermediateSymbols4<Flt64>
-typealias DynLinearIntermediateSymbolsFlt64 = DynLinearIntermediateSymbols<Flt64>
 
-typealias QuantityLinearIntermediateSymbols1Flt64 = QuantityLinearIntermediateSymbols1<Flt64>
-typealias QuantityLinearIntermediateSymbols2Flt64 = QuantityLinearIntermediateSymbols2<Flt64>
-typealias QuantityLinearIntermediateSymbols3Flt64 = QuantityLinearIntermediateSymbols3<Flt64>
-typealias QuantityLinearIntermediateSymbols4Flt64 = QuantityLinearIntermediateSymbols4<Flt64>
-typealias DynQuantityLinearIntermediateSymbolsFlt64 = DynQuantityLinearIntermediateSymbols<Flt64>
 
-typealias QuadraticExpressionSymbols1Flt64 = QuadraticExpressionSymbols1<Flt64>
-typealias QuadraticExpressionSymbols2Flt64 = QuadraticExpressionSymbols2<Flt64>
-typealias QuadraticExpressionSymbols3Flt64 = QuadraticExpressionSymbols3<Flt64>
-typealias QuadraticExpressionSymbols4Flt64 = QuadraticExpressionSymbols4<Flt64>
-typealias DynQuadraticExpressionSymbolsFlt64 = DynQuadraticExpressionSymbols<Flt64>
 
-typealias QuantityQuadraticExpressionSymbols1Flt64 = QuantityQuadraticExpressionSymbols1<Flt64>
-typealias QuantityQuadraticExpressionSymbols2Flt64 = QuantityQuadraticExpressionSymbols2<Flt64>
-typealias QuantityQuadraticExpressionSymbols3Flt64 = QuantityQuadraticExpressionSymbols3<Flt64>
-typealias QuantityQuadraticExpressionSymbols4Flt64 = QuantityQuadraticExpressionSymbols4<Flt64>
-typealias DynQuantityQuadraticExpressionSymbolsFlt64 = DynQuantityQuadraticExpressionSymbols<Flt64>
 

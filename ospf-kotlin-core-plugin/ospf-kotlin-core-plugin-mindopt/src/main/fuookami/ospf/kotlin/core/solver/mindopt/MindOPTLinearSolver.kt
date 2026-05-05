@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.solver.mindopt
 
 import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
@@ -30,6 +28,7 @@ import kotlin.math.min
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 class MindOPTLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -40,7 +39,7 @@ class MindOPTLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         return MindOPTLinearSolverImpl(
             config = config,
             callBack = callBack,
@@ -56,11 +55,11 @@ class MindOPTLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return if (solutionAmount leq UInt64.one) {
             this(model).map { it to emptyList() }
         } else {
-            val results = ArrayList<Solution<Flt64>>()
+            val results = ArrayList<List<Flt64>>()
             MindOPTLinearSolverImpl(
                 config = config,
                 callBack = callBack
@@ -100,14 +99,14 @@ private class MindOPTLinearSolverImpl(
 
     private lateinit var mindoptVars: List<MDOVar>
     private lateinit var mindoptConstraints: List<MDOConstr>
-    private lateinit var output: FeasibleSolverOutputFlt64
+    private lateinit var output: FeasibleSolverOutput<Flt64>
 
     private var initialBestObj: Flt64? = null
     private var bestObj: Flt64? = null
     private var bestBound: Flt64? = null
     private var bestTime: Duration = Duration.ZERO
 
-    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutputFlt64> {
+    suspend operator fun invoke(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
         mip = model.containsNotBinaryInteger
 
         val processes = arrayOf(
@@ -365,7 +364,7 @@ private class MindOPTLinearSolverImpl(
                 for (mindoptVar in mindoptVars) {
                     results.add(Flt64(mindoptVar.get(MDO.DoubleAttr.X)))
                 }
-                output = FeasibleSolverOutputFlt64(
+                output = FeasibleSolverOutput<Flt64>(
                     obj = Flt64(mindoptModel.get(MDO.DoubleAttr.ObjVal)),
                     solution = results,
                     time = mindoptModel.get(MDO.DoubleAttr.SolverTime).seconds,

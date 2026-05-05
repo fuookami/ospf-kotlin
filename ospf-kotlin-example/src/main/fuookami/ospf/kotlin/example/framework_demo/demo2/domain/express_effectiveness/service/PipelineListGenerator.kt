@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.service.limits.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 data class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -17,8 +18,8 @@ data class PipelineListGenerator(
     operator fun invoke(
         stowageMode: StowageMode,
         parameter: Parameter
-    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
-        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         if (aggregation.absoluteOrder != null) {
             pipelines.add(

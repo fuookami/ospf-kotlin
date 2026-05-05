@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.service
 
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -28,7 +27,7 @@ data object TaskSolutionAnalyzer {
         bunches: List<List<B>>,
         compilation: BunchCompilation<B, T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution<Flt64>? = null
+        solution: List<Flt64>? = null
     ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ELDAdjacentLimit(
     private val items: List<Item>,
@@ -20,8 +21,8 @@ class ELDAdjacentLimit(
     private val neighbours: List<Neighbour>,
     private val stowage: Stowage,
     override val name: String = "eld_adjacent_limit"
-): Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+): Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i1, item1) in items.withIndex()) {
             if (!item1.cargo.contains(CargoCode.ELD)) {
                 continue

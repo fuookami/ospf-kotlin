@@ -33,7 +33,6 @@ data class ArnoldTongue<V : FloatingNumber<V>>(
     override operator fun invoke(x: V): V {
         val v = omega
         val pi2 = v.constants.pi * v.constants.two
-        @Suppress("UNCHECKED_CAST")
         return x + omega - kappa / pi2 * (pi2 * x).sin() as V
     }
 

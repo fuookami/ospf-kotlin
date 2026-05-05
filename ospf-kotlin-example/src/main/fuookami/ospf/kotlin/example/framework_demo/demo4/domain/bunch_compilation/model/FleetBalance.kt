@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class FleetBalance(
     aircrafts: List<Aircraft>,
@@ -73,13 +74,13 @@ class FleetBalance(
         limits.entries.map { it.key to Limit(it.value.first, it.value.second) }
     }
 
-    lateinit var fleet: LinearExpressionSymbols1Flt64
-    lateinit var slack: LinearIntermediateSymbols1Flt64
+    lateinit var fleet: LinearExpressionSymbols1<Flt64>
+    lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (limits.isNotEmpty()) {
             if (!::fleet.isInitialized) {
-                fleet = LinearExpressionSymbols1Flt64(
+                fleet = LinearExpressionSymbols1<Flt64>(
                     "fleet",
                     Shape1(limits.size)
                 ) { l, _ ->
@@ -107,7 +108,7 @@ class FleetBalance(
             }
 
             if (!::slack.isInitialized) {
-                slack = LinearIntermediateSymbols1Flt64(
+                slack = LinearIntermediateSymbols1<Flt64>(
                     "fleet_slack",
                     Shape1(limits.size)
                 ) { l, _ ->

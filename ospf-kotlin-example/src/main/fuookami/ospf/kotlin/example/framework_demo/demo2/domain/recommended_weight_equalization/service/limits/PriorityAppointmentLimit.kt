@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PriorityAppointmentLimit(
     private val items: List<Item>,
@@ -21,8 +22,8 @@ class PriorityAppointmentLimit(
     private val priorityAppointment: PriorityAppointment,
     private val stowage: Stowage,
     override val name: String = "priority_appointment_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, item) in items.withIndex()) {
             if (!item.location.main || item.cargo.contains(CargoCode.Virtual) || appointment.containsKey(item)) {
                 continue

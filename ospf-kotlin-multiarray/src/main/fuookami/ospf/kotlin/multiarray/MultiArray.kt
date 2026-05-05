@@ -223,7 +223,6 @@ open class MultiArray<out T : Any, S : Shape>(
          */
         inline fun <reified T : Any, S : Shape> new(shape: S): MultiArray<T, S> {
             return MultiArray(shape) { _, _ ->
-                @Suppress("UNCHECKED_CAST")
                 when (T::class) {
                     Int::class -> 0 as T
                     Long::class -> 0L as T
@@ -339,7 +338,6 @@ open class MutableMultiArray<T : Any, S : Shape>(
          */
         inline fun <reified T : Any, S : Shape> new(shape: S): MutableMultiArray<T, S> {
             return MutableMultiArray(shape) { _, _ ->
-                @Suppress("UNCHECKED_CAST")
                 when (T::class) {
                     Int::class -> 0 as T
                     Long::class -> 0L as T

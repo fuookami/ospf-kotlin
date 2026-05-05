@@ -12,12 +12,10 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
 ) : Plus<Point<D, V>, Point<D, V>>, Minus<Point<D, V>, Point<D, V>>, Eq<Point<D, V>> {
     companion object {
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Point<D, V> {
-            @Suppress("UNCHECKED_CAST")
             return Point(listOf(x, y), Dim2 as D)
         }
 
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Point<D, V> {
-            @Suppress("UNCHECKED_CAST")
             return Point(listOf(x, y, z), Dim3 as D)
         }
 

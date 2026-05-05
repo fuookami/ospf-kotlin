@@ -69,13 +69,11 @@ object NumericDispatcher {
     }
 
     /** 获取指定类型的运算处理器 / Get operation handler for type */
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> opsFor(type: KClass<T>): NumericOps<T>? {
         return registry[type] as NumericOps<T>?
     }
 
     /** 获取值的运算处理器 / Get operation handler for a value's type */
-    @Suppress("UNCHECKED_CAST")
     fun <T : Any> opsFor(value: T): NumericOps<T>? {
         return registry[value::class] as NumericOps<T>?
     }
@@ -85,8 +83,6 @@ object NumericDispatcher {
         if (operator == UnaryOperator.Positive) {
             return operand
         }
-
-        @Suppress("UNCHECKED_CAST")
         val ops = registry[operand::class] as NumericOps<Any>? ?: return null
 
         return when (operator) {
@@ -100,8 +96,6 @@ object NumericDispatcher {
     fun evaluateBinary(operator: BinaryOperator, left: Any, right: Any): Any? {
         // Both operands must be of the same type
         if (left::class != right::class) return null
-
-        @Suppress("UNCHECKED_CAST")
         val ops = registry[left::class] as NumericOps<Any>? ?: return null
 
         return when (operator) {

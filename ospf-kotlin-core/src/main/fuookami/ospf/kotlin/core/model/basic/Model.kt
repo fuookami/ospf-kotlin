@@ -11,8 +11,6 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
@@ -23,9 +21,10 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 typealias Solution<V> = List<V>
-typealias SolutionFlt64 = Solution<Flt64>
 
 interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : NumberField<V> {
     val objectCategory: ObjectCategory
@@ -193,7 +192,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenDataFlt64(listOf(LinearMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = LinearFlattenData<Flt64>(listOf(LinearMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -207,18 +206,18 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = category,
-            flattenData = LinearFlattenDataFlt64(emptyList(), constant.toFlt64()),
+            flattenData = LinearFlattenData<Flt64>(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     /**
-     * Add objective using LinearFlattenDataFlt64 (new API)
+     * Add objective using LinearFlattenData<Flt64> (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: LinearFlattenDataFlt64,
+        flattenData: LinearFlattenData<Flt64>,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -232,7 +231,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenDataFlt64(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenData<Flt64>(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -245,7 +244,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenDataFlt64(polynomial.monomials, polynomial.constant),
+            flattenData = LinearFlattenData<Flt64>(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -258,7 +257,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = LinearFlattenDataFlt64(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenData<Flt64>(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -271,7 +270,7 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = LinearFlattenDataFlt64(listOf(monomial), Flt64.zero),
+            flattenData = LinearFlattenData<Flt64>(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -326,7 +325,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenDataFlt64(listOf(QuadraticMonomial(Flt64.one, variable)), Flt64.zero),
+            flattenData = QuadraticFlattenData<Flt64>(listOf(QuadraticMonomial(Flt64.one, variable)), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -340,18 +339,18 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = category,
-            flattenData = QuadraticFlattenDataFlt64(emptyList(), constant.toFlt64()),
+            flattenData = QuadraticFlattenData<Flt64>(emptyList(), constant.toFlt64()),
             name = name ?: "",
             displayName = displayName
         )
     }
 
     /**
-     * Add objective using QuadraticFlattenDataFlt64 (new API)
+     * Add objective using QuadraticFlattenData<Flt64> (new API)
      */
     fun addObject(
         category: ObjectCategory,
-        flattenData: QuadraticFlattenDataFlt64,
+        flattenData: QuadraticFlattenData<Flt64>,
         name: String = "",
         displayName: String? = null
     ): Try
@@ -365,7 +364,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenDataFlt64(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenData<Flt64>(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -378,7 +377,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenDataFlt64(polynomial.monomials, polynomial.constant),
+            flattenData = QuadraticFlattenData<Flt64>(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -391,7 +390,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = QuadraticFlattenDataFlt64(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenData<Flt64>(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )
@@ -404,7 +403,7 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     ): Try {
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = QuadraticFlattenDataFlt64(listOf(monomial), Flt64.zero),
+            flattenData = QuadraticFlattenData<Flt64>(listOf(monomial), Flt64.zero),
             name = name ?: "",
             displayName = displayName
         )

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class LongitudinalBalance(
     private val aircraftModel: AircraftModel,
@@ -23,7 +24,7 @@ class LongitudinalBalance(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::slack.isInitialized) {
             slack = when (stowageMode) {

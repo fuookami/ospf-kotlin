@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BiologicalAdjacentLimit(
     private val items: List<Item>,
@@ -21,8 +22,8 @@ class BiologicalAdjacentLimit(
     private val biologicalLimit: BiologicalLimit,
     private val stowage: Stowage,
     override val name: String = "biological_adjacent_limit"
-): Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+): Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((type1, type2) in biologicalLimit.adjacentLimit) {
             for ((i1, item1) in items.withIndex()) {
                 for (i2 in (i1 + 1) until items.size) {

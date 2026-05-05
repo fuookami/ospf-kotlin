@@ -33,7 +33,7 @@ class SymbolQuantityIntegrationTest {
             ),
             constant = Flt64.one
         )
-        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+        val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
         assertEquals(2, distance.value.monomials.size)
     }
 

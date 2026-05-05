@@ -6,8 +6,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols2
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.BinaryzationFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.BinVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable1
 import fuookami.ospf.kotlin.core.variable.UIntVariable2
@@ -24,6 +22,15 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.plusAssign
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray._a
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class ImpreciseAssignment(
     private val items: Map<Item, UInt64>,
@@ -37,7 +44,7 @@ class ImpreciseAssignment(
 
     lateinit var volume: LinearExpressionSymbol<Flt64>
 
-    fun register(model: MetaModelFlt64): Try {
+    fun register(model: MetaModel<Flt64>): Try {
         if (!::volume.isInitialized) {
             volume = LinearExpressionSymbol(name = "volume")
         }
@@ -59,7 +66,7 @@ class ImpreciseAssignment(
     suspend fun addColumns(
         iteration: UInt64,
         newLayers: List<BinLayer>,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<List<BinLayer>> {
         val unduplicatedLayers = aggregation.addColumns(newLayers)
 
@@ -112,7 +119,7 @@ class PreciseAssignment(
     lateinit var v: LinearIntermediateSymbols1<Flt64>
     lateinit var tail: BinVariable1
 
-    fun register(model: MetaModelFlt64): Try {
+    fun register(model: MetaModel<Flt64>): Try {
         if (!::x.isInitialized) {
             x = UIntVariable2(
                 "x",
@@ -154,10 +161,10 @@ class PreciseAssignment(
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
                         polynomial = LinearMonomial(Flt64.one, x[v[0], v[1]]).toLinearPolynomial(),
-                        converter = IntoValue.Flt64,
+                        converter = flt64Converter,
                         name = "u_$v",
                     ),
-                    converter = IntoValue.Flt64
+                    converter = flt64Converter
                 )
             }
         }
@@ -181,10 +188,10 @@ class PreciseAssignment(
                 LinearFunctionSymbolAdapter(
                     delegate = BinaryzationFunction(
                         polynomial = sum(x[i, _a].map { LinearMonomial(Flt64.one, it) }),
-                        converter = IntoValue.Flt64,
+                        converter = flt64Converter,
                         name = "v_$i",
                     ),
-                    converter = IntoValue.Flt64
+                    converter = flt64Converter
                 )
             }
         }

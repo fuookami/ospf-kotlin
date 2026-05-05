@@ -10,8 +10,6 @@ data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : Flo
     val radius: Va
 ) {
     companion object {}
-
-    @Suppress("UNCHECKED_CAST")
     constructor(center: P, radiusVec: Vec) : this(
         center = center,
         direction = radiusVec.unit as Vec,

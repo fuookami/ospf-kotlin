@@ -87,7 +87,7 @@ class Aggregation(
     
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = stowage.register(model)) {
             is Ok -> {}
@@ -154,7 +154,7 @@ class Aggregation(
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Master problem: stowage assignment variables + load linking constraints
         when (val result = stowage.register(model)) {
@@ -171,7 +171,7 @@ class Aggregation(
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         // Sub problem: airworthiness constraints (payload, totalWeight, maxLoadWeight)
@@ -195,7 +195,7 @@ class Aggregation(
     }
 
     private fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         // Fix master variables in sub problem to their solution values

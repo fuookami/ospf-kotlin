@@ -26,6 +26,13 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun r1(iteration: Iteration): Flt64
 
@@ -102,7 +109,7 @@ class SCAPolicy<V>(
                 notBetterIterationLimit = notBetterIterationLimit,
                 timeLimit = timeLimit,
                 randomGenerator = randomGenerator,
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
     }
@@ -223,8 +230,6 @@ class SCAPolicy<V>(
         val bestAction = actions.indexOf(actions.maxOrNull()!!)
         actions[bestAction] += alpha * (reward + gamma * maxNextQ - actions[bestAction])
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun calculateDensity(
         population: List<Individual<*>>
     ): Flt64 {
@@ -237,8 +242,6 @@ class SCAPolicy<V>(
             }
         } / Flt64(population.size * flt64Solutions.first().size)
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun calculateDistance(
         population: List<Individual<*>>,
         best: Individual<*>,

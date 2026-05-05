@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -21,6 +19,15 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * If-Then function: `y = then_poly if condition > 0, else y = 0`.
@@ -72,7 +79,7 @@ class IfThenFunction<V>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -80,10 +87,10 @@ class IfThenFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val mF = converter.fromValue(bigM)
         val thenF = thenPoly.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicator for condition
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_cond")
@@ -91,14 +98,14 @@ class IfThenFunction<V>(
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
         val yMono = LinearMonomial(Flt64.one, resultVar)
         val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
             LinearPolynomial(emptyList(), mF),
             Comparison.LE, "${name}_then_ub"
         )
 
         // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
             LinearPolynomial(emptyList(), -mF),
             Comparison.GE, "${name}_then_lb"
@@ -124,7 +131,7 @@ class IfThenFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, IntoValue.Flt64, bigM, name = name, displayName = displayName)
+        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, flt64Converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             condition: LinearMonomial<Flt64>,
@@ -160,7 +167,7 @@ class IfThenFunction<V>(
             )
             return LinearFunctionSymbolAdapter(
                 IfThenFunction(conditionPoly, thenPoly, bigM, name = name, displayName = displayName),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }

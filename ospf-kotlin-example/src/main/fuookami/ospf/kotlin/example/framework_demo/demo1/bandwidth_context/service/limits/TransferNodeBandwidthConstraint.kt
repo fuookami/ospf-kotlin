@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 fun Node.maxOutDegree(): UInt64 {
     var bandwidth = UInt64.zero
@@ -27,8 +28,8 @@ class TransferNodeBandwidthConstraint(
     private val assignment: Assignment,
     private val nodeBandwidth: NodeBandwidth,
     override val name: String = "transfer_node_bandwidth_constraint"
-) : Pipeline<LinearMetaModelFlt64> {
-    override fun invoke(model: LinearMetaModelFlt64): Try {
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
         val assignment = assignment.nodeAssignment
         val outFlow = nodeBandwidth.outFlow
         for (node in nodes.filter(normal)) {

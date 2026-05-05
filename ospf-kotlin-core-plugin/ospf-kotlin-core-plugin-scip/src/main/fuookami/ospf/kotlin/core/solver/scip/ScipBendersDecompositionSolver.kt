@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.framework.solver.LinearBendersDecompositionSolver
@@ -23,6 +22,10 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.functional.sumOf
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 class ScipLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -33,7 +36,7 @@ class ScipLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -111,7 +114,7 @@ class ScipLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -164,8 +167,8 @@ class ScipLinearBendersDecompositionSolver(
                     })
                 }
 
-                lateinit var dualSolution: LinearDualSolution
-                lateinit var farkasSolution: LinearDualSolution
+                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                lateinit var farkasSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
                 val solver = ScipLinearSolver(
                     config = config.copy(
                         threadNum = UInt64.one
@@ -283,7 +286,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -300,7 +303,7 @@ class ScipQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModelFlt64,
+        metaModel: QuadraticMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -377,7 +380,7 @@ class ScipQuadraticBendersDecompositionSolver(
 
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -398,7 +401,7 @@ class ScipQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModelFlt64,
+        metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -451,8 +454,8 @@ class ScipQuadraticBendersDecompositionSolver(
                     })
                 }
 
-                lateinit var dualSolution: QuadraticDualSolution
-                lateinit var farkasSolution: QuadraticDualSolution
+                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>
+                lateinit var farkasSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>
                 val solver = ScipQuadraticSolver(
                     config = config.copy(
                         threadNum = UInt64.one
@@ -551,7 +554,7 @@ class ScipQuadraticBendersDecompositionSolver(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
-                                linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
                                 quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                             )
                         )
@@ -587,7 +590,7 @@ class ScipQuadraticBendersDecompositionSolver(
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
-                                    linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                    linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
                                     quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                                 )
                             )

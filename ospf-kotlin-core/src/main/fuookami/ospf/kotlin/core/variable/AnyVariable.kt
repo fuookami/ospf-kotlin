@@ -55,4 +55,3 @@ class AnyVariable<V : RealNumber<V>>(
     }
 }
 
-typealias AnyVariableFlt64 = AnyVariable<Flt64>

@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.service
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -25,8 +24,14 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlin.time.Instant
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 data object SolutionAnalyzer {
-    @Suppress("UNCHECKED_CAST")
     operator fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -37,7 +42,7 @@ data object SolutionAnalyzer {
         compilation: TaskCompilation<T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (executor: E?) -> A?,
-        solution: Solution<Flt64>? = null,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -82,8 +87,6 @@ data object SolutionAnalyzer {
 
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
-
-    @Suppress("UNCHECKED_CAST")
     operator fun <
             T : AbstractTask<E, A>,
             E : Executor,
@@ -97,7 +100,7 @@ data object SolutionAnalyzer {
         results: List<Flt64>,
         model: AbstractLinearMetaModel<Flt64>,
         assignedPolicyGenerator: (time: TimeRange?, executor: E?) -> A?,
-        solution: Solution<Flt64>? = null,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedExecutor = HashMap<AbstractTask<E, A>, E>()
         for (x in compilation.x) {
@@ -133,7 +136,7 @@ data object SolutionAnalyzer {
         }
 
         val assignedECT = assignedExecutor.entries.associate { (task, _) ->
-            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, IntoValue.Flt64)?.let {
+            task to ((taskTime.estimateEndTime[task] as IntermediateSymbol<Flt64>).evaluate(results, model.tokens, flt64Converter)?.let {
                 with(timeWindow) { it.instant }
             } ?: Instant.DISTANT_FUTURE)
         }
@@ -173,8 +176,6 @@ data object SolutionAnalyzer {
 
         return Ok(TaskSolution(assignedTasks, canceledTasks))
     }
-
-    @Suppress("UNCHECKED_CAST")
     operator fun <
             IT : IterativeAbstractTask<E, A>,
             T : AbstractTask<E, A>,
@@ -186,7 +187,7 @@ data object SolutionAnalyzer {
         tasks: List<List<IT>>,
         compilation: IterativeTaskCompilation<IT, T, E, A>,
         model: AbstractLinearMetaModel<Flt64>,
-        solution: Solution<Flt64>? = null,
+        solution: List<Flt64>? = null,
     ): Ret<TaskSolution<T, E, A>> {
         val assignedTasks = ArrayList<T>()
         val canceledTasks = ArrayList<T>()

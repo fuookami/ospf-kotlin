@@ -11,11 +11,18 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `LinearMetaModel minimize with LinearIntermediateSymbol`() {
-        val model = LinearMetaModel<Flt64>(name = "test_min_linear_symbol", converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>(name = "test_min_linear_symbol", converter = flt64Converter)
         val x = RealVar("x")
         model.add(x)
 
@@ -30,7 +37,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `LinearMetaModel maximize with LinearIntermediateSymbol`() {
-        val model = LinearMetaModel<Flt64>(name = "test_max_linear_symbol", converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>(name = "test_max_linear_symbol", converter = flt64Converter)
         val x = RealVar("x")
         model.add(x)
 
@@ -45,7 +52,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `QuadraticMetaModel minimize with QuadraticIntermediateSymbol`() {
-        val model = QuadraticMetaModel<Flt64>(name = "test_min_quad_symbol", converter = IntoValue.Flt64)
+        val model = QuadraticMetaModel<Flt64>(name = "test_min_quad_symbol", converter = flt64Converter)
         val x = RealVar("x")
         model.add(x)
 
@@ -60,7 +67,7 @@ class MinimizeMaximizeSymbolTest {
 
     @Test
     fun `QuadraticMetaModel maximize with QuadraticIntermediateSymbol`() {
-        val model = QuadraticMetaModel<Flt64>(name = "test_max_quad_symbol", converter = IntoValue.Flt64)
+        val model = QuadraticMetaModel<Flt64>(name = "test_max_quad_symbol", converter = flt64Converter)
         val x = RealVar("x")
         model.add(x)
 

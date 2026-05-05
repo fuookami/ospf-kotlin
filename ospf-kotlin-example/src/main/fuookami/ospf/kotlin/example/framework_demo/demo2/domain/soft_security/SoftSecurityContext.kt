@@ -54,7 +54,7 @@ class SoftSecurityContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -107,7 +107,7 @@ class SoftSecurityContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Soft security constraints go into the master problem.
         // Uses FullLoad mode as default for Benders (same as Rust: all non-airworthiness in master).
@@ -115,14 +115,14 @@ class SoftSecurityContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Soft security does not contribute to the sub problem
         return ok
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

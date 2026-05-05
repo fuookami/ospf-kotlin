@@ -18,6 +18,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model.*
 import fuookami.ospf.kotlin.utils.functional.get
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class PassengerFlightChangeConstraint(
     private val timeWindow: TimeWindow,
@@ -26,7 +34,7 @@ class PassengerFlightChangeConstraint(
     private val change: PassengerChange,
     override val name: String = "passenger_flight_change_constraint"
 ) : CGPipeline {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (passenger in passengers) {
             if (passenger.prev != null) {
                 for (toFlight in change.toFlights[passenger.flight] ?: emptyList()) {
@@ -52,7 +60,7 @@ class PassengerFlightChangeConstraint(
                             return Fatal(result.errors)
                         }
                     }
-                    when (val result = model.add(LinearFunctionSymbolAdapter(estCondition, IntoValue.Flt64))) {
+                    when (val result = model.add(LinearFunctionSymbolAdapter(estCondition, flt64Converter))) {
                         is Ok -> {}
 
                         is Failed -> {
@@ -112,7 +120,7 @@ class PassengerFlightChangeConstraint(
                             return Fatal(result.errors)
                         }
                     }
-                    when (val result = model.add(LinearFunctionSymbolAdapter(eetCondition, IntoValue.Flt64))) {
+                    when (val result = model.add(LinearFunctionSymbolAdapter(eetCondition, flt64Converter))) {
                         is Ok -> {}
 
                         is Failed -> {

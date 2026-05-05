@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.redundancy.service.limits.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -16,8 +17,8 @@ class PipelineListGenerator(
     operator fun invoke(
         stowageMode: StowageMode,
         parameter: Parameter
-    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
-        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         pipelines.add(
             ExperimentalLongitudinalBalanceLimit(

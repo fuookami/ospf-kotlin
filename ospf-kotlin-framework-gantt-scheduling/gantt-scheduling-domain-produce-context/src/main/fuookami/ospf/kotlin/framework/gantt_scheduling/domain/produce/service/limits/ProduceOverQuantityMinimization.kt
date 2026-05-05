@@ -3,7 +3,6 @@
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
@@ -14,6 +13,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Assignm
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 
 class ProduceOverQuantityMinimization<
         Args : AbstractGanttSchedulingShadowPriceArguments<E, A>,
@@ -33,7 +33,7 @@ class ProduceOverQuantityMinimization<
         emptyList()
     }
 
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         if (products.isNotEmpty()) {
             val cost = MutableLinearPolynomial<Flt64>(emptyList(), Flt64.zero)
             for ((product, _) in products) {

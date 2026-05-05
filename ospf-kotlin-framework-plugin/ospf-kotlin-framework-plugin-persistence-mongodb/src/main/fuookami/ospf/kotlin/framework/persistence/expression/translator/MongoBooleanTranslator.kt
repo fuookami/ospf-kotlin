@@ -56,8 +56,6 @@ class MongoBooleanTranslator(
             Trivalent.Unknown -> null
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translateComparison(expr: Comparison<*>): Bson? {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>
@@ -98,8 +96,6 @@ class MongoBooleanTranslator(
 
         return null
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translateIn(expr: InExpression<*>): Bson? {
         val ref = expr.value as? ScalarReference<*> ?: return null
         val field = resolveFieldName(ref.path.value) ?: return null
@@ -113,8 +109,6 @@ class MongoBooleanTranslator(
             Filters.`in`(field, values)
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translatePatternMatch(expr: PatternMatch<*>): Bson? {
         val ref = expr.value as? ScalarReference<*> ?: return null
         val field = resolveFieldName(ref.path.value) ?: return null

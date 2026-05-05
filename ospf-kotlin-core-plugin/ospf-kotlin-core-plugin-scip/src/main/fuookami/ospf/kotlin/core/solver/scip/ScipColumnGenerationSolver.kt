@@ -4,12 +4,8 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
 import fuookami.ospf.kotlin.core.model.intermediate.solveDual
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.framework.solver.ColumnGenerationSolver
 import fuookami.ospf.kotlin.utils.functional.*
@@ -19,6 +15,10 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.math.functional.sumOf
 import jscip.SCIP_ParamSetting
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 class ScipColumnGenerationSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -29,11 +29,11 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -107,12 +107,12 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         amount: UInt64,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
             jobs.add(GlobalScope.launch(Dispatchers.IO) {
@@ -157,7 +157,7 @@ class ScipColumnGenerationSolver(
                     })
                 }
 
-                val results = ArrayList<Solution<Flt64>>()
+                val results = ArrayList<List<Flt64>>()
                 val solver = ScipLinearSolver(
                     config = config,
                     callBack = callBack.copy()
@@ -215,7 +215,7 @@ class ScipColumnGenerationSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -265,7 +265,7 @@ class ScipColumnGenerationSolver(
                     })
                 }
 
-                lateinit var dualSolution: LinearDualSolution
+                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
                 val solver = ScipLinearSolver(
                     config = config.copy(
                         threadNum = UInt64.one

@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class FlightLink(
     val links: List<Link>,
@@ -30,13 +31,13 @@ class FlightLink(
         }
     }
 
-    lateinit var link: LinearExpressionSymbols1Flt64
-    lateinit var slack: LinearIntermediateSymbols1Flt64
+    lateinit var link: LinearExpressionSymbols1<Flt64>
+    lateinit var slack: LinearIntermediateSymbols1<Flt64>
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (links.isNotEmpty()) {
             if (!::link.isInitialized) {
-                link = LinearExpressionSymbols1Flt64(
+                link = LinearExpressionSymbols1<Flt64>(
                     "link",
                     Shape1(links.size)
                 ) { k, _ ->
@@ -59,7 +60,7 @@ class FlightLink(
             }
 
             if (!::slack.isInitialized) {
-                slack = LinearIntermediateSymbols1Flt64(
+                slack = LinearIntermediateSymbols1<Flt64>(
                     "link_slack",
                     Shape1(links.size)
                 ) { k, _ ->

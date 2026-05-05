@@ -22,10 +22,10 @@ class FlightCapacity(
     val withPassenger: Boolean = tasks.any { it.capacity is AircraftCapacity.Passenger },
     val withCargo: Boolean = tasks.any { it.capacity is AircraftCapacity.Cargo }
 ) {
-    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbolFlt64>>
-    lateinit var cargo: Map<FlightTask, LinearExpressionSymbolFlt64>
+    lateinit var passenger: Map<FlightTask, Map<PassengerClass, LinearExpressionSymbol<Flt64>>>
+    lateinit var cargo: Map<FlightTask, LinearExpressionSymbol<Flt64>>
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (withPassenger) {
             if (!::passenger.isInitialized) {
                 passenger = tasks

@@ -9,6 +9,13 @@ import fuookami.ospf.kotlin.utils.functional.ifNull
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 data class Particle<V>(
     override val fitness: V,
     override val solution: List<V>,
@@ -29,7 +36,7 @@ data class Particle<V>(
                 solution = solution,
                 velocity = velocity,
                 currentBest = currentBest,
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
     }

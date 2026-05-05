@@ -19,7 +19,6 @@ import fuookami.ospf.kotlin.math.operator.Minus
  * Defines total ordering relation, extending from Ord interface.
  */
 interface TotallyOrdered<Self : Comparable<Self>> : Ord<Self> {
-    @Suppress("UNCHECKED_CAST")
     private fun self(): Self = this as Self
 
     /**

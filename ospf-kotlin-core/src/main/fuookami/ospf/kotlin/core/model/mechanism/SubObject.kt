@@ -6,13 +6,12 @@ import fuookami.ospf.kotlin.core.model.intermediate.LinearCell
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCell
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
-import fuookami.ospf.kotlin.core.token.AbstractTokenTableFlt64
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 /**
  * Generic SubObject<V> with V-typed public evaluation.
@@ -56,10 +55,10 @@ class LinearSubObject<V : RealNumber<V>>(
     companion object {
         operator fun invoke(
             category: ObjectCategory,
-            flattenData: LinearFlattenDataFlt64,
-            tokens: AbstractTokenTableFlt64,
+            flattenData: LinearFlattenData<Flt64>,
+            tokens: AbstractTokenTable<Flt64>,
             name: String = ""
-        ): LinearSubObjectFlt64 {
+        ): LinearSubObject<Flt64> {
             val cells = createLinearCells(flattenData.monomials, tokens)
             return LinearSubObject(
                 category = category,
@@ -71,7 +70,7 @@ class LinearSubObject<V : RealNumber<V>>(
 
         operator fun <V> invoke(
             category: ObjectCategory,
-            flattenData: LinearFlattenDataFlt64,
+            flattenData: LinearFlattenData<Flt64>,
             tokens: AbstractTokenTable<V>,
             name: String = "",
             converter: IntoValue<V>
@@ -128,10 +127,10 @@ class QuadraticSubObject<V : RealNumber<V>>(
     companion object {
         operator fun invoke(
             category: ObjectCategory,
-            flattenData: QuadraticFlattenDataFlt64,
-            tokens: AbstractTokenTableFlt64,
+            flattenData: QuadraticFlattenData<Flt64>,
+            tokens: AbstractTokenTable<Flt64>,
             name: String = ""
-        ): QuadraticSubObjectFlt64 {
+        ): QuadraticSubObject<Flt64> {
             val cells = createQuadraticCells(flattenData.monomials, tokens)
             return QuadraticSubObject(
                 category = category,
@@ -143,7 +142,7 @@ class QuadraticSubObject<V : RealNumber<V>>(
 
         operator fun <V> invoke(
             category: ObjectCategory,
-            flattenData: QuadraticFlattenDataFlt64,
+            flattenData: QuadraticFlattenData<Flt64>,
             tokens: AbstractTokenTable<V>,
             name: String = "",
             converter: IntoValue<V>
@@ -179,5 +178,3 @@ class QuadraticSubObject<V : RealNumber<V>>(
     }
 }
 
-typealias LinearSubObjectFlt64 = LinearSubObject<Flt64>
-typealias QuadraticSubObjectFlt64 = QuadraticSubObject<Flt64>

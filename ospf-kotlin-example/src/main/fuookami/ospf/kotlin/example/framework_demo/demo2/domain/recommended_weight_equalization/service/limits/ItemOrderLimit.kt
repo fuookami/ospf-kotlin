@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ItemOrderLimit(
     private val items: List<Item>,
@@ -19,7 +20,7 @@ class ItemOrderLimit(
     private val orderedPositions: List<PositionPair>,
     private val stowage: Stowage,
     override val name: String = "item_order_limit"
-): Pipeline<AbstractLinearMetaModelFlt64> {
+): Pipeline<AbstractLinearMetaModel<Flt64>> {
     companion object {
         operator fun invoke(
             items: List<Item>,
@@ -31,7 +32,7 @@ class ItemOrderLimit(
         }
     }
 
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((item1, item2) in orderedItems) {
             val i1 = items.indexOf(item1)
             val i2 = items.indexOf(item2)

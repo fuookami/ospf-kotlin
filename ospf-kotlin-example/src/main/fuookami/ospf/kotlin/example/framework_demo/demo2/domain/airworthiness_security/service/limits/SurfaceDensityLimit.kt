@@ -10,13 +10,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SurfaceDensityLimit(
     private val surfaceDensity: SurfaceDensity,
     private val positions: List<Position>,
     override val name: String = "surface_density_limit",
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (limitZone in surfaceDensity.limitsZones) {
             for ((j, position) in positions.withIndex()) {
                 if (position.status.unavailable) {

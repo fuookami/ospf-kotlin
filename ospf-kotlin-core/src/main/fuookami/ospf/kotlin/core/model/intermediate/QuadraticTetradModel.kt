@@ -2,10 +2,7 @@
 
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
 import fuookami.ospf.kotlin.core.model.basic.Variable
@@ -42,6 +39,9 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 
 typealias OriginQuadraticConstraint = fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl<Flt64>
 
@@ -220,7 +220,7 @@ class BasicQuadraticTetradModel(
 ) : BasicModelView<QuadraticConstraintCell>, Cloneable, Copyable<BasicQuadraticTetradModel> {
     companion object {
         /**
-         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModelFlt64] by
+         * Create a [BasicQuadraticTetradModel] from a [QuadraticMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -233,7 +233,7 @@ class BasicQuadraticTetradModel(
          * @return a [BasicQuadraticTetradModel] containing the extracted variables and constraints
          */
         fun from(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -244,7 +244,7 @@ class BasicQuadraticTetradModel(
         }
 
         private fun dumpVariables(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -284,7 +284,7 @@ class BasicQuadraticTetradModel(
         }
 
         private fun dumpConstraints(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -512,7 +512,7 @@ interface QuadraticTetradModelView : ModelView<QuadraticConstraintCell, Quadrati
     fun feasibility(): QuadraticTetradModelView
     fun elastic(): QuadraticTetradModelView
 
-    fun tidyDualSolution(solution: Solution<Flt64>): QuadraticDualSolution {
+    fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index) {
@@ -549,7 +549,7 @@ data class QuadraticTetradModel(
 
         /** V→Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -653,7 +653,7 @@ data class QuadraticTetradModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -694,7 +694,7 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpConstraints(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -775,7 +775,7 @@ data class QuadraticTetradModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginQuadraticConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -946,7 +946,7 @@ data class QuadraticTetradModel(
         }
 
         private fun dumpObjectives(
-            model: QuadraticMechanismModelFlt64,
+            model: QuadraticMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): QuadraticObjective {
@@ -2195,7 +2195,7 @@ data class QuadraticTetradModel(
 suspend fun solveDual(
     model: QuadraticTetradModel,
     solver: QuadraticSolver
-): Ret<QuadraticDualSolution> {
+): Ret<kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>> {
     val dualModel = model.dual()
 
     return when (val result = solver(dualModel)) {
@@ -2216,7 +2216,7 @@ suspend fun solveDual(
 suspend fun solveFarkasDual(
     model: QuadraticTetradModelView,
     solver: QuadraticSolver
-): Ret<QuadraticDualSolution> {
+): Ret<kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>> {
     val dualModel = model.farkasDual()
 
     return when (val result = solver(dualModel)) {

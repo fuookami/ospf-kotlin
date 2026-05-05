@@ -8,11 +8,9 @@ import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
@@ -27,6 +25,13 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.functional.Order
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
@@ -143,10 +148,10 @@ class CallBackModel<V> internal constructor(
         ): CallBackModel<Flt64> = CallBackModel(
             objectCategory = objectCategory,
             policy = FunctionalCallBackModelPolicy(
-                objectiveComparator = dumpObjectiveComparator(objectCategory, IntoValue.Flt64),
+                objectiveComparator = dumpObjectiveComparator(objectCategory, flt64Converter),
                 _initialSolutionsGenerator = initialSolutionGenerator
             ),
-            _converter = IntoValue.Flt64
+            _converter = flt64Converter
         )
 
         operator fun invoke(
@@ -157,7 +162,7 @@ class CallBackModel<V> internal constructor(
                 objectiveComparator = objectiveComparator,
                 _initialSolutionsGenerator = initialSolutionGenerator
             ),
-            _converter = IntoValue.Flt64
+            _converter = flt64Converter
         )
 
         operator fun <V> invoke(
@@ -199,9 +204,9 @@ class CallBackModel<V> internal constructor(
         }
 
         operator fun invoke(
-            model: AbstractMetaModelFlt64,
+            model: AbstractMetaModel<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, IntoValue.Flt64)
+        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
 
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
@@ -215,14 +220,12 @@ class CallBackModel<V> internal constructor(
                 ManualTokenTable<V>(model.tokens.category)
             }
             val constraints = model.constraints.map { constraint ->
-                @Suppress("UNCHECKED_CAST")
                 val impl = constraint as ConstraintImpl<V, *>
                 Pair(
                     { solution: Solution<V> -> impl.isTrue(solution) },
                     constraint.name
                 )
             }.toMutableList()
-            @Suppress("UNCHECKED_CAST")
             val subObjects = model.objectFunction.subObjects as List<SubObject<V>>
             val objectiveFunction = subObjects.map { objective ->
                 Pair(
@@ -251,10 +254,10 @@ class CallBackModel<V> internal constructor(
         }
 
         operator fun invoke(
-            model: SingleObjectMechanismModelFlt64,
+            model: SingleObjectMechanismModel<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
-        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, concurrent, IntoValue.Flt64)
+        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, concurrent, flt64Converter)
     }
 
     override val constraints by ::_constraints
@@ -402,7 +405,6 @@ class CallBackModel<V> internal constructor(
     }
 }
 
-typealias CallBackModelFlt64 = CallBackModel<Flt64>
 
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
@@ -435,7 +437,7 @@ class MultiObjectCallBackModel<V> internal constructor(
             objectCategory = objectCategory,
             objectiveLocation = objectiveLocation,
             _initialSolutionsGenerator = { pair -> initialSolutionGenerator(pair) },
-            _converter = IntoValue.Flt64
+            _converter = flt64Converter
         )
     }
 
@@ -614,4 +616,3 @@ class MultiObjectCallBackModel<V> internal constructor(
     }
 }
 
-typealias MultiObjectCallBackModelFlt64 = MultiObjectCallBackModel<Flt64>

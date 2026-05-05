@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service.limits.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 data class PipelineListGenerator(
     private val aggregation: Aggregation
@@ -21,8 +22,8 @@ data class PipelineListGenerator(
     operator fun invoke(
         stowageMode: StowageMode,
         parameter: Parameter
-    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
-        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        val pipelines = ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         if (aggregation.ballast != null) {
             pipelines.add(

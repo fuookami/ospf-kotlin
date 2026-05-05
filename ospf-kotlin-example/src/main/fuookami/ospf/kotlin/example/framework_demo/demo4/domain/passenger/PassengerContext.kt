@@ -10,12 +10,13 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.invoke
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PassengerContext {
     lateinit var aggregation: Aggregation
     lateinit var pipelineList: CGPipelineList
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = aggregation.register(model)) {
             is Ok -> {}
 

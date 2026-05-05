@@ -2,10 +2,8 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.compare
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -24,6 +22,15 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * Satisfied Amount function: counts how many inequalities in a list are satisfied.
@@ -125,7 +132,7 @@ open class SatisfiedAmountInequalityFunction<V>(
         return input.sign.compare(lhsValue, Flt64.zero)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -133,7 +140,7 @@ open class SatisfiedAmountInequalityFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val eps = converter.fromValue(epsilon)
         val nInputs = inputs.size
 
@@ -151,7 +158,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
                     val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
 
-                    // Convert LinearFlattenDataFlt64 to LinearPolynomial<Flt64>
+                    // Convert LinearFlattenData<Flt64> to LinearPolynomial<Flt64>
                     val polyFlt64 = LinearPolynomial(
                         input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
                         input.flattenData.constant
@@ -277,7 +284,7 @@ open class SatisfiedAmountInequalityFunction<V>(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -326,7 +333,7 @@ class AnyFunction<V>(
         ): AnyFunction<Flt64> = AnyFunction(
             inputs = inputs,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -375,7 +382,7 @@ class AllFunction<V>(
         ): AllFunction<Flt64> = AllFunction(
             inputs = inputs,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -434,7 +441,7 @@ class AtLeastInequalityFunction<V>(
             inputs = inputs,
             k = k,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -483,7 +490,7 @@ class NotAllFunction<V>(
         ): NotAllFunction<Flt64> = NotAllFunction(
             inputs = inputs,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -535,7 +542,7 @@ class NumerableFunction<V>(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

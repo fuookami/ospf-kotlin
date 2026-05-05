@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Nor
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.PipelineListGenerator
 import fuookami.ospf.kotlin.framework.model.invoke
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class RouteContext {
     lateinit var aggregation: Aggregation
@@ -83,11 +84,11 @@ class RouteContext {
         return ok
     }
 
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         return aggregation.register(model)
     }
 
-    fun construct(model: LinearMetaModelFlt64): Try {
+    fun construct(model: LinearMetaModel<Flt64>): Try {
         val generator = PipelineListGenerator(aggregation)
         when (val pipelinesRet = generator()) {
             is Failed -> {

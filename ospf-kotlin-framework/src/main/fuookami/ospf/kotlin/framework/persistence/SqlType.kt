@@ -8,6 +8,7 @@ import kotlinx.datetime.toJavaLocalDateTime
 import kotlinx.datetime.toKotlinLocalDateTime
 import org.ktorm.schema.*
 import java.math.RoundingMode
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 fun BaseTable<*>.ui32(name: String): Column<UInt32> {
     return int(name).transform({ UInt32(it.toUInt()) }, { it.toInt() })

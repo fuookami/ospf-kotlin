@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class SameSourceAdjacentLimit(
     private val adjacentPositions: List<PositionPair>,
@@ -21,8 +22,8 @@ class SameSourceAdjacentLimit(
     private val loading: TransferAdjacentLoading,
     private val coefficient: (FlightNo, Position, Position) -> Flt64 = { _, _, _ -> Flt64.one },
     override val name: String = "same_source_adjacent_limit",
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.maximize(
             sum(sources.flatMapIndexed { s, source ->
                 adjacentPositions.mapIndexed { p, (position1, position2) ->

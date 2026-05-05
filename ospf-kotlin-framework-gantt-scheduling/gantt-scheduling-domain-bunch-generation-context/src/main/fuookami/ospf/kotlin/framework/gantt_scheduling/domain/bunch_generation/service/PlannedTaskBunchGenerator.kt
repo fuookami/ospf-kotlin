@@ -144,8 +144,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //        return labels[node]!!
 //    }
 //
-//    @Suppress("UNCHECKED_CAST")
-//    protected open fun generateTaskLabel(prevLabel: L, succNode: Node, shadowPriceMap: ShadowPriceMap<E>): L? {
+//    //    protected open fun generateTaskLabel(prevLabel: L, succNode: Node, shadowPriceMap: ShadowPriceMap<E>): L? {
 //        assert(succNode is TaskNode<*, *>)
 //        succNode as TaskNode<E, *>
 //
@@ -270,8 +269,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_generation.
 //    // calculate the minimum departure time from previous label
 //    // specially, it is the arrival time of last label if the previous label is belongs to root node or succ node is end node
 //    // because there is no connection between virtual node and task node
-//    @Suppress("UNCHECKED_CAST")
-//    private fun getMinStartTime(prevLabel: L, succNode: Node): Instant {
+//    //    private fun getMinStartTime(prevLabel: L, succNode: Node): Instant {
 //        assert(succNode is TaskNode<*, *>)
 //        succNode as TaskNode<E, *>
 //

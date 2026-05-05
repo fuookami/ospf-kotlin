@@ -38,7 +38,6 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     fun midpoint(): P {
-        @Suppress("UNCHECKED_CAST")
         val v = from[0]
         val two = v.constants.two
         return from.indices.map { (from[it] + to[it]) / two }.let {
@@ -47,7 +46,6 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 
     fun pointAt(t: V): P {
-        @Suppress("UNCHECKED_CAST")
         return from.indices.map { from[it] + t * (to[it] - from[it]) }.let {
             Point(it, from.dim) as P
         }

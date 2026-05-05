@@ -90,9 +90,8 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractTokenListFlt64.
+ * Legacy typealias for Flt64-specific AbstractTokenList<Flt64>.
  */
-typealias AbstractTokenListFlt64 = AbstractTokenList<Flt64>
 
 @OptIn(ExperimentalStdlibApi::class)
 class TokenList<T : RealNumber<T>>(
@@ -188,9 +187,8 @@ class TokenList<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific TokenListFlt64.
+ * Legacy typealias for Flt64-specific TokenList<Flt64>.
  */
-typealias TokenListFlt64 = TokenList<Flt64>
 
 interface AddableTokenCollection<T : RealNumber<T>> {
     fun add(item: AbstractVariableItem<*, *>): Try
@@ -198,9 +196,8 @@ interface AddableTokenCollection<T : RealNumber<T>> {
 }
 
 /**
- * Legacy typealias for Flt64-specific AddableTokenCollectionFlt64.
+ * Legacy typealias for Flt64-specific AddableTokenCollection<Flt64>.
  */
-typealias AddableTokenCollectionFlt64 = AddableTokenCollection<Flt64>
 
 abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
     abstract fun remove(item: AbstractVariableItem<*, *>)
@@ -208,9 +205,8 @@ abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractMutableTokenListFlt64.
+ * Legacy typealias for Flt64-specific AbstractMutableTokenList<Flt64>.
  */
-typealias AbstractMutableTokenListFlt64 = AbstractMutableTokenList<Flt64>
 
 sealed class MutableTokenList<T : RealNumber<T>>(
     internal val list: MutableMap<VariableItemKey, Token<T>> = HashMap(),
@@ -343,9 +339,8 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific MutableTokenListFlt64.
+ * Legacy typealias for Flt64-specific MutableTokenList<Flt64>.
  */
-typealias MutableTokenListFlt64 = MutableTokenList<Flt64>
 
 class AutoTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
@@ -399,9 +394,8 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
 }
 
 /**
- * Legacy typealias for Flt64-specific AutoTokenListFlt64.
+ * Legacy typealias for Flt64-specific AutoTokenList<Flt64>.
  */
-typealias AutoTokenListFlt64 = AutoTokenList<Flt64>
 
 class ManualTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
@@ -445,6 +439,5 @@ class ManualTokenList<T : RealNumber<T>> private constructor(
 }
 
 /**
- * Legacy typealias for Flt64-specific ManualTokenListFlt64.
+ * Legacy typealias for Flt64-specific ManualTokenList<Flt64>.
  */
-typealias ManualTokenListFlt64 = ManualTokenList<Flt64>

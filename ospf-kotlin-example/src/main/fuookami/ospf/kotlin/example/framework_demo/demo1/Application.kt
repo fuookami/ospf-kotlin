@@ -15,6 +15,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 /**
  * @see     https://fuookami.github.io/ospf/examples/framework-example1.html
  */
@@ -34,7 +41,7 @@ class SSP {
 
             is Ok -> {}
         }
-        val model = LinearMetaModelFlt64("demo1", converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>("demo1", converter = flt64Converter)
         when (val result = construct(model)) {
             is Failed -> {
                 return Failed(result.error)
@@ -104,7 +111,7 @@ class SSP {
         return ok
     }
 
-    private fun construct(model: LinearMetaModelFlt64): Try {
+    private fun construct(model: LinearMetaModel<Flt64>): Try {
         when (val result = routeContext.register(model)) {
             is Failed -> {
                 return Failed(result.error)
@@ -154,7 +161,7 @@ class SSP {
         return ok
     }
 
-    private suspend fun solve(metaModel: LinearMetaModelFlt64): Ret<List<Flt64>> {
+    private suspend fun solve(metaModel: LinearMetaModel<Flt64>): Ret<List<Flt64>> {
         val solver = ScipLinearSolver()
         return when (val ret = solver(metaModel)) {
             is Ok -> {

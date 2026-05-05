@@ -207,7 +207,6 @@ class SlotBasedCapacityPreSolver<E : Executor, A : ProductionAction, M, R>(
 
         // Solve the model
         // 求解模型
-        @Suppress("UNCHECKED_CAST")
         when (val result = solver(model)) {
             is Ok<*, *, *> -> {}
             is Failed<*, *, *> -> return Failed<CapacityIntermediateValues<A, M, R>, ErrorCode, Error<ErrorCode>>(result.error as Error<ErrorCode>)

@@ -9,9 +9,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -27,6 +25,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 interface Consumption {
     val quantity: LinearIntermediateSymbols1<Flt64>
@@ -36,7 +36,7 @@ interface Consumption {
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
 abstract class AbstractConsumption<
@@ -51,7 +51,7 @@ abstract class AbstractConsumption<
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (overEnabled) {
             if (!::overQuantity.isInitialized) {
                 val overConstraints = mutableListOf<Pair<LinearPolynomial<Flt64>, Flt64>>()
@@ -220,7 +220,7 @@ class TaskSchedulingConsumption<
 ) : AbstractConsumption<T, E, A, P, C>(materials.sortedBy { it.first.index }) {
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -239,7 +239,7 @@ class BunchSchedulingConsumption<
 
     override lateinit var quantity: LinearExpressionSymbols1<Flt64>
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (materials.isNotEmpty()) {
             if (!::quantity.isInitialized) {
                 quantity = LinearExpressionSymbols1<Flt64>(

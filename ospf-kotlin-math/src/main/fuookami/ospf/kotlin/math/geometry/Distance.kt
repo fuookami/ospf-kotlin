@@ -7,7 +7,6 @@ sealed interface Distance {
     operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V
 
     data object Euclidean : Distance {
-        @Suppress("UNCHECKED_CAST")
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {
             val v = lhs[0]
             return (lhs.indices.sumOf(v.constants) { (lhs[it] - rhs[it]).sqr() }).sqrt() as V
@@ -22,7 +21,6 @@ sealed interface Distance {
     }
 
     class Minkowski(val p: Int) : Distance {
-        @Suppress("UNCHECKED_CAST")
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {
             val v = lhs[0]
             val sum = lhs.indices.sumOf(v.constants) { (lhs[it] - rhs[it]).abs().pow(p) }

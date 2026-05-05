@@ -10,12 +10,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.Aggregati
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.limits.NodeAssignmentConstraint
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.limits.ServiceAssignmentConstraint
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service.limits.ServiceCostObjective
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
-    operator fun invoke(): Ret<PipelineList<LinearMetaModelFlt64>> {
-        val list = ArrayList<Pipeline<LinearMetaModelFlt64>>()
+    operator fun invoke(): Ret<PipelineList<LinearMetaModel<Flt64>>> {
+        val list = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
 
         list.add(NodeAssignmentConstraint(aggregation.graph.nodes, aggregation.assignment))
         list.add(ServiceAssignmentConstraint(aggregation.services, aggregation.assignment))

@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class LowPayloadLimit(
     private val payload: Payload,
     private val minLowPayload: MinLowPayload,
     override val name: String = "low_payload_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.addConstraint(
             relation = payload.lowEstimatePayload.value geq minLowPayload.minLowPayload.value,
             name = name

@@ -1091,7 +1091,6 @@ sealed class ProductivityCalendar<Q, P, T, U>(
     private val div: (TimeWindow, Q, Duration) -> Q,
     private val floor: Extractor<Q, Flt64>
 ) : WorkingCalendar(timeWindow) where P : Productivity<Q, T, U>, Q : RealNumber<Q>, Q : PlusGroup<Q>, Q : TimesGroup<Q> {
-    @Suppress("UNCHECKED_CAST")
     val productivity: List<P> by lazy {
         if (unavailableTimes != null) {
             productivity.flatMap {

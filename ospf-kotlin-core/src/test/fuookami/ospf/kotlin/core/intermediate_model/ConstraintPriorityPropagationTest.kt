@@ -10,8 +10,8 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldKeepPriorityThroughCopyAndFilter() {
         val constraint = LinearConstraintBatch(
-            sparseLhs = SparseMatrixFlt64().also { mat ->
-                val sv = SparseVectorFlt64()
+            sparseLhs = SparseMatrix<Flt64>().also { mat ->
+                val sv = SparseVector<Flt64>()
                 sv.add(0, Flt64.one)
                 mat.addRow(sv)
             },
@@ -30,8 +30,8 @@ class ConstraintPriorityPropagationTest {
     @Test
     fun linearConstraintShouldUseNullPriorityAsDefault() {
         val constraint = LinearConstraintBatch(
-            sparseLhs = SparseMatrixFlt64().also { mat ->
-                val sv = SparseVectorFlt64()
+            sparseLhs = SparseMatrix<Flt64>().also { mat ->
+                val sv = SparseVector<Flt64>()
                 sv.add(0, Flt64.one)
                 mat.addRow(sv)
             },

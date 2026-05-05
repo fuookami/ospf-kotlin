@@ -35,7 +35,7 @@ class Payload(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::mainEstimatePayload.isInitialized) {
             mainEstimatePayload = Quantity(

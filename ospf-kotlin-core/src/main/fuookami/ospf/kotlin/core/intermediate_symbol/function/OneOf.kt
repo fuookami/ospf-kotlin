@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -14,13 +13,21 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * OneOf function: exactly one of the input polynomials must be nonzero.
@@ -72,7 +79,7 @@ class OneOfFunction<V>(
         return if (count == 1) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -80,9 +87,9 @@ class OneOfFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val mD = bigM
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
@@ -91,12 +98,12 @@ class OneOfFunction<V>(
 
         // Exactly one indicator must be 1: sum(indicators) = 1
         val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(indMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
 
         // result = 1 (since exactly one indicator must be 1)
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
 
@@ -118,7 +125,7 @@ class OneOfFunction<V>(
             bigM: Flt64? = null,
             name: String = "oneof",
             displayName: String? = null
-        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, converter = IntoValue.Flt64, name = name, displayName = displayName)
+        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, converter = flt64Converter, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
@@ -131,11 +138,11 @@ class OneOfFunction<V>(
             OneOfFunction<Flt64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
        name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }

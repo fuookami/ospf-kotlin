@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class AppointmentLimit(
     private val items: List<Item>,
@@ -17,8 +18,8 @@ class AppointmentLimit(
     private val appointment: Appointment,
     private val stowage: Stowage,
     override val name: String = "appointment_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, item) in items.withIndex()) {
             val thisAppointment = appointment[item]
             if (thisAppointment != null) {

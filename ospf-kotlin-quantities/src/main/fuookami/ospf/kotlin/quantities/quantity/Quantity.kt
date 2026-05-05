@@ -107,7 +107,6 @@ class UnitConversionException(message: String) : Exception(message)
  * Flt64 物理量类型别名
  * Flt64 Quantity Type Alias
  */
-typealias QuantityFlt64 = Quantity<Flt64>
 
 /**
  * 根据值类型尝试单位转换
@@ -119,7 +118,6 @@ typealias QuantityFlt64 = Quantity<Flt64>
  * @param unit 目标单位 / Target unit
  * @return 转换后的物理量，或 null 如果无法转换 / Converted quantity, or null if conversion failed
  */
-@Suppress("UNCHECKED_CAST")
 private fun <V> Quantity<V>.tryConvertByValueType(unit: PhysicalUnit): Quantity<V>? {
     return when (value) {
         is Int64 -> (this as Quantity<Int64>).to(unit) as Quantity<V>?

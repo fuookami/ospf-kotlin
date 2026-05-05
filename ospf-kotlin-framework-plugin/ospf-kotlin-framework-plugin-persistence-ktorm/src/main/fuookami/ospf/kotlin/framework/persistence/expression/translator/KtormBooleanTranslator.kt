@@ -53,8 +53,6 @@ class KtormBooleanTranslator(
             is BooleanCustom -> null
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun translateComparison(expr: Comparison<*>): ColumnDeclaring<Boolean>? {
         val leftRef = expr.left as? ScalarReference<*>
         val leftConst = expr.left as? ScalarConstant<*>

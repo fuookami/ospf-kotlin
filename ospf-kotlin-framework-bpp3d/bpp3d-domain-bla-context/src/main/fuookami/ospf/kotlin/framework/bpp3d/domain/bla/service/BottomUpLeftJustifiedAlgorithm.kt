@@ -149,7 +149,6 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     @JvmName("invokeT")
-    @Suppress("UNCHECKED_CAST")
     @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
     operator fun <T : Cuboid<T>> invoke(
         projections: List<Projection<T, P>>,
@@ -432,8 +431,6 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             point2(x = point.x, y = maxY)
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private suspend fun feasible(
         placement: Placement2<*, P>,
         fixedPlacements: List<Placement2<*, P>?>

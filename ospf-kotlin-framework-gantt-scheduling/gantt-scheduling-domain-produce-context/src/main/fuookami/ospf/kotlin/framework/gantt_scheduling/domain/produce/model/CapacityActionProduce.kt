@@ -43,7 +43,6 @@ fun <E : Executor, A : ProductionAction, P : AbstractMaterial>
     var result = Flt64.zero
     for ((action, amount) in allocations) {
         if (action is CapacityActionProduce<*, *>) {
-            @Suppress("UNCHECKED_CAST")
             val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
             result += unitProduce * amount.toFlt64()
         }
@@ -63,7 +62,6 @@ fun <E : Executor, A : ProductionAction, C : AbstractMaterial>
     var result = Flt64.zero
     for ((action, amount) in allocations) {
         if (action is CapacityActionProduce<*, *>) {
-            @Suppress("UNCHECKED_CAST")
             val unitConsumption = (action as CapacityActionProduce<*, C>).consumption[material] ?: Flt64.zero
             result += unitConsumption * amount.toFlt64()
         }

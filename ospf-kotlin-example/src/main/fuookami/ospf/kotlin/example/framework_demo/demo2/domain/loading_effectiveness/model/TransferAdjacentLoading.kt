@@ -15,6 +15,14 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class TransferAdjacentLoading(
     private val adjacentPositions: List<PositionPair>,
@@ -22,14 +30,14 @@ class TransferAdjacentLoading(
     private val destinations: List<IATA>,
     private val load: Load
 ) {
-    lateinit var sameSourceAdjacent: LinearIntermediateSymbols2Flt64
-    lateinit var sameDestinationAdjacent: LinearIntermediateSymbols2Flt64
+    lateinit var sameSourceAdjacent: LinearIntermediateSymbols2<Flt64>
+    lateinit var sameDestinationAdjacent: LinearIntermediateSymbols2<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::sameSourceAdjacent.isInitialized) {
-            sameSourceAdjacent = LinearIntermediateSymbols2Flt64("same_source_adjacent", Shape2(sources.size, adjacentPositions.size)) { _, v ->
+            sameSourceAdjacent = LinearIntermediateSymbols2<Flt64>("same_source_adjacent", Shape2(sources.size, adjacentPositions.size)) { _, v ->
                 val source = sources[v[0]]
                 val position1 = adjacentPositions[v[1]].first
                 val position2 = adjacentPositions[v[1]].second
@@ -45,10 +53,10 @@ class TransferAdjacentLoading(
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
                             condition = loadAmount1 + loadAmount2 - Flt64.two,
-                            converter = IntoValue.Flt64,
+                            converter = flt64Converter,
                             name = "same_source_adjacent_${source}_${position1}_${position2}",
                         ),
-                        converter = IntoValue.Flt64
+                        converter = flt64Converter
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
@@ -76,7 +84,7 @@ class TransferAdjacentLoading(
         }
 
         if (!::sameDestinationAdjacent.isInitialized) {
-            sameDestinationAdjacent = LinearIntermediateSymbols2Flt64("same_destination_adjacent", Shape2(destinations.size, adjacentPositions.size)) { _, v ->
+            sameDestinationAdjacent = LinearIntermediateSymbols2<Flt64>("same_destination_adjacent", Shape2(destinations.size, adjacentPositions.size)) { _, v ->
                 val destination = destinations[v[0]]
                 val position1 = adjacentPositions[v[1]].first
                 val position2 = adjacentPositions[v[1]].second
@@ -92,10 +100,10 @@ class TransferAdjacentLoading(
                     LinearFunctionSymbolAdapter(
                         delegate = IfFunction(
                             condition = loadAmount1 + loadAmount2 - Flt64.two,
-                            converter = IntoValue.Flt64,
+                            converter = flt64Converter,
                             name = "same_destination_adjacent_${destination}_${position1}_${position2}",
                         ),
-                        converter = IntoValue.Flt64
+                        converter = flt64Converter
                     )
                 } else if (loadAmount1.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(

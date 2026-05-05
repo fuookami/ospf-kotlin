@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Torque(
     private val aircraftModel: AircraftModel,
@@ -30,7 +31,7 @@ class Torque(
     lateinit var index: Map<FlightPhase, QuantityLinearIntermediateSymbol>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::longitudinalTorque.isInitialized) {
             longitudinalTorque = FlightPhase.entries.associateWith { phase ->

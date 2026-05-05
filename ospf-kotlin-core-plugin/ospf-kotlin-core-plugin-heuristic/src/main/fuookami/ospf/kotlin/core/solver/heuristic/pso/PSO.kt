@@ -17,6 +17,13 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 import kotlin.time.ExperimentalTime
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun accelerate(
         iteration: Iteration,
@@ -66,7 +73,7 @@ open class PSOPolicy<V>(
                 notBetterIterationLimit = notBetterIterationLimit,
                 timeLimit = timeLimit,
                 randomGenerator = randomGenerator,
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
     }
@@ -118,7 +125,7 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
                 particleAmount = particleAmount,
                 solutionAmount = solutionAmount,
                 policy = policy,
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
     }

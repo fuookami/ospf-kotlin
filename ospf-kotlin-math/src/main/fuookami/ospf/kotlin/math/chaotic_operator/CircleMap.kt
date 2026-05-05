@@ -42,7 +42,6 @@ data class CircleMap<V : FloatingImpl<V>>(
     override fun invoke(x: V): V {
         val v = alpha
         val pi2 = v.constants.pi * v.constants.two
-        @Suppress("UNCHECKED_CAST")
         val sinVal = (x * pi2).sin() as V
         val raw = x + alpha - beta * sinVal / pi2
         return raw - (raw / v.constants.one).floor() * v.constants.one

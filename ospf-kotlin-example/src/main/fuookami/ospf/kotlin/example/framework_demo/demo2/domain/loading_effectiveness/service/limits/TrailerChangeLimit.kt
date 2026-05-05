@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class TrailerChangeLimit(
     private val adjacentPositions: List<PositionPair>,
@@ -20,8 +21,8 @@ class TrailerChangeLimit(
     private val loading: TrailerLoading,
     private val coefficient: (Pair<Position, Trailer>, Pair<Position, Trailer>) -> Flt64 = { _, _ -> Flt64.one },
     override val name: String = "trailer_change_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             sum(orderedTrailers.flatMapIndexed { p1, (trailer1, trailer2) ->
                 adjacentPositions.mapIndexed { p2, (position1, position2) ->

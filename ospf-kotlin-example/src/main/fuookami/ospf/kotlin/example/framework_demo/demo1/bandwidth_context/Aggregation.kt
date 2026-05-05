@@ -8,13 +8,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.EdgeBandwidth
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.NodeBandwidth
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model.ServiceBandwidth
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class Aggregation(
     val edgeBandwidth: EdgeBandwidth,
     val serviceBandwidth: ServiceBandwidth,
     val nodeBandwidth: NodeBandwidth
 ) {
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         val subprocesses = arrayListOf(
             { return@arrayListOf edgeBandwidth.register(model) },
             { return@arrayListOf serviceBandwidth.register(model) },

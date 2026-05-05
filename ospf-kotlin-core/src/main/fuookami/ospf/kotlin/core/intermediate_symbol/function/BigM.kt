@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -13,13 +12,13 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 
 /** Default Big-M constant for linearization. */
 const val BIG_M_DEFAULT: Double = 1_000_000.0
@@ -65,10 +64,10 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
  * Add a list of constraints to the MechanismModel, returning early on failure.
  * Returns null on success, or the error result on failure.
  *
- * This overload accepts [AbstractLinearMechanismModelFlt64] for use in
+ * This overload accepts [AbstractLinearMechanismModel<Flt64>] for use in
  * [MathFunctionSymbol.registerConstraints].
  */
-internal fun addConstraints(model: AbstractLinearMechanismModelFlt64, constraints: List<Flt64LinearInequality>): Try? {
+internal fun addConstraints(model: AbstractLinearMechanismModel<Flt64>, constraints: List<LinearInequality<Flt64>>): Try? {
     for (c in constraints) {
         when (val r = model.addConstraint(relation = c, name = c.name)) {
             is Ok -> {}
@@ -86,7 +85,7 @@ internal fun addConstraints(model: AbstractLinearMechanismModelFlt64, constraint
  * When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
  * The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
- * Returns a list of named Flt64LinearInequality constraints (Flt64-typed for model compatibility).
+ * Returns a list of named LinearInequality<Flt64> constraints (Flt64-typed for model compatibility).
  */
 fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
@@ -97,8 +96,8 @@ fun <V> nonzeroIndicatorConstraints(
     strictBoundary: V,
     converter: IntoValue<V>,
     namePrefix: String
-): List<Flt64LinearInequality> where V : RealNumber<V>, V : NumberField<V> {
-    val constraints = mutableListOf<Flt64LinearInequality>()
+): List<LinearInequality<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<Flt64>>()
     val polyF = poly.asFlt64Poly(converter)
     val mF = converter.fromValue(bigM)
     val tolF = converter.fromValue(tolerance)
@@ -107,21 +106,21 @@ fun <V> nonzeroIndicatorConstraints(
     // band_ub: poly - M*ind <= tol
     val ubMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mF, indVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(ubMonos, polyF.constant),
         LinearPolynomial(emptyList(), tolF), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol
     val lbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mF, indVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(lbMonos, polyF.constant),
         LinearPolynomial(emptyList(), -tolF), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
     val outLbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(outLbMonos, polyF.constant),
         LinearPolynomial(emptyList(), sbF - mF - mF),
         Comparison.GE, "${namePrefix}_out_lb")
@@ -129,7 +128,7 @@ fun <V> nonzeroIndicatorConstraints(
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M
     val outUbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(outUbMonos, polyF.constant),
         LinearPolynomial(emptyList(), -sbF + mF),
         Comparison.LE, "${namePrefix}_out_ub")
@@ -143,7 +142,7 @@ fun <V> nonzeroIndicatorConstraints(
  * For LE: when indicator=1, poly <= rhs is enforced.
  * For GE: when indicator=1, poly >= rhs is enforced.
  *
- * Returns Flt64LinearInequality constraints (Flt64-typed for model compatibility).
+ * Returns LinearInequality<Flt64> constraints (Flt64-typed for model compatibility).
  */
 fun <V> simpleIndicatorConstraints(
     ineq: LinearInequality<V>,
@@ -153,8 +152,8 @@ fun <V> simpleIndicatorConstraints(
     strictBoundary: V,
     converter: IntoValue<V>,
     namePrefix: String
-): List<Flt64LinearInequality> where V : RealNumber<V>, V : NumberField<V> {
-    val constraints = mutableListOf<Flt64LinearInequality>()
+): List<LinearInequality<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<Flt64>>()
     val mF = converter.fromValue(bigM)
     val tolF = converter.fromValue(tolerance)
     val sbF = converter.fromValue(strictBoundary)
@@ -166,21 +165,21 @@ fun <V> simpleIndicatorConstraints(
     when (ineq.comparison) {
         Comparison.LE -> {
             // lb: poly - rhs + M*ind >= 0
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos + LinearMonomial(mF, indicator), shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${namePrefix}_lb")
             // ub: poly - rhs <= M (always true for reasonable M)
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), mF), Comparison.LE, "${namePrefix}_ub")
         }
         Comparison.GE -> {
             // lb: poly - rhs >= -M (always possible)
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), -mF), Comparison.GE, "${namePrefix}_lb")
             // ub: poly - rhs <= 0 (enforced when indicator=1)
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${namePrefix}_ub")
         }
@@ -211,28 +210,28 @@ fun nonzeroIndicatorConstraints(
     tolerance: Flt64,
     strictBoundary: Flt64,
     namePrefix: String
-): List<Flt64LinearInequality> {
-    val constraints = mutableListOf<Flt64LinearInequality>()
+): List<LinearInequality<Flt64>> {
+    val constraints = mutableListOf<LinearInequality<Flt64>>()
     val mD = bigM
 
     // band_ub: poly - M*ind <= tol
     val ubMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mD, indVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(ubMonos, poly.constant),
         LinearPolynomial(emptyList(), tolerance), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol
     val lbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mD, indVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(lbMonos, poly.constant),
         LinearPolynomial(emptyList(), -tolerance), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
     val outLbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mD, indVar) + LinearMonomial(-mD, sideVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(outLbMonos, poly.constant),
         LinearPolynomial(emptyList(), strictBoundary - mD - mD),
         Comparison.GE, "${namePrefix}_out_lb")
@@ -240,7 +239,7 @@ fun nonzeroIndicatorConstraints(
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M
     val outUbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mD, indVar) + LinearMonomial(-mD, sideVar)
-    constraints += Flt64LinearInequality(
+    constraints += LinearInequality<Flt64>(
         LinearPolynomial(outUbMonos, poly.constant),
         LinearPolynomial(emptyList(), -strictBoundary + mD),
         Comparison.LE, "${namePrefix}_out_ub")
@@ -253,32 +252,32 @@ fun nonzeroIndicatorConstraints(
  * Used when inputs are already Flt64-typed.
  */
 fun simpleIndicatorConstraints(
-    ineq: Flt64LinearInequality,
+    ineq: LinearInequality<Flt64>,
     indicator: AbstractVariableItem<*, *>,
     bigM: Flt64,
     tolerance: Flt64,
     strictBoundary: Flt64,
     namePrefix: String
-): List<Flt64LinearInequality> {
-    val constraints = mutableListOf<Flt64LinearInequality>()
+): List<LinearInequality<Flt64>> {
+    val constraints = mutableListOf<LinearInequality<Flt64>>()
     val mD = bigM
     val polyMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
 
     when (ineq.comparison) {
         Comparison.LE -> {
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos + LinearMonomial(mD, indicator), shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${namePrefix}_lb")
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), mD), Comparison.LE, "${namePrefix}_ub")
         }
         Comparison.GE -> {
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), -mD), Comparison.GE, "${namePrefix}_lb")
-            constraints += Flt64LinearInequality(
+            constraints += LinearInequality<Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${namePrefix}_ub")
         }

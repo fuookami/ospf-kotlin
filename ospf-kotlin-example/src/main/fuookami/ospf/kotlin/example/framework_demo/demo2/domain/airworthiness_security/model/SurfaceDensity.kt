@@ -32,13 +32,13 @@ class SurfaceDensity(
         val maxSurfaceDensity: Quantity<Flt64>
     )
 
-    lateinit var surfaceDensity: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var surfaceDensity: QuantityLinearIntermediateSymbols1<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::surfaceDensity.isInitialized) {
-            surfaceDensity = QuantityLinearIntermediateSymbols1Flt64("surface_density", Shape1(positions.size)) { j, _ ->
+            surfaceDensity = QuantityLinearIntermediateSymbols1<Flt64>("surface_density", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 val coefficient = Flt64.one / position.shape.area.to(aircraftModel.areaUnit)!!.value
                 Quantity(

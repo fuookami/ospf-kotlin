@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.service.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.BunchCompilationContext<
     ShadowPriceArguments, FlightTaskBunch, FlightTask, Aircraft, FlightTaskAssignment
@@ -17,7 +18,7 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
     override lateinit var aggregation: Aggregation
     override lateinit var pipelineList: CGPipelineList
 
-    override fun register(model: AbstractLinearMetaModelFlt64): Try {
+    override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         pipelineList = when (val result = PipelineListGenerator(aggregation)()) {
             is Ok -> {
                 result.value
@@ -39,7 +40,7 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         fixedBunches: Set<FlightTaskBunch>,
         hiddenExecutors: Set<Aircraft>,
         shadowPriceMap: Map,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Ret<Set<Aircraft>> {
         TODO("Not yet implemented")
     }

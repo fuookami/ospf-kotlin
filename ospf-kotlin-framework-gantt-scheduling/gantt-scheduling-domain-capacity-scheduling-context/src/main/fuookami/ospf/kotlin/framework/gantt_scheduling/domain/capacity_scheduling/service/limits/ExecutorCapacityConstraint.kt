@@ -1,12 +1,13 @@
 ﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 设备产能约束（适用于所有 Capacity 实现）
@@ -25,7 +26,7 @@ class ExecutorCapacityConstraint<A : ProductionAction>(
      * 应用约束到模型
      * Apply constraint to model
      */
-    operator fun invoke(model: LinearMetaModelFlt64): Try {
+    operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         for ((e, executor) in capacity.executors.withIndex()) {
             for ((s, slot) in slots.withIndex()) {
                 // capacity[executor, slot] <= availableDuration

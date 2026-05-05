@@ -205,7 +205,6 @@ class MultiArrayBoundaryTest {
         // MultiArray(shape) without ctor should use factory methods
         // Direct construction without ctor is restricted
         org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            @Suppress("UNCHECKED_CAST")
             MultiArray<Int, DynShape>(shape, null as ((Int, IntArray) -> Int)?)
         }
     }

@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ExperimentalLongitudinalBalance(
     private val aircraftModel: AircraftModel,
@@ -34,7 +35,7 @@ class ExperimentalLongitudinalBalance(
         TODO("not implemented yet")
     }
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::mainActualLongitudinalTorque.isInitialized) {
             val poly = MutableLinearPolynomial()
             for ((j, position) in positions.withIndex()) {

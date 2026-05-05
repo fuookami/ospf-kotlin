@@ -304,7 +304,6 @@ private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator)
  * 比较两个值的大小
  * Compare magnitude of two values
  */
-@Suppress("UNCHECKED_CAST")
 private fun compareOrder(left: Any, right: Any): Int? {
     return when {
         left is Number && right is Number -> compareNumbers(left, right)

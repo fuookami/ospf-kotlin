@@ -72,7 +72,7 @@ interface AbstractEnvelope {
     val minIndex: QuantityLinearIntermediateSymbol
     val maxIndex: QuantityLinearIntermediateSymbol
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
 
 class Envelope(
@@ -95,7 +95,7 @@ class Envelope(
     override lateinit var maxIndex: QuantityLinearIntermediateSymbol
 
     override fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::minIndex.isInitialized) {
             val thisTotalWeight = totalWeight.computedTotalWeight[phase]
@@ -165,12 +165,12 @@ class ConditionalEnvelope(
     val symbolCondition: (String) -> Either<LinearPolynomial<Flt64>, LinearFunctionSymbolAdapter<Flt64>>,
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
-    lateinit var condition: LinearIntermediateSymbolFlt64
+    lateinit var condition: LinearIntermediateSymbol<Flt64>
     override lateinit var minIndex: QuantityLinearIntermediateSymbol
     override lateinit var maxIndex: QuantityLinearIntermediateSymbol
 
     override fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (valueCondition()) {
             true -> {

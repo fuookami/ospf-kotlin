@@ -4,8 +4,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModelFlt64
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacitySchedulingSolution
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -13,6 +11,9 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 产能调度上下文接口
@@ -55,7 +56,7 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
      */
-    fun register(model: LinearMetaModelFlt64): Try
+    fun register(model: LinearMetaModel<Flt64>): Try
 
     /**
      * 从模型解析解
@@ -64,5 +65,5 @@ interface CapacitySchedulingContext<A : ProductionAction> {
      * @param model Abstract linear meta model / 抽象线性元模型
      * @return Capacity scheduling solution / 产能调度解
      */
-    fun extractSolution(model: AbstractLinearMetaModelFlt64): Ret<CapacitySchedulingSolution<A>>
+    fun extractSolution(model: AbstractLinearMetaModel<Flt64>): Ret<CapacitySchedulingSolution<A>>
 }

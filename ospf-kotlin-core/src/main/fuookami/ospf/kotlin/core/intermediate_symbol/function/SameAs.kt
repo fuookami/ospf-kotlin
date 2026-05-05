@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -20,6 +19,14 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
@@ -89,7 +96,7 @@ class SameAsFunction<V>(
         return if (allSame) unit else zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -97,7 +104,7 @@ class SameAsFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
@@ -242,7 +249,7 @@ class SameAsFunction<V>(
             constraint = constraint,
             epsilon = epsilon,
             m = m,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -256,7 +263,7 @@ class SameAsFunction<V>(
             constraint = true,
             epsilon = Flt64(1e-6),
             m = Flt64(1e6),
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

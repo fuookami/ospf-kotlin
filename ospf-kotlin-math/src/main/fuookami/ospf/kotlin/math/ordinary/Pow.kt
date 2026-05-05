@@ -139,8 +139,6 @@ fun <T> pow(
         constants.one
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -155,8 +153,6 @@ inline fun <reified T> pow(
         precision = precision
     )
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T> pow(
     base: T,
     index: Int,
@@ -192,8 +188,6 @@ fun <T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> powf(
     base: T,
     index: T,
@@ -208,8 +202,6 @@ inline fun <reified T : FloatingNumber<T>> powf(
         precision = precision
     )
 }
-
-@Suppress("UNCHECKED_CAST")
 fun <T : FloatingNumber<T>> exp(
     index: T,
     constants: FloatingNumberConstants<T>,
@@ -234,8 +226,6 @@ fun <T : FloatingNumber<T>> exp(
     }
     return value
 }
-
-@Suppress("UNCHECKED_CAST")
 inline fun <reified T : FloatingNumber<T>> exp(
     index: T,
     digits: Int = index.constants.decimalDigits ?: 0,

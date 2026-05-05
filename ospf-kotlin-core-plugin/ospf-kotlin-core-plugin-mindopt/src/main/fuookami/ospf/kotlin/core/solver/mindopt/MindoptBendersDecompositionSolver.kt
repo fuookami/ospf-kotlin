@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
@@ -22,6 +21,10 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 class MindOPTLinearBendersDecompositionSolver(
     private val config: SolverConfig = SolverConfig(),
@@ -32,7 +35,7 @@ class MindOPTLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -105,7 +108,7 @@ class MindOPTLinearBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -153,8 +156,8 @@ class MindOPTLinearBendersDecompositionSolver(
                     })
                 }
 
-                lateinit var dualSolution: LinearDualSolution
-                lateinit var farkasSolution: LinearDualSolution
+                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+                lateinit var farkasSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
                 val solver = MindOPTLinearSolver(
                     config = config,
                     callBack = linearCallBack.copy()
@@ -241,7 +244,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -258,7 +261,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModelFlt64,
+        metaModel: QuadraticMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
@@ -331,7 +334,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -352,7 +355,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModelFlt64,
+        metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean,
@@ -400,8 +403,8 @@ class MindOPTQuadraticBendersDecompositionSolver(
                     })
                 }
 
-                lateinit var dualSolution: QuadraticDualSolution
-                lateinit var farkasSolution: QuadraticDualSolution
+                lateinit var dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>
+                lateinit var farkasSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>
                 val solver = MindOPTQuadraticSolver(
                     config = config,
                     callBack = quadraticCallBack.copy()
@@ -460,7 +463,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             QuadraticBendersDecompositionSolver.QuadraticFeasibleResult(
                                 result = result.value,
                                 dualSolution = tidyDualSolution,
-                                linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
                                 quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                             )
                         )
@@ -488,7 +491,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                             Ok(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
-                                    linearCuts = cuts.filterIsInstance<Flt64LinearInequality>(),
+                                    linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
                                     quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
                                 )
                             )

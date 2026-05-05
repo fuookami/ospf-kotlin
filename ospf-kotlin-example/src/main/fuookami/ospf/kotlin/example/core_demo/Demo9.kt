@@ -4,7 +4,8 @@
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -18,6 +19,13 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example9.html
@@ -39,11 +47,11 @@ data object Demo9 {
 
     private lateinit var x: IntVar
     private lateinit var y: IntVar
-    private lateinit var dx: LinearIntermediateSymbols1Flt64
-    private lateinit var dy: LinearIntermediateSymbols1Flt64
-    private lateinit var distance: LinearIntermediateSymbols1Flt64
+    private lateinit var dx: LinearIntermediateSymbols1<Flt64>
+    private lateinit var dy: LinearIntermediateSymbols1<Flt64>
+    private lateinit var distance: LinearIntermediateSymbols1<Flt64>
 
-    private val metaModel = LinearMetaModelFlt64("demo9", converter = IntoValue.Flt64)
+    private val metaModel = LinearMetaModel<Flt64>("demo9", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo9::initVariable,
@@ -80,7 +88,7 @@ data object Demo9 {
     }
 
     private suspend fun initSymbol(): Try {
-        dx = LinearIntermediateSymbols1Flt64("dx", Shape1(settlements.size)) { i, _ ->
+        dx = LinearIntermediateSymbols1<Flt64>("dx", Shape1(settlements.size)) { i, _ ->
             SlackFunction(
                 type = UInteger,
                 x = x,
@@ -90,7 +98,7 @@ data object Demo9 {
         }
         metaModel.add(dx)
 
-        dy = LinearIntermediateSymbols1Flt64("dy", Shape1(settlements.size)) { i, _ ->
+        dy = LinearIntermediateSymbols1<Flt64>("dy", Shape1(settlements.size)) { i, _ ->
             SlackFunction(
                 type = UInteger,
                 x = y,
@@ -100,7 +108,7 @@ data object Demo9 {
         }
         metaModel.add(dy)
 
-        distance = LinearIntermediateSymbols1Flt64("distance", Shape1(settlements.size)) { i, _ ->
+        distance = LinearIntermediateSymbols1<Flt64>("distance", Shape1(settlements.size)) { i, _ ->
             LinearExpressionSymbol(
                 dx[i] + dy[i],
                 name = "distance_$i"

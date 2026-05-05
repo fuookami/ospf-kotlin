@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class CumulativeLoadWeightLimit(
     private val aircraftModel: AircraftModel,
@@ -21,8 +22,8 @@ class CumulativeLoadWeightLimit(
     private val positions: List<Position>,
     private val load: Load,
     override val name: String = "cumulative_load_weight_limit",
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (checkPoint in maxCumulativeLoadWeight.checkPoints) {
             if (checkPoint.parts.none { it.position.status.available }) {
                 continue

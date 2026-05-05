@@ -11,17 +11,18 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.NormalNode
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class NodeBandwidth(
     private val nodes: List<Node>,
     private val services: List<Service>,
     private val serviceBandwidth: ServiceBandwidth
 ) {
-    lateinit var inDegree: LinearIntermediateSymbols1Flt64
-    lateinit var outDegree: LinearIntermediateSymbols1Flt64
-    lateinit var outFlow: LinearIntermediateSymbols1Flt64
+    lateinit var inDegree: LinearIntermediateSymbols1<Flt64>
+    lateinit var outDegree: LinearIntermediateSymbols1<Flt64>
+    lateinit var outFlow: LinearIntermediateSymbols1<Flt64>
 
-    fun register(model: LinearMetaModelFlt64): Try {
+    fun register(model: LinearMetaModel<Flt64>): Try {
         if (!::inDegree.isInitialized) {
             inDegree = flatMap(
                 "bandwidth_indegree_node",

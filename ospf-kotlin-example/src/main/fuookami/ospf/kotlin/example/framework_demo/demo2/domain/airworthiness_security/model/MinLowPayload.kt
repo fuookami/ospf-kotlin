@@ -38,7 +38,7 @@ class MinLowPayload(
     }
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::minLowPayload.isInitialized) {
             val zfw = totalWeight.computedTotalWeight[FlightPhase.ZeroFuel]

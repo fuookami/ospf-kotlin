@@ -74,8 +74,6 @@ class TaskCompilationConstraint<
             }
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     override fun refresh(
         map: AbstractGanttSchedulingShadowPriceMap<Args, E, A>,
         model: AbstractLinearMetaModel<Flt64>,

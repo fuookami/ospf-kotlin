@@ -1,7 +1,6 @@
 ﻿package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.toMeta
@@ -9,6 +8,8 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
 import kotlin.reflect.KClass
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
 
 open class ShadowPriceKey(
     val limit: KClass<*>
@@ -66,7 +67,7 @@ fun <
     shadowPriceMap: Map,
     pipelineList: CGPipelineList<Args, Model, Map>,
     model: Model,
-    shadowPrices: LinearDualSolution
+    shadowPrices: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
 ): Try {
     for (pipeline in pipelineList) {
         when (val ret = pipeline.refresh(

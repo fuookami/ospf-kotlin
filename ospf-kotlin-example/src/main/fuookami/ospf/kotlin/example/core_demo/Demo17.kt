@@ -6,7 +6,8 @@ import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -21,6 +22,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example17.html
@@ -178,14 +187,14 @@ data object Demo17 {
     lateinit var x: BinVariable3
     lateinit var s: URealVariable2
 
-    lateinit var origin: LinearIntermediateSymbols1Flt64
-    lateinit var destination: LinearIntermediateSymbols1Flt64
-    lateinit var inFlow: LinearIntermediateSymbols2Flt64
-    lateinit var outFlow: LinearIntermediateSymbols2Flt64
-    lateinit var service: LinearIntermediateSymbols1Flt64
-    lateinit var capacity: LinearIntermediateSymbols1Flt64
+    lateinit var origin: LinearIntermediateSymbols1<Flt64>
+    lateinit var destination: LinearIntermediateSymbols1<Flt64>
+    lateinit var inFlow: LinearIntermediateSymbols2<Flt64>
+    lateinit var outFlow: LinearIntermediateSymbols2<Flt64>
+    lateinit var service: LinearIntermediateSymbols1<Flt64>
+    lateinit var capacity: LinearIntermediateSymbols1<Flt64>
 
-    val metaModel = LinearMetaModelFlt64("demo17", converter = IntoValue.Flt64)
+    val metaModel = LinearMetaModel<Flt64>("demo17", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo17::initVariable,
@@ -248,7 +257,7 @@ data object Demo17 {
     }
 
     private suspend fun initSymbol(): Try {
-        origin = LinearIntermediateSymbols1Flt64(
+        origin = LinearIntermediateSymbols1<Flt64>(
             "origin",
             Shape1(vehicles.size)
         ) { i, _ ->
@@ -260,7 +269,7 @@ data object Demo17 {
         }
         metaModel.add(origin)
 
-        destination = LinearIntermediateSymbols1Flt64(
+        destination = LinearIntermediateSymbols1<Flt64>(
             "destination",
             Shape1(vehicles.size)
         ) { i, _ ->
@@ -272,7 +281,7 @@ data object Demo17 {
         }
         metaModel.add(destination)
 
-        inFlow = LinearIntermediateSymbols2Flt64(
+        inFlow = LinearIntermediateSymbols2<Flt64>(
             "in",
             Shape2(nodes.size, vehicles.size)
         ) { _, vec ->
@@ -292,7 +301,7 @@ data object Demo17 {
         }
         metaModel.add(inFlow)
 
-        outFlow = LinearIntermediateSymbols2Flt64(
+        outFlow = LinearIntermediateSymbols2<Flt64>(
             "out",
             Shape2(nodes.size, vehicles.size)
         ) { _, vec ->
@@ -312,7 +321,7 @@ data object Demo17 {
         }
         metaModel.add(outFlow)
 
-        service = LinearIntermediateSymbols1Flt64(
+        service = LinearIntermediateSymbols1<Flt64>(
             "service",
             Shape1(nodes.size)
         ) { i, _ ->
@@ -331,7 +340,7 @@ data object Demo17 {
         }
         metaModel.add(service)
 
-        capacity = LinearIntermediateSymbols1Flt64(
+        capacity = LinearIntermediateSymbols1<Flt64>(
             "capacity",
             Shape1(vehicles.size)
         ) { i, _ ->

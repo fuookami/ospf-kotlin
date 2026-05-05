@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -21,6 +19,15 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * If-In function: `y = 1 if a <= x <= b, else y = 0`.
@@ -74,7 +81,7 @@ class IfInFunction<V>(
         return if (xDouble >= lo && xDouble <= hi) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -82,9 +89,9 @@ class IfInFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val mVal = bigM
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // x - lower >= 0 indicator (x >= lower)
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
@@ -95,19 +102,19 @@ class IfInFunction<V>(
         allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, converter, "${name}_le")
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero),
             Comparison.LE, "${name}_link_ge"
         )
 
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, leVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero),
             Comparison.LE, "${name}_link_le"
         )
 
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(
                 listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar), LinearMonomial(-Flt64.one, leVar)),
                 Flt64.zero
@@ -138,7 +145,7 @@ class IfInFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfInFunction<Flt64> = IfInFunction(x, lower, upper, IntoValue.Flt64, bigM, name = name, displayName = displayName)
+        ): IfInFunction<Flt64> = IfInFunction(x, lower, upper, flt64Converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
             x: LinearMonomial<Flt64>,

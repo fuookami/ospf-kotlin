@@ -2,10 +2,8 @@
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -13,6 +11,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 class ParallelCombinatorialLinearSolver(
     private val solvers: List<Lazy<AbstractLinearSolver>>,
@@ -43,13 +42,13 @@ class ParallelCombinatorialLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutputFlt64? = null
+                var result: FeasibleSolverOutput<Flt64>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -195,13 +194,13 @@ class ParallelCombinatorialLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>? = null
+                var result: Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->

@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityColumn
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.IterativeCapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
@@ -15,6 +14,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
 /**
  * Bunch 模式的产能调度产品产量管理（支持列生成）
@@ -35,7 +35,7 @@ class BunchCapacitySchedulingProduce<
     timeWindow: TimeWindow
 ) : CapacitySchedulingProduce<A, P, C>(products, actions, slots, timeWindow) {
 
-    override fun register(model: LinearMetaModelFlt64): Try {
+    override fun register(model: LinearMetaModel<Flt64>): Try {
         return addQuantityToModel(model)
     }
 
@@ -68,7 +68,6 @@ class BunchCapacitySchedulingProduce<
                 if (action !is CapacityActionProduce<*, *>) {
                     continue
                 }
-                @Suppress("UNCHECKED_CAST")
                 val unitProduce = (action as CapacityActionProduce<P, *>).produce[product] ?: Flt64.zero
                 if (unitProduce eq Flt64.zero) {
                     continue

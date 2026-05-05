@@ -1,7 +1,6 @@
 ﻿package fuookami.ospf.kotlin.example.linear_function
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.UnivariateLinearPiecewiseFunction
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -13,6 +12,14 @@ import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.Assumptions.assumeTrue
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class ULPTest {
     @Test
@@ -32,7 +39,7 @@ class ULPTest {
             name = "y"
         )
 
-        val model = LinearMetaModelFlt64(converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>(converter = flt64Converter)
         model.add(x)
         ulp.register(model)
         model.maximize(ulp.result)

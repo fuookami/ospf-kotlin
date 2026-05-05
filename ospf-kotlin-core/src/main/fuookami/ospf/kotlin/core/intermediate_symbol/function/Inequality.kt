@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -21,6 +19,15 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * Inequality satisfaction indicator function.
@@ -76,7 +83,7 @@ class InequalityFunction<V>(
         return if (satisfied) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -84,25 +91,25 @@ class InequalityFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val mF = converter.fromValue(bigM)
         val epsF = converter.fromValue(tolerance)
         val rhsF = converter.fromValue(rhs)
         val lhsF = lhs.asFlt64Poly(converter)
         val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         when (sign) {
             Comparison.LE, Comparison.LT -> {
                 // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
                     LinearPolynomial(emptyList(), rhsF + mF),
                     Comparison.LE, "${name}_satisfied"
                 )
 
                 // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
                     LinearPolynomial(emptyList(), rhsF + epsF),
                     Comparison.GE, "${name}_violated"
@@ -111,14 +118,14 @@ class InequalityFunction<V>(
 
             Comparison.GE, Comparison.GT -> {
                 // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
                     LinearPolynomial(emptyList(), rhsF),
                     Comparison.GE, "${name}_satisfied"
                 )
 
                 // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
                     LinearPolynomial(emptyList(), rhsF - epsF + mF),
                     Comparison.LE, "${name}_violated"
@@ -130,14 +137,14 @@ class InequalityFunction<V>(
                 val diffConst = lhsF.constant - rhsF
 
                 // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
                     LinearPolynomial(emptyList(), mF + epsF),
                     Comparison.LE, "${name}_eq_upper"
                 )
 
                 // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
-                allConstraints += Flt64LinearInequality(
+                allConstraints += LinearInequality<Flt64>(
                     LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
                     LinearPolynomial(emptyList(), -mF - epsF),
                     Comparison.GE, "${name}_eq_lower"
@@ -180,7 +187,7 @@ class InequalityFunction<V>(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             bigM = bigM,
             name = name,
             displayName = displayName
@@ -197,7 +204,7 @@ class InequalityFunction<V>(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             bigM = bigM,
             name = name,
             displayName = displayName

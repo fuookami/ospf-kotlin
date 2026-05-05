@@ -49,7 +49,6 @@ private fun <I> computeSqrtLimit(num: I): UInt64 where I : Integer<I> {
 }
 
 /** Convert UInt64 value to generic Integer type I using reified type info. */
-@Suppress("UNCHECKED_CAST")
 private inline fun <reified I> uint64ToI(value: UInt64, constants: RealNumberConstants<I>): I where I : Integer<I> {
     return when (I::class) {
         UInt64::class -> value as I

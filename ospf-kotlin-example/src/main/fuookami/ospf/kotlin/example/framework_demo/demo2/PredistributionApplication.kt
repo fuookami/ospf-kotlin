@@ -35,6 +35,14 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.BendersS
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.Diagnostics
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.FeasibilityDiagnostics
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.SolveMode
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class PredistributionApplication {
     suspend operator fun invoke(
@@ -347,7 +355,7 @@ private class PredistributionAlgorithmImpl {
         startTime: kotlinx.datetime.Instant,
         runningHeartBeatCallBack: ((RunningHeartBeatDTO) -> Try)? = null
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
-        val model = LinearMetaModelFlt64(converter = IntoValue.Flt64)
+        val model = LinearMetaModel<Flt64>(converter = flt64Converter)
         when (val result = register(parameter, model)) {
             is Ok -> {}
 
@@ -465,7 +473,7 @@ private class PredistributionAlgorithmImpl {
 
     private fun register(
         parameter: Parameter,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = stowageContext.register(
             stowageMode = StowageMode.Predistribution,

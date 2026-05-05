@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
@@ -12,6 +11,8 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeWindow
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 产能成本最小化目标
@@ -66,7 +67,7 @@ class CapacityCostMinimization<A : ProductionAction>(
      * @param model Linear meta model / 线性元模型
      * @return Try result / Try 结果
      */
-    operator fun invoke(model: LinearMetaModelFlt64): Try {
+    operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         val costSymbol = when (capacity) {
             is CapacityCompilation<*> -> capacity.cost
             is CapacityOrderCompilation<*> -> capacity.cost

@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class MainDeckDoorEmptyLimit(
     private val items: List<Item>,
@@ -21,8 +22,8 @@ class MainDeckDoorEmptyLimit(
     private val stowage: Stowage,
     private val coefficient: (Item) -> Flt64 = { Flt64.one },
     override val name: String = "main_deck_door_empty_limit"
-) : Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+) : Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         when (val result = model.minimize(
             sum(items.mapIndexed { i, item ->
                 coefficient(item) * sum(positions.mapIndexedNotNull { j, position ->

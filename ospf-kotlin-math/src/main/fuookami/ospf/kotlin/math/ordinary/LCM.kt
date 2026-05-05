@@ -56,8 +56,6 @@ fun <I> lcmImpl(numbers: Iterable<I>, constants: RealNumberConstants<I>): I wher
         lhs * factor.pow(index)
     }
 }
-
-@Suppress("UNCHECKED_CAST")
 fun <I> lcmByFactorization(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>
@@ -138,8 +136,6 @@ inline fun <reified I> lcm(x: I, y: I): I where I : Integer<I>, I : Rem<I, I>, I
         constants = resolveRealNumberConstants<I>("LCM")
     )
 }
-
-@Suppress("UNCHECKED_CAST")
 fun <I> lcm(
     numbers: Iterable<I>,
     constants: RealNumberConstants<I>

@@ -3,7 +3,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -17,6 +18,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example15.html
@@ -114,12 +123,12 @@ data object Demo15 {
     lateinit var x: UIntVariable3
     lateinit var y: Map<DistributionCenter, PctVariable1>
 
-    lateinit var receive: LinearIntermediateSymbols2Flt64
-    lateinit var demand: LinearIntermediateSymbols2Flt64
-    lateinit var trans: LinearIntermediateSymbols2Flt64
-    lateinit var cost: LinearIntermediateSymbolFlt64
+    lateinit var receive: LinearIntermediateSymbols2<Flt64>
+    lateinit var demand: LinearIntermediateSymbols2<Flt64>
+    lateinit var trans: LinearIntermediateSymbols2<Flt64>
+    lateinit var cost: LinearIntermediateSymbol<Flt64>
 
-    val metaModel = LinearMetaModelFlt64("demo15", converter = IntoValue.Flt64)
+    val metaModel = LinearMetaModel<Flt64>("demo15", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo15::initVariable,
@@ -178,7 +187,7 @@ data object Demo15 {
     }
 
     private suspend fun initSymbol(): Try {
-        receive = LinearIntermediateSymbols2Flt64(
+        receive = LinearIntermediateSymbols2<Flt64>(
             "receive",
             Shape2(distributionCenters.size, carModels.size)
         ) { _, v ->
@@ -191,7 +200,7 @@ data object Demo15 {
         }
         metaModel.add(receive)
 
-        demand = LinearIntermediateSymbols2Flt64(
+        demand = LinearIntermediateSymbols2<Flt64>(
             "demand",
             Shape2(distributionCenters.size, carModels.size)
         ) { _, v ->
@@ -226,7 +235,7 @@ data object Demo15 {
         }
         metaModel.add(demand)
 
-        trans = LinearIntermediateSymbols2Flt64(
+        trans = LinearIntermediateSymbols2<Flt64>(
             "trans",
             Shape2(manufacturers.size, carModels.size)
         ) { _, v ->

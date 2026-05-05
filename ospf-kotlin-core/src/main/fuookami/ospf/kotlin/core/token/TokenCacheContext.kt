@@ -20,14 +20,12 @@ data class LinearFlattenData<T : Ring<T>>(
     val constant: T
 )
 
-typealias LinearFlattenDataFlt64 = LinearFlattenData<Flt64>
 
 data class QuadraticFlattenData<T : Ring<T>>(
     val monomials: List<QuadraticMonomial<T>>,
     val constant: T
 )
 
-typealias QuadraticFlattenDataFlt64 = QuadraticFlattenData<Flt64>
 
 class LinearFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, LinearFlattenData<V>?> = HashMap()
@@ -57,7 +55,6 @@ class LinearFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias LinearFlattenContextFlt64 = LinearFlattenContext<Flt64>
 
 class QuadraticFlattenContext<V : Ring<V>>(
     private val cache: MutableMap<Any, QuadraticFlattenData<V>?> = HashMap()
@@ -87,7 +84,6 @@ class QuadraticFlattenContext<V : Ring<V>>(
     }
 }
 
-typealias QuadraticFlattenContextFlt64 = QuadraticFlattenContext<Flt64>
 
 class ValueCacheContext<V : RealNumber<V>>(
     private val solutionCache: MutableMap<Pair<Any, List<V>?>, V?> = HashMap(),
@@ -180,7 +176,6 @@ class ValueCacheContext<V : RealNumber<V>>(
     }
 }
 
-typealias ValueCacheContextFlt64 = ValueCacheContext<Flt64>
 
 class RangeCacheContext<V>(
     private val cache: MutableMap<Any, ExpressionRange<V>?> = HashMap()
@@ -210,7 +205,6 @@ class RangeCacheContext<V>(
     }
 }
 
-typealias RangeCacheContextFlt64 = RangeCacheContext<Flt64>
 
 data class TokenCacheContexts<V>(
     val linearFlatten: LinearFlattenContext<V> = LinearFlattenContext(),
@@ -254,7 +248,6 @@ data class TokenCacheContexts<V>(
     }
 }
 
-typealias TokenCacheContextsFlt64 = TokenCacheContexts<Flt64>
 
 private val symbolTokenTableContext = Collections.synchronizedMap(
     WeakHashMap<IntermediateSymbol<*>, AbstractTokenTable<*>>()
@@ -281,7 +274,7 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
     return symbolTokenTableContext[symbol]
 }
 
-internal fun LinearFlattenDataFlt64.toQuadraticFlattenData(): QuadraticFlattenDataFlt64 {
+internal fun LinearFlattenData<Flt64>.toQuadraticFlattenData(): QuadraticFlattenData<Flt64> {
     val monomials = this.monomials.map {
         QuadraticMonomial(
             coefficient = it.coefficient,
@@ -289,7 +282,7 @@ internal fun LinearFlattenDataFlt64.toQuadraticFlattenData(): QuadraticFlattenDa
             symbol2 = null
         )
     }
-    return QuadraticFlattenDataFlt64(
+    return QuadraticFlattenData<Flt64>(
         monomials = monomials,
         constant = this.constant
     )

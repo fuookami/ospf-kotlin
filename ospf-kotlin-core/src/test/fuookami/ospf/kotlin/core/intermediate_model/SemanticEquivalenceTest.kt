@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -18,6 +17,14 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class SemanticEquivalenceTest {
     @Test
@@ -35,14 +42,14 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear", converter = IntoValue.Flt64)
+        val metaModel = LinearMetaModel<Flt64>(name = "semantic-linear", converter = flt64Converter)
         metaModel.add(listOf(x, y))
 
         val lhs = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64(2.0), x), LinearMonomial(Flt64(3.0), y)),
             constant = Flt64.zero
         )
-        val inequality: Flt64LinearInequality = lhs le Flt64(10.0)
+        val inequality: LinearInequality<Flt64> = lhs le Flt64(10.0)
         metaModel.addConstraint(relation = inequality, name = "c1")
         metaModel.minimize(LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero))
 
@@ -65,7 +72,7 @@ class SemanticEquivalenceTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic", converter = IntoValue.Flt64)
+        val metaModel = QuadraticMetaModel<Flt64>(name = "semantic-quadratic", converter = flt64Converter)
         metaModel.add(listOf(x, y))
 
         val quadLhs = QuadraticPolynomial(
@@ -79,7 +86,7 @@ class SemanticEquivalenceTest {
             monomials = listOf(LinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        val linInequality: Flt64LinearInequality = linLhs le Flt64(3.0)
+        val linInequality: LinearInequality<Flt64> = linLhs le Flt64(3.0)
         metaModel.addConstraint(relation = linInequality, name = "lc")
 
         metaModel.minimize(

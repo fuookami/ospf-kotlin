@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.value_range.Bound
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueWrapper
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 /**
  * 获取值范围物理量的下界

@@ -1,6 +1,5 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
@@ -14,7 +13,6 @@ import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -26,6 +24,15 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class BendersCutApiTest {
 
@@ -39,7 +46,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
-        val relation = Flt64LinearInequality(
+        val relation = LinearInequality<Flt64>(
             lhs = LinearPolynomial(listOf(LinearMonomial(Flt64(2.0), x)), Flt64.zero),
             rhs = LinearPolynomial(emptyList(), Flt64(6.0)),
             comparison = Comparison.LE
@@ -50,7 +57,7 @@ class BendersCutApiTest {
             name = "lc-opt"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt", converter = IntoValue.Flt64),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt", converter = flt64Converter),
             name = "cut-model-lin-opt",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -58,7 +65,7 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(3.0))
-        val dualSolution: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
         val dualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
@@ -79,7 +86,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
-        val relation = Flt64LinearInequality(
+        val relation = LinearInequality<Flt64>(
             lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
             rhs = LinearPolynomial(emptyList(), Flt64(5.0)),
             comparison = Comparison.LE
@@ -90,7 +97,7 @@ class BendersCutApiTest {
             name = "lc-feas"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas", converter = IntoValue.Flt64),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas", converter = flt64Converter),
             name = "cut-model-lin-feas",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -98,7 +105,7 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0))
-        val farkasDual: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
+        val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
@@ -140,7 +147,7 @@ class BendersCutApiTest {
             name = "qc-opt"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt", converter = IntoValue.Flt64),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt", converter = flt64Converter),
             name = "cut-model-qc-opt",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -148,7 +155,7 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64.one, y to Flt64(2.0))
-        val dualSolution: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64(2.0))
         val dualById = mapOf(constraint.name to Flt64(2.0))
 
         val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
@@ -186,7 +193,7 @@ class BendersCutApiTest {
             name = "qc-feas"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas", converter = IntoValue.Flt64),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas", converter = flt64Converter),
             name = "cut-model-qc-feas",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -194,7 +201,7 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0), y to Flt64(3.0))
-        val farkasDual: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
+        val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
@@ -220,7 +227,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
-        val relation = Flt64LinearInequality(
+        val relation = LinearInequality<Flt64>(
             lhs = LinearPolynomial(listOf(LinearMonomial(Flt64(2.0), x)), Flt64.zero),
             rhs = LinearPolynomial(emptyList(), Flt64(6.0)),
             comparison = Comparison.LE
@@ -231,7 +238,7 @@ class BendersCutApiTest {
             name = "lc-opt-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out", converter = IntoValue.Flt64),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-opt-out", converter = flt64Converter),
             name = "cut-model-lin-opt-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -239,8 +246,8 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(3.0))
-        val dualSolution: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
-        val dualValues: Solution<Flt64> = listOf(Flt64.one)
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+        val dualValues: List<Flt64> = listOf(Flt64.one)
 
         val triadModel = RecordingLinearTriadModelView(dualSolution)
 
@@ -265,7 +272,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(x) is Ok)
 
-        val relation = Flt64LinearInequality(
+        val relation = LinearInequality<Flt64>(
             lhs = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
             rhs = LinearPolynomial(emptyList(), Flt64(5.0)),
             comparison = Comparison.LE
@@ -276,7 +283,7 @@ class BendersCutApiTest {
             name = "lc-feas-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out", converter = IntoValue.Flt64),
+            parent = LinearMetaModel<Flt64>(name = "cut-parent-lin-feas-out", converter = flt64Converter),
             name = "cut-model-lin-feas-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -284,8 +291,8 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0))
-        val farkasDual: LinearDualSolution = mapOf(constraint as LinearConstraint to Flt64.one)
-        val farkasDualValues: Solution<Flt64> = listOf(Flt64.one)
+        val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+        val farkasDualValues: List<Flt64> = listOf(Flt64.one)
 
         val triadModel = RecordingLinearTriadModelView(farkasDual)
 
@@ -331,7 +338,7 @@ class BendersCutApiTest {
             name = "qc-opt-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out", converter = IntoValue.Flt64),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-opt-out", converter = flt64Converter),
             name = "cut-model-qc-opt-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -339,8 +346,8 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64.one, y to Flt64(2.0))
-        val dualSolution: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64(2.0))
-        val dualValues: Solution<Flt64> = listOf(Flt64(2.0))
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64(2.0))
+        val dualValues: List<Flt64> = listOf(Flt64(2.0))
 
         val tetradModel = RecordingQuadraticTetradModelView(dualSolution)
 
@@ -382,7 +389,7 @@ class BendersCutApiTest {
             name = "qc-feas-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out", converter = IntoValue.Flt64),
+            parent = QuadraticMetaModel<Flt64>(name = "cut-parent-qc-feas-out", converter = flt64Converter),
             name = "cut-model-qc-feas-out",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),
@@ -390,8 +397,8 @@ class BendersCutApiTest {
         )
 
         val fixedVars: Map<AbstractVariableItem<*, *>, Flt64> = mapOf(x to Flt64(2.0), y to Flt64(3.0))
-        val farkasDual: QuadraticDualSolution = mapOf(constraint as QuadraticConstraint to Flt64.one)
-        val farkasDualValues: Solution<Flt64> = listOf(Flt64.one)
+        val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
+        val farkasDualValues: List<Flt64> = listOf(Flt64.one)
 
         val tetradModel = RecordingQuadraticTetradModelView(farkasDual)
 
@@ -414,8 +421,8 @@ class BendersCutApiTest {
     // ── Helpers ───────────────────────────────────────────────────
 
     private fun assertLinearInequalityEquals(
-        expected: Flt64LinearInequality,
-        actual: Flt64LinearInequality
+        expected: LinearInequality<Flt64>,
+        actual: LinearInequality<Flt64>
     ) {
         val eFlat = expected.flattenData
         val aFlat = actual.flattenData
@@ -451,14 +458,13 @@ class BendersCutApiTest {
     }
 
     /** Dispatch to the correct assertion based on cut type (linear or quadratic). */
-    @Suppress("UNCHECKED_CAST")
     private fun assertCutEquals(expected: Any, actual: Any) {
         val expectedClassName = expected::class.qualifiedName
         val actualClassName = actual::class.qualifiedName
         assertEquals(expectedClassName, actualClassName, "cut type mismatch")
         when (expectedClassName) {
-            Flt64LinearInequality::class.qualifiedName ->
-                assertLinearInequalityEquals(expected as Flt64LinearInequality, actual as Flt64LinearInequality)
+            LinearInequality::class.qualifiedName ->
+                assertLinearInequalityEquals(expected as LinearInequality<Flt64>, actual as LinearInequality<Flt64>)
             QuadraticInequality::class.qualifiedName ->
                 assertQuadraticInequalityEquals(expected as QuadraticInequality, actual as QuadraticInequality)
             else -> assertTrue(false, "unexpected cut type: $expectedClassName")
@@ -468,12 +474,12 @@ class BendersCutApiTest {
 
 /** Stub [LinearTriadModelView] that records the [Solution] passed to [tidyDualSolution] and returns a fixed result. */
 private class RecordingLinearTriadModelView(
-    private val fixedDualSolution: LinearDualSolution
+    private val fixedDualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64>
 ) : LinearTriadModelView {
-    var lastSolution: Solution<Flt64> = emptyList()
+    var lastSolution: List<Flt64> = emptyList()
         private set
 
-    override fun tidyDualSolution(solution: Solution<Flt64>): LinearDualSolution {
+    override fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> {
         lastSolution = solution
         return fixedDualSolution
     }
@@ -493,12 +499,12 @@ private class RecordingLinearTriadModelView(
 
 /** Stub [QuadraticTetradModelView] that records the [Solution] passed to [tidyDualSolution] and returns a fixed result. */
 private class RecordingQuadraticTetradModelView(
-    private val fixedDualSolution: QuadraticDualSolution
+    private val fixedDualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64>
 ) : QuadraticTetradModelView {
-    var lastSolution: Solution<Flt64> = emptyList()
+    var lastSolution: List<Flt64> = emptyList()
         private set
 
-    override fun tidyDualSolution(solution: Solution<Flt64>): QuadraticDualSolution {
+    override fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> {
         lastSolution = solution
         return fixedDualSolution
     }

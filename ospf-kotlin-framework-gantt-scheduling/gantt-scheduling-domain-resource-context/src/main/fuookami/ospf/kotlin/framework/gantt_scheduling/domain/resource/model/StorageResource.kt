@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.functional.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.bunch_compilation.model.BunchCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -31,6 +30,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.launch
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 abstract class StorageResource<out C : AbstractResourceCapacity>(
     override val id: String,
@@ -249,7 +249,7 @@ abstract class AbstractStorageResourceUsage<
         this.timeSlots = timeSlots
     }
 
-    override fun register(model: MetaModelFlt64): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::supply.isInitialized) {
             supply = LinearIntermediateSymbols2<Flt64>(
                 name = "${name}_supply",
@@ -261,7 +261,6 @@ abstract class AbstractStorageResourceUsage<
                 val fixedSupply = resource.fixedSupplyIn(time)
                 val r = resources.indexOf(resource)
                 val t = timeWindow.timeSlots.indexOfFirst { it.end == time.end }
-                @Suppress("UNCHECKED_CAST")
                 val executorSum = executorSupply[_a, r, t].fold(LinearPolynomial<Flt64>(emptyList(), Flt64.zero)) { acc, elem ->
                     acc + (elem as LinearIntermediateSymbol<Flt64>).toLinearPolynomial()
                 }
@@ -293,8 +292,8 @@ abstract class AbstractStorageResourceUsage<
                     val t = timeWindow.timeSlots.indexOfFirst { it.end == slot.time.end }
                     val r = resources.indexOf(slot.resource)
                     val quantityPoly = LinearPolynomial(emptyList(), slot.resource.initialQuantity) +
-                        (@Suppress("UNCHECKED_CAST") (supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
-                        (@Suppress("UNCHECKED_CAST") (cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
+                        ((/* unchecked */ supply[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial() -
+                        ((/* unchecked */ cost[r, t] as LinearIntermediateSymbol<Flt64>)).toLinearPolynomial()
                     LinearExpressionSymbol(
                         polynomial = quantityPoly,
                         name = "${name}_quantity_${slot}"
@@ -387,7 +386,7 @@ class TaskSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearIntermediateSymbols3<Flt64>
     override lateinit var cost: LinearIntermediateSymbols2<Flt64>
 
-    override fun register(model: MetaModelFlt64): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         TODO("NOT IMPLEMENT YET")
     }
 }
@@ -446,7 +445,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
     override val overEnabled: Boolean = true
     override val lessEnabled: Boolean = true
 
-    override fun register(model: MetaModelFlt64): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3(
                 name = "${name}_executor_supply",
@@ -623,7 +622,7 @@ class BunchSchedulingStorageResourceUsage<
     override lateinit var executorSupply: LinearExpressionSymbols3<Flt64>
     override lateinit var cost: LinearExpressionSymbols2<Flt64>
 
-    override fun register(model: MetaModelFlt64): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (!::executorSupply.isInitialized) {
             executorSupply = LinearExpressionSymbols3<Flt64>(
                 name = "${name}_executor_supply",

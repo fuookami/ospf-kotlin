@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.CapacityOrderCompilation
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.ProductionAction
 import fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure.TimeSlot
@@ -16,6 +15,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
 /**
  * 顺序约束（仅用于 CapacityOrderCompilation�?
@@ -35,7 +35,7 @@ class OrderConstraint<A : ProductionAction>(
      * 应用约束到模�?
      * Apply constraint to model
      */
-    operator fun invoke(model: LinearMetaModelFlt64): Try {
+    operator fun invoke(model: LinearMetaModel<Flt64>): Try {
         val x = compilation.x
         val b = compilation.b
 

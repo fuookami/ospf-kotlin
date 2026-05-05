@@ -37,7 +37,6 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
  * 用于表示含有符号变量的线性表达式物理量。
  * Used to represent linear expression quantities with symbol variables.
  */
-typealias QuantityLinearFlt64 = Quantity<LinearPolynomial<Flt64>>
 
 /**
  * 二次多项式物理量 (Flt64)
@@ -49,7 +48,6 @@ typealias QuantityLinearFlt64 = Quantity<LinearPolynomial<Flt64>>
  * 用于表示含有符号变量的二次表达式物理量。
  * Used to represent quadratic expression quantities with symbol variables.
  */
-typealias QuantityQuadraticFlt64 = Quantity<QuadraticPolynomial<Flt64>>
 
 /**
  * 规范多项式物理量 (Flt64)
@@ -61,7 +59,6 @@ typealias QuantityQuadraticFlt64 = Quantity<QuadraticPolynomial<Flt64>>
  * 用于表示含有符号变量的规范多项式物理量。
  * Used to represent canonical polynomial quantities with symbol variables.
  */
-typealias QuantityCanonicalFlt64 = Quantity<CanonicalPolynomial<Flt64>>
 
 /**
  * 线性多项式物理量 (FltX)

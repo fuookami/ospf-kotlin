@@ -1,8 +1,6 @@
 ﻿package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -12,6 +10,9 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlinx.coroutines.*
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ParallelCombinatorialColumnGenerationSolver(
     private val solvers: List<Lazy<ColumnGenerationSolver>>,
@@ -41,14 +42,14 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutputFlt64? = null
+                var result: FeasibleSolverOutput<Flt64>? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -155,7 +156,7 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

@@ -25,7 +25,6 @@ interface Invariant<T> {
      * @return 内部值
      * @return The internal value
      */
-    @Suppress("UNCHECKED_CAST")
     fun value(): T = this as T
 }
 

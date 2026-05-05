@@ -9,14 +9,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PipelineListGenerator(
     private val aggregation: Aggregation
 ) {
     operator fun invoke(
         stowageMode: StowageMode
-    ): Ret<PipelineList<AbstractLinearMetaModelFlt64>> {
-        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModelFlt64>>()
+    ): Ret<PipelineList<AbstractLinearMetaModel<Flt64>>> {
+        val pipelines = kotlin.collections.ArrayList<Pipeline<AbstractLinearMetaModel<Flt64>>>()
 
         pipelines.add(
             ItemOrderLimit(

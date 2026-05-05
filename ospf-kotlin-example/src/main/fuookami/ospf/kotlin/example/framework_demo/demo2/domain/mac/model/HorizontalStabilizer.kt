@@ -23,6 +23,13 @@ import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.MAC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 typealias MACDecision = fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac.model.MAC
 
 class HorizontalStabilizer(
@@ -55,8 +62,8 @@ class HorizontalStabilizer(
         val warnMaxTrim: Flt64?
     )
 
-    lateinit var trim: LinearIntermediateSymbolFlt64
-    lateinit var warnSlack: LinearIntermediateSymbolFlt64
+    lateinit var trim: LinearIntermediateSymbol<Flt64>
+    lateinit var warnSlack: LinearIntermediateSymbol<Flt64>
 
     operator fun invoke(tow: Quantity<Flt64>, mac: MAC): Flt64 {
         return points
@@ -66,7 +73,7 @@ class HorizontalStabilizer(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::trim.isInitialized) {
             trim = LinearExpressionSymbol(
@@ -97,10 +104,10 @@ class HorizontalStabilizer(
                             type = UContinuous,
                             withNegative = true,
                             withPositive = true,
-                            converter = IntoValue.Flt64,
+                            converter = flt64Converter,
                             name = "${key}_trim_warn_slack"
                         ),
-                        converter = IntoValue.Flt64
+                        converter = flt64Converter
                     )
                 } else if (limit.warnMinTrim != null) {
                     SlackFunction(

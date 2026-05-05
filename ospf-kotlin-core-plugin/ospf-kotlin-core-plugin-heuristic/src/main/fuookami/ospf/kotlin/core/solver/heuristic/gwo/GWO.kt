@@ -26,6 +26,13 @@ import kotlin.time.Duration.Companion.minutes
 import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface AbstractGWOPolicy<V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
     fun a(iteration: Iteration): List<Flt64>
 
@@ -84,7 +91,7 @@ class GWOPolicy<V>(
                 notBetterIterationLimit = notBetterIterationLimit,
                 timeLimit = timeLimit,
                 randomGenerator = randomGenerator,
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
     }

@@ -40,7 +40,7 @@ class Ballast(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::ballastWeight.isInitialized) {
             val poly = MutableLinearPolynomial()

@@ -124,7 +124,6 @@ private fun <F : FloatingImpl<F>> bankerRound(value: F): F {
  * @param Self 实现此接口的具体类型
  *             The concrete type implementing this interface
  */
-@Suppress("UNCHECKED_CAST")
 interface FloatingImpl<Self : FloatingImpl<Self>> : FloatingNumber<Self> {
     override infix fun eq(rhs: Self) = (this - rhs).abs() <= this.constants.decimalPrecision
     override infix fun neq(rhs: Self) = !this.eq(rhs)

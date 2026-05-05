@@ -4,7 +4,8 @@
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -20,6 +21,13 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example12.html
@@ -44,12 +52,12 @@ data object Demo12 {
 
     lateinit var x: UIntVariable1
 
-    lateinit var assignment: LinearIntermediateSymbols1Flt64
-    lateinit var premium: LinearIntermediateSymbols1Flt64
-    lateinit var risk: LinearExpressionSymbolFlt64
-    lateinit var yield: LinearIntermediateSymbolFlt64
+    lateinit var assignment: LinearIntermediateSymbols1<Flt64>
+    lateinit var premium: LinearIntermediateSymbols1<Flt64>
+    lateinit var risk: LinearExpressionSymbol<Flt64>
+    lateinit var yield: LinearIntermediateSymbol<Flt64>
 
-    val metaModel = LinearMetaModelFlt64("demo12", converter = IntoValue.Flt64)
+    val metaModel = LinearMetaModel<Flt64>("demo12", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo12::initVariable,
@@ -84,7 +92,7 @@ data object Demo12 {
     }
 
     private suspend fun initSymbol(): Try {
-        assignment = LinearIntermediateSymbols1Flt64(
+        assignment = LinearIntermediateSymbols1<Flt64>(
             "assignment",
             Shape1(products.size)
         ) { i, _ ->
@@ -95,7 +103,7 @@ data object Demo12 {
         }
         metaModel.add(assignment)
 
-        premium = LinearIntermediateSymbols1Flt64(
+        premium = LinearIntermediateSymbols1<Flt64>(
             "premium",
             Shape1(products.size)
         ) { i, _ ->
@@ -106,10 +114,10 @@ data object Demo12 {
                         LinearPolynomial(product.premium * x[i]),
                         LinearPolynomial(product.minPremium * assignment[i])
                     ),
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = "premium_$i"
                 ),
-                converter = IntoValue.Flt64
+                converter = flt64Converter
             )
         }
         metaModel.add(premium)

@@ -32,8 +32,7 @@ data class ChebyshevMap<V : FloatingNumber<V>>(
     override operator fun invoke(x: V): V {
         val v = a
         return if (x geq -v.constants.one && x leq v.constants.one) {
-            @Suppress("UNCHECKED_CAST")
-            (a * (x.acos() as V)).cos() as V
+            (/* unchecked */ a * (x.acos() as V)).cos() as V
         } else {
             v.constants.zero
         }

@@ -3,9 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UIntVar
@@ -26,6 +24,14 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class SlackFunction<V>(
     val x: LinearPolynomial<V>,
@@ -87,7 +93,7 @@ class SlackFunction<V>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -95,7 +101,7 @@ class SlackFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val xPoly = x.asFlt64Poly(converter)
         val yPoly = y.asFlt64Poly(converter)
 
@@ -182,7 +188,7 @@ class SlackFunction<V>(
             withNegative = withNegative,
             withPositive = withPositive,
             threshold = threshold,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name ?: "",
             displayName = displayName
         )
@@ -212,9 +218,9 @@ class SlackFunction<V>(
             )
         }
 
-        /** Flt64-specific invoke with LinearIntermediateSymbolFlt64. */
+        /** Flt64-specific invoke with LinearIntermediateSymbol<Flt64>. */
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             y: LinearPolynomial<Flt64>,
             type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
@@ -229,7 +235,7 @@ class SlackFunction<V>(
             withNegative = withNegative,
             withPositive = withPositive,
             threshold = threshold,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -276,7 +282,7 @@ class SlackFunction<V>(
             withNegative = withNegative,
             withPositive = withPositive,
             threshold = threshold,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -303,11 +309,11 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
 
@@ -329,11 +335,11 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = name,
                     displayName = displayName
                 ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }
@@ -344,7 +350,7 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             y: Flt64,
             type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
@@ -360,11 +366,11 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
 
@@ -374,7 +380,7 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             threshold: Flt64,
             type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -391,11 +397,11 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = name,
                     displayName = displayName
                 ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }
@@ -405,7 +411,7 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             threshold: Flt64,
             type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -423,11 +429,11 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = constraint,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = name,
                     displayName = displayName
                 ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }
@@ -438,7 +444,7 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             threshold: UInt64,
             type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -455,11 +461,11 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = true,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = name,
                     displayName = displayName
                 ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }
@@ -470,7 +476,7 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
             threshold: UInt64,
             type: VariableType<*> = UContinuous,
             withPositive: Boolean = true,
@@ -488,11 +494,11 @@ class SlackFunction<V>(
                     withNegative = !positive,
                     withPositive = positive,
                     threshold = constraint,
-                    converter = IntoValue.Flt64,
+                    converter = flt64Converter,
                     name = name,
                     displayName = displayName
                 ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
             )
         }
@@ -503,8 +509,8 @@ class SlackFunction<V>(
          */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbolFlt64,
-            y: LinearIntermediateSymbolFlt64,
+            x: LinearIntermediateSymbol<Flt64>,
+            y: LinearIntermediateSymbol<Flt64>,
             type: VariableType<*> = UContinuous,
             withNegative: Boolean = true,
             withPositive: Boolean = true,
@@ -519,11 +525,11 @@ class SlackFunction<V>(
                 withNegative = withNegative,
                 withPositive = withPositive,
                 threshold = threshold,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }

@@ -8,11 +8,11 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.sum
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.Bin
 import fuookami.ospf.kotlin.framework.bpp3d.domain.item.model.BinLayer
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.Shape1
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 interface Capacity {
     val loadWeight: LinearIntermediateSymbols1<Flt64>
@@ -35,7 +35,7 @@ class PreciseLoadCapacity(
     override lateinit var loadingRate: LinearIntermediateSymbols1<Flt64>
     override lateinit var tailLoadingRate: LinearIntermediateSymbols1<Flt64>
 
-    fun register(model: MetaModelFlt64): Try {
+    fun register(model: MetaModel<Flt64>): Try {
         if (!::loadWeight.isInitialized) {
             loadWeight = LinearIntermediateSymbols1<Flt64>(
                 name = "load_weight",

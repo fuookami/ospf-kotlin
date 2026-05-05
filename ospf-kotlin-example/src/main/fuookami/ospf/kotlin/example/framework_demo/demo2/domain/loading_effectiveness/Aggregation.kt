@@ -102,7 +102,7 @@ class Aggregation(
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = transferAdjacentLoading.register(model)) {
             is Ok -> {}
@@ -162,14 +162,14 @@ class Aggregation(
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Loading effectiveness constraints go into the master problem.
         return register(stowageMode = StowageMode.FullLoad, model = model)
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         // Loading effectiveness does not contribute to the sub problem.
@@ -177,7 +177,7 @@ class Aggregation(
     }
 
     private fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

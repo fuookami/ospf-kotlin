@@ -2,9 +2,6 @@
 
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
@@ -43,13 +40,16 @@ import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 
 typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl<Flt64>
 
-private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrixFlt64 {
-    val mat = SparseMatrixFlt64()
+private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
+    val mat = SparseMatrix<Flt64>()
     for (row in rows) {
-        val sv = SparseVectorFlt64()
+        val sv = SparseVector<Flt64>()
         for (cell in row) {
             sv.add(cell.colIndex, cell.coefficient)
         }
@@ -94,7 +94,7 @@ class LinearConstraintCell(
 }
 
 class LinearConstraintBatch(
-    val sparseLhs: SparseMatrixFlt64,
+    val sparseLhs: SparseMatrix<Flt64>,
     signs: List<ConstraintRelation>,
     rhs: List<Flt64>,
     names: List<String>,
@@ -105,7 +105,7 @@ class LinearConstraintBatch(
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
      * Sparse representation of the LHS matrix.
-     * Each row is a SparseVectorFlt64 where entry.index = colIndex, entry.value = coefficient.
+     * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
      */
 
@@ -131,7 +131,7 @@ class LinearConstraintBatch(
     val priorities: List<Int?> by ::_priorities
 
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
-        val filteredSparseLhs = SparseMatrixFlt64()
+        val filteredSparseLhs = SparseMatrix<Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
             if (condition(i)) {
                 filteredSparseLhs.addRow(row)
@@ -150,9 +150,9 @@ class LinearConstraintBatch(
     }
 
     override fun copy() = LinearConstraintBatch(
-        SparseMatrixFlt64().also { mat ->
+        SparseMatrix<Flt64>().also { mat ->
             for (row in sparseLhs.rows) {
-                val newRow = SparseVectorFlt64()
+                val newRow = SparseVector<Flt64>()
                 for (entry in row.entries) {
                     newRow.add(entry.index, entry.value.copy())
                 }
@@ -235,7 +235,7 @@ class BasicLinearTriadModel(
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     companion object {
         /**
-         * Create a [BasicLinearTriadModel] from a [LinearMechanismModelFlt64] by
+         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -248,7 +248,7 @@ class BasicLinearTriadModel(
          * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
          */
         fun from(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -259,7 +259,7 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpVariables(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -299,7 +299,7 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -508,7 +508,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
-    fun tidyDualSolution(solution: Solution<Flt64>): LinearDualSolution {
+    fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
@@ -540,7 +540,7 @@ data class LinearTriadModel(
 
         /** V→Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -644,7 +644,7 @@ data class LinearTriadModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
@@ -684,7 +684,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -744,7 +744,7 @@ data class LinearTriadModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
@@ -870,7 +870,7 @@ data class LinearTriadModel(
         }
 
         private fun dumpObjectives(
-            model: LinearMechanismModelFlt64,
+            model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
@@ -2328,7 +2328,7 @@ data class LinearTriadModel(
 suspend fun solveDual(
     model: LinearTriadModel,
     solver: LinearSolver
-): Ret<LinearDualSolution> {
+): Ret<kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>> {
     val dualModel = model.dual()
 
     return when (val result = solver(dualModel)) {
@@ -2349,7 +2349,7 @@ suspend fun solveDual(
 suspend fun solveFarkasDual(
     model: LinearTriadModelView,
     solver: LinearSolver
-): Ret<LinearDualSolution> {
+): Ret<kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>> {
     val dualModel = model.farkasDual()
 
     return when (val result = solver(dualModel)) {

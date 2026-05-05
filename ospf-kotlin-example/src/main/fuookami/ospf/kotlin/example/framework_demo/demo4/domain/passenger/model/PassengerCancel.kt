@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PassengerCancel(
     private val passengers: List<FlightPassenger>
 ) {
     lateinit var passengerCancel: UIntVariable1
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerCancel.isInitialized) {
             passengerCancel = UIntVariable1(
                 "passenger_cancel",

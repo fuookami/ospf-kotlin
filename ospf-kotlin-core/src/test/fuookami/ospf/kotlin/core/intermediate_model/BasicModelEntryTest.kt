@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.core.intermediate_model
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.Continuous
 import fuookami.ospf.kotlin.core.variable.RealVar
-import fuookami.ospf.kotlin.core.variable.Variable
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
@@ -11,7 +10,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -21,6 +19,14 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 class BasicModelEntryTest {
     @Test
@@ -37,7 +43,7 @@ class BasicModelEntryTest {
             initialResult = Flt64.zero
         )
         val constraints = LinearConstraintBatch(
-            sparseLhs = SparseMatrixFlt64(),
+            sparseLhs = SparseMatrix<Flt64>(),
             signs = emptyList(),
             rhs = emptyList(),
             names = emptyList(),
@@ -63,7 +69,7 @@ class BasicModelEntryTest {
         val tokens = AutoTokenTable<Flt64>(Linear, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = Flt64LinearInequality(
+        val relation = LinearInequality<Flt64>(
             lhs = LinearPolynomial(
                 monomials = listOf(
                     LinearMonomial(Flt64(2.0), x),
@@ -80,7 +86,7 @@ class BasicModelEntryTest {
             name = "c1"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
-            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = IntoValue.Flt64),
+            parent = LinearMetaModel<Flt64>(name = "factory-parent", converter = flt64Converter),
             name = "factory-model",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<Flt64>>()),
@@ -113,7 +119,7 @@ class BasicModelEntryTest {
             initialResult = Flt64.zero
         )
         val constraints = LinearConstraintBatch(
-            sparseLhs = SparseMatrixFlt64(),
+            sparseLhs = SparseMatrix<Flt64>(),
             signs = emptyList(),
             rhs = emptyList(),
             names = emptyList(),
@@ -188,7 +194,7 @@ class BasicModelEntryTest {
             name = "qc1"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
-            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = IntoValue.Flt64),
+            parent = QuadraticMetaModel<Flt64>(name = "factory-parent-q", converter = flt64Converter),
             name = "factory-model-q",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<Flt64>>()),

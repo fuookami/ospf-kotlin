@@ -198,8 +198,6 @@ class Bin<T : Cuboid<T>>(
 fun List<Bin<*>>.group(): Map<BinType, UInt64> {
     return this.groupBy { it.shape }.mapValues { UInt64(it.value.size) }
 }
-
-@Suppress("UNCHECKED_CAST")
 fun List<Bin<*>>.unpack(): Map<Item, UInt64> {
     val items = HashSet<Item>()
     for (bin in this) {

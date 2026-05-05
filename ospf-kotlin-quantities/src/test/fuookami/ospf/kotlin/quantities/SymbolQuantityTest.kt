@@ -33,7 +33,7 @@ class SymbolQuantityTest {
         )
 
         // 创建物理量: (2x + 3y + 1.0) m
-        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+        val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
         // 验证结构
         assertEquals(2, distance.value.monomials.size)
@@ -52,7 +52,7 @@ class SymbolQuantityTest {
             monomials = listOf(LinearMonomial(Flt64(2.0), x)),
             constant = Flt64.one
         )
-        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+        val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
         // 转换到厘米: (200x + 100) cm
         val inCm = distance.to(Centimeter)
@@ -75,13 +75,13 @@ class SymbolQuantityTest {
             monomials = listOf(LinearMonomial(Flt64(2.0), x)),
             constant = Flt64.one
         )
-        val distance1: QuantityLinearFlt64 = Quantity(poly1, Meter)
+        val distance1: Quantity<LinearPolynomial<Flt64>> = Quantity(poly1, Meter)
 
         val poly2 = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64(3.0), x)),
             constant = Flt64(2.0)
         )
-        val distance2: QuantityLinearFlt64 = Quantity(poly2, Centimeter)
+        val distance2: Quantity<LinearPolynomial<Flt64>> = Quantity(poly2, Centimeter)
 
         val sum = distance1 + distance2
         assertEquals(Meter, sum.unit)
@@ -104,7 +104,7 @@ class SymbolQuantityTest {
             monomials = listOf(LinearMonomial(Flt64(2.0), x)),
             constant = Flt64.one
         )
-        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+        val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
         val scaled = distance * Flt64(5.0)
         assertEquals(Meter, scaled.unit)
@@ -129,7 +129,7 @@ class SymbolQuantityTest {
             monomials = listOf(LinearMonomial(Flt64(2.0), x)),
             constant = Flt64.one
         )
-        val distance: QuantityLinearFlt64 = Quantity(poly, Meter)
+        val distance: Quantity<LinearPolynomial<Flt64>> = Quantity(poly, Meter)
 
         val evaluated = distance.evaluate(mapOf(x to Flt64(3.0)))
         assertNotNull(evaluated)

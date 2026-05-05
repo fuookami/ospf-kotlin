@@ -2,7 +2,6 @@ package fuookami.ospf.kotlin.core.frontend.symbol_migration.linear_regression
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
-import fuookami.ospf.kotlin.core.token.LinearFlattenDataFlt64
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -17,6 +16,14 @@ import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 private fun sumFlt64(values: List<Flt64>): Flt64 {
     var sum = Flt64.zero
@@ -95,7 +102,7 @@ class LinearPolynomialBaselineTest {
                 x to Flt64(3.0)
             ),
             tokenTable = tokenTable,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             zeroIfNone = false
         )
         assertNotNull(overridden)
@@ -104,7 +111,7 @@ class LinearPolynomialBaselineTest {
         val fromValues = expression.evaluate(
             values = mapOf<Symbol, Flt64>(x to Flt64(3.0)),
             tokenTable = tokenTable,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             zeroIfNone = false
         )
         assertNotNull(fromValues)
@@ -135,7 +142,7 @@ class LinearPolynomialBaselineTest {
         val valueFromTokenTable = expression.evaluate(
             results = results,
             tokenTable = tokenTable,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             zeroIfNone = false
         )
 
@@ -150,7 +157,7 @@ class LinearPolynomialBaselineTest {
         val x = RealVar("x")
         val y = RealVar("y")
 
-        val flattenData = LinearFlattenDataFlt64(
+        val flattenData = LinearFlattenData<Flt64>(
             monomials = listOf(
                 LinearMonomial(Flt64.one, x),
                 LinearMonomial(Flt64(2.0), x),

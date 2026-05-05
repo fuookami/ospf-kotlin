@@ -36,9 +36,8 @@ data class FeasibleSolverOutput<V>(
     override val solveTime: Duration = time
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
 
-typealias FeasibleSolverOutputFlt64 = FeasibleSolverOutput<Flt64>
 
-fun <V> FeasibleSolverOutputFlt64.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
+fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
     return FeasibleSolverOutput(
         obj = obj,

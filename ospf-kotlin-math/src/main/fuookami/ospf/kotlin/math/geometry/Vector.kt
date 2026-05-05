@@ -6,8 +6,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
-
-@Suppress("UNCHECKED_CAST")
 private fun <V : FloatingNumber<V>> normOf(vector: List<V>): V {
     val v = vector[0]
     return (vector.indices.sumOf(v.constants) { i -> vector[i].sqr() }).sqrt() as V
@@ -30,12 +28,10 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
 ) : InnerProductSpace<Vector<D, V>, V> {
     companion object {
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V): Vector<D, V> {
-            @Suppress("UNCHECKED_CAST")
             return Vector(listOf(x, y), Dim2 as D)
         }
 
         operator fun <D : Dimension, V : FloatingNumber<V>> invoke(x: V, y: V, z: V): Vector<D, V> {
-            @Suppress("UNCHECKED_CAST")
             return Vector(listOf(x, y, z), Dim3 as D)
         }
 

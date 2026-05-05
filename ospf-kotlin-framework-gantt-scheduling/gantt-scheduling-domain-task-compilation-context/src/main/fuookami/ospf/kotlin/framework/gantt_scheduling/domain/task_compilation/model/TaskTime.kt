@@ -33,6 +33,13 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 interface TaskTime {
     val delayEnabled: Boolean
     val overMaxDelayEnabled: Boolean
@@ -601,7 +608,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
-                                        converter = IntoValue.Flt64,
+                                        converter = flt64Converter,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "on_last_end_time_${task}"
@@ -647,7 +654,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
-                                        converter = IntoValue.Flt64,
+                                        converter = flt64Converter,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "on_earliest_end_time_${task}"
@@ -727,7 +734,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
-                                        converter = IntoValue.Flt64,
+                                        converter = flt64Converter,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "not_on_last_end_time_${task}"
@@ -773,7 +780,7 @@ abstract class TaskTimeImpl<
                                 IfThenFunction(
                                     inequality = LinearConstraintInput.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
-                                        converter = IntoValue.Flt64,
+                                        converter = flt64Converter,
                                         lhsRange = estimateEndTime[task].range.range!!
                                     ),
                                     name = "not_on_earliest_end_time_${task}"
@@ -1187,7 +1194,7 @@ open class IterativeTaskSchedulingTaskTime<
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_${task}"
-                            ), converter = IntoValue.Flt64)
+                            ), converter = flt64Converter)
                             slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack
                         }

@@ -3,7 +3,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -17,6 +18,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example7.html
@@ -66,11 +75,11 @@ data object Demo7 {
 
     private lateinit var x: UIntVariable2
 
-    private lateinit var cost: LinearIntermediateSymbolFlt64
-    private lateinit var shipment: LinearIntermediateSymbols1Flt64
-    private lateinit var purchase: LinearIntermediateSymbols1Flt64
+    private lateinit var cost: LinearIntermediateSymbol<Flt64>
+    private lateinit var shipment: LinearIntermediateSymbols1<Flt64>
+    private lateinit var purchase: LinearIntermediateSymbols1<Flt64>
 
-    private val metaModel = LinearMetaModelFlt64("demo7", converter = IntoValue.Flt64)
+    private val metaModel = LinearMetaModel<Flt64>("demo7", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo7::initVariable,
@@ -120,7 +129,7 @@ data object Demo7 {
         )
         metaModel.add(cost)
 
-        shipment = LinearIntermediateSymbols1Flt64(
+        shipment = LinearIntermediateSymbols1<Flt64>(
             "shipment",
             Shape1(warehouses.size)
         ) { i, _ ->
@@ -132,7 +141,7 @@ data object Demo7 {
         }
         metaModel.add(shipment)
 
-        purchase = LinearIntermediateSymbols1Flt64(
+        purchase = LinearIntermediateSymbols1<Flt64>(
             "purchase",
             Shape1(stores.size)
         ) { i, _ ->

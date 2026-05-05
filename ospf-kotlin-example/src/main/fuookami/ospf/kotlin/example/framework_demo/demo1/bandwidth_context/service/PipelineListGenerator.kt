@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Graph
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PipelineListGenerator(
     private val aggregation: Aggregation,
@@ -21,8 +22,8 @@ class PipelineListGenerator(
     private val services: List<Service>,
     private val assignment: Assignment,
 ) {
-    operator fun invoke(): Ret<PipelineList<LinearMetaModelFlt64>> {
-        val list = ArrayList<Pipeline<LinearMetaModelFlt64>>()
+    operator fun invoke(): Ret<PipelineList<LinearMetaModel<Flt64>>> {
+        val list = ArrayList<Pipeline<LinearMetaModel<Flt64>>>()
 
         list.add(EdgeBandwidthConstraint(graph.edges, services, assignment, aggregation.edgeBandwidth))
         list.add(DemandConstraint(graph.nodes, aggregation.nodeBandwidth))

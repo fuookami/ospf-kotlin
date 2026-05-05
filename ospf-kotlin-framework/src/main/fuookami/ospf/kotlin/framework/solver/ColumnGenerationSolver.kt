@@ -2,11 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.solver
 
-import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutputFlt64
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.core.model.basic.Solution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Ret
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -16,22 +12,26 @@ import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 
 interface ColumnGenerationSolver {
     val name: String
 
     suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<FeasibleSolverOutputFlt64>
+    ): Ret<FeasibleSolverOutput<Flt64>>
 
     suspend fun solveMILP(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): Ret<FeasibleSolverOutputFlt64> {
+    ): Ret<FeasibleSolverOutput<Flt64>> {
         val solutionAmount = options.solutionAmount
         return if (solutionAmount != null) {
             solveMILP(
@@ -56,11 +56,11 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
+    ): CompletableFuture<Ret<FeasibleSolverOutput<Flt64>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
@@ -74,9 +74,9 @@ interface ColumnGenerationSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
-    ): CompletableFuture<Ret<FeasibleSolverOutputFlt64>> {
+    ): CompletableFuture<Ret<FeasibleSolverOutput<Flt64>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 metaModel = metaModel,
@@ -87,12 +87,12 @@ interface ColumnGenerationSolver {
 
     suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         amount: UInt64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return solveMILP(
             name = name,
             metaModel = metaModel,
@@ -104,9 +104,9 @@ interface ColumnGenerationSolver {
     }
 
     suspend fun solveMILPWithSolutionPool(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions
-    ): Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         return solveMILP(
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
@@ -120,12 +120,12 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPAsync(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         amount: UInt64,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
@@ -140,9 +140,9 @@ interface ColumnGenerationSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMILPWithSolutionPoolAsync(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions
-    ): CompletableFuture<Ret<Pair<FeasibleSolverOutputFlt64, List<Solution<Flt64>>>>> {
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>>> {
         return GlobalScope.future {
             return@future this@ColumnGenerationSolver.solveMILPWithSolutionPool(
                 metaModel = metaModel,
@@ -152,11 +152,11 @@ interface ColumnGenerationSolver {
     }
 
     data class LPResult(
-        val result: FeasibleSolverOutputFlt64,
-        val dualSolution: LinearDualSolution
+        val result: FeasibleSolverOutput<Flt64>,
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
     ) {
         val obj: Flt64 by result::obj
-        val solution: Solution<Flt64> by result::solution
+        val solution: List<Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap
@@ -164,14 +164,14 @@ interface ColumnGenerationSolver {
 
     suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<LPResult>
 
     suspend fun solveLP(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<LPResult> {
         return solveLP(
@@ -186,7 +186,7 @@ interface ColumnGenerationSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveLPAsync(
         name: String,
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -204,7 +204,7 @@ interface ColumnGenerationSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveLPAsync(
-        metaModel: LinearMetaModelFlt64,
+        metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LPResult>> {
         return GlobalScope.future {

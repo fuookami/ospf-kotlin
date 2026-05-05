@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Ass
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Node
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.normal
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ServiceCapacityConstraint(
     private val nodes: List<Node>,
@@ -23,8 +24,8 @@ class ServiceCapacityConstraint(
     private val assignment: Assignment,
     private val serviceBandwidth: ServiceBandwidth,
     override val name: String = "service_capacity_constraint"
-) : Pipeline<LinearMetaModelFlt64> {
-    override fun invoke(model: LinearMetaModelFlt64): Try {
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
         val x = assignment.x
         val outFlow = serviceBandwidth.outFlow
         for (node in nodes.filter(normal)) {

@@ -18,14 +18,12 @@ interface Cell<V : RealNumber<V>> {
     fun evaluate(solution: Map<VariableItemKey, V>): V?
 }
 
-typealias CellFlt64 = Cell<Flt64>
 
 interface LinearCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
     val token: Token<V>
 }
 
-typealias LinearCellFlt64 = LinearCell<Flt64>
 typealias LinearCellI = LinearCell<Flt64>
 
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
@@ -34,7 +32,6 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val token2: Token<V>?
 }
 
-typealias QuadraticCellFlt64 = QuadraticCell<Flt64>
 typealias QuadraticCellI = QuadraticCell<Flt64>
 
 class LinearCellImpl<V>(
@@ -43,7 +40,6 @@ class LinearCellImpl<V>(
     override val token: Token<V>,
     private val converter: IntoValue<V>? = null
 ) : LinearCell<V> where V : RealNumber<V>, V : NumberField<V> {
-    @Suppress("UNCHECKED_CAST")
     override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientFlt64) else _coefficientFlt64 as V
 
     override fun evaluate(): V? {
@@ -69,7 +65,6 @@ class LinearCellImpl<V>(
     }
 }
 
-typealias LinearCellImplFlt64 = LinearCellImpl<Flt64>
 
 class QuadraticCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
@@ -78,7 +73,6 @@ class QuadraticCellImpl<V>(
     override val token2: Token<V>? = null,
     private val converter: IntoValue<V>? = null
 ) : QuadraticCell<V> where V : RealNumber<V>, V : NumberField<V> {
-    @Suppress("UNCHECKED_CAST")
     override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientFlt64) else _coefficientFlt64 as V
 
     override fun evaluate(): V? {
@@ -132,4 +126,3 @@ class QuadraticCellImpl<V>(
     }
 }
 
-typealias QuadraticCellImplFlt64 = QuadraticCellImpl<Flt64>

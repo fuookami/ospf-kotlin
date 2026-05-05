@@ -111,13 +111,11 @@ class SparseMatrix<V : RealNumber<V>>(
     }
 }
 
-typealias SparseVectorFlt64 = SparseVector<Flt64>
-typealias SparseMatrixFlt64 = SparseMatrix<Flt64>
 
 /**
- * Negate a [SparseMatrixFlt64] in-place: multiply every entry by -1.
+ * Negate a [SparseMatrix<Flt64>] in-place: multiply every entry by -1.
  */
-fun SparseMatrixFlt64.negateInPlace(): SparseMatrixFlt64 {
+fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
             val e = row.entries[i]
@@ -128,12 +126,12 @@ fun SparseMatrixFlt64.negateInPlace(): SparseMatrixFlt64 {
 }
 
 /**
- * Return a negated copy of this [SparseMatrixFlt64].
+ * Return a negated copy of this [SparseMatrix<Flt64>].
  */
-fun SparseMatrixFlt64.negated(): SparseMatrixFlt64 {
-    val result = SparseMatrixFlt64()
+fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
+    val result = SparseMatrix<Flt64>()
     for (row in rows) {
-        val newRow = SparseVectorFlt64()
+        val newRow = SparseVector<Flt64>()
         for (entry in row.entries) {
             newRow.add(entry.index, -entry.value)
         }
@@ -143,9 +141,9 @@ fun SparseMatrixFlt64.negated(): SparseMatrixFlt64 {
 }
 
 /**
- * Scale a [SparseMatrixFlt64] in-place by [factor].
+ * Scale a [SparseMatrix<Flt64>] in-place by [factor].
  */
-fun SparseMatrixFlt64.scaleInPlace(factor: Flt64): SparseMatrixFlt64 {
+fun SparseMatrix<Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
             val e = row.entries[i]

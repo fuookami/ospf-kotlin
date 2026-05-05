@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
-import fuookami.ospf.kotlin.core.model.mechanism.MetaModelFlt64
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
@@ -25,6 +24,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 
 interface AbstractResourceCapacity {
     val time: TimeRange
@@ -106,7 +106,7 @@ interface ResourceUsage<
     val overEnabled: Boolean
     val lessEnabled: Boolean
 
-    fun register(model: MetaModelFlt64): Try
+    fun register(model: MetaModel<Flt64>): Try
 }
 
 abstract class AbstractResourceUsage<
@@ -117,7 +117,7 @@ abstract class AbstractResourceUsage<
     override lateinit var overQuantity: LinearIntermediateSymbols1<Flt64>
     override lateinit var lessQuantity: LinearIntermediateSymbols1<Flt64>
 
-    override fun register(model: MetaModelFlt64): Try {
+    override fun register(model: MetaModel<Flt64>): Try {
         if (timeSlots.isNotEmpty()) {
             if (overEnabled) {
                 if (!::overQuantity.isInitialized) {
@@ -135,8 +135,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_over_quantity_$slot"
                             )
                             slot.resourceCapacity.overQuantity?.let {
-                                @Suppress("UNCHECKED_CAST")
-                                (slack.helperVariables.last().range as ExpressionRange<Flt64>).setUb(it)
+                                (/* unchecked */ slack.helperVariables.last().range as ExpressionRange<Flt64>).setUb(it)
                             }
                             slack
                         } else {
@@ -175,8 +174,7 @@ abstract class AbstractResourceUsage<
                                 name = "${name}_less_quantity_$slot"
                             )
                             slot.resourceCapacity.lessQuantity?.let {
-                                @Suppress("UNCHECKED_CAST")
-                                (slack.helperVariables.first().range as ExpressionRange<Flt64>).setUb(it)
+                                (/* unchecked */ slack.helperVariables.first().range as ExpressionRange<Flt64>).setUb(it)
                             }
                             slack
                         } else {

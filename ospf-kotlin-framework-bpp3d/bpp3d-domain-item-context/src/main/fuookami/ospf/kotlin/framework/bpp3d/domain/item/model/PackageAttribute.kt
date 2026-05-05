@@ -185,8 +185,6 @@ data class BoxStackingOnPolicy(
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
     }
-
-    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -234,8 +232,6 @@ data class CartonContainerStackingOnPolicy(
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
     }
-
-    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -271,8 +267,6 @@ data class FilterStackingOnPolicy(
         }
         return layer < item.maxLayer && (height + item.height) leq item.maxHeight
     }
-
-    @Suppress("UNCHECKED_CAST")
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -319,7 +313,6 @@ data class PackageAttribute(
     val maxLayer = min(packageMaxLayer, weightAttribute.maxLayer)
 
     companion object {
-        @Suppress("UNCHECKED_CAST")
         private suspend fun layerLayer(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
@@ -346,8 +339,6 @@ data class PackageAttribute(
                 maxLayer
             }
         }
-
-        @Suppress("UNCHECKED_CAST")
         private suspend fun layerHeight(
             item: ItemPlacement3,
             bottomItems: List<ItemPlacement3>,
@@ -453,8 +444,6 @@ data class PackageAttribute(
             height = height
         )
     }
-
-    @Suppress("UNCHECKED_CAST")
     suspend fun enabledStackingOn(
         item: ItemPlacement3,
         bottomItems: List<ItemPlacement3>,

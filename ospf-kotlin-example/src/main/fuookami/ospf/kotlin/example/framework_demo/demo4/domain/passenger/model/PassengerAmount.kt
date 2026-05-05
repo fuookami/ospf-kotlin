@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class PassengerAmount(
     private val flights: List<FlightTask>,
@@ -20,9 +21,9 @@ class PassengerAmount(
     private val cancel: PassengerCancel,
     private val change: PassengerChange
 ) {
-    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbolFlt64>>
+    lateinit var passengerAmount: Map<FlightTask, Map<PassengerClass, LinearIntermediateSymbol<Flt64>>>
 
-    fun register(model: AbstractLinearMetaModelFlt64): Try {
+    fun register(model: AbstractLinearMetaModel<Flt64>): Try {
         if (!::passengerAmount.isInitialized) {
             passengerAmount = flights.associateWith { flight ->
                 PassengerClass.entries.associateWith { cls ->

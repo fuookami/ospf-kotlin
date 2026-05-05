@@ -49,7 +49,7 @@ class MacContext {
 
     fun register(
         stowageMode: StowageMode,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -70,7 +70,7 @@ class MacContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // MAC computation constraints go into the master problem.
         when (val result = aggregation.register(
@@ -85,14 +85,14 @@ class MacContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // MAC does not contribute to the sub problem.
         return ok
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

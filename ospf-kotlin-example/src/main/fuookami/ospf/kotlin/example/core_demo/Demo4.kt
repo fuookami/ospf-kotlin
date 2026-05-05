@@ -3,7 +3,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.*
-import fuookami.ospf.kotlin.utils.concept.*import fuookami.ospf.kotlin.utils.functional.*
+import fuookami.ospf.kotlin.utils.concept.*
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
@@ -17,6 +18,14 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * @see     https://fuookami.github.io/ospf/examples/example4.html
@@ -52,10 +61,10 @@ data object Demo4 {
     private val maxDiff = Int64(1)
 
     private lateinit var x: RealVariable1
-    private lateinit var profit: LinearIntermediateSymbolFlt64
-    private lateinit var use: LinearIntermediateSymbols1Flt64
+    private lateinit var profit: LinearIntermediateSymbol<Flt64>
+    private lateinit var use: LinearIntermediateSymbols1<Flt64>
 
-    private val metaModel = LinearMetaModelFlt64("demo4", converter = IntoValue.Flt64)
+    private val metaModel = LinearMetaModel<Flt64>("demo4", converter = flt64Converter)
 
     private val subProcesses = listOf(
         Demo4::initVariable,
@@ -99,7 +108,7 @@ data object Demo4 {
         )
         metaModel.add(profit)
 
-        use = LinearIntermediateSymbols1Flt64("use", Shape1(materials.size)) { m, _ ->
+        use = LinearIntermediateSymbols1<Flt64>("use", Shape1(materials.size)) { m, _ ->
             val material = materials[m]
             val ps = products.filter { it.use.contains(material) }
             LinearExpressionSymbol(

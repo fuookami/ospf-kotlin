@@ -52,7 +52,7 @@ class LoadingEffectivenessContext {
     fun register(
         stowageMode: StowageMode,
         parameter: Parameter,
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = aggregation.register(
             stowageMode = stowageMode,
@@ -105,7 +105,7 @@ class LoadingEffectivenessContext {
     }
 
     fun registerForBendersMP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Loading effectiveness constraints go into the master problem.
         return register(
@@ -116,14 +116,14 @@ class LoadingEffectivenessContext {
     }
 
     fun registerForBendersSP(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         // Loading effectiveness does not contribute to the sub problem.
         return ok
     }
 
     fun flushForBendersSP(
-        model: AbstractLinearMetaModelFlt64,
+        model: AbstractLinearMetaModel<Flt64>,
         solution: List<Flt64>
     ): Try {
         return ok

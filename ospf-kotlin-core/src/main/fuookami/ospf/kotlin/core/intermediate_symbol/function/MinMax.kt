@@ -2,10 +2,8 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbolFlt64
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -15,13 +13,22 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * MinMax function: result = max(polynomials[0], polynomials[1], ...).
@@ -51,11 +58,11 @@ class MinMaxFunction<V>(
         return inner.evaluate(values)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return inner.registerAuxiliaryTokens(tokens)
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         return inner.registerConstraints(model)
     }
     companion object {
@@ -73,7 +80,7 @@ class MinMaxFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
+        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -81,7 +88,7 @@ class MinMaxFunction<V>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbolFlt64>,
+            polynomials: List<LinearIntermediateSymbol<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -89,11 +96,11 @@ class MinMaxFunction<V>(
             MinMaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }
@@ -127,11 +134,11 @@ class MaxMinFunction<V>(
         return inner.evaluate(values)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return inner.registerAuxiliaryTokens(tokens)
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         return inner.registerConstraints(model)
     }
     companion object {
@@ -149,7 +156,7 @@ class MaxMinFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, IntoValue.Flt64, name, displayName)
+        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -157,7 +164,7 @@ class MaxMinFunction<V>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbolFlt64>,
+            polynomials: List<LinearIntermediateSymbol<Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
@@ -165,11 +172,11 @@ class MaxMinFunction<V>(
             MaxMinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }

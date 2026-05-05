@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Flt64LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Try
@@ -21,6 +19,15 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
 
 /**
  * Floor function: y = floor(x).
@@ -54,7 +61,7 @@ class FloorFunction<V>(
         return converter.intoValue(Flt64(kotlin.math.floor(converter.fromValue(xVal).toDouble())))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -62,24 +69,24 @@ class FloorFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModelFlt64): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
         val mF = converter.fromValue(bigM)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<Flt64LinearInequality>()
+        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // k <= x
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_floor_lb")
 
         // k + 1 >= x => x <= k + 1
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_floor_ub")
 
         // b = x - k => b + k - x = 0
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(Flt64.one, kVar)
@@ -88,7 +95,7 @@ class FloorFunction<V>(
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_decompose")
 
         // result = k
-        allConstraints += Flt64LinearInequality(
+        allConstraints += LinearInequality<Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, kVar)
@@ -113,7 +120,7 @@ class FloorFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(x, IntoValue.Flt64, bigM, name = name, displayName = displayName)
+        ): FloorFunction<Flt64> = FloorFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
@@ -126,11 +133,11 @@ class FloorFunction<V>(
             FloorFunction(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,
-                converter = IntoValue.Flt64,
+                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = IntoValue.Flt64
+            converter = flt64Converter
         
         )
     }

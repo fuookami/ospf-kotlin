@@ -9,13 +9,14 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Assignment
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model.Service
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class ServiceAssignmentConstraint(
     private val services: List<Service>,
     private val assignment: Assignment,
     override val name: String = "service_assignment"
-) : Pipeline<LinearMetaModelFlt64> {
-    override fun invoke(model: LinearMetaModelFlt64): Try {
+) : Pipeline<LinearMetaModel<Flt64>> {
+    override fun invoke(model: LinearMetaModel<Flt64>): Try {
         for (service in services) {
             model.addConstraint(
                 assignment.serviceAssignment[service] leq 1,

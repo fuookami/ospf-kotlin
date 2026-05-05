@@ -191,7 +191,6 @@ data object CompanionConstantProviderResolver {
  * @return 解析到的常量提供者
  * @return The resolved constant provider
  */
-@Suppress("UNCHECKED_CAST")
 @PublishedApi
 internal inline fun <reified T, reified C : Any> resolveCompanionProvider(
     caller: String,

@@ -220,8 +220,6 @@ class LoadingOrderCalculator(
             plane.distance(lhs.position) leq plane.distance(rhs.position)
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     private fun dump(placements: List<Pair<Placement3<*>, UInt64>>): List<Pair<ItemPlacement3, UInt64>> {
         val ret = ArrayList<Pair<ItemPlacement3, UInt64>>()
         for ((placement, sequence) in placements) {

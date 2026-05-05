@@ -21,6 +21,13 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.framework.solver.*
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 data class ProductDemandShadowPriceKey(
     val product: Product
 ) : ShadowPriceKey(ProductDemandShadowPriceKey::class)
@@ -33,10 +40,10 @@ class RMP(
     private val cuttingPlans: MutableList<CuttingPlan> = ArrayList()
     private val x: MutableList<UIntVar> = ArrayList()
     private val rest = LinearExpressionSymbol(name = "rest")
-    private val yield = LinearExpressionSymbols1Flt64("output", Shape1(products.size)) { _, v ->
+    private val yield = LinearExpressionSymbols1<Flt64>("output", Shape1(products.size)) { _, v ->
         LinearExpressionSymbol(name = "output_${v[0]}")
     }
-    private val metaModel = LinearMetaModelFlt64("demo3", converter = IntoValue.Flt64)
+    private val metaModel = LinearMetaModel<Flt64>("demo3", converter = flt64Converter)
     private val solver: ColumnGenerationSolver = ScipColumnGenerationSolver()
 
     init {

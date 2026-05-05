@@ -189,11 +189,7 @@ interface RealNumber<Self : RealNumber<Self>> : Scalar<Self>, Invariant<Self>, O
             else -> value
         }
     }
-
-    @Suppress("UNCHECKED_CAST")
     fun isSelfWithinBounds(): Boolean = isWithinBounds(this as Self)
-
-    @Suppress("UNCHECKED_CAST")
     fun clampSelfToBounds(): Self = clampToBounds(this as Self)
 
     /**

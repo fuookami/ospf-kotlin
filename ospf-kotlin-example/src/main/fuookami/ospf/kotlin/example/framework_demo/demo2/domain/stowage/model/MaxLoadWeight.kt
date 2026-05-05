@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class MaxLoadWeight(
     private val aircraftModel: AircraftModel,
@@ -19,15 +20,15 @@ class MaxLoadWeight(
     private val positions: List<Position>,
     private val totalWeight: TotalWeight
 ) {
-    lateinit var maxLoadWeight: QuantityLinearIntermediateSymbols1Flt64
+    lateinit var maxLoadWeight: QuantityLinearIntermediateSymbols1<Flt64>
 
     fun register(
-        model: AbstractLinearMetaModelFlt64
+        model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::maxLoadWeight.isInitialized) {
-            maxLoadWeight = QuantityLinearIntermediateSymbols1Flt64("max_load_weight", Shape1(positions.size)) { j, _ ->
+            maxLoadWeight = QuantityLinearIntermediateSymbols1<Flt64>("max_load_weight", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
-                val symbol: LinearIntermediateSymbolFlt64 = if (position.mlw.segments.isNotEmpty()) {
+                val symbol: LinearIntermediateSymbol<Flt64> = if (position.mlw.segments.isNotEmpty()) {
                     val zfw = totalWeight.computedTotalWeight[FlightPhase.ZeroFuel]
                     if (zfw != null) {
                         LinearExpressionSymbol(

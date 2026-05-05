@@ -11,14 +11,15 @@ import fuookami.ospf.kotlin.framework.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 class LoadingOrderLimit(
     private val positions: List<Position>,
     private val neighbours: List<Neighbour>,
     private val load: Load,
     override val name: String = "loading_order_limit"
-): Pipeline<AbstractLinearMetaModelFlt64> {
-    override fun invoke(model: AbstractLinearMetaModelFlt64): Try {
+): Pipeline<AbstractLinearMetaModel<Flt64>> {
+    override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (neighbour in neighbours) {
             val j1 = positions.indexOfFirst { it.base == neighbour.pair.first }
             val position1 = positions[j1]

@@ -16,6 +16,13 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
+private val flt64Converter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64) = value
+        override val zero get() = Flt64.zero
+        override val one get() = Flt64.one
+        override fun fromValue(value: Flt64) = value
+    }
+
 /**
  * Regression tests for P4-1 Phase A2: MathFunctionSymbol migration.
  */
@@ -29,10 +36,10 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "test_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
         assertEquals(Linear, adapter.category)
         assertFalse(adapter.cached)
@@ -49,10 +56,10 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "my_func", displayName = "My Function"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
         assertEquals("my_func", adapter.name)
         assertEquals("My Function", adapter.displayName)
@@ -75,7 +82,7 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "slack_test"
         )
 
@@ -94,7 +101,7 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "aux_slack"
         )
 
@@ -116,10 +123,10 @@ class FunctionSymbolMigrationTest {
             y = LinearPolynomial(emptyList(), Flt64.zero),
             withNegative = true,
             withPositive = true,
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "adapter_aux"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
         val tokens = fuookami.ospf.kotlin.core.token.AutoTokenTable<Flt64>(Linear, false)
         tokens.add(listOf(x))
@@ -137,10 +144,10 @@ class FunctionSymbolMigrationTest {
         val slack = SlackFunction(
             x = xPoly,
             y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "eval_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(5.0))
         val result = adapter.evaluate(values)
@@ -155,10 +162,10 @@ class FunctionSymbolMigrationTest {
         )
         val slack = SlackFunction(
             x = x, y = LinearPolynomial(emptyList(), Flt64.zero),
-            converter = IntoValue.Flt64,
+            converter = flt64Converter,
             name = "flatten_slack"
         )
-        val adapter = LinearFunctionSymbolAdapter(slack, IntoValue.Flt64)
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
         assertTrue(adapter.flattenedMonomials.monomials.isEmpty())
         assertEquals(Flt64.zero, adapter.flattenedMonomials.constant)
@@ -173,8 +180,8 @@ class FunctionSymbolMigrationTest {
             override var displayName: String? = null
             override val helperVariables: List<AbstractVariableItem<*, *>> = emptyList()
             override fun evaluate(values: Map<Symbol, Flt64>): Flt64? = null
-            override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollectionFlt64): Try = ok
-            override fun registerConstraints(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModelFlt64): Try = ok
+            override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try = ok
+            override fun registerConstraints(model: fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel<Flt64>): Try = ok
         }
 
         val result = testFunc.registerAuxiliaryTokens(tokens)
