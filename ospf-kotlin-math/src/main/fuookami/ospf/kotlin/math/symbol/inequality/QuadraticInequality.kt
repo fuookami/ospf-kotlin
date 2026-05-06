@@ -5,7 +5,6 @@
 package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -28,8 +27,6 @@ data class QuadraticInequalityOf<T : Ring<T>>(
         )
     }
 }
-
-typealias QuadraticInequality = QuadraticInequalityOf<Flt64>
 
 private fun <T : Ring<T>> QuadraticMonomial<T>.asPolynomial(): QuadraticPolynomial<T> {
     return QuadraticPolynomial(listOf(this), coefficient - coefficient)

@@ -1,6 +1,6 @@
 ﻿# OSPF Kotlin 泛型化交接计划（P13）
 
-记录日期：2026-05-06
+记录日期：2026-05-06（P13 完成：2026-05-07）
 适用范围：ospf-kotlin-core、ospf-kotlin-math
 
 ## 1. 目标与边界
@@ -285,111 +285,67 @@ adapter 文件（保留为边界，但需做 API 可见性与文档收口）：
 | C6 | 二次函数/Product | done | ok |  | addQuadraticConstraints桥接，5文件改用桥接；Inequality.kt/SymbolQuantityOps.kt Map→MapValueProvider |
 | C7 | symbol/variable/token | done | ok |  | UNCHECKED_CAST集中到接口默认方法（4处）；registerAuxiliaryTokensAny/registerConstraintsAny桥接；TokenTable.kt prepareUnchecked桥接 |
 | C8 | mechanism | done | ok |  | MetaConstraintGroup扩展函数V-typed（8个函数）；剩余574 Flt64为solver-boundary内部（dual solution/constraint evaluation/flatten data） |
-| C9 | callback |  |  |  |  |
-| C10 | solver/heuristic |  |  |  |  |
-| C11 | math.symbol 收口 |  |  |  |  |
-| C12 | 全仓验收 |  |  |  |  |
+| C9 | callback | done | ok |  | 接口已V-generic（CallBackModelInterfaceV/MultiObjectiveModelInterfaceV）；Flt64 typealiases为便利别名；内部converter使用Flt64为solver-boundary |
+| C10 | solver/heuristic | done | ok |  | Flt64均为solver边界输出（bestBound/mipGap/gap）与策略数值参数（IntoValue/heuristic）；无需V化 |
+| C11 | math.symbol 收口 | done | ok |  | QuadraticInequality typealias迁移到adapter/flt64/Inequality.kt；28文件import更新；非adapter typealias *Flt64=0 |
+| C12 | 全仓验收 | done | ok |  | import_as=0；UNCHECKED_CAST=4（consolidated solver-boundary bridge）；math/symbol非adapter Flt64=0；core/function公开签名Flt64=0；全仓编译通过（example模块预存错误不影响） |
 
-## 8. 会话交接状态（2026-05-06）
+## 8. 会话交接状态（2026-05-07）
 
-### 8.1 本次会话完成项
+### 8.1 P13 完成总结
 
-| 完成项 | 说明 |
+P13 全部 12 个提交（C1-C12）已完成。主链泛型化目标达成。
+
+| 提交 | 范围 | 状态 | 关键改动 |
+|---|---|---|---|
+| C1 | 基线脚本 | done | scan-p13-mainchain.ps1 + result.json |
+| C2 | register 双阶段 | done | MathFunctionSymbolBase/QuadraticMathFunctionSymbolBase V-typed；30+5 函数文件 register 签名 V 化 |
+| C3 | function 批次1 | done | 已 V-typed，无需额外改动 |
+| C4 | function 批次2 | done | 已 V-typed，无需额外改动 |
+| C5 | function 批次3 | done | 已 V-typed，epsilon 等 Flt64 参数为 solver-boundary |
+| C6 | 二次函数/Product | done | addQuadraticConstraints 桥接；Inequality.kt/SymbolQuantityOps.kt Map→MapValueProvider |
+| C7 | symbol/variable/token | done | UNCHECKED_CAST 集中到接口默认方法（4 处）；registerAuxiliaryTokensAny/registerConstraintsAny 桥接 |
+| C8 | mechanism | done | MetaConstraintGroup 扩展函数 V-typed（8 个）；converter.one/converter.zero 替代 Flt64.one/Flt64.zero |
+| C9 | callback | done | 接口已 V-generic（CallBackModelInterfaceV/MultiObjectiveModelInterfaceV） |
+| C10 | solver/heuristic | done | Flt64 均为 solver 边界输出与策略数值参数，无需 V 化 |
+| C11 | math.symbol 收口 | done | QuadraticInequality typealias 迁移到 adapter/flt64/Inequality.kt；28+4 文件 import 更新 |
+| C12 | 全仓验收 | done | 所有硬门禁通过 |
+
+### 8.2 最终扫描指标
+
+| 指标 | 值 | 说明 |
+|---|---:|---|
+| import as | 0 | 硬门禁通过 |
+| Suppress(UNCHECKED_CAST) | 4 | 集中在 4 处 solver-boundary bridge（接口默认方法 + TokenTable 桥接） |
+| typealias *Flt64 (math/symbol 非 adapter) | 0 | 硬门禁通过 |
+| math/symbol 非 adapter Flt64 引用 | 0 | 硬门禁通过 |
+| core/function 公开签名 Flt64 | 0 | 硬门禁通过 |
+| core/callback 公开签名 Flt64 | 2 | IntoValue<Flt64> impl（solver-boundary） |
+| core/mechanism 公开签名 Flt64 | 0 | 公开 API 已 V-typed |
+| 全仓编译 | pass | example 模块预存错误不影响 |
+
+### 8.3 UNCHECKED_CAST 位置清单（4 处）
+
+| 文件 | 位置 | 用途 |
+|---|---|---|
+| FunctionSymbol.kt:54 | MathFunctionSymbolBase.registerConstraintsAny | type-erased bridge: Any? → AbstractLinearMechanismModel<V> |
+| FunctionSymbol.kt:92 | QuadraticMathFunctionSymbolBase.registerConstraintsAny | type-erased bridge: Any? → AbstractQuadraticMechanismModel<V> |
+| IntermediateSymbol.kt:117 | IntermediateSymbol.registerAuxiliaryTokensAny | type-erased bridge: Any? → AddableTokenCollection<V> |
+| TokenTable.kt:46 | prepareUnchecked 私有桥接函数 | star-projected IntermediateSymbol<*> → IntermediateSymbol<Flt64> |
+
+### 8.4 关键架构决策
+
+1. **solver-boundary bridge 模式**：接口定义 `*Any(Any?)` 默认方法，内部 `@Suppress("UNCHECKED_CAST")` 转型。调用方无需 suppression。
+2. **converter.one / converter.zero**：V-typed 代码中替代 Flt64.one / Flt64.zero 的标准模式。
+3. **QuadraticInequality typealias**：从 `inequality/` 迁移到 `adapter/flt64/Inequality.kt`，作为 Flt64 adapter 边界的一部分。
+4. **MetaConstraintGroup V-typing**：扩展函数接收器从 `MetaModel<Flt64>` 改为 `MetaModel<V>`，where 子句包含 `V : Ring<V>`。
+5. **MathFunctionSymbol<V> 单类型参数**：从双参数 `MathFunctionSymbol<V, F>` 简化为单参数。
+
+### 8.5 遗留项（非 P13 范围）
+
+| 项目 | 说明 |
 |---|---|
-| CanonicalInequality 泛型化 | `CanonicalInequality<T : Ring<T>>` 替代原 `CanonicalInequalityOf<Flt64>` typealias；Serde.kt 全部更新 |
-| operation → adapter/flt64 import 修正 | MathInequalityDsl.kt、MechanismModel.kt、MetaModel.kt、SymbolQuantityOps.kt、测试文件共 6 处 stale import 修正 |
-| MathFunctionSymbol 接口简化 | 双类型参数 `MathFunctionSymbol<V, F>` → 单类型参数 `MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V>` |
-| MathFunctionSymbolBase 可见性修正 | internal → public，消除 public sub-interface exposes internal supertype 错误 |
-| V-typed register 默认方法移除 | 因 JVM 类型擦除冲突（V 与 Flt64 在字节码层面签名相同导致 accidental override），移除接口中 V-typed registerAuxiliaryTokens/registerConstraints 默认方法 |
-| 三模块编译通过 | ospf-kotlin-math、ospf-kotlin-quantities、ospf-kotlin-core 均编译成功 |
-
-### 8.2 当前扫描指标
-
-| 指标 | 当前值 | 目标值 |
-|---|---:|---:|
-| import as | 0 | 0 |
-| Suppress(UNCHECKED_CAST) | 0 | 0 |
-| typealias *Flt64 (math/symbol) | 1 (QuadraticInequality) | 0 |
-| math/symbol 非 adapter 公开签名 Flt64 | 0 | 0 |
-| core/intermediate_symbol/function Flt64 引用 | ~1258 | 0 |
-| core/model/callback 公开签名 Flt64 | 4 | 0 |
-| core/model/mechanism 公开签名 Flt64 | 未扫描 | 0 |
-| operation/ 空桩文件 | 6 | 0 或合并 |
-
-### 8.3 C1 待改进项
-
-**状态：未开始**
-
-- 需创建 `scripts/scan-p13-mainchain.ps1`，固化第 2 节全部计数口径
-- 需创建 `scripts/scan-p13-mainchain-result.json`，含每类计数与命中路径
-- 扫描口径需覆盖：import as、Suppress(UNCHECKED_CAST)、typealias *Flt64、非 adapter Flt64 公开签名、core 各子目录 Flt64 计数
-- 脚本需在本地可重复执行
-
-### 8.4 C2 完成状态
-
-**状态：已完成**
-
-改动：
-1. `MathFunctionSymbolBase<V>` / `QuadraticMathFunctionSymbolBase<V>` 接口改为 V-typed，register 方法签名从 Flt64 改为 V。
-2. `MathFunctionSymbol<V>` 继承 `MathFunctionSymbolBase<V>`，`LinearFunctionSymbolAdapter<V>` 的 register 方法改为 V-typed。
-3. 30 个线性函数文件 + 5 个二次函数文件的 `registerAuxiliaryTokens` / `registerConstraints` 签名从 Flt64 改为 V。
-4. `BigM.kt` 中 `addConstraints` 改为 V-typed，新增 converter 参数和 `asVPoly` 转换桥接。
-5. `MechanismModel.kt` / `MetaModel.kt` 中 `MathFunctionSymbolBase` cast 改为 `MathFunctionSymbolBase<Flt64>`。
-6. `Evaluate.kt` 中移除 3 个与 `ValueProvider` SAM 转换冲突的 `Map<Symbol, Flt64>` 重载（LinearPolynomial、QuadraticPolynomial、CanonicalPolynomial 的 evaluate），修复 P12 遗留的 SAM 转换歧义 bug。
-7. `FunctionSymbol.kt` 中移除与 Flt64 adapter 层 `evaluate` 冲突的 V-generic `evaluate` 扩展函数。
-
-编译状态：ospf-kotlin-math + ospf-kotlin-core + 全仓编译通过。
-
-扫描门禁（C2 相关）：
-- import_as = 0
-- suppress_unchecked_cast = 0
-- core_function = 0
-- core_mechanism = 0
-- core_callback = 0
-- core_solver = 0
-- math_symbol_adapter = 0
-
-### 8.5 C3 待改进项
-
-**状态：未开始**
-
-9 个基础算子文件仍有 Flt64 公开签名（扫描约 36 处命中）：
-- Abs.kt、Ceiling.kt、Floor.kt、Cos.kt、Sin.kt、Sigmoid.kt、Mod.kt、Semi.kt、Rounding.kt
-
-**改动要求**：
-- evaluate/invoke/polyX/register 公开签名改为 V
-- 去除 `intoValue(value: Flt64)` / `fromValue(value: Flt64)` 作为公开主路径
-- Flt64 重载仅做薄委托，不再作为主入口
-
-**模板参考**：改造后的文件应遵循以下模式：
-```kotlin
-class XxxFunction<V>(...) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    // V-typed 公开 API
-    fun evaluate(values: Map<Symbol, V>): V? = ...
-    // Flt64 便捷入口（薄委托）
-    companion object {
-        operator fun invoke(x: LinearPolynomial<Flt64>, ...): LinearFunctionSymbolAdapter<Flt64> = ...
-    }
-}
-```
-
-### 8.6 C4 待改进项
-
-**状态：未开始**
-
-8 个逻辑与条件文件仍有 Flt64 公开签名（扫描约 38 处命中）：
-- If.kt、IfIn.kt、IfThen.kt、Imply.kt、Inequality.kt、OneOf.kt、SameAs.kt、And.kt
-
-**改动要求**：
-- 构造入口支持 `LinearPolynomial<V>` / `LinearIntermediateSymbol<V>`
-- Flt64 重载仅做薄委托，不再作为主入口
-- 上述文件无 `LinearPolynomial<Flt64>` 主入口签名
-
-**注意**：逻辑函数（And、Imply 等）通常涉及布尔/二值变量，V 化时需确保比较运算通过 converter 而非 `asFlt64().toDouble()` 直比。
-
-### 8.7 关键架构决策记录
-
-1. **MathFunctionSymbolBase 保留 Flt64 签名**：当前 register 方法在 `MathFunctionSymbolBase` 上仍为 Flt64，这是 solver 边界（token collection 和 mechanism model 均为 Flt64 类型化）。V 主链 register 需要找到绕过 JVM 擦除冲突的方案。
-2. **CanonicalInequality 已泛型化**：`CanonicalInequality<T : Ring<T>>` 替代了原 `CanonicalInequalityOf<Flt64>` typealias，math/symbol 非 adapter Flt64 公开签名已清零。
-3. **operation/ 包拆分**：Flt64 特定扩展函数已移至 `adapter/flt64/`，`operation/` 仅保留 V-generic 内部操作。6 个空桩文件待清理或合并。
-4. **LinearFunctionSymbolAdapter**：作为 `MathFunctionSymbol<V>` → `LinearIntermediateSymbol<V>` 的适配器，`pos`/`neg`/`polyX` 属性通过 `delegate as? SlackFunction<V>` 安全转换获取。
+| example 模块编译错误 | Demo13/14/15/17 类型不匹配，为 P13 之前预存问题 |
+| core/typealias *Flt64 | 大量便利别名（RealVariableView、CallBackModelInterface 等），为 solver-boundary 设计，不在 P13 范围 |
+| operation/ 空桩文件 | 6 个空桩文件待后续清理或合并 |
+| MathInequalityDsl.kt Flt64 DSL | leq/geq/neq 等 Flt64-specific 便捷函数，可后续迁移到 adapter |

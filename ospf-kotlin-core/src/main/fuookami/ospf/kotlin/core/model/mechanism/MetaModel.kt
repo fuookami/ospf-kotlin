@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint

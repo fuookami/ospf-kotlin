@@ -43,7 +43,7 @@ class InequalityTest {
         val lhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = y)), Flt64.one)
         val rhs = QuadraticPolynomial<Flt64>(listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x)), Flt64.zero)
 
-        val inequality = QuadraticInequality(lhs, rhs, Comparison.GT)
+        val inequality = QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.GT)
 
         assertEquals(lhs, inequality.lhs)
         assertEquals(rhs, inequality.rhs)
