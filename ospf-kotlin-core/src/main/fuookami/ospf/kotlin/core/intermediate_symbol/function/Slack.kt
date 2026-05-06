@@ -93,7 +93,7 @@ class SlackFunction<V>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -101,7 +101,7 @@ class SlackFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val xPoly = x.asFlt64Poly(converter)
         val yPoly = y.asFlt64Poly(converter)
 

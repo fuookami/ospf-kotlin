@@ -79,7 +79,7 @@ class OneOfFunction<V>(
         return if (count == 1) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -87,7 +87,7 @@ class OneOfFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mD = bigM
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
@@ -107,7 +107,7 @@ class OneOfFunction<V>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

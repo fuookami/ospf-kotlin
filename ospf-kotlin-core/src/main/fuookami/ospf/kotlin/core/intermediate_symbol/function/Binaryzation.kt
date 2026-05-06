@@ -53,7 +53,7 @@ class BinaryzationFunction<V>(
         return if (converter.fromValue(v).toDouble() > 0.0) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -61,7 +61,7 @@ class BinaryzationFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val polyF = polynomial.asFlt64Poly(converter)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
@@ -78,7 +78,7 @@ class BinaryzationFunction<V>(
             LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polyF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_bin_lb")
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

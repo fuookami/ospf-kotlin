@@ -78,11 +78,11 @@ class CosFunction<V>(
         return impl.evaluate(values)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return impl.registerAuxiliaryTokens(tokens)
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         return impl.registerConstraints(model)
     }
     companion object {

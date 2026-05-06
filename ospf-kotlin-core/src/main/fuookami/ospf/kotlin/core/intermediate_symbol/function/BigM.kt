@@ -61,21 +61,32 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
 }
 
 /**
- * Add a list of constraints to the MechanismModel, returning early on failure.
+ * Add a list of Flt64-typed constraints to a V-typed MechanismModel, converting via IntoValue.
  * Returns null on success, or the error result on failure.
  *
- * This overload accepts [AbstractLinearMechanismModel<Flt64>] for use in
- * [MathFunctionSymbol.registerConstraints].
+ * This is the solver-boundary bridge: function symbols internally construct
+ * LinearInequality<Flt64> constraints, but the model is V-typed. The converter
+ * maps Flt64 coefficients to V.
  */
-internal fun addConstraints(model: AbstractLinearMechanismModel<Flt64>, constraints: List<LinearInequality<Flt64>>): Try? {
+internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
-        when (val r = model.addConstraint(relation = c, name = c.name)) {
+        val vLhs = c.lhs.asVPoly(converter)
+        val vRhs = c.rhs.asVPoly(converter)
+        val vInequality = LinearInequality(vLhs, vRhs, c.comparison, c.name)
+        when (val r = model.addConstraint(relation = vInequality, name = vInequality.name)) {
             is Ok -> {}
             is Failed -> return Failed(r.error)
             is Fatal -> return Fatal(r.errors)
         }
     }
     return null
+}
+
+private fun <V> LinearPolynomial<Flt64>.asVPoly(converter: IntoValue<V>): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    return LinearPolynomial(
+        monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
+        converter.intoValue(constant)
+    )
 }
 
 /**

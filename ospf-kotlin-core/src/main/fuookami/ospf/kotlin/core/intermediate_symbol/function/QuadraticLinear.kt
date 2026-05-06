@@ -50,7 +50,7 @@ class QuadraticLinearFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
 
     private val isLinear: Boolean by lazy {
         _polynomial.monomials.none { it.isQuadratic }
@@ -123,7 +123,7 @@ class QuadraticLinearFunction<V>(
     /**
      * Register helper variable y with the token collection (only if quadratic).
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         if (!isLinear && y != null) {
             return when (val result = tokens.add(listOf(y!!))) {
                 is Ok -> ok
@@ -137,7 +137,7 @@ class QuadraticLinearFunction<V>(
     /**
      * Register the quadratic equality constraint y = polynomial (only if quadratic).
      */
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         if (!isLinear && y != null) {
             val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
             val yMon = QuadraticMonomial.linear(Flt64.one, y!!)

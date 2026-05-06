@@ -354,16 +354,6 @@ fun LinearPolynomial<Flt64>.evaluate(
     )
 }
 
-fun LinearPolynomial<Flt64>.evaluate(
-    values: Map<Symbol, Flt64>,
-    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): Flt64? {
-    return when (policy) {
-        MissingValuePolicy.AsZero -> evaluateLinear(values) { Flt64.zero }
-        MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateLinear(values)
-    }
-}
-
 fun LinearPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
@@ -478,16 +468,6 @@ fun QuadraticPolynomial<Flt64>.evaluate(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.evaluate(
-    values: Map<Symbol, Flt64>,
-    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): Flt64? {
-    return when (policy) {
-        MissingValuePolicy.AsZero -> evaluateQuadratic(values) { Flt64.zero }
-        MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateQuadratic(values)
-    }
-}
-
 fun QuadraticPolynomial<Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
@@ -566,20 +546,6 @@ fun CanonicalPolynomial<Flt64>.evaluate(
         },
         one = Flt64.one
     )
-}
-
-fun CanonicalPolynomial<Flt64>.evaluate(
-    values: Map<Symbol, Flt64>,
-    policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
-): Flt64? {
-    return when (policy) {
-        MissingValuePolicy.AsZero -> evaluateCanonical(
-            values = values,
-            onMissing = { Flt64.zero },
-            one = Flt64.one
-        )
-        MissingValuePolicy.ReturnNull, MissingValuePolicy.Fail -> evaluateCanonical(values, one = Flt64.one)
-    }
 }
 
 fun CanonicalPolynomial<Flt64>.evaluateRet(

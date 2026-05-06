@@ -111,7 +111,7 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 
     fun flush(force: Boolean = false)
 
-    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<Flt64>): Try = ok
+    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }

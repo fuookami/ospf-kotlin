@@ -57,7 +57,7 @@ class QuadraticMinFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_min")
@@ -121,7 +121,7 @@ class QuadraticMinFunction<V>(
     /**
      * Register helper variables (resultVar, binVars) with the token collection.
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         val allVars = mutableListOf<AbstractVariableItem<*, *>>(resultVar)
         allVars.addAll(binVars)
         return when (val result = tokens.add(allVars)) {
@@ -134,7 +134,7 @@ class QuadraticMinFunction<V>(
     /**
      * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
      */
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
 

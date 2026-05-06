@@ -57,7 +57,7 @@ class QuadraticMaskingRangeFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = RealVar("${name}_y")
@@ -117,7 +117,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * Register helper variable (resultVar) with the token collection.
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(listOf(resultVar))) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -128,7 +128,7 @@ class QuadraticMaskingRangeFunction<V>(
     /**
      * Register Big-M masking constraints.
      */
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)

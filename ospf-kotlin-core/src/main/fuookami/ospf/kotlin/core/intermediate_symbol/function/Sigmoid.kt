@@ -57,7 +57,7 @@ class SigmoidFunction<V>(
         return if (converter.fromValue(condValue).toDouble() > 0.0) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -65,7 +65,7 @@ class SigmoidFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val tolF = converter.fromValue(tolerance)
         val sbF = converter.fromValue(strictBoundary)
@@ -76,7 +76,7 @@ class SigmoidFunction<V>(
 
         // indicator serves as the result: indicator = 1 when condition > 0
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

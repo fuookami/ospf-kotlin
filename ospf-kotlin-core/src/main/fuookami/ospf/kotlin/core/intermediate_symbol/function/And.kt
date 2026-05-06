@@ -67,7 +67,7 @@ class AndFunction<V>(
         return converter.one
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -75,7 +75,7 @@ class AndFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val tolF = converter.fromValue(tolerance)
         val sbF = converter.fromValue(strictBoundary)
@@ -99,7 +99,7 @@ class AndFunction<V>(
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_and_le_${i}")
         }
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {
@@ -179,7 +179,7 @@ class OrFunction<V>(
         return converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -187,7 +187,7 @@ class OrFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val tolF = converter.fromValue(tolerance)
         val sbF = converter.fromValue(strictBoundary)
@@ -211,7 +211,7 @@ class OrFunction<V>(
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_ge_${i}")
         }
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {
@@ -283,7 +283,7 @@ class NotFunction<V>(
         return if (converter.fromValue(v).toDouble() == 0.0) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -291,7 +291,7 @@ class NotFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val tolF = converter.fromValue(tolerance)
         val sbF = converter.fromValue(strictBoundary)
@@ -305,7 +305,7 @@ class NotFunction<V>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64.one, indicatorVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_not_result")
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {
@@ -386,7 +386,7 @@ class XorFunction<V>(
         return if (count == 1) converter.one else converter.zero
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -394,7 +394,7 @@ class XorFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val tolF = converter.fromValue(tolerance)
         val sbF = converter.fromValue(strictBoundary)
@@ -447,7 +447,7 @@ class XorFunction<V>(
             LinearPolynomial(indMonos3, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64(n.toDouble())), Comparison.LE, "${name}_xor_exactly")
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

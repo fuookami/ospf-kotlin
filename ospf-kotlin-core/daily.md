@@ -325,29 +325,29 @@ adapter 文件（保留为边界，但需做 API 可见性与文档收口）：
 - 扫描口径需覆盖：import as、Suppress(UNCHECKED_CAST)、typealias *Flt64、非 adapter Flt64 公开签名、core 各子目录 Flt64 计数
 - 脚本需在本地可重复执行
 
-### 8.4 C2 待改进项
+### 8.4 C2 完成状态
 
-**状态：部分完成（接口简化已做，V 主链 register 未完成）**
+**状态：已完成**
 
-核心问题：`MathFunctionSymbolBase` 的 register 方法仍为 Flt64 签名：
-```kotlin
-interface MathFunctionSymbolBase {
-    fun registerAuxiliaryTokens(tokens: AddableTokenCollection<Flt64>): Try
-    fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try
-}
-```
+改动：
+1. `MathFunctionSymbolBase<V>` / `QuadraticMathFunctionSymbolBase<V>` 接口改为 V-typed，register 方法签名从 Flt64 改为 V。
+2. `MathFunctionSymbol<V>` 继承 `MathFunctionSymbolBase<V>`，`LinearFunctionSymbolAdapter<V>` 的 register 方法改为 V-typed。
+3. 30 个线性函数文件 + 5 个二次函数文件的 `registerAuxiliaryTokens` / `registerConstraints` 签名从 Flt64 改为 V。
+4. `BigM.kt` 中 `addConstraints` 改为 V-typed，新增 converter 参数和 `asVPoly` 转换桥接。
+5. `MechanismModel.kt` / `MetaModel.kt` 中 `MathFunctionSymbolBase` cast 改为 `MathFunctionSymbolBase<Flt64>`。
+6. `Evaluate.kt` 中移除 3 个与 `ValueProvider` SAM 转换冲突的 `Map<Symbol, Flt64>` 重载（LinearPolynomial、QuadraticPolynomial、CanonicalPolynomial 的 evaluate），修复 P12 遗留的 SAM 转换歧义 bug。
+7. `FunctionSymbol.kt` 中移除与 Flt64 adapter 层 `evaluate` 冲突的 V-generic `evaluate` 扩展函数。
 
-**阻塞原因**：JVM 类型擦除使得 V-typed 与 Flt64-typed 同名方法在字节码层面签名冲突。曾尝试在 `MathFunctionSymbol<V>` 接口中添加 V-typed 默认方法，编译器报 accidental override。
+编译状态：ospf-kotlin-math + ospf-kotlin-core + 全仓编译通过。
 
-**可行方案（待验证）**：
-1. 将 `MathFunctionSymbolBase` 的 register 方法改为 V-typed，Flt64 实现通过 adapter 层转换
-2. 或将 register 方法从接口中移出，改为独立注册函数（如 `fun registerFunctionSymbol(symbol: MathFunctionSymbol<V>, tokens: AddableTokenCollection<V>, model: AbstractLinearMechanismModel<V>)`）
-3. 或使用不同方法名区分（如 `registerAuxiliaryTokensV` / `registerAuxiliaryTokensFlt64`），Flt64 版本标记为 adapter boundary
-
-**其他待完成**：
-- MetaModel.kt 在 tokenTable 拷贝上统一执行 registerAuxiliaryTokens
-- MechanismModel.kt 模型构建后统一执行 registerConstraints
-- 双阶段执行顺序需测试覆盖（至少 1 个线性、1 个二次函数符号）
+扫描门禁（C2 相关）：
+- import_as = 0
+- suppress_unchecked_cast = 0
+- core_function = 0
+- core_mechanism = 0
+- core_callback = 0
+- core_solver = 0
+- math_symbol_adapter = 0
 
 ### 8.5 C3 待改进项
 

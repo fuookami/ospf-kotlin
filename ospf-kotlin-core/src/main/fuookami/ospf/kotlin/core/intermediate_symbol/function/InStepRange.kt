@@ -86,11 +86,11 @@ class InStepRangeFunction<V>(
         return converter.intoValue(converter.fromValue(lbValue) + Flt64(qDouble * stepDouble))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return floorFunc.registerAuxiliaryTokens(tokens)
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         return floorFunc.registerConstraints(model)
     }
     companion object {

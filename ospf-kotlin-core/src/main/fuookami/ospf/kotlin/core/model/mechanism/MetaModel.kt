@@ -607,8 +607,8 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         }
 
         for (symbol in tokens.symbols) {
-            if (symbol is MathFunctionSymbol<*>) {
-                when (val result = symbol.registerAuxiliaryTokens(temp)) {
+            (symbol as? MathFunctionSymbolBase<Flt64>)?.let { sym ->
+                when (val result = sym.registerAuxiliaryTokens(temp)) {
                     is Ok -> {}
                     is Failed -> {
                         return Failed(result.error)

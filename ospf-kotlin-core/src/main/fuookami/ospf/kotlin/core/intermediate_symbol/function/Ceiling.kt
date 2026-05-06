@@ -58,7 +58,7 @@ class CeilingFunction<V>(
         return converter.intoValue(Flt64(kotlin.math.ceil(converter.fromValue(xVal).toDouble())))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -66,7 +66,7 @@ class CeilingFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val xF = x.asFlt64Poly(converter)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
@@ -103,7 +103,7 @@ class CeilingFunction<V>(
             ), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_result")
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

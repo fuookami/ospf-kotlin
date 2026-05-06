@@ -66,7 +66,7 @@ class QuadraticInStepRangeFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     init {
@@ -132,7 +132,7 @@ class QuadraticInStepRangeFunction<V>(
     /**
      * Register helper variables (z, y) with the token collection.
      */
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(listOf(z, y))) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -143,7 +143,7 @@ class QuadraticInStepRangeFunction<V>(
     /**
      * Register Big-M constraints for the in-step-range function.
      */
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val lowerF = converter.fromValue(lower)
         val upperF = converter.fromValue(upper)

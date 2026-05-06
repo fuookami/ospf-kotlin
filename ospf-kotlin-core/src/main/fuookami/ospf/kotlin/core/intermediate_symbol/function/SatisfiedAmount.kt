@@ -93,7 +93,7 @@ class SatisfiedAmountFunction<V>(
         }
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -101,7 +101,7 @@ class SatisfiedAmountFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
         val mD = converter.fromValue(bigM)
         val eps = converter.fromValue(epsilon)
@@ -181,7 +181,7 @@ class SatisfiedAmountFunction<V>(
             )
         }
 
-        return addConstraints(model, allConstraints) ?: ok
+        return addConstraints(model, allConstraints, converter) ?: ok
     }
     companion object {
         operator fun <V> invoke(

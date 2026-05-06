@@ -48,7 +48,7 @@ class ProductFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "product",
     override var displayName: String? = null
-) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     internal var _group: AbstractSymbolCombination<*>? = null
     internal var _index: Int? = null
     override val identifier: UInt64 by lazy {
@@ -211,9 +211,9 @@ class ProductFunction<V>(
     }
     override fun toString(): String = displayName ?: name
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try = ok
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try = ok
 
-    override fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val poly = expandedQuadraticPolyFlt64()
         val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
         val inequality = QuadraticInequality(poly, rhs, Comparison.EQ)

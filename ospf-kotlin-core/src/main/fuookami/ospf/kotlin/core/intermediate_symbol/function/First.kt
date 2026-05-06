@@ -92,7 +92,7 @@ class FirstFunction<V>(
         return converter.intoValue(Flt64(n.toDouble()))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -100,7 +100,7 @@ class FirstFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         // Register all binary function constraints (tokens already registered in registerAuxiliaryTokens)
         for (binFunc in binaryFunctions) {
             when (val r = binFunc.registerConstraints(model)) {
@@ -150,7 +150,7 @@ class FirstFunction<V>(
             }
         }
 
-        return addConstraints(model, allConstraints) ?: ok
+        return addConstraints(model, allConstraints, converter) ?: ok
     }
     companion object {
         operator fun <V> invoke(

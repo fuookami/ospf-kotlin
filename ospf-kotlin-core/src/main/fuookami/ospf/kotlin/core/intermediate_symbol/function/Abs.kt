@@ -55,7 +55,7 @@ class AbsFunction<V>(
         return if (converter.fromValue(v).toDouble() >= 0.0) v else -v
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -63,7 +63,7 @@ class AbsFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val polyF = polynomial.asFlt64Poly(converter)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
@@ -92,7 +92,7 @@ class AbsFunction<V>(
         // for typical LP/MIP problems. For strict enforcement, additional
         // binary variables would be needed.
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

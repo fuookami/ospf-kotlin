@@ -77,7 +77,7 @@ class UnivariateLinearPiecewiseFunction<V>(
         return null
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -85,7 +85,7 @@ class UnivariateLinearPiecewiseFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(m)
         val xF = x.asFlt64Poly(converter)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
@@ -130,7 +130,7 @@ class UnivariateLinearPiecewiseFunction<V>(
                 LinearPolynomial(emptyList(), -mF), Comparison.GE, "${name}_seg_${i}_eq_lb")
         }
 
-        addConstraints(model, allConstraints)?.let { return it }
+        addConstraints(model, allConstraints, converter)?.let { return it }
         return ok
     }
     companion object {

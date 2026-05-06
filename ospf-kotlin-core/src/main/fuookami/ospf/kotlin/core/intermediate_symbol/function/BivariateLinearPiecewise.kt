@@ -127,7 +127,7 @@ class BivariateLinearPiecewiseFunction<V>(
         return u to v
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -135,7 +135,7 @@ class BivariateLinearPiecewiseFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
@@ -205,7 +205,7 @@ class BivariateLinearPiecewiseFunction<V>(
         // lambda_i_j <= 1 (PctVariable already enforces this)
         // These are handled by the variable type (Percentage = [0, 1])
 
-        return addConstraints(model, allConstraints) ?: ok
+        return addConstraints(model, allConstraints, converter) ?: ok
     }
     companion object {
         operator fun <V> invoke(

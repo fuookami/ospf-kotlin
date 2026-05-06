@@ -36,19 +36,19 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 
 /**
- * Internal non-generic base for function symbol registration lifecycle.
+ * V-generic base for function symbol registration lifecycle.
  *
- * Both [registerAuxiliaryTokens] and [registerConstraints] operate on Flt64-typed
- * boundaries (token collection and mechanism model). This base interface allows
- * the framework to call registration methods without knowing the generic type V,
- * eliminating the need for `MathFunctionSymbol<Flt64>` casts.
+ * Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-typed
+ * boundaries. Implementations use their [IntoValue]<V> converter to bridge
+ * V-typed data to Flt64 when constructing constraints internally.
  *
- * This is an internal solver-boundary interface. Public API should use the
- * V-generic [MathFunctionSymbol] register methods instead.
+ * At runtime, the token collection and mechanism model are always Flt64-based
+ * (solver boundary), so call sites pass `AddableTokenCollection<Flt64>` and
+ * `AbstractLinearMechanismModel<Flt64>` which are subtypes of the V-typed interfaces.
  */
-interface MathFunctionSymbolBase {
-    fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try
-    fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try
+interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+    fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
+    fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try
 }
 
 /**
@@ -57,7 +57,7 @@ interface MathFunctionSymbolBase {
  *
  * @param V the numeric type (must implement RealNumber and NumberField).
  */
-interface MathFunctionSymbol<V> : MathFunctionSymbolBase where V : RealNumber<V>, V : NumberField<V> {
+interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     var name: String
     var displayName: String?
 
@@ -79,9 +79,9 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase where V : RealNumber<V>
  * Mirrors [MathFunctionSymbolBase] but for quadratic mechanism models.
  * This is an internal solver-boundary interface.
  */
-internal interface QuadraticMathFunctionSymbolBase {
-    fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try
-    fun registerConstraints(model: AbstractQuadraticMechanismModel<Flt64>): Try
+internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
+    fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
+    fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try
 }
 
 /**
@@ -157,9 +157,9 @@ class LinearFunctionSymbolAdapter<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? = delegate.evaluate(values)
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try = delegate.registerAuxiliaryTokens(tokens)
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try = delegate.registerAuxiliaryTokens(tokens)
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try = delegate.registerConstraints(model)
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try = delegate.registerConstraints(model)
 
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
@@ -203,22 +203,6 @@ class LinearFunctionSymbolAdapter<V>(
     override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(values as Map<Symbol, V>)
     }
-}
-
-/**
- * Evaluate a math LinearPolynomial given a map of Symbol -> V values.
- * Returns null if any symbol in the polynomial is missing from the map.
- */
-fun <V> LinearPolynomial<V>.evaluate(values: Map<Symbol, V>): V? where V : RealNumber<V>, V : NumberField<V> {
-    val monomialsWithValues = monomials.mapNotNull { mono ->
-        val sv = values[mono.symbol] ?: return null
-        mono.coefficient * sv
-    }
-    var sum: V? = null
-    for (term in monomialsWithValues) {
-        sum = if (sum == null) term else sum + term
-    }
-    return (sum ?: constant) as V
 }
 
 // ---- Converter-based helpers (safe, no unchecked casts) ----

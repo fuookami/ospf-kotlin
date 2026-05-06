@@ -363,7 +363,7 @@ class LinearMechanismModel<V>(
 
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
-                (symbol as? MathFunctionSymbolBase)?.let { sym ->
+                (symbol as? MathFunctionSymbolBase<Flt64>)?.let { sym ->
                     when (val result = sym.registerConstraints(model)) {
                         is Ok -> {}
                         is Failed -> return Failed(result.error)
@@ -803,8 +803,8 @@ class QuadraticMechanismModel<V>(
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
                 val result = when (symbol) {
-                    is QuadraticMathFunctionSymbolBase -> symbol.registerConstraints(model)
-                    is MathFunctionSymbolBase -> symbol.registerConstraints(model)
+                    is QuadraticMathFunctionSymbolBase<Flt64> -> symbol.registerConstraints(model)
+                    is MathFunctionSymbolBase<Flt64> -> symbol.registerConstraints(model)
                     else -> ok
                 }
                 when (result) {

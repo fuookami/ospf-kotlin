@@ -72,7 +72,7 @@ class MaskingFunction<V>(
         return input.evaluate(values)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -80,7 +80,7 @@ class MaskingFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val resultIdx = LinearMonomial(Flt64.one, resultVar)
         val mD = converter.fromValue(bigM)
         val inputPoly = input.asFlt64Poly(converter)
@@ -281,7 +281,7 @@ class MaskingWithPolyMaskFunction<V>(
         return input.evaluateWith(values)
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -289,7 +289,7 @@ class MaskingWithPolyMaskFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val inputPoly = input.asFlt64Poly(converter)
         val maskPolyF = maskPoly.asFlt64Poly(converter)
         val mF = converter.fromValue(bigM)
@@ -390,7 +390,7 @@ class MaskingRangeFunction<V>(
         return converter.intoValue(Flt64(yVal.coerceIn(lb, ub)))
     }
 
-    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<Flt64>): Try {
+    override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
         return when (val result = tokens.add(helperVariables)) {
             is Ok -> ok
             is Failed -> Failed(result.error)
@@ -398,7 +398,7 @@ class MaskingRangeFunction<V>(
         }
     }
 
-    override fun registerConstraints(model: AbstractLinearMechanismModel<Flt64>): Try {
+    override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
         val maskPoly = mask.asFlt64Poly(converter)
         val lowerD = converter.fromValue(lower).toDouble()
