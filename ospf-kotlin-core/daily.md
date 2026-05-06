@@ -284,7 +284,7 @@ adapter 文件（保留为边界，但需做 API 可见性与文档收口）：
 | C5 | function 批次3 | done | ok |  | 已V-typed，epsilon等Flt64参数待后续清理 |
 | C6 | 二次函数/Product | done | ok |  | addQuadraticConstraints桥接，5文件改用桥接；Inequality.kt/SymbolQuantityOps.kt Map→MapValueProvider |
 | C7 | symbol/variable/token | done | ok |  | UNCHECKED_CAST集中到接口默认方法（4处）；registerAuxiliaryTokensAny/registerConstraintsAny桥接；TokenTable.kt prepareUnchecked桥接 |
-| C8 | mechanism |  |  |  |  |
+| C8 | mechanism | done | ok |  | MetaConstraintGroup扩展函数V-typed（8个函数）；剩余574 Flt64为solver-boundary内部（dual solution/constraint evaluation/flatten data） |
 | C9 | callback |  |  |  |  |
 | C10 | solver/heuristic |  |  |  |  |
 | C11 | math.symbol 收口 |  |  |  |  |

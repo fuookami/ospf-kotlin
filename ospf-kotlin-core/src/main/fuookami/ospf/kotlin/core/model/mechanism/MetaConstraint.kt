@@ -16,6 +16,7 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
@@ -25,30 +26,32 @@ interface MetaConstraintGroup {
     val lazy: Boolean get() = false
     val name: String
 
-    fun MetaModel<Flt64>.registerConstraintGroup() {
+    fun <V> MetaModel<V>.registerConstraintGroup() where V : RealNumber<V>, V : NumberField<V> {
         this.registerConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModel<Flt64>.indicesOfConstraintGroup(): IntRange? {
+    fun <V> MetaModel<V>.indicesOfConstraintGroup(): IntRange? where V : RealNumber<V>, V : NumberField<V> {
         return this.indicesOfConstraintGroup(this@MetaConstraintGroup)
     }
 
-    fun MetaModel<Flt64>.constraintsOfGroup(): List<MathConstraint> {
+    fun <V> MetaModel<V>.constraintsOfGroup(): List<MathConstraint> where V : RealNumber<V>, V : NumberField<V> {
         return indicesOfConstraintGroup(this@MetaConstraintGroup)?.let { indices ->
             indices.map { constraints[it] }
         } ?: emptyList()
     }
 
-    fun AbstractLinearMetaModel<Flt64>.addConstraint(
+    fun <V> AbstractLinearMetaModel<V>.addConstraint(
         constraint: AbstractVariableItem<*, *>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
         withRangeSet: Boolean? = false
-    ): Try {
+    ): Try where V : RealNumber<V>, V : NumberField<V> {
+        val lhs = LinearPolynomial(listOf(LinearMonomial(converter.one, constraint)), converter.zero)
+        val rhs = LinearPolynomial(emptyList(), converter.one)
         return this.addConstraint(
-            relation = constraint eq true,
+            relation = LinearInequality(lhs, rhs, Comparison.EQ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -58,16 +61,18 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractLinearMetaModel<Flt64>.addConstraint(
-        constraint: LinearIntermediateSymbol<Flt64>,
+    fun <V> AbstractLinearMetaModel<V>.addConstraint(
+        constraint: LinearIntermediateSymbol<V>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
         withRangeSet: Boolean? = false
-    ): Try {
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+        val lhs = constraint.toLinearPolynomial()
+        val rhs = LinearPolynomial(emptyList(), converter.one)
         return addConstraint(
-            relation = constraint eq true,
+            relation = LinearInequality(lhs, rhs, Comparison.EQ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -79,17 +84,17 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionVariables")
-    fun AbstractLinearMetaModel<Flt64>.partition(
+    fun <V> AbstractLinearMetaModel<V>.partition(
         variables: Iterable<AbstractVariableItem<*, *>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
-    ): Try {
+    ): Try where V : RealNumber<V>, V : NumberField<V> {
         return partition(
             polynomial = LinearPolynomial(
-                monomials = variables.map { LinearMonomial(Flt64.one, it) }.toList(),
-                constant = Flt64.zero
+                monomials = variables.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
             ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
@@ -101,17 +106,17 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionLinearSymbols")
-    fun AbstractLinearMetaModel<Flt64>.partition(
-        symbols: Iterable<LinearIntermediateSymbol<Flt64>>,
+    fun <V> AbstractLinearMetaModel<V>.partition(
+        symbols: Iterable<LinearIntermediateSymbol<V>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
-    ): Try {
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return partition(
             polynomial = LinearPolynomial(
-                monomials = symbols.map { LinearMonomial(Flt64.one, it) }.toList(),
-                constant = Flt64.zero
+                monomials = symbols.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
             ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
@@ -121,16 +126,18 @@ interface MetaConstraintGroup {
         )
     }
 
-    fun AbstractQuadraticMetaModel<Flt64>.addConstraint(
-        constraint: QuadraticIntermediateSymbol<Flt64>,
+    fun <V> AbstractQuadraticMetaModel<V>.addConstraint(
+        constraint: QuadraticIntermediateSymbol<V>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null,
         withRangeSet: Boolean? = null
-    ): Try {
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+        val lhs = constraint.toQuadraticPolynomial()
+        val rhs = QuadraticPolynomial(emptyList(), converter.one)
         return addConstraint(
-            relation = constraint eq true,
+            relation = QuadraticInequalityOf(lhs, rhs, Comparison.EQ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
             name = name,
@@ -141,17 +148,17 @@ interface MetaConstraintGroup {
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("partitionQuadraticSymbols")
-    fun AbstractQuadraticMetaModel<Flt64>.partition(
-        symbols: Iterable<QuadraticIntermediateSymbol<Flt64>>,
+    fun <V> AbstractQuadraticMetaModel<V>.partition(
+        symbols: Iterable<QuadraticIntermediateSymbol<V>>,
         lazy: Boolean? = null,
         name: String? = null,
         displayName: String? = null,
         args: Any? = null
-    ): Try {
+    ): Try where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return partition(
             polynomial = QuadraticPolynomial(
                 monomials = symbols.flatMap { it.toQuadraticPolynomial().monomials }.toList(),
-                constant = Flt64.zero
+                constant = converter.zero
             ),
             group = this@MetaConstraintGroup,
             lazy = lazy ?: this@MetaConstraintGroup.lazy,
