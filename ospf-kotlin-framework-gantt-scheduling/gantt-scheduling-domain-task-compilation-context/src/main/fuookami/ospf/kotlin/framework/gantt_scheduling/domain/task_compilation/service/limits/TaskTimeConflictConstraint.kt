@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.m
 import fuookami.ospf.kotlin.framework.model.Pipeline
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 
 class TaskTimeConflictConstraint<

@@ -85,6 +85,31 @@ fun QuadraticPolynomial<Flt64>.toMatrixForm(
     )
 }
 
+fun CanonicalPolynomial<Flt64>.toMatrixForm(
+    order: List<Symbol>,
+    combineTerms: Boolean = true,
+    symbolComparator: java.util.Comparator<Symbol>? = null
+): QuadraticMatrixForm {
+    val form = toTypedMatrixForm(
+        order = order,
+        zero = Flt64.zero,
+        splitOffDiagonal = { coefficient ->
+            val half = coefficient / Flt64.two
+            half to half
+        },
+        combineTerms = combineTerms,
+        isZero = { it == Flt64.zero },
+        symbolComparator = symbolComparator
+    )
+
+    return QuadraticMatrixForm(
+        q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
+        c = form.c.map { it.toDouble() }.toDoubleArray(),
+        d = form.d,
+        order = form.order
+    )
+}
+
 fun quadraticPolynomialFromMatrixForm(
     q: Array<DoubleArray>,
     c: DoubleArray,

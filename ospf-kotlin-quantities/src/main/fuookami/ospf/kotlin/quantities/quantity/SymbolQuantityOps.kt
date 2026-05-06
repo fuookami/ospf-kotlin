@@ -31,7 +31,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.minus
 import fuookami.ospf.kotlin.math.symbol.polynomial.plus
 import fuookami.ospf.kotlin.math.symbol.polynomial.times
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
 import fuookami.ospf.kotlin.quantities.unit.*
 
 // ============================================================================

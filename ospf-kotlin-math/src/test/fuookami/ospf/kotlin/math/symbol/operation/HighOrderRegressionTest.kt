@@ -2,6 +2,12 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileEval
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileGradient
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateOrdered
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.gradient
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.partialEvaluate
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import org.junit.jupiter.api.Test

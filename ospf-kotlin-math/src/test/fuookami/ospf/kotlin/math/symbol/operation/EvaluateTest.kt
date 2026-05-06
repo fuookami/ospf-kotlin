@@ -8,6 +8,11 @@ import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateRet
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateOrdered
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.partialEvaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateIntervalExtremum
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial

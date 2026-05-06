@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.adapter.flt64.linearPolynomialFromJson
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.quadraticInequalityFromJson
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.quadraticPolynomialFromJson
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toJsonString
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -125,7 +125,7 @@ class SerializationTest {
 
     @Test
     fun canonicalInequalityRoundTrip() {
-        val ci = CanonicalInequality(
+        val ci = CanonicalInequality<Flt64>(
             lhs = CanonicalPolynomial(
                 listOf(CanonicalMonomial(Flt64(1.0), mapOf(x to Int32(1)))),
                 Flt64(0.0)

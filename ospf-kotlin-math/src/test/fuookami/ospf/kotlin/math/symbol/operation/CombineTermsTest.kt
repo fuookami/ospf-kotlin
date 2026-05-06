@@ -5,6 +5,8 @@ import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineCanonicalTerms
 import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import org.junit.jupiter.api.Test

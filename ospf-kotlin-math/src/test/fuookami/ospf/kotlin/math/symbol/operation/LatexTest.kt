@@ -2,6 +2,7 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLatex
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -13,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
+import fuookami.ospf.kotlin.math.symbol.operation.LatexOptions
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -103,7 +105,7 @@ class LatexTest {
             rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero),
             comparison = Comparison.GE
         )
-        val canonical = CanonicalInequality(
+        val canonical = CanonicalInequality<Flt64>(
             lhs = CanonicalPolynomial<Flt64>(
                 monomials = listOf(CanonicalMonomial<Flt64>(Flt64.one, listOf(x, x))),
                 constant = Flt64.zero

@@ -6,6 +6,11 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineCanonicalTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLinearPolynomialRet
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticPolynomialRet
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial

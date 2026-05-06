@@ -2,6 +2,8 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.isSatisfied
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.isSatisfiedOrdered
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -197,7 +199,7 @@ class InequalityTest {
     fun canonicalInequalityShouldSupportSatisfiabilityCheck() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
-        val inequality = CanonicalInequality(
+        val inequality = CanonicalInequality<Flt64>(
             lhs = CanonicalPolynomial(
                 monomials = listOf(
                     CanonicalMonomial(Flt64.one, listOf(x, y))

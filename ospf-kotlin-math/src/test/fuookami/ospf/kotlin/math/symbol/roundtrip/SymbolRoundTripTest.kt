@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -119,7 +119,7 @@ class SymbolRoundTripTest {
 
     @Test
     fun canonicalInequalityJsonRoundTrip() {
-        val original = CanonicalInequality(
+        val original = CanonicalInequality<Flt64>(
             lhs = CanonicalPolynomial(
                 listOf(CanonicalMonomial(Flt64(1.0), mapOf(x to Int32(1)))),
                 Flt64(0.0)

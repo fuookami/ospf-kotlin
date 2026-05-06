@@ -3,14 +3,13 @@ package fuookami.ospf.kotlin.math.symbol.adapter.flt64
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequalityOf
+import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -39,7 +38,7 @@ fun QuadraticInequalityOf<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
-fun CanonicalInequalityOf<Flt64>.toJsonString(): String {
+fun CanonicalInequality<Flt64>.toJsonString(): String {
     return writeJson(toFlt64Dto())
 }
 
@@ -74,7 +73,7 @@ fun quadraticInequalityFromJson(
     return dto.toFlt64Domain(symbolOf)
 }
 
-fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequalityOf<Flt64> {
+fun canonicalInequalityFromJson(json: String, symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier): CanonicalInequality<Flt64> {
     val dto = readFromJson<CanonicalInequalityData>(ByteArrayInputStream(json.toByteArray(Charsets.UTF_8)))
     return dto.toFlt64Domain(symbolOf)
 }
@@ -151,7 +150,7 @@ internal fun QuadraticInequalityOf<Flt64>.toFlt64Dto(): QuadraticInequalityData 
     )
 }
 
-internal fun CanonicalInequalityOf<Flt64>.toFlt64Dto(): CanonicalInequalityData {
+internal fun CanonicalInequality<Flt64>.toFlt64Dto(): CanonicalInequalityData {
     val combinedLhs = lhs.combineTerms()
     val combinedRhs = rhs.combineTerms()
     return CanonicalInequalityData(
@@ -202,8 +201,8 @@ internal fun QuadraticInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol)
     )
 }
 
-internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalInequalityOf<Flt64> {
-    return CanonicalInequalityOf(
+internal fun CanonicalInequalityData.toFlt64Domain(symbolOf: (String) -> Symbol): CanonicalInequality<Flt64> {
+    return CanonicalInequality<Flt64>(
         lhs = CanonicalPolynomial(lhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(lhs.constant)),
         rhs = CanonicalPolynomial(rhs.monomials.map { CanonicalMonomial(Flt64(it.coefficient), it.powers.mapKeys { symbolOf(it.key) }.mapValues { Int32(it.value) }) }, Flt64(rhs.constant)),
         comparison = comparisonFromDtoString(comparison)

@@ -83,13 +83,13 @@ fun QuadraticInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt
     )
 }
 
-fun CanonicalInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+fun CanonicalInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val lhsValue = lhs.evaluate(values) ?: return null
     val rhsValue = rhs.evaluate(values) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
 }
 
-fun CanonicalInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
+fun CanonicalInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt64>): Boolean {
     return comparison.satisfiedBy(
         lhs = lhs.evaluateOrdered(order, values),
         rhs = rhs.evaluateOrdered(order, values)

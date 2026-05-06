@@ -10,11 +10,10 @@
  */
 package fuookami.ospf.kotlin.math.symbol.inequality
 
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
-import fuookami.ospf.kotlin.math.algebra.value_range.*
 
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 
 /**
@@ -28,16 +27,17 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
  * Canonical inequalities can represent polynomial inequalities of any degree,
  * being the most general form of inequality representation.
  *
+ * @param T the coefficient type (must implement Ring)
  * @property lhs 左侧规范多项式 / Left-hand canonical polynomial
  * @property rhs 右侧规范多项式 / Right-hand canonical polynomial
  * @property comparison 比较运算符 / Comparison operator
  */
-data class CanonicalInequality(
-    val lhs: CanonicalPolynomial<Flt64>,
-    val rhs: CanonicalPolynomial<Flt64>,
+data class CanonicalInequality<T : Ring<T>>(
+    val lhs: CanonicalPolynomial<T>,
+    val rhs: CanonicalPolynomial<T>,
     val comparison: Comparison
 ) {
-    fun reverse(): CanonicalInequality {
+    fun reverse(): CanonicalInequality<T> {
         return CanonicalInequality(
             lhs = rhs,
             rhs = lhs,

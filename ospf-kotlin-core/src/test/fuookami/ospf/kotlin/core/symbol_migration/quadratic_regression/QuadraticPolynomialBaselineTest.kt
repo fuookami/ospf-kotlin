@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull

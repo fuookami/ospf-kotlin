@@ -3,6 +3,12 @@
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toCanonicalInequality
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLinearInequalityOrNull
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLinearPolynomialRet
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticPolynomialRet
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.moveAllToLhs
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.normalizeToLessEqualForm
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -161,7 +167,7 @@ class ConvertTest {
     @Test
     fun canonicalInequalityNeShouldKeepOriginalForm() {
         val x = TestSymbol("x")
-        val inequality = CanonicalInequality(
+        val inequality = CanonicalInequality<Flt64>(
             lhs = CanonicalPolynomial<Flt64>(
                 monomials = listOf(CanonicalMonomial<Flt64>(Flt64.one, listOf(x))),
                 constant = Flt64.one

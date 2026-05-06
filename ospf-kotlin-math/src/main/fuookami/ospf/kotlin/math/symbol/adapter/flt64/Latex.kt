@@ -94,7 +94,7 @@ fun QuadraticInequalityOf<Flt64>.toLatex(
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
-fun CanonicalInequality.toLatex(
+fun CanonicalInequality<Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"

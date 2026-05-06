@@ -268,8 +268,8 @@ private fun ParsedPolynomial.toCanonicalPolynomial(
 
 private fun ParsedInequality.toCanonicalInequality(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalInequality {
-    return CanonicalInequality(
+): CanonicalInequality<Flt64> {
+    return CanonicalInequality<Flt64>(
         lhs = lhs.toCanonicalPolynomial(symbolComparator),
         rhs = rhs.toCanonicalPolynomial(symbolComparator),
         comparison = comparison
@@ -328,7 +328,7 @@ fun parseCanonicalInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalInequality {
+): CanonicalInequality<Flt64> {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parseInequality().toCanonicalInequality(symbolComparator)
@@ -425,7 +425,7 @@ fun parseCanonicalInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalInequality> {
+): ParseResult<CanonicalInequality<Flt64>> {
     return wrapRet(input) { parseCanonicalInequality(input, symbolOf, symbolComparator) }
 }
 
