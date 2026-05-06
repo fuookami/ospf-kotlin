@@ -144,11 +144,7 @@ class QuadraticLinearFunction<V>(
             val lhs = QuadraticPolynomial(listOf(yMon) + flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }, -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
             val constraint = QuadraticInequality(lhs, rhs, Comparison.EQ, name)
-            when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+            return addQuadraticConstraints(model, listOf(constraint), converter) ?: ok
         }
         return ok
     }

@@ -83,35 +83,27 @@ class SlackRangeFunction<V>(
         val xPoly = x.asFlt64Poly(converter)
         val threshPoly = LinearPolynomial(emptyList(), converter.fromValue(threshold))
 
+        val constraints = mutableListOf<LinearInequality<Flt64>>()
+
         // upper >= x - threshold
         val lhsUpper = LinearPolynomial(
             xPoly.monomials + LinearMonomial(-Flt64.one, upperVar),
             xPoly.constant
         )
-        val upperConstraint = LinearInequality<Flt64>(
+        constraints += LinearInequality<Flt64>(
             lhsUpper, threshPoly, Comparison.GE, "${name}_upper"
         )
-        when (val result = model.addConstraint(relation = upperConstraint, name = upperConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
 
         // lower >= threshold - x
         val lhsLower = LinearPolynomial(
             xPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-Flt64.one, lowerVar),
             -xPoly.constant
         )
-        val lowerConstraint = LinearInequality<Flt64>(
+        constraints += LinearInequality<Flt64>(
             lhsLower, LinearPolynomial(emptyList(), -converter.fromValue(threshold)), Comparison.GE, "${name}_lower"
         )
-        when (val result = model.addConstraint(relation = lowerConstraint, name = lowerConstraint.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(result.error)
-            is Fatal -> return Fatal(result.errors)
-        }
 
-        return ok
+        return addConstraints(model, constraints, converter) ?: ok
     }
     companion object {
         /**

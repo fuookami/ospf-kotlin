@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable

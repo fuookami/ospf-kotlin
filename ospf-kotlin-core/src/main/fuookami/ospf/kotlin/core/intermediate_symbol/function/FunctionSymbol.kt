@@ -49,6 +49,11 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
     fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try
+
+    // Type-erased bridge for solver-boundary star-projected calls
+    @Suppress("UNCHECKED_CAST")
+    fun registerConstraintsAny(model: Any?): Try =
+        registerConstraints(model as AbstractLinearMechanismModel<V>)
 }
 
 /**
@@ -82,6 +87,11 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
 internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
     fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try
+
+    // Type-erased bridge for solver-boundary star-projected calls
+    @Suppress("UNCHECKED_CAST")
+    fun registerConstraintsAny(model: Any?): Try =
+        registerConstraints(model as AbstractQuadraticMechanismModel<V>)
 }
 
 /**

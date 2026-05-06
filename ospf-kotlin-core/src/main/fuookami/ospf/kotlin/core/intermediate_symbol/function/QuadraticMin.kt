@@ -137,6 +137,7 @@ class QuadraticMinFunction<V>(
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
+        val constraints = mutableListOf<QuadraticInequality>()
 
         // y <= pi for each polynomial
         for ((i, poly) in polynomials.withIndex()) {
@@ -144,12 +145,7 @@ class QuadraticMinFunction<V>(
             val negatedMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
             val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            val constraint = QuadraticInequality(lhs, rhs, Comparison.LE, "${name}_lb_$i")
-            when (val r = model.addConstraint(relation = constraint, name = constraint.name)) {
-                is Ok -> {}
-                is Failed -> return Failed(r.error)
-                is Fatal -> return Fatal(r.errors)
-            }
+            constraints += QuadraticInequality(lhs, rhs, Comparison.LE, "${name}_lb_$i")
         }
 
         if (exact) {
@@ -161,27 +157,17 @@ class QuadraticMinFunction<V>(
                 val bigMTerm = QuadraticMonomial.linear(mF, uVar)
                 val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon) + listOf(bigMTerm), -flt64Poly.constant)
                 val rhs = QuadraticPolynomial(emptyList(), mF)
-                val constraint = QuadraticInequality(lhs, rhs, Comparison.GE, "${name}_ub_$i")
-                when (val r = model.addConstraint(relation = constraint, name = constraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(r.error)
-                    is Fatal -> return Fatal(r.errors)
-                }
+                constraints += QuadraticInequality(lhs, rhs, Comparison.GE, "${name}_ub_$i")
             }
 
             // sum(ui) = 1
             val sumMonos = binVars.map { QuadraticMonomial.linear(Flt64.one, it) }
             val sumLhs = QuadraticPolynomial(sumMonos, Flt64.zero)
             val sumRhs = QuadraticPolynomial(emptyList(), Flt64.one)
-            val sumConstraint = QuadraticInequality(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
-            when (val r = model.addConstraint(relation = sumConstraint, name = sumConstraint.name)) {
-                is Ok -> {}
-                is Failed -> return Failed(r.error)
-                is Fatal -> return Fatal(r.errors)
-            }
+            constraints += QuadraticInequality(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
         }
 
-        return ok
+        return addQuadraticConstraints(model, constraints, converter) ?: ok
     }
 
     companion object {

@@ -32,6 +32,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.plus
 import fuookami.ospf.kotlin.math.symbol.polynomial.times
 import fuookami.ospf.kotlin.math.symbol.polynomial.div
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import fuookami.ospf.kotlin.quantities.unit.*
 
 // ============================================================================
@@ -426,6 +427,6 @@ operator fun Quantity<LinearPolynomial<FltX>>.div(scalar: FltX): Quantity<Linear
  */
 @JvmName("evaluateQuantityLinearFlt64")
 fun Quantity<LinearPolynomial<Flt64>>.evaluate(values: Map<Symbol, Flt64>): Quantity<Flt64>? {
-    val evaluated = this.value.evaluate(values) ?: return null
+    val evaluated = this.value.evaluate(MapValueProvider(values)) ?: return null
     return Quantity(evaluated, this.unit)
 }

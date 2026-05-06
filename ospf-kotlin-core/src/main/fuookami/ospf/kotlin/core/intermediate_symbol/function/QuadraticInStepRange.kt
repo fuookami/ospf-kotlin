@@ -155,75 +155,39 @@ class QuadraticInStepRangeFunction<V>(
         val negXMonos = flt64X.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
         val posXMonos = flt64X.monomials
 
-        // Constraint 1: x >= lower - M*(1-z) => x + M*z >= lower + M - M => x + M*z >= lower ...
-        // Let me redo this properly.
-        // z=1 => x >= lower:  x + M*(1-z) >= lower  =>  x + M - M*z >= lower
-        // LHS: posXMonos + negZMon, constant = flt64X.constant + mF
-        // RHS: constant = lowerF
-        // Wait: we need the inequality in the form LHS >= RHS or LHS <= RHS
-        // The model uses QuadraticInequality(lhs, rhs, comparison) meaning lhs comparison rhs
+        val constraints = mutableListOf<QuadraticInequality>()
 
         // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower
         val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), flt64X.constant + mF)
         val c1Rhs = QuadraticPolynomial(emptyList(), lowerF)
-        val c1 = QuadraticInequality(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
-        when (val r = model.addConstraint(relation = c1, name = c1.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
 
         // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper
         val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), flt64X.constant - mF)
         val c2Rhs = QuadraticPolynomial(emptyList(), upperF)
-        val c2 = QuadraticInequality(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
-        when (val r = model.addConstraint(relation = c2, name = c2.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
 
         // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0
         val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -flt64X.constant + mF)
         val c3Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        val c3 = QuadraticInequality(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
-        when (val r = model.addConstraint(relation = c3, name = c3.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
 
         // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0
         val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -flt64X.constant - mF)
         val c4Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        val c4 = QuadraticInequality(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
-        when (val r = model.addConstraint(relation = c4, name = c4.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
 
         // C5: y <= M*z
         val c5Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c5Rhs = QuadraticPolynomial(listOf(zMon), Flt64.zero)
-        val c5 = QuadraticInequality(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
-        when (val r = model.addConstraint(relation = c5, name = c5.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
 
         // C6: y >= -M*z
         val c6Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c6Rhs = QuadraticPolynomial(listOf(negZMon), Flt64.zero)
-        val c6 = QuadraticInequality(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
-        when (val r = model.addConstraint(relation = c6, name = c6.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
 
-        return ok
+        return addQuadraticConstraints(model, constraints, converter) ?: ok
     }
 
     companion object {

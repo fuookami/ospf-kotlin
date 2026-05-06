@@ -92,8 +92,8 @@ class BivariateLinearPiecewiseFunction<V>(
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val xVal = x.evaluate(values)?.let { converter.fromValue(it) } ?: return null
-        val yVal = y.evaluate(values)?.let { converter.fromValue(it) } ?: return null
+        val xVal = x.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null
+        val yVal = y.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null
 
         for (i in triangles.indices) {
             val tri = triangles[i]

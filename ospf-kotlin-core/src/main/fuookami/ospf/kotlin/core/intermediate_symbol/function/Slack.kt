@@ -105,33 +105,20 @@ class SlackFunction<V>(
         val xPoly = x.asFlt64Poly(converter)
         val yPoly = y.asFlt64Poly(converter)
 
+        val constraints = mutableListOf<LinearInequality<Flt64>>()
+
         if (!threshold) {
-            val eqConstraint = LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
-            when (val result = model.addConstraint(relation = eqConstraint, name = eqConstraint.name)) {
-                is Ok -> {}
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
-            }
+            constraints += LinearInequality<Flt64>(xPoly, yPoly, Comparison.EQ, name)
         } else {
             if (withNegative && negVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
-                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
+                constraints += LinearInequality<Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
             } else if (withPositive && posVar != null) {
                 val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
-                val constraint = LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
-                when (val result = model.addConstraint(relation = constraint, name = constraint.name)) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
-                }
+                constraints += LinearInequality<Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
             }
         }
-        return ok
+        return addConstraints(model, constraints, converter) ?: ok
     }
     val polyX: LinearPolynomial<V> by lazy {
         val unit = x.constant / x.constant

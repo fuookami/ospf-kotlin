@@ -46,6 +46,16 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
+// Solver-boundary bridge: registerConstraints on star-projected function symbols
+// Uses type-erased registerConstraintsAny (default impl in interface)
+private fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
+    return registerConstraintsAny(model)
+}
+
+private fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractQuadraticMechanismModel<*>): Try {
+    return registerConstraintsAny(model)
+}
+
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {
     val name: String
     val constraints: List<Constraint<V, *>>
@@ -803,8 +813,8 @@ class QuadraticMechanismModel<V>(
             logger.trace { "Registering function symbol constraints for $metaModel" }
             for ((i, symbol) in tokens.symbols.withIndex()) {
                 val result = when (symbol) {
-                    is QuadraticMathFunctionSymbolBase<Flt64> -> symbol.registerConstraints(model)
-                    is MathFunctionSymbolBase<Flt64> -> symbol.registerConstraints(model)
+                    is QuadraticMathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
+                    is MathFunctionSymbolBase<*> -> symbol.registerConstraintsUnchecked(model)
                     else -> ok
                 }
                 when (result) {

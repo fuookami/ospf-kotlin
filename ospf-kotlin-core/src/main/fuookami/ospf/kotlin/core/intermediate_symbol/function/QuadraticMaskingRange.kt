@@ -134,45 +134,22 @@ class QuadraticMaskingRangeFunction<V>(
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
         val bigMMon = QuadraticMonomial.linear(mF, z)
 
-        // y <= polynomial + M*(1 - z)
-        // => y - polynomial - M*z <= -M ... nope
-        // => y - polynomial - M*(1 - z) <= 0
-        // => y - polynomial - M + M*z <= 0
-        // => y + M*z - polynomial <= M
-        // LHS: resultMon + bigMMon + negatedPolyMonos, constant = -flt64Poly.constant + mF
-        // Wait let me think about this more carefully.
-        // y <= p + M*(1-z) => y - p <= M*(1-z) => y - p + M*z <= M
-        // y >= p - M*(1-z) => y - p >= -M*(1-z) => y - p + M*z >= 0 ... no
-        // y >= p - M*(1-z) => y - p >= -M + M*z => y - p - M*z >= -M
-
         val negatedPolyMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
 
+        val constraints = mutableListOf<QuadraticInequality>()
+
         // Constraint 1: y - polynomial + M*z <= M
-        // LHS monomials: resultMon + negatedPolyMonos + bigMMon, LHS constant = -flt64Poly.constant
-        // RHS monomials: none, RHS constant = mF
         val lhs1 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(bigMMon), -flt64Poly.constant)
         val rhs1 = QuadraticPolynomial(emptyList(), mF)
-        val constraint1 = QuadraticInequality(lhs1, rhs1, Comparison.LE, "${name}_upper")
-        when (val r = model.addConstraint(relation = constraint1, name = constraint1.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(lhs1, rhs1, Comparison.LE, "${name}_upper")
 
         // Constraint 2: y - polynomial - M*z >= -M
-        // LHS monomials: resultMon + negatedPolyMonos + negBigMMon, LHS constant = -flt64Poly.constant
-        // RHS monomials: none, RHS constant = -mF
         val negBigMMon = QuadraticMonomial.linear(-mF, z)
         val lhs2 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(negBigMMon), -flt64Poly.constant)
         val rhs2 = QuadraticPolynomial(emptyList(), -mF)
-        val constraint2 = QuadraticInequality(lhs2, rhs2, Comparison.GE, "${name}_lower")
-        when (val r = model.addConstraint(relation = constraint2, name = constraint2.name)) {
-            is Ok -> {}
-            is Failed -> return Failed(r.error)
-            is Fatal -> return Fatal(r.errors)
-        }
+        constraints += QuadraticInequality(lhs2, rhs2, Comparison.GE, "${name}_lower")
 
-        return ok
+        return addQuadraticConstraints(model, constraints, converter) ?: ok
     }
 
     companion object {

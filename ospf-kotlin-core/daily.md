@@ -277,13 +277,13 @@ adapter 文件（保留为边界，但需做 API 可见性与文档收口）：
 
 | 提交 | 范围 | 扫描变化 | 编译 | 测试 | 备注 |
 |---|---|---|---|---|---|
-| C1 | 基线脚本 |  |  |  |  |
-| C2 | register 双阶段 |  |  |  |  |
-| C3 | function 批次1 |  |  |  |  |
-| C4 | function 批次2 |  |  |  |  |
-| C5 | function 批次3 |  |  |  |  |
-| C6 | 二次函数/Product |  |  |  |  |
-| C7 | symbol/variable/token |  |  |  |  |
+| C1 | 基线脚本 | done | ok |  |  |
+| C2 | register 双阶段 | done | ok |  |  |
+| C3 | function 批次1 | done | ok |  | 已V-typed，无需额外改动 |
+| C4 | function 批次2 | done | ok |  | 已V-typed，无需额外改动 |
+| C5 | function 批次3 | done | ok |  | 已V-typed，epsilon等Flt64参数待后续清理 |
+| C6 | 二次函数/Product | done | ok |  | addQuadraticConstraints桥接，5文件改用桥接；Inequality.kt/SymbolQuantityOps.kt Map→MapValueProvider |
+| C7 | symbol/variable/token | done | ok |  | UNCHECKED_CAST集中到接口默认方法（4处）；registerAuxiliaryTokensAny/registerConstraintsAny桥接；TokenTable.kt prepareUnchecked桥接 |
 | C8 | mechanism |  |  |  |  |
 | C9 | callback |  |  |  |  |
 | C10 | solver/heuristic |  |  |  |  |

@@ -217,7 +217,7 @@ class ProductFunction<V>(
         val poly = expandedQuadraticPolyFlt64()
         val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
         val inequality = QuadraticInequality(poly, rhs, Comparison.EQ)
-        return model.addConstraint(inequality, name = name, from = this to true)
+        return addQuadraticConstraints(model, listOf(inequality), converter) ?: ok
     }
 
     companion object {

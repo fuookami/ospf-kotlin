@@ -143,6 +143,7 @@ open class SatisfiedAmountInequalityFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val eps = converter.fromValue(epsilon)
         val nInputs = inputs.size
+        val constraints = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>()
 
         for ((i, input) in inputs.withIndex()) {
             val lb = input.lowerBound
@@ -171,24 +172,18 @@ open class SatisfiedAmountInequalityFunction<V>(
                         polyFlt64.constant
                     )
                     val upperRhs = LinearPolynomial(emptyList(), m + eps)
-                    model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
-                            upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
-                        ),
-                        name = "${name}_i${i}_upper"
-                    ).takeUnless { it.ok }?.let { return it }
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                        upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
+                    )
 
                     val lowerLhs = LinearPolynomial(
                         polyFlt64.monomials + listOf(LinearMonomial(-m, flag)),
                         polyFlt64.constant
                     )
                     val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
-                    model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
-                            lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
-                        ),
-                        name = "${name}_i${i}_lower"
-                    ).takeUnless { it.ok }?.let { return it }
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                        lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
+                    )
                 } else {
                     // When 0 is NOT within [lb, ub], the constraint is trivially satisfied or violated
                     val triviallySatisfied = when (input.sign) {
@@ -201,12 +196,9 @@ open class SatisfiedAmountInequalityFunction<V>(
                     val fixedValue = if (triviallySatisfied) Flt64.one else Flt64.zero
                     val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
-                    model.addConstraint(
-                        relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
-                            poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
-                        ),
-                        name = "${name}_i${i}_flag"
-                    ).takeUnless { it.ok }?.let { return it }
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                        poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
+                    )
                 }
             }
         }
@@ -230,12 +222,9 @@ open class SatisfiedAmountInequalityFunction<V>(
                 emptyList(),
                 Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
-            model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
-                    lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
-                ),
-                name = "${name}_amount_lb"
-            ).takeUnless { it.ok }?.let { return it }
+            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
+            )
 
             // sum(u) <= amount.upperBound + n*(1-y)
             val ubPoly = LinearPolynomial(
@@ -246,15 +235,12 @@ open class SatisfiedAmountInequalityFunction<V>(
                 emptyList(),
                 Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
-            model.addConstraint(
-                relation = fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
-                    ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
-                ),
-                name = "${name}_amount_ub"
-            ).takeUnless { it.ok }?.let { return it }
+            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
+            )
         }
 
-        return ok
+        return addConstraints(model, constraints, converter) ?: ok
     }
     companion object {
         operator fun <V> invoke(

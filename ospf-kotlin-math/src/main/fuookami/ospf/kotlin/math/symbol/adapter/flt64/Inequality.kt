@@ -58,8 +58,9 @@ infix fun Symbol.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality(asL
 // ========== isSatisfied ==========
 
 fun LinearInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
-    val lhsValue = lhs.evaluate(values) ?: return null
-    val rhsValue = rhs.evaluate(values) ?: return null
+    val provider = MapValueProvider(values)
+    val lhsValue = lhs.evaluate(provider) ?: return null
+    val rhsValue = rhs.evaluate(provider) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
 }
 
@@ -71,8 +72,9 @@ fun LinearInequality<Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List
 }
 
 fun QuadraticInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
-    val lhsValue = lhs.evaluate(values) ?: return null
-    val rhsValue = rhs.evaluate(values) ?: return null
+    val provider = MapValueProvider(values)
+    val lhsValue = lhs.evaluate(provider) ?: return null
+    val rhsValue = rhs.evaluate(provider) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
 }
 
@@ -84,8 +86,9 @@ fun QuadraticInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<Flt
 }
 
 fun CanonicalInequality<Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
-    val lhsValue = lhs.evaluate(values) ?: return null
-    val rhsValue = rhs.evaluate(values) ?: return null
+    val provider = MapValueProvider(values)
+    val lhsValue = lhs.evaluate(provider) ?: return null
+    val rhsValue = rhs.evaluate(provider) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
 }
 

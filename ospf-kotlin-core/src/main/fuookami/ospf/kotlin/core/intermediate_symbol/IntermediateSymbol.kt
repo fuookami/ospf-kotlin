@@ -113,6 +113,11 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
 
+    // Type-erased bridge for solver-boundary star-projected calls
+    @Suppress("UNCHECKED_CAST")
+    fun registerAuxiliaryTokensAny(tokens: Any?): Try =
+        registerAuxiliaryTokens(tokens as AddableTokenCollection<V>)
+
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
 

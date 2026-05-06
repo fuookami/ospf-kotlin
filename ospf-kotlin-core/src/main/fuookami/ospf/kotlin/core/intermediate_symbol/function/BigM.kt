@@ -19,6 +19,8 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 
 /** Default Big-M constant for linearization. */
 const val BIG_M_DEFAULT: Double = 1_000_000.0
@@ -87,6 +89,27 @@ private fun <V> LinearPolynomial<Flt64>.asVPoly(converter: IntoValue<V>): Linear
         monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
         converter.intoValue(constant)
     )
+}
+
+/**
+ * Add a list of Flt64-typed quadratic constraints to a V-typed QuadraticMechanismModel, converting via IntoValue.
+ * Returns null on success, or the error result on failure.
+ *
+ * Solver-boundary bridge: quadratic function symbols internally construct
+ * QuadraticInequalityOf<Flt64> constraints, but the model is V-typed.
+ */
+internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    for (c in constraints) {
+        val vLhs = c.lhs.asVQuadraticPoly(converter)
+        val vRhs = c.rhs.asVQuadraticPoly(converter)
+        val vInequality = QuadraticInequalityOf(vLhs, vRhs, c.comparison, c.name, c.displayName)
+        when (val r = model.addConstraint(relation = vInequality, name = vInequality.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+    }
+    return null
 }
 
 /**
