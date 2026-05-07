@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -47,7 +48,7 @@ class LinearPolynomialBaselineTest {
         )
 
         val value = polynomial.evaluate(
-            values = mapOf(x to Flt64(4.0), y to Flt64(1.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(4.0), y to Flt64(1.0))),
             policy = MissingValuePolicy.ReturnNull
         )
 
@@ -68,13 +69,13 @@ class LinearPolynomialBaselineTest {
         )
 
         val missingAsNull = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(3.0))),
             policy = MissingValuePolicy.ReturnNull
         )
         assertNull(missingAsNull)
 
         val missingAsZero = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(3.0))),
             policy = MissingValuePolicy.AsZero
         )
         assertNotNull(missingAsZero)

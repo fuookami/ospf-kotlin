@@ -2,6 +2,7 @@
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileEval
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileGradient
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
@@ -41,7 +42,7 @@ class HighOrderRegressionTest {
         val values = listOf(Flt64(0.5), Flt64(2.0), Flt64(-1.0))
         val mapped = mapOf<Symbol, Flt64>(z to values[0], x to values[1], y to values[2])
 
-        val direct = polynomial.evaluate(mapped)!!
+        val direct = polynomial.evaluate(MapValueProvider(mapped))!!
         val compiled = polynomial.compileEval(order)(values)
 
         assertTrue((direct - compiled).abs() <= Flt64(1e-9))
@@ -95,8 +96,8 @@ class HighOrderRegressionTest {
         val fullValues = mapOf<Symbol, Flt64>(x to Flt64(2.0), y to Flt64(-1.5), z to Flt64(0.25))
         val reducedValues = mapOf<Symbol, Flt64>(y to Flt64(-1.5), z to Flt64(0.25))
 
-        val direct = polynomial.evaluate(fullValues)!!
-        val reduced = partial.evaluate(reducedValues)!!
+        val direct = polynomial.evaluate(MapValueProvider(fullValues))!!
+        val reduced = partial.evaluate(MapValueProvider(reducedValues))!!
 
         assertTrue((direct - reduced).abs() <= Flt64(1e-9))
     }

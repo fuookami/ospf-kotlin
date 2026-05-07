@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineCanonicalTerms
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
@@ -58,11 +59,11 @@ class CanonicalOperationTest {
         )
 
         val returnNull = polynomial.evaluate(
-            values = mapOf<Symbol, Flt64>(x to Flt64(2.0)),
+            provider = MapValueProvider(mapOf<Symbol, Flt64>(x to Flt64(2.0))),
             policy = MissingValuePolicy.ReturnNull
         )
         val asZero = polynomial.evaluate(
-            values = mapOf<Symbol, Flt64>(x to Flt64(2.0)),
+            provider = MapValueProvider(mapOf<Symbol, Flt64>(x to Flt64(2.0))),
             policy = MissingValuePolicy.AsZero
         )
 

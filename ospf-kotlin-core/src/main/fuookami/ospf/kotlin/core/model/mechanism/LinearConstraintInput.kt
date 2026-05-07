@@ -120,7 +120,7 @@ data class LinearConstraintInput(
         return isTrue(flt64Results, tokenTable, zeroIfNone)
     }
 
-    fun isTrue(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean = false): Boolean? {
+    internal fun isTrue(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean = false): Boolean? {
         val lhsValue = evaluateFlattenDataFromTokenList(flattenData, tokenList, zeroIfNone = zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)

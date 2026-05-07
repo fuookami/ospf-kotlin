@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull
@@ -39,7 +40,7 @@ class QuadraticPolynomialBaselineTest {
         )
 
         val value = polynomial.evaluate(
-            values = mapOf(x to Flt64(2.0), y to Flt64(5.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(2.0), y to Flt64(5.0))),
             policy = MissingValuePolicy.ReturnNull
         )
 
@@ -60,13 +61,13 @@ class QuadraticPolynomialBaselineTest {
         )
 
         val missingAsNull = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(3.0))),
             policy = MissingValuePolicy.ReturnNull
         )
         assertNull(missingAsNull)
 
         val missingAsZero = polynomial.evaluate(
-            values = mapOf(x to Flt64(3.0)),
+            provider = MapValueProvider(mapOf(x to Flt64(3.0))),
             policy = MissingValuePolicy.AsZero
         )
         assertNotNull(missingAsZero)

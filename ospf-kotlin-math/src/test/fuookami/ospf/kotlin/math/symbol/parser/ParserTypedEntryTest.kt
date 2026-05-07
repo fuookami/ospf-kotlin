@@ -5,45 +5,42 @@ import fuookami.ospf.kotlin.math.symbol.adapter.flt64.parseQuadratic
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.parseCanonical
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.parseLinearInequality
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.parseQuadraticInequality
-import fuookami.ospf.kotlin.math.symbol.parse.ParseIssue
-import fuookami.ospf.kotlin.math.symbol.parse.ParseIssueType
-import fuookami.ospf.kotlin.utils.functional.Failed
-import fuookami.ospf.kotlin.utils.functional.Ok
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
+import kotlin.test.assertNull
 import kotlin.test.assertTrue
 
 class ParserTypedEntryTest {
     @Test
     fun parseTypedPolynomialEntriesShouldReturnRet() {
         val linear = parseLinear("2*x + 3")
-        assertTrue(linear is Ok<*, *, *>)
+        assertNotNull(linear)
 
         val quadratic = parseQuadratic("x^2 + 2*x + 1")
-        assertTrue(quadratic is Ok<*, *, *>)
+        assertNotNull(quadratic)
 
         val canonical = parseCanonical("x^3 + x^2 + x + 1")
-        assertTrue(canonical is Ok<*, *, *>)
+        assertNotNull(canonical)
 
         val notLinear = parseLinear("x^2 + 1")
-        assertTrue(notLinear is Failed<*, *, *>)
+        assertNull(notLinear)
 
         val notQuadratic = parseQuadratic("x^3 + 1")
-        assertTrue(notQuadratic is Failed<*, *, *>)
+        assertNull(notQuadratic)
     }
 
     @Test
     fun parseTypedInequalityEntriesShouldReturnRet() {
         val linearInequality = parseLinearInequality("x + y <= 3")
-        assertTrue(linearInequality is Ok<*, *, *>)
+        assertNotNull(linearInequality)
 
         val quadraticInequality = parseQuadraticInequality("x^2 + y <= 3")
-        assertTrue(quadraticInequality is Ok<*, *, *>)
+        assertNotNull(quadraticInequality)
 
         val notLinearInequality = parseLinearInequality("x^2 + y <= 3")
-        assertTrue(notLinearInequality is Failed<*, *, *>)
+        assertNull(notLinearInequality)
 
         val notQuadraticInequality = parseQuadraticInequality("x^3 + y <= 3")
-        assertTrue(notQuadraticInequality is Failed<*, *, *>)
+        assertNull(notQuadraticInequality)
     }
 }

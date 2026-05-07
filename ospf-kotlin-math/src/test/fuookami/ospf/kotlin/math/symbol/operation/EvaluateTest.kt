@@ -55,8 +55,8 @@ class EvaluateTest {
         )
 
         val values = mapOf<Symbol, Flt64>(x to Flt64(3.0))
-        val returnNull = polynomial.evaluate(values, MissingValuePolicy.ReturnNull)
-        val asZero = polynomial.evaluate(values, MissingValuePolicy.AsZero)
+        val returnNull = polynomial.evaluate(MapValueProvider(values), MissingValuePolicy.ReturnNull)
+        val asZero = polynomial.evaluate(MapValueProvider(values), MissingValuePolicy.AsZero)
 
         assertNull(returnNull)
         assertTrue(asZero == Flt64(7.0))
@@ -108,10 +108,10 @@ class EvaluateTest {
         )
 
         val value = polynomial.evaluate(
-            values = mapOf<Symbol, Flt64>(
+            provider = MapValueProvider(mapOf<Symbol, Flt64>(
                 x to Flt64(2.0),
                 y to Flt64(4.0)
-            ),
+            )),
             policy = MissingValuePolicy.ReturnNull
         )
         assertEquals(Flt64(23.0), value)
@@ -170,9 +170,9 @@ class EvaluateTest {
             y to Flt64(3.0)
         )
 
-        assertEquals(linear.evaluate(mappedValues), linear.evaluateOrdered(order, orderedValues))
-        assertEquals(quadratic.evaluate(mappedValues), quadratic.evaluateOrdered(order, orderedValues))
-        assertEquals(canonical.evaluate(mappedValues), canonical.evaluateOrdered(order, orderedValues))
+        assertEquals(linear.evaluate(MapValueProvider(mappedValues)), linear.evaluateOrdered(order, orderedValues))
+        assertEquals(quadratic.evaluate(MapValueProvider(mappedValues)), quadratic.evaluateOrdered(order, orderedValues))
+        assertEquals(canonical.evaluate(MapValueProvider(mappedValues)), canonical.evaluateOrdered(order, orderedValues))
     }
 
     @Test

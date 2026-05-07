@@ -19,30 +19,13 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
+import fuookami.ospf.kotlin.math.symbol.adapter.flt64.normalize
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticInequality
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-// ========== normalize ==========
-
-fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
-    val normalizedLhs = (lhs - rhs).combineTerms()
-    return copy(
-        lhs = normalizedLhs,
-        rhs = LinearPolynomial(emptyList(), Flt64.zero)
-    )
-}
-
-fun QuadraticInequality.normalize(): QuadraticInequality {
-    val normalizedLhs = (lhs - rhs).combineTerms()
-    return copy(
-        lhs = normalizedLhs,
-        rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-    )
-}
 
 // ========== Flt64 convenience aliases ==========
 
