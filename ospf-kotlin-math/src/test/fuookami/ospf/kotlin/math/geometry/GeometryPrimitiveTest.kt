@@ -36,7 +36,7 @@ class GeometryPrimitiveTest {
 
     @Test
     fun edgeLengthShouldSupportCustomDistance() {
-        val edge = Edge2(point2(), point2(Flt64(3.0), Flt64(4.0)))
+        val edge = Edge<Point<Dim2, Flt64>, Dim2, Flt64>(point2(), point2(Flt64(3.0), Flt64(4.0)))
 
         assertTrue(edge.length eq Flt64(5.0))
         assertTrue(edge.length(Distance.Manhattan) eq Flt64(7.0))
@@ -46,12 +46,12 @@ class GeometryPrimitiveTest {
 
     @Test
     fun triangleDegenerateAreaAndIllegalState() {
-        val collinear = Triangle2(
+        val collinear = Triangle<Point<Dim2, Flt64>, Dim2, Flt64>(
             point2(),
             point2(Flt64.one, Flt64.one),
             point2(Flt64(2.0), Flt64(2.0))
         )
-        val verticalLine = Triangle2(
+        val verticalLine = Triangle<Point<Dim2, Flt64>, Dim2, Flt64>(
             point2(),
             point2(Flt64.zero, Flt64.one),
             point2(Flt64.zero, Flt64(2.0))
@@ -64,7 +64,7 @@ class GeometryPrimitiveTest {
 
     @Test
     fun circumcircleOfRightTriangle() {
-        val triangle = Triangle2(
+        val triangle = Triangle<Point<Dim2, Flt64>, Dim2, Flt64>(
             point2(),
             point2(Flt64(2.0), Flt64.zero),
             point2(Flt64.zero, Flt64(2.0))
@@ -79,7 +79,7 @@ class GeometryPrimitiveTest {
 
     @Test
     fun circleConstructedByRadiusVectorShouldNormalizeDirection() {
-        val circle = Circle2(
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(
             center = point2(),
             radiusVec = vector2(Flt64(3.0), Flt64(4.0))
         )

@@ -10,7 +10,8 @@ import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Dim2
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -178,7 +179,7 @@ class UnivariateLinearPiecewiseFunction<V>(
         @JvmName("fromPoints")
         fun fromPoints(
             x: LinearPolynomial<Flt64>,
-            points: List<Point2>,
+            points: List<Point<Dim2, Flt64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null

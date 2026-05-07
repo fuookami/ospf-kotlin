@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.heuristic.gwo
 
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MulObj
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
@@ -310,6 +310,6 @@ class GreyWolfOptimizer<Obj, V>(
 }
 
 typealias GWO = GreyWolfOptimizer<Flt64, Flt64>
-typealias MulObjGWO = GreyWolfOptimizer<MulObj, List<Flt64>>
+typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
 
 

@@ -1,6 +1,7 @@
 ﻿package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableType
 import fuookami.ospf.kotlin.utils.concept.Copyable
@@ -12,10 +13,9 @@ import java.nio.file.Path
 import kotlin.io.path.Path
 import kotlin.io.path.isDirectory
 
-typealias OriginConstraint<P> = fuookami.ospf.kotlin.core.model.mechanism.ConstraintFlt64<P>
 
 data class VariableSlack(
-    val constraint: OriginConstraint<*>? = null,
+    val constraint: Constraint<Flt64, *>? = null,
     val lowerBound: Variable? = null,
     val upperBound: Variable? = null
 )
@@ -26,7 +26,7 @@ class Variable(
     upperBound: Flt64,
     type: VariableType<*>,
     val origin: AbstractVariableItem<*, *>?,
-    val dualOrigin: OriginConstraint<*>? = null,
+    val dualOrigin: Constraint<Flt64, *>? = null,
     val slack: VariableSlack? = null,
     val name: String,
     val initialResult: Flt64? = null

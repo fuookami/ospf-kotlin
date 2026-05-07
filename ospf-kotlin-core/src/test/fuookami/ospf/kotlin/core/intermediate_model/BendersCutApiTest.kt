@@ -54,6 +54,7 @@ class BendersCutApiTest {
         val constraint = LinearConstraintImpl(
             relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "lc-opt"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
@@ -94,6 +95,7 @@ class BendersCutApiTest {
         val constraint = LinearConstraintImpl(
             relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "lc-feas"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
@@ -144,6 +146,7 @@ class BendersCutApiTest {
         val constraint = QuadraticConstraintImpl(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-opt"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
@@ -190,6 +193,7 @@ class BendersCutApiTest {
         val constraint = QuadraticConstraintImpl(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-feas"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
@@ -235,6 +239,7 @@ class BendersCutApiTest {
         val constraint = LinearConstraintImpl(
             relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "lc-opt-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
@@ -280,6 +285,7 @@ class BendersCutApiTest {
         val constraint = LinearConstraintImpl(
             relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "lc-feas-out"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
@@ -335,6 +341,7 @@ class BendersCutApiTest {
         val constraint = QuadraticConstraintImpl(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-opt-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
@@ -386,6 +393,7 @@ class BendersCutApiTest {
         val constraint = QuadraticConstraintImpl(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-feas-out"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(

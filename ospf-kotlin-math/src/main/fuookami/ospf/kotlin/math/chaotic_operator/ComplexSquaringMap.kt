@@ -19,8 +19,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
 import org.kotlinmath.complex
 import org.kotlinmath.pow
@@ -30,10 +31,10 @@ import kotlin.random.Random
  * 复平方映射
  * Complex Squaring Map
  */
-data object ComplexSquaringMap : Extractor<Point2, Point2> {
-    override operator fun invoke(x: Point2): Point2 {
+data object ComplexSquaringMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
+    override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
         val complexNumber = pow(complex(x[0].value, x[1].value), complex(2.0, 0.0))
-        return Point2(
+        return Point<Dim2, Flt64>(
             Flt64(complexNumber.re),
             Flt64(complexNumber.im)
         )
@@ -46,15 +47,15 @@ data object ComplexSquaringMap : Extractor<Point2, Point2> {
  */
 data class ComplexSquaringMapGenerator(
     val complexSquaringMap: ComplexSquaringMap = ComplexSquaringMap,
-    private var _x: Point2 = point2(
+    private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(-Flt64.one, Flt64.one),
         Random.nextFlt64(-Flt64.one, Flt64.one)
     )
-) : Generator<Point2> {
+) : Generator<Point<Dim2, Flt64>> {
     companion object {
         operator fun invoke(
             complexSquaringMap: ComplexSquaringMap = ComplexSquaringMap,
-            x: Point2 = point2(
+            x: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(-Flt64.one, Flt64.one),
                 Random.nextFlt64(-Flt64.one, Flt64.one)
             )
@@ -68,7 +69,7 @@ data class ComplexSquaringMapGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point2 {
+    override operator fun invoke(): Point<Dim2, Flt64> {
         val x = _x.copy()
         _x = ComplexSquaringMap(x)
         return x

@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.heuristic.saa
 
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MulObj
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -254,7 +254,7 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
 }
 
 typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64>
-typealias MulObjSAA = SimulatedAnnealingAlgorithm<MulObj, List<Flt64>>
+typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
 
 
 

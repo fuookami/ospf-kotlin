@@ -18,12 +18,12 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p4: P
 ) {
     companion object {
-        operator fun invoke(leftUpperPoint: Point2, rightBottomPoint: Point2): Rectangle2 {
+        operator fun invoke(leftUpperPoint: Point<Dim2, Flt64>, rightBottomPoint: Point<Dim2, Flt64>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64> {
             return Rectangle(
                 leftUpperPoint,
-                Point2(rightBottomPoint.x, leftUpperPoint.y),
+                Point<Dim2, Flt64>(rightBottomPoint.x, leftUpperPoint.y),
                 rightBottomPoint,
-                Point2(leftUpperPoint.x, rightBottomPoint.y)
+                Point<Dim2, Flt64>(leftUpperPoint.x, rightBottomPoint.y)
             )
         }
     }
@@ -65,10 +65,9 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         )
 }
 
-typealias Rectangle2 = Rectangle<Point2, Dim2, Flt64>
 
-fun Rectangle2.contains(
-    point: Point2,
+fun Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>.contains(
+    point: Point<Dim2, Flt64>,
     withLowerBound: Boolean = true,
     withUpperBound: Boolean = true,
     withBorder: Boolean = true
@@ -114,4 +113,3 @@ fun Rectangle2.contains(
     return xRange.contains(point.x) && yRange.contains(point.y)
 }
 
-typealias Rectangle3 = Rectangle<Point3, Dim3, Flt64>

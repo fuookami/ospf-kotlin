@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -70,17 +69,17 @@ data class CoupledLorenzAttractor<V : FloatingNumber<V>>(
 
 data class CoupledLorenzAttractorGenerator(
     val coupledLorenzAttractor: CoupledLorenzAttractor<Flt64> = CoupledLorenzAttractor(),
-    private var _x: Point3 = point3(
+    private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(Flt64.zero, Flt64.one),
         Random.nextFlt64(Flt64.zero, Flt64.one),
         Random.nextFlt64(Flt64.zero, Flt64.one)
     ),
-    private var _y: Point3 = point3(
+    private var _y: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(Flt64.zero, Flt64.one),
         Random.nextFlt64(Flt64.zero, Flt64.one),
         Random.nextFlt64(Flt64.zero, Flt64.one)
     )
-) : Generator<Pair<Point3, Point3>> {
+) : Generator<Pair<Point<Dim3, Flt64>, Point<Dim3, Flt64>>> {
     companion object {
         operator fun invoke(
             beta: Flt64 = Flt64(8.0 / 3.0),
@@ -89,12 +88,12 @@ data class CoupledLorenzAttractorGenerator(
             epsilon: Flt64 = Flt64(2.85),
             omicron: Flt64 = Flt64(2.85),
             h: Flt64 = Flt64(0.01),
-            x: Point3 = point3(
+            x: Point<Dim3, Flt64> = point3(
                 Random.nextFlt64(Flt64.zero, Flt64.one),
                 Random.nextFlt64(Flt64.zero, Flt64.one),
                 Random.nextFlt64(Flt64.zero, Flt64.one)
             ),
-            y: Point3 = point3(
+            y: Point<Dim3, Flt64> = point3(
                 Random.nextFlt64(Flt64.zero, Flt64.one),
                 Random.nextFlt64(Flt64.zero, Flt64.one),
                 Random.nextFlt64(Flt64.zero, Flt64.one)
@@ -111,7 +110,7 @@ data class CoupledLorenzAttractorGenerator(
     val x by ::_x
     val y by ::_y
 
-    override fun invoke(): Pair<Point3, Point3> {
+    override fun invoke(): Pair<Point<Dim3, Flt64>, Point<Dim3, Flt64>> {
         val x = _x.copy()
         val y = _y.copy()
         val ret = coupledLorenzAttractor(x to y)

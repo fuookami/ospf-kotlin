@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -58,18 +57,18 @@ data class CircuitChaotic<V : FloatingNumber<V>>(
  */
 data class CircuitChaoticGenerator(
     val circuitChaotic: CircuitChaotic<Flt64> = CircuitChaotic(),
-    private var _x: Point2 = point2(
+    private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point2> {
+) : Generator<Point<Dim2, Flt64>> {
     companion object {
         operator fun invoke(
             a: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
             b: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
             c: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
             d: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.ten),
-            x: Point2 = point2(
+            x: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
@@ -88,7 +87,7 @@ data class CircuitChaoticGenerator(
 
     val x by ::_x
 
-    override fun invoke(): Point2 {
+    override fun invoke(): Point<Dim2, Flt64> {
         val x = _x.copy()
         _x = circuitChaotic(x)
         return x

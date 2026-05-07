@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 // ========== Flt64 convenience aliases ==========
@@ -286,6 +287,7 @@ infix fun UInt64.geq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Fl
 
 fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
     tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -294,6 +296,7 @@ fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
     return QuadraticConstraintImpl(
         relation = toQuadraticInequality().let { QuadraticRelationImpl(it.flattenData, it.comparison) },
         tokens = tokens,
+        converter = converter,
         lazy = lazy,
         name = name,
         origin = origin,
@@ -305,26 +308,29 @@ fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
 
 fun <V> LinearRelation.toConstraint(
     tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
-    return LinearConstraintImpl(this, tokens, lazy, name, origin, from)
+    return LinearConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
 fun <V> QuadraticRelation.toConstraint(
     tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
 ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
-    return QuadraticConstraintImpl(this, tokens, lazy, name, origin, from)
+    return QuadraticConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
 fun <V> LinearRelation.toQuadraticConstraint(
     tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
@@ -336,5 +342,5 @@ fun <V> LinearRelation.toQuadraticConstraint(
     }
     val qFlattenData = QuadraticFlattenData<Flt64>(qMonomials, normalized.flattenData.constant)
     val qRelation = QuadraticRelationImpl(qFlattenData, normalized.sign, normalized.name, normalized.displayName)
-    return QuadraticConstraintImpl(qRelation, tokens, lazy, name, origin, from)
+    return QuadraticConstraintImpl(qRelation, tokens, converter, lazy, name, origin, from)
 }

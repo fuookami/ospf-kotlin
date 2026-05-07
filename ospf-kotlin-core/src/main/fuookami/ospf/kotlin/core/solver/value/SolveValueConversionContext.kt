@@ -5,7 +5,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 private val solveValueConversionPolicyThreadLocal = ThreadLocal<SolveValueConversionPolicy?>()
 
 fun currentSolveValueConversionPolicy(): SolveValueConversionPolicy {
-    return solveValueConversionPolicyThreadLocal.get() ?: SolveValueConversionPolicy.Strict
+    return solveValueConversionPolicyThreadLocal.get() ?: SolveValueConversionPolicy.AllowRounding
 }
 
 suspend fun <T> withSolveValueConversionPolicy(

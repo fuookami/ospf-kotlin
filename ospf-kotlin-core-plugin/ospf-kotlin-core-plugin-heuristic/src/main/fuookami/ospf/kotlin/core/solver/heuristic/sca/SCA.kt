@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.heuristic.sca
 
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MulObj
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
@@ -346,7 +346,7 @@ class SineCosineAlgorithm<Obj, V>(
 }
 
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64>
-typealias MulObjSCA = SineCosineAlgorithm<MulObj, List<Flt64>>
+typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
 
 
 

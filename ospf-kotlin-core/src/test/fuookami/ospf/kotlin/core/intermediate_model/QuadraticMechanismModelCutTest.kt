@@ -52,6 +52,7 @@ class QuadraticMechanismModelCutTest {
         val constraint = QuadraticConstraintImpl<Flt64>(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-optimal"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(
@@ -95,6 +96,7 @@ class QuadraticMechanismModelCutTest {
         val constraint = QuadraticConstraintImpl<Flt64>(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc-linear-fallback"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(

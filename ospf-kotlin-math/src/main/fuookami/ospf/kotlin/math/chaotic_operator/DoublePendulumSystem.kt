@@ -18,8 +18,9 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
 import kotlin.random.Random
 
@@ -33,7 +34,7 @@ data class DoublePendulumSystem(
     val g: Flt64 = Flt64(9.80665),
     val h: Flt64 = Flt64(0.01)
 ) {
-    operator fun invoke(x: Point2, y: Point2): Pair<Point2, Point2> {
+    operator fun invoke(x: Point<Dim2, Flt64>, y: Point<Dim2, Flt64>): Pair<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
         val theta1 = x[0]
         val omega1 = x[1]
         val theta2 = y[0]
@@ -62,26 +63,26 @@ data class DoublePendulumSystem(
  */
 data class DoublePendulumSystemGenerator(
     val doublePendulumSystem: DoublePendulumSystem = DoublePendulumSystem(),
-    private var _x: Point2 = point2(
+    private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
     ),
-    private var _y: Point2 = point2(
+    private var _y: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
     )
-) : Generator<Pair<Point2, Point2>> {
+) : Generator<Pair<Point<Dim2, Flt64>, Point<Dim2, Flt64>>> {
     companion object {
         operator fun invoke(
             m: Flt64,
             l: Flt64,
             g: Flt64,
             h: Flt64,
-            x: Point2 = point2(
+            x: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
             ),
-            y: Point2 = point2(
+            y: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.pi / Flt64.two)
             )
@@ -102,7 +103,7 @@ data class DoublePendulumSystemGenerator(
     val x by ::_x
     val y by ::_y
 
-    override operator fun invoke(): Pair<Point2, Point2> {
+    override operator fun invoke(): Pair<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
         val x = _x.copy()
         val y = _y.copy()
         val (x1, y1) = doublePendulumSystem(x, y)

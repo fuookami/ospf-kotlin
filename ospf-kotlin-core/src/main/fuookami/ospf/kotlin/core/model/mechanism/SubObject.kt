@@ -59,7 +59,7 @@ class LinearSubObject<V : RealNumber<V>>(
             tokens: AbstractTokenTable<Flt64>,
             name: String = ""
         ): LinearSubObject<Flt64> {
-            val cells = createLinearCells(flattenData.monomials, tokens)
+            val cells = createLinearCells(flattenData.monomials, tokens, IntoValue.Identity)
             return LinearSubObject(
                 category = category,
                 cells = cells,
@@ -131,7 +131,7 @@ class QuadraticSubObject<V : RealNumber<V>>(
             tokens: AbstractTokenTable<Flt64>,
             name: String = ""
         ): QuadraticSubObject<Flt64> {
-            val cells = createQuadraticCells(flattenData.monomials, tokens)
+            val cells = createQuadraticCells(flattenData.monomials, tokens, IntoValue.Identity)
             return QuadraticSubObject(
                 category = category,
                 cells = cells,

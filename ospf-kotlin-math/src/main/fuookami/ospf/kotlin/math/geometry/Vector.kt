@@ -35,11 +35,11 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
             return Vector(listOf(x, y, z), Dim3 as D)
         }
 
-        operator fun invoke(x: Flt64, y: Flt64): Vector2 {
+        operator fun invoke(x: Flt64, y: Flt64): Vector<Dim2, Flt64> {
             return Vector(listOf(x, y), Dim2)
         }
 
-        operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Vector3 {
+        operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Vector<Dim3, Flt64> {
             return Vector(listOf(x, y, z), Dim3)
         }
     }
@@ -87,41 +87,39 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = vector.joinToString(",", "[", "]")
 }
 
-typealias Vector2 = Vector<Dim2, Flt64>
-typealias Vector3 = Vector<Dim3, Flt64>
 
 @get:JvmName("Vector2X")
-val Vector2.x get() = this[0]
+val Vector<Dim2, Flt64>.x get() = this[0]
 
 @get:JvmName("Vector2Y")
-val Vector2.y get() = this[1]
+val Vector<Dim2, Flt64>.y get() = this[1]
 
-fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector2 {
-    return Vector2(x, y)
+fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector<Dim2, Flt64> {
+    return Vector<Dim2, Flt64>(x, y)
 }
 
 @get:JvmName("Vector3X")
-val Vector3.x get() = this[0]
+val Vector<Dim3, Flt64>.x get() = this[0]
 
 @get:JvmName("Vector3Y")
-val Vector3.y get() = this[1]
+val Vector<Dim3, Flt64>.y get() = this[1]
 
 @get:JvmName("Vector3Z")
-val Vector3.z get() = this[2]
+val Vector<Dim3, Flt64>.z get() = this[2]
 
-fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector3 {
-    return Vector3(x, y, z)
+fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector<Dim3, Flt64> {
+    return Vector<Dim3, Flt64>(x, y, z)
 }
 
 operator fun <D : Dimension, V : FloatingNumber<V>> V.times(rhs: Vector<D, V>): Vector<D, V> {
     return rhs * this
 }
 
-infix fun Vector2.cross(rhs: Vector2): Flt64 {
+infix fun Vector<Dim2, Flt64>.cross(rhs: Vector<Dim2, Flt64>): Flt64 {
     return this.x * rhs.y - this.y * rhs.x
 }
 
-infix fun Vector3.cross(rhs: Vector3): Vector3 {
+infix fun Vector<Dim3, Flt64>.cross(rhs: Vector<Dim3, Flt64>): Vector<Dim3, Flt64> {
     return vector3(
         x = this.y * rhs.z - this.z * rhs.y,
         y = this.z * rhs.x - this.x * rhs.z,

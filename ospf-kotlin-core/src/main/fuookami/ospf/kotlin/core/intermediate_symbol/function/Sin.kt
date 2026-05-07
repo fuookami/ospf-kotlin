@@ -8,7 +8,8 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Dim2
+import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -37,7 +38,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
  */
 class SinFunction<V>(
     val x: LinearPolynomial<V>,
-    val samplingPoints: List<Point2>,
+    val samplingPoints: List<Point<Dim2, Flt64>>,
     private val converter: IntoValue<V>,
     override var name: String = "sin",
     override var displayName: String? = null
@@ -88,22 +89,22 @@ class SinFunction<V>(
     companion object {
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
-            samplingPoints: List<Point2> = defaultPoints(),
+            samplingPoints: List<Point<Dim2, Flt64>> = defaultPoints(),
             converter: IntoValue<V>,
             name: String = "sin",
             displayName: String? = null
         ): SinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SinFunction(x = x, samplingPoints = samplingPoints, converter = converter, name = name, displayName = displayName)
 
-        fun defaultPoints(): List<Point2> {
+        private fun defaultPoints(): List<Point<Dim2, Flt64>> {
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)
             return listOf(
-                Point2(-pi, Flt64.zero),
-                Point2(-pi2, Flt64(-1.0)),
-                Point2(Flt64.zero, Flt64.zero),
-                Point2(pi2, Flt64.one),
-                Point2(pi, Flt64.zero)
+                Point<Dim2, Flt64>(-pi, Flt64.zero),
+                Point<Dim2, Flt64>(-pi2, Flt64(-1.0)),
+                Point<Dim2, Flt64>(Flt64.zero, Flt64.zero),
+                Point<Dim2, Flt64>(pi2, Flt64.one),
+                Point<Dim2, Flt64>(pi, Flt64.zero)
             )
         }
 

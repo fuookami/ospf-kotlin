@@ -8,7 +8,7 @@ data class MultiObjectLocation(
     val weight: Flt64
 )
 
-typealias MulObj = List<Pair<MultiObjectLocation, Flt64>>
+typealias MultiObject<Flt64> = List<Pair<MultiObjectLocation, Flt64>>
 
 
 

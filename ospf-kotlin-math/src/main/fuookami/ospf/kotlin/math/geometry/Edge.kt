@@ -78,14 +78,12 @@ data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = "$from -> $to"
 }
 
-typealias Edge2 = Edge<Point2, Dim2, Flt64>
-typealias Edge3 = Edge<Point3, Dim3, Flt64>
 
-infix fun Edge2.intersects(other: Edge2): Boolean {
+infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     return intersectionPoint(other) != null
 }
 
-infix fun Edge2.intersectionPoint(other: Edge2): Point2? {
+infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.intersectionPoint(other: Edge<Point<Dim2, Flt64>, Dim2, Flt64>): Point<Dim2, Flt64>? {
     val p1 = from
     val p2 = to
     val p3 = other.from
@@ -115,7 +113,7 @@ infix fun Edge2.intersectionPoint(other: Edge2): Point2? {
     return null
 }
 
-infix fun Edge2.closestPoint(point: Point2): Point2 {
+infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.closestPoint(point: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
     val direction = this.direction
     val dx = point.x - from.x
     val dy = point.y - from.y
@@ -137,7 +135,7 @@ infix fun Edge2.closestPoint(point: Point2): Point2 {
     return pointAt(tClamped)
 }
 
-infix fun Edge2.distanceToPoint(point: Point2): Flt64 {
+infix fun Edge<Point<Dim2, Flt64>, Dim2, Flt64>.distanceToPoint(point: Point<Dim2, Flt64>): Flt64 {
     val closest = closestPoint(point)
     return point distance closest
 }

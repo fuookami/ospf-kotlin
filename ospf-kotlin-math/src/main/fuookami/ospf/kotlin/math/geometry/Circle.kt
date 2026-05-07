@@ -17,55 +17,51 @@ data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : Flo
     )
 }
 
-typealias Circle2 = Circle<Point2, Vector2, Dim2, Flt64>
-typealias Circle3 = Circle<Point3, Vector3, Dim3, Flt64>
 
-typealias Sphere3 = Circle3
+val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.x: Flt64 get() = center.x
+val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.y: Flt64 get() = center.y
 
-val Circle2.x: Flt64 get() = center.x
-val Circle2.y: Flt64 get() = center.y
-
-val Circle2.area: Flt64 get() = Flt64.pi * radius * radius
-val Circle2.circumference: Flt64 get() = Flt64.two * Flt64.pi * radius
-val Circle2.diameter: Flt64 get() = Flt64.two * radius
+val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.area: Flt64 get() = Flt64.pi * radius * radius
+val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.circumference: Flt64 get() = Flt64.two * Flt64.pi * radius
+val Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.diameter: Flt64 get() = Flt64.two * radius
 
 @JvmName("containsPoint2D")
-infix fun Circle2.containsPoint(point: Point2): Boolean {
+infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
     val distSq = dx * dx + dy * dy
     return distSq leq radius * radius
 }
 
-infix fun Circle2.containsPointStrict(point: Point2): Boolean {
+infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsPointStrict(point: Point<Dim2, Flt64>): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
     val distSq = dx * dx + dy * dy
     return distSq ls radius * radius
 }
 
-infix fun Circle2.intersects(other: Circle2): Boolean {
+infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersects(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
     val dist = sqrt((dx * dx + dy * dy).toDouble())
     return dist <= (radius + other.radius).toDouble()
 }
 
-infix fun Circle2.containsCircle(other: Circle2): Boolean {
+infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.containsCircle(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
     val dist = sqrt((dx * dx + dy * dy).toDouble())
     return dist + other.radius.toDouble() <= radius.toDouble()
 }
 
-fun Circle2.pointOnBoundary(point: Point2, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
+fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.pointOnBoundary(point: Point<Dim2, Flt64>, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
     val dist = (dx * dx + dy * dy).sqrt()
     return (dist - radius).abs() <= epsilon
 }
 
-fun Circle2.isTangent(other: Circle2, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
+fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.isTangent(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>, epsilon: Flt64 = Flt64.decimalPrecision): Boolean {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
     val dist = (dx * dx + dy * dy).sqrt()
@@ -78,7 +74,7 @@ fun Circle2.isTangent(other: Circle2, epsilon: Flt64 = Flt64.decimalPrecision): 
     return externalTangent || internalTangent
 }
 
-infix fun Circle2.intersectionPoints(other: Circle2): List<Point2> {
+infix fun Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>.intersectionPoints(other: Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>): List<Point<Dim2, Flt64>> {
     val dx = other.center.x - center.x
     val dy = other.center.y - center.y
     val d = center distance other.center
@@ -122,16 +118,16 @@ infix fun Circle2.intersectionPoints(other: Circle2): List<Point2> {
     return listOf(p1, p2)
 }
 
-val Sphere3.volume: Flt64
+val Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.volume: Flt64
     get() {
         val fourThirds = Flt64(4.0) / Flt64(3.0)
         return fourThirds * Flt64.pi * radius * radius * radius
     }
 
-val Sphere3.surfaceArea: Flt64 get() = Flt64(4.0) * Flt64.pi * radius * radius
+val Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.surfaceArea: Flt64 get() = Flt64(4.0) * Flt64.pi * radius * radius
 
 @JvmName("containsPoint3D")
-infix fun Sphere3.containsPoint(point: Point3): Boolean {
+infix fun Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>.containsPoint(point: Point<Dim3, Flt64>): Boolean {
     val dx = point.x - center.x
     val dy = point.y - center.y
     val dz = point.z - center.z
@@ -139,7 +135,7 @@ infix fun Sphere3.containsPoint(point: Point3): Boolean {
     return distSq leq radius * radius
 }
 
-fun Circle.Companion.circumcircleOf(triangle: Triangle2): Circle2 {
+fun Circle.Companion.circumcircleOf(triangle: Triangle<Point<Dim2, Flt64>, Dim2, Flt64>): Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64> {
     val ax = triangle.p2.x - triangle.p1.x
     val ay = triangle.p2.y - triangle.p1.y
     val bx = triangle.p3.x - triangle.p1.x
@@ -153,5 +149,5 @@ fun Circle.Companion.circumcircleOf(triangle: Triangle2): Circle2 {
     val y = ((triangle.p1.x - triangle.p3.x) * m + (triangle.p2.x - triangle.p1.x) * u) * s
     val r = ((triangle.p1.x - x).sqr() + (triangle.p1.y - y).sqr()).sqrt()
 
-    return Circle2(Point2(x, y), Vector2(r, Flt64.zero))
+    return Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(Point<Dim2, Flt64>(x, y), Vector<Dim2, Flt64>(r, Flt64.zero))
 }

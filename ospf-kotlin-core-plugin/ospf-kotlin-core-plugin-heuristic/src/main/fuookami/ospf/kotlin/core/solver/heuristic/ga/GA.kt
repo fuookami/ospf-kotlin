@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.heuristic.ga
 
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MulObj
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
@@ -390,7 +390,7 @@ class GeneAlgorithm<Obj, V>(
 }
 
 typealias GA = GeneAlgorithm<Flt64, Flt64>
-typealias MulObjGA = GeneAlgorithm<MulObj, List<Flt64>>
+typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
 
 
 

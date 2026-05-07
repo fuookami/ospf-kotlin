@@ -59,10 +59,8 @@ class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = "Triangle($p1, $p2, $p3)"
 }
 
-typealias Triangle2 = Triangle<Point2, Dim2, Flt64>
-typealias Triangle3 = Triangle<Point3, Dim3, Flt64>
 
-fun Triangle2.area2D(): Flt64 {
+fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.area2D(): Flt64 {
     val v1x = p2.x - p1.x
     val v1y = p2.y - p1.y
     val v2x = p3.x - p1.x
@@ -71,7 +69,7 @@ fun Triangle2.area2D(): Flt64 {
     return cross.abs() / Flt64.two
 }
 
-infix fun Triangle2.containsPoint(point: Point2): Boolean {
+infix fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.containsPoint(point: Point<Dim2, Flt64>): Boolean {
     val v0x = p3.x - p1.x
     val v0y = p3.y - p1.y
     val v1x = p2.x - p1.x
@@ -96,16 +94,16 @@ infix fun Triangle2.containsPoint(point: Point2): Boolean {
     return u geq Flt64.zero && v geq Flt64.zero && u + v leq Flt64.one
 }
 
-fun Triangle2.circumcircle(): Circle2 {
+fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcircle(): Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64> {
     return Circle.circumcircleOf(this)
 }
 
-fun Triangle2.circumcenter(): Point2 {
+fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.circumcenter(): Point<Dim2, Flt64> {
     val cc = circumcircle()
     return cc.center
 }
 
-fun Triangle2.incenter(): Point2 {
+fun Triangle<Point<Dim2, Flt64>, Dim2, Flt64>.incenter(): Point<Dim2, Flt64> {
     val a = e2.length
     val b = e3.length
     val c = e1.length
@@ -121,14 +119,14 @@ fun Triangle2.incenter(): Point2 {
     )
 }
 
-fun Triangle3.area3D(): Flt64 {
+fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.area3D(): Flt64 {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)
     val cross = v1 cross v2
     return cross.norm / Flt64.two
 }
 
-fun Triangle3.normal(): Vector3? {
+fun Triangle<Point<Dim3, Flt64>, Dim3, Flt64>.normal(): Vector<Dim3, Flt64>? {
     val v1 = vector3(p2.x - p1.x, p2.y - p1.y, p2.z - p1.z)
     val v2 = vector3(p3.x - p1.x, p3.y - p1.y, p3.z - p1.z)
     val cross = v1 cross v2

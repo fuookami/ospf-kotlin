@@ -23,11 +23,11 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
             return Point(vector.vector, vector.dim)
         }
 
-        operator fun invoke(x: Flt64, y: Flt64): Point2 {
+        operator fun invoke(x: Flt64, y: Flt64): Point<Dim2, Flt64> {
             return Point(listOf(x, y), Dim2)
         }
 
-        operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Point3 {
+        operator fun invoke(x: Flt64, y: Flt64, z: Flt64): Point<Dim3, Flt64> {
             return Point(listOf(x, y, z), Dim3)
         }
     }
@@ -104,36 +104,34 @@ data class Point<D : Dimension, V : FloatingNumber<V>>(
     override fun toString() = position.joinToString(",", "[", "]")
 }
 
-typealias Point2 = Point<Dim2, Flt64>
-typealias Point3 = Point<Dim3, Flt64>
 
 @get:JvmName("Point2X")
-val Point2.x get() = this[0]
+val Point<Dim2, Flt64>.x get() = this[0]
 
 @get:JvmName("Point2Y")
-val Point2.y get() = this[1]
+val Point<Dim2, Flt64>.y get() = this[1]
 
-val Point2.pair get() = Pair(x, y)
+val Point<Dim2, Flt64>.pair get() = Pair(x, y)
 
 val originPoint2 = point2()
 
-fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point2 {
-    return Point2(x, y)
+fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point<Dim2, Flt64> {
+    return Point<Dim2, Flt64>(x, y)
 }
 
 @get:JvmName("Point3X")
-val Point3.x get() = this[0]
+val Point<Dim3, Flt64>.x get() = this[0]
 
 @get:JvmName("Point3Y")
-val Point3.y get() = this[1]
+val Point<Dim3, Flt64>.y get() = this[1]
 
 @get:JvmName("Point3Z")
-val Point3.z get() = this[2]
+val Point<Dim3, Flt64>.z get() = this[2]
 
-val Point3.triple get() = Triple(x, y, z)
+val Point<Dim3, Flt64>.triple get() = Triple(x, y, z)
 
 val originPoint3 = point3()
 
-fun point3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Point3 {
-    return Point3(x, y, z)
+fun point3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Point<Dim3, Flt64> {
+    return Point<Dim3, Flt64>(x, y, z)
 }

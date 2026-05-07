@@ -1,21 +1,32 @@
-﻿# OSPF Kotlin 泛型化交接计划（P13）
+# OSPF Kotlin 泛型化交接计划
 
-记录日期：2026-05-06（P13 完成：2026-05-07）
-适用范围：ospf-kotlin-core、ospf-kotlin-math
+记录日期：2026-05-07
+适用范围：`ospf-kotlin-math`、`ospf-kotlin-core`
 
-## 1. 目标与边界
+## 1. 当前结论
 
-目标：完成 math.symbol 与 core 的主链泛型化，公开 API 以 V : RealNumber<V>, NumberField<V> 为主线。
-约束：
-- 公开主链必须 V 化（evaluate / invoke / register / addConstraint / solve）。
-- solver 主链也必须 V 化；仅外部 solver 适配边界可保留 Flt64。
-- 策略数值层例外：heuristic 中概率、温度、权重、变异率等超参数可保留 Flt64。
-- MathFunctionSymbol.register 必须严格双阶段：
-  1. MetaModel -> MechanismModel 转换时，在 MetaModel 的 tokenTable 拷贝上注册中间变量。
-  2. MechanismModel 构建完成后，再注册函数符号附加约束。
-- 禁止桥接别名回流；禁止 import as。
+P13 主链泛型化已经完成：`math.symbol` 与 `core` 的公开主链以 `V : RealNumber<V>, NumberField<V>` 为主线，扫描门禁与编译门禁通过。
 
-## 2. 当前真实状态（2026-05-07 v3+ 脚本修正后）
+全面泛型化尚未完成。当前仍保留一批 `Flt64` 兼容别名、solver-boundary 方法、type-erased bridge 和历史 solver conversion 测试失败。下一阶段目标是继续收口这些边界，并按用户要求移除变量、几何等 `Flt64 convenience typealias`。
+
+## 2. P13 已完成事项总结
+
+| 范围 | 状态 | 完成内容 |
+|---|---|---|
+| C1 基线脚本 | done | `scripts/scan-p13-mainchain.ps1` 修正为 v3+ 两层制扫描，输出 `scripts/scan-p13-mainchain-result.json` |
+| C2 register 双阶段 | done | `MathFunctionSymbolBase` V-typed；`MetaModel -> MechanismModel` 转换时注册辅助 token，模型构建后注册附加约束 |
+| C3-C5 function 批次 | done | function 主构造、evaluate、invoke、register 主链已 V 化 |
+| C6 二次函数/Product | done | 二次函数与 Product 接入双阶段 register；测试侧 `Map<Symbol, Flt64>` 调用改为 `MapValueProvider` |
+| C7 symbol/variable/token | done | token 与 variable 主链 V 化；`UNCHECKED_CAST` 集中到 4 处 type-erased bridge |
+| C8 mechanism | done | `normalize()` 迁移至 `math.symbol.adapter.flt64.Normalize.kt`；`isTrue(tokenList)` 改为 `internal`；`core/mechanism public_api_blocking = 0` |
+| C9 callback | done | callback 抽象接口已 V-generic；Flt64 typealias 暂列为迁移债务 |
+| C10 solver/heuristic | done | solver 主链已 V 化；heuristic 策略数值参数保留 `Flt64` |
+| C11 math.symbol | done | 非 adapter `math.symbol` 公开 API 不再暴露 `Flt64`；`QuadraticInequality` typealias 迁移到 `adapter/flt64` |
+| C12 全仓验收 | done | 扫描门禁 PASS；math + core compile PASS；math test 711/711；core test 143/145 |
+
+## 3. 当前扫描与测试状态
+
+扫描脚本：`scripts/scan-p13-mainchain.ps1`（v3+）
 
 | 检查项 | raw | public_api_blocking | boundary_allowed |
 |---|---:|---:|---:|
@@ -23,347 +34,393 @@
 | Suppress(UNCHECKED_CAST) | 4 | - | 4 |
 | typealias *Flt64 | 77 | 0 | 70 |
 | math/symbol 非 adapter | 0 | 0 | - |
-| core/function | 110 | 0 | 44 |
+| core/function | 115 | 0 | 44 |
 | core/callback | 4 | 0 | 2 |
 | core/mechanism | 20 | 0 | 12 |
 
-审阅结论：
-- public_api_blocking 全部为 0，主链 V 化达成。
-- mechanism 2 个 blocking 已收口：normalize() 迁移至 adapter/flt64，isTrue(tokenList) 改为 internal。
-- boundary_allowed 数量较大（typealias 70、function override 44），属 solver-boundary 设计，有迁移债务。
+当前门禁状态：
+- 扫描：`GATE: PASS`，`public_api_blocking` 全部为 0。
+- 编译：`mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile` 通过。
+- 测试：`ospf-kotlin-math` 711/711 通过；`ospf-kotlin-core` 143/145，剩余 2 个历史 solver conversion/policy 失败。
 
-## 3. 需要改动的地方（全量清单）
+已知 core 历史失败：
+- `SolveOptionsTest.solveOptionsShouldUseAllowRoundingAsEffectiveDefaultPolicy`：期望 `AllowRounding`，实际 `Strict`。
+- `SolveValueConversionContextTest.conversionPolicyShouldRestoreAfterScopeExit`：`Strict conversion rejected NaN at outer`。
 
-### 3.1 core/intermediate_symbol/function（全部纳入 WP-2 模板修正）
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Abs.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/And.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/BalanceTernaryzation.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Binaryzation.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/BivariateLinearPiecewise.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Ceiling.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Cos.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/First.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Floor.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionSymbol.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/If.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/IfIn.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/IfThen.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Imply.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Inequality.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/InStepRange.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Masking.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Max.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/MinMax.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Mod.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/OneOf.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Product.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/QuadraticInStepRange.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/QuadraticLinear.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/QuadraticMaskingRange.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/QuadraticMin.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Rounding.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/SameAs.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/SatisfiedAmount.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/SatisfiedAmountInequality.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Semi.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Sigmoid.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Sin.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/Slack.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/SlackRange.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function/UnivariateLinearPiecewise.kt
+## 4. 关键架构决策
 
-### 3.2 core 主链其他文件
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/IntermediateSymbol.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/basic/ModelView.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/basic/MultiObject.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/callback/CallBackModel.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/callback/CallBackModelInterface.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/Cell.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadModel.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/MechanismModelDumpingStatus.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradModel.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/SparseMatrix.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/Constraint.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/LinearConstraintInput.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MathInequalityDsl.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MathInequalityFlatten.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MetaConstraint.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/Gap.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic/Normalization.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic/ParticleSwarmHeuristicSolver.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic/Selection.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/output/SolverOutput.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/value/IntoValue.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/value/SolveValueConversionContext.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/value/SolveValueValidation.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/Token.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenList.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/token/TokenTable.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/variable/AbstractVariableItem.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/variable/AnyVariable.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/variable/VariableCombinationItem.kt
-- ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/variable/VariableIndependentItem.kt
+1. 公开主链只接受 V-typed API；`Flt64` 不再作为 function、mechanism、callback 的主路径。
+2. `Flt64` 只允许出现在明确的 adapter、solver-boundary 或历史兼容层；下一阶段继续把这些边界集中化。
+3. `adapter/flt64` 是临时兼容边界，不再作为主链设计来源。
+4. `import as` 禁止回流。
+5. `UNCHECKED_CAST` 只允许集中在 type-erased bridge；下一阶段应随接口拆分继续减少，最终清零。
+6. 变量、几何等 `Flt64 convenience typealias` 不再视为 stable，下一阶段必须移除或迁入明确 legacy/adapter 层后删除。
 
-### 3.3 math.symbol 的 Flt64 adapter 与残留点
+## 5. 全面泛型化目标
 
-adapter 文件（保留为边界，但需做 API 可见性与文档收口）：
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/CombineTerms.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Compile.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Convert.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Differentiate.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Evaluate.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Inequality.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Latex.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/MatrixForm.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickDsl.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickOps.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/Serde.kt
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64/ValueProvider.kt
+全面泛型化完成时，应满足：
 
-非 adapter 残留（必须清零）：
-- ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/inequality/QuadraticInequality.kt
+- `ospf-kotlin-math` 与 `ospf-kotlin-core` 的非 adapter 公开 API 不暴露 `Flt64`。
+- 变量、几何、model、callback、mechanism、intermediate symbol 中的 `Flt64 convenience typealias` 清零。
+- `core/function` 不再因为接口契约要求实现 `Flt64` override。
+- `core/mechanism` 的 flatten、solver solution、model conversion 等 `Flt64` 边界函数迁入明确 adapter/solver-boundary 层。
+- `core/callback` 的 `Flt64` 兼容 typealias 移除。
+- `UNCHECKED_CAST` 清零，或只剩不可避免的 internal adapter cast 并有单独门禁说明。
+- `mvn -pl ospf-kotlin-core -am test` 全绿，不再依赖“历史失败”豁免。
 
-## 4. 提交级清单（按顺序交接执行）
+## 6. 剩余工作拆解计划
 
-### C1：基线冻结与扫描脚本标准化
-改动：
-- 新增 scripts/scan-p13-mainchain.ps1，固化本页全部计数口径。
-- 输出 scripts/scan-p13-mainchain-result.json（含每类计数、命中路径）。
+### F1：修复 core solver conversion/policy 历史测试
+
+目标：先让 core 测试真正全绿，避免后续泛型化改动被历史失败遮蔽。
+
+范围：
+- `ospf-kotlin-core/src/test/.../SolveOptionsTest.kt`
+- `ospf-kotlin-core/src/test/.../SolveValueConversionContextTest.kt`
+- 相关 solver value conversion/policy 实现。
+
 验收：
-- 脚本在本地可重复执行，输出字段齐全，计数与本页一致。
+- `mvn -pl ospf-kotlin-core -am test` 中 core 从 143/145 提升到 145/145。
+- 不降低 `SolveValueConversionContext` 的 strict/allow-rounding 语义覆盖。
 
-### C2：MathFunctionSymbol 契约与 register 双阶段收口
-改动：
-- FunctionSymbol.kt：把 registerAuxiliaryTokens/registerConstraints 的主接口改为 V 主链；Flt64 仅保留在 adapter 层。
-- MetaModel.kt：在 tokenTable 拷贝上统一执行 registerAuxiliaryTokens。
-- MechanismModel.kt：模型构建后统一执行 registerConstraints。
+### F2：移除变量与几何 `Flt64 convenience typealias`
+
+目标：按最终决策移除变量、几何这些便捷别名，不再把它们列为 stable 白名单。
+
+范围：
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/geometry/*`
+  - `Point2`、`Point3`、`Vector2`、`Vector3`、`Circle2`、`Circle3`、`Edge2`、`Edge3`、`Triangle2`、`Triangle3`、`Quadrilateral2`、`Quadrilateral3`、`Rectangle2`、`Rectangle3` 等。
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/variable/*`
+  - `RealVariable`、`URealVariable`、`PercentageVariable`
+  - `RealVariableView*`、`URealVariableView*`、`PctVariableView*`
+  - `QuantityRealVariableView*`、`QuantityURealVariableView*`、`QuantityPctVariableView*`
+  - `Dyn*VariableView` 系列。
+
+执行要求：
+- 先用 V-typed 原类型替换内部调用点，再删除 typealias。
+- 若需要保留迁移路径，只允许在明确 `legacy` 或 `adapter/flt64` 包中短期保留，并标记 `@Deprecated`；最终验收不允许继续留在主包。
+
 验收：
-- MetaModel -> MechanismModel 路径不再依赖 Flt64 类型化 register 主接口。
-- 双阶段执行顺序有测试覆盖（至少 1 个线性、1 个二次函数符号）。
+- geometry 主包 `typealias .*Flt64` = 0。
+- variable 主包 `typealias .*Flt64` = 0。
+- math + core compile 通过。
+- 相关 geometry/variable 测试通过；缺测试时补最小编译型或行为型覆盖。
 
-### C3：function 第一批模板改造（基础算子）
-改动文件：
-- Abs.kt、Ceiling.kt、Floor.kt、Cos.kt、Sin.kt、Sigmoid.kt、Mod.kt、Semi.kt、Rounding.kt
-改动要求：
-- evaluate/invoke/polyX/register 公开签名改为 V。
-- 去除 intoValue(value: Flt64) / fromValue(value: Flt64) 作为公开主路径。
+### F3：移除其他公开 `Flt64 typealias`
+
+目标：把剩余 `typealias *Flt64` 从主包清掉，adapter 中的兼容入口也要明确去留。
+
+范围：
+- `IntermediateSymbol.kt` 中 `Quantity*` aliases。
+- `ModelView.kt` 中 `OriginConstraint` alias。
+- `MultiObject.kt` 中 `MulObj` alias。
+- `model/intermediate` 中 `LinearCellI`、`QuadraticCellI`、`OriginLinearConstraint`、`OriginQuadraticConstraint`。
+- `model/mechanism/Constraint.kt` 中 `ConstraintFlt64`、`DualSolution`。
+- `model/callback/CallBackModelInterface.kt` 中 `CallBackModelInterface`、`MultiObjectiveModelInterface`。
+- `solver/heuristic/ParticleSwarmHeuristicSolver.kt` 中 `InitialVelocityGenerator`。
+- `math.symbol.adapter.flt64` 中 `QuadraticInequality` alias 的兼容策略。
+
+执行要求：
+- 主包中的 `Flt64` typealias 直接删除或迁入明确 legacy/adapter 包后删除。
+- 对外兼容需要保留时，必须给出迁移替代类型，并在文档中说明删除版本。
+
 验收：
-- 上述文件 public_api_blocking = 0。
+- `typealias *Flt64` 在非 adapter/legacy 主包中为 0。
+- 若最终选择 strict 全移除，则 `ospf-kotlin-math/src/main` 与 `ospf-kotlin-core/src/main` 中 `typealias .*Flt64` 总数为 0。
+- 扫描脚本不再把变量、几何 aliases 放入 `boundary_allowed`。
 
-### C4：function 第二批模板改造（逻辑与条件）
-改动文件：
-- If.kt、IfIn.kt、IfThen.kt、Imply.kt、Inequality.kt、OneOf.kt、SameAs.kt、And.kt
-改动要求：
-- 构造入口支持 LinearPolynomial<V> / LinearIntermediateSymbol<V>。
-- Flt64 重载仅做薄委托，不再作为主入口。
+### F4：拆分 `core/function` solver-boundary 接口
+
+目标：消除 44 处因接口契约产生的 `Flt64` override。
+
+范围：
+- `core/intermediate_symbol/function/FunctionSymbol.kt`
+- `Masking.kt`、`Product.kt`、`QuadraticInStepRange.kt`、`QuadraticLinear.kt`、`QuadraticMaskingRange.kt`、`QuadraticMin.kt`
+- 相关 `LinearIntermediateSymbol` / `QuadraticIntermediateSymbol` 接口。
+
+执行要求：
+- 公开 symbol 接口只保留 V-typed 方法。
+- `prepareSolver(Map<Symbol, Flt64>?)`、`evaluate(AbstractTokenList<Flt64>)`、`evaluateSolver(List<Flt64>)`、`toMathLinearInequality(): LinearInequality<Flt64>` 等迁入 internal solver-boundary 接口。
+- 调用方通过 internal adapter 访问 solver-boundary，不让用户 API 继承这些签名。
+
 验收：
-- 上述文件无 LinearPolynomial<Flt64> 主入口签名。
+- `core/function override` boundary_allowed 从 44 降到 0。
+- `core/intermediate_symbol/function public_api_blocking = 0` 保持。
+- function 相关测试通过，并新增至少 1 个非 Flt64 类型集成测试覆盖 evaluate/register 路径。
 
-### C5：function 第三批模板改造（分段/范围/统计）
-改动文件：
-- InStepRange.kt、Masking.kt、Slack.kt、SlackRange.kt、SatisfiedAmount.kt、SatisfiedAmountInequality.kt、MinMax.kt、Max.kt、First.kt、UnivariateLinearPiecewise.kt、BivariateLinearPiecewise.kt、BalanceTernaryzation.kt、Binaryzation.kt
-改动要求：
-- 统一 ToLinearPolynomial<V> 工厂方法。
-- prepare/evaluate 主链全部 V 化。
+### F5：收拢 `core/mechanism` Flt64 边界函数
+
+目标：把 mechanism 主包中剩余 12 个 `Flt64` boundary function 迁入明确边界，或改为 internal。
+
+范围：
+- `Constraint.kt`：`Map<Constraint<Flt64, *>, Flt64>.toMeta()`
+- `MathInequalityDsl.kt`：`LinearInequality<Flt64>.toQuadraticConstraint(...)`
+- `MathInequalityFlatten.kt`：`toLinearFlattenDataFlt64`、`toQuadraticFlattenDataFlt64`、`toFlattenData()`、`toFrontendPolynomial()` 等
+- `MechanismModel.kt`：`convertMechanismModelToFlt64`
+- `MetaModel.kt`：`setSolverSolution(List<Flt64>)`、`setSolverSolution(Map<..., Flt64>)`
+
+执行要求：
+- 名称带 `Flt64` 的转换函数集中到 adapter/solver-boundary 包。
+- 主包只保留 V-typed DSL、constraint 与 model API。
+- solver solution ingestion 入口若仍需 `Flt64`，必须是 internal 或 adapter API。
+
 验收：
-- core/intermediate_symbol/function public_api_blocking = 0。
+- `core/mechanism boundary_allowed` 从 12 降到 0，或仅剩 internal adapter 且不计入公开 API。
+- `MathInequalityDsl.kt` 不再提供 `Flt64` 用户 DSL。
+- mechanism 非 Flt64 类型集成测试通过。
 
-### C6：二次函数与 Product 专项
-改动文件：
-- Product.kt、QuadraticLinear.kt、QuadraticMin.kt、QuadraticMaskingRange.kt、QuadraticInStepRange.kt
-改动要求：
-- 二次函数全部采用双阶段 register。
-- 数值比较（如 range check）通过 converter，不允许 asFlt64().toDouble() 直比。
+### F6：收口 callback 兼容 API
+
+目标：移除 callback 主包中的 `Flt64` 兼容 typealias。
+
+范围：
+- `CallBackModelInterface = CallBackModelInterfaceV<Flt64>`
+- `MultiObjectiveModelInterface = MultiObjectiveModelInterfaceV<Flt64>`
+
+执行要求：
+- 调用方迁移到 `CallBackModelInterfaceV<V>` / `MultiObjectiveModelInterfaceV<V>`。
+- 如必须保留兼容入口，只能短期放入 legacy/adapter 包并标记删除计划。
+
 验收：
-- 上述文件 public_api_blocking = 0（solver adapter 方法为 boundary_allowed）。
+- `core/callback boundary_allowed` 从 2 降到 0。
+- callback 相关测试覆盖 V-typed 接口。
 
-### C7：IntermediateSymbol/Variable/Token 主链 V 化
-改动文件：
-- IntermediateSymbol.kt、Token.kt、TokenList.kt、TokenTable.kt
-- AbstractVariableItem.kt、AnyVariable.kt、VariableCombinationItem.kt、VariableIndependentItem.kt
-改动要求：
-- 公开 evaluate 与变量组合运算签名 V 化。
-- token 注册与缓存路径不暴露 Flt64 类型。
+### F7：减少并清零 `UNCHECKED_CAST`
+
+目标：清理 4 处 type-erased bridge。
+
+范围：
+- `FunctionSymbol.kt`
+- `IntermediateSymbol.kt`
+- `TokenTable.kt`
+
+执行要求：
+- 优先通过接口拆分与类型化 token 注册消除 cast。
+- 若仍需 erased bridge，只能保持 internal，且必须由脚本单独输出原因。
+
 验收：
-- 上述文件 public_api_blocking = 0。
+- 理想门禁：`Suppress(UNCHECKED_CAST) = 0`。
+- 若暂不能清零，最多保留 internal adapter cast，并在扫描结果中独立列为临时债务。
 
-### C8：mechanism 主链 V 化与桥接清理
-改动文件：
-- Constraint.kt、LinearConstraintInput.kt、MathInequalityDsl.kt、MathInequalityFlatten.kt、MetaConstraint.kt、MetaModel.kt、MechanismModel.kt
-改动要求：
-- 删除桥接语义残留，公开 DSL 与 addConstraint 主链只暴露 V。
-- flatten/conversion 放入明确 adapter 边界，不在主链泄漏 Flt64。
+### F8：更新扫描脚本为全面泛型化门禁
+
+目标：在 P13 脚本基础上新增或升级全面泛型化扫描口径。
+
+建议文件：
+- `scripts/scan-full-genericization.ps1`
+- `scripts/scan-full-genericization-result.json`
+
+验收字段：
+- `import_as`
+- `suppress_unchecked_cast`
+- `typealias_flt64_total`
+- `typealias_flt64_non_adapter`
+- `geometry_typealias_flt64`
+- `variable_typealias_flt64`
+- `math_symbol_non_adapter_flt64`
+- `core_function_flt64_override`
+- `core_callback_flt64`
+- `core_mechanism_flt64`
+- `core_solver_public_flt64`
+
 验收：
-- model/mechanism public_api_blocking = 0（normalize() 已迁移至 adapter/flt64，isTrue(tokenList) 已改为 internal）。
-- MathInequalityDsl.kt 无桥接型 API。
+- 脚本能稳定复现本文件指标。
+- 不再把变量、几何 convenience aliases 作为 stable 白名单。
 
-### C9：callback 主链 V 化
-改动文件：
-- model/callback/CallBackModelInterface.kt、model/callback/CallBackModel.kt
-- model/basic/ModelView.kt、model/basic/MultiObject.kt
-改动要求：
-- callback 抽象接口、回调输入/输出类型全部改为 V。
-- 禁止在泛型接口里依赖 V.companion 默认值。
+### F9：文档、迁移说明与示例同步
+
+目标：让用户侧迁移路径明确，避免删除 typealias 后下游无从替换。
+
+范围：
+- `README.md`
+- `README_ch.md`
+- 示例代码中的 `Flt64` convenience alias 用法。
+- 如维护 changelog，则增加 breaking change 说明。
+
 验收：
-- core/model/callback public_api_blocking = 0。
+- 中英文 README 互相链接保持有效。
+- 文档中所有旧 alias 均给出 V-typed 替代写法。
+- example 模块中 P13 前预存编译错误要么修复，要么明确排除在 math/core 验收之外。
 
-### C10：solver 主链 V 化（策略数值层例外）
-改动文件：
-- solver/output/SolverOutput.kt、solver/value/IntoValue.kt、solver/value/SolveValueConversionContext.kt、solver/value/SolveValueValidation.kt、solver/Gap.kt
-- solver/heuristic/Normalization.kt、solver/heuristic/Selection.kt、solver/heuristic/ParticleSwarmHeuristicSolver.kt
-改动要求：
-- solver 对外主接口改为 V；Flt64 仅保留在外部求解器适配边界。
-- heuristic 仅“策略数值参数”可保留 Flt64，并在代码注释中标注 PolicyNumericException。
-验收：
-- core/solver 非策略数值签名 Flt64 命中为 0。
-- 所有策略层 Flt64 命中均在白名单文件与字段。
+## 7. 全面泛型化验收标准
 
-### C11：math.symbol 收口
-改动文件：
-- inequality/QuadraticInequality.kt（移除 typealias QuadraticInequality = QuadraticInequalityOf<Flt64> 或迁移到 adapter）
-- adapter/flt64/*（仅调整可见性与文档，不改语义）
-改动要求：
-- 非 adapter 公开 API 不出现 Flt64。
-验收：
-- math.symbol 非 adapter/flt64 公开签名 Flt64 = 0。
-- typealias *Flt64 public_api_blocking = 0（boundary_allowed 跟踪白名单路径）。
+### 7.1 扫描硬门禁
 
-### C12：全仓验收与交接文档回填
-改动：
-- 执行 compile/test/scan 门禁；将结果回填本文件“执行结果”章节。
-验收：
-- 见第 6 节全部硬门禁通过。
+全面泛型化最终门禁：
 
-## 5. 详细执行计划（操作步骤）
+- `import as = 0`
+- `Suppress(UNCHECKED_CAST) = 0`
+- `math/symbol 非 adapter Flt64 = 0`
+- `core/function Flt64 override = 0`
+- `core/callback Flt64 = 0`
+- `core/mechanism Flt64 = 0`
+- `geometry typealias *Flt64 = 0`
+- `variable typealias *Flt64 = 0`
+- `typealias *Flt64` 在非 adapter/legacy 主包中为 0
 
-1. 先完成 C1，冻结扫描口径，避免多会话口径漂移。
-2. 按 C2-C6 先打通 function 体系（这是当前最大阻塞点）。
-3. 再做 C7-C8，统一变量/token/mechanism 主链到 V。
-4. 接着完成 C9-C10，确保 callback/solver 主链 V 化，同时保留策略数值层例外。
-5. 最后做 C11-C12，清除 math.symbol 非 adapter 残留并完成验收回填。
-6. 每个提交完成后都必须更新 scripts/scan-p13-mainchain-result.json，并在本文件追加“提交号 -> 计数变化”。
+允许项必须显式列入 adapter/legacy：
+- 外部 solver SDK 要求的 `Flt64` 转换。
+- `math.symbol.adapter.flt64` 中临时兼容入口。
+- 已标记删除版本的 legacy API。
 
-## 6. 验收标准（硬门禁）
+### 7.2 构建与测试门禁
 
-### 6.1 扫描门禁（两层制）
+- `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile` 必须通过。
+- `mvn -pl ospf-kotlin-core -am test` 必须通过，不再允许 143/145 豁免。
+- `ospf-kotlin-math` 测试必须全绿。
+- 至少新增 3 组非 Flt64 类型覆盖：
+  - function evaluate/register 路径。
+  - mechanism addConstraint/flatten/register 路径。
+  - callback 或 solver-output conversion 路径。
 
-扫描脚本：`scripts/scan-p13-mainchain.ps1`（v3+，2026-05-07 修正）
+### 7.3 API 验收
 
-**public_api_blocking（必须为 0）**：
-- import as = 0
-- typealias *Flt64（排除白名单路径后）= 0
-- math/symbol 非 adapter/flt64 公开签名 Flt64 = 0
-- core/function 公开签名 Flt64（排除 private IntoValue<Flt64> 块和接口契约 override）= 0
-- core/callback 公开签名 Flt64（排除 IntoValue 方法和 callback typealias 白名单）= 0
-- core/mechanism 公开签名 Flt64（排除白名单规则后）= 0
+- 用户可用 V-typed API 完成变量声明、表达式构造、约束添加、模型构建、求解结果读取。
+- 删除的 `Flt64 convenience typealias` 均有替代写法。
+- adapter/legacy 包中的 `Flt64` API 不会被主包 wildcard import 隐式带入。
 
-**boundary_allowed（跟踪，不阻塞）**：
-- Suppress(UNCHECKED_CAST) ≤ 4（solver-boundary bridge，接口默认方法 + TokenTable 桥接）
-- typealias *Flt64 白名单路径（geometry、adapter/flt64、variable、IntermediateSymbol.kt、MultiObject.kt、ModelView.kt、model/intermediate、Constraint.kt、solver/heuristic、heuristic plugin、framework）
-- function override 白名单（7 文件 × 5 方法 = 44 处，接口契约 override）
-- callback typealias（CallBackModelInterface、MultiObjectiveModelInterface，需迁移标记）
-- mechanism 白名单（toMeta、convertMechanismModelToFlt64、setSolverSolution、flatten adapter、toQuadraticConstraint）
+## 8. 下一会话建议顺序
 
-**白名单哲学**：
-- solver-boundary 转换函数（名称含 Flt64）：可白名单
-- 接口契约 override（固定文件+方法）：可白名单，标注 MEDIUM 债务
-- 便利 typealias（ConstraintFlt64、DualSolution 等）：谨慎白名单，标注 MIGRATE 债务
-- 用户 DSL（LinearConstraintInput.isTrue、MathInequalityDsl.normalize）：不可白名单，必须 V 化或迁移
+1. 先做 F1，让 core test 从 143/145 变为 145/145。
+2. 做 F8，先把全面泛型化扫描脚本固化，避免继续靠人工判断。
+3. 做 F2 + F3，移除变量、几何及其他 `Flt64 typealias`。
+4. 做 F4，拆分 function solver-boundary 接口，清掉 44 个 override。
+5. 做 F5 + F6，迁移 mechanism/callback 边界。
+6. 做 F7，清理 `UNCHECKED_CAST`。
+7. 最后跑全量扫描、compile、test，并回填本文件执行记录。
 
-### 6.2 构建与测试门禁
+## 9. 执行记录
 
-- mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile 必须通过。
-- mvn -pl ospf-kotlin-core -am test 必须通过（允许历史已知失败仅在未新增时保持不扩散，并在报告中点名）。
-- 当前已知历史失败（2 个，非 P13 新增）：
-  - `SolveOptionsTest.solveOptionsShouldUseAllowRoundingAsEffectiveDefaultPolicy` — expected `<AllowRounding>` but was `<Strict>`
-  - `SolveValueConversionContextTest.conversionPolicyShouldRestoreAfterScopeExit` — `Strict conversion rejected NaN at outer`
-- 对 function、mechanism、callback 至少新增 1 组非 Flt64 类型集成测试（如 Rational/Decimal 类型）。
+| 阶段 | 范围 | 状态 | 扫描 | 编译 | 测试 | 备注 |
+|---|---|---|---|---|---|---|
+| P13 | 主链泛型化 | done | PASS | PASS | math 711/711；core 143/145 | core 剩余 2 个历史 solver conversion/policy 失败 |
+| F1 | core solver 历史测试 | done | PASS | PASS | core 145/145 | SolveOptions + SolveValueConversionContext 修复 |
+| F8 | 全面泛型化扫描脚本 | done | PASS | PASS | - | scan-full-genericization.ps1 v2, 两层门禁 |
+| F2 | 变量/几何 typealias 移除 | done | PASS | PASS | - | geometry + variable typealias 已移除 |
+| F3 | 其他 Flt64 typealias 移除 | partial | PASS | PASS | - | Cos/Sin defaultPoints 修复; Cell converter 非空化; MetaModel import 修复; Constraint converter 传播 |
+| F4 | function 接口拆分 | planned |  |  |  | 详见第10节；目标 core/function override 44 -> 0 |
+| F5 | mechanism 边界迁移 | pending |  |  |  | 目标 core/mechanism boundary 22 -> 0 |
+| F6 | callback 兼容 API 收口 | pending |  |  |  | 目标 core/callback boundary 5 -> 0 |
+| F7 | UNCHECKED_CAST 清理 | pending |  |  |  | 目标 4 -> 0 |
+| F9 | 文档与示例同步 | pending |  |  |  | README 中英文互链保持 |
 
-## 7. 交接执行记录（由下个会话回填）
+## 10. F4 详细实施计划：拆分 function solver-boundary 接口
 
-| 提交 | 范围 | 扫描变化 | 编译 | 测试 | 备注 |
-|---|---|---|---|---|---|
-| C1 | 基线脚本 | done | ok |  |  |
-| C2 | register 双阶段 | done | ok |  |  |
-| C3 | function 批次1 | done | ok |  | 已V-typed，无需额外改动 |
-| C4 | function 批次2 | done | ok |  | 已V-typed，无需额外改动 |
-| C5 | function 批次3 | done | ok |  | 已V-typed，epsilon等Flt64参数待后续清理 |
-| C6 | 二次函数/Product | done | ok |  | addQuadraticConstraints桥接，5文件改用桥接；Inequality.kt/SymbolQuantityOps.kt Map→MapValueProvider |
-| C7 | symbol/variable/token | done | ok |  | UNCHECKED_CAST集中到接口默认方法（4处）；registerAuxiliaryTokensAny/registerConstraintsAny桥接；TokenTable.kt prepareUnchecked桥接 |
-| C8 | mechanism | done | ok |  | MetaConstraintGroup扩展函数V-typed（8个函数）；剩余574 Flt64为solver-boundary内部（dual solution/constraint evaluation/flatten data） |
-| C9 | callback | done | ok |  | 接口已V-generic（CallBackModelInterfaceV/MultiObjectiveModelInterfaceV）；Flt64 typealiases为便利别名；内部converter使用Flt64为solver-boundary |
-| C10 | solver/heuristic | done | ok |  | Flt64均为solver边界输出（bestBound/mipGap/gap）与策略数值参数（IntoValue/heuristic）；无需V化 |
-| C11 | math.symbol 收口 | done | ok |  | QuadraticInequality typealias迁移到adapter/flt64/Inequality.kt；28文件import更新；非adapter typealias *Flt64=0 |
-| C12 | 全仓验收 | done | ok | 143/145 | import_as=0；UNCHECKED_CAST=4；math/symbol非adapter Flt64=0；core/function公开签名Flt64=0；扫描+编译门禁通过；core测试143/145（2个已知solver conversion历史失败，非P13新增） |
+### 10.1 目标
 
-## 8. 会话交接状态（2026-05-07 修正）
+将 `core_function_override` 扫描计数从 44 降至 0。
 
-### 8.1 P13 状态总结
+扫描脚本匹配规则：在 7 个 function 文件中搜索 `override\s+fun\s+(\w+)`，匹配 5 个方法名（prepareSolver, evaluate, evaluateSolver, toMathLinearInequality, toMathQuadraticInequality）。这些方法存在于公开接口 `IntermediateSymbol<V>`、`LinearIntermediateSymbol<V>`、`QuadraticIntermediateSymbol<V>` 中，因此所有实现类必须使用 `override`。
 
-P13 C1-C12 代码改动已完成，但验收口径存在偏差。2026-05-07 重新扫描发现：
-- 扫描脚本 `$_.RelativePath` bug 导致路径分类全部失效
-- 测试文件 `evaluate(Map<Symbol,Flt64>)` 调用失败（新 API 仅接受 `ValueProvider`）
-- 3 个扫描脚本 bug（`$_` → `$m`、hashtable 语法、mechanism 双计）
+**核心策略**：从公开接口中移除 Flt64 solver-boundary 方法 → 实现类不再需要 `override` → 扫描计数归零。
 
-修正后，主链 V 化全部完成，验收口径已修正。扫描与编译门禁通过；core 测试 143/145，2 个已知 solver conversion/policy 历史失败非 P13 新增，需作为独立遗留项跟踪。
+### 10.2 涉及文件
 
-| 提交 | 范围 | 状态 | 关键改动 |
-|---|---|---|---|
-| C1 | 基线脚本 | done | scan-p13-mainchain.ps1（v3+ 修正版）+ result.json |
-| C2 | register 双阶段 | done | MathFunctionSymbolBase V-typed |
-| C3-C5 | function 批次 1-3 | done | 已 V-typed |
-| C6 | 二次函数/Product | done | 桥接 + MapValueProvider 修正 |
-| C7 | symbol/variable/token | done | UNCHECKED_CAST 集中到 4 处 |
-| C8 | mechanism | done | normalize()→adapter/flt64，isTrue(tokenList)→internal；public_api_blocking=0 |
-| C9 | callback | done | Flt64 typealiases 为 boundary_allowed |
-| C10 | solver/heuristic | done | 策略数值参数保留 Flt64 |
-| C11 | math.symbol 收口 | done | 非 adapter typealias = 0 |
-| C12 | 全仓验收 | done | public_api_blocking 全部 = 0；扫描+编译门禁通过；core 测试 143/145（2 个已知历史失败非 P13 新增） |
-
-### 8.2 修正后扫描指标（2026-05-07 v3+ 脚本）
-
-| 指标 | raw | public_api_blocking | boundary_allowed | 说明 |
-|---|---:|---:|---:|---|
-| import as | 0 | 0 | - | 硬门禁通过 |
-| Suppress(UNCHECKED_CAST) | 4 | - | 4 | solver-boundary bridge |
-| typealias *Flt64 | 77 | 0 | 70 | 白名单路径匹配 |
-| math/symbol 非 adapter | 0 | 0 | - | 硬门禁通过 |
-| core/function | 110 | 0 | 44 | 44 = interface contract override |
-| core/callback | 4 | 0 | 2 | 2 = CallBackModelInterface typealias |
-| core/mechanism | 20 | 0 | 12 | normalize()→adapter/flt64，isTrue→internal |
-
-### 8.3 mechanism blocking 已收口（2026-05-07）
-
-| 文件 | 函数 | 处理方式 |
-|---|---|---|
-| LinearConstraintInput.kt:123 | `fun isTrue(tokenList: AbstractTokenList<Flt64>, ...)` | 改为 `internal fun`，无外部调用者 |
-| MathInequalityDsl.kt:31 | `fun LinearInequality<Flt64>.normalize()` | 迁移至 adapter/flt64/Normalize.kt，MathInequalityDsl.kt 改为 import |
-
-### 8.4 UNCHECKED_CAST 位置清单（4 处）
-
-| 文件 | 位置 | 用途 |
-|---|---|---|
-| FunctionSymbol.kt:54 | MathFunctionSymbolBase.registerConstraintsAny | type-erased bridge: Any? → AbstractLinearMechanismModel<V> |
-| FunctionSymbol.kt:92 | QuadraticMathFunctionSymbolBase.registerConstraintsAny | type-erased bridge: Any? → AbstractQuadraticMechanismModel<V> |
-| IntermediateSymbol.kt:117 | IntermediateSymbol.registerAuxiliaryTokensAny | type-erased bridge: Any? → AddableTokenCollection<V> |
-| TokenTable.kt:46 | prepareUnchecked 私有桥接函数 | star-projected IntermediateSymbol<*> → IntermediateSymbol<Flt64> |
-
-### 8.5 关键架构决策
-
-1. **solver-boundary bridge 模式**：接口定义 `*Any(Any?)` 默认方法，内部 `@Suppress("UNCHECKED_CAST")` 转型。调用方无需 suppression。
-2. **converter.one / converter.zero**：V-typed 代码中替代 Flt64.one / Flt64.zero 的标准模式。
-3. **QuadraticInequality typealias**：从 `inequality/` 迁移到 `adapter/flt64/Inequality.kt`，作为 Flt64 adapter 边界的一部分。
-4. **MetaConstraintGroup V-typing**：扩展函数接收器从 `MetaModel<Flt64>` 改为 `MetaModel<V>`，where 子句包含 `V : Ring<V>`。
-5. **MathFunctionSymbol<V> 单类型参数**：从双参数 `MathFunctionSymbol<V, F>` 简化为单参数。
-
-### 8.6 遗留项（非 P13 范围）
-
-| 项目 | 说明 |
+| 文件 | 修改内容 |
 |---|---|
-| core 测试 2 个历史失败 | `SolveOptionsTest.solveOptionsShouldUseAllowRoundingAsEffectiveDefaultPolicy`（expected AllowRounding but was Strict）；`SolveValueConversionContextTest.conversionPolicyShouldRestoreAfterScopeExit`（Strict conversion rejected NaN）。非 P13 新增，需独立修复 |
-| example 模块编译错误 | Demo13/14/15/17 类型不匹配，为 P13 之前预存问题 |
-| core/typealias *Flt64 | 大量便利别名（RealVariableView、CallBackModelInterface 等），为 solver-boundary 设计，不在 P13 范围 |
-| operation/ 空桩文件 | 6 个空桩文件待后续清理或合并 |
-| MathInequalityDsl.kt Flt64 DSL | leq/geq/neq 等 Flt64-specific 便捷函数，可后续迁移到 adapter |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/IntermediateSymbol.kt` | 主接口变更 + LinearExpressionSymbol/QuadraticExpressionSymbol 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/FunctionSymbol.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/Masking.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/Product.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticInStepRange.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticLinear.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticMaskingRange.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticMin.kt` | 移除 override |
+| `ospf-kotlin-core/src/main/.../model/basic/Model.kt` | 更新 flattenedMonomials 调用方 |
+| `ospf-kotlin-core/src/main/.../token/TokenTable.kt` | 更新 flattenedMonomials 调用方 |
+
+### 10.3 实施步骤
+
+#### Step 1：从 `IntermediateSymbol<V>` 接口移除 solver-boundary 方法
+
+**移除**（从接口中删除）：
+- `prepareSolver(values: Map<Symbol, Flt64>?, ...)` — abstract
+- `prepareSolverAndCache(...)` — default（死代码，从未在 IntermediateSymbol.kt 外被调用）
+- `evaluateSolver(results: List<Flt64>, ...)` — abstract
+- `evaluateSolver(values: Map<Symbol, Flt64>, ...)` — abstract
+- `evaluate(tokenList: AbstractTokenList<Flt64>, ...)` — abstract（3 个重载）
+
+**改为 abstract**（原来是 default 委托到 Flt64 方法，现在 Flt64 方法移除后必须由子类直接实现）：
+- `prepare(values: Map<Symbol, V>?, ...)` — 原 default 委托到 prepareSolver → 改为 abstract
+- `evaluate(results: List<V>, ...)` — 原 default 委托到 evaluateSolver → 改为 abstract
+- `evaluate(values: Map<Symbol, V>, ...)` — 原 default 委托到 evaluateSolver → 改为 abstract
+
+**保留**（V-typed 主链方法）：
+- `evaluate(tokenTable: AbstractTokenTable<V>, ...)` — 已是 abstract
+- `prepare(values: Map<Symbol, V>?, ...)` — 改为 abstract
+- `evaluateFromTokens(...)` — default 委托到 evaluate(tokenTable)，保留
+
+**注意**：`prepareAndCache` 也改为 abstract（原 default 委托到 prepare，现在 prepare 是 abstract 所以 default 无意义）。
+
+#### Step 2：从 `LinearIntermediateSymbol<V>` 接口移除 solver-boundary 成员
+
+**移除**：
+- `flattenedMonomials: LinearFlattenData<Flt64>` — abstract val（注意：是 `override val` 不被扫描计数，但需从接口移除以解耦）
+- `flattenedMonomialsAsV: LinearFlattenData<V>` — default（只是 flattenedMonomials 的 cast）
+- `toMathLinearInequality()` — default
+- `toMathQuadraticInequality()` — default
+
+#### Step 3：从 `QuadraticIntermediateSymbol<V>` 接口移除 solver-boundary 成员
+
+**移除**：
+- `flattenedMonomials: QuadraticFlattenData<Flt64>` — abstract val
+- `flattenedMonomialsAsV: QuadraticFlattenData<V>` — default
+- `toMathQuadraticInequality()` — default
+
+#### Step 4：更新 `LinearExpressionSymbol` 和 `QuadraticExpressionSymbol`
+
+这两个类已有所有被移除方法的具体实现。只需：
+- 移除每个方法上的 `override` 关键字，方法变为普通类方法
+- `flattenedMonomials` 从 `override val` 变为普通 `val`
+- `flattenedMonomialsAsV` 从 `override val` 变为普通 `val`
+- `prepareSolver`、`evaluateSolver`、`evaluate(tokenList)` 等从 `override fun` 变为普通 `fun`
+- `toMathLinearInequality`、`toMathQuadraticInequality` 从 `override fun` 变为普通 `fun`
+
+#### Step 5：更新 7 个 function 文件 — 移除 `override` 关键字
+
+在以下文件中，移除 Flt64-typed 方法上的 `override`：
+- `FunctionSymbol.kt`（LinearFunctionSymbolAdapter）
+- `Masking.kt`（MaskingWithPolyMaskFunction）
+- `Product.kt`（ProductFunction）
+- `QuadraticInStepRange.kt`（QuadraticInStepRangeFunction）
+- `QuadraticLinear.kt`（QuadraticLinearFunction）
+- `QuadraticMaskingRange.kt`（QuadraticMaskingRangeFunction）
+- `QuadraticMin.kt`（QuadraticMinFunction）
+
+这些类实现 `LinearIntermediateSymbol<V>` 或 `QuadraticIntermediateSymbol<V>`，接口方法移除后不再需要 `override`。
+
+#### Step 6：更新被移除接口方法的调用方
+
+1. **`evaluateSymbol` 辅助方法**（LinearExpressionSymbol/QuadraticExpressionSymbol 内部）— 调用 `symbol.evaluate(tokenList, zeroIfNone)` 在 `LinearIntermediateSymbol<*>`/`QuadraticIntermediateSymbol<*>` 上。接口移除后这些方法不再可用。**方案**：运行时所有实例都是 `LinearExpressionSymbol<Flt64>` 或 `QuadraticExpressionSymbol<Flt64>`，可直接 cast 到具体类型调用。
+
+2. **`evaluateWithCachedTokenTable` 私有辅助方法** — 调用 `evaluateSolver` 在 `IntermediateSymbol<V>` 上。接口移除后需改为调用 V-typed `evaluate`（仍在接口上）。
+
+3. **`Model.kt`** — 调用 `symbol.flattenedMonomials` 在 `LinearIntermediateSymbol<*>`/`QuadraticIntermediateSymbol<*>` 上。接口移除后需 cast 到具体类型。
+
+4. **`TokenTable.kt`** — 调用 `symbol.flattenedMonomials` 和 `LinearExpressionSymbol.flattenedMonomials`。接口移除后 `flattenedMonomials` 只在具体类上，TokenTable 需类型检查。
+
+#### Step 7：添加 internal 扩展函数保持内部兼容
+
+```kotlin
+internal val LinearIntermediateSymbol<*>.solverFlattenedMonomials: LinearFlattenData<Flt64>
+    get() = (this as LinearExpressionSymbol<*>).flattenedMonomials
+
+internal val QuadraticIntermediateSymbol<*>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
+    get() = (this as QuadraticExpressionSymbol<*>).flattenedMonomials
+```
+
+这些是 internal，不污染公开 API。Model.kt 和 TokenTable.kt 通过这些扩展访问 `flattenedMonomials`。
+
+#### Step 8：验证
+
+1. `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile` — 必须通过
+2. `mvn -pl ospf-kotlin-core -am test` — 必须通过（145/145）
+3. 运行扫描脚本 — `core_function_override` 应为 0
+4. `public_api_blocking` 全部为 0
+
+### 10.4 关键注意事项
+
+- `flattenedMonomials` 是 `override val` 不是 `override fun`，扫描脚本不计数，但必须从接口移除以完成解耦。
+- `prepareAndCache` 和 `prepareSolverAndCache` 是死代码，`prepareSolverAndCache` 直接删除，`prepareAndCache` 改为 abstract。
+- 运行时所有 `LinearIntermediateSymbol<*>` 实例实际都是 `LinearExpressionSymbol<Flt64>`，所以 cast 到具体类型是安全的。
+- `evaluateWithCachedTokenTable` 中调用 `evaluateSolver` 的地方需改为调用 V-typed `evaluate`，或改为 cast 后调用具体类方法。

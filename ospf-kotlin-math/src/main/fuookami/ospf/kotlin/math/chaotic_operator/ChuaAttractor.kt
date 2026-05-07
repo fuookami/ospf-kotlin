@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -59,12 +58,12 @@ data class ChuaAttractor<V : FloatingNumber<V>>(
 
 data class ChuaAttractorGenerator(
     val chuaAttractor: ChuaAttractor<Flt64> = ChuaAttractor(),
-    private var _x: Point3 = point3(
+    private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point3> {
+) : Generator<Point<Dim3, Flt64>> {
     companion object {
         operator fun invoke(
             alpha: Flt64 = Flt64(15.6),
@@ -73,7 +72,7 @@ data class ChuaAttractorGenerator(
             epsilon: Flt64 = Flt64(0.0),
             zeta: Flt64 = Flt64(25.58),
             h: Flt64 = Flt64(0.01),
-            x: Point3 = point3(
+            x: Point<Dim3, Flt64> = point3(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -88,7 +87,7 @@ data class ChuaAttractorGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point3 {
+    override operator fun invoke(): Point<Dim3, Flt64> {
         val x = _x.copy()
         _x = chuaAttractor(x)
         return _x

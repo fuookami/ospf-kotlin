@@ -12,7 +12,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -412,7 +411,7 @@ class MultiObjectCallBackModel<V> internal constructor(
     override val objectiveLocation: List<MultiObjectLocation>,
     override val tokens: AbstractMutableTokenTable<V> = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution<V>>, String>> = ArrayList(),
-    private val _objectiveFunctions: MutableList<Pair<Extractor<MulObj?, Solution<V>>, String>> = ArrayList(),
+    private val _objectiveFunctions: MutableList<Pair<Extractor<List<Pair<MultiObjectLocation, Flt64>>?, Solution<V>>, String>> = ArrayList(),
     private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
     private val _converter: IntoValue<V>
 ) : MultiObjectiveModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
@@ -472,7 +471,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         }
     }
 
-    override fun objectiveValue(obj: MulObj): List<V> {
+    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<V> {
         val value = MutableList(objectiveSize) { _converter.zero }
         for ((location, objective) in obj) {
             val index = priorityToIndex[location.priority] ?: continue

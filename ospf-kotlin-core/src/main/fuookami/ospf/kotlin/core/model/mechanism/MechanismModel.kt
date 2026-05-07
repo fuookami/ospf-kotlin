@@ -356,7 +356,8 @@ class LinearMechanismModel<V>(
                     constraints = metaModel._relationConstraints.map {
                         LinearConstraintImpl(
                             relation = LinearRelationImpl(it.inequality.flattenData, it.inequality.comparison),
-                            tokens = tokens
+                            tokens = tokens,
+                            converter = metaModel.converter
                         )
                     }.toMutableList(),
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
@@ -423,7 +424,8 @@ class LinearMechanismModel<V>(
                 createConstraint = {
                     LinearConstraintImpl(
                         relation = LinearRelationImpl(it.inequality.flattenData, it.inequality.comparison),
-                        tokens = tokens
+                        tokens = tokens,
+                        converter = metaModel.converter
                     )
                 },
                 createSubObject = {
@@ -510,6 +512,7 @@ class LinearMechanismModel<V>(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
+                converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -795,7 +798,8 @@ class QuadraticMechanismModel<V>(
                     constraints = metaModel._relationConstraints.map {
                         QuadraticConstraintImpl(
                             relation = QuadraticRelationImpl(it.inequality.flattenData, it.inequality.comparison),
-                            tokens = tokens
+                            tokens = tokens,
+                            converter = metaModel.converter
                         )
                     }.toMutableList(),
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
@@ -865,7 +869,8 @@ class QuadraticMechanismModel<V>(
                 createConstraint = {
                     QuadraticConstraintImpl(
                         relation = QuadraticRelationImpl(it.inequality.flattenData, it.inequality.comparison),
-                        tokens = tokens
+                        tokens = tokens,
+                        converter = metaModel.converter
                     )
                 },
                 createSubObject = {
@@ -960,6 +965,7 @@ class QuadraticMechanismModel<V>(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(qFlattenData, relation.comparison),
                 tokens = tokens,
+                converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from
@@ -978,6 +984,7 @@ class QuadraticMechanismModel<V>(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(flattenData, relation.comparison),
                 tokens = tokens,
+                converter = parent.converter,
                 lazy = false,
                 name = name.orEmpty(),
                 from = from

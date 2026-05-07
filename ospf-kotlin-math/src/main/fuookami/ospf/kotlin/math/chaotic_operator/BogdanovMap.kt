@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -58,17 +57,17 @@ data class BogdanovMap<V : FloatingNumber<V>>(
  */
 data class BogdanovMapGenerator(
     val bogdanovMap: BogdanovMap<Flt64> = BogdanovMap(),
-    private var _x: Point2 = point2(
+    private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point2> {
+) : Generator<Point<Dim2, Flt64>> {
     companion object {
         operator fun invoke(
             epsilon: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             kappa: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
             mu: Flt64 = Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
-            x: Point2 = point2(
+            x: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
@@ -86,7 +85,7 @@ data class BogdanovMapGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point2 {
+    override operator fun invoke(): Point<Dim2, Flt64> {
         val x = _x.copy()
         _x = bogdanovMap(x)
         return x

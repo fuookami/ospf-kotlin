@@ -24,7 +24,6 @@ interface LinearCell<V : RealNumber<V>> : Cell<V> {
     val token: Token<V>
 }
 
-typealias LinearCellI = LinearCell<Flt64>
 
 interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val coefficient: V
@@ -32,15 +31,14 @@ interface QuadraticCell<V : RealNumber<V>> : Cell<V> {
     val token2: Token<V>?
 }
 
-typealias QuadraticCellI = QuadraticCell<Flt64>
 
 class LinearCellImpl<V>(
     private val tokenTable: AbstractTokenTable<V>,
     private val _coefficientFlt64: Flt64,
     override val token: Token<V>,
-    private val converter: IntoValue<V>? = null
+    private val converter: IntoValue<V>
 ) : LinearCell<V> where V : RealNumber<V>, V : NumberField<V> {
-    override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientFlt64) else _coefficientFlt64 as V
+    override val coefficient: V get() = converter.intoValue(_coefficientFlt64)
 
     override fun evaluate(): V? {
         return token.result?.let { coefficient * it }
@@ -71,9 +69,9 @@ class QuadraticCellImpl<V>(
     private val _coefficientFlt64: Flt64,
     override val token1: Token<V>,
     override val token2: Token<V>? = null,
-    private val converter: IntoValue<V>? = null
+    private val converter: IntoValue<V>
 ) : QuadraticCell<V> where V : RealNumber<V>, V : NumberField<V> {
-    override val coefficient: V get() = if (converter != null) converter.intoValue(_coefficientFlt64) else _coefficientFlt64 as V
+    override val coefficient: V get() = converter.intoValue(_coefficientFlt64)
 
     override fun evaluate(): V? {
         return if (token2 == null) {

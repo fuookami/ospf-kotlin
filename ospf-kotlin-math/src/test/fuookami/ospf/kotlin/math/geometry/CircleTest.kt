@@ -22,7 +22,7 @@ class CircleTest {
     @Test
     fun testCircleCreation() {
         val center = point2(Flt64(1.0), Flt64(2.0))
-        val circle = Circle2(center, vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(center, vector2(Flt64(5.0), Flt64.zero))
 
         assertTrue(circle.center partialEq center)
         assertTrue((circle.radius - Flt64(5.0)).abs() ls Flt64(1e-10))
@@ -34,7 +34,7 @@ class CircleTest {
 
     @Test
     fun testCircleArea() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 面积 = π * r² = π * 9
         val expectedArea = PI * 9.0
@@ -43,7 +43,7 @@ class CircleTest {
 
     @Test
     fun testCircleAreaUnit() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64.one, Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64.one, Flt64.zero))
 
         // 单位圆面积 = π
         assertTrue((circle.area - Flt64(PI)).abs() ls Flt64(1e-10))
@@ -55,7 +55,7 @@ class CircleTest {
 
     @Test
     fun testCircleCircumference() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 周长 = 2 * π * r = 2 * π * 3 = 6π
         val expectedCircumference = 2.0 * PI * 3.0
@@ -68,7 +68,7 @@ class CircleTest {
 
     @Test
     fun testCircleDiameter() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         assertTrue((circle.diameter - Flt64(6.0)).abs() ls Flt64(1e-10))
     }
@@ -80,7 +80,7 @@ class CircleTest {
     @Test
     fun testCircleContainsPointCenter() {
         val center = point2(Flt64.zero, Flt64.zero)
-        val circle = Circle2(center, vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(center, vector2(Flt64(5.0), Flt64.zero))
 
         // 圆心在圆内 / Center is inside
         assertTrue(circle containsPoint center)
@@ -88,7 +88,7 @@ class CircleTest {
 
     @Test
     fun testCircleContainsPointOnBoundary() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 圆上的点 / Point on boundary
         assertTrue(circle containsPoint point2(Flt64(5.0), Flt64.zero))
@@ -97,7 +97,7 @@ class CircleTest {
 
     @Test
     fun testCircleContainsPointOutside() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 圆外的点 / Point outside
         assertFalse(circle containsPoint point2(Flt64(6.0), Flt64.zero))
@@ -106,7 +106,7 @@ class CircleTest {
 
     @Test
     fun testCircleContainsPointStrict() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 边界点不在严格内部 / Boundary not strictly inside
         assertFalse(circle containsPointStrict point2(Flt64(5.0), Flt64.zero))
@@ -120,8 +120,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectsTrue() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(5.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(5.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 相交（圆心距 5，半径和 6）/ Intersect
         assertTrue(c1 intersects c2)
@@ -129,8 +129,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectsFalse() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c3 = Circle2(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c3 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 相离（圆心距 10，半径和 6）/ Separate
         assertFalse(c1 intersects c3)
@@ -138,8 +138,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectsTangent() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 外切（圆心距 6，半径和 6）/ External tangent
         assertTrue(c1 intersects c2)
@@ -151,8 +151,8 @@ class CircleTest {
 
     @Test
     fun testCircleContainsCircleTrue() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(10.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(2.0), Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(10.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(2.0), Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // c2 在 c1 内 / c2 inside c1
         assertTrue(c1 containsCircle c2)
@@ -160,8 +160,8 @@ class CircleTest {
 
     @Test
     fun testCircleContainsCircleFalse() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // c2 不在 c1 内 / c2 not inside c1
         assertFalse(c1 containsCircle c2)
@@ -170,8 +170,8 @@ class CircleTest {
     @Test
     fun testCircleContainsCircleConcentric() {
         // 同心圆 / Concentric circles
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(10.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(10.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         assertTrue(c1 containsCircle c2)
         assertFalse(c2 containsCircle c1)
@@ -183,8 +183,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectionPointsTwo() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(4.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(4.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 两个交点 / Two intersections
         val points = c1 intersectionPoints c2
@@ -201,8 +201,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectionPointsNone() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 无交点 / No intersection
         val points = c1 intersectionPoints c2
@@ -211,8 +211,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectionPointsTangent() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 外切，一个交点 / External tangent, one intersection
         val points = c1 intersectionPoints c2
@@ -224,8 +224,8 @@ class CircleTest {
 
     @Test
     fun testCircleIntersectionPointsSameCircle() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 同一个圆，无交点 / Same circle, no intersection points
         val points = c1 intersectionPoints c2
@@ -238,7 +238,7 @@ class CircleTest {
 
     @Test
     fun testSphereVolume() {
-        val sphere = Sphere3(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(3.0), Flt64.zero, Flt64.zero))
+        val sphere = Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(3.0), Flt64.zero, Flt64.zero))
 
         // 体积 = (4/3) * π * r³ = (4/3) * π * 27
         val expectedVolume = (4.0 / 3.0) * PI * 27.0
@@ -247,7 +247,7 @@ class CircleTest {
 
     @Test
     fun testSphereSurfaceArea() {
-        val sphere = Sphere3(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(3.0), Flt64.zero, Flt64.zero))
+        val sphere = Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(3.0), Flt64.zero, Flt64.zero))
 
         // 表面积 = 4 * π * r² = 4 * π * 9
         val expectedArea = 4.0 * PI * 9.0
@@ -256,7 +256,7 @@ class CircleTest {
 
     @Test
     fun testSphereContainsPoint() {
-        val sphere = Sphere3(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(5.0), Flt64.zero, Flt64.zero))
+        val sphere = Circle<Point<Dim3, Flt64>, Vector<Dim3, Flt64>, Dim3, Flt64>(point3(Flt64.zero, Flt64.zero, Flt64.zero), vector3(Flt64(5.0), Flt64.zero, Flt64.zero))
 
         // 球心在球内 / Center is inside
         assertTrue(sphere containsPoint point3(Flt64.zero, Flt64.zero, Flt64.zero))
@@ -275,7 +275,7 @@ class CircleTest {
 
     @Test
     fun testCircleZeroRadius() {
-        val circle = Circle2(point2(Flt64(5.0), Flt64(5.0)), vector2(Flt64.zero, Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(5.0), Flt64(5.0)), vector2(Flt64.zero, Flt64.zero))
 
         assertTrue(circle.area ls Flt64(1e-10))
         assertTrue(circle.circumference ls Flt64(1e-10))
@@ -288,7 +288,7 @@ class CircleTest {
 
     @Test
     fun testCircleLargeRadius() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(1e6), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(1e6), Flt64.zero))
 
         // 面积和周长应正确计算 / Area and circumference should compute correctly
         assertTrue(circle.area gr Flt64.zero)
@@ -305,7 +305,7 @@ class CircleTest {
 
     @Test
     fun testCirclePointOnBoundaryTrue() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 圆上的点 / Points on boundary
         assertTrue(circle.pointOnBoundary(point2(Flt64(5.0), Flt64.zero)))
@@ -316,7 +316,7 @@ class CircleTest {
 
     @Test
     fun testCirclePointOnBoundaryFalse() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 圆内的点 / Point inside
         assertFalse(circle.pointOnBoundary(point2(Flt64.zero, Flt64.zero)))
@@ -328,7 +328,7 @@ class CircleTest {
 
     @Test
     fun testCirclePointOnBoundaryWithEpsilon() {
-        val circle = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val circle = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
 
         // 接近边界的点 / Point near boundary
         val nearPoint = point2(Flt64(5.0001), Flt64.zero)
@@ -342,8 +342,8 @@ class CircleTest {
 
     @Test
     fun testCircleIsTangentExternal() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(6.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 外切：圆心距 = 半径和 / External tangent: distance = sum of radii
         assertTrue(c1.isTangent(c2))
@@ -352,8 +352,8 @@ class CircleTest {
 
     @Test
     fun testCircleIsTangentInternal() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64(3.0), Flt64.zero), vector2(Flt64(2.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(3.0), Flt64.zero), vector2(Flt64(2.0), Flt64.zero))
 
         // 内切：圆心距 = 半径差 / Internal tangent: distance = difference of radii
         assertTrue(c1.isTangent(c2))
@@ -362,27 +362,27 @@ class CircleTest {
 
     @Test
     fun testCircleIsTangentFalse() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 相交 / Intersecting
-        val c2 = Circle2(point2(Flt64(4.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(4.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
         assertFalse(c1.isTangent(c2))
 
         // 相离 / Separate
-        val c3 = Circle2(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c3 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(10.0), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
         assertFalse(c1.isTangent(c3))
 
         // 包含 / Contained
-        val c4 = Circle2(point2(Flt64(1.0), Flt64.zero), vector2(Flt64(1.0), Flt64.zero))
+        val c4 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(1.0), Flt64.zero), vector2(Flt64(1.0), Flt64.zero))
         assertFalse(c1.isTangent(c4))
     }
 
     @Test
     fun testCircleIsTangentWithEpsilon() {
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         // 接近外切 / Near external tangent
-        val c2 = Circle2(point2(Flt64(6.001), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64(6.001), Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
         assertTrue(c1.isTangent(c2, Flt64(0.01)))
         assertFalse(c1.isTangent(c2, Flt64(1e-10)))
     }
@@ -390,8 +390,8 @@ class CircleTest {
     @Test
     fun testCircleIsTangentConcentric() {
         // 同心圆不相切 / Concentric circles are not tangent
-        val c1 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
-        val c2 = Circle2(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
+        val c1 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(5.0), Flt64.zero))
+        val c2 = Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(Flt64.zero, Flt64.zero), vector2(Flt64(3.0), Flt64.zero))
 
         assertFalse(c1.isTangent(c2))
     }

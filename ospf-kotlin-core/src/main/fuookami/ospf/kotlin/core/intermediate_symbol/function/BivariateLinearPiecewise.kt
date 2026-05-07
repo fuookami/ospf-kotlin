@@ -10,7 +10,9 @@ import fuookami.ospf.kotlin.core.variable.PctVariable1
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Triangle3
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Triangle
 import fuookami.ospf.kotlin.math.geometry.x
 import fuookami.ospf.kotlin.math.geometry.y
 import fuookami.ospf.kotlin.math.geometry.z
@@ -45,7 +47,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 class BivariateLinearPiecewiseFunction<V>(
     val x: LinearPolynomial<V>,
     val y: LinearPolynomial<V>,
-    val triangles: List<Triangle3>,
+    val triangles: List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>>,
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
@@ -108,7 +110,7 @@ class BivariateLinearPiecewiseFunction<V>(
         return null
     }
 
-    private fun calculateBarycentric(tri: Triangle3, px: Flt64, py: Flt64): Pair<Double, Double> {
+    private fun calculateBarycentric(tri: Triangle<Point<Dim3, Flt64>, Dim3, Flt64>, px: Flt64, py: Flt64): Pair<Double, Double> {
         val x1 = tri.p1.x.toDouble()
         val y1 = tri.p1.y.toDouble()
         val x2 = tri.p2.x.toDouble()
@@ -211,7 +213,7 @@ class BivariateLinearPiecewiseFunction<V>(
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
             y: LinearPolynomial<V>,
-            triangles: List<Triangle3>,
+            triangles: List<Triangle<Point<Dim3, Flt64>, Dim3, Flt64>>,
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null

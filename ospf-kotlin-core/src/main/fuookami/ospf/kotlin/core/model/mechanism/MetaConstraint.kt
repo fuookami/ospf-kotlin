@@ -215,7 +215,7 @@ interface MetaConstraintGroup {
     }
 }
 
-// ========== Math Inequality-based ConstraintFlt64 Types ==========
+// ========== Math Inequality-based Constraint<Flt64> Types ==========
 
 /**
  * Common interface for math-based constraints.

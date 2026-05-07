@@ -83,6 +83,7 @@ class BasicModelEntryTest {
         val constraint = LinearConstraintImpl(
             relation = LinearRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "c1"
         )
         val mechanismModel = LinearMechanismModel<Flt64>(
@@ -191,6 +192,7 @@ class BasicModelEntryTest {
         val constraint = QuadraticConstraintImpl(
             relation = QuadraticRelationImpl(relation.flattenData, relation.comparison),
             tokens = tokens,
+            converter = IntoValue.Identity,
             name = "qc1"
         )
         val mechanismModel = QuadraticMechanismModel<Flt64>(

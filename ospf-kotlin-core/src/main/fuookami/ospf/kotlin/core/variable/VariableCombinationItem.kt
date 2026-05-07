@@ -189,24 +189,12 @@ class PctVariable2(name: String = "", shape: Shape2) : VariableCombination2<Flt6
 class PctVariable3(name: String = "", shape: Shape3) : VariableCombination3<Flt64, Percentage>(Percentage, name, Flt64, shape)
 class PctVariable4(name: String = "", shape: Shape4) : VariableCombination4<Flt64, Percentage>(Percentage, name, Flt64, shape)
 class DynPctVariable(name: String = "", shape: DynShape) : DynVariableCombination<Flt64, Percentage>(Percentage, name, Flt64, shape)
-typealias PctVariableView = VariableCombinationView<Flt64, Percentage>
-typealias PctVariableView1 = VariableCombinationView1<Flt64, Percentage>
-typealias PctVariableView2 = VariableCombinationView2<Flt64, Percentage>
-typealias PctVariableView3 = VariableCombinationView3<Flt64, Percentage>
-typealias PctVariableView4 = VariableCombinationView4<Flt64, Percentage>
-typealias DynPctVariableView = DynVariableCombinationView<Flt64, Percentage>
 
 class QuantityPctVariable1(name: String = "", shape: Shape1, unit: PhysicalUnit) : QuantityVariableCombination1<Flt64, Percentage>(Percentage, name, Flt64, shape, unit)
 class QuantityPctVariable2(name: String = "", shape: Shape2, unit: PhysicalUnit) : QuantityVariableCombination2<Flt64, Percentage>(Percentage, name, Flt64, shape, unit)
 class QuantityPctVariable3(name: String = "", shape: Shape3, unit: PhysicalUnit) : QuantityVariableCombination3<Flt64, Percentage>(Percentage, name, Flt64, shape, unit)
 class QuantityPctVariable4(name: String = "", shape: Shape4, unit: PhysicalUnit) : QuantityVariableCombination4<Flt64, Percentage>(Percentage, name, Flt64, shape, unit)
 class DynQuantityPctVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) : DynQuantityVariableCombination<Flt64, Percentage>(Percentage, name, Flt64, shape, unit)
-typealias QuantityPctVariableView = QuantityVariableCombinationView<Flt64, Percentage>
-typealias QuantityPctVariableView1 = QuantityVariableCombinationView1<Flt64, Percentage>
-typealias QuantityPctVariableView2 = QuantityVariableCombinationView2<Flt64, Percentage>
-typealias QuantityPctVariableView3 = QuantityVariableCombinationView3<Flt64, Percentage>
-typealias QuantityPctVariableView4 = QuantityVariableCombinationView4<Flt64, Percentage>
-typealias DynQuantityPctVariableView = DynQuantityVariableCombinationView<Flt64, Percentage>
 
 class IntVariable1(name: String = "", shape: Shape1) : VariableCombination1<Int64, Integer>(Integer, name, Int64, shape)
 class IntVariable2(name: String = "", shape: Shape2) : VariableCombination2<Int64, Integer>(Integer, name, Int64, shape)
@@ -261,47 +249,22 @@ class RealVariable2(name: String = "", shape: Shape2) : VariableCombination2<Flt
 class RealVariable3(name: String = "", shape: Shape3) : VariableCombination3<Flt64, Continuous>(Continuous, name, Flt64, shape)
 class RealVariable4(name: String = "", shape: Shape4) : VariableCombination4<Flt64, Continuous>(Continuous, name, Flt64, shape)
 class DynRealVariable(name: String = "", shape: DynShape) : DynVariableCombination<Flt64, Continuous>(Continuous, name, Flt64, shape)
-typealias RealVariableView = VariableCombinationView<Flt64, Continuous>
-typealias RealVariableView1 = VariableCombinationView1<Flt64, Continuous>
-typealias RealVariableView2 = VariableCombinationView2<Flt64, Continuous>
-typealias RealVariableView3 = VariableCombinationView3<Flt64, Continuous>
-typealias RealVariableView4 = VariableCombinationView4<Flt64, Continuous>
-typealias DynRealVariableView = DynVariableCombinationView<Flt64, Continuous>
 
 class QuantityRealVariable1(name: String = "", shape: Shape1, unit: PhysicalUnit) : QuantityVariableCombination1<Flt64, Continuous>(Continuous, name, Flt64, shape, unit)
 class QuantityRealVariable2(name: String = "", shape: Shape2, unit: PhysicalUnit) : QuantityVariableCombination2<Flt64, Continuous>(Continuous, name, Flt64, shape, unit)
 class QuantityRealVariable3(name: String = "", shape: Shape3, unit: PhysicalUnit) : QuantityVariableCombination3<Flt64, Continuous>(Continuous, name, Flt64, shape, unit)
 class QuantityRealVariable4(name: String = "", shape: Shape4, unit: PhysicalUnit) : QuantityVariableCombination4<Flt64, Continuous>(Continuous, name, Flt64, shape, unit)
 class DynQuantityRealVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) : DynQuantityVariableCombination<Flt64, Continuous>(Continuous, name, Flt64, shape, unit)
-typealias QuantityRealVariableView = QuantityVariableCombinationView<Flt64, Continuous>
-typealias QuantityRealVariableView1 = QuantityVariableCombinationView1<Flt64, Continuous>
-typealias QuantityRealVariableView2 = QuantityVariableCombinationView2<Flt64, Continuous>
-typealias QuantityRealVariableView3 = QuantityVariableCombinationView3<Flt64, Continuous>
-typealias QuantityRealVariableView4 = QuantityVariableCombinationView4<Flt64, Continuous>
-typealias DynQuantityRealVariableView = DynQuantityVariableCombinationView<Flt64, Continuous>
 
 class URealVariable1(name: String = "", shape: Shape1) : VariableCombination1<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
 class URealVariable2(name: String = "", shape: Shape2) : VariableCombination2<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
 class URealVariable3(name: String = "", shape: Shape3) : VariableCombination3<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
 class URealVariable4(name: String = "", shape: Shape4) : VariableCombination4<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
 class DynURealVariable(name: String = "", shape: DynShape) : DynVariableCombination<Flt64, UContinuous>(UContinuous, name, Flt64, shape)
-typealias URealVariableView = VariableCombinationView<Flt64, UContinuous>
-typealias URealVariableView1 = VariableCombinationView1<Flt64, UContinuous>
-typealias URealVariableView2 = VariableCombinationView2<Flt64, UContinuous>
-typealias URealVariableView3 = VariableCombinationView3<Flt64, UContinuous>
-typealias URealVariableView4 = VariableCombinationView4<Flt64, UContinuous>
-typealias DynURealVariableView = DynVariableCombinationView<Flt64, UContinuous>
 
 class QuantityURealVariable1(name: String = "", shape: Shape1, unit: PhysicalUnit) : QuantityVariableCombination1<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class QuantityURealVariable2(name: String = "", shape: Shape2, unit: PhysicalUnit) : QuantityVariableCombination2<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class QuantityURealVariable3(name: String = "", shape: Shape3, unit: PhysicalUnit) : QuantityVariableCombination3<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class QuantityURealVariable4(name: String = "", shape: Shape4, unit: PhysicalUnit) : QuantityVariableCombination4<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class DynQuantityURealVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) : DynQuantityVariableCombination<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
-typealias QuantityURealVariableView = QuantityVariableCombinationView<Flt64, UContinuous>
-typealias QuantityURealVariableView1 = QuantityVariableCombinationView1<Flt64, UContinuous>
-typealias QuantityURealVariableView2 = QuantityVariableCombinationView2<Flt64, UContinuous>
-typealias QuantityURealVariableView3 = QuantityVariableCombinationView3<Flt64, UContinuous>
-typealias QuantityURealVariableView4 = QuantityVariableCombinationView4<Flt64, UContinuous>
-typealias DynQuantityURealVariableView = DynQuantityVariableCombinationView<Flt64, UContinuous>
-
 

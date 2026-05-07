@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -58,12 +57,12 @@ data class ChuaCircuit<V : FloatingNumber<V>>(
 
 data class ChuaCircuitGenerator(
     val chuaCircuit: ChuaCircuit<Flt64> = ChuaCircuit(),
-    private var _x: Point3 = point3(
+    private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point3> {
+) : Generator<Point<Dim3, Flt64>> {
     companion object {
         operator fun invoke(
             a: Flt64 = Flt64(15.6),
@@ -71,7 +70,7 @@ data class ChuaCircuitGenerator(
             c: Flt64 = Flt64(-0.71),
             d: Flt64 = Flt64(-1.14),
             h: Flt64 = Flt64(0.01),
-            x: Point3 = point3(
+            x: Point<Dim3, Flt64> = point3(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -86,7 +85,7 @@ data class ChuaCircuitGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point3 {
+    override operator fun invoke(): Point<Dim3, Flt64> {
         val x = _x.copy()
         _x = chuaCircuit(x)
         return x

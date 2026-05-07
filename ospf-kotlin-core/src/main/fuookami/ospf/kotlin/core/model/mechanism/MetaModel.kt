@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuantityIntermediateSymbol
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.token.Token
@@ -203,7 +203,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         return tokens.add(symbol)
     }
 
-    fun add(symbol: QuantityIntermediateSymbol): Try {
+    fun add(symbol: Quantity<IntermediateSymbol<Flt64>>): Try {
         return tokens.add(symbol.value)
     }
 
@@ -354,19 +354,19 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addQuantitySymbols")
-    fun add(symbols: Iterable<QuantityIntermediateSymbol>): Try {
+    fun add(symbols: Iterable<Quantity<IntermediateSymbol<Flt64>>>): Try {
         return tokens.add(symbols.map { it.value })
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapQuantitySymbols")
-    fun <K> add(symbols: Map<K, QuantityIntermediateSymbol>): Try {
+    fun <K> add(symbols: Map<K, Quantity<IntermediateSymbol<Flt64>>>): Try {
         return tokens.add(symbols.values.map { it.value })
     }
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMapQuantitySymbolLists")
-    fun <K> add(symbols: Map<K, Iterable<QuantityIntermediateSymbol>>): Try {
+    fun <K> add(symbols: Map<K, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -385,7 +385,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2QuantitySymbols")
-    fun <K1, K2> add(symbols: MultiMap2<K1, K2, QuantityIntermediateSymbol>): Try {
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Quantity<IntermediateSymbol<Flt64>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -404,7 +404,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap2QuantitySymbolLists")
-    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<QuantityIntermediateSymbol>>): Try {
+    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -423,7 +423,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3QuantitySymbols")
-    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, QuantityIntermediateSymbol>): Try {
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Quantity<IntermediateSymbol<Flt64>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -442,7 +442,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap3QuantitySymbolLists")
-    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<QuantityIntermediateSymbol>>): Try {
+    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -461,7 +461,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4QuantitySymbols")
-    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, QuantityIntermediateSymbol>): Try {
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Quantity<IntermediateSymbol<Flt64>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}
@@ -480,7 +480,7 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addMultiMap4QuantitySymbolLists")
-    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<QuantityIntermediateSymbol>>): Try {
+    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
         for (syms in symbols.values) {
             when (val result = add(syms)) {
                 is Ok -> {}

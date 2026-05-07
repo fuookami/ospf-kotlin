@@ -39,10 +39,8 @@ class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     }
 }
 
-typealias Quadrilateral2 = Quadrilateral<Point2, Dim2, Flt64>
-typealias Quadrilateral3 = Quadrilateral<Point3, Dim3, Flt64>
 
-val Quadrilateral2.area: Flt64
+val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.area: Flt64
     get() {
         val sum1 = p1.x * p2.y + p2.x * p3.y + p3.x * p4.y + p4.x * p1.y
         val sum2 = p1.y * p2.x + p2.y * p3.x + p3.y * p4.x + p4.y * p1.x
@@ -55,8 +53,8 @@ val Quadrilateral2.area: Flt64
         return absolute / Flt64.two
     }
 
-fun Quadrilateral2.isConvex(): Boolean {
-    fun crossSign(a: Point2, b: Point2, c: Point2): Flt64 {
+fun Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.isConvex(): Boolean {
+    fun crossSign(a: Point<Dim2, Flt64>, b: Point<Dim2, Flt64>, c: Point<Dim2, Flt64>): Flt64 {
         val v1 = vector2(b.x - a.x, b.y - a.y)
         val v2 = vector2(c.x - b.x, c.y - b.y)
         return v1 cross v2
@@ -72,9 +70,9 @@ fun Quadrilateral2.isConvex(): Boolean {
     return allPositive || allNegative
 }
 
-val Quadrilateral2.illegal: Boolean
+val Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64>.illegal: Boolean
     get() = area eq Flt64.zero
 
-fun quadrilateral2(p1: Point2, p2: Point2, p3: Point2, p4: Point2): Quadrilateral2 {
+fun quadrilateral2(p1: Point<Dim2, Flt64>, p2: Point<Dim2, Flt64>, p3: Point<Dim2, Flt64>, p4: Point<Dim2, Flt64>): Quadrilateral<Point<Dim2, Flt64>, Dim2, Flt64> {
     return Quadrilateral(p1, p2, p3, p4)
 }

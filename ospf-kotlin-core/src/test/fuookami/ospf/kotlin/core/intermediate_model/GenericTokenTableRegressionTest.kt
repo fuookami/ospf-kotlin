@@ -1,5 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -66,7 +67,7 @@ class GenericTokenTableRegressionTest {
         val x = RealVar("cell_test_x")
         tokenTable.add(x)
         val token = tokenTable.find(x)!!
-        val cell: LinearCellImpl<Flt64> = LinearCellImpl<Flt64>(tokenTable, Flt64.one, token)
+        val cell: LinearCellImpl<Flt64> = LinearCellImpl<Flt64>(tokenTable, Flt64.one, token, IntoValue.Identity)
         assertTrue(cell is LinearCellImpl<Flt64>)
         assertEquals(Flt64.one, cell.coefficient)
     }
@@ -80,7 +81,7 @@ class GenericTokenTableRegressionTest {
         tokenTable.add(x2)
         val token1 = tokenTable.find(x1)!!
         val token2 = tokenTable.find(x2)!!
-        val cell: QuadraticCellImpl<Flt64> = QuadraticCellImpl<Flt64>(tokenTable, Flt64.one, token1, token2)
+        val cell: QuadraticCellImpl<Flt64> = QuadraticCellImpl<Flt64>(tokenTable, Flt64.one, token1, token2, IntoValue.Identity)
         assertTrue(cell is QuadraticCellImpl<Flt64>)
         assertEquals(Flt64.one, cell.coefficient)
     }

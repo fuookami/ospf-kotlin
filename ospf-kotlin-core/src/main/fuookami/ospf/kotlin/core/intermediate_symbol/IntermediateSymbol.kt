@@ -1610,11 +1610,6 @@ operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol
 }
 
 
-typealias QuantityIntermediateSymbol = Quantity<IntermediateSymbol<Flt64>>
-typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol<Flt64>>
-typealias QuantityQuadraticIntermediateSymbol = Quantity<QuadraticIntermediateSymbol<Flt64>>
-typealias QuantityLinearExpressionSymbol = Quantity<LinearExpressionSymbol<Flt64>>
-typealias QuantityQuadraticExpressionSymbol = Quantity<QuadraticExpressionSymbol<Flt64>>
 
 
 

@@ -27,7 +27,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 
@@ -58,13 +57,13 @@ class MandelbrotSet<V : FloatingNumber<V>>(
  */
 data class MandelbrotSetGenerator(
     val mandelbrotSet: MandelbrotSet<Flt64> = MandelbrotSet(Flt64.one, Flt64.one),
-    private var _z: Point2 = point2()
-) : Generator<Point2> {
+    private var _z: Point<Dim2, Flt64> = point2()
+) : Generator<Point<Dim2, Flt64>> {
     companion object {
         operator fun invoke(
             real: Flt64,
             imag: Flt64,
-            z: Point2 = point2()
+            z: Point<Dim2, Flt64> = point2()
         ): MandelbrotSetGenerator {
             return MandelbrotSetGenerator(MandelbrotSet(real, imag), z)
         }
@@ -72,7 +71,7 @@ data class MandelbrotSetGenerator(
 
     val z by ::_z
 
-    override fun invoke(): Point2 {
+    override fun invoke(): Point<Dim2, Flt64> {
         val z = _z.copy()
         _z = mandelbrotSet(_z)
         return z

@@ -3,7 +3,6 @@
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.Model
-import fuookami.ospf.kotlin.core.model.basic.MulObj
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
@@ -123,7 +122,7 @@ interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> 
 /** Flt64 convenience specialization. */
 typealias CallBackModelInterface = CallBackModelInterfaceV<Flt64>
 
-interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<MulObj, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
+interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<List<Pair<MultiObjectLocation, Flt64>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
 
@@ -138,7 +137,7 @@ interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<Mul
         return (0 until objectiveSize).map { converter().zero }
     }
 
-    override fun objectiveValue(obj: MulObj): List<V> {
+    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<V> {
         return (0 until objectiveSize).map { index ->
             obj.fold(converter().zero) { acc, (loc, objective) ->
                 if (index == loc.priority.toInt()) {

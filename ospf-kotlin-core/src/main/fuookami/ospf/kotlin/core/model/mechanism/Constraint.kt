@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
@@ -58,13 +59,10 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
     fun isTrue(results: List<V>): Boolean?
 }
 
-typealias ConstraintFlt64<P> = Constraint<Flt64, P>
-
-typealias DualSolution<P> = Map<ConstraintFlt64<P>, Flt64>
 
 data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
-    val symbols: Map<IntermediateSymbol<*>, List<Pair<ConstraintFlt64<*>, Flt64>>>
+    val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
@@ -144,13 +142,14 @@ class LinearConstraintImpl<V>(
         operator fun <V> invoke(
             relation: LinearRelation,
             tokens: AbstractTokenTable<V>,
+            converter: IntoValue<V>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
-            val lhs = createLinearCells(flattenData.monomials, tokens)
+            val lhs = createLinearCells(flattenData.monomials, tokens, converter)
             // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
             val rhs: V = (-flattenData.constant) as V
             return LinearConstraintImpl(
@@ -187,13 +186,14 @@ class QuadraticConstraintImpl<V>(
         operator fun <V> invoke(
             relation: QuadraticRelation,
             tokens: AbstractTokenTable<V>,
+            converter: IntoValue<V>,
             lazy: Boolean = false,
             name: String = "",
             origin: MathConstraint? = null,
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
-            val lhs = createQuadraticCells(flattenData.monomials, tokens)
+            val lhs = createQuadraticCells(flattenData.monomials, tokens, converter)
             // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
             val rhs: V = (-flattenData.constant) as V
             return QuadraticConstraintImpl(
@@ -213,14 +213,15 @@ class QuadraticConstraintImpl<V>(
 
 internal fun <V> createLinearCells(
     monomials: List<LinearMonomial<Flt64>>,
-    tokens: AbstractTokenTable<V>
+    tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<LinearCell<V>>()
     for (monomial in monomials) {
         val variable = monomial.symbol as AbstractVariableItem<*, *>
         val token = tokens.find(variable)
         if (token != null && monomial.coefficient neq Flt64.zero) {
-            cells.add(LinearCellImpl(tokens, monomial.coefficient, token))
+            cells.add(LinearCellImpl(tokens, monomial.coefficient, token, converter))
         }
     }
     return cells
@@ -228,7 +229,8 @@ internal fun <V> createLinearCells(
 
 internal fun <V> createQuadraticCells(
     monomials: List<QuadraticMonomial<Flt64>>,
-    tokens: AbstractTokenTable<V>
+    tokens: AbstractTokenTable<V>,
+    converter: IntoValue<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {
     val cells = ArrayList<QuadraticCell<V>>()
     for (monomial in monomials) {
@@ -240,7 +242,7 @@ internal fun <V> createQuadraticCells(
             null
         }
         if (token1 != null && monomial.coefficient neq Flt64.zero) {
-            cells.add(QuadraticCellImpl(tokens, monomial.coefficient, token1, token2))
+            cells.add(QuadraticCellImpl(tokens, monomial.coefficient, token1, token2, converter))
         }
     }
     return cells

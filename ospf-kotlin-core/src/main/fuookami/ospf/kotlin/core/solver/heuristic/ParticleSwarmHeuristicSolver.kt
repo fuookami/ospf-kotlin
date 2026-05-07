@@ -23,7 +23,6 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-typealias InitialVelocityGenerator = (index: Int) -> Flt64
 
 enum class HeuristicSolutionStatus {
     Feasible,
@@ -64,7 +63,7 @@ class ParticleSwarmHeuristicSolver<V>(
     val maxVelocity: Flt64 = Flt64(10000),
     val solveOnObjectiveMiss: Boolean = true,
     private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
-    private val initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero },
+    private val initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero },
     private val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
@@ -85,7 +84,7 @@ class ParticleSwarmHeuristicSolver<V>(
     }
 
     fun withInitialVelocityGenerator(
-        initialVelocityGenerator: InitialVelocityGenerator
+        initialVelocityGenerator: (index: Int) -> Flt64
     ): ParticleSwarmHeuristicSolver<V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
@@ -318,7 +317,7 @@ class ParticleSwarmHeuristicSolver<V>(
             maxVelocity: Flt64 = Flt64(10000),
             solveOnObjectiveMiss: Boolean = true,
             randomGenerator: Generator<Flt64> = { Flt64(0.5) },
-            initialVelocityGenerator: InitialVelocityGenerator = { Flt64.zero }
+            initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero }
         ): ParticleSwarmHeuristicSolver<Flt64> = ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,

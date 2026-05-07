@@ -3,7 +3,7 @@
 package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
 import fuookami.ospf.kotlin.core.solver.heuristic.*
-import fuookami.ospf.kotlin.core.model.basic.MulObj
+import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.callback.AbstractCallBackModelInterface
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
@@ -208,6 +208,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 }
 
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
-typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<MulObj, List<Flt64>>
+typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
 
 

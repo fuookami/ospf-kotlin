@@ -32,7 +32,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * ConstraintFlt64 pattern:
+ * Constraint<Flt64> pattern:
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM constraints link each flag to its inequality
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)

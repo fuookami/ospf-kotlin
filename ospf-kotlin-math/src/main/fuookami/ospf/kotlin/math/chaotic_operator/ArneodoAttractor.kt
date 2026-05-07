@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point3
 import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.point3
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -53,18 +52,18 @@ data class ArneodoAttractor<V : FloatingNumber<V>>(
 
 data class ArneodoAttractorGenerator(
     val arneodoAttractor: ArneodoAttractor<Flt64> = ArneodoAttractor(),
-    private var _x: Point3 = point3(
+    private var _x: Point<Dim3, Flt64> = point3(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point3> {
+) : Generator<Point<Dim3, Flt64>> {
     companion object {
         operator fun invoke(
             alpha: Flt64 = Flt64(-5.5),
             beta: Flt64 = Flt64(3.5),
             delta: Flt64 = Flt64(-1.0),
-            x: Point3 = point3(
+            x: Point<Dim3, Flt64> = point3(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
@@ -79,7 +78,7 @@ data class ArneodoAttractorGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point3 {
+    override operator fun invoke(): Point<Dim3, Flt64> {
         val x = _x
         _x = arneodoAttractor(x)
         return x

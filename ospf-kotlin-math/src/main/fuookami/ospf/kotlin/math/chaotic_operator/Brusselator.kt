@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Point
-import fuookami.ospf.kotlin.math.geometry.Point2
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.nextFlt64
@@ -61,17 +60,17 @@ data class Brusselator<V : FloatingNumber<V>>(
  */
 data class BrusselatorGenerator(
     val brusselator: Brusselator<Flt64> = Brusselator(),
-    private var _x: Point2 = point2(
+    private var _x: Point<Dim2, Flt64> = point2(
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
         Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
     )
-) : Generator<Point2> {
+) : Generator<Point<Dim2, Flt64>> {
     companion object {
         operator fun invoke(
             a: Flt64 = Flt64.one,
             b: Flt64 = Flt64.three,
             h: Flt64 = Flt64(0.01),
-            x: Point2 = point2(
+            x: Point<Dim2, Flt64> = point2(
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one),
                 Random.nextFlt64(Flt64.decimalPrecision, Flt64.one)
             )
@@ -89,7 +88,7 @@ data class BrusselatorGenerator(
 
     val x by ::_x
 
-    override operator fun invoke(): Point2 {
+    override operator fun invoke(): Point<Dim2, Flt64> {
         val x = _x.copy()
         _x = brusselator(x)
         return x

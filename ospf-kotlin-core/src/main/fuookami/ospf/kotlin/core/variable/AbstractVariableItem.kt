@@ -127,21 +127,15 @@ typealias VariableItem<Type> = AbstractVariableItem<*, Type>
 typealias BinVariable = AbstractVariableItem<UInt8, Binary>
 typealias TernaryVariable = AbstractVariableItem<UInt8, Ternary>
 typealias BalancedTernaryVariable = AbstractVariableItem<Int8, BalancedTernary>
-typealias PercentageVariable = AbstractVariableItem<Flt64, Percentage>
 typealias IntVariable = AbstractVariableItem<Int64, Integer>
 typealias UIntVariable = AbstractVariableItem<UInt64, UInteger>
-typealias RealVariable = AbstractVariableItem<Flt64, Continuous>
-typealias URealVariable = AbstractVariableItem<Flt64, UContinuous>
 
 typealias QuantityVariableItem<Type> = Quantity<AbstractVariableItem<*, Type>>
 typealias QuantityBinVariable = Quantity<BinVariable>
 typealias QuantityTernaryVariable = Quantity<TernaryVariable>
 typealias QuantityBalancedTernaryVariable = Quantity<BalancedTernaryVariable>
-typealias QuantityPercentageVariable = Quantity<PercentageVariable>
 typealias QuantityIntVariable = Quantity<IntVariable>
 typealias QuantityUIntVariable = Quantity<UIntVariable>
-typealias QuantityRealVariable = Quantity<RealVariable>
-typealias QuantityURealVariable = Quantity<URealVariable>
 
 operator fun AbstractVariableItem<*, *>.times(rhs: PhysicalUnit): Quantity<AbstractVariableItem<*, *>> {
     return Quantity(this, rhs)

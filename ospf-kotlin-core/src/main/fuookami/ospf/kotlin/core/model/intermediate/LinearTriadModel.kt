@@ -42,9 +42,8 @@ import org.apache.logging.log4j.kotlin.logger
 import java.io.OutputStreamWriter
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-
-typealias OriginLinearConstraint = fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl<Flt64>
 
 private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
     val mat = SparseMatrix<Flt64>()
@@ -58,7 +57,7 @@ private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix
     return mat
 }
 
-private fun OriginLinearConstraint.isBound(): Boolean {
+private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
     // && from?.second != true
@@ -99,7 +98,7 @@ class LinearConstraintBatch(
     rhs: List<Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    origins: List<OriginLinearConstraint?> = (0 until sparseLhs.numRows()).map { null },
+    origins: List<LinearConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
@@ -121,8 +120,8 @@ class LinearConstraintBatch(
         }
     }
 
-    private val _origins: MutableList<OriginLinearConstraint?> = origins.toMutableList()
-    val origins: List<OriginLinearConstraint?> by ::_origins
+    private val _origins: MutableList<LinearConstraintImpl<Flt64>?> = origins.toMutableList()
+    val origins: List<LinearConstraintImpl<Flt64>?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol<*>, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol<*>, Boolean>?> by ::_froms
@@ -250,7 +249,7 @@ class BasicLinearTriadModel(
         fun from(
             model: LinearMechanismModel<Flt64>,
             tokenIndexMap: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicLinearTriadModel {
             val variables = dumpVariables(model, tokenIndexMap, bounds)
@@ -261,7 +260,7 @@ class BasicLinearTriadModel(
         private fun dumpVariables(
             model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -301,7 +300,7 @@ class BasicLinearTriadModel(
         private fun dumpConstraints(
             model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -314,7 +313,7 @@ class BasicLinearTriadModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<OriginLinearConstraint>()
+            val origins = ArrayList<LinearConstraintImpl<Flt64>>()
             val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -512,7 +511,7 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
-                    (it.dualOrigin as OriginLinearConstraint) to solution[it.index]
+                    (it.dualOrigin as LinearConstraintImpl<Flt64>) to solution[it.index]
                 } else {
                     null
                 }
@@ -646,7 +645,7 @@ data class LinearTriadModel(
         private fun dumpVariables(
             model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -686,7 +685,7 @@ data class LinearTriadModel(
         private fun dumpConstraints(
             model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -718,7 +717,7 @@ data class LinearTriadModel(
             val rhs = ArrayList<Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<OriginLinearConstraint>()
+            val origins = ArrayList<LinearConstraintImpl<Flt64>>()
             val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -746,7 +745,7 @@ data class LinearTriadModel(
         private suspend fun dumpConstraintsAsync(
             model: LinearMechanismModel<Flt64>,
             tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<OriginLinearConstraint, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -796,7 +795,7 @@ data class LinearTriadModel(
                     val rhs = ArrayList<Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
-                    val origins = ArrayList<OriginLinearConstraint>()
+                    val origins = ArrayList<LinearConstraintImpl<Flt64>>()
                     val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                     val priorities = ArrayList<Int?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -827,7 +826,7 @@ data class LinearTriadModel(
                 val rhs = ArrayList<Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
-                val origins = ArrayList<OriginLinearConstraint>()
+                val origins = ArrayList<LinearConstraintImpl<Flt64>>()
                 val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                 val priorities = ArrayList<Int?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -2137,7 +2136,7 @@ data class LinearTriadModel(
             },
             origins = this.constraints.origins + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<OriginLinearConstraint?>()
+                val thisOrigins = ArrayList<LinearConstraintImpl<Flt64>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }
@@ -2150,7 +2149,7 @@ data class LinearTriadModel(
             } else {
                 emptyList()
             } + if (minmaxSlack) {
-                val thisOrigins = ArrayList<OriginLinearConstraint?>()
+                val thisOrigins = ArrayList<LinearConstraintImpl<Flt64>?>()
                 for ((lbSlack, ubSlack) in slackVariables) {
                     if (lbSlack != null) {
                         thisOrigins.add(null)
