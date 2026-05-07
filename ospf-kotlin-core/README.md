@@ -60,6 +60,47 @@ You can migrate incrementally:
 
 This allows LP/QP/MIP adapters to expose a consistent output shape while preserving backward compatibility.
 
+## Genericization Migration Guide
+
+The core module has been migrated from `Flt64`-specific APIs to generic `V : RealNumber<V>, NumberField<V>` typed APIs. This section documents the migration path for downstream code.
+
+### Removed Typealiases
+
+The following `Flt64` convenience typealiases have been removed. Use the V-typed equivalent instead:
+
+| Removed alias | Replacement |
+|---|---|
+| `CallBackModelInterface` | `CallBackModelInterfaceV<Flt64>` (or your V type) |
+| `MultiObjectiveModelInterface` | `MultiObjectiveModelInterfaceV<Flt64>` (or your V type) |
+
+### Internalized Methods
+
+The following methods were previously public but are now `internal` (module-private):
+
+- `LinearInequality<Flt64>.sign`, `QuadraticInequality.sign`
+- `LinearInequality<Flt64>.flattenData`, `QuadraticInequality.flattenData`
+- `LinearPolynomial<Flt64>.toFlattenData()`, `QuadraticPolynomial<Flt64>.toFlattenData()`
+- `LinearRelation.toConstraint()`, `QuadraticRelation.toConstraint()`, `LinearRelation.toQuadraticConstraint()`
+- `LinearPolynomial<Flt64>.toFrontendPolynomial()` (deleted — was identity function)
+
+### SolverBoundaryCasts
+
+All `@Suppress("UNCHECKED_CAST")` annotations are now centralized in `SolverBoundaryCasts.kt`. If you previously used type-erased bridge methods like `registerAuxiliaryTokensAny` or `registerConstraintsAny`, use the V-typed methods directly instead. The framework internally delegates to `SolverBoundaryCasts` for star-projected generic calls.
+
+### Legacy Typealiases (Still Available)
+
+The following `Flt64` typealiases in `token/TokenList.kt` remain as legacy convenience aliases:
+
+- `AbstractTokenList` → `AbstractTokenList<Flt64>`
+- `TokenList` → `TokenList<Flt64>`
+- `AddableTokenCollection` → `AddableTokenCollection<Flt64>`
+- `AbstractMutableTokenList` → `AbstractMutableTokenList<Flt64>`
+- `MutableTokenList` → `MutableTokenList<Flt64>`
+- `AutoTokenList` → `AutoTokenList<Flt64>`
+- `ManualTokenList` → `ManualTokenList<Flt64>`
+
+New code should prefer the generic form directly.
+
 ## Scope Relation to Root README
 
 Root README focuses on repository-level navigation.

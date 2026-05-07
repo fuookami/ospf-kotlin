@@ -50,12 +50,8 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     val upperBound get() = range.upperBound?.toFlt64()
     val fixedValue get() = range.fixedValue
 
-    // --- V-typed primary path (P4-5) ---
-    fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        return prepareSolver(values?.mapValues { it.value.toFlt64() }, tokenTable, converter)
-    }
-
-    fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
+    // --- V-typed primary path (abstract) ---
+    fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
 
     fun prepareAndCache(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>) {
         if (values.isNullOrEmpty()) {
@@ -69,34 +65,11 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
         }
     }
 
-    fun prepareSolverAndCache(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>) {
-        if (values.isNullOrEmpty()) {
-            prepareSolver(null, tokenTable, converter)?.let {
-                tokenTable.cache(cacheKey = this, solution = null, value = it)
-            }
-        } else {
-            prepareSolver(values, tokenTable, converter)?.let {
-                tokenTable.cacheSolver(cacheKey = this, fixedValues = values, value = it, converter = converter)
-            }
-        }
-    }
-
     fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
-    fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V? {
-        return evaluateSolver(results.map { it.toFlt64() }, tokenTable, converter, zeroIfNone)
-    }
-    fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
-    fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V? {
-        return evaluateSolver(values.mapValues { it.value.toFlt64() }, tokenTable, converter, zeroIfNone)
-    }
-    fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+    fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
+    fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean = false): V?
     fun evaluateFromTokens(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean = false): V? =
         evaluate(tokenTable, converter, zeroIfNone)
-
-    // --- Solver-boundary convenience (AbstractTokenList<Flt64>, no AbstractTokenTable) ---
-    fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean = false): Flt64?
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>? = null, zeroIfNone: Boolean = false): Flt64?
 
     val category: Category
     val operationCategory: Category get() = category
@@ -112,11 +85,6 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
     fun flush(force: Boolean = false)
 
     fun registerAuxiliaryTokens(tokens: AddableTokenCollection<V>): Try = ok
-
-    // Type-erased bridge for solver-boundary star-projected calls
-    @Suppress("UNCHECKED_CAST")
-    fun registerAuxiliaryTokensAny(tokens: Any?): Try =
-        registerAuxiliaryTokens(tokens as AddableTokenCollection<V>)
 
     fun toRawString(unfold: UInt64 = UInt64.zero): String
 }
@@ -141,31 +109,9 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
         }
     }
 
-    @Suppress("DEPRECATION")
-    val flattenedMonomials: LinearFlattenData<Flt64>
-
-    val flattenedMonomialsAsV: LinearFlattenData<V>
-        get() = flattenedMonomials as LinearFlattenData<V>
-
     val polynomial: LinearPolynomial<V>
 
     fun asMutable(): MutableLinearPolynomial<V>
-
-    fun toMathLinearInequality(): LinearInequality<Flt64> {
-        val lhs = LinearPolynomial(
-            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial(it.coefficient, it.symbol) },
-            constant = flattenedMonomials.constant
-        )
-        return LinearInequality<Flt64>(lhs, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
-
-    fun toMathQuadraticInequality(): QuadraticInequality {
-        val lhs = QuadraticPolynomial(
-            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial.linear(it.coefficient, it.symbol) },
-            constant = flattenedMonomials.constant
-        )
-        return QuadraticInequality(lhs, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
     override fun toLinearPolynomial(): LinearPolynomial<V> = polynomial
 }
@@ -189,23 +135,9 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPol
         }
     }
 
-    @Suppress("DEPRECATION")
-    val flattenedMonomials: QuadraticFlattenData<Flt64>
-
-    val flattenedMonomialsAsV: QuadraticFlattenData<V>
-        get() = flattenedMonomials as QuadraticFlattenData<V>
-
     val polynomial: QuadraticPolynomial<V>
 
     fun asMutable(): MutableQuadraticPolynomial<V>
-
-    fun toMathQuadraticInequality(): QuadraticInequality {
-        val lhs = QuadraticPolynomial(
-            monomials = flattenedMonomials.monomials.map { fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial(it.coefficient, it.symbol1, it.symbol2) },
-            constant = flattenedMonomials.constant
-        )
-        return QuadraticInequality(lhs, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
     override fun toQuadraticPolynomial(): QuadraticPolynomial<V> = polynomial
 }
@@ -329,12 +261,11 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, results, {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    (/* unchecked */ dependency as IntermediateSymbol<V>).evaluateSolver(
-                        results = results,
-                        tokenTable = tokenTable,
-                        converter = converter,
-                        zeroIfNone = zeroIfNone
-                    )
+                    val dep = dependency as IntermediateSymbol<V>
+                    when (dep) {
+                        is LinearExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
+                        is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
+                    }
                 }
             }
             calculator()
@@ -365,12 +296,11 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, values, {
             for (dependency in dependencies) {
                 if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                    (/* unchecked */ dependency as IntermediateSymbol<V>).evaluateSolver(
-                        values = values,
-                        tokenTable = tokenTable,
-                        converter = converter,
-                        zeroIfNone = zeroIfNone
-                    )
+                    val dep = dependency as IntermediateSymbol<V>
+                    when (dep) {
+                        is LinearExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
+                        is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
+                    }
                 }
             }
             calculator()
@@ -625,13 +555,13 @@ class LinearExpressionSymbol<V>(
 
     // flattenedMonomials: extract from monomials
     @Suppress("DEPRECATION")
-    override val flattenedMonomials: LinearFlattenData<Flt64>
+    val flattenedMonomials: LinearFlattenData<Flt64>
         get() = LinearFlattenData<Flt64>(
             monomials = _polyFlt64.monomials,
             constant = _polyFlt64.constant
         )
 
-    override val flattenedMonomialsAsV: LinearFlattenData<V>
+    val flattenedMonomialsAsV: LinearFlattenData<V>
         get() = LinearFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
@@ -649,7 +579,7 @@ class LinearExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> {
+            is LinearExpressionSymbol<*> -> {
                 symbol.evaluate(tokenTable.tokenList as AbstractTokenList<Flt64>, zeroIfNone)
             }
             else -> null
@@ -663,7 +593,7 @@ class LinearExpressionSymbol<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> {
+            is LinearExpressionSymbol<*> -> {
                 symbol.evaluate(results, tokenTable.tokenList as AbstractTokenList<Flt64>, zeroIfNone)
             }
             else -> null
@@ -676,7 +606,7 @@ class LinearExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> {
+            is LinearExpressionSymbol<*> -> {
                 symbol.evaluate(values, tokenTable?.tokenList as AbstractTokenList<Flt64>?, zeroIfNone)
             }
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
@@ -690,7 +620,7 @@ class LinearExpressionSymbol<V>(
                 val token = tokenList.find(symbol)
                 token?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -702,7 +632,7 @@ class LinearExpressionSymbol<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -712,7 +642,7 @@ class LinearExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
@@ -800,7 +730,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // prepare: V-typed primary path (P4-5)
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 
@@ -821,6 +751,11 @@ class LinearExpressionSymbol<V>(
             }
             converter.intoValue(ret)
         }
+    }
+
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val flt64Values = values?.mapValues { converter.fromValue(it.value) }
+        return prepareSolver(flt64Values, tokenTable, converter)
     }
 
     // toRawString
@@ -846,7 +781,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    override fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
@@ -869,7 +804,17 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val flt64Results = results.map { converter.fromValue(it) }
+        return evaluateSolver(flt64Results, tokenTable, converter, zeroIfNone)
+    }
+
+    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val flt64Values = values.mapValues { converter.fromValue(it.value) }
+        return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
+    }
+
+    fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -881,7 +826,7 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
             var ret = _polyFlt64.constant
@@ -909,7 +854,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // Flt64 convenience overloads (solver boundary)
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
@@ -919,7 +864,7 @@ class LinearExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1162,13 +1107,13 @@ class QuadraticExpressionSymbol<V>(
 
     // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
     @Suppress("DEPRECATION")
-    override val flattenedMonomials: QuadraticFlattenData<Flt64>
+    val flattenedMonomials: QuadraticFlattenData<Flt64>
         get() = QuadraticFlattenData<Flt64>(
             monomials = _polyFlt64.monomials,
             constant = _polyFlt64.constant
         )
 
-    override val flattenedMonomialsAsV: QuadraticFlattenData<V>
+    val flattenedMonomialsAsV: QuadraticFlattenData<V>
         get() = QuadraticFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
@@ -1187,8 +1132,8 @@ class QuadraticExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -1201,8 +1146,8 @@ class QuadraticExpressionSymbol<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -1214,8 +1159,8 @@ class QuadraticExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
@@ -1227,8 +1172,8 @@ class QuadraticExpressionSymbol<V>(
                 val token = tokenList.find(symbol)
                 token?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -1240,8 +1185,8 @@ class QuadraticExpressionSymbol<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone)
             else -> null
         }
     }
@@ -1251,8 +1196,8 @@ class QuadraticExpressionSymbol<V>(
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
-            is LinearIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
-            is QuadraticIntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is LinearExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
+            is QuadraticExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone)
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
@@ -1378,7 +1323,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // prepare: V-typed primary path (P4-5)
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
         val flatten = flattenedMonomials
 
@@ -1411,6 +1356,11 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val flt64Values = values?.mapValues { converter.fromValue(it.value) }
+        return prepareSolver(flt64Values, tokenTable, converter)
+    }
+
     // toRawString
     override fun toRawString(unfold: UInt64): String {
         return if (unfold neq UInt64.zero) {
@@ -1441,7 +1391,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    override fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
@@ -1474,7 +1424,17 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val flt64Results = results.map { converter.fromValue(it) }
+        return evaluateSolver(flt64Results, tokenTable, converter, zeroIfNone)
+    }
+
+    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val flt64Values = values.mapValues { converter.fromValue(it.value) }
+        return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
+    }
+
+    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
@@ -1489,7 +1449,7 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -1506,7 +1466,7 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1522,7 +1482,7 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
             var ret = _polyFlt64.constant
@@ -1608,6 +1568,13 @@ operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol
     val rhsPoly = rhs.toLinearPolynomial() as LinearPolynomial<Flt64>
     return LinearPolynomial(lhs.monomials + rhsPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
 }
+
+// Solver-boundary extensions: delegate to SolverBoundaryCasts (single UNCHECKED_CAST location)
+internal val LinearIntermediateSymbol<*>.solverFlattenedMonomials: LinearFlattenData<Flt64>
+    get() = SolverBoundaryCasts.run { solverFlattenedMonomials }
+
+internal val QuadraticIntermediateSymbol<*>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
+    get() = SolverBoundaryCasts.run { solverFlattenedMonomials }
 
 
 

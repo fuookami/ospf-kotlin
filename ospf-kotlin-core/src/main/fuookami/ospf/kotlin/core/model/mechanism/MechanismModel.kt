@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
+import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -48,13 +49,13 @@ import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
 // Solver-boundary bridge: registerConstraints on star-projected function symbols
-// Uses type-erased registerConstraintsAny (default impl in interface)
+// Delegates to SolverBoundaryCasts (single UNCHECKED_CAST location)
 private fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
-    return registerConstraintsAny(model)
+    return SolverBoundaryCasts.registerConstraintsLinearStar(this, model)
 }
 
 private fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractQuadraticMechanismModel<*>): Try {
-    return registerConstraintsAny(model)
+    return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
 
 sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : NumberField<V> {

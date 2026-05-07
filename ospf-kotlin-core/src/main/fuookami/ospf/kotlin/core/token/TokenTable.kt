@@ -6,6 +6,9 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
+import fuookami.ospf.kotlin.core.intermediate_symbol.solverFlattenedMonomials
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatus
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
@@ -29,32 +32,17 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
-// Solver-boundary bridge: star-projected IntermediateSymbol<*> → IntermediateSymbol<Flt64>
-// Uses type-erased registerAuxiliaryTokensAny (default impl in IntermediateSymbol interface)
-private fun IntermediateSymbol<*>.registerAuxiliaryTokensUnchecked(tokens: AddableTokenCollection<*>): Try {
-    return registerAuxiliaryTokensAny(tokens)
+// Solver-boundary bridge: delegates to centralized SolverBoundaryCasts
+private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
+    return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)
 }
 
-// Solver-boundary bridge: prepare star-projected symbol with Flt64 token table
-@Suppress("UNCHECKED_CAST")
-private fun IntermediateSymbol<*>.prepareUnchecked(
+// Solver-boundary bridge: delegates to centralized SolverBoundaryCasts
+private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<*>
 ): Flt64? {
-    val sym = this as IntermediateSymbol<Flt64>
-    val tt = tokenTable as AbstractTokenTable<Flt64>
-    return if (fixedValues.isNullOrEmpty()) {
-        sym.prepare(null, tt, flt64Converter)
-    } else {
-        sym.prepare(fixedValues, tt, flt64Converter)
-    }
+    return SolverBoundaryCasts.prepareStar(this, fixedValues, tokenTable)
 }
 
 class RepeatedSymbolError(
@@ -652,11 +640,11 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
-            cacheLinearFlatten(symbol, symbol.flattenedMonomials)
+            cacheLinearFlatten(symbol, symbol.solverFlattenedMonomials)
         }
 
         is QuadraticIntermediateSymbol<*> -> {
-            cacheQuadraticFlatten(symbol, symbol.flattenedMonomials)
+            cacheQuadraticFlatten(symbol, symbol.solverFlattenedMonomials)
         }
     }
     cacheRange(symbol, symbol.range)
@@ -703,7 +691,7 @@ fun Collection<IntermediateSymbol<*>>.register(
             // Register auxiliary tokens (helper variables) for function symbols.
             // Constraint registration (MathFunctionSymbol.register) is handled by MetaModel/MechanismModel,
             // not by the token registration phase.
-            when (val result = symbol.registerAuxiliaryTokensUnchecked(tokenTable)) {
+            when (val result = symbol.registerAuxTokensStar(tokenTable)) {
                 is Ok -> {}
                 is Failed -> { return Failed(result.error) }
                 is Fatal -> { return Fatal(result.errors) }
@@ -712,7 +700,7 @@ fun Collection<IntermediateSymbol<*>>.register(
         // Batch write value cache for all ready symbols (single computation, aligned with concurrent path)
         tokenTable.cache(
             symbols = readySymbols.associateWithNotNull {
-                it.prepareUnchecked(fixedValues, tokenTable)
+                it.prepareStar(fixedValues, tokenTable)
             }.mapKeys { it.key as IntermediateSymbol<*> }
         )
         tokenTable.cacheSymbolContexts(readySymbols)
@@ -1331,7 +1319,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                 // Register auxiliary tokens (helper variables) for function symbols.
                 // Constraint registration (MathFunctionSymbol.register) is handled by MetaModel/MechanismModel,
                 // not by the token registration phase.
-                when (val result = symbol.registerAuxiliaryTokensUnchecked(tokenTable)) {
+                when (val result = symbol.registerAuxTokensStar(tokenTable)) {
                     is Ok -> {}
                     is Failed -> { return@coroutineScope Failed(result.error) }
                     is Fatal -> { return@coroutineScope Fatal(result.errors) }
@@ -1358,7 +1346,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
-                                    it.prepareUnchecked(fixedValues, tokenTable)
+                                    it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
@@ -1389,7 +1377,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             // B2: 通过 prepare + cache 批量写入 value 缓存
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
-                                    it.prepareUnchecked(fixedValues, tokenTable)
+                                    it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
@@ -1429,7 +1417,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
             } else {
                 tokenTable.cache(
                     symbols = readySymbols.associateWithNotNull {
-                        it.prepareUnchecked(fixedValues, tokenTable)
+                        it.prepareStar(fixedValues, tokenTable)
                     }.mapKeys { it.key as IntermediateSymbol<*> }
                 )
                 tokenTable.cacheSymbolContexts(readySymbols)

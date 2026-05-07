@@ -306,7 +306,7 @@ fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
 
 // ========== Relation-based constraint creation ==========
 
-fun <V> LinearRelation.toConstraint(
+internal fun <V> LinearRelation.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,
@@ -317,7 +317,7 @@ fun <V> LinearRelation.toConstraint(
     return LinearConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
-fun <V> QuadraticRelation.toConstraint(
+internal fun <V> QuadraticRelation.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,
@@ -328,7 +328,7 @@ fun <V> QuadraticRelation.toConstraint(
     return QuadraticConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
-fun <V> LinearRelation.toQuadraticConstraint(
+internal fun <V> LinearRelation.toQuadraticConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,

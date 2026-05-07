@@ -49,11 +49,6 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
     fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try
-
-    // Type-erased bridge for solver-boundary star-projected calls
-    @Suppress("UNCHECKED_CAST")
-    fun registerConstraintsAny(model: Any?): Try =
-        registerConstraints(model as AbstractLinearMechanismModel<V>)
 }
 
 /**
@@ -87,11 +82,6 @@ interface MathFunctionSymbol<V> : MathFunctionSymbolBase<V> where V : RealNumber
 internal interface QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> {
     fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try
     fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try
-
-    // Type-erased bridge for solver-boundary star-projected calls
-    @Suppress("UNCHECKED_CAST")
-    fun registerConstraintsAny(model: Any?): Try =
-        registerConstraints(model as AbstractQuadraticMechanismModel<V>)
 }
 
 /**
@@ -180,10 +170,10 @@ class LinearFunctionSymbolAdapter<V>(
     override val range: ExpressionRange<Flt64> get() = ExpressionRange()
 
     override fun flush(force: Boolean) {}
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun toRawString(unfold: UInt64): String = name
 
-    override val flattenedMonomials: LinearFlattenData<Flt64> get() = LinearFlattenData<Flt64>(emptyList(), Flt64.zero)
+    internal val flattenedMonomials: LinearFlattenData<Flt64> get() = LinearFlattenData<Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: LinearPolynomial<V>
         get() = LinearPolynomial(emptyList(), converter.zero)
@@ -192,25 +182,30 @@ class LinearFunctionSymbolAdapter<V>(
         return MutableLinearPolynomial(emptyList(), converter.zero)
     }
 
-    override fun toMathLinearInequality(): LinearInequality<Flt64> {
+    internal fun toMathLinearInequality(): LinearInequality<Flt64> {
         return LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun toMathQuadraticInequality(): QuadraticInequality {
+    internal fun toMathQuadraticInequality(): QuadraticInequality {
         return QuadraticInequality(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         val v = delegate.evaluate(values as Map<Symbol, V>) ?: return null
         return converter.fromValue(v)
     }
 
     // V-typed evaluate overrides (P4-5) — delegate to Flt64-boundary evaluate + converter
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return delegate.evaluate(values)
+    }
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(values as Map<Symbol, V>)
     }
 }

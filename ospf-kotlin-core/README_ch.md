@@ -58,6 +58,47 @@ suspend fun unifiedSolve(
 
 便于 LP/QP/MIP 后端适配层输出统一结构，同时保持向后兼容。
 
+## 泛型化迁移指南
+
+核心模块已从 `Flt64` 专用 API 迁移为泛型 `V : RealNumber<V>, NumberField<V>` 类型化 API。本节记录下游代码的迁移路径。
+
+### 已删除的 Typealias
+
+以下 `Flt64` 便捷 typealias 已删除，请使用 V 类型化等价形式：
+
+| 已删除别名 | 替代写法 |
+|---|---|
+| `CallBackModelInterface` | `CallBackModelInterfaceV<Flt64>`（或你的 V 类型） |
+| `MultiObjectiveModelInterface` | `MultiObjectiveModelInterfaceV<Flt64>`（或你的 V 类型） |
+
+### 已 Internal 化的方法
+
+以下方法此前为 public，现已改为 `internal`（模块私有）：
+
+- `LinearInequality<Flt64>.sign`、`QuadraticInequality.sign`
+- `LinearInequality<Flt64>.flattenData`、`QuadraticInequality.flattenData`
+- `LinearPolynomial<Flt64>.toFlattenData()`、`QuadraticPolynomial<Flt64>.toFlattenData()`
+- `LinearRelation.toConstraint()`、`QuadraticRelation.toConstraint()`、`LinearRelation.toQuadraticConstraint()`
+- `LinearPolynomial<Flt64>.toFrontendPolynomial()`（已删除——原为恒等函数）
+
+### SolverBoundaryCasts
+
+所有 `@Suppress("UNCHECKED_CAST")` 注解已集中到 `SolverBoundaryCasts.kt`。如之前使用类型擦除桥接方法（如 `registerAuxiliaryTokensAny`、`registerConstraintsAny`），请改为直接使用 V 类型化方法。框架内部通过 `SolverBoundaryCasts` 处理星投影泛型调用。
+
+### 遗留 Typealias（仍可用）
+
+`token/TokenList.kt` 中的以下 `Flt64` typealias 仍作为遗留便捷别名保留：
+
+- `AbstractTokenList` → `AbstractTokenList<Flt64>`
+- `TokenList` → `TokenList<Flt64>`
+- `AddableTokenCollection` → `AddableTokenCollection<Flt64>`
+- `AbstractMutableTokenList` → `AbstractMutableTokenList<Flt64>`
+- `MutableTokenList` → `MutableTokenList<Flt64>`
+- `AutoTokenList` → `AutoTokenList<Flt64>`
+- `ManualTokenList` → `ManualTokenList<Flt64>`
+
+新代码应直接使用泛型形式。
+
 ## 与根 README 的分工
 
 仓库根目录 README 负责仓库级导航。

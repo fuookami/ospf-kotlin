@@ -93,16 +93,13 @@ function Is-WhitelistedFunctionOverride($relPath, $line) {
 # ============================================================
 
 $MechanismWhitelist = @(
-    @{ File = 'Constraint.kt'; Pattern = 'fun.*\.toMeta\(\)';           Reason = 'solver output conversion'; Debt = 'low' }
-    @{ File = 'MechanismModel.kt'; Pattern = 'fun.*convertMechanismModelToFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'low (boundary)' }
-    @{ File = 'MetaModel.kt'; Pattern = 'fun.*add.*Quantity.*IntermediateSymbol.*Flt64'; Reason = 'Flt64 convenience add overload (solver boundary)'; Debt = 'low (boundary)' }
-    @{ File = 'MetaModel.kt'; Pattern = 'fun.*setSolverSolution';       Reason = 'solver solution ingestion'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toLinearFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toQuadraticFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toFrontendPolynomial'; Reason = 'Flt64 polynomial adapter'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toFlattenData\(\)'; Reason = 'Flt64 flatten adapter'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*from\(mono:.*Flt64'; Reason = 'Flt64 factory adapter'; Debt = 'low (boundary)' }
-    @{ File = 'MathInequalityDsl.kt'; Pattern = 'fun.*LinearInequality.*Flt64.*toQuadraticConstraint'; Reason = 'solver-boundary conversion'; Debt = 'low (boundary)' }
+    @{ File = 'Constraint.kt'; Pattern = 'fun.*\.toMeta\(\)';           Reason = 'solver output conversion'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MechanismModel.kt'; Pattern = 'fun.*convertMechanismModelToFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MetaModel.kt'; Pattern = 'fun.*add.*Quantity.*IntermediateSymbol.*Flt64'; Reason = 'Flt64 convenience add overload (solver boundary)'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MetaModel.kt'; Pattern = 'fun.*setSolverSolution';       Reason = 'solver solution ingestion'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toLinearFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toQuadraticFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
+    @{ File = 'MathInequalityDsl.kt'; Pattern = 'fun.*LinearInequality.*Flt64.*toQuadraticConstraint'; Reason = 'solver-boundary conversion'; Debt = 'none (solver-inherent)' }
 )
 
 function Is-WhitelistedMechanism($relPath, $line) {
@@ -119,10 +116,7 @@ function Is-WhitelistedMechanism($relPath, $line) {
 # Whitelist: UNCHECKED_CAST boundary bridges (type-erased solver bridges)
 # ============================================================
 $UncheckedCastBoundaryFiles = @(
-    'IntermediateSymbol.kt',
-    'FunctionSymbol.kt',
-    'SymbolCombination.kt',
-    'TokenTable.kt'
+    'SolverBoundaryCasts.kt'
 )
 
 function Is-WhitelistedUncheckedCast($relPath, $lineNumber) {

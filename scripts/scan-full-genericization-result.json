@@ -1,42 +1,39 @@
-{
-  "public_api_blocking": {
-    "geometry_typealias_flt64": 0,
-    "core_callback": 0,
-    "core_mechanism": 0,
-    "variable_typealias_flt64": 0,
-    "typealias_flt64_non_adapter": 0,
-    "core_solver_public": 0,
-    "math_symbol_non_adapter": 0,
-    "import_as": 0,
-    "core_function": 0
-  },
-  "migration_debt": [
-    "typealias: ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\basic\\MultiObject.kt:11: typealias MultiObject<Flt64> = List<Pair<MultiObjectLocation, Flt64>> -> MIGRATE: remove or move to legacy",
-    "callback: ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\callback\\CallBackModelInterface.kt:123: typealias CallBackModelInterface = CallBackModelInterfaceV<Flt64> -> MIGRATE: move to adapter/flt64 or legacy, add @Deprecated",
-    "function: 44 override methods -> MEDIUM: split interface, move Flt64 methods to internal/boundary",
-    "callback: ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\callback\\CallBackModelInterface.kt:185: typealias MultiObjectiveModelInterface = MultiObjectiveModelInterfaceV<Flt64> -> MIGRATE: move to adapter/flt64 or legacy, add @Deprecated"
-  ],
-  "raw": {
-    "typealias_flt64_geometry": 0,
-    "typealias_flt64_total": 11,
-    "core_other": 99,
-    "typealias_flt64_variable": 0,
-    "core_function": 115,
-    "core_solver": 15,
-    "math_symbol_adapter": 162,
-    "suppress_unchecked_cast": 4,
-    "import_as": 0,
-    "math_symbol_non_adapter": 0,
-    "core_callback": 7,
-    "core_mechanism": 28,
-    "typealias_flt64_adapter": 1
-  },
-  "timestamp": "2026-05-07T17:22:38",
-  "boundary_allowed": {
-    "typealias_flt64": 4,
-    "core_function_override": 44,
-    "core_mechanism": 22,
-    "core_callback": 5,
-    "suppress_unchecked_cast": 4
-  }
+﻿{
+    "boundary_allowed":  {
+                             "core_callback":  3,
+                             "suppress_unchecked_cast":  2,
+                             "core_mechanism":  18,
+                             "core_function_override":  0,
+                             "typealias_flt64":  2
+                         },
+    "timestamp":  "2026-05-08T01:09:15",
+    "migration_debt":  [
+                           "typealias: ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\basic\\MultiObject.kt:11: typealias MultiObject\u003cFlt64\u003e = List\u003cPair\u003cMultiObjectLocation, Flt64\u003e\u003e -\u003e MIGRATE: remove or move to legacy"
+                       ],
+    "raw":  {
+                "core_function":  115,
+                "math_symbol_non_adapter":  0,
+                "core_other":  91,
+                "typealias_flt64_adapter":  1,
+                "core_callback":  5,
+                "typealias_flt64_total":  9,
+                "core_mechanism":  26,
+                "import_as":  0,
+                "core_solver":  15,
+                "typealias_flt64_geometry":  0,
+                "math_symbol_adapter":  162,
+                "suppress_unchecked_cast":  2,
+                "typealias_flt64_variable":  0
+            },
+    "public_api_blocking":  {
+                                "core_mechanism":  0,
+                                "math_symbol_non_adapter":  0,
+                                "core_solver_public":  0,
+                                "import_as":  0,
+                                "geometry_typealias_flt64":  0,
+                                "core_function":  0,
+                                "typealias_flt64_non_adapter":  0,
+                                "variable_typealias_flt64":  0,
+                                "core_callback":  0
+                            }
 }

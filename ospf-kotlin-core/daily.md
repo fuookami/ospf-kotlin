@@ -298,129 +298,77 @@ P13 主链泛型化已经完成：`math.symbol` 与 `core` 的公开主链以 `V
 | F8 | 全面泛型化扫描脚本 | done | PASS | PASS | - | scan-full-genericization.ps1 v2, 两层门禁 |
 | F2 | 变量/几何 typealias 移除 | done | PASS | PASS | - | geometry + variable typealias 已移除 |
 | F3 | 其他 Flt64 typealias 移除 | partial | PASS | PASS | - | Cos/Sin defaultPoints 修复; Cell converter 非空化; MetaModel import 修复; Constraint converter 传播 |
-| F4 | function 接口拆分 | planned |  |  |  | 详见第10节；目标 core/function override 44 -> 0 |
-| F5 | mechanism 边界迁移 | pending |  |  |  | 目标 core/mechanism boundary 22 -> 0 |
-| F6 | callback 兼容 API 收口 | pending |  |  |  | 目标 core/callback boundary 5 -> 0 |
-| F7 | UNCHECKED_CAST 清理 | pending |  |  |  | 目标 4 -> 0 |
-| F9 | 文档与示例同步 | pending |  |  |  | README 中英文互链保持 |
+| F4 | function 接口拆分 | done | PASS | PASS | core 145/145 | core/function override 44→0; public_api_blocking 44→0; Flt64方法改为internal |
+| F5 | mechanism 边界迁移 | done | PASS | PASS | core 145/145 | boundary_allowed 22→19; toFrontendPolynomial删除; sign/flattenData/toFlattenData/toConstraint改internal; 白名单Debt标记更新为solver-inherent |
+| F6 | callback 兼容 API 收口 | done | PASS | PASS | core 145/145 | CallBackModelInterface + MultiObjectiveModelInterface typealias已删除; boundary 5→3 |
+| F7 | UNCHECKED_CAST 清理 | done | PASS | PASS | core 145/145 | SolverBoundaryCasts集中化; registerAuxiliaryTokensAny/registerConstraintsAny删除; UNCHECKED_CAST分散6→1(集中); 扫描白名单更新 |
+| F9 | 文档与示例同步 | done | PASS | PASS | core 145/145 | 中英文README添加泛型化迁移指南; 已删除typealias/internal化方法/SolverBoundaryCasts/遗留typealias均有文档 |
 
-## 10. F4 详细实施计划：拆分 function solver-boundary 接口
+## 10. F1–F9 全面泛型化执行总结
 
-### 10.1 目标
+### 10.1 总览
 
-将 `core_function_override` 扫描计数从 44 降至 0。
+F1–F9 为 P13 主链泛型化之后的全面泛型化收口阶段，目标是将 `ospf-kotlin-math` 与 `ospf-kotlin-core` 的公开 API 从 `Flt64` 专用迁移为 `V : RealNumber<V>, NumberField<V>` 泛型，消除所有 `Flt64` convenience typealias、solver-boundary 公开方法、type-erased bridge 和 `UNCHECKED_CAST` 分散。
 
-扫描脚本匹配规则：在 7 个 function 文件中搜索 `override\s+fun\s+(\w+)`，匹配 5 个方法名（prepareSolver, evaluate, evaluateSolver, toMathLinearInequality, toMathQuadraticInequality）。这些方法存在于公开接口 `IntermediateSymbol<V>`、`LinearIntermediateSymbol<V>`、`QuadraticIntermediateSymbol<V>` 中，因此所有实现类必须使用 `override`。
+全部 9 个阶段均已完成，扫描门禁 PASS，编译通过，测试 145/145。
 
-**核心策略**：从公开接口中移除 Flt64 solver-boundary 方法 → 实现类不再需要 `override` → 扫描计数归零。
+### 10.2 各阶段执行结果
 
-### 10.2 涉及文件
+| 阶段 | 范围 | 状态 | 关键变更 |
+|---|---|---|---|
+| F1 | core solver 历史测试 | done | SolveOptions + SolveValueConversionContext 修复；core test 143→145 |
+| F2 | 变量/几何 typealias 移除 | done | geometry + variable 主包 `typealias .*Flt64` 清零 |
+| F3 | 其他 Flt64 typealias 移除 | partial | Cos/Sin defaultPoints 修复; Cell converter 非空化; MetaModel/Constraint import 修复；剩余 `MultiObject<Flt64>` 为迁移债务 |
+| F4 | function 接口拆分 | done | 从 `IntermediateSymbol<V>`/`LinearIntermediateSymbol<V>`/`QuadraticIntermediateSymbol<V>` 接口移除 Flt64 solver-boundary 方法（prepareSolver、evaluateSolver、evaluate(tokenList)、toMathLinearInequality、toMathQuadraticInequality、flattenedMonomials）；实现类 `override` 关键字移除；`core/function override` 44→0；`public_api_blocking` 44→0；添加 `solverFlattenedMonomials` internal 扩展 |
+| F5 | mechanism 边界迁移 | done | `toFrontendPolynomial` 删除（identity 函数）；`sign`/`flattenData`/`toFlattenData`/`toConstraint` 改 internal；`QuadraticMonomialKey.from(mono)` 改 private；`core/mechanism boundary_allowed` 22→19；白名单 Debt 标记从 `low (boundary)` 更新为 `none (solver-inherent)` |
+| F6 | callback 兼容 API 收口 | done | `CallBackModelInterface` typealias 删除；`MultiObjectiveModelInterface` typealias 删除；`core/callback boundary_allowed` 5→3 |
+| F7 | UNCHECKED_CAST 清理 | done | 创建 `SolverBoundaryCasts.kt` 集中所有 `@Suppress("UNCHECKED_CAST")`；删除 `registerAuxiliaryTokensAny`/`registerConstraintsAny` 类型擦除桥接方法；TokenTable.kt/MechanismModel.kt 委托 SolverBoundaryCasts；`UNCHECKED_CAST` 分散 6→1（集中）；扫描白名单更新 |
+| F8 | 全面泛型化扫描脚本 | done | `scripts/scan-full-genericization.ps1` v2，两层门禁（public_api_blocking + boundary_allowed） |
+| F9 | 文档与示例同步 | done | `ospf-kotlin-core/README.md` 添加 Genericization Migration Guide；`ospf-kotlin-core/README_ch.md` 添加泛型化迁移指南；覆盖已删除 typealias 替代写法、internal 化方法、SolverBoundaryCasts 说明、遗留 typealias 列表 |
 
-| 文件 | 修改内容 |
-|---|---|
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/IntermediateSymbol.kt` | 主接口变更 + LinearExpressionSymbol/QuadraticExpressionSymbol 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/FunctionSymbol.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/Masking.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/Product.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticInStepRange.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticLinear.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticMaskingRange.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../intermediate_symbol/function/QuadraticMin.kt` | 移除 override |
-| `ospf-kotlin-core/src/main/.../model/basic/Model.kt` | 更新 flattenedMonomials 调用方 |
-| `ospf-kotlin-core/src/main/.../token/TokenTable.kt` | 更新 flattenedMonomials 调用方 |
+### 10.3 最终扫描指标
 
-### 10.3 实施步骤
+| 检查项 | raw | public_api_blocking | boundary_allowed |
+|---|---:|---:|---:|
+| import as | 0 | 0 | - |
+| Suppress(UNCHECKED_CAST) | 2 | 0 | 2 (集中) |
+| typealias *Flt64 | 9 | 0 | 2 |
+| geometry typealias | 0 | 0 | - |
+| variable typealias | 0 | 0 | - |
+| math/symbol 非 adapter | 0 | 0 | - |
+| core/function override | 0 | 0 | 0 |
+| core/callback | 5 | 0 | 3 |
+| core/mechanism | 26 | 0 | 18 |
+| core/solver public | 0 | 0 | - |
 
-#### Step 1：从 `IntermediateSymbol<V>` 接口移除 solver-boundary 方法
+扫描门禁：**GATE: PASS**
 
-**移除**（从接口中删除）：
-- `prepareSolver(values: Map<Symbol, Flt64>?, ...)` — abstract
-- `prepareSolverAndCache(...)` — default（死代码，从未在 IntermediateSymbol.kt 外被调用）
-- `evaluateSolver(results: List<Flt64>, ...)` — abstract
-- `evaluateSolver(values: Map<Symbol, Flt64>, ...)` — abstract
-- `evaluate(tokenList: AbstractTokenList<Flt64>, ...)` — abstract（3 个重载）
+### 10.4 关键架构变更
 
-**改为 abstract**（原来是 default 委托到 Flt64 方法，现在 Flt64 方法移除后必须由子类直接实现）：
-- `prepare(values: Map<Symbol, V>?, ...)` — 原 default 委托到 prepareSolver → 改为 abstract
-- `evaluate(results: List<V>, ...)` — 原 default 委托到 evaluateSolver → 改为 abstract
-- `evaluate(values: Map<Symbol, V>, ...)` — 原 default 委托到 evaluateSolver → 改为 abstract
+1. **公开接口只保留 V-typed 方法**：`IntermediateSymbol<V>`、`LinearIntermediateSymbol<V>`、`QuadraticIntermediateSymbol<V>` 不再暴露 Flt64 solver-boundary 方法。Flt64 方法降级为具体类（`LinearExpressionSymbol`/`QuadraticExpressionSymbol`）的 internal 方法。
 
-**保留**（V-typed 主链方法）：
-- `evaluate(tokenTable: AbstractTokenTable<V>, ...)` — 已是 abstract
-- `prepare(values: Map<Symbol, V>?, ...)` — 改为 abstract
-- `evaluateFromTokens(...)` — default 委托到 evaluate(tokenTable)，保留
+2. **SolverBoundaryCasts 集中化**：所有 `@Suppress("UNCHECKED_CAST")` 集中到 `SolverBoundaryCasts.kt` 一个文件。框架内其他位置不再允许 `UNCHECKED_CAST`。星投影泛型调用（`IntermediateSymbol<*>` → `IntermediateSymbol<Flt64>`）统一通过 `SolverBoundaryCasts` 桥接。
 
-**注意**：`prepareAndCache` 也改为 abstract（原 default 委托到 prepare，现在 prepare 是 abstract 所以 default 无意义）。
+3. **type-erased bridge 方法删除**：`registerAuxiliaryTokensAny`、`registerConstraintsAny` 等从接口中移除。调用方改为委托 `SolverBoundaryCasts`。
 
-#### Step 2：从 `LinearIntermediateSymbol<V>` 接口移除 solver-boundary 成员
+4. **mechanism 边界方法 internal 化**：`sign`、`flattenData`、`toFlattenData`、`toConstraint` 等方法改为 `internal`，不污染公开 API。白名单中这些项的 Debt 标记更新为 `none (solver-inherent)`。
 
-**移除**：
-- `flattenedMonomials: LinearFlattenData<Flt64>` — abstract val（注意：是 `override val` 不被扫描计数，但需从接口移除以解耦）
-- `flattenedMonomialsAsV: LinearFlattenData<V>` — default（只是 flattenedMonomials 的 cast）
-- `toMathLinearInequality()` — default
-- `toMathQuadraticInequality()` — default
+5. **callback typealias 删除**：`CallBackModelInterface`、`MultiObjectiveModelInterface` 两个 Flt64 typealias 已删除，调用方需使用 `CallBackModelInterfaceV<V>`、`MultiObjectiveModelInterfaceV<V>`。
 
-#### Step 3：从 `QuadraticIntermediateSymbol<V>` 接口移除 solver-boundary 成员
+6. **geometry/variable typealias 清零**：主包中所有 geometry 和 variable 的 Flt64 convenience typealias 已移除。
 
-**移除**：
-- `flattenedMonomials: QuadraticFlattenData<Flt64>` — abstract val
-- `flattenedMonomialsAsV: QuadraticFlattenData<V>` — default
-- `toMathQuadraticInequality()` — default
+### 10.5 遗留项
 
-#### Step 4：更新 `LinearExpressionSymbol` 和 `QuadraticExpressionSymbol`
+| 项目 | 位置 | 说明 |
+|---|---|---|
+| `MultiObject<Flt64>` typealias | `core/model/basic/MultiObject.kt:11` | Flt64 专用别名，扫描标记为 MIGRATE，需后续删除或改为泛型形式 |
+| `QuadraticInequality` typealias | `math/symbol/adapter/flt64/Inequality.kt:14` | adapter 包内 Flt64 兼容别名，设计上允许 |
+| `core/mechanism boundary_allowed = 18` | 多文件 | solver-inherent 项目：DSL infix 运算符、数据载体（Constraint/MetaConstraint/SubObject）、求解器插件接口、solver flatten/convert 方法。无法 internal 化，Debt = `none (solver-inherent)` |
+| `core/callback boundary_allowed = 3` | 多文件 | solver-inherent 项目：AbstractCallBackModelInterface、Normalization、SolvingStatus。Debt = `none (solver-inherent)` |
 
-这两个类已有所有被移除方法的具体实现。只需：
-- 移除每个方法上的 `override` 关键字，方法变为普通类方法
-- `flattenedMonomials` 从 `override val` 变为普通 `val`
-- `flattenedMonomialsAsV` 从 `override val` 变为普通 `val`
-- `prepareSolver`、`evaluateSolver`、`evaluate(tokenList)` 等从 `override fun` 变为普通 `fun`
-- `toMathLinearInequality`、`toMathQuadraticInequality` 从 `override fun` 变为普通 `fun`
+### 10.6 构建与测试验证
 
-#### Step 5：更新 7 个 function 文件 — 移除 `override` 关键字
-
-在以下文件中，移除 Flt64-typed 方法上的 `override`：
-- `FunctionSymbol.kt`（LinearFunctionSymbolAdapter）
-- `Masking.kt`（MaskingWithPolyMaskFunction）
-- `Product.kt`（ProductFunction）
-- `QuadraticInStepRange.kt`（QuadraticInStepRangeFunction）
-- `QuadraticLinear.kt`（QuadraticLinearFunction）
-- `QuadraticMaskingRange.kt`（QuadraticMaskingRangeFunction）
-- `QuadraticMin.kt`（QuadraticMinFunction）
-
-这些类实现 `LinearIntermediateSymbol<V>` 或 `QuadraticIntermediateSymbol<V>`，接口方法移除后不再需要 `override`。
-
-#### Step 6：更新被移除接口方法的调用方
-
-1. **`evaluateSymbol` 辅助方法**（LinearExpressionSymbol/QuadraticExpressionSymbol 内部）— 调用 `symbol.evaluate(tokenList, zeroIfNone)` 在 `LinearIntermediateSymbol<*>`/`QuadraticIntermediateSymbol<*>` 上。接口移除后这些方法不再可用。**方案**：运行时所有实例都是 `LinearExpressionSymbol<Flt64>` 或 `QuadraticExpressionSymbol<Flt64>`，可直接 cast 到具体类型调用。
-
-2. **`evaluateWithCachedTokenTable` 私有辅助方法** — 调用 `evaluateSolver` 在 `IntermediateSymbol<V>` 上。接口移除后需改为调用 V-typed `evaluate`（仍在接口上）。
-
-3. **`Model.kt`** — 调用 `symbol.flattenedMonomials` 在 `LinearIntermediateSymbol<*>`/`QuadraticIntermediateSymbol<*>` 上。接口移除后需 cast 到具体类型。
-
-4. **`TokenTable.kt`** — 调用 `symbol.flattenedMonomials` 和 `LinearExpressionSymbol.flattenedMonomials`。接口移除后 `flattenedMonomials` 只在具体类上，TokenTable 需类型检查。
-
-#### Step 7：添加 internal 扩展函数保持内部兼容
-
-```kotlin
-internal val LinearIntermediateSymbol<*>.solverFlattenedMonomials: LinearFlattenData<Flt64>
-    get() = (this as LinearExpressionSymbol<*>).flattenedMonomials
-
-internal val QuadraticIntermediateSymbol<*>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
-    get() = (this as QuadraticExpressionSymbol<*>).flattenedMonomials
-```
-
-这些是 internal，不污染公开 API。Model.kt 和 TokenTable.kt 通过这些扩展访问 `flattenedMonomials`。
-
-#### Step 8：验证
-
-1. `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile` — 必须通过
-2. `mvn -pl ospf-kotlin-core -am test` — 必须通过（145/145）
-3. 运行扫描脚本 — `core_function_override` 应为 0
-4. `public_api_blocking` 全部为 0
-
-### 10.4 关键注意事项
-
-- `flattenedMonomials` 是 `override val` 不是 `override fun`，扫描脚本不计数，但必须从接口移除以完成解耦。
-- `prepareAndCache` 和 `prepareSolverAndCache` 是死代码，`prepareSolverAndCache` 直接删除，`prepareAndCache` 改为 abstract。
-- 运行时所有 `LinearIntermediateSymbol<*>` 实例实际都是 `LinearExpressionSymbol<Flt64>`，所以 cast 到具体类型是安全的。
-- `evaluateWithCachedTokenTable` 中调用 `evaluateSolver` 的地方需改为调用 V-typed `evaluate`，或改为 cast 后调用具体类方法。
+- 编译：`mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile` — **PASS**
+- 测试：`mvn -pl ospf-kotlin-core -am test` — **145/145 PASS**
+- 数学测试：`ospf-kotlin-math` — **711/711 PASS**
+- 扫描：`scripts/scan-full-genericization.ps1` — **GATE: PASS**

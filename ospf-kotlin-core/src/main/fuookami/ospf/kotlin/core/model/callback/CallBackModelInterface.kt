@@ -119,9 +119,6 @@ interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> 
     fun infinity(): V
 }
 
-/** Flt64 convenience specialization. */
-typealias CallBackModelInterface = CallBackModelInterfaceV<Flt64>
-
 interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<List<Pair<MultiObjectLocation, Flt64>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation>
     val objectiveSize get() = objectiveLocation.size
@@ -180,6 +177,3 @@ interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<Lis
     /** Provide positive infinity for this V type. */
     fun infinity(): V
 }
-
-/** Flt64 convenience specialization. */
-typealias MultiObjectiveModelInterface = MultiObjectiveModelInterfaceV<Flt64>

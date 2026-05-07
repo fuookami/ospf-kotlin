@@ -4,6 +4,8 @@ import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.AbstractSymbolCombination
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -90,7 +92,7 @@ class ProductFunction<V>(
         }
     }
 
-    override fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val tt = tokenTable as AbstractTokenTable<Flt64>
         val tokenList = tt.tokenList
         val leftValue = if (values.isNullOrEmpty()) {
@@ -145,11 +147,11 @@ class ProductFunction<V>(
         return QuadraticPolynomial(monomials, leftConst * rightConst)
     }
 
-    override fun toMathQuadraticInequality(): QuadraticInequality {
+    internal fun toMathQuadraticInequality(): QuadraticInequality {
         return QuadraticInequality(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    override val flattenedMonomials: QuadraticFlattenData<Flt64>
+    internal val flattenedMonomials: QuadraticFlattenData<Flt64>
         get() {
             val poly = expandedQuadraticPolyFlt64()
             return QuadraticFlattenData<Flt64>(poly.monomials, poly.constant)
@@ -160,22 +162,26 @@ class ProductFunction<V>(
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    override fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(leftFlt64, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinear(rightFlt64, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    override fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromResults(leftFlt64, results, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromResults(rightFlt64, results, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    override fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromValues(leftFlt64, values, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromValues(rightFlt64, values, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
+    }
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val flt64Values = values?.mapValues { converter.fromValue(it.value) }
+        return prepareSolver(flt64Values, tokenTable, converter)
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tt = tokenTable as AbstractTokenTable<Flt64>
@@ -183,13 +189,26 @@ class ProductFunction<V>(
         val result = evaluate(tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
-    override fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val tt = tokenTable as AbstractTokenTable<Flt64>
+        val tokenList = tt.tokenList as AbstractTokenList<Flt64>
+        val flt64Results = results.map { converter.fromValue(it) }
+        val result = evaluate(flt64Results, tokenList, zeroIfNone) ?: return null
+        return converter.intoValue(result)
+    }
+    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val tokenList = tokenTable?.let { (it as AbstractTokenTable<Flt64>).tokenList as AbstractTokenList<Flt64> }
+        val flt64Values = values.mapValues { converter.fromValue(it.value) }
+        val result = evaluate(flt64Values, tokenList, zeroIfNone) ?: return null
+        return converter.intoValue(result)
+    }
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tt = tokenTable as AbstractTokenTable<Flt64>
         val tokenList = tt.tokenList as AbstractTokenList<Flt64>
         val result = evaluate(results, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
-    override fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val tokenList = tokenTable?.let { (it as AbstractTokenTable<Flt64>).tokenList as AbstractTokenList<Flt64> }
         val result = evaluate(values, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
@@ -233,7 +252,8 @@ class ProductFunction<V>(
                     is AbstractVariableItem<*, *> -> {
                         tokenList.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else return null
                     }
-                    is IntermediateSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is LinearExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is QuadraticExpressionSymbol<*> -> symbol.evaluate(tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
                     else -> return null
                 }
                 value += monomial.coefficient * symbolValue
@@ -256,7 +276,8 @@ class ProductFunction<V>(
                         if (index != null && index >= 0 && index < results.size) results[index]
                         else if (zeroIfNone) Flt64.zero else return null
                     }
-                    is IntermediateSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is LinearExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is QuadraticExpressionSymbol<*> -> symbol.evaluate(results, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
                     else -> return null
                 }
                 value += monomial.coefficient * symbolValue
@@ -277,7 +298,8 @@ class ProductFunction<V>(
                     is AbstractVariableItem<*, *> -> {
                         values[symbol] ?: tokenList?.find(symbol)?.result ?: if (zeroIfNone) Flt64.zero else return null
                     }
-                    is IntermediateSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is LinearExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
+                    is QuadraticExpressionSymbol<*> -> symbol.evaluate(values, tokenList, zeroIfNone) ?: if (zeroIfNone) Flt64.zero else return null
                     else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else return null
                 }
                 value += monomial.coefficient * symbolValue
