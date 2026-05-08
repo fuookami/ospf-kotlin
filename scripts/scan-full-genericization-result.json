@@ -1,1056 +1,1139 @@
-{
-  "i2_classification": {
-    "ADAPTER_COMPAT": 0,
-    "INTERNAL_IMPL": 2257,
-    "SOLVER_BRIDGE": 956,
-    "PUBLIC_API_BLOCKING": 0,
-    "NUMBER_TYPE_BODY": 0
-  },
-  "boundary_allowed": {
-    "suppress_unchecked_cast": 2,
-    "typealias_flt64": 1,
-    "core_function_override": 0,
-    "core_callback": 0,
-    "suppress_unchecked_cast_blocking": 0,
-    "core_mechanism": 0
-  },
-  "raw": {
-    "typealias_flt64_variable": 0,
-    "math_symbol_non_adapter": 0,
-    "core_mechanism": 26,
-    "suppress_unchecked_cast": 2,
-    "typealias_flt64_total": 8,
-    "core_other": 90,
-    "typealias_flt64_geometry": 0,
-    "core_solver": 15,
-    "core_function": 115,
-    "typealias_flt64_adapter": 1,
-    "math_symbol_adapter": 162,
-    "import_as": 0,
-    "core_callback": 2
-  },
-  "timestamp": "2026-05-08T17:44:37",
-  "migration_debt": [],
-  "public_api_blocking": {
-    "variable_typealias_flt64": 0,
-    "geometry_typealias_flt64": 0,
-    "core_mechanism": 0,
-    "typealias_flt64_non_adapter": 0,
-    "core_function": 0,
-    "import_as": 0,
-    "core_solver_public": 0,
-    "math_symbol_non_adapter": 0,
-    "core_callback": 0
-  },
-  "i2_classification_detail": [
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 48,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 49,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 50,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 99,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 100,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 103,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 125,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 126,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 129,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 147,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 148,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 159,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 160,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 167,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 168,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 175,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 176,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 183,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 184,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 195,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 196,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 204,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 205,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 216,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 217,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 254,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 279,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 342,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 343,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 345,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 346,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 360,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 361,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 363,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 364,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 374,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 378,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 379,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 392,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 396,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 397,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 400,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 410,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 414,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 415,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 429,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 430,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 433,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 447,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 448,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 451,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 465,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 466,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 469,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 483,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 484,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 487,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 501,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 502,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 505,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 519,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 520,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 523,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 536,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 537,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 540,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 551,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 558,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 559,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 560,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 561,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 577,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 580,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 583,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 589,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 594,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 597,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 604,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 607,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 610,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 612,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 617,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 621,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 628,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 633,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 640,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 643,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 646,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 662,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 663,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 664,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 682,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 683,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 687,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 693,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 704,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 708,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 733,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 738,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 739,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 746,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 747,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 757,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 758,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 764,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 769,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 770,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 773,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 774,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 784,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 785,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 786,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 789,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 797,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 798,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 801,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 808,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 809,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 813,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 814,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 817,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 819,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 820,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 823,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 829,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 832,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 833,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 836,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 844,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 845,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 850,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 857,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 858,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 859,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 862,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 867,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 869,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 870,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 873,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 927,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 928,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 930,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 931,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 945,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 946,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 948,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 949,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 963,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 964,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 966,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 967,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 981,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 982,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 985,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 999,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1000,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1003,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1017,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1018,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1021,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1035,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1036,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1039,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1053,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1054,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1057,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1071,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1072,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1075,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1088,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1089,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1092,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1103,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1110,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1111,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1112,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1113,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1129,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1130,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1133,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1141,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1142,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1147,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1156,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1157,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1160,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1164,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1169,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1173,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1181,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1186,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1194,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1197,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1201,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1225,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1226,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1227,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1228,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1234,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    },
-    {
-      "category": "INTERNAL_IMPL",
-      "line": 1265,
-      "path": "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt"
-    }
-  ],
-  "boundary_detail": {
-    "unchecked_cast_bridge": [
-      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:26: * in the framework. Do not add @Suppress(\"UNCHECKED_CAST\") elsewhere.",
-      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:28: @Suppress(\"UNCHECKED_CAST\")"
-    ],
-    "core_callback": [],
-    "core_mechanism": [],
-    "unchecked_cast_blocking": []
-  }
+﻿{
+    "migration_debt":  [
+
+                       ],
+    "i5_adapter_deprecated":  {
+                                  "count":  1,
+                                  "items":  [
+                                                "ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Inequality.kt:20: @Deprecated("
+                                            ]
+                              },
+    "boundary_detail":  {
+                            "unchecked_cast_bridge":  [
+                                                          "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:26: * in the framework. Do not add @Suppress(\"UNCHECKED_CAST\") elsewhere.",
+                                                          "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:28: @Suppress(\"UNCHECKED_CAST\")"
+                                                      ],
+                            "unchecked_cast_blocking":  [
+
+                                                        ],
+                            "core_callback":  [
+
+                                              ],
+                            "core_mechanism":  [
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:206: fun add(symbol: Quantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:357: fun add(symbols: Iterable\u003cQuantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:363: fun \u003cK\u003e add(symbols: Map\u003cK, Quantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:369: fun \u003cK\u003e add(symbols: Map\u003cK, Iterable\u003cQuantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:388: fun \u003cK1, K2\u003e add(symbols: MultiMap2\u003cK1, K2, Quantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:407: fun \u003cK1, K2\u003e add(symbols: MultiMap2\u003cK1, K2, Iterable\u003cQuantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:426: fun \u003cK1, K2, K3\u003e add(symbols: MultiMap3\u003cK1, K2, K3, Quantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:445: fun \u003cK1, K2, K3\u003e add(symbols: MultiMap3\u003cK1, K2, K3, Iterable\u003cQuantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:464: fun \u003cK1, K2, K3, K4\u003e add(symbols: MultiMap4\u003cK1, K2, K3, K4, Quantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:483: fun \u003cK1, K2, K3, K4\u003e add(symbols: MultiMap4\u003cK1, K2, K3, K4, Iterable\u003cQuantity\u003cIntermediateSymbol\u003cFlt64\u003e\u003e\u003e\u003e): Try {",
+                                                       "reason":  "Flt64 convenience add overload (solver boundary)",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:522: fun setSolverSolution(solution: List\u003cFlt64\u003e) {",
+                                                       "reason":  "solver solution ingestion",
+                                                       "debt":  "none (solver-inherent)"
+                                                   },
+                                                   {
+                                                       "entry":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt:527: fun setSolverSolution(solution: Map\u003cAbstractVariableItem\u003c*, *\u003e, Flt64\u003e) {",
+                                                       "reason":  "solver solution ingestion",
+                                                       "debt":  "none (solver-inherent)"
+                                                   }
+                                               ]
+                        },
+    "raw":  {
+                "core_function":  115,
+                "math_symbol_non_adapter":  0,
+                "core_other":  90,
+                "typealias_flt64_adapter":  1,
+                "core_callback":  2,
+                "typealias_flt64_total":  9,
+                "core_mechanism":  26,
+                "import_as":  0,
+                "core_solver":  15,
+                "typealias_flt64_geometry":  0,
+                "math_symbol_adapter":  162,
+                "suppress_unchecked_cast":  2,
+                "typealias_flt64_variable":  0
+            },
+    "boundary_allowed":  {
+                             "suppress_unchecked_cast_blocking":  0,
+                             "core_mechanism":  12,
+                             "suppress_unchecked_cast":  2,
+                             "core_function_override":  0,
+                             "typealias_flt64":  1,
+                             "core_callback":  0
+                         },
+    "i2_classification":  {
+                              "ADAPTER_COMPAT":  0,
+                              "PUBLIC_API_BLOCKING":  0,
+                              "NUMBER_TYPE_BODY":  0,
+                              "SOLVER_BRIDGE":  956,
+                              "INTERNAL_IMPL":  2257
+                          },
+    "i5_public_api_signature":  {
+                                    "non_adapter":  420,
+                                    "total":  420,
+                                    "adapter":  0
+                                },
+    "timestamp":  "2026-05-08T23:26:04",
+    "i2_classification_detail":  [
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  48
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  49
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  50
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  99
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  100
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  103
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  125
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  126
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  129
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  147
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  148
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  159
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  160
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  167
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  168
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  175
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  176
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  183
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  184
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  195
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  196
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  204
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  205
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  216
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  217
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  254
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  279
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  342
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  343
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  345
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  346
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  360
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  361
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  363
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  364
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  374
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  378
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  379
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  392
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  396
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  397
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  400
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  410
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  414
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  415
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  429
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  430
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  433
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  447
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  448
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  451
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  465
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  466
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  469
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  483
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  484
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  487
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  501
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  502
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  505
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  519
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  520
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  523
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  536
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  537
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  540
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  551
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  558
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  559
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  560
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  561
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  577
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  580
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  583
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  589
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  594
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  597
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  604
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  607
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  610
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  612
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  617
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  621
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  628
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  633
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  640
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  643
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  646
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  662
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  663
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  664
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  682
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  683
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  687
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  693
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  704
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  708
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  733
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  738
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  739
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  746
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  747
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  757
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  758
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  764
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  769
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  770
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  773
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  774
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  784
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  785
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  786
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  789
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  797
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  798
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  801
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  808
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  809
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  813
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  814
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  817
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  819
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  820
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  823
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  829
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  832
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  833
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  836
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  844
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  845
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  850
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  857
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  858
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  859
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  862
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  867
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  869
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  870
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  873
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  927
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  928
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  930
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  931
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  945
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  946
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  948
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  949
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  963
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  964
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  966
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  967
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  981
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  982
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  985
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  999
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1000
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1003
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1017
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1018
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1021
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1035
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1036
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1039
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1053
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1054
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1057
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1071
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1072
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1075
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1088
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1089
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1092
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1103
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1110
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1111
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1112
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1113
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1129
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1130
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1133
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1141
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1142
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1147
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1156
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1157
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1160
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1164
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1169
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1173
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1181
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1186
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1194
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1197
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1201
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1225
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1226
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1227
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1228
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1234
+                                     },
+                                     {
+                                         "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                         "category":  "INTERNAL_IMPL",
+                                         "line":  1265
+                                     }
+                                 ],
+    "i5_boundary_tiers":  {
+                              "deprecated":  1,
+                              "permanent":  14,
+                              "must_decrease":  0
+                          },
+    "public_api_blocking":  {
+                                "core_mechanism":  0,
+                                "math_symbol_non_adapter":  0,
+                                "core_solver_public":  0,
+                                "import_as":  0,
+                                "geometry_typealias_flt64":  0,
+                                "core_function":  0,
+                                "typealias_flt64_non_adapter":  0,
+                                "variable_typealias_flt64":  0,
+                                "core_callback":  0
+                            }
 }

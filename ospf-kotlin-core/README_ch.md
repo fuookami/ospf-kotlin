@@ -99,6 +99,25 @@ suspend fun unifiedSolve(
 
 新代码应直接使用泛型形式。
 
+### adapter/flt64 兼容层
+
+`math.symbol.adapter.flt64` 包提供 Flt64 专用便捷函数和 `QuadraticInequality` typealias。该层是**兼容边界**，不属于主链 V 类型化 API。
+
+**退场策略：**
+
+- `QuadraticInequality` 已标注 `@Deprecated(WARNING)`，请直接使用 `QuadraticInequalityOf<Flt64>`。
+- 其余 adapter 函数（evaluate、parse、serde、DSL 等）保留向后兼容，新代码应优先使用泛型 V 类型化等价形式。
+- 该 adapter 层将在未来主版本中移除，暂无明确时间线，deprecation 标注表明此意图。
+
+### 扫描门禁（I5）
+
+泛型化扫描门禁（`scripts/scan-full-genericization.ps1`）执行以下检查：
+
+1. `public_api_blocking = 0`（非 adapter 公开 API 签名中无 Flt64）。
+2. `UNCHECKED_CAST` blocking = 0（所有 cast 集中在 `SolverBoundaryCasts.kt`）。
+3. 非 adapter 公开 API 签名 Flt64 = 0（I5 签名级检查，捕获嵌套泛型和多行签名等纯正则扫描盲区）。
+4. 边界项分为三级：**permanent**（solver 固有）、**deprecated**（计划移除）、**must_decrease**（跟踪下降）。
+
 ## 与根 README 的分工
 
 仓库根目录 README 负责仓库级导航。

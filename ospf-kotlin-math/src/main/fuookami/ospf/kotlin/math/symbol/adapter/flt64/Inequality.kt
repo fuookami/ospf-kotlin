@@ -11,6 +11,17 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
+/**
+ * Flt64-specific convenience typealias for QuadraticInequalityOf<Flt64>.
+ *
+ * Prefer using [QuadraticInequalityOf] directly with your value type parameter.
+ * This typealias will be removed in a future version.
+ */
+@Deprecated(
+    message = "Use QuadraticInequalityOf<Flt64> directly. This typealias will be removed in a future version.",
+    replaceWith = ReplaceWith("QuadraticInequalityOf<Flt64>", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf"),
+    level = DeprecationLevel.WARNING
+)
 typealias QuadraticInequality = QuadraticInequalityOf<Flt64>
 
 // ========== Comparison.satisfiedBy ==========

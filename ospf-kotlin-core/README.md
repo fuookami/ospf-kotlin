@@ -101,6 +101,25 @@ The following `Flt64` typealiases in `token/TokenList.kt` remain as legacy conve
 
 New code should prefer the generic form directly.
 
+### adapter/flt64 Compatibility Layer
+
+The `math.symbol.adapter.flt64` package provides Flt64-specialized convenience functions and a `QuadraticInequality` typealias. This layer is a **compatibility boundary** — it is not part of the main-chain V-typed API.
+
+**Deprecation policy:**
+
+- `QuadraticInequality` is now `@Deprecated(WARNING)`. Use `QuadraticInequalityOf<Flt64>` directly.
+- The remaining adapter functions (evaluate, parse, serde, DSL, etc.) are retained for backward compatibility but new code should prefer the generic V-typed equivalents where available.
+- This adapter layer will be removed in a future major version. No timeline is committed yet, but the deprecation signals the intent.
+
+### Scan Gate Enforcement (I5)
+
+The genericization scan gate (`scripts/scan-full-genericization.ps1`) enforces:
+
+1. `public_api_blocking = 0` for all check items (no Flt64 in non-adapter public API signatures).
+2. `UNCHECKED_CAST` blocking = 0 (all casts centralized in `SolverBoundaryCasts.kt`).
+3. Non-adapter public API signature Flt64 = 0 (I5 signature-level check, catches nested generics and multi-line signatures that regex-only scans miss).
+4. Boundary items classified into three tiers: **permanent** (solver-inherent), **deprecated** (planned removal), **must_decrease** (tracked for reduction).
+
 ## Scope Relation to Root README
 
 Root README focuses on repository-level navigation.

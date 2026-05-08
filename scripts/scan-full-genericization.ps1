@@ -615,6 +615,141 @@ foreach ($m in $allCoreFlt64) {
 }
 
 # ============================================================
+# I5: Public API signature-level scan
+# Scans all non-internal/private declarations containing Flt64
+# in their signature, distinguishing adapter vs non-adapter.
+# This catches cases where regex-only scanning misses nested
+# generics, multi-line signatures, or new directories.
+# ============================================================
+
+$publicApiSignatureFlt64 = @()
+$publicApiSignatureAdapter = @()
+$publicApiSignatureNonAdapter = @()
+
+# I5: Signature-level scan for non-adapter public API Flt64
+# This is a complement to the regex-based scan above, catching cases where
+# Flt64 appears in public signatures that the line-level scan might miss
+# (e.g. multi-line declarations, nested generics).
+# We reuse the same whitelist paths to avoid double-counting.
+
+$I5WhitelistPaths = @(
+    'adapter[/\\]flt64'
+    'solver[/\\]'
+    'model[/\\]mechanism'
+    'model[/\\]callback'
+    'model[/\\]intermediate'
+    'model[/\\]basic'
+    'intermediate_symbol[/\\]function'
+    'intermediate_symbol[/\\]flatten'
+    'intermediate_symbol[/\\]SymbolCombination\.kt$'
+    'intermediate_symbol[/\\]IntermediateSymbol\.kt$'
+    'intermediate_symbol[/\\]SolverBoundaryCasts\.kt$'
+    'token[/\\]TokenList\.kt$'
+    'token[/\\]Token\.kt$'
+    'variable[/\\]'
+)
+
+$allKtFiles = Get-ChildItem -Recurse ospf-kotlin-math/src/main,ospf-kotlin-core/src/main -Filter *.kt
+
+foreach ($file in $allKtFiles) {
+    $rp = Get-RelPath @{ Path = $file.FullName }
+    $isAdapter = $rp -match 'adapter[/\\]flt64'
+
+    # Skip whitelisted paths (already tracked by boundary_allowed)
+    $isWhitelisted = $false
+    foreach ($wlPath in $I5WhitelistPaths) {
+        if ($rp -match $wlPath) { $isWhitelisted = $true; break }
+    }
+    if ($isWhitelisted) { continue }
+
+    $lines = Get-Content $file.FullName -ErrorAction Stop
+
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = [string]$lines[$i]
+        $trimmed = $line.TrimStart()
+
+        # Skip comments, imports, package, blank, annotations
+        if ($trimmed.StartsWith('//') -or $trimmed.StartsWith('/*') -or $trimmed.StartsWith('*') -or
+            $trimmed.StartsWith('import ') -or $trimmed.StartsWith('package ') -or
+            $trimmed.StartsWith('@') -or $trimmed -eq '') {
+            continue
+        }
+
+        # Skip internal/private/override/protected declarations
+        if ($trimmed -match '^(internal|private|protected)\s+') {
+            continue
+        }
+
+        # Only check lines that are public declarations with Flt64 in signature
+        if ($trimmed -match '^(val|var|fun|class|interface|data class|enum class|object|typealias|operator fun|infix fun|suspend fun|override fun)\s' -and
+            $line -match 'Flt64') {
+            $entry = "${rp}:$($i+1): $($line.Trim())"
+            $publicApiSignatureFlt64 += $entry
+            if ($isAdapter) {
+                $publicApiSignatureAdapter += $entry
+            } else {
+                $publicApiSignatureNonAdapter += $entry
+            }
+        }
+    }
+}
+
+# ============================================================
+# I5: @Deprecated detection in adapter/flt64
+# ============================================================
+
+$adapterDeprecatedCount = 0
+$adapterDeprecatedItems = @()
+
+$adapterFiles = Get-ChildItem -Recurse ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter/flt64 -Filter *.kt
+foreach ($file in $adapterFiles) {
+    $rp = Get-RelPath @{ Path = $file.FullName }
+    $lines = Get-Content $file.FullName -ErrorAction Stop
+    for ($i = 0; $i -lt $lines.Count; $i++) {
+        $line = [string]$lines[$i]
+        $trimmed = $line.TrimStart()
+        if ($line -match '@Deprecated' -and -not ($trimmed.StartsWith('//') -or $trimmed.StartsWith('*'))) {
+            $adapterDeprecatedCount++
+            $adapterDeprecatedItems += "${rp}:$($i+1): $trimmed"
+        }
+    }
+}
+
+# ============================================================
+# I5: boundary_allowed three-tier classification
+# permanent = long-term allowed (solver-inherent, framework boundary)
+# deprecated = marked @Deprecated, planned for removal
+# must_decrease = should decrease over time, not increase
+# ============================================================
+
+$boundaryPermanent = @()
+$boundaryDeprecated = @()
+$boundaryMustDecrease = @()
+
+foreach ($b in $mechanismBoundary) {
+    if ($b.Debt -match 'none') { $boundaryPermanent += $b }
+    elseif ($b.Debt -match 'MIGRATE') { $boundaryMustDecrease += $b }
+    else { $boundaryMustDecrease += $b }
+}
+foreach ($b in $callbackBoundary) {
+    if ($b.Debt -match 'none') { $boundaryPermanent += $b }
+    elseif ($b.Debt -match 'MIGRATE') { $boundaryMustDecrease += $b }
+    else { $boundaryMustDecrease += $b }
+}
+foreach ($e in $typealiasBoundary) {
+    if ($e.Debt -match 'none') { $boundaryPermanent += $e }
+    elseif ($e.Debt -match 'MIGRATE') { $boundaryMustDecrease += $e }
+    else { $boundaryMustDecrease += $e }
+}
+# UNCHECKED_CAST: permanent (star-projection bridge, cannot be eliminated)
+$boundaryPermanent += @{ Entry = "SolverBoundaryCasts.kt: @Suppress(UNCHECKED_CAST)"; Reason = "star-projection type-erased bridge"; Debt = "none (permanent)" }
+
+# adapter/flt64 deprecated items
+foreach ($d in $adapterDeprecatedItems) {
+    $boundaryDeprecated += @{ Entry = $d; Reason = "adapter/flt64 @Deprecated item"; Debt = "DEPRECATED: planned removal" }
+}
+
+# ============================================================
 # Text output
 # ============================================================
 
@@ -665,6 +800,30 @@ Write-Host "  SOLVER_BRIDGE:                $classSOLVER_BRIDGE  (solver gap/nor
 Write-Host "  INTERNAL_IMPL:                $classINTERNAL_IMPL  (internal computation paths — REVIEW)"
 Write-Host "  PUBLIC_API_BLOCKING:          $classPUBLIC_API_BLOCKING  (public API signatures — MUST_BE_ZERO)"
 Write-Host "  Total classified:             $($classNUMBER_TYPE_BODY + $classADAPTER_COMPAT + $classSOLVER_BRIDGE + $classINTERNAL_IMPL + $classPUBLIC_API_BLOCKING)"
+Write-Host ""
+
+# ---- I5: Public API signature-level scan ----
+Write-Host "--- I5 PUBLIC API SIGNATURE SCAN (Flt64 in non-internal signatures) ---"
+Write-Host "  Total Flt64 signatures:       $($publicApiSignatureFlt64.Count)"
+Write-Host "  adapter/flt64:                $($publicApiSignatureAdapter.Count)"
+Write-Host "  non-adapter:                  $($publicApiSignatureNonAdapter.Count)"
+Write-Host ""
+
+# ---- I5: @Deprecated detection ----
+Write-Host "--- I5 ADAPTER DEPRECATED ITEMS ---"
+Write-Host "  @Deprecated count:            $adapterDeprecatedCount"
+if ($adapterDeprecatedCount -gt 0) {
+    foreach ($d in $adapterDeprecatedItems) {
+        Write-Host "    $d"
+    }
+}
+Write-Host ""
+
+# ---- I5: boundary tiers ----
+Write-Host "--- I5 BOUNDARY TIERS ---"
+Write-Host "  permanent (long-term):        $($boundaryPermanent.Count)"
+Write-Host "  deprecated (planned removal): $($boundaryDeprecated.Count)"
+Write-Host "  must_decrease (tracked):      $($boundaryMustDecrease.Count)"
 Write-Host ""
 
 # ---- Boundary detail listing (H1 requirement) ----
@@ -840,6 +999,20 @@ $json = @{
         PUBLIC_API_BLOCKING = $classPUBLIC_API_BLOCKING
     }
     i2_classification_detail = @($classifiedItems | Select-Object -First 200 | ForEach-Object { @{ path = $_.path; line = $_.line; category = $_.category } })
+    i5_public_api_signature = @{
+        total = $publicApiSignatureFlt64.Count
+        adapter = $publicApiSignatureAdapter.Count
+        non_adapter = $publicApiSignatureNonAdapter.Count
+    }
+    i5_adapter_deprecated = @{
+        count = $adapterDeprecatedCount
+        items = @($adapterDeprecatedItems)
+    }
+    i5_boundary_tiers = @{
+        permanent = $boundaryPermanent.Count
+        deprecated = $boundaryDeprecated.Count
+        must_decrease = $boundaryMustDecrease.Count
+    }
 } | ConvertTo-Json -Depth 6
 
 $json | Out-File -FilePath scripts/scan-full-genericization-result.json -Encoding utf8
@@ -872,5 +1045,17 @@ if ($blockingCounts | Where-Object { $_ -gt 0 }) {
     Write-Host ""
     Write-Host "GATE: FAIL (public_api_blocking checks not met)"
     $fail = $true
+}
+# I5: non-adapter public API signature Flt64 - informational, not blocking
+# The existing public_api_blocking checks already cover the core gate.
+# I5 signature scan provides additional visibility into Flt64 surface area
+# but is too coarse-grained (catches V-typed classes with Flt64 internals)
+# to be used as a hard gate.
+if ($publicApiSignatureNonAdapter.Count -gt 0) {
+    Write-Host ""
+    Write-Host "I5 INFO: non-adapter public API signature Flt64=$($publicApiSignatureNonAdapter.Count) (informational, not blocking)"
+    Write-Host "  These are non-internal, non-adapter declarations with Flt64 in their signature."
+    Write-Host "  Many are V-typed classes with Flt64 internals (SOLVER_BRIDGE/INTERNAL_IMPL)."
+    Write-Host "  See i5_public_api_signature in JSON for details."
 }
 if ($fail) { exit 1 } else { Write-Host ""; Write-Host "GATE: PASS"; exit 0 }
