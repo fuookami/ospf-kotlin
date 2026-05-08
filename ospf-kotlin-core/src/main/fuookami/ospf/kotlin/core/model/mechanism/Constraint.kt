@@ -25,7 +25,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.solver.value.flt64ToV
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
@@ -151,7 +150,7 @@ class LinearConstraintImpl<V>(
         ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, tokens, converter)
-            val rhs: V = flt64ToV(-flattenData.constant)
+            val rhs: V = converter.intoValue(-flattenData.constant)
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -194,7 +193,7 @@ class QuadraticConstraintImpl<V>(
         ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, tokens, converter)
-            val rhs: V = flt64ToV(-flattenData.constant)
+            val rhs: V = converter.intoValue(-flattenData.constant)
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,

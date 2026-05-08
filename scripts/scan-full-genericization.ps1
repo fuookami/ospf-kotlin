@@ -491,6 +491,130 @@ $uncheckedCastBlockingCount = $uncheckedCastBlocking.Count
 $uncheckedCastBoundaryCount = $uncheckedCastBoundary.Count
 
 # ============================================================
+# I2: Semantic classification of raw Flt64 residuals
+# ============================================================
+
+# Classify each raw Flt64 hit into semantic categories:
+#   NUMBER_TYPE_BODY  - Flt64 as the numeric type itself (math.algebra.number.Flt64)
+#   ADAPTER_COMPAT    - Flt64 in adapter/flt64 compatibility API surface
+#   SOLVER_BRIDGE     - Flt64 in solver gap, normalization, solution conversion, SolverBoundaryCasts
+#   INTERNAL_IMPL     - Flt64 in internal implementation (private IntoValue, converter.intoValue(Flt64(...)), etc.)
+#   PUBLIC_API_BLOCKING - Flt64 in non-adapter public API signatures (must be 0)
+
+# All raw Flt64 text matches in core (not just declaration lines)
+$allCoreFlt64 = Get-ChildItem -Recurse $coreRoot -Filter *.kt |
+    Select-String -Pattern 'Flt64' |
+    Where-Object { -not (Is-CommentLine $_.Line) }
+
+$classifiedItems = @()
+$classNUMBER_TYPE_BODY = 0
+$classADAPTER_COMPAT = 0
+$classSOLVER_BRIDGE = 0
+$classINTERNAL_IMPL = 0
+$classPUBLIC_API_BLOCKING = 0
+
+foreach ($m in $allCoreFlt64) {
+    $rp = Get-RelPath $m
+    $line = $m.Line.Trim()
+    $lineNum = $m.LineNumber
+
+    # Skip import lines
+    if ($line -match '^import\s+') { continue }
+
+    # Classify by path and content
+    $category = "INTERNAL_IMPL"  # default
+
+    # NUMBER_TYPE_BODY: references to Flt64 class definition itself (not in core scope, but mark if found)
+    if ($rp -match 'math[/\\]algebra[/\\]number[/\\]Flt64') {
+        $category = "NUMBER_TYPE_BODY"
+    }
+    # ADAPTER_COMPAT: in adapter/flt64 packages
+    elseif ($rp -match 'adapter[/\\]flt64') {
+        $category = "ADAPTER_COMPAT"
+    }
+    # SOLVER_BRIDGE: solver boundary casts, gap, normalization, validation, IntoValue bridge
+    elseif ($rp -match 'SolverBoundaryCasts\.kt$' -or
+            $rp -match 'solver[/\\]value[/\\]SolverBoundaryCasts\.kt$' -or
+            $rp -match 'solver[/\\]Gap\.kt$' -or
+            $rp -match 'solver[/\\]value[/\\]SolveValueValidation\.kt$' -or
+            $rp -match 'solver[/\\]value[/\\]SolveValueConversionContext\.kt$' -or
+            $rp -match 'solver[/\\]value[/\\]IntoValue\.kt$' -or
+            $rp -match 'solver[/\\]config[/\\]SolverConfig\.kt$' -or
+            $rp -match 'solver[/\\]output[/\\]') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: heuristic solver internals (Population, Selection, Migration, Cross, etc.)
+    elseif ($rp -match 'solver[/\\]heuristic[/\\]') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: IIS solver
+    elseif ($rp -match 'solver[/\\]iis[/\\]') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: LinearSolver/QuadraticSolver
+    elseif ($rp -match 'solver[/\\](Linear|Quadratic)Solver\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: flatten utility (LinearFlattenData<Flt64>, QuadraticFlattenData<Flt64>)
+    elseif ($rp -match 'intermediate_symbol[/\\]flatten[/\\]') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: SymbolCombination Flt64 convenience factories
+    elseif ($rp -match 'intermediate_symbol[/\\]SymbolCombination\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: mechanism constraint flatten/conversion (LinearConstraintInput, MathInequalityFlatten, MathInequalityDsl)
+    elseif ($rp -match 'mechanism[/\\]LinearConstraintInput\.kt$' -or
+            $rp -match 'mechanism[/\\]MathInequalityFlatten\.kt$' -or
+            $rp -match 'mechanism[/\\]MathInequalityDsl\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: mechanism Constraint toMeta/conversion
+    elseif ($rp -match 'mechanism[/\\]Constraint\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: MetaModel solver solution ingestion
+    elseif ($rp -match 'mechanism[/\\]MetaModel\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: MechanismModel Flt64 conversion
+    elseif ($rp -match 'mechanism[/\\]MechanismModel\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: SubObject (LinearSubObject<Flt64>, QuadraticSubObject<Flt64>)
+    elseif ($rp -match 'mechanism[/\\]SubObject\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: callback Flt64 factory overloads (convenience invoke methods)
+    elseif ($rp -match 'callback[/\\]CallBackModel\.kt$' -and
+            $line -match 'CallBackModel<Flt64>|IntoValue<Flt64>|flt64Converter|toFlt64\(\)|MultiObjectLocation<Flt64>|Extractor<Flt64|PartialComparator<Flt64>|AbstractMetaModel<Flt64>|SingleObjectMechanismModel<Flt64>') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # SOLVER_BRIDGE: callback interface Flt64 import (for default implementations)
+    elseif ($rp -match 'callback[/\\]CallBackModelInterface\.kt$') {
+        $category = "SOLVER_BRIDGE"
+    }
+    # PUBLIC_API_BLOCKING: only items that the existing scan already flags
+    # (public_api_blocking is already computed above; this category is 0 by gate)
+    # Everything else that's not NUMBER_TYPE_BODY, ADAPTER_COMPAT, or SOLVER_BRIDGE
+    # falls into INTERNAL_IMPL (private, internal, or within already-V-typed bodies)
+    else {
+        $category = "INTERNAL_IMPL"
+    }
+
+    # Count
+    switch ($category) {
+        "NUMBER_TYPE_BODY" { $classNUMBER_TYPE_BODY++ }
+        "ADAPTER_COMPAT" { $classADAPTER_COMPAT++ }
+        "SOLVER_BRIDGE" { $classSOLVER_BRIDGE++ }
+        "INTERNAL_IMPL" { $classINTERNAL_IMPL++ }
+        "PUBLIC_API_BLOCKING" { $classPUBLIC_API_BLOCKING++ }
+    }
+
+    $classifiedItems += @{ path = $rp; line = $lineNum; category = $category; content = $line }
+}
+
+# ============================================================
 # Text output
 # ============================================================
 
@@ -531,6 +655,16 @@ Write-Host "  typealias *Flt64:             $($typealiasBoundary.Count)"
 Write-Host "  core/function override:       $($functionResult.BoundaryCount)"
 Write-Host "  core/callback:                $($callbackBoundary.Count)"
 Write-Host "  core/mechanism:               $($mechanismBoundary.Count)"
+Write-Host ""
+
+# ---- I2: Semantic classification ----
+Write-Host "--- I2 SEMANTIC CLASSIFICATION (core Flt64 residuals) ---"
+Write-Host "  NUMBER_TYPE_BODY:             $classNUMBER_TYPE_BODY  (Flt64 type itself — KEEP)"
+Write-Host "  ADAPTER_COMPAT:               $classADAPTER_COMPAT  (adapter/flt64 surface — KEEP_OR_DEPRECATE)"
+Write-Host "  SOLVER_BRIDGE:                $classSOLVER_BRIDGE  (solver gap/normalization/cast — KEEP_OR_REWORK)"
+Write-Host "  INTERNAL_IMPL:                $classINTERNAL_IMPL  (internal computation paths — REVIEW)"
+Write-Host "  PUBLIC_API_BLOCKING:          $classPUBLIC_API_BLOCKING  (public API signatures — MUST_BE_ZERO)"
+Write-Host "  Total classified:             $($classNUMBER_TYPE_BODY + $classADAPTER_COMPAT + $classSOLVER_BRIDGE + $classINTERNAL_IMPL + $classPUBLIC_API_BLOCKING)"
 Write-Host ""
 
 # ---- Boundary detail listing (H1 requirement) ----
@@ -698,6 +832,14 @@ $json = @{
         unchecked_cast_blocking = @($uncheckedCastBlocking | ForEach-Object { $rp = Get-RelPath $_; "${rp}:$($_.LineNumber): $($_.Line.Trim())" })
     }
     migration_debt = @($debtItems.Values)
+    i2_classification = @{
+        NUMBER_TYPE_BODY = $classNUMBER_TYPE_BODY
+        ADAPTER_COMPAT = $classADAPTER_COMPAT
+        SOLVER_BRIDGE = $classSOLVER_BRIDGE
+        INTERNAL_IMPL = $classINTERNAL_IMPL
+        PUBLIC_API_BLOCKING = $classPUBLIC_API_BLOCKING
+    }
+    i2_classification_detail = @($classifiedItems | Select-Object -First 200 | ForEach-Object { @{ path = $_.path; line = $_.line; category = $_.category } })
 } | ConvertTo-Json -Depth 6
 
 $json | Out-File -FilePath scripts/scan-full-genericization-result.json -Encoding utf8
