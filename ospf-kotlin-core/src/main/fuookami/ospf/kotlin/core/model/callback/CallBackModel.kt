@@ -408,17 +408,17 @@ class CallBackModel<V> internal constructor(
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    override val objectiveLocation: List<MultiObjectLocation>,
+    override val objectiveLocation: List<MultiObjectLocation<V>>,
     override val tokens: AbstractMutableTokenTable<V> = ManualTokenTable(category),
     private val _constraints: MutableList<Pair<Extractor<Boolean?, Solution<V>>, String>> = ArrayList(),
-    private val _objectiveFunctions: MutableList<Pair<Extractor<List<Pair<MultiObjectLocation, Flt64>>?, Solution<V>>, String>> = ArrayList(),
+    private val _objectiveFunctions: MutableList<Pair<Extractor<List<Pair<MultiObjectLocation<V>, V>>?, Solution<V>>, String>> = ArrayList(),
     private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
     private val _converter: IntoValue<V>
 ) : MultiObjectiveModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            objectiveLocation: List<MultiObjectLocation> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
+            objectiveLocation: List<MultiObjectLocation<V>>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
             converter: IntoValue<V>
         ) where V : RealNumber<V>, V : NumberField<V> = MultiObjectCallBackModel(
@@ -430,7 +430,7 @@ class MultiObjectCallBackModel<V> internal constructor(
 
         internal operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            objectiveLocation: List<MultiObjectLocation> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
+            objectiveLocation: List<MultiObjectLocation<Flt64>> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): MultiObjectCallBackModel<Flt64> = MultiObjectCallBackModel(
             objectCategory = objectCategory,
@@ -459,7 +459,7 @@ class MultiObjectCallBackModel<V> internal constructor(
         .withIndex()
         .associate { (index, location) -> location.priority to index }
 
-  private val defaultLocation: MultiObjectLocation
+  private val defaultLocation: MultiObjectLocation<V>
         get() = objectiveLocation.first()
 
     override fun initialSolutions(initialSolutionAmount: UInt64): List<Solution<V>> {
@@ -471,11 +471,11 @@ class MultiObjectCallBackModel<V> internal constructor(
         }
     }
 
-    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<V> {
+    override fun objectiveValue(obj: List<Pair<MultiObjectLocation<V>, V>>): List<V> {
         val value = MutableList(objectiveSize) { _converter.zero }
         for ((location, objective) in obj) {
             val index = priorityToIndex[location.priority] ?: continue
-            value[index] = value[index] + _converter.intoValue(objective) * _converter.intoValue(location.weight)
+            value[index] = value[index] + objective * location.weight
         }
         return value
     }
@@ -580,7 +580,7 @@ class MultiObjectCallBackModel<V> internal constructor(
     fun addObject(
         category: ObjectCategory,
         func: Extractor<V?, Solution<V>>,
-        location: MultiObjectLocation,
+        location: MultiObjectLocation<V>,
         name: String? = null,
         displayName: String? = null
     ): Try {
@@ -588,8 +588,8 @@ class MultiObjectCallBackModel<V> internal constructor(
             Pair(
                 { solution: Solution<V> ->
                     func(solution)?.let {
-                        val fltValue = _converter.fromValue(if (category == objectCategory) it else -it)
-                        listOf(location to fltValue)
+                        val v = if (category == objectCategory) it else -it
+                        listOf(location to v)
                     }
                 },
                 name ?: String()

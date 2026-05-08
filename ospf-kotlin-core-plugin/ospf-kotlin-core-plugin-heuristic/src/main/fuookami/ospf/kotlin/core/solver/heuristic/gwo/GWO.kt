@@ -310,6 +310,6 @@ class GreyWolfOptimizer<Obj, V>(
 }
 
 typealias GWO = GreyWolfOptimizer<Flt64, Flt64>
-typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
+typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
 
 

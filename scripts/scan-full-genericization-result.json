@@ -1,37 +1,49 @@
 {
-  "boundary_allowed": {
-    "core_callback": 3,
-    "core_function_override": 0,
-    "typealias_flt64": 1,
-    "suppress_unchecked_cast": 4,
-    "core_mechanism": 12
-  },
-  "timestamp": "2026-05-08T13:33:51",
-  "migration_debt": [],
-  "raw": {
-    "core_solver": 17,
-    "core_callback": 5,
-    "math_symbol_non_adapter": 0,
-    "typealias_flt64_total": 8,
-    "typealias_flt64_geometry": 0,
-    "typealias_flt64_variable": 0,
-    "typealias_flt64_adapter": 1,
-    "core_function": 115,
-    "core_other": 90,
-    "math_symbol_adapter": 162,
-    "suppress_unchecked_cast": 4,
-    "import_as": 0,
-    "core_mechanism": 26
-  },
   "public_api_blocking": {
-    "typealias_flt64_non_adapter": 0,
-    "core_solver_public": 0,
-    "core_callback": 0,
-    "variable_typealias_flt64": 0,
-    "import_as": 0,
     "core_mechanism": 0,
+    "core_function": 0,
+    "variable_typealias_flt64": 0,
+    "typealias_flt64_non_adapter": 0,
+    "import_as": 0,
     "geometry_typealias_flt64": 0,
     "math_symbol_non_adapter": 0,
-    "core_function": 0
-  }
+    "core_solver_public": 0,
+    "core_callback": 0
+  },
+  "raw": {
+    "math_symbol_non_adapter": 0,
+    "core_mechanism": 26,
+    "math_symbol_adapter": 162,
+    "core_function": 115,
+    "core_other": 90,
+    "core_callback": 2,
+    "typealias_flt64_variable": 0,
+    "import_as": 0,
+    "typealias_flt64_geometry": 0,
+    "typealias_flt64_total": 8,
+    "core_solver": 17,
+    "typealias_flt64_adapter": 1,
+    "suppress_unchecked_cast": 4
+  },
+  "timestamp": "2026-05-08T16:44:19",
+  "boundary_detail": {
+    "unchecked_cast_blocking": [],
+    "unchecked_cast_bridge": [
+      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:26: * in the framework. Do not add @Suppress(\"UNCHECKED_CAST\") elsewhere.",
+      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\SolverBoundaryCasts.kt:28: @Suppress(\"UNCHECKED_CAST\")",
+      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\value\\SolverBoundaryCasts.kt:12: @Suppress(\"UNCHECKED_CAST\")",
+      "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\value\\SolverBoundaryCasts.kt:17: @Suppress(\"UNCHECKED_CAST\")"
+    ],
+    "core_callback": [],
+    "core_mechanism": []
+  },
+  "boundary_allowed": {
+    "typealias_flt64": 1,
+    "core_function_override": 0,
+    "suppress_unchecked_cast_blocking": 0,
+    "suppress_unchecked_cast": 4,
+    "core_callback": 0,
+    "core_mechanism": 0
+  },
+  "migration_debt": []
 }

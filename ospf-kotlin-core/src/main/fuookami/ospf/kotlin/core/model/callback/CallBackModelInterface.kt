@@ -119,8 +119,8 @@ interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> 
     fun infinity(): V
 }
 
-interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<List<Pair<MultiObjectLocation, Flt64>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
-    val objectiveLocation: List<MultiObjectLocation>
+interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
+    val objectiveLocation: List<MultiObjectLocation<V>>
     val objectiveSize get() = objectiveLocation.size
 
     override val defaultObjective: List<V>
@@ -134,11 +134,11 @@ interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<Lis
         return (0 until objectiveSize).map { converter().zero }
     }
 
-    override fun objectiveValue(obj: List<Pair<MultiObjectLocation, Flt64>>): List<V> {
+    override fun objectiveValue(obj: List<Pair<MultiObjectLocation<V>, V>>): List<V> {
         return (0 until objectiveSize).map { index ->
             obj.fold(converter().zero) { acc, (loc, objective) ->
                 if (index == loc.priority.toInt()) {
-                    acc + converter().intoValue(objective) * converter().intoValue(loc.weight)
+                    acc + objective * loc.weight
                 } else {
                     acc
                 }

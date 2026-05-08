@@ -390,7 +390,7 @@ class GeneAlgorithm<Obj, V>(
 }
 
 typealias GA = GeneAlgorithm<Flt64, Flt64>
-typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
+typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
 
 
 

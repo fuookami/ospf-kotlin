@@ -28,6 +28,25 @@ import kotlin.time.DurationUnit
 import kotlin.time.toDuration
 
 /**
+ * Duration 序列化器
+ *
+ * 用于将 Duration 序列化为 ISO 8601 持续时间格式的字符串（如 "PT1H30M"、"PT0.5S"）。
+ *
+ * Serializes Duration to ISO 8601 duration format string (e.g. "PT1H30M", "PT0.5S").
+ */
+data object DurationSerializer : KSerializer<Duration> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Duration", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Duration {
+        return Duration.parseIsoString(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: Duration) {
+        encoder.encodeString(value.toIsoString())
+    }
+}
+
+/**
  * 离散 Duration 序列化器
  *
  * Discrete Duration serializer using Long values.

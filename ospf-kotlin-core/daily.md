@@ -36,13 +36,13 @@ P13、F1-F9、G1-G4 已完成。当前 `math` 与 `core` 的公开主链已经 V
 |---|---:|---:|---:|
 | import as | 0 | 0 | - |
 | Suppress(UNCHECKED_CAST) | 4 | 0 | 4 |
-| typealias *Flt64 | 8 | 0 | 1 |
+| typealias *Flt64 | 8 | 0 | 0 |
 | geometry typealias | 0 | 0 | - |
 | variable typealias | 0 | 0 | - |
 | math/symbol 非 adapter | 0 | 0 | - |
 | core/function override | 0 | 0 | 0 |
-| core/callback | 5 | 0 | 3 |
-| core/mechanism | 26 | 0 | 12 |
+| core/callback | 5 | 0 | 0 |
+| core/mechanism | 26 | 0 | 0 |
 | core/solver public | 17 | 0 | - |
 
 当前门禁状态：
@@ -90,6 +90,33 @@ P13、F1-F9、G1-G4 已完成。当前 `math` 与 `core` 的公开主链已经 V
 验收：
 - 当前基线可重复复现。
 - 每个剩余边界项都有文件、行号、原因、下一步分类。
+
+### H1 结果
+
+扫描脚本已增强，输出 `boundary_detail` 完整清单。UNCHECKED_CAST 已分为 `bridge_allowed`（4）和 `blocking`（0）。
+
+### H2：分类 `core/mechanism` 剩余 12 项
+
+目标：逐项判断 mechanism 剩余边界该 V 化、迁 adapter，还是等待接口重构。
+
+分类结果：
+
+| # | 文件 | 行号 | 函数 | 分类 | 策略 |
+|---|---|---:|---|---|---|
+| 1 | MetaModel.kt | 206 | `add(Quantity<IntermediateSymbol<Flt64>>)` | solver boundary overload | MOVE_TO_ADAPTER |
+| 2 | MetaModel.kt | 357 | `addMapQuantitySymbolLists` | solver boundary overload | MOVE_TO_ADAPTER |
+| 3 | MetaModel.kt | 363 | `addMultiMap2QuantitySymbols` | solver boundary overload | MOVE_TO_ADAPTER |
+| 4 | MetaModel.kt | 369 | `addMultiMap2QuantitySymbolLists` | solver boundary overload | MOVE_TO_ADAPTER |
+| 5 | MetaModel.kt | 388 | `addMultiMap3QuantitySymbols` | solver boundary overload | MOVE_TO_ADAPTER |
+| 6 | MetaModel.kt | 407 | `addMultiMap4QuantitySymbols` | solver boundary overload | MOVE_TO_ADAPTER |
+| 7 | MetaModel.kt | 426 | `addMultiMap3QuantitySymbolLists` | solver boundary overload | MOVE_TO_ADAPTER |
+| 8 | MetaModel.kt | 445 | `addMultiMap4QuantitySymbolLists` | solver boundary overload | MOVE_TO_ADAPTER |
+| 9 | MetaModel.kt | 464 | `addMultiMap4QuantitySymbols` (Quadratic) | solver boundary overload | MOVE_TO_ADAPTER |
+| 10 | MetaModel.kt | 483 | `addMultiMap4QuantitySymbolLists` (Quadratic) | solver boundary overload | MOVE_TO_ADAPTER |
+| 11 | MetaModel.kt | 522 | `setSolverSolution(List<Flt64>)` | solver result ingestion | MOVE_TO_ADAPTER |
+| 12 | MetaModel.kt | 527 | `setSolverSolution(Map<..., Flt64>)` | solver result ingestion | MOVE_TO_ADAPTER |
+
+结论：12 项全部策略为 **MOVE_TO_ADAPTER**。这些函数的共同特征是接收 `IntermediateSymbol<Flt64>` 或 `Flt64` solver 输出，属于 solver adapter 边界。主包只需保留 V-typed 版本，Flt64 便利重载迁入 adapter 层。
 
 ### H2：分类 `core/mechanism` 剩余 12 项
 
@@ -216,20 +243,20 @@ P13、F1-F9、G1-G4 已完成。当前 `math` 与 `core` 的公开主链已经 V
 | G2 | MultiObject alias 清理 | done | PASS | PASS | core 145/145 | typealias 已删除，migration_debt 清零 |
 | G3 | callback / bridge 债务压缩 | done | PASS | PASS | core 145/145 | callback 保持 3，bridge 集中化 |
 | G4 | 扫描与文档同步 | done | PASS | PASS | core 145/145 | daily.md 已更新 |
-| H1 | 边界门禁固化 | pending |  |  |  | 输出剩余项完整清单 |
-| H2 | mechanism 12 项分类 | pending |  |  |  | 先分类再重构 |
-| H3 | V-typed solver adapter | pending |  |  |  | 目标 mechanism 12 -> 0 |
-| H4 | callback adapter 重构 | pending |  |  |  | 目标 callback 3 -> 0 |
-| H5 | bridge / typealias 收尾 | pending |  |  |  | 目标 cast 和 adapter alias 最小化 |
+| H1 | 边界门禁固化 | done | PASS | PASS | core 145/145 | mechanism 12 项 + callback 3 项完整清单已输出 |
+| H2 | mechanism 12 项分类 | done | PASS | PASS | core 145/145 | 12 项全部 MOVE_TO_ADAPTER |
+| H3 | V-typed solver adapter | done | PASS | PASS | core 145/145 | mechanism boundary_allowed 12 -> 0 |
+| H4 | callback adapter 重构 | done | PASS | PASS | core 145/145 | callback boundary_allowed 3 -> 0, MultiObjectLocation<V> 泛型化 |
+| H5 | bridge / typealias 收尾 | done | PASS | PASS | core 145/145 | MultiObjectLocationFlt64 typealias 删除，plugin 改用 MultiObjectLocation<Flt64>；UNCHECKED_CAST 4 为最小可解释值 |
 
 ## 10. 当前未完成事项
 
 | 项目 | 当前值 | 目标 | 处理阶段 |
 |---|---:|---:|---|
-| `core/mechanism boundary_allowed` | 12 | 0 | H2/H3 |
-| `core/callback boundary_allowed` | 3 | 0 | H4 |
-| `Suppress(UNCHECKED_CAST)` | 4 | 0 或最小可解释值 | H5 |
-| `typealias *Flt64` adapter 项 | 1 | 保留/删除决策明确 | H5 |
+| `core/mechanism boundary_allowed` | 0 | 0 | H3 完成 |
+| `core/callback boundary_allowed` | 0 | 0 | H4 完成 |
+| `Suppress(UNCHECKED_CAST)` | 4 | 4 (最小可解释值) | H5 完成 |
+| `typealias *Flt64` non-adapter | 0 | 0 | H5 完成 |
 
 处理原则：
 - 不扩白名单来制造完成感。

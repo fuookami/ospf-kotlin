@@ -254,7 +254,7 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
 }
 
 typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64>
-typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
+typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
 
 
 

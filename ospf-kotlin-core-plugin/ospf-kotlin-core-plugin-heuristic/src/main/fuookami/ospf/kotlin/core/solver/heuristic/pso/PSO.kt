@@ -208,6 +208,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 }
 
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
-typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
+typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
 
 

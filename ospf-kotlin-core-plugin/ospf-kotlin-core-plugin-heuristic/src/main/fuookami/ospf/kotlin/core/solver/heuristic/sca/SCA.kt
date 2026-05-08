@@ -346,7 +346,7 @@ class SineCosineAlgorithm<Obj, V>(
 }
 
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64>
-typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation, Flt64>>, List<Flt64>>
+typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
 
 
 

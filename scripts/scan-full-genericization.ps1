@@ -533,6 +533,54 @@ Write-Host "  core/callback:                $($callbackBoundary.Count)"
 Write-Host "  core/mechanism:               $($mechanismBoundary.Count)"
 Write-Host ""
 
+# ---- Boundary detail listing (H1 requirement) ----
+Write-Host "--- BOUNDARY DETAIL: core/mechanism ($($mechanismBoundary.Count) items) ---"
+if ($mechanismBoundary.Count -gt 0) {
+    $i = 1
+    foreach ($b in $mechanismBoundary) {
+        Write-Host "  [$i] $($b.Entry)"
+        Write-Host "      Reason: $($b.Reason)"
+        Write-Host "      Debt:   $($b.Debt)"
+        $i++
+    }
+}
+Write-Host ""
+
+Write-Host "--- BOUNDARY DETAIL: core/callback ($($callbackBoundary.Count) items) ---"
+if ($callbackBoundary.Count -gt 0) {
+    $i = 1
+    foreach ($b in $callbackBoundary) {
+        Write-Host "  [$i] $($b.Entry)"
+        Write-Host "      Reason: $($b.Reason)"
+        Write-Host "      Debt:   $($b.Debt)"
+        $i++
+    }
+}
+Write-Host ""
+
+Write-Host "--- BOUNDARY DETAIL: UNCHECKED_CAST ($uncheckedCastBoundaryCount items) ---"
+if ($uncheckedCastBoundaryCount -gt 0) {
+    $i = 1
+    foreach ($s in $uncheckedCastBoundary) {
+        $rp = Get-RelPath $s
+        Write-Host "  [$i] ${rp}:$($s.LineNumber): $($s.Line.Trim())"
+        Write-Host "      Reason: type-erased solver boundary bridge"
+        $i++
+    }
+}
+Write-Host ""
+
+Write-Host "--- BOUNDARY DETAIL: UNCHECKED_CAST blocking ($uncheckedCastBlockingCount items) ---"
+if ($uncheckedCastBlockingCount -gt 0) {
+    $i = 1
+    foreach ($s in $uncheckedCastBlocking) {
+        $rp = Get-RelPath $s
+        Write-Host "  [$i] ${rp}:$($s.LineNumber): $($s.Line.Trim())"
+        $i++
+    }
+}
+Write-Host ""
+
 # Show blocking violations if any
 $hasBlocking = $importAsCount -gt 0 -or
     $typealiasPublicApi.Count -gt 0 -or
@@ -637,13 +685,20 @@ $json = @{
     }
     boundary_allowed = @{
         suppress_unchecked_cast = $uncheckedCastBoundaryCount
+        suppress_unchecked_cast_blocking = $uncheckedCastBlockingCount
         typealias_flt64 = $typealiasBoundary.Count
         core_function_override = $functionResult.BoundaryCount
         core_callback = $callbackBoundary.Count
         core_mechanism = $mechanismBoundary.Count
     }
+    boundary_detail = @{
+        core_mechanism = @($mechanismBoundary | ForEach-Object { @{ entry = $_.Entry; reason = $_.Reason; debt = $_.Debt } })
+        core_callback = @($callbackBoundary | ForEach-Object { @{ entry = $_.Entry; reason = $_.Reason; debt = $_.Debt } })
+        unchecked_cast_bridge = @($uncheckedCastBoundary | ForEach-Object { $rp = Get-RelPath $_; "${rp}:$($_.LineNumber): $($_.Line.Trim())" })
+        unchecked_cast_blocking = @($uncheckedCastBlocking | ForEach-Object { $rp = Get-RelPath $_; "${rp}:$($_.LineNumber): $($_.Line.Trim())" })
+    }
     migration_debt = @($debtItems.Values)
-} | ConvertTo-Json -Depth 5
+} | ConvertTo-Json -Depth 6
 
 $json | Out-File -FilePath scripts/scan-full-genericization-result.json -Encoding utf8
 Write-Host "JSON saved to scripts/scan-full-genericization-result.json"
