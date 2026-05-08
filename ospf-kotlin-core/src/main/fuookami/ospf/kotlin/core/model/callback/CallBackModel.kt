@@ -141,7 +141,7 @@ class CallBackModel<V> internal constructor(
             _converter = converter
         )
 
-        operator fun invoke(
+        internal operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<Flt64> = CallBackModel(
@@ -153,7 +153,7 @@ class CallBackModel<V> internal constructor(
             _converter = flt64Converter
         )
 
-        operator fun invoke(
+        internal operator fun invoke(
             objectiveComparator: PartialComparator<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<Flt64> = CallBackModel(
@@ -202,7 +202,7 @@ class CallBackModel<V> internal constructor(
             )
         }
 
-        operator fun invoke(
+        internal operator fun invoke(
             model: AbstractMetaModel<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
@@ -252,7 +252,7 @@ class CallBackModel<V> internal constructor(
             )
         }
 
-        operator fun invoke(
+        internal operator fun invoke(
             model: SingleObjectMechanismModel<Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
@@ -428,7 +428,7 @@ class MultiObjectCallBackModel<V> internal constructor(
             _converter = converter
         )
 
-        operator fun invoke(
+        internal operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             objectiveLocation: List<MultiObjectLocation> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }

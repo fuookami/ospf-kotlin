@@ -81,7 +81,7 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
  * This function is intended to replace inlined V-to-Flt64 conversion logic in
  * invoke() methods.
  */
-fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
+internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
         is LinearMechanismModel<*> -> {
             Ok(model as LinearMechanismModel<Flt64>)
@@ -523,7 +523,7 @@ class LinearMechanismModel<V>(
     }
 
     @Suppress("DEPRECATION")
-    fun generateOptimalCut(
+    internal fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -566,7 +566,7 @@ class LinearMechanismModel<V>(
     }
 
     @Suppress("DEPRECATION")
-    fun generateFeasibleCut(
+    internal fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
     ): List<LinearInequality<Flt64>> {
@@ -620,7 +620,7 @@ class LinearMechanismModel<V>(
      * @param dualSolutionById  constraint name → dual value mapping
      * @return list of linear cuts
      */
-    fun generateOptimalCutById(
+    internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualSolutionById: Map<String, Flt64>
@@ -680,7 +680,7 @@ class LinearMechanismModel<V>(
      * Solver boundary: dualValues and return type are Flt64 because they represent
      * raw solver output. The V-typed model delegates to these for solver integration.
      */
-    fun generateOptimalCutFromOutput(
+    internal fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         dualValues: List<Flt64>,
@@ -706,7 +706,7 @@ class LinearMechanismModel<V>(
      * Solver boundary: farkasDualValues and return type are Flt64 because they represent
      * raw solver output. The V-typed model delegates to these for solver integration.
      */
-    fun generateFeasibleCutFromOutput(
+    internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualValues: List<Flt64>,
         triadModel: LinearTriadModelView
@@ -995,7 +995,7 @@ class QuadraticMechanismModel<V>(
     }
 
     @Suppress("DEPRECATION", "UNUSED_PARAMETER")
-    fun generateOptimalCut(
+    internal fun generateOptimalCut(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -1084,7 +1084,7 @@ class QuadraticMechanismModel<V>(
     }
 
     @Suppress("UNUSED_PARAMETER")
-    fun generateFeasibleCut(
+    internal fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
@@ -1231,7 +1231,7 @@ class QuadraticMechanismModel<V>(
      * Solver boundary: dualValues and return type are Flt64 because they represent
      * raw solver output. The V-typed model delegates to these for solver integration.
      */
-    fun generateOptimalCutFromOutput(
+    internal fun generateOptimalCutFromOutput(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -1258,7 +1258,7 @@ class QuadraticMechanismModel<V>(
      * Solver boundary: farkasDualValues and return type are Flt64 because they represent
      * raw solver output. The V-typed model delegates to these for solver integration.
      */
-    fun generateFeasibleCutFromOutput(
+    internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualValues: List<Flt64>,
         tetradModel: QuadraticTetradModelView

@@ -35,7 +35,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * This is the V-generic replacement for the old `LinearInequality<Flt64>.flattenData`
  * extension that required casting `LinearInequality<V>` to `LinearInequality<Flt64>`.
  */
-fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): LinearFlattenData<Flt64>
+internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): LinearFlattenData<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<VariableItemKey, LinearMonomial<Flt64>>()
 
@@ -66,7 +66,7 @@ fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): L
  *
  * Converts lhs - rhs into a single quadratic form.
  */
-fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<Flt64>
+internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
     val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<Flt64>>()
 

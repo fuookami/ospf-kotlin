@@ -944,7 +944,6 @@ abstract class AbstractMetaModel<V>(
     // Adapter boundary: internal token storage is always Flt64-based.
     // Used for Flt64-specific SubObject creation (Commit-D will generalize this).
     internal val flt64Tokens: AbstractMutableTokenTable<Flt64> get() = tokens as AbstractMutableTokenTable<Flt64>
-    // BasicModel provides: name, tokens, symbols, constraints (MetaConstraint), symbolDependencies,
     // add(variable), addSymbol, addSymbolWithDependencies, removeSymbol, addConstraint, flush, close.
     // The MetaModel<V> sealed interface is also implemented; its abstract members
     // (constraints, objectCategory, subObjects, etc.) are provided by concrete subclasses.
@@ -1016,7 +1015,7 @@ class LinearMetaModel<V>(
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<LinearSubObject<Flt64>> = ArrayList()
-    val flattenSubObjects: List<LinearSubObject<Flt64>> by ::_flattenSubObjects
+    internal val flattenSubObjects: List<LinearSubObject<Flt64>> by ::_flattenSubObjects
 
     fun addObject(
         category: ObjectCategory,
@@ -1108,7 +1107,7 @@ class LinearMetaModel<V>(
     }
 
     companion object {
-        operator fun invoke(
+        internal operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
@@ -1138,7 +1137,7 @@ class QuadraticMetaModel<V>(
 
     // NEW: FlattenData-based sub-objects storage
     internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject> = ArrayList()
-    val flattenSubObjects: List<QuadraticFlattenSubObject> by ::_flattenSubObjects
+    internal val flattenSubObjects: List<QuadraticFlattenSubObject> by ::_flattenSubObjects
 
     /**
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
@@ -1321,7 +1320,7 @@ class QuadraticMetaModel<V>(
     }
 
     companion object {
-        operator fun invoke(
+        internal operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()

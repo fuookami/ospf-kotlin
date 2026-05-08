@@ -19,6 +19,26 @@ import kotlin.time.toKotlinInstant
 /**
  * Instant 序列化器
  *
+ * 用于将 Instant 序列化为 ISO 8601 格式的字符串（如 "2024-01-15T08:30:00Z"）。
+ *
+ * Serializes Instant to ISO 8601 format string (e.g. "2024-01-15T08:30:00Z").
+ */
+@OptIn(ExperimentalTime::class)
+data object InstantSerializer : KSerializer<Instant> {
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Instant", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Instant {
+        return Instant.parse(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: Instant) {
+        encoder.encodeString(value.toString())
+    }
+}
+
+/**
+ * Instant 序列化器
+ *
  * 用于将 Instant 序列化为 "yyyy-MM-dd HH:mm:ss" 格式的字符串。
  *
  * Serializes Instant to "yyyy-MM-dd HH:mm:ss" format string.

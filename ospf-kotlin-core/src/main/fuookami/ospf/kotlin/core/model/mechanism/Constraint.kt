@@ -25,6 +25,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.flt64ToV
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
@@ -60,13 +61,13 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
 }
 
 
-data class MetaDualSolution(
+internal data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
-fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
+internal fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -80,7 +81,7 @@ fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualS
 }
 
 @JvmName("quadraticDualSolutionToMetaDualSolution")
-fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
+internal fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -150,8 +151,7 @@ class LinearConstraintImpl<V>(
         ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createLinearCells(flattenData.monomials, tokens, converter)
-            // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
-            val rhs: V = (-flattenData.constant) as V
+            val rhs: V = flt64ToV(-flattenData.constant)
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -194,8 +194,7 @@ class QuadraticConstraintImpl<V>(
         ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
             val lhs = createQuadraticCells(flattenData.monomials, tokens, converter)
-            // Adapter boundary: flattenData.constant is Flt64; safe when V=Flt64
-            val rhs: V = (-flattenData.constant) as V
+            val rhs: V = flt64ToV(-flattenData.constant)
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,

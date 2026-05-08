@@ -42,7 +42,6 @@ function Is-CommentLine($line) {
 $TypealiasWhitelist = @(
     @{ Path = 'math[/\\]symbol[/\\]adapter[/\\]flt64'; Reason = 'Flt64 adapter boundary'; Debt = 'none (boundary)' }
     @{ Path = 'core[/\\]intermediate_symbol[/\\]IntermediateSymbol.kt'; Reason = 'Quantity* convenience alias'; Debt = 'MIGRATE: remove or move to legacy' }
-    @{ Path = 'core[/\\]model[/\\]basic[/\\]MultiObject.kt';  Reason = 'MulObj solver boundary'; Debt = 'MIGRATE: remove or move to legacy' }
     @{ Path = 'core[/\\]model[/\\]basic[/\\]ModelView.kt';    Reason = 'OriginConstraint alias'; Debt = 'MIGRATE: remove or move to legacy' }
     @{ Path = 'core[/\\]model[/\\]intermediate';  Reason = 'Cell/LinearTriad/QuadraticTetrad solver-boundary alias'; Debt = 'MIGRATE: remove or move to legacy' }
     @{ Path = 'core[/\\]model[/\\]mechanism[/\\]Constraint.kt'; Reason = 'ConstraintFlt64/DualSolution solver-output alias'; Debt = 'MIGRATE: move to boundary/adapter file' }
@@ -476,6 +475,21 @@ $rawGeometryTypealias = $geometryTypealiasAll | ForEach-Object { "$(Get-RelPath 
 # solver public = solverResult.PublicApi (non-whitelisted, non-ignored solver Flt64)
 $coreSolverPublicFlt64 = $solverResult.PublicApi
 
+# ---- I: UNCHECKED_CAST boundary split ----
+$uncheckedCastBoundary = @()
+$uncheckedCastBlocking = @()
+foreach ($s in $suppress) {
+    $rp = Get-RelPath $s
+    $wl = Is-WhitelistedUncheckedCast $rp $s.LineNumber
+    if ($wl) {
+        $uncheckedCastBoundary += $s
+    } else {
+        $uncheckedCastBlocking += $s
+    }
+}
+$uncheckedCastBlockingCount = $uncheckedCastBlocking.Count
+$uncheckedCastBoundaryCount = $uncheckedCastBoundary.Count
+
 # ============================================================
 # Text output
 # ============================================================
@@ -512,7 +526,7 @@ Write-Host "  core/mechanism:               $($mechanismPublicApi.Count)"
 Write-Host ""
 
 Write-Host "--- BOUNDARY ALLOWED (whitelisted, tracked) ---"
-Write-Host "  UNCHECKED_CAST:               $suppressCount"
+Write-Host "  UNCHECKED_CAST:               $uncheckedCastBoundaryCount"
 Write-Host "  typealias *Flt64:             $($typealiasBoundary.Count)"
 Write-Host "  core/function override:       $($functionResult.BoundaryCount)"
 Write-Host "  core/callback:                $($callbackBoundary.Count)"
@@ -527,7 +541,7 @@ $hasBlocking = $importAsCount -gt 0 -or
     $coreSolverPublicFlt64.Count -gt 0 -or
     $callbackPublicApi.Count -gt 0 -or
     $mechanismPublicApi.Count -gt 0 -or
-    $suppressCount -gt 0
+    $uncheckedCastBlockingCount -gt 0
 
 if ($hasBlocking) {
     Write-Host "--- BLOCKING VIOLATIONS (must fix) ---"
@@ -567,9 +581,9 @@ if ($hasBlocking) {
         Write-Host "  core/mechanism ($($mechanismPublicApi.Count)):"
         $mechanismPublicApi | ForEach-Object { Write-Host "    $_" }
     }
-    if ($suppressCount -gt 0) {
-        Write-Host "  UNCHECKED_CAST ($suppressCount):"
-        $suppress | ForEach-Object { Write-Host "    $(Get-RelPath $_):$($_.LineNumber): $($_.Line.Trim())" }
+    if ($uncheckedCastBlockingCount -gt 0) {
+        Write-Host "  UNCHECKED_CAST blocking ($uncheckedCastBlockingCount):"
+        $uncheckedCastBlocking | ForEach-Object { Write-Host "    $(Get-RelPath $_):$($_.LineNumber): $($_.Line.Trim())" }
     }
     Write-Host ""
 }
@@ -622,7 +636,7 @@ $json = @{
         core_mechanism = $mechanismPublicApi.Count
     }
     boundary_allowed = @{
-        suppress_unchecked_cast = $suppressCount
+        suppress_unchecked_cast = $uncheckedCastBoundaryCount
         typealias_flt64 = $typealiasBoundary.Count
         core_function_override = $functionResult.BoundaryCount
         core_callback = $callbackBoundary.Count
@@ -651,21 +665,6 @@ $blockingCounts = @(
 )
 
 $fail = $false
-
-# UNCHECKED_CAST: split into boundary-allowed vs blocking
-$uncheckedCastBoundary = @()
-$uncheckedCastBlocking = @()
-foreach ($s in $suppress) {
-    $rp = Get-RelPath $s
-    $wl = Is-WhitelistedUncheckedCast $rp $s.LineNumber
-    if ($wl) {
-        $uncheckedCastBoundary += $s
-    } else {
-        $uncheckedCastBlocking += $s
-    }
-}
-$uncheckedCastBlockingCount = $uncheckedCastBlocking.Count
-$uncheckedCastBoundaryCount = $uncheckedCastBoundary.Count
 
 if ($uncheckedCastBlockingCount -gt 0) {
     Write-Host ""
