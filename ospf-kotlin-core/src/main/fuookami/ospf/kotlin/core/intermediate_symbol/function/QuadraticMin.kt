@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -92,8 +92,8 @@ class QuadraticMinFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequality {
-        return QuadraticInequality(
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+        return QuadraticInequalityOf<Flt64>(
             QuadraticPolynomial(emptyList(), Flt64.zero),
             QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
@@ -140,7 +140,7 @@ class QuadraticMinFunction<V>(
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
-        val constraints = mutableListOf<QuadraticInequality>()
+        val constraints = mutableListOf<QuadraticInequalityOf<Flt64>>()
 
         // y <= pi for each polynomial
         for ((i, poly) in polynomials.withIndex()) {
@@ -148,7 +148,7 @@ class QuadraticMinFunction<V>(
             val negatedMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
             val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            constraints += QuadraticInequality(lhs, rhs, Comparison.LE, "${name}_lb_$i")
+            constraints += QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.LE, "${name}_lb_$i")
         }
 
         if (exact) {
@@ -160,14 +160,14 @@ class QuadraticMinFunction<V>(
                 val bigMTerm = QuadraticMonomial.linear(mF, uVar)
                 val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon) + listOf(bigMTerm), -flt64Poly.constant)
                 val rhs = QuadraticPolynomial(emptyList(), mF)
-                constraints += QuadraticInequality(lhs, rhs, Comparison.GE, "${name}_ub_$i")
+                constraints += QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.GE, "${name}_ub_$i")
             }
 
             // sum(ui) = 1
             val sumMonos = binVars.map { QuadraticMonomial.linear(Flt64.one, it) }
             val sumLhs = QuadraticPolynomial(sumMonos, Flt64.zero)
             val sumRhs = QuadraticPolynomial(emptyList(), Flt64.one)
-            constraints += QuadraticInequality(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
+            constraints += QuadraticInequalityOf<Flt64>(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
         }
 
         return addQuadraticConstraints(model, constraints, converter) ?: ok

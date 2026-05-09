@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -52,24 +52,24 @@ internal infix fun Flt64.geq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt
 internal infix fun Flt64.neq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.NE)
 
 // QuadraticPolynomial<Flt64> aliases
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs, Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs, Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs, Comparison.NE)
+internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.LE)
+internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.GE)
+internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.NE)
 
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: Flt64): QuadraticInequality = QuadraticInequality(this, QuadraticPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: Flt64): QuadraticInequality = QuadraticInequality(this, QuadraticPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: Flt64): QuadraticInequality = QuadraticInequality(this, QuadraticPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.NE)
 
 // LinearPolynomial<Flt64> vs QuadraticPolynomial<Flt64> aliases
-internal infix fun LinearPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this.toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun LinearPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun LinearPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun LinearPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.NE)
 
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: LinearPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: LinearPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: LinearPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.NE)
-internal infix fun QuadraticPolynomial<Flt64>.ls(rhs: LinearPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.LT)
-internal infix fun QuadraticPolynomial<Flt64>.gr(rhs: LinearPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(this, rhs.toQuadraticPolynomial(), Comparison.GT)
+internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LE)
+internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GE)
+internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.NE)
+internal infix fun QuadraticPolynomial<Flt64>.ls(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LT)
+internal infix fun QuadraticPolynomial<Flt64>.gr(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GT)
 
 // ========== Symbol convenience aliases ==========
 
@@ -168,14 +168,14 @@ internal infix fun LinearPolynomial<Flt64>.geq(rhs: Symbol): LinearInequality<Fl
 internal infix fun LinearPolynomial<Flt64>.neq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.NE)
 
 // Symbol vs QuadraticPolynomial<Flt64>
-internal infix fun Symbol.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
-internal infix fun Symbol.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun Symbol.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun Symbol.ne(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun Symbol.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
+internal infix fun Symbol.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun Symbol.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun Symbol.ne(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
 
-internal infix fun Symbol.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun Symbol.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun Symbol.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun Symbol.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun Symbol.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun Symbol.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
 
 // ========== Symbol vs Boolean ==========
 
@@ -227,16 +227,16 @@ internal infix fun AbstractVariableItem<*, *>.ls(rhs: LinearPolynomial<Flt64>): 
 internal infix fun AbstractVariableItem<*, *>.gr(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.GT)
 
 // AbstractVariableItem vs QuadraticPolynomial<Flt64>
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality =
-    QuadraticInequality(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality =
-    QuadraticInequality(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.GT)
-internal infix fun AbstractVariableItem<*, *>.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequality = QuadraticInequality(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> =
+    QuadraticInequalityOf<Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> =
+    QuadraticInequalityOf<Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
 
 // AbstractVariableItem vs Boolean
 internal infix fun AbstractVariableItem<*, *>.eq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
@@ -253,14 +253,14 @@ internal infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): LinearInequality
 
 // ========== QuadraticIntermediateSymbol<Flt64> vs Boolean ==========
 
-internal infix fun QuadraticIntermediateSymbol<Flt64>.eq(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.le(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.ge(rhs: Boolean): QuadraticInequality =
-    QuadraticInequality(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.leq(rhs: Boolean): QuadraticInequality = this le rhs
-internal infix fun QuadraticIntermediateSymbol<Flt64>.geq(rhs: Boolean): QuadraticInequality = this ge rhs
+internal infix fun QuadraticIntermediateSymbol<Flt64>.eq(rhs: Boolean): QuadraticInequalityOf<Flt64> =
+    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+internal infix fun QuadraticIntermediateSymbol<Flt64>.le(rhs: Boolean): QuadraticInequalityOf<Flt64> =
+    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+internal infix fun QuadraticIntermediateSymbol<Flt64>.ge(rhs: Boolean): QuadraticInequalityOf<Flt64> =
+    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+internal infix fun QuadraticIntermediateSymbol<Flt64>.leq(rhs: Boolean): QuadraticInequalityOf<Flt64> = this le rhs
+internal infix fun QuadraticIntermediateSymbol<Flt64>.geq(rhs: Boolean): QuadraticInequalityOf<Flt64> = this ge rhs
 
 // ========== UInt comparison helpers ==========
 

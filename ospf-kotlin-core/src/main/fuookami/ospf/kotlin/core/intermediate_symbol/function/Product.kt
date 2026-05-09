@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
@@ -147,8 +147,8 @@ class ProductFunction<V>(
         return QuadraticPolynomial(monomials, leftConst * rightConst)
     }
 
-    internal fun toMathQuadraticInequality(): QuadraticInequality {
-        return QuadraticInequality(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+        return QuadraticInequalityOf<Flt64>(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     internal val flattenedMonomials: QuadraticFlattenData<Flt64>
@@ -235,7 +235,7 @@ class ProductFunction<V>(
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val poly = expandedQuadraticPolyFlt64()
         val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
-        val inequality = QuadraticInequality(poly, rhs, Comparison.EQ)
+        val inequality = QuadraticInequalityOf<Flt64>(poly, rhs, Comparison.EQ)
         return addQuadraticConstraints(model, listOf(inequality), converter) ?: ok
     }
 

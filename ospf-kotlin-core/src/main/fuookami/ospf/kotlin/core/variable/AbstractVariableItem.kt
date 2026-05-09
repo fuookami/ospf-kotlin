@@ -3,7 +3,7 @@ package fuookami.ospf.kotlin.core.variable
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -88,10 +88,10 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return LinearInequality<Flt64>(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    fun toMathQuadraticInequality(): QuadraticInequality {
+    fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
         val mono = QuadraticMonomial(Flt64.one, this, this)
         val poly = QuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
-        return QuadraticInequality(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return QuadraticInequalityOf<Flt64>(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun hashCode() = key.hashCode()

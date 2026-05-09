@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -110,7 +109,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
 internal val LinearInequality<Flt64>.sign: Comparison get() = comparison
 
 /** Alias for comparison, matching the old Relation.sign property */
-internal val QuadraticInequality.sign: Comparison get() = comparison
+internal val QuadraticInequalityOf<Flt64>.sign: Comparison get() = comparison
 
 /**
  * Compute LinearFlattenData<Flt64> from LinearInequality<Flt64>.
@@ -127,7 +126,7 @@ internal val LinearInequality<Flt64>.flattenData: LinearFlattenData<Flt64>
  *
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
  */
-internal val QuadraticInequality.flattenData: QuadraticFlattenData<Flt64>
+internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt64>
     get() = toQuadraticFlattenDataFlt64(flt64Converter)
 
 // ========== Internal key for merging quadratic monomials ==========

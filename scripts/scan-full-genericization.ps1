@@ -94,8 +94,6 @@ function Is-WhitelistedFunctionOverride($relPath, $line) {
 $MechanismWhitelist = @(
     @{ File = 'Constraint.kt'; Pattern = 'fun.*\.toMeta\(\)';           Reason = 'solver output conversion'; Debt = 'none (solver-inherent)' }
     @{ File = 'MechanismModel.kt'; Pattern = 'fun.*convertMechanismModelToFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
-    @{ File = 'MetaModel.kt'; Pattern = 'fun.*add.*Quantity.*IntermediateSymbol.*Flt64'; Reason = 'Flt64 convenience add overload (solver boundary)'; Debt = 'none (solver-inherent)' }
-    @{ File = 'MetaModel.kt'; Pattern = 'fun.*setSolverSolution';       Reason = 'solver solution ingestion'; Debt = 'none (solver-inherent)' }
     @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toLinearFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
     @{ File = 'MathInequalityFlatten.kt'; Pattern = 'fun.*toQuadraticFlattenDataFlt64'; Reason = 'explicit Flt64 conversion'; Debt = 'none (solver-inherent)' }
     @{ File = 'MathInequalityDsl.kt'; Pattern = 'fun.*LinearInequality.*Flt64.*toQuadraticConstraint'; Reason = 'solver-boundary conversion'; Debt = 'none (solver-inherent)' }
@@ -439,6 +437,12 @@ foreach ($m in $mechanismAll) {
         }
     }
 
+    # Skip adapter/flt64 boundary files (extension functions moved from MetaModel interface)
+    if ($rp -match 'adapter[/\\]flt64') {
+        $mechanismBoundary += @{ Entry = $entry; Reason = 'adapter/flt64 boundary extension function'; Debt = 'none (boundary)' }
+        continue
+    }
+
     if ($m.Line -match 'private\s+val.*IntoValue|intoValue\(value: Flt64\)|fromValue\(value: Flt64\)') {
         $mechanismIgnored += @{ Entry = $entry; Reason = "private IntoValue<Flt64>" }
         continue
@@ -646,7 +650,12 @@ $I5WhitelistPaths = @(
     'intermediate_symbol[/\\]SolverBoundaryCasts\.kt$'
     'token[/\\]TokenList\.kt$'
     'token[/\\]Token\.kt$'
+    'token[/\\]TokenTable\.kt$'
     'variable[/\\]'
+    # K2: math module — Flt64 is the intrinsic number type; all 405 hits are
+    # type-inherent (number definitions, geometry, operators, conversions).
+    # These cannot be genericized away without removing Flt64 itself.
+    'ospf-kotlin-math[/\\]'
 )
 
 $allKtFiles = Get-ChildItem -Recurse ospf-kotlin-math/src/main,ospf-kotlin-core/src/main -Filter *.kt
@@ -1046,16 +1055,17 @@ if ($blockingCounts | Where-Object { $_ -gt 0 }) {
     Write-Host "GATE: FAIL (public_api_blocking checks not met)"
     $fail = $true
 }
-# I5: non-adapter public API signature Flt64 - informational, not blocking
-# The existing public_api_blocking checks already cover the core gate.
-# I5 signature scan provides additional visibility into Flt64 surface area
-# but is too coarse-grained (catches V-typed classes with Flt64 internals)
-# to be used as a hard gate.
+# I5: non-adapter public API signature Flt64 - hard gate (K3: restored)
+# K2 whitelisted math module (Flt64 is the intrinsic number type, 405 hits
+# are type-inherent) and TokenTable.kt (15 solver-boundary methods).
+# Any new non-adapter Flt64 signature outside these whitelisted areas
+# is a regression and must FAIL the gate.
 if ($publicApiSignatureNonAdapter.Count -gt 0) {
     Write-Host ""
-    Write-Host "I5 INFO: non-adapter public API signature Flt64=$($publicApiSignatureNonAdapter.Count) (informational, not blocking)"
-    Write-Host "  These are non-internal, non-adapter declarations with Flt64 in their signature."
-    Write-Host "  Many are V-typed classes with Flt64 internals (SOLVER_BRIDGE/INTERNAL_IMPL)."
+    Write-Host "I5 FAIL: non-adapter public API signature Flt64=$($publicApiSignatureNonAdapter.Count)"
+    Write-Host "  New Flt64 signatures detected outside whitelisted areas (math, TokenTable, solver, mechanism)."
+    Write-Host "  These must be genericized or added to I5WhitelistPaths with justification."
     Write-Host "  See i5_public_api_signature in JSON for details."
+    $fail = $true
 }
 if ($fail) { exit 1 } else { Write-Host ""; Write-Host "GATE: PASS"; exit 0 }

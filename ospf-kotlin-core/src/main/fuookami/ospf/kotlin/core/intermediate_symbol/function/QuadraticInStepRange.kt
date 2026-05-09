@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -103,8 +103,8 @@ class QuadraticInStepRangeFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequality {
-        return QuadraticInequality(
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+        return QuadraticInequalityOf<Flt64>(
             QuadraticPolynomial(emptyList(), Flt64.zero),
             QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
@@ -158,37 +158,37 @@ class QuadraticInStepRangeFunction<V>(
         val negXMonos = flt64X.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
         val posXMonos = flt64X.monomials
 
-        val constraints = mutableListOf<QuadraticInequality>()
+        val constraints = mutableListOf<QuadraticInequalityOf<Flt64>>()
 
         // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower
         val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), flt64X.constant + mF)
         val c1Rhs = QuadraticPolynomial(emptyList(), lowerF)
-        constraints += QuadraticInequality(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
+        constraints += QuadraticInequalityOf<Flt64>(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
 
         // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper
         val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), flt64X.constant - mF)
         val c2Rhs = QuadraticPolynomial(emptyList(), upperF)
-        constraints += QuadraticInequality(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
+        constraints += QuadraticInequalityOf<Flt64>(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
 
         // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0
         val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -flt64X.constant + mF)
         val c3Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequality(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
+        constraints += QuadraticInequalityOf<Flt64>(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
 
         // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0
         val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -flt64X.constant - mF)
         val c4Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequality(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
+        constraints += QuadraticInequalityOf<Flt64>(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
 
         // C5: y <= M*z
         val c5Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c5Rhs = QuadraticPolynomial(listOf(zMon), Flt64.zero)
-        constraints += QuadraticInequality(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
+        constraints += QuadraticInequalityOf<Flt64>(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
 
         // C6: y >= -M*z
         val c6Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c6Rhs = QuadraticPolynomial(listOf(negZMon), Flt64.zero)
-        constraints += QuadraticInequality(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
+        constraints += QuadraticInequalityOf<Flt64>(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
 
         return addQuadraticConstraints(model, constraints, converter) ?: ok
     }

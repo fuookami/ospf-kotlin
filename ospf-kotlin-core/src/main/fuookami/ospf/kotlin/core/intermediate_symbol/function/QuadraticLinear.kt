@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -85,16 +85,16 @@ class QuadraticLinearFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequality {
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
         return if (isLinear) {
-            QuadraticInequality(
+            QuadraticInequalityOf<Flt64>(
                 QuadraticPolynomial(_polynomial.monomials.map { QuadraticMonomial.linear(converter.fromValue(it.coefficient), it.symbol1) }, converter.fromValue(_polynomial.constant)),
                 QuadraticPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ
             )
         } else {
             val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
-            QuadraticInequality(
+            QuadraticInequalityOf<Flt64>(
                 flt64Poly,
                 QuadraticPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ
@@ -146,7 +146,7 @@ class QuadraticLinearFunction<V>(
             val yMon = QuadraticMonomial.linear(Flt64.one, y!!)
             val lhs = QuadraticPolynomial(listOf(yMon) + flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }, -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            val constraint = QuadraticInequality(lhs, rhs, Comparison.EQ, name)
+            val constraint = QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.EQ, name)
             return addQuadraticConstraints(model, listOf(constraint), converter) ?: ok
         }
         return ok

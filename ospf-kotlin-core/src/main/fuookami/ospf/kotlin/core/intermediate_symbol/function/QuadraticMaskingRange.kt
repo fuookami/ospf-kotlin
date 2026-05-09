@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -88,8 +88,8 @@ class QuadraticMaskingRangeFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequality {
-        return QuadraticInequality(
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+        return QuadraticInequalityOf<Flt64>(
             QuadraticPolynomial(emptyList(), Flt64.zero),
             QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
@@ -139,18 +139,18 @@ class QuadraticMaskingRangeFunction<V>(
 
         val negatedPolyMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
 
-        val constraints = mutableListOf<QuadraticInequality>()
+        val constraints = mutableListOf<QuadraticInequalityOf<Flt64>>()
 
         // Constraint 1: y - polynomial + M*z <= M
         val lhs1 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(bigMMon), -flt64Poly.constant)
         val rhs1 = QuadraticPolynomial(emptyList(), mF)
-        constraints += QuadraticInequality(lhs1, rhs1, Comparison.LE, "${name}_upper")
+        constraints += QuadraticInequalityOf<Flt64>(lhs1, rhs1, Comparison.LE, "${name}_upper")
 
         // Constraint 2: y - polynomial - M*z >= -M
         val negBigMMon = QuadraticMonomial.linear(-mF, z)
         val lhs2 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(negBigMMon), -flt64Poly.constant)
         val rhs2 = QuadraticPolynomial(emptyList(), -mF)
-        constraints += QuadraticInequality(lhs2, rhs2, Comparison.GE, "${name}_lower")
+        constraints += QuadraticInequalityOf<Flt64>(lhs2, rhs2, Comparison.GE, "${name}_lower")
 
         return addQuadraticConstraints(model, constraints, converter) ?: ok
     }

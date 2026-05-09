@@ -22,7 +22,6 @@ import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.model.mechanism.LinearInequalityConstraint
@@ -203,10 +202,6 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         return tokens.add(symbol)
     }
 
-    fun add(symbol: Quantity<IntermediateSymbol<Flt64>>): Try {
-        return tokens.add(symbol.value)
-    }
-
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addSymbols")
     fun add(symbols: Iterable<IntermediateSymbol<*>>): Try {
@@ -352,150 +347,6 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         return ok
     }
 
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addQuantitySymbols")
-    fun add(symbols: Iterable<Quantity<IntermediateSymbol<Flt64>>>): Try {
-        return tokens.add(symbols.map { it.value })
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapQuantitySymbols")
-    fun <K> add(symbols: Map<K, Quantity<IntermediateSymbol<Flt64>>>): Try {
-        return tokens.add(symbols.values.map { it.value })
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMapQuantitySymbolLists")
-    fun <K> add(symbols: Map<K, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap2QuantitySymbols")
-    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Quantity<IntermediateSymbol<Flt64>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap2QuantitySymbolLists")
-    fun <K1, K2> add(symbols: MultiMap2<K1, K2, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap3QuantitySymbols")
-    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Quantity<IntermediateSymbol<Flt64>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap3QuantitySymbolLists")
-    fun <K1, K2, K3> add(symbols: MultiMap3<K1, K2, K3, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap4QuantitySymbols")
-    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Quantity<IntermediateSymbol<Flt64>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
-
-    @Suppress("INAPPLICABLE_JVM_NAME")
-    @JvmName("addMultiMap4QuantitySymbolLists")
-    fun <K1, K2, K3, K4> add(symbols: MultiMap4<K1, K2, K3, K4, Iterable<Quantity<IntermediateSymbol<Flt64>>>>): Try {
-        for (syms in symbols.values) {
-            when (val result = add(syms)) {
-                is Ok -> {}
-
-                is Failed -> {
-                    return Failed(result.error)
-                }
-
-                is Fatal -> {
-                    return Fatal(result.errors)
-                }
-            }
-        }
-        return ok
-    }
 
     fun remove(symbol: IntermediateSymbol<*>) {
         tokens.remove(symbol)
@@ -503,12 +354,6 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     fun registerConstraintGroup(group: MetaConstraintGroup)
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
-
-    fun constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint> {
-        return indicesOfConstraintGroup(group)?.let { indices ->
-            indices.map { constraints[it] }
-        } ?: constraints.filter { it.group == group }
-    }
 
     override fun setSolution(solution: List<V>) {
         tokens.setSolution(solution)
@@ -518,15 +363,6 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
         tokens.setSolution(solution)
     }
 
-    /** Solver-boundary adapter: sets solution from Flt64 solver output. */
-    fun setSolverSolution(solution: List<Flt64>) {
-        tokens.setSolverSolution(solution)
-    }
-
-    /** Solver-boundary adapter: sets solution from Flt64 solver output. */
-    fun setSolverSolution(solution: Map<AbstractVariableItem<*, *>, Flt64>) {
-        tokens.setSolverSolution(solution)
-    }
 
     override fun clearSolution() {
         tokens.clearSolution()
