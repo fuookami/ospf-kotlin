@@ -552,7 +552,8 @@ interface AbstractQuadraticSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<QuadraticMechanismModel<Flt64>> {
-        return QuadraticMechanismModel(
+        @Suppress("DEPRECATION")
+        return QuadraticMechanismModel.invoke<Flt64>(
             metaModel = model,
             registrationStatusCallBack = registrationStatusCallBack,
             dumpingStatusCallBack = dumpingStatusCallBack
@@ -578,7 +579,8 @@ interface QuadraticSolver : AbstractQuadraticSolver {
         registrationStatusCallBack: RegistrationStatusCallBack?,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack?
     ): Ret<QuadraticMechanismModel<Flt64>> {
-        return QuadraticMechanismModel(
+        @Suppress("DEPRECATION")
+        return QuadraticMechanismModel.invoke<Flt64>(
             metaModel = model,
             concurrent = config.dumpMechanismModelConcurrent,
             blocking = config.dumpMechanismModelBlocking,

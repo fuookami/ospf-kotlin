@@ -4,12 +4,14 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 
 sealed interface Object
 
-class SingleObject<Obj : SubObject<*>>(
+class SingleObject<out Obj : SubObject<*>>(
     val category: ObjectCategory,
-    subObjects: List<Obj>
+    subObjects: List<@UnsafeVariance Obj>
 ) : Object {
-    internal val _subObjects: MutableList<Obj> = subObjects.toMutableList()
-    val subObjects: List<Obj> by ::_subObjects
+    @Suppress("UNCHECKED_CAST")
+    internal val _subObjects: MutableList<SubObject<*>> = (subObjects as List<SubObject<*>>).toMutableList()
+    @Suppress("UNCHECKED_CAST")
+    val subObjects: List<Obj> get() = _subObjects as List<Obj>
 }
 
 class MultiObject {}

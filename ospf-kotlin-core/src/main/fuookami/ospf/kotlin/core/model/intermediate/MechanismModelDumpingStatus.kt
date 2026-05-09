@@ -7,6 +7,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 
 data class MechanismModelDumpingStatus(
     val readyConstraintAmount: UInt64,
@@ -29,7 +31,7 @@ data class MechanismModelDumpingStatus(
         }
 
     companion object {
-        fun dumpingConstrains(ready: UInt64, model: MetaModel<Flt64>): MechanismModelDumpingStatus {
+        fun <V> dumpingConstrains(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = ready,
                 totalConstraintAmount = model.constraints.usize,
@@ -38,7 +40,7 @@ data class MechanismModelDumpingStatus(
             )
         }
 
-        fun dumpingSymbols(ready: UInt64, model: MetaModel<Flt64>): MechanismModelDumpingStatus {
+        fun <V> dumpingSymbols(ready: UInt64, model: MetaModel<V>): MechanismModelDumpingStatus where V : RealNumber<V>, V : NumberField<V> {
             return MechanismModelDumpingStatus(
                 readyConstraintAmount = model.constraints.usize,
                 totalConstraintAmount = model.constraints.usize,

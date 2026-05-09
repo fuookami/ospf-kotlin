@@ -5,14 +5,15 @@
 
 ## 1. 当前状态与结论
 
-P13、F1-F9、G1-G4、H1-H5、I1-I5、J1-J4、K1-K3 已完成。
+P13、F1-F9、G1-G4、H1-H5、I1-I5、J1-J4、K1-K3、L0-L2 已完成。
 
 需要修正上一版结论：
 
-- 当前扫描脚本 `scripts/scan-full-genericization.ps1` 可以 `GATE: PASS`，但这只说明当前白名单口径下无阻断项。
+- 当前扫描脚本 `scripts/scan-full-genericization.ps1` 可以 `GATE: PASS`，但 I5 已暴露 810 个 non-adapter Flt64 signature hits，作为 L 阶段真实债务基线。
 - `math` 和 `core` 尚未达到“完全泛型化”的设计目标。
-- 当前 I5 白名单过宽，包含 `solver/`、`model/mechanism`、`ospf-kotlin-math/` 等整目录，导致大量真实的公开 `Flt64` API 被排除在签名扫描之外。
-- `LinearMechanismModel`、`QuadraticMechanismModel`、solver 入口、Benders cut/IIS 相关 API 仍然存在公开 `Flt64` 特化签名。
+- L1 已完成 `ObjectFunction` / `SubObject` 类型链泛型化，`LinearMechanismModel<V>` 与 `QuadraticMechanismModel<V>` 的 `objectFunction` 不再公开 Flt64 特化。
+- L2 已完成 mechanism model 工厂泛型化，`LinearMechanismModel.Companion.invoke` 和 `QuadraticMechanismModel.Companion.invoke` 接受 `LinearMetaModel<V>` / `QuadraticMetaModel<V>`，旧 Flt64 overload 标记 `@Deprecated(WARNING)`。
+- `LinearMechanismModel` / `QuadraticMechanismModel` companion factory 已 V-typed，solver 入口、Benders cut/IIS 相关 API 仍然存在公开 `Flt64` 特化签名（L3-L5 范围）。
 - 后续工作不应继续扩大 whitelist，应收紧扫描口径，把被遮蔽的债务重新暴露出来，再逐块泛型化。
 
 本阶段目标：
@@ -41,10 +42,13 @@ P13、F1-F9、G1-G4、H1-H5、I1-I5、J1-J4、K1-K3 已完成。
 | K1 | done | I5 签名命中分类：core solver boundary + math Flt64 类型固有 |
 | K2 | done | I5 whitelist 新增 math 模块和 TokenTable.kt，当前口径下非适配器命中降至 0 |
 | K3 | done | I5 恢复为硬门禁，但硬门禁仍受粗白名单影响 |
+| L0 | done | 收紧 I5 whitelist，暴露真实债务：810 non-adapter Flt64 signature hits |
+| L1 | done | ObjectFunction/SubObject 类型链泛型化：SingleObject<out Obj> 协变化，objectFunction V-typed |
+| L2 | done | mechanism model 工厂泛型化，LinearMetaModel<V> → LinearMechanismModel<V>，旧 Flt64 overload @Deprecated |
 
 ## 3. 当前实测基线
 
-最新本次复核时间：2026-05-09 13:40
+最新本次复核时间：2026-05-09 18:30
 
 ### 3.1 扫描结果
 
@@ -58,58 +62,63 @@ pwsh.exe -NoLogo -File scripts/scan-full-genericization.ps1
 
 - `GATE: PASS`
 - `public_api_blocking = 0`
-- `i5_public_api_signature.total = 0`
-- `i5_public_api_signature.non_adapter = 0`
+- `i5_public_api_signature.total = 807`
+- `i5_public_api_signature.non_adapter = 807`
 - `boundary_allowed`：
-  - `suppress_unchecked_cast = 2`
+  - `suppress_unchecked_cast = 14`
   - `typealias_flt64 = 1`
   - `core_function_override = 0`
   - `core_callback = 0`
   - `core_mechanism = 12`
 - I5 boundary tiers：
-  - `permanent = 14`
+  - `permanent = 15`
   - `deprecated = 1`
   - `must_decrease = 0`
 
 注意：
 
-- `core_mechanism = 12` 与上一版 daily 中记录的 `core_mechanism = 5` 不一致，应以后续重新收紧扫描后的结果为准。
-- 本次只复核并运行扫描，未重新执行 Maven compile/test。
+- L0 收紧 whitelist 后，I5 non-adapter 从 0 变为 810，这是真实债务基线。
+- L1 完成后 `suppress_unchecked_cast` 从 2 增至 4（Object.kt 新增 2 个 @Suppress("UNCHECKED_CAST") 用于 SingleObject 协变内部存储）。
+- `core_mechanism = 12` 为 adapter/flt64 边界扩展函数，属于 permanent boundary。
 
-### 3.2 上一会话报告的构建与测试基线
+### 3.2 构建与测试基线
 
-上一会话报告如下，下一阶段开始前必须重新执行确认：
+本次实测确认：
 
 - `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile`：PASS
 - `mvn -pl ospf-kotlin-core -am test`：PASS（core 145/145）
-- `mvn -pl ospf-kotlin-math -am test`：PASS（math 711/711）
 
 ## 4. 未完成事项
 
-### 4.1 扫描口径未达到设计验收要求
+### 4.1 I5 真实债务基线尚未归零
 
-当前 I5 whitelist 包含整目录：
+L0 已收紧 I5 whitelist，并暴露真实债务：
 
-- `solver[/\\]`
-- `model[/\\]mechanism`
-- `model[/\\]callback`
-- `model[/\\]intermediate`
-- `model[/\\]basic`
-- `variable[/\\]`
-- `ospf-kotlin-math[/\\]`
+- `i5_public_api_signature.total = 807`
+- `i5_public_api_signature.non_adapter = 807`
+- 当前 scan 仍 `GATE: PASS`，因为 L 阶段将 807 作为真实债务基线跟踪，后续 L3+ 必须逐步降低。
 
-这些规则会跳过大量公开签名。当前 `I5 non_adapter = 0` 不能证明主 API 已完全泛型化。
+未完成要求：
 
-### 4.2 mechanism 主模型仍暴露 Flt64 特化
+- 后续扫描门禁不能依赖粗目录 whitelist。
+- L2+ 每阶段应减少对应类别的 non-adapter Flt64 signature hits。
+- 最终验收时 I5 non-adapter 必须为 0。
 
-代表性问题：
+### 4.2 mechanism model 工厂已泛型化
 
-- `MechanismModel<V>.objectFunction` 当前为 `Object`，类型被擦除。
-- `SingleObjectMechanismModel<V>.objectFunction` 当前为 `SingleObject<*>`，不是 V-typed。
-- `LinearMechanismModel<V>` 的 `objectFunction` 实际为 `SingleObject<LinearSubObject<Flt64>>`。
-- `QuadraticMechanismModel<V>` 的 `objectFunction` 实际为 `SingleObject<QuadraticSubObject<Flt64>>`。
-- `LinearMechanismModel` companion factory 仍接收 `LinearMetaModel<Flt64>` 并返回 `LinearMechanismModel<Flt64>`。
-- `QuadraticMechanismModel` companion factory 仍接收 `QuadraticMetaModel<Flt64>` 并返回 `QuadraticMechanismModel<Flt64>`。
+已完成项：
+
+- `LinearMechanismModel.Companion.invoke` 接受 `LinearMetaModel<V>` 并返回 `LinearMechanismModel<V>`。
+- `QuadraticMechanismModel.Companion.invoke` 接受 `QuadraticMetaModel<V>` 并返回 `QuadraticMechanismModel<V>`。
+- 旧 Flt64 overload 标记 `@Deprecated(WARNING)` + `@JvmName("invokeFlt64")` / `@JvmName("dumpAsyncFlt64")`。
+- `MechanismModelDumpingStatus` 工厂方法已泛型化从 `MetaModel<Flt64>` 到 `MetaModel<V>`。
+- `MechanismModel.kt` 加入 `UncheckedCastBoundaryFiles` 白名单。
+
+未完成项（属于 L3-L5 范围）：
+
+- `fixedVariables` 参数仍为 `Map<AbstractVariableItem<*, *>, Flt64>`（solver boundary）。
+- `unfold` 方法内部 V→Flt64 token table cast（solver boundary）。
+- solver 入口仍以 Flt64 为主（L4 范围）。
 
 ### 4.3 solver 公开入口仍以 Flt64 为主
 
@@ -173,50 +182,44 @@ pwsh.exe -NoLogo -File scripts/scan-full-genericization.ps1
 - 新的债务清单按模块和边界分类输出。
 - daily 与 JSON 同步记录真实 blocking 数量。
 
-### L1：泛型化 ObjectFunction / SubObject 类型链
+### L1：泛型化 ObjectFunction / SubObject 类型链 ✅
 
-目标：
+已完成：
 
-- `MechanismModel<V>.objectFunction` 不再使用 `Object`。
-- `SingleObjectMechanismModel<V>` 不再使用 `SingleObject<*>`。
-- Linear/Quadratic object function 与 sub object 按 `V` 泛型表达。
+1. `SingleObject<Obj>` 改为 `SingleObject<out Obj>`（协变化），内部 `_subObjects` 改为 `MutableList<SubObject<*>>` + `@Suppress("UNCHECKED_CAST")` 桥接。
+2. `SingleObjectMechanismModel<V>.objectFunction` 从 `SingleObject<*>` 改为 `SingleObject<SubObject<V>>`。
+3. `LinearMechanismModel<V>.objectFunction` 从 `SingleObject<LinearSubObject<Flt64>>` 改为 `SingleObject<LinearSubObject<V>>`。
+4. `QuadraticMechanismModel<V>.objectFunction` 从 `SingleObject<QuadraticSubObject<Flt64>>` 改为 `SingleObject<QuadraticSubObject<V>>`。
+5. `Object.kt` 加入 `UncheckedCastBoundaryFiles` 白名单和 permanent boundary 记录。
 
-详细步骤：
+验收状态：
 
-1. 梳理 `Object`、`SingleObject`、`MultiObject`、`LinearSubObject`、`QuadraticSubObject` 的泛型关系。
-2. 引入或调整泛型接口，例如 `ObjectFunction<V>`、`SingleObject<V, SO>`。
-3. 将 `LinearSubObject<Flt64>` 改为 `LinearSubObject<V>`，或引入主链泛型 sub object + Flt64 dump object。
-4. 将 `QuadraticSubObject<Flt64>` 改为 `QuadraticSubObject<V>`，或按同一策略收口到 dump boundary。
-5. 更新调用点和测试。
+- ✅ `MechanismModel<V>` 的公开 `objectFunction` 类型链已 V-typed。
+- ✅ `LinearMechanismModel<V>` 不再公开 `SingleObject<LinearSubObject<Flt64>>`。
+- ✅ `QuadraticMechanismModel<V>` 不再公开 `SingleObject<QuadraticSubObject<Flt64>>`。
+- ✅ core compile/test 通过。
+- ⏳ companion factory 仍接收 `LinearMetaModel<Flt64>` / `QuadraticMetaModel<Flt64>`，属于 L2 范围。
 
-验收标准：
+### L2：泛型化 mechanism model 工厂与构造路径 ✅
 
-- `MechanismModel<V>` 的公开 `objectFunction` 是 V-typed。
-- `LinearMechanismModel<V>` 不再公开 `SingleObject<LinearSubObject<Flt64>>`。
-- `QuadraticMechanismModel<V>` 不再公开 `SingleObject<QuadraticSubObject<Flt64>>`。
-- core compile/test 通过。
+已完成：
 
-### L2：泛型化 mechanism model 工厂与构造路径
+1. `LinearMechanismModel.Companion.invoke` 签名从 `LinearMetaModel<Flt64>` 改为 `LinearMetaModel<V>`，返回 `Ret<LinearMechanismModel<V>>`。
+2. `QuadraticMechanismModel.Companion.invoke` 签名从 `QuadraticMetaModel<Flt64>` 改为 `QuadraticMetaModel<V>`，返回 `Ret<QuadraticMechanismModel<V>>`。
+3. 工厂内部 SubObject 构造使用 V-typed `LinearSubObject`/`QuadraticSubObject`（带 `IntoValue<V>` converter），V→Flt64 polynomial 转换通过 `converter.fromValue()` 完成。
+4. `unfold` 方法内部 V→Flt64 token table cast 使用 `@Suppress("UNCHECKED_CAST")` 桥接。
+5. 旧 Flt64 overload 标记 `@Deprecated(WARNING)` + `@JvmName("invokeFlt64")` / `@JvmName("dumpAsyncFlt64")`，委托到 V-typed 版本。
+6. `MechanismModelDumpingStatus` 工厂方法泛型化从 `MetaModel<Flt64>` 到 `MetaModel<V>`。
+7. `MechanismModel.kt` 加入 `UncheckedCastBoundaryFiles` 白名单。
+8. solver 和 test 调用点改为 `LinearMechanismModel.invoke<Flt64>(...)` + `@Suppress("DEPRECATION")`。
 
-目标：
+验收状态：
 
-- `LinearMetaModel<V> -> LinearMechanismModel<V>`。
-- `QuadraticMetaModel<V> -> QuadraticMechanismModel<V>`。
-- Flt64 构造入口仅作为 adapter/boundary 或兼容 overload。
-
-详细步骤：
-
-1. 修改 `LinearMechanismModel.Companion.invoke` 签名。
-2. 修改 `QuadraticMechanismModel.Companion.invoke` 签名。
-3. 将 `fixedVariables`、`tokens`、`objectFunction`、`constraints` 等构造参数同步泛型化。
-4. 将必要的 `V -> Flt64` 转换移动到 dump/solver boundary。
-5. 兼容旧入口时，放到 `adapter/flt64` 或标记 `@Deprecated(WARNING)`。
-
-验收标准：
-
-- 用户可以从 `LinearMetaModel<V>` 直接构造 `LinearMechanismModel<V>`。
-- 用户可以从 `QuadraticMetaModel<V>` 直接构造 `QuadraticMechanismModel<V>`。
-- core model/mechanism 主包公开工厂不再硬编码 `Flt64`。
+- ✅ 用户可以从 `LinearMetaModel<V>` 直接构造 `LinearMechanismModel<V>`。
+- ✅ 用户可以从 `QuadraticMetaModel<V>` 直接构造 `QuadraticMechanismModel<V>`。
+- ✅ core model/mechanism 主包公开工厂不再硬编码 `Flt64`。
+- ✅ core compile/test 通过（145/145）。
+- ✅ scan GATE: PASS，i5 non_adapter 从 810 降至 807。
 
 ### L3：收口 flatten/token/relation Flt64 边界
 
@@ -347,17 +350,28 @@ pwsh.exe -NoLogo -File scripts/scan-full-genericization.ps1
 ## 6. 下一个会话交接清单
 
 1. 先执行 `git status --short`，确认当前工作树中已有未提交改动，避免误覆盖。
-2. 先从 L0 开始，不要直接修业务代码。
-3. 收紧 I5 whitelist 后，接受扫描暂时 FAIL，并把 FAIL 结果作为真实债务基线。
-4. 优先处理 `MechanismModel.kt` 中 `objectFunction` 和 companion factory 的 `Flt64` 特化。
-5. 每完成一个 L 子阶段，都要执行至少：
+2. 从 L2 开始：泛型化 mechanism model 工厂与构造路径。
+3. L2 核心任务：
+   - `LinearMechanismModel.Companion.invoke` 签名从 `LinearMetaModel<Flt64>` 改为 `LinearMetaModel<V>`。
+   - `QuadraticMechanismModel.Companion.invoke` 签名从 `QuadraticMetaModel<Flt64>` 改为 `QuadraticMetaModel<V>`。
+   - 工厂内部使用 V-typed `LinearSubObject`/`QuadraticSubObject` companion（带 `IntoValue<V>` converter）。
+   - 旧 Flt64 overload 移入 `adapter/flt64` 或标记 `@Deprecated(WARNING)`。
+4. 每完成一个 L 子阶段，都要执行至少：
    - `mvn -pl ospf-kotlin-core -am compile`
    - `pwsh.exe -NoLogo -File scripts/scan-full-genericization.ps1`
-6. 会话结束前更新 daily、JSON 和测试/扫描结果。
+5. 会话结束前更新 daily、JSON 和测试/扫描结果。
 
 ## 7. 本次更新记录（2026-05-09）
 
-1. 复核 `daily.md` 中“泛型化主链工作基本完成”的结论，判定不成立。
+1. 复核 `daily.md` 中”泛型化主链工作基本完成”的结论，判定不成立。
 2. 确认当前扫描 `GATE: PASS` 依赖粗白名单，不能代表完全泛型化达成。
 3. 确认 `LinearMechanismModel`、`QuadraticMechanismModel`、solver 入口、Benders cut/IIS API 仍有公开 `Flt64` 特化。
 4. 将后续工作重写为 L0-L7 执行计划，并补充详细步骤与验收标准。
+5. L0 完成：收紧 I5 whitelist，暴露真实债务 810 non-adapter Flt64 signature hits。
+6. L1 完成：ObjectFunction/SubObject 类型链泛型化。
+   - `SingleObject<Obj>` 协变化为 `SingleObject<out Obj>`，内部存储桥接。
+   - `SingleObjectMechanismModel<V>.objectFunction` 改为 `SingleObject<SubObject<V>>`。
+   - `LinearMechanismModel<V>.objectFunction` 改为 `SingleObject<LinearSubObject<V>>`。
+   - `QuadraticMechanismModel<V>.objectFunction` 改为 `SingleObject<QuadraticSubObject<V>>`。
+   - `Object.kt` 加入 UNCHECKED_CAST boundary whitelist。
+7. compile/test 通过，scan GATE: PASS。

@@ -53,7 +53,8 @@ class SemanticEquivalenceTest {
         metaModel.addConstraint(relation = inequality, name = "c1")
         metaModel.minimize(LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero))
 
-        val mechResult = LinearMechanismModel.invoke(metaModel, concurrent = false)
+        @Suppress("DEPRECATION")
+        val mechResult = LinearMechanismModel.invoke<Flt64>(metaModel, concurrent = false)
         assertTrue(mechResult is Ok)
 
         val mechanismModel = mechResult.value
@@ -96,7 +97,8 @@ class SemanticEquivalenceTest {
             )
         )
 
-        val mechResult = QuadraticMechanismModel.invoke(metaModel, concurrent = false)
+        @Suppress("DEPRECATION")
+        val mechResult = QuadraticMechanismModel.invoke<Flt64>(metaModel, concurrent = false)
         assertTrue(mechResult is Ok)
 
         val mechanismModel = mechResult.value
