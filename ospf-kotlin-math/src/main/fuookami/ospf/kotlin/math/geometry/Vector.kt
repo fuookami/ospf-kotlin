@@ -72,7 +72,7 @@ open class Vector<D : Dimension, V : FloatingNumber<V>>(
 
     operator fun plus(rhs: Point<D, V>) = Point(indices.map { this[it] + rhs[it] }, dim)
 
-    override fun angle(rhs: Vector<D, V>): FloatingNumber<*>? {
+    override fun angle(rhs: Vector<D, V>): V? {
         return super<InnerProductSpace>.angle(rhs) as? V
     }
 

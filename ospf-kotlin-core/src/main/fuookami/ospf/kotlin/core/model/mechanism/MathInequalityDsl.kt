@@ -28,6 +28,12 @@ import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
+@Suppress("UNCHECKED_CAST")
+private fun <V, T> tokenTableAs(tokens: AbstractTokenTable<T>): AbstractTokenTable<V>
+        where V : RealNumber<V>, V : NumberField<V>, T : RealNumber<T>, T : NumberField<T> {
+    return tokens as AbstractTokenTable<V>
+}
+
 // ========== Flt64 convenience aliases ==========
 
 // The math layer provides generic infix operators (eq/le/ge/lt/gt/ne)
@@ -35,232 +41,232 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 // This file adds convenience aliases (leq/geq/neq/ls/gr) and
 // core-specific cross-type operators (Int/Double/Boolean/UInt64).
 
-// LinearPolynomial<Flt64> aliases â€” delegate directly to constructor to avoid
+// LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> aliases â€?delegate directly to constructor to avoid
 // resolution ambiguity with math-layer generic operators.
-internal infix fun LinearPolynomial<Flt64>.leq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs, Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.geq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs, Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.neq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs, Comparison.NE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.LE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.GE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.NE)
 
-internal infix fun LinearPolynomial<Flt64>.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.EQ)
-internal infix fun LinearPolynomial<Flt64>.leq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.geq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.neq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.eq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.EQ)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, LinearPolynomial(emptyList(), rhs), Comparison.NE)
 
-internal infix fun Flt64.eq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.EQ)
-internal infix fun Flt64.leq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.LE)
-internal infix fun Flt64.geq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.GE)
-internal infix fun Flt64.neq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.NE)
+internal infix fun Flt64.eq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.EQ)
+internal infix fun Flt64.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.LE)
+internal infix fun Flt64.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.GE)
+internal infix fun Flt64.neq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs, Comparison.NE)
 
-// QuadraticPolynomial<Flt64> aliases
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs, Comparison.NE)
+// QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> aliases
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.LE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.GE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs, Comparison.NE)
 
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: Flt64): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: Flt64): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: Flt64): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: Flt64): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, QuadraticPolynomial(emptyList(), rhs), Comparison.NE)
 
-// LinearPolynomial<Flt64> vs QuadraticPolynomial<Flt64> aliases
-internal infix fun LinearPolynomial<Flt64>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.NE)
+// LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> vs QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> aliases
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this.toQuadraticPolynomial(), rhs, Comparison.NE)
 
-internal infix fun QuadraticPolynomial<Flt64>.leq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LE)
-internal infix fun QuadraticPolynomial<Flt64>.geq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GE)
-internal infix fun QuadraticPolynomial<Flt64>.neq(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.NE)
-internal infix fun QuadraticPolynomial<Flt64>.ls(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LT)
-internal infix fun QuadraticPolynomial<Flt64>.gr(rhs: LinearPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GT)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.NE)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.ls(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.LT)
+internal infix fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gr(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.toQuadraticPolynomial(), Comparison.GT)
 
 // ========== Symbol convenience aliases ==========
 
 // Symbol vs Flt64 aliases
-internal infix fun Symbol.leq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun Symbol.geq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun Symbol.neq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
-internal infix fun Symbol.ls(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
-internal infix fun Symbol.gr(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
+internal infix fun Symbol.leq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun Symbol.geq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun Symbol.neq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun Symbol.ls(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
+internal infix fun Symbol.gr(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
 
 // Flt64 vs Symbol aliases
-internal infix fun Flt64.leq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.LE)
-internal infix fun Flt64.geq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.GE)
-internal infix fun Flt64.neq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.NE)
-internal infix fun Flt64.ls(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.LT)
-internal infix fun Flt64.gr(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.GT)
+internal infix fun Flt64.leq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.LE)
+internal infix fun Flt64.geq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.GE)
+internal infix fun Flt64.neq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.NE)
+internal infix fun Flt64.ls(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.LT)
+internal infix fun Flt64.gr(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this), rhs.asLinearPoly(), Comparison.GT)
 
 // Symbol vs Symbol aliases
-internal infix fun Symbol.leq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.LE)
-internal infix fun Symbol.geq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.GE)
-internal infix fun Symbol.neq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.NE)
-internal infix fun Symbol.ls(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.LT)
-internal infix fun Symbol.gr(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.GT)
+internal infix fun Symbol.leq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.LE)
+internal infix fun Symbol.geq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.GE)
+internal infix fun Symbol.neq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.NE)
+internal infix fun Symbol.ls(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.LT)
+internal infix fun Symbol.gr(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs.asLinearPoly(), Comparison.GT)
 
 // ========== Symbol vs Int/Double ==========
 
-internal infix fun Symbol.eq(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.EQ)
-internal infix fun Symbol.le(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LE)
-internal infix fun Symbol.ge(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GE)
-internal infix fun Symbol.lt(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LT)
-internal infix fun Symbol.gt(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GT)
-internal infix fun Symbol.ne(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.NE)
+internal infix fun Symbol.eq(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.EQ)
+internal infix fun Symbol.le(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LE)
+internal infix fun Symbol.ge(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GE)
+internal infix fun Symbol.lt(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LT)
+internal infix fun Symbol.gt(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GT)
+internal infix fun Symbol.ne(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.NE)
 
-internal infix fun Symbol.eq(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.EQ)
-internal infix fun Symbol.le(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LE)
-internal infix fun Symbol.ge(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GE)
-internal infix fun Symbol.lt(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LT)
-internal infix fun Symbol.gt(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GT)
-internal infix fun Symbol.ne(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.NE)
+internal infix fun Symbol.eq(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.EQ)
+internal infix fun Symbol.le(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LE)
+internal infix fun Symbol.ge(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GE)
+internal infix fun Symbol.lt(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LT)
+internal infix fun Symbol.gt(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GT)
+internal infix fun Symbol.ne(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.NE)
 
 // Int/Double vs Symbol
-internal infix fun Int.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.EQ)
-internal infix fun Int.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.LE)
-internal infix fun Int.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.GE)
-internal infix fun Int.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.LT)
-internal infix fun Int.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.GT)
+internal infix fun Int.eq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.EQ)
+internal infix fun Int.le(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.LE)
+internal infix fun Int.ge(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.GE)
+internal infix fun Int.lt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.LT)
+internal infix fun Int.gt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this.toDouble())), rhs.asLinearPoly(), Comparison.GT)
 
-internal infix fun Double.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.EQ)
-internal infix fun Double.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.LE)
-internal infix fun Double.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.GE)
-internal infix fun Double.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.LT)
-internal infix fun Double.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.GT)
+internal infix fun Double.eq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.EQ)
+internal infix fun Double.le(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.LE)
+internal infix fun Double.ge(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.GE)
+internal infix fun Double.lt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.LT)
+internal infix fun Double.gt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64(this)), rhs.asLinearPoly(), Comparison.GT)
 
 // Int/Double aliases
-internal infix fun Symbol.leq(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LE)
-internal infix fun Symbol.geq(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GE)
-internal infix fun Symbol.neq(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.NE)
-internal infix fun Symbol.ls(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LT)
-internal infix fun Symbol.gr(rhs: Int): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GT)
+internal infix fun Symbol.leq(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LE)
+internal infix fun Symbol.geq(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GE)
+internal infix fun Symbol.neq(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.NE)
+internal infix fun Symbol.ls(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.LT)
+internal infix fun Symbol.gr(rhs: Int): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs.toDouble())), Comparison.GT)
 
-internal infix fun Symbol.leq(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LE)
-internal infix fun Symbol.geq(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GE)
-internal infix fun Symbol.neq(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.NE)
-internal infix fun Symbol.ls(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LT)
-internal infix fun Symbol.gr(rhs: Double): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GT)
+internal infix fun Symbol.leq(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LE)
+internal infix fun Symbol.geq(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GE)
+internal infix fun Symbol.neq(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.NE)
+internal infix fun Symbol.ls(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.LT)
+internal infix fun Symbol.gr(rhs: Double): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), Flt64(rhs)), Comparison.GT)
 
 // ========== Symbol vs LinearPolynomial/QuadraticPolynomial ==========
 
-// Symbol vs LinearPolynomial<Flt64>
-private fun Symbol.asLinearPoly(): LinearPolynomial<Flt64> =
+// Symbol vs LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun Symbol.asLinearPoly(): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
     LinearPolynomial(listOf(LinearMonomial(Flt64.one, this)), Flt64.zero)
 
-internal infix fun Symbol.eq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.EQ)
-internal infix fun Symbol.le(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.LE)
-internal infix fun Symbol.ge(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.GE)
-internal infix fun Symbol.lt(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.LT)
-internal infix fun Symbol.gt(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.GT)
-internal infix fun Symbol.ne(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.NE)
+internal infix fun Symbol.eq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.EQ)
+internal infix fun Symbol.le(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.LE)
+internal infix fun Symbol.ge(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.GE)
+internal infix fun Symbol.lt(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.LT)
+internal infix fun Symbol.gt(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.GT)
+internal infix fun Symbol.ne(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.NE)
 
-internal infix fun Symbol.leq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.LE)
-internal infix fun Symbol.geq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.GE)
-internal infix fun Symbol.neq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.NE)
-internal infix fun Symbol.ls(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.LT)
-internal infix fun Symbol.gr(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), rhs, Comparison.GT)
+internal infix fun Symbol.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.LE)
+internal infix fun Symbol.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.GE)
+internal infix fun Symbol.neq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.NE)
+internal infix fun Symbol.ls(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.LT)
+internal infix fun Symbol.gr(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), rhs, Comparison.GT)
 
-// LinearPolynomial<Flt64> vs Symbol
-internal infix fun LinearPolynomial<Flt64>.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.EQ)
-internal infix fun LinearPolynomial<Flt64>.le(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.ge(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.lt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.LT)
-internal infix fun LinearPolynomial<Flt64>.gt(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.GT)
-internal infix fun LinearPolynomial<Flt64>.ne(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.NE)
+// LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> vs Symbol
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.eq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.EQ)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.le(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.LE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.ge(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.GE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.lt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.LT)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gt(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.GT)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.ne(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.NE)
 
-internal infix fun LinearPolynomial<Flt64>.leq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.LE)
-internal infix fun LinearPolynomial<Flt64>.geq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.GE)
-internal infix fun LinearPolynomial<Flt64>.neq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(this, rhs.asLinearPoly(), Comparison.NE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.LE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.GE)
+internal infix fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.neq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(this, rhs.asLinearPoly(), Comparison.NE)
 
-// Symbol vs QuadraticPolynomial<Flt64>
-internal infix fun Symbol.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
-internal infix fun Symbol.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun Symbol.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun Symbol.ne(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+// Symbol vs QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal infix fun Symbol.eq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
+internal infix fun Symbol.le(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun Symbol.ge(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun Symbol.ne(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
 
-internal infix fun Symbol.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun Symbol.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun Symbol.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun Symbol.leq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun Symbol.geq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun Symbol.neq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
 
 // ========== Symbol vs Boolean ==========
 
 private fun Boolean.asFlt64(): Flt64 = if (this) Flt64.one else Flt64.zero
 
-internal infix fun Symbol.eq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
-internal infix fun Symbol.le(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
-internal infix fun Symbol.ge(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
-internal infix fun Symbol.lt(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
-internal infix fun Symbol.gt(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
-internal infix fun Symbol.ne(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
+internal infix fun Symbol.eq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
+internal infix fun Symbol.le(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
+internal infix fun Symbol.ge(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
+internal infix fun Symbol.lt(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
+internal infix fun Symbol.gt(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
+internal infix fun Symbol.ne(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
 
-internal infix fun Symbol.leq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
-internal infix fun Symbol.geq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
-internal infix fun Symbol.neq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
-internal infix fun Symbol.ls(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
-internal infix fun Symbol.gr(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
+internal infix fun Symbol.leq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
+internal infix fun Symbol.geq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
+internal infix fun Symbol.neq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
+internal infix fun Symbol.ls(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
+internal infix fun Symbol.gr(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
 
 // ========== AbstractVariableItem DSL ==========
 
-private fun AbstractVariableItem<*, *>.asSymbolPoly(): LinearPolynomial<Flt64> =
+private fun AbstractVariableItem<*, *>.asSymbolPoly(): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
     LinearPolynomial(listOf(LinearMonomial(Flt64.one, this as Symbol)), Flt64.zero)
 
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
-internal infix fun AbstractVariableItem<*, *>.le(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.ge(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.lt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gt(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
-internal infix fun AbstractVariableItem<*, *>.ne(rhs: Flt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.le(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.ge(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.lt(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gt(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.ne(rhs: Flt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs), Comparison.NE)
 
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: AbstractVariableItem<*, *>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: AbstractVariableItem<*, *>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs.asSymbolPoly(), Comparison.GT)
 
-// AbstractVariableItem vs LinearPolynomial<Flt64>
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: LinearPolynomial<Flt64>): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), rhs, Comparison.GT)
+// AbstractVariableItem vs LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), rhs, Comparison.GT)
 
-// AbstractVariableItem vs QuadraticPolynomial<Flt64>
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> =
-    QuadraticInequalityOf<Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> =
-    QuadraticInequalityOf<Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.GT)
-internal infix fun AbstractVariableItem<*, *>.le(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.ge(rhs: QuadraticPolynomial<Flt64>): QuadraticInequalityOf<Flt64> = QuadraticInequalityOf<Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+// AbstractVariableItem vs QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
+    QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
+    QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(QuadraticPolynomial(listOf(QuadraticMonomial(Flt64.one, this, this)), Flt64.zero), rhs, Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.le(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.ge(rhs: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly().toQuadraticPolynomial(), rhs, Comparison.GE)
 
 // AbstractVariableItem vs Boolean
-internal infix fun AbstractVariableItem<*, *>.eq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
-internal infix fun AbstractVariableItem<*, *>.le(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.ge(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.lt(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gt(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
-internal infix fun AbstractVariableItem<*, *>.ne(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.leq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
-internal infix fun AbstractVariableItem<*, *>.geq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
-internal infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
-internal infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
-internal infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): LinearInequality<Flt64> = LinearInequality<Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.eq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.EQ)
+internal infix fun AbstractVariableItem<*, *>.le(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.ge(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.lt(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gt(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
+internal infix fun AbstractVariableItem<*, *>.ne(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.leq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LE)
+internal infix fun AbstractVariableItem<*, *>.geq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GE)
+internal infix fun AbstractVariableItem<*, *>.neq(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.NE)
+internal infix fun AbstractVariableItem<*, *>.ls(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.LT)
+internal infix fun AbstractVariableItem<*, *>.gr(rhs: Boolean): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asSymbolPoly(), LinearPolynomial(emptyList(), rhs.asFlt64()), Comparison.GT)
 
-// ========== QuadraticIntermediateSymbol<Flt64> vs Boolean ==========
+// ========== QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> vs Boolean ==========
 
-internal infix fun QuadraticIntermediateSymbol<Flt64>.eq(rhs: Boolean): QuadraticInequalityOf<Flt64> =
-    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.le(rhs: Boolean): QuadraticInequalityOf<Flt64> =
-    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.ge(rhs: Boolean): QuadraticInequalityOf<Flt64> =
-    QuadraticInequalityOf<Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
-internal infix fun QuadraticIntermediateSymbol<Flt64>.leq(rhs: Boolean): QuadraticInequalityOf<Flt64> = this le rhs
-internal infix fun QuadraticIntermediateSymbol<Flt64>.geq(rhs: Boolean): QuadraticInequalityOf<Flt64> = this ge rhs
+internal infix fun QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>.eq(rhs: Boolean): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
+    QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.EQ)
+internal infix fun QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>.le(rhs: Boolean): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
+    QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.LE)
+internal infix fun QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>.ge(rhs: Boolean): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> =
+    QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(toQuadraticPolynomial(), QuadraticPolynomial(emptyList(), if (rhs) Flt64.one else Flt64.zero), Comparison.GE)
+internal infix fun QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>.leq(rhs: Boolean): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = this le rhs
+internal infix fun QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>.geq(rhs: Boolean): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> = this ge rhs
 
 // ========== UInt comparison helpers ==========
 
@@ -276,25 +282,25 @@ internal infix fun Flt64.eq(rhs: UInt64): Boolean = this.toDouble() == rhs.toLon
 internal infix fun Flt64.neq(rhs: UInt64): Boolean = this.toDouble() != rhs.toLong().toDouble()
 
 // Symbol vs UInt64
-internal infix fun Symbol.leq(rhs: UInt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.LE)
-internal infix fun Symbol.geq(rhs: UInt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.GE)
-internal infix fun Symbol.eq(rhs: UInt64): LinearInequality<Flt64> = LinearInequality<Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.EQ)
-internal infix fun UInt64.eq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.EQ)
-internal infix fun UInt64.leq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.LE)
-internal infix fun UInt64.geq(rhs: Symbol): LinearInequality<Flt64> = LinearInequality<Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.GE)
+internal infix fun Symbol.leq(rhs: UInt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.LE)
+internal infix fun Symbol.geq(rhs: UInt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.GE)
+internal infix fun Symbol.eq(rhs: UInt64): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(asLinearPoly(), LinearPolynomial(emptyList(), rhs.toFlt64()), Comparison.EQ)
+internal infix fun UInt64.eq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.EQ)
+internal infix fun UInt64.leq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.LE)
+internal infix fun UInt64.geq(rhs: Symbol): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), this.toFlt64()), rhs.asLinearPoly(), Comparison.GE)
 
 // ========== LinearInequality to Constraint<Flt64, Quadratic> direct conversion ==========
 
-internal fun LinearInequality<Flt64>.toQuadraticConstraint(
-    tokens: AbstractTokenTable<Flt64>,
+internal fun <T> LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticConstraint(
+    tokens: AbstractTokenTable<T>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): QuadraticConstraintImpl<Flt64> {
+): QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64> where T : RealNumber<T>, T : NumberField<T> {
     return QuadraticConstraintImpl(
         relation = toQuadraticInequality().let { QuadraticRelationImpl(it.flattenData, it.comparison) },
-        tokens = tokens,
+        tokens = tokenTableAs<Flt64, T>(tokens),
         converter = IntoValue.Identity,
         lazy = lazy,
         name = name,

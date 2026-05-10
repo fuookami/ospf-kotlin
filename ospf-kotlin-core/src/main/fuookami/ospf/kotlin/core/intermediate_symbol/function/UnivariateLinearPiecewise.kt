@@ -24,7 +24,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -89,11 +89,11 @@ class UnivariateLinearPiecewiseFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(m)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Exactly one segment must be active: sum(s[i]) = 1
         val sumMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(sumMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_select_one")
 
@@ -105,13 +105,13 @@ class UnivariateLinearPiecewiseFunction<V>(
             val interceptF = converter.fromValue(intercepts[i])
 
             // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
                     LinearMonomial(-mF, sVar), xF.constant + mF),
                 LinearPolynomial(emptyList(), bpLowF), Comparison.GE, "${name}_seg_${i}_lb")
 
             // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
                     LinearMonomial(mF, sVar), xF.constant),
                 LinearPolynomial(emptyList(), bpHighF + mF), Comparison.LE, "${name}_seg_${i}_ub")
@@ -119,13 +119,13 @@ class UnivariateLinearPiecewiseFunction<V>(
             // y = slope*x + intercept when s[i]=1
             // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
             val negSlopeXMonos = xF.monomials.map { LinearMonomial(-it.coefficient * slopeF, it.symbol) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
                     negSlopeXMonos + LinearMonomial(mF, sVar), -interceptF),
                 LinearPolynomial(emptyList(), mF), Comparison.LE, "${name}_seg_${i}_eq_ub")
 
             // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
                     negSlopeXMonos + LinearMonomial(-mF, sVar), -interceptF),
                 LinearPolynomial(emptyList(), -mF), Comparison.GE, "${name}_seg_${i}_eq_lb")
@@ -151,26 +151,26 @@ class UnivariateLinearPiecewiseFunction<V>(
             )
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            breakpoints: List<Flt64>,
-            slopes: List<Flt64>,
-            intercepts: List<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            breakpoints: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            slopes: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            intercepts: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             m: Flt64 = Flt64(1e6),
             name: String = "piecewise",
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<Flt64> = UnivariateLinearPiecewiseFunction(
+        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = UnivariateLinearPiecewiseFunction(
             x = x, breakpoints = breakpoints, slopes = slopes, intercepts = intercepts, m = m,
             converter = flt64Converter, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearMonomial<Flt64>,
-            breakpoints: List<Flt64>,
-            slopes: List<Flt64>,
-            intercepts: List<Flt64>,
+            x: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            breakpoints: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            slopes: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            intercepts: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             m: Flt64 = Flt64(1e6),
             name: String = "piecewise",
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<Flt64> = UnivariateLinearPiecewiseFunction(
+        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = UnivariateLinearPiecewiseFunction(
             x = LinearPolynomial(listOf(x), Flt64.zero),
             breakpoints = breakpoints, slopes = slopes, intercepts = intercepts, m = m,
             converter = flt64Converter, name = name, displayName = displayName)
@@ -178,12 +178,12 @@ class UnivariateLinearPiecewiseFunction<V>(
         @JvmStatic
         @JvmName("fromPoints")
         fun fromPoints(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             points: List<Point<Dim2, Flt64>>,
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<Flt64> {
+        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
             require(points.size >= 2) { "Need at least 2 points" }
             val breakpoints = points.map { it[0] }
             val slopes = (0 until points.size - 1).map { i ->

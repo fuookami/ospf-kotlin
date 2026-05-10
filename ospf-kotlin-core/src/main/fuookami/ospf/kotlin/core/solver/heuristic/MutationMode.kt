@@ -12,10 +12,10 @@ interface MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<Flt64>
-    ): List<Flt64>
+        mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 }
 
 data class StaticMutationMode<V>(
@@ -24,10 +24,10 @@ data class StaticMutationMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<Flt64>
-    ): List<Flt64> {
+        mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return List(population.size) {
             mutationRate?.coerceIn(mutationRateRange) ?: mutationRateRange.upperBound.value.unwrap()
         }
@@ -35,15 +35,15 @@ data class StaticMutationMode<V>(
 }
 
 data class RandomMutationMode<V>(
-    private val randomGenerator: Generator<Flt64>
+    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : MutationMode<V> where V : RealNumber<V>, V : NumberField<V> {
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<Flt64>
-    ): List<Flt64> {
+        mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return List(population.size) {
             mutationRateRange.lowerBound.value.unwrap() + randomGenerator()!! * mutationRateRange.diff.unwrap()
         }
@@ -54,10 +54,10 @@ class AdaptiveDynamicMutationMode<V> : MutationMode<V> where V : RealNumber<V>, 
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
-        mutationRateRange: ValueRange<Flt64>
-    ): List<Flt64> {
+        mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val weight = (weights.max() - weights.min()) / weights.max()
         return List(population.size) {
             mutationRateRange.lowerBound.value.unwrap() + weight * mutationRateRange.diff.unwrap()

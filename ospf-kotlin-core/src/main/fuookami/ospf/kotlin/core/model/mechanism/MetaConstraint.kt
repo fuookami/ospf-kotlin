@@ -214,7 +214,14 @@ interface MetaConstraintGroup {
     }
 }
 
-// ========== Math Inequality-based Constraint<Flt64> Types ==========
+// Compatibility extension: keep call style `model.constraintsOfGroup(group)`
+// for existing framework/example modules while meta constraint API is being migrated.
+fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint>
+        where V : RealNumber<V>, V : NumberField<V> {
+    return group.run { this@constraintsOfGroup.constraintsOfGroup() }
+}
+
+// ========== Math Inequality-based Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64> Types ==========
 
 /**
  * Common interface for math-based constraints.
@@ -229,7 +236,7 @@ interface MathConstraint {
      * Evaluate whether this constraint is satisfied given Flt64 solution values.
      */
     fun <V> isTrue(
-        solution: List<Flt64>,
+        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean = false
     ): Boolean? where V : RealNumber<V>, V : NumberField<V>
@@ -261,13 +268,13 @@ data class LinearInequalityConstraint<V>(
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData()
-    val flattenDataFlt64: LinearFlattenData<Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
+    val flattenDataFlt64: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
     override fun <V1> isTrue(
-        solution: List<Flt64>,
+        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
@@ -293,13 +300,13 @@ data class QuadraticInequalityConstraint<V>(
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: QuadraticFlattenData<V> get() = inequality.toQuadraticFlattenData()
-    val flattenDataFlt64: QuadraticFlattenData<Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
+    val flattenDataFlt64: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
 
     override fun <V1> isTrue(
-        solution: List<Flt64>,
+        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
@@ -317,9 +324,9 @@ data class QuadraticInequalityConstraint<V>(
 
 
 /**
- * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData<Flt64> (new API)
+ * QuadraticFlattenSubObject - SubObject using QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
  *
- * This type uses QuadraticFlattenData<Flt64> directly for objective functions,
+ * This type uses QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
 data class QuadraticFlattenSubObject<V>(

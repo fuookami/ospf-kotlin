@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -70,11 +70,11 @@ class ModFunction<V>(
         val mF = converter.fromValue(bigM)
         val dF = converter.fromValue(d)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // r = x - d*q
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, rVar),
                 LinearMonomial(dF, qVar)
@@ -85,12 +85,12 @@ class ModFunction<V>(
         // r >= 0 (from URealVar)
         // r < d => r <= d - epsilon
         val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero),
             LinearPolynomial(emptyList(), dF - eps), Comparison.LE, "${name}_mod_r_ub")
 
         // result = r
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, rVar)
@@ -112,23 +112,23 @@ class ModFunction<V>(
             ModFunction(x, d, bigM, converter, name, displayName)
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             d: Flt64,
             bigM: Flt64? = null,
             name: String = "mod",
             displayName: String? = null
-        ): ModFunction<Flt64> = ModFunction(x, d, bigM, flt64Converter, name, displayName)
+        ): ModFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ModFunction(x, d, bigM, flt64Converter, name, displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             d: Flt64,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            ModFunction<Flt64>(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+            ModFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 x = x.toLinearPolynomial(),
                 d = d,
                 bigM = bigM,

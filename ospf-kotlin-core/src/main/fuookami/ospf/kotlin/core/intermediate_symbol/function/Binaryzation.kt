@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -64,17 +64,17 @@ class BinaryzationFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val polyF = polynomial.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // x <= M*y
         val xMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-mF, resultVar), polyF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_bin_ub")
 
         // x >= epsilon*y
         val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polyF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_bin_lb")
 
@@ -92,20 +92,20 @@ class BinaryzationFunction<V>(
             BinaryzationFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomial: LinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): BinaryzationFunction<Flt64> = BinaryzationFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
+        ): BinaryzationFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = BinaryzationFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             BinaryzationFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,

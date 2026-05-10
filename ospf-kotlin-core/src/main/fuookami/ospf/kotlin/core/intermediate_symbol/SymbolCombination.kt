@@ -111,7 +111,7 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1
-    ): LinearExpressionSymbols1<Flt64> {
+    ): LinearExpressionSymbols1<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -125,7 +125,7 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape2
-    ): LinearExpressionSymbols2<Flt64> {
+    ): LinearExpressionSymbols2<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -139,7 +139,7 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape3
-    ): LinearExpressionSymbols3<Flt64> {
+    ): LinearExpressionSymbols3<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -153,7 +153,7 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape4
-    ): LinearExpressionSymbols4<Flt64> {
+    ): LinearExpressionSymbols4<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -167,7 +167,7 @@ data object LinearIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: DynShape
-    ): DynLinearExpressionSymbols<Flt64> {
+    ): DynLinearExpressionSymbols<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -183,7 +183,7 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape1
-    ): QuadraticExpressionSymbols1<Flt64> {
+    ): QuadraticExpressionSymbols1<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -197,7 +197,7 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape2
-    ): QuadraticExpressionSymbols2<Flt64> {
+    ): QuadraticExpressionSymbols2<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -211,7 +211,7 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape3
-    ): QuadraticExpressionSymbols3<Flt64> {
+    ): QuadraticExpressionSymbols3<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -225,7 +225,7 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: Shape4
-    ): QuadraticExpressionSymbols4<Flt64> {
+    ): QuadraticExpressionSymbols4<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -239,7 +239,7 @@ data object QuadraticIntermediateSymbols {
     operator fun invoke(
         name: String,
         shape: DynShape
-    ): DynQuadraticExpressionSymbols<Flt64> {
+    ): DynQuadraticExpressionSymbols<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return SymbolCombination(
             name = name,
             shape = shape
@@ -254,9 +254,9 @@ data object QuadraticIntermediateSymbols {
 fun <T> map(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> LinearPolynomial<Flt64>,
+    ctor: (T) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
-): LinearExpressionSymbols1<Flt64> {
+): LinearExpressionSymbols1<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l = objs.toList()
     return LinearExpressionSymbols1(
         name,
@@ -272,9 +272,9 @@ fun <T> map(
 fun <T> flatMap(
     name: String,
     objs: Iterable<T>,
-    ctor: (T) -> LinearPolynomial<Flt64>,
+    ctor: (T) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T>) -> String = { (i, _) -> "$i" }
-): LinearExpressionSymbols1<Flt64> {
+): LinearExpressionSymbols1<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l = objs.toList()
     return LinearExpressionSymbols1(
         name,
@@ -291,9 +291,9 @@ fun <T1, T2> map(
     name: String,
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
-    ctor: (T1, T2) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
-): LinearExpressionSymbols2<Flt64> {
+): LinearExpressionSymbols2<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     return LinearExpressionSymbols2(
@@ -311,9 +311,9 @@ fun <T1, T2> flatMap(
     name: String,
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
-    ctor: (T1, T2) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>) -> String = { (i1, _), (i2, _) -> "${i1}_$i2" }
-): LinearExpressionSymbols2<Flt64> {
+): LinearExpressionSymbols2<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     return LinearExpressionSymbols2(
@@ -332,9 +332,9 @@ fun <T1, T2, T3> map(
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
-    ctor: (T1, T2, T3) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
-): LinearExpressionSymbols3<Flt64> {
+): LinearExpressionSymbols3<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -360,9 +360,9 @@ fun <T1, T2, T3> flatMap(
     objs1: Iterable<T1>,
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
-    ctor: (T1, T2, T3) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>) -> String = { (i1, _), (i2, _), (i3, _) -> "${i1}_${i2}_$i3" }
-): LinearExpressionSymbols3<Flt64> {
+): LinearExpressionSymbols3<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -389,10 +389,10 @@ fun <T1, T2, T3, T4> map(
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
     objs4: Iterable<T4>,
-    ctor: (T1, T2, T3, T4) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3, T4) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
-): LinearExpressionSymbols4<Flt64> {
+): LinearExpressionSymbols4<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -421,10 +421,10 @@ fun <T1, T2, T3, T4> flatMap(
     objs2: Iterable<T2>,
     objs3: Iterable<T3>,
     objs4: Iterable<T4>,
-    ctor: (T1, T2, T3, T4) -> LinearPolynomial<Flt64>,
+    ctor: (T1, T2, T3, T4) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (Pair<Int, T1>, Pair<Int, T2>, Pair<Int, T3>, Pair<Int, T4>) -> String =
         { (i1, _), (i2, _), (i3, _), (i4, _) -> "${i1}_${i2}_${i3}_$i4" }
-): LinearExpressionSymbols4<Flt64> {
+): LinearExpressionSymbols4<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val l1 = objs1.toList()
     val l2 = objs2.toList()
     val l3 = objs3.toList()
@@ -451,9 +451,9 @@ fun <T1, T2, T3, T4> flatMap(
 fun map(
     name: String,
     objs: Iterable<Iterable<Any>>,
-    ctor: (List<Any>) -> LinearPolynomial<Flt64>,
+    ctor: (List<Any>) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
-): DynLinearExpressionSymbols<Flt64> {
+): DynLinearExpressionSymbols<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val ls = objs.map { it.toList() }
     return DynLinearExpressionSymbols(
         name,
@@ -470,9 +470,9 @@ fun map(
 fun flatMap(
     name: String,
     objs: List<Iterable<Any>>,
-    ctor: (List<Any>) -> LinearPolynomial<Flt64>,
+    ctor: (List<Any>) -> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     suffix: (List<Pair<Int, Any>>) -> String = { ls -> ls.joinToString("_") { "${it.first}" } }
-): DynLinearExpressionSymbols<Flt64> {
+): DynLinearExpressionSymbols<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val ls = objs.map { it.toList() }
     return DynLinearExpressionSymbols(
         name,

@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -143,7 +143,7 @@ open class SatisfiedAmountInequalityFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val eps = converter.fromValue(epsilon)
         val nInputs = inputs.size
-        val constraints = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>>()
+        val constraints = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         for ((i, input) in inputs.withIndex()) {
             val lb = input.lowerBound
@@ -159,7 +159,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
                     val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
 
-                    // Convert LinearFlattenData<Flt64> to LinearPolynomial<Flt64>
+                    // Convert LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> to LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
                     val polyFlt64 = LinearPolynomial(
                         input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
                         input.flattenData.constant
@@ -172,7 +172,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                         polyFlt64.constant
                     )
                     val upperRhs = LinearPolynomial(emptyList(), m + eps)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
                     )
 
@@ -181,7 +181,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                         polyFlt64.constant
                     )
                     val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
                     )
                 } else {
@@ -196,7 +196,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                     val fixedValue = if (triviallySatisfied) Flt64.one else Flt64.zero
                     val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
                     )
                 }
@@ -222,7 +222,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                 emptyList(),
                 Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
-            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
             )
 
@@ -235,7 +235,7 @@ open class SatisfiedAmountInequalityFunction<V>(
                 emptyList(),
                 Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
             )
-            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<Flt64>(
+            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
             )
         }
@@ -266,7 +266,7 @@ open class SatisfiedAmountInequalityFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): SatisfiedAmountInequalityFunction<Flt64> = SatisfiedAmountInequalityFunction(
+        ): SatisfiedAmountInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SatisfiedAmountInequalityFunction(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,
@@ -316,7 +316,7 @@ class AnyFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AnyFunction<Flt64> = AnyFunction(
+        ): AnyFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AnyFunction(
             inputs = inputs,
             epsilon = epsilon,
             converter = flt64Converter,
@@ -365,7 +365,7 @@ class AllFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AllFunction<Flt64> = AllFunction(
+        ): AllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AllFunction(
             inputs = inputs,
             epsilon = epsilon,
             converter = flt64Converter,
@@ -423,7 +423,7 @@ class AtLeastInequalityFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): AtLeastInequalityFunction<Flt64> = AtLeastInequalityFunction(
+        ): AtLeastInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AtLeastInequalityFunction(
             inputs = inputs,
             k = k,
             epsilon = epsilon,
@@ -473,7 +473,7 @@ class NotAllFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): NotAllFunction<Flt64> = NotAllFunction(
+        ): NotAllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NotAllFunction(
             inputs = inputs,
             epsilon = epsilon,
             converter = flt64Converter,
@@ -524,7 +524,7 @@ class NumerableFunction<V>(
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
-        ): NumerableFunction<Flt64> = NumerableFunction(
+        ): NumerableFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NumerableFunction(
             inputs = inputs,
             amount = amount,
             epsilon = epsilon,

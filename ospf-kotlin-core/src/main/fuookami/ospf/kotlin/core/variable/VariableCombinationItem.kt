@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.variable
+package fuookami.ospf.kotlin.core.variable
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*

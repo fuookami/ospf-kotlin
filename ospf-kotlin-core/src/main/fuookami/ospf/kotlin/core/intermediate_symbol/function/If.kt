@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -78,14 +78,14 @@ class IfFunction<V>(
         }
     }
 
-    private fun buildConstraints(): List<LinearInequality<Flt64>> {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+    private fun buildConstraints(): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicator for condition
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_if_nz")
 
         // result = indicator (if condition > 0, result = 1)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(
                 listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVar)),
                 Flt64.zero
@@ -113,18 +113,18 @@ class IfFunction<V>(
             IfFunction(condition, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            condition: LinearPolynomial<Flt64>,
+            condition: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<Flt64> = IfFunction(condition, flt64Converter, bigM, name = name, displayName = displayName)
+        ): IfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfFunction(condition, flt64Converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            condition: LinearMonomial<Flt64>,
+            condition: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfFunction<Flt64> = IfFunction(
+        ): IfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfFunction(
             condition = LinearPolynomial(listOf(condition), Flt64.zero),
             bigM = bigM,
             name = name,
@@ -142,7 +142,7 @@ class IfFunction<V>(
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> {
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
             val conditionPoly = LinearPolynomial(
                 inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
                 inequality.flattenData.constant

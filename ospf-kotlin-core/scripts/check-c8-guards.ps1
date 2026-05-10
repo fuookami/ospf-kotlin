@@ -144,6 +144,35 @@ function Write-P7Whitelist {
     }
 }
 
+function ConvertTo-HashtableRecursive {
+    param([object]$InputObject)
+    if ($null -eq $InputObject) {
+        return $null
+    }
+    if ($InputObject -is [System.Collections.IDictionary]) {
+        $ht = @{}
+        foreach ($key in $InputObject.Keys) {
+            $ht[$key] = ConvertTo-HashtableRecursive $InputObject[$key]
+        }
+        return $ht
+    }
+    if ($InputObject -is [System.Collections.IEnumerable] -and -not ($InputObject -is [string])) {
+        $list = @()
+        foreach ($item in $InputObject) {
+            $list += ,(ConvertTo-HashtableRecursive $item)
+        }
+        return $list
+    }
+    if ($InputObject.PSObject -and $InputObject.PSObject.Properties.Count -gt 0) {
+        $ht = @{}
+        foreach ($prop in $InputObject.PSObject.Properties) {
+            $ht[$prop.Name] = ConvertTo-HashtableRecursive $prop.Value
+        }
+        return $ht
+    }
+    return $InputObject
+}
+
 $coreMain = "ospf-kotlin-core/src/main"
 
 # --- C8 Guards (original) ---
@@ -379,7 +408,8 @@ if ($GuardMode -eq "P6") {
     if (-not (Test-Path $whitelistPath)) {
         Write-Result "P7-0-0: whitelist file exists ($whitelistPath)" $false "Missing whitelist file."
     } else {
-        $p7Whitelist = Get-Content -Raw $whitelistPath | ConvertFrom-Json -AsHashtable
+        $p7WhitelistRaw = Get-Content -Raw $whitelistPath | ConvertFrom-Json
+        $p7Whitelist = ConvertTo-HashtableRecursive $p7WhitelistRaw
         Write-P7Whitelist "P7-0-1: core/src/main <Flt64> whitelist freeze" $coreMain "<Flt64>" $p7Whitelist.core.flt64
         Write-P7Whitelist "P7-0-2: core/src/main <*> whitelist freeze" $coreMain "<\*>" $p7Whitelist.core.star
         Write-P7Whitelist "P7-0-3: core/src/main @Deprecated whitelist freeze" $coreMain "@Deprecated" $p7Whitelist.core.deprecated

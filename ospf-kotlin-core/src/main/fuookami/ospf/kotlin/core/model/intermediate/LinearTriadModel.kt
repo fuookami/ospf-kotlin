@@ -1,4 +1,4 @@
-ï»¿package fuookami.ospf.kotlin.core.model.intermediate
+package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
@@ -45,10 +45,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 
-private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<Flt64> {
-    val mat = SparseMatrix<Flt64>()
+private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    val mat = SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
     for (row in rows) {
-        val sv = SparseVector<Flt64>()
+        val sv = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
         for (cell in row) {
             sv.add(cell.colIndex, cell.coefficient)
         }
@@ -57,7 +57,7 @@ private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix
     return mat
 }
 
-private fun LinearConstraintImpl<Flt64>.isBound(): Boolean {
+private fun LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isBound(): Boolean {
     return lhs.size == 1
             && lhs.first().coefficient eq Flt64.one
     // && from?.second != true
@@ -93,18 +93,18 @@ class LinearConstraintCell(
 }
 
 class LinearConstraintBatch(
-    val sparseLhs: SparseMatrix<Flt64>,
+    val sparseLhs: SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     signs: List<ConstraintRelation>,
-    rhs: List<Flt64>,
+    rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>,
-    origins: List<LinearConstraintImpl<Flt64>?> = (0 until sparseLhs.numRows()).map { null },
+    origins: List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = (0 until sparseLhs.numRows()).map { null },
     froms: List<Pair<IntermediateSymbol<*>, Boolean>?> = (0 until sparseLhs.numRows()).map { null },
     priorities: List<Int?> = (0 until sparseLhs.numRows()).map { null }
 ) : ModelConstraint<LinearConstraintCell>(sparseLhs.numRows(), signs, rhs, names, sources) {
     /**
      * Sparse representation of the LHS matrix.
-     * Each row is a SparseVector<Flt64> where entry.index = colIndex, entry.value = coefficient.
+     * Each row is a SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64> where entry.index = colIndex, entry.value = coefficient.
      * This is the primary constraint representation.
      */
 
@@ -120,8 +120,8 @@ class LinearConstraintBatch(
         }
     }
 
-    private val _origins: MutableList<LinearConstraintImpl<Flt64>?> = origins.toMutableList()
-    val origins: List<LinearConstraintImpl<Flt64>?> by ::_origins
+    private val _origins: MutableList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> = origins.toMutableList()
+    val origins: List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?> by ::_origins
 
     private val _froms: MutableList<Pair<IntermediateSymbol<*>, Boolean>?> = froms.toMutableList()
     val froms: List<Pair<IntermediateSymbol<*>, Boolean>?> by ::_froms
@@ -130,7 +130,7 @@ class LinearConstraintBatch(
     val priorities: List<Int?> by ::_priorities
 
     fun filter(condition: (Int) -> Boolean): LinearConstraintBatch {
-        val filteredSparseLhs = SparseMatrix<Flt64>()
+        val filteredSparseLhs = SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
         for ((i, row) in sparseLhs.rows.withIndex()) {
             if (condition(i)) {
                 filteredSparseLhs.addRow(row)
@@ -149,9 +149,9 @@ class LinearConstraintBatch(
     }
 
     override fun copy() = LinearConstraintBatch(
-        SparseMatrix<Flt64>().also { mat ->
+        SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>().also { mat ->
             for (row in sparseLhs.rows) {
-                val newRow = SparseVector<Flt64>()
+                val newRow = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
                 for (entry in row.entries) {
                     newRow.add(entry.index, entry.value.copy())
                 }
@@ -234,7 +234,7 @@ class BasicLinearTriadModel(
 ) : BasicLinearTriadModelView, Cloneable, Copyable<BasicLinearTriadModel> {
     companion object {
         /**
-         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<Flt64>] by
+         * Create a [BasicLinearTriadModel] from a [LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>] by
          * extracting variables and constraints into solver-standard form.
          *
          * This is a convenience factory that mirrors the variable/constraint extraction
@@ -247,9 +247,9 @@ class BasicLinearTriadModel(
          * @return a [BasicLinearTriadModel] containing the extracted variables and constraints
          */
         fun from(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexMap: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexMap: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicLinearTriadModel {
             val variables = dumpVariables(model, tokenIndexMap, bounds)
@@ -258,9 +258,9 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpVariables(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -298,9 +298,9 @@ class BasicLinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -310,10 +310,10 @@ class BasicLinearTriadModel(
 
             val lhs = ArrayList<List<LinearConstraintCell>>()
             val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<Flt64>()
+            val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<LinearConstraintImpl<Flt64>>()
+            val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
             val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -507,11 +507,11 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
         minSlackAmount: Pair<UInt64, Flt64>? = null
     ): LinearTriadModelView
 
-    fun tidyDualSolution(solution: List<Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
+    fun tidyDualSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> {
         return if (dual) {
             variables.associateNotNull {
                 if (it.dualOrigin != null && solution.size > it.index && solution[it.index] neq Flt64.zero) {
-                    (it.dualOrigin as LinearConstraintImpl<Flt64>) to solution[it.index]
+                    (it.dualOrigin as LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>) to solution[it.index]
                 } else {
                     null
                 }
@@ -530,16 +530,16 @@ interface LinearTriadModelView : ModelView<LinearConstraintCell, LinearObjective
 
 data class LinearTriadModel(
     private val impl: BasicLinearTriadModel,
-    val tokensInSolver: List<Token<Flt64>>,
+    val tokensInSolver: List<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     override val objective: LinearObjective,
     internal val dualOrigin: LinearTriadModelView? = null
 ) : LinearTriadModelView, Cloneable, Copyable<LinearTriadModel> {
     companion object {
         private val logger = logger()
 
-        /** Vâ†’Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
+        /** V¡úFlt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
-            model: LinearMechanismModel<Flt64>,
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
             dumpConstraintsToBounds: Boolean? = null,
             forceDumpBounds: Boolean? = null,
@@ -643,9 +643,9 @@ data class LinearTriadModel(
 
         @Suppress("UNUSED_PARAMETER")
         private fun dumpVariables(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>
         ): List<Variable> {
             val variables = ArrayList<Variable?>()
             for ((_, _) in tokenIndexes) {
@@ -683,9 +683,9 @@ data class LinearTriadModel(
         }
 
         private fun dumpConstraints(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -714,10 +714,10 @@ data class LinearTriadModel(
 
             val lhs = ArrayList<List<LinearConstraintCell>>()
             val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<Flt64>()
+            val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
             val names = ArrayList<String>()
             val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<LinearConstraintImpl<Flt64>>()
+            val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
             val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
             val priorities = ArrayList<Int?>()
             for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -743,9 +743,9 @@ data class LinearTriadModel(
         }
 
         private suspend fun dumpConstraintsAsync(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
-            bounds: Map<Token<Flt64>, List<Quadruple<LinearConstraintImpl<Flt64>, Token<Flt64>, ConstraintRelation, Flt64>>>,
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
+            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearConstraintBatch {
             val boundConstraints = bounds.values.flatMap { thisBounds ->
@@ -792,10 +792,10 @@ data class LinearTriadModel(
 
                     val lhs = ArrayList<List<LinearConstraintCell>>()
                     val signs = ArrayList<ConstraintRelation>()
-                    val rhs = ArrayList<Flt64>()
+                    val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
                     val names = ArrayList<String>()
                     val sources = ArrayList<ConstraintSource>()
-                    val origins = ArrayList<LinearConstraintImpl<Flt64>>()
+                    val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
                     val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                     val priorities = ArrayList<Int?>()
                     for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -823,10 +823,10 @@ data class LinearTriadModel(
             } else {
                 val lhs = ArrayList<List<LinearConstraintCell>>()
                 val signs = ArrayList<ConstraintRelation>()
-                val rhs = ArrayList<Flt64>()
+                val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
                 val names = ArrayList<String>()
                 val sources = ArrayList<ConstraintSource>()
-                val origins = ArrayList<LinearConstraintImpl<Flt64>>()
+                val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
                 val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
                 val priorities = ArrayList<Int?>()
                 for ((index, constraint) in notBoundConstraints.withIndex()) {
@@ -869,8 +869,8 @@ data class LinearTriadModel(
         }
 
         private fun dumpObjectives(
-            model: LinearMechanismModel<Flt64>,
-            tokenIndexes: Map<Token<Flt64>, Int>,
+            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): LinearObjective {
             val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
@@ -955,12 +955,12 @@ data class LinearTriadModel(
                 ObjectCategory.Maximum -> {
                     when (this.constraints.signs[it]) {
                         ConstraintRelation.LessEqual -> {
-                            // ï¿½?=> y ï¿½?0
+                            // ??=> y ??0
                             lowerBound = Flt64.zero
                         }
 
                         ConstraintRelation.GreaterEqual -> {
-                            // ï¿½?=> y ï¿½?0
+                            // ??=> y ??0
                             upperBound = Flt64.zero
                         }
 
@@ -971,12 +971,12 @@ data class LinearTriadModel(
                 ObjectCategory.Minimum -> {
                     when (this.constraints.signs[it]) {
                         ConstraintRelation.LessEqual -> {
-                            // ï¿½?=> y ï¿½?0
+                            // ??=> y ??0
                             upperBound = Flt64.zero
                         }
 
                         ConstraintRelation.GreaterEqual -> {
-                            // ï¿½?=> y ï¿½?0
+                            // ??=> y ??0
                             lowerBound = Flt64.zero
                         }
 
@@ -1004,7 +1004,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ï¿½?lb => Î» ï¿½?0
+                        // x ??lb => ¦Ë ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1019,7 +1019,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ï¿½?ub => Î» ï¿½?0
+                        // x ??ub => ¦Ë ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1034,7 +1034,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ï¿½?x ï¿½?ub => Î» ï¿½?0, Î»' ï¿½?0
+                        // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1067,7 +1067,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ï¿½?lb => Î» ï¿½?0
+                        // x ??lb => ¦Ë ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1082,7 +1082,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ï¿½?ub => Î» ï¿½?0
+                        // x ??ub => ¦Ë ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1097,7 +1097,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ï¿½?x ï¿½?ub => Î» ï¿½?0, Î»' ï¿½?0
+                        // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1158,25 +1158,25 @@ data class LinearTriadModel(
             } else if (it.negativeNormalized) {
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ï¿½?0 => ï¿½?
+                        // ??0 => ??
                         ConstraintRelation.LessEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ï¿½?0 => ï¿½?
+                        // ??0 => ??
                         ConstraintRelation.GreaterEqual
                     }
                 }
             } else if (it.positiveNormalized) {
-                // ï¿½?0
+                // ??0
                 when (this.objective.category) {
                     ObjectCategory.Maximum -> {
-                        // ï¿½?0 => ï¿½?
+                        // ??0 => ??
                         ConstraintRelation.GreaterEqual
                     }
 
                     ObjectCategory.Minimum -> {
-                        // ï¿½?0 => ï¿½?
+                        // ??0 => ??
                         ConstraintRelation.LessEqual
                     }
                 }
@@ -1324,7 +1324,7 @@ data class LinearTriadModel(
             if (it.free) {
                 null to null
             } else if (it.positiveFree) {
-                // x ï¿½?lb => Î» ï¿½?0
+                // x ??lb => ¦Ë ??0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1339,7 +1339,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 variable to null
             } else if (it.negativeFree) {
-                // x ï¿½?ub => Î» ï¿½?0
+                // x ??ub => ¦Ë ??0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.zero,
@@ -1354,7 +1354,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 null to variable
             } else {
-                // lb ï¿½?x ï¿½?ub => Î» ï¿½?0, Î»' ï¿½?0
+                // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
                 val variable1 = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1795,7 +1795,7 @@ data class LinearTriadModel(
                     null to null
                 )
             } else if (variable.positiveFree) {
-                // x ï¿½?lb
+                // x ??lb
                 slackVariables.add(
                     Variable(
                         index = colIndex,
@@ -1813,7 +1813,7 @@ data class LinearTriadModel(
                 )
                 colIndex += 1
             } else if (variable.negativeFree) {
-                // x ï¿½?ub
+                // x ??ub
                 slackVariables.add(
                     null to Variable(
                         index = colIndex,
@@ -1831,7 +1831,7 @@ data class LinearTriadModel(
                 )
                 colIndex += 1
             } else {
-                // lb ï¿½?x ï¿½?ub
+                // lb ??x ??ub
                 slackVariables.add(
                     Variable(
                         index = colIndex,
@@ -2060,7 +2060,7 @@ data class LinearTriadModel(
             },
             rhs = this.constraints.rhs + this.variables.flatMapIndexed { j, variable ->
                 val jp = this.constraints.size + j
-                val thisRhs = ArrayList<Flt64>()
+                val thisRhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
                 if (slackVariables[jp].first != null) {
                     thisRhs.add(variable.lowerBound)
                 }
@@ -2136,7 +2136,7 @@ data class LinearTriadModel(
             },
             origins = this.constraints.origins + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
-                val thisOrigins = ArrayList<LinearConstraintImpl<Flt64>?>()
+                val thisOrigins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?>()
                 if (slackVariables[jp].first != null) {
                     thisOrigins.add(null)
                 }
@@ -2149,7 +2149,7 @@ data class LinearTriadModel(
             } else {
                 emptyList()
             } + if (minmaxSlack) {
-                val thisOrigins = ArrayList<LinearConstraintImpl<Flt64>?>()
+                val thisOrigins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>?>()
                 for ((lbSlack, ubSlack) in slackVariables) {
                     if (lbSlack != null) {
                         thisOrigins.add(null)

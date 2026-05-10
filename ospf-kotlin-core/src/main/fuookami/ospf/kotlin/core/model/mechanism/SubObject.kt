@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.model.mechanism
+﻿package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.intermediate.Cell
@@ -14,6 +14,12 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+
+@Suppress("UNCHECKED_CAST")
+private fun <V, T> tokenTableAs(tokens: AbstractTokenTable<T>): AbstractTokenTable<V>
+        where V : RealNumber<V>, V : NumberField<V>, T : RealNumber<T>, T : NumberField<T> {
+    return tokens as AbstractTokenTable<V>
+}
 
 /**
  * Generic SubObject<V> with V-typed public evaluation.
@@ -75,15 +81,16 @@ class LinearSubObject<V : RealNumber<V>>(
             )
         }
 
-        @Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @kotlin.Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmName("invokeFlt64")
-        operator fun invoke(
+        operator fun <T> invoke(
             category: ObjectCategory,
-            flattenData: LinearFlattenData<Flt64>,
-            tokens: AbstractTokenTable<Flt64>,
+            flattenData: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokens: AbstractTokenTable<T>,
             name: String = ""
-        ): LinearSubObject<Flt64> {
-            val cells = createLinearCells(flattenData.monomials, tokens, IntoValue.Identity)
+        ): LinearSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where T : RealNumber<T>, T : NumberField<T> {
+            val tokenTable = tokenTableAs<Flt64, T>(tokens)
+            val cells = createLinearCells(flattenData.monomials, tokenTable, IntoValue.Identity)
             return LinearSubObject(
                 category = category,
                 cells = cells,
@@ -92,11 +99,11 @@ class LinearSubObject<V : RealNumber<V>>(
             )
         }
 
-        @Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @kotlin.Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmName("invokeFlt64Converter")
         operator fun <V> invoke(
             category: ObjectCategory,
-            flattenData: LinearFlattenData<Flt64>,
+            flattenData: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             tokens: AbstractTokenTable<V>,
             name: String = "",
             converter: IntoValue<V>
@@ -171,15 +178,16 @@ class QuadraticSubObject<V : RealNumber<V>>(
             )
         }
 
-        @Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @kotlin.Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmName("invokeFlt64")
-        operator fun invoke(
+        operator fun <T> invoke(
             category: ObjectCategory,
-            flattenData: QuadraticFlattenData<Flt64>,
-            tokens: AbstractTokenTable<Flt64>,
+            flattenData: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokens: AbstractTokenTable<T>,
             name: String = ""
-        ): QuadraticSubObject<Flt64> {
-            val cells = createQuadraticCells(flattenData.monomials, tokens, IntoValue.Identity)
+        ): QuadraticSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where T : RealNumber<T>, T : NumberField<T> {
+            val tokenTable = tokenTableAs<Flt64, T>(tokens)
+            val cells = createQuadraticCells(flattenData.monomials, tokenTable, IntoValue.Identity)
             return QuadraticSubObject(
                 category = category,
                 cells = cells,
@@ -188,11 +196,11 @@ class QuadraticSubObject<V : RealNumber<V>>(
             )
         }
 
-        @Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @kotlin.Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmName("invokeFlt64Converter")
         operator fun <V> invoke(
             category: ObjectCategory,
-            flattenData: QuadraticFlattenData<Flt64>,
+            flattenData: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             tokens: AbstractTokenTable<V>,
             name: String = "",
             converter: IntoValue<V>

@@ -110,14 +110,14 @@ class FirstFunction<V>(
             }
         }
 
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         for (i in polynomials.indices) {
             val binResult = binaryFunctions[i].resultVar
             val yi = _yVars[i]
 
             // y[i] <= bin[i]
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                 Comparison.LE, "${name}_ub1_$i"
@@ -125,7 +125,7 @@ class FirstFunction<V>(
 
             if (i == 0) {
                 // y[0] >= bin[0]
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                     Comparison.GE, "${name}_lb_0"
@@ -135,14 +135,14 @@ class FirstFunction<V>(
                 // => y[i] + sum(y[0]..y[i-1]) >= bin[i]
                 val prevYMonos = (0 until i).map { j -> LinearMonomial(Flt64.one, _yVars[j]) }
                 val lhsMonos = listOf(LinearMonomial(Flt64.one, yi)) + prevYMonos
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(lhsMonos, Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, binResult)), Flt64.zero),
                     Comparison.GE, "${name}_lb_$i"
                 )
 
                 // y[i] <= y[i-1] (monotonicity)
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, yi)), Flt64.zero),
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, _yVars[i - 1])), Flt64.zero),
                     Comparison.LE, "${name}_y_$i"

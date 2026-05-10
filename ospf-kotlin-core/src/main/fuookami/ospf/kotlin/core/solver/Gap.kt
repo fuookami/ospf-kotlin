@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver
+package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 

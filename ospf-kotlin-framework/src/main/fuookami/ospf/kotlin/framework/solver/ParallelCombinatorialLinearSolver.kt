@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.solver
+package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
@@ -42,13 +42,13 @@ class ParallelCombinatorialLinearSolver(
     override suspend fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput<Flt64>? = null
+                var result: FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->
@@ -194,13 +194,13 @@ class ParallelCombinatorialLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
         var bestStatus: SolvingStatus? = null
         val lock = Any()
 
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>? = null
+                var result: Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>? = null
                 try {
                     coroutineScope {
                         val promises = solvers.mapIndexed { i, solver ->

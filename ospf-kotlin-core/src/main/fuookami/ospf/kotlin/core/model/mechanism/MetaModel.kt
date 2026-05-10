@@ -9,6 +9,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
@@ -51,7 +52,7 @@ import kotlin.io.path.isDirectory
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -59,33 +60,33 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 /**
- * Factory function to create the appropriate [AbstractMutableTokenTable<Flt64>]
+ * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
  * based on configuration. Used by [AbstractMetaModel] to construct the token
  * table before passing it to the [BasicModel] superclass constructor.
  */
-private fun createTokenTable(
+private fun <V> createTokenTable(
     category: Category,
     concurrent: Boolean,
     manualTokenAddition: Boolean,
     checkTokenExists: Boolean
-): AbstractMutableTokenTable<Flt64> {
+): AbstractMutableTokenTable<V> where V : RealNumber<V>, V : NumberField<V> {
     return if (concurrent) {
         if (manualTokenAddition) {
-            ConcurrentManualAddTokenTable(category, checkTokenExists)
+            ConcurrentManualAddTokenTable<V>(category, checkTokenExists)
         } else {
-            ConcurrentAutoTokenTable(category, checkTokenExists)
+            ConcurrentAutoTokenTable<V>(category, checkTokenExists)
         }
     } else {
         if (manualTokenAddition) {
-            ManualTokenTable(category, checkTokenExists)
+            ManualTokenTable<V>(category, checkTokenExists)
         } else {
-            AutoTokenTable(category, checkTokenExists)
+            AutoTokenTable<V>(category, checkTokenExists)
         }
     }
 }
 
 
-private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+private fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
         "$constant"
     } else if (constant neq Flt64.zero) {
@@ -95,7 +96,7 @@ private fun LinearPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): S
     }
 }
 
-private fun QuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
+private fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toRawString(unfold: UInt64 = UInt64.zero): String {
     return if (monomials.isEmpty()) {
         "$constant"
     } else if (constant neq Flt64.zero) {
@@ -105,16 +106,16 @@ private fun QuadraticPolynomial<Flt64>.toRawString(unfold: UInt64 = UInt64.zero)
     }
 }
 
-// ========== V â†’ Flt64 conversion via IntoValue converter ==========
+// ========== V â†?Flt64 conversion via IntoValue converter ==========
 
-private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
         converter.fromValue(constant)
     )
 }
 
-private fun <V> QuadraticPolynomial<V>.toFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+private fun <V> QuadraticPolynomial<V>.toFlt64QuadraticPoly(converter: IntoValue<V>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return QuadraticPolynomial(
         monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
         converter.fromValue(constant)
@@ -438,14 +439,14 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 
     private suspend fun exportOpm(writer: FileWriter, unfold: UInt64): Try {
         val temp = when (tokens) {
-            is MutableTokenTable<*> -> tokens.copy() as MutableTokenTable<Flt64>
-            is ConcurrentMutableTokenTable<*> -> tokens.copy() as ConcurrentMutableTokenTable<Flt64>
+            is MutableTokenTable<*> -> tokens.copy()
+            is ConcurrentMutableTokenTable<*> -> tokens.copy()
             else -> throw IllegalStateException("Unknown token table type: ${tokens::class}")
         }
 
         for (symbol in tokens.symbols) {
-            (symbol as? MathFunctionSymbolBase<Flt64>)?.let { sym ->
-                when (val result = sym.registerAuxiliaryTokens(temp)) {
+            if (symbol is MathFunctionSymbolBase<*>) {
+                when (val result = SolverBoundaryCasts.registerAuxiliaryTokensStar(symbol, temp)) {
                     is Ok -> {}
                     is Failed -> {
                         return Failed(result.error)
@@ -775,11 +776,8 @@ abstract class AbstractMetaModel<V>(
     override val converter: IntoValue<V>
 ) : BasicModel<V>(
     name = "",
-    tokens = createTokenTable(category, configuration.concurrent, configuration.manualTokenAddition, configuration.checkTokenExists) as AbstractMutableTokenTable<V>
+    tokens = createTokenTable<V>(category, configuration.concurrent, configuration.manualTokenAddition, configuration.checkTokenExists)
 ), MetaModel<V> where V : RealNumber<V>, V : NumberField<V> {
-    // Adapter boundary: internal token storage is always Flt64-based.
-    // Used for Flt64-specific SubObject creation (Commit-D will generalize this).
-    internal val flt64Tokens: AbstractMutableTokenTable<Flt64> get() = tokens as AbstractMutableTokenTable<Flt64>
     // add(variable), addSymbol, addSymbolWithDependencies, removeSymbol, addConstraint, flush, close.
     // The MetaModel<V> sealed interface is also implemented; its abstract members
     // (constraints, objectCategory, subObjects, etc.) are provided by concrete subclasses.
@@ -850,8 +848,8 @@ class LinearMetaModel<V>(
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
-    internal val _flattenSubObjects: MutableList<LinearSubObject<Flt64>> = ArrayList()
-    internal val flattenSubObjects: List<LinearSubObject<Flt64>> by ::_flattenSubObjects
+    internal val _flattenSubObjects: MutableList<LinearSubObject<V>> = ArrayList()
+    internal val flattenSubObjects: List<LinearSubObject<V>> by ::_flattenSubObjects
 
     fun addObject(
         category: ObjectCategory,
@@ -872,19 +870,20 @@ class LinearMetaModel<V>(
     }
 
     /**
-     * Add objective using LinearFlattenData<Flt64> (new API)
+     * Add objective using LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
      */
     override fun addObject(
         category: ObjectCategory,
-        flattenData: LinearFlattenData<Flt64>,
+        flattenData: LinearFlattenData<V>,
         name: String,
         displayName: String?
     ): Try {
         val subObject = LinearSubObject.invoke(
             category = category,
             flattenData = flattenData,
-            tokens = flt64Tokens,
-            name = name
+            tokens = tokens,
+            name = name,
+            converter = converter
         )
         _flattenSubObjects.add(subObject)
         return ok
@@ -947,7 +946,7 @@ class LinearMetaModel<V>(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): LinearMetaModel<Flt64> = LinearMetaModel(
+        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
@@ -1055,12 +1054,12 @@ class QuadraticMetaModel<V>(
     }
 
     /**
-     * Add objective using LinearFlattenData<Flt64> (new API - LinearModel interface)
-     * Converts to QuadraticFlattenData<Flt64> internally.
+     * Add objective using LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API - LinearModel interface)
+     * Converts to QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> internally.
      */
     override fun addObject(
         category: ObjectCategory,
-        flattenData: LinearFlattenData<Flt64>,
+        flattenData: LinearFlattenData<V>,
         name: String,
         displayName: String?
     ): Try {
@@ -1134,23 +1133,19 @@ class QuadraticMetaModel<V>(
     }
 
     /**
-     * Add objective using QuadraticFlattenData<Flt64> (new API)
+     * Add objective using QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> (new API)
      * Converts Flt64 coefficients to V-typed using converter.
      */
     override fun addObject(
         category: ObjectCategory,
-        flattenData: QuadraticFlattenData<Flt64>,
+        flattenData: QuadraticFlattenData<V>,
         name: String,
         displayName: String?
     ): Try {
-        val vFlattenData = QuadraticFlattenData<V>(
-            monomials = flattenData.monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
-            constant = converter.intoValue(flattenData.constant)
-        )
         _flattenSubObjects.add(
             QuadraticFlattenSubObject(
                 category = category,
-                flattenData = vFlattenData,
+                flattenData = flattenData,
                 name = name,
                 displayName = displayName
             )
@@ -1163,7 +1158,7 @@ class QuadraticMetaModel<V>(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): QuadraticMetaModel<Flt64> = QuadraticMetaModel(
+        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,

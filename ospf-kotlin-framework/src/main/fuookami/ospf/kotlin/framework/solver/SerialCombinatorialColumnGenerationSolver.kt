@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.solver
+package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
@@ -42,11 +42,11 @@ class SerialCombinatorialColumnGenerationSolver(
 
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         for ((i, solver) in solvers.withIndex()) {
             when (val result = solver.value.solveMILP(
                 name = name,
@@ -79,7 +79,7 @@ class SerialCombinatorialColumnGenerationSolver(
 
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

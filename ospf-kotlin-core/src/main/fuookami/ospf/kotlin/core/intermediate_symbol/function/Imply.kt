@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -88,7 +88,7 @@ class ImplyFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mVal = bigM
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicators
         allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ant")
@@ -96,7 +96,7 @@ class ImplyFunction<V>(
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(
                 listOf(
                     LinearMonomial(Flt64.one, antecedentIndicatorVar),
@@ -123,20 +123,20 @@ class ImplyFunction<V>(
             ImplyFunction(antecedent, consequent, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            antecedent: LinearPolynomial<Flt64>,
-            consequent: LinearPolynomial<Flt64>,
+            antecedent: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            consequent: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): ImplyFunction<Flt64> = ImplyFunction(antecedent, consequent, flt64Converter, bigM, name = name, displayName = displayName)
+        ): ImplyFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ImplyFunction(antecedent, consequent, flt64Converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            antecedent: LinearMonomial<Flt64>,
-            consequent: LinearPolynomial<Flt64>,
+            antecedent: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            consequent: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): ImplyFunction<Flt64> = ImplyFunction(
+        ): ImplyFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ImplyFunction(
             antecedent = LinearPolynomial(listOf(antecedent), Flt64.zero),
             consequent = consequent,
             bigM = bigM,

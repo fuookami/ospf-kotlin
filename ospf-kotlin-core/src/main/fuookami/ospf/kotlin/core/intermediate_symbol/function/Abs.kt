@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -66,10 +66,10 @@ class AbsFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val polyF = polynomial.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // result = pos - neg
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, posVar),
@@ -79,7 +79,7 @@ class AbsFunction<V>(
 
         // poly = pos - neg
         val polyMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(polyMonos + listOf(
                 LinearMonomial(-Flt64.one, posVar),
                 LinearMonomial(Flt64.one, negVar)
@@ -106,20 +106,20 @@ class AbsFunction<V>(
             AbsFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomial: LinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): AbsFunction<Flt64> = AbsFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
+        ): AbsFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AbsFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             AbsFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,

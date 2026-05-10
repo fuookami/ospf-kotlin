@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -97,19 +97,19 @@ class InequalityFunction<V>(
         val rhsF = converter.fromValue(rhs)
         val lhsF = lhs.asFlt64Poly(converter)
         val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         when (sign) {
             Comparison.LE, Comparison.LT -> {
                 // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
                     LinearPolynomial(emptyList(), rhsF + mF),
                     Comparison.LE, "${name}_satisfied"
                 )
 
                 // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
                     LinearPolynomial(emptyList(), rhsF + epsF),
                     Comparison.GE, "${name}_violated"
@@ -118,14 +118,14 @@ class InequalityFunction<V>(
 
             Comparison.GE, Comparison.GT -> {
                 // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
                     LinearPolynomial(emptyList(), rhsF),
                     Comparison.GE, "${name}_satisfied"
                 )
 
                 // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
                     LinearPolynomial(emptyList(), rhsF - epsF + mF),
                     Comparison.LE, "${name}_violated"
@@ -137,14 +137,14 @@ class InequalityFunction<V>(
                 val diffConst = lhsF.constant - rhsF
 
                 // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
                     LinearPolynomial(emptyList(), mF + epsF),
                     Comparison.LE, "${name}_eq_upper"
                 )
 
                 // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
                     LinearPolynomial(emptyList(), -mF - epsF),
                     Comparison.GE, "${name}_eq_lower"
@@ -177,13 +177,13 @@ class InequalityFunction<V>(
             InequalityFunction(lhs = lhs, rhs = rhs, sign = sign, converter = converter, bigM = bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            lhs: LinearPolynomial<Flt64>,
+            lhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             rhs: Flt64,
             sign: Comparison,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): InequalityFunction<Flt64> = InequalityFunction(
+        ): InequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InequalityFunction(
             lhs = lhs,
             rhs = rhs,
             sign = sign,
@@ -194,13 +194,13 @@ class InequalityFunction<V>(
         )
 
         operator fun invoke(
-            lhs: LinearMonomial<Flt64>,
+            lhs: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             rhs: Flt64,
             sign: Comparison,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): InequalityFunction<Flt64> = InequalityFunction(
+        ): InequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InequalityFunction(
             lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
             rhs = rhs,
             sign = sign,

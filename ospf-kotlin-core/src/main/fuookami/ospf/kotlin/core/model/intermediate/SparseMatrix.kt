@@ -113,9 +113,9 @@ class SparseMatrix<V : RealNumber<V>>(
 
 
 /**
- * Negate a [SparseMatrix<Flt64>] in-place: multiply every entry by -1.
+ * Negate a [SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>] in-place: multiply every entry by -1.
  */
-fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
+fun SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>.negateInPlace(): SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
             val e = row.entries[i]
@@ -126,12 +126,12 @@ fun SparseMatrix<Flt64>.negateInPlace(): SparseMatrix<Flt64> {
 }
 
 /**
- * Return a negated copy of this [SparseMatrix<Flt64>].
+ * Return a negated copy of this [SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>].
  */
-fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
-    val result = SparseMatrix<Flt64>()
+fun SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>.negated(): SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    val result = SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
     for (row in rows) {
-        val newRow = SparseVector<Flt64>()
+        val newRow = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
         for (entry in row.entries) {
             newRow.add(entry.index, -entry.value)
         }
@@ -141,9 +141,9 @@ fun SparseMatrix<Flt64>.negated(): SparseMatrix<Flt64> {
 }
 
 /**
- * Scale a [SparseMatrix<Flt64>] in-place by [factor].
+ * Scale a [SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>] in-place by [factor].
  */
-fun SparseMatrix<Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<Flt64> {
+fun SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>.scaleInPlace(factor: Flt64): SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     for (row in rows) {
         for (i in row.entries.indices) {
             val e = row.entries[i]

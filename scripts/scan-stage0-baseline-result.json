@@ -1,0 +1,537 @@
+﻿{
+    "timestamp":  "2026-05-10T23:30:02+08:00",
+    "scope":  [
+                  "ospf-kotlin-math/src/main",
+                  "ospf-kotlin-core/src/main",
+                  "ospf-kotlin-framework/src/main"
+              ],
+    "pattern_counts":  {
+                           "Flt64":  5300,
+                           "adapter.flt64":  23,
+                           "toFlt64":  295,
+                           "toDouble":  200,
+                           "LinearMetaModel\u003cFlt64\u003e":  41,
+                           "FeasibleSolverOutput\u003cFlt64\u003e":  90
+                       },
+    "modules":  [
+                    {
+                        "name":  "ospf-kotlin-math",
+                        "src":  "ospf-kotlin-math/src/main",
+                        "kotlin_file_count":  189,
+                        "counts":  {
+                                       "Flt64":  1645,
+                                       "adapter.flt64":  15,
+                                       "toFlt64":  222,
+                                       "toDouble":  83,
+                                       "LinearMetaModel\u003cFlt64\u003e":  0,
+                                       "FeasibleSolverOutput\u003cFlt64\u003e":  0
+                                   },
+                        "adapter_flt64_dirs":  [
+                                                   "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64"
+                                               ],
+                        "top_files":  {
+                                          "Flt64":  [
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\Floating.kt",
+                                                            "hits":  145
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Evaluate.kt",
+                                                            "hits":  127
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\QuickDsl.kt",
+                                                            "hits":  56
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Serde.kt",
+                                                            "hits":  52
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Latex.kt",
+                                                            "hits":  46
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\geometry\\Triangulation.kt",
+                                                            "hits":  40
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Convert.kt",
+                                                            "hits":  39
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\NumericInteger.kt",
+                                                            "hits":  39
+                                                        }
+                                                    ],
+                                          "adapter.flt64":  [
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Parse.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\NumberParser.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Normalize.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\QuickDsl.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\ValueProvider.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Serde.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\QuickOps.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\MatrixForm.kt",
+                                                                    "hits":  1
+                                                                }
+                                                            ],
+                                          "toFlt64":  [
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\NumericInteger.kt",
+                                                              "hits":  34
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\NumericUInteger.kt",
+                                                              "hits":  32
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\Integer.kt",
+                                                              "hits":  30
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\UInteger.kt",
+                                                              "hits":  30
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\Floating.kt",
+                                                              "hits":  30
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Serde.kt",
+                                                              "hits":  24
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\Duration.kt",
+                                                              "hits":  18
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\functional\\CollectionExtensions.kt",
+                                                              "hits":  6
+                                                          }
+                                                      ],
+                                          "toDouble":  [
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\UInteger.kt",
+                                                               "hits":  16
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\Floating.kt",
+                                                               "hits":  15
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\geometry\\Circle.kt",
+                                                               "hits":  13
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\algebra\\number\\Integer.kt",
+                                                               "hits":  10
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\multiarray\\einsum\\Operations.kt",
+                                                               "hits":  6
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\MatrixForm.kt",
+                                                               "hits":  5
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\adapter\\flt64\\Latex.kt",
+                                                               "hits":  4
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-math\\src\\main\\fuookami\\ospf\\kotlin\\math\\symbol\\expression\\operation\\NumericOps.kt",
+                                                               "hits":  3
+                                                           }
+                                                       ],
+                                          "LinearMetaModel\u003cFlt64\u003e":  {
+
+                                                                               },
+                                          "FeasibleSolverOutput\u003cFlt64\u003e":  {
+
+                                                                                    }
+                                      }
+                    },
+                    {
+                        "name":  "ospf-kotlin-core",
+                        "src":  "ospf-kotlin-core/src/main",
+                        "kotlin_file_count":  121,
+                        "counts":  {
+                                       "Flt64":  3541,
+                                       "adapter.flt64":  7,
+                                       "toFlt64":  73,
+                                       "toDouble":  116,
+                                       "LinearMetaModel\u003cFlt64\u003e":  17,
+                                       "FeasibleSolverOutput\u003cFlt64\u003e":  64
+                                   },
+                        "adapter_flt64_dirs":  [
+                                                   "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\adapter\\flt64"
+                                               ],
+                        "top_files":  {
+                                          "Flt64":  [
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                                            "hits":  261
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\intermediate\\LinearTriadModel.kt",
+                                                            "hits":  227
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\intermediate\\QuadraticTetradModel.kt",
+                                                            "hits":  217
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MathInequalityDsl.kt",
+                                                            "hits":  198
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MechanismModel.kt",
+                                                            "hits":  178
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\Masking.kt",
+                                                            "hits":  90
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\SolverExt.kt",
+                                                            "hits":  90
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\And.kt",
+                                                            "hits":  83
+                                                        }
+                                                    ],
+                                          "adapter.flt64":  [
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MathInequalityDsl.kt",
+                                                                    "hits":  3
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MechanismModel.kt",
+                                                                    "hits":  2
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt",
+                                                                    "hits":  1
+                                                                },
+                                                                {
+                                                                    "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\adapter\\flt64\\MetaModelFlt64Adapter.kt",
+                                                                    "hits":  1
+                                                                }
+                                                            ],
+                                          "toFlt64":  [
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MechanismModel.kt",
+                                                              "hits":  18
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MathInequalityDsl.kt",
+                                                              "hits":  6
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",
+                                                              "hits":  6
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\SolverExt.kt",
+                                                              "hits":  5
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\token\\Token.kt",
+                                                              "hits":  4
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\heuristic\\Selection.kt",
+                                                              "hits":  3
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt",
+                                                              "hits":  3
+                                                          },
+                                                          {
+                                                              "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\variable\\AnyVariable.kt",
+                                                              "hits":  3
+                                                          }
+                                                      ],
+                                          "toDouble":  [
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MathInequalityDsl.kt",
+                                                               "hits":  20
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\BivariateLinearPiecewise.kt",
+                                                               "hits":  11
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\Masking.kt",
+                                                               "hits":  9
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\token\\Token.kt",
+                                                               "hits":  9
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\And.kt",
+                                                               "hits":  8
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\BalanceTernaryzation.kt",
+                                                               "hits":  6
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\Sin.kt",
+                                                               "hits":  5
+                                                           },
+                                                           {
+                                                               "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\function\\First.kt",
+                                                               "hits":  5
+                                                           }
+                                                       ],
+                                          "LinearMetaModel\u003cFlt64\u003e":  [
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\LinearSolver.kt",
+                                                                                       "hits":  10
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\SolverExt.kt",
+                                                                                       "hits":  5
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MechanismModel.kt",
+                                                                                       "hits":  1
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt",
+                                                                                       "hits":  1
+                                                                                   }
+                                                                               ],
+                                          "FeasibleSolverOutput\u003cFlt64\u003e":  [
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\SolverExt.kt",
+                                                                                            "hits":  27
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\QuadraticSolver.kt",
+                                                                                            "hits":  18
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\LinearSolver.kt",
+                                                                                            "hits":  18
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\output\\SolverOutput.kt",
+                                                                                            "hits":  1
+                                                                                        }
+                                                                                    ]
+                                      }
+                    },
+                    {
+                        "name":  "ospf-kotlin-framework",
+                        "src":  "ospf-kotlin-framework/src/main",
+                        "kotlin_file_count":  25,
+                        "counts":  {
+                                       "Flt64":  114,
+                                       "adapter.flt64":  1,
+                                       "toFlt64":  0,
+                                       "toDouble":  1,
+                                       "LinearMetaModel\u003cFlt64\u003e":  24,
+                                       "FeasibleSolverOutput\u003cFlt64\u003e":  26
+                                   },
+                        "adapter_flt64_dirs":  [
+
+                                               ],
+                        "top_files":  {
+                                          "Flt64":  [
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\QuadraticBendersDecompositionSolver.kt",
+                                                            "hits":  44
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ColumnGenerationSolver.kt",
+                                                            "hits":  26
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\model\\Pipeline.kt",
+                                                            "hits":  7
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\model\\ShadowPrice.kt",
+                                                            "hits":  6
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialQuadraticSolver.kt",
+                                                            "hits":  5
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialLinearSolver.kt",
+                                                            "hits":  5
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialColumnGenerationSolver.kt",
+                                                            "hits":  5
+                                                        },
+                                                        {
+                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\SerialCombinatorialColumnGenerationSolver.kt",
+                                                            "hits":  4
+                                                        }
+                                                    ],
+                                          "adapter.flt64":  {
+                                                                "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\QuadraticBendersDecompositionSolver.kt",
+                                                                "hits":  1
+                                                            },
+                                          "toFlt64":  {
+
+                                                      },
+                                          "toDouble":  {
+                                                           "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\persistence\\SqlType.kt",
+                                                           "hits":  1
+                                                       },
+                                          "LinearMetaModel\u003cFlt64\u003e":  [
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ColumnGenerationSolver.kt",
+                                                                                       "hits":  12
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\QuadraticBendersDecompositionSolver.kt",
+                                                                                       "hits":  8
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\SerialCombinatorialColumnGenerationSolver.kt",
+                                                                                       "hits":  2
+                                                                                   },
+                                                                                   {
+                                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialColumnGenerationSolver.kt",
+                                                                                       "hits":  2
+                                                                                   }
+                                                                               ],
+                                          "FeasibleSolverOutput\u003cFlt64\u003e":  [
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ColumnGenerationSolver.kt",
+                                                                                            "hits":  9
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialQuadraticSolver.kt",
+                                                                                            "hits":  4
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialLinearSolver.kt",
+                                                                                            "hits":  4
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\SerialCombinatorialQuadraticSolver.kt",
+                                                                                            "hits":  2
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\SerialCombinatorialLinearSolver.kt",
+                                                                                            "hits":  2
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\ParallelCombinatorialColumnGenerationSolver.kt",
+                                                                                            "hits":  2
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\QuadraticBendersDecompositionSolver.kt",
+                                                                                            "hits":  2
+                                                                                        },
+                                                                                        {
+                                                                                            "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-framework\\src\\main\\fuookami\\ospf\\kotlin\\framework\\solver\\SerialCombinatorialColumnGenerationSolver.kt",
+                                                                                            "hits":  1
+                                                                                        }
+                                                                                    ]
+                                      }
+                    }
+                ],
+    "allowed_flt64_zones":  [
+                                "math.symbol.adapter.flt64",
+                                "solver plugin or solver adapter boundary",
+                                "deprecated compatibility overload",
+                                "Flt64 numeric implementation and tests"
+                            ],
+    "forbidden_flt64_zones":  [
+                                  "generic modeling API signatures",
+                                  "framework algorithm API signatures",
+                                  "constraint/objective/main solution output signatures",
+                                  "core main flow business implementation outside adapter/compat boundary"
+                              ],
+    "core_risk_hits":  {
+                           "createTokenTable(":  {
+                                                     "tag":  "token table factory",
+                                                     "count":  1,
+                                                     "samples":  [
+                                                                     {
+                                                                         "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\model\\mechanism\\MetaModel.kt",
+                                                                         "line":  67,
+                                                                         "text":  "private fun \u003cV\u003e createTokenTable("
+                                                                     }
+                                                                 ]
+                                                 },
+                           "flt64Tokens":  {
+                                               "tag":  "flt64Tokens reference",
+                                               "count":  0,
+                                               "samples":  [
+
+                                                           ]
+                                           },
+                           "Flt64.zero as V":  {
+                                                   "tag":  "unsafe cast: Flt64.zero as V",
+                                                   "count":  1,
+                                                   "samples":  [
+                                                                   {
+                                                                       "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\value\\IntoValue.kt",
+                                                                       "line":  17,
+                                                                       "text":  "* to eliminate unsafe `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` casts."
+                                                                   }
+                                                               ]
+                                               },
+                           "this as Flt64":  {
+                                                 "tag":  "unsafe cast: this as Flt64",
+                                                 "count":  1,
+                                                 "samples":  [
+                                                                 {
+                                                                     "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\value\\IntoValue.kt",
+                                                                     "line":  17,
+                                                                     "text":  "* to eliminate unsafe `Flt64.zero as V` / `Flt64.one as V` / `this as Flt64` casts."
+                                                                 }
+                                                             ]
+                                             },
+                           "model as LinearMechanismModel\u003cFlt64\u003e":  {
+                                                                                  "tag":  "unsafe cast: model as LinearMechanismModel\u003cFlt64\u003e",
+                                                                                  "count":  2,
+                                                                                  "samples":  [
+                                                                                                  {
+                                                                                                      "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\LinearSolver.kt",
+                                                                                                      "line":  569,
+                                                                                                      "text":  "val flt64Model = model as LinearMechanismModel\u003cFlt64\u003e"
+                                                                                                  },
+                                                                                                  {
+                                                                                                      "file":  "E:\\workspace\\ospf-kotlin\\ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\solver\\LinearSolver.kt",
+                                                                                                      "line":  580,
+                                                                                                      "text":  "val flt64Model = model as LinearMechanismModel\u003cFlt64\u003e"
+                                                                                                  }
+                                                                                              ]
+                                                                              }
+                       }
+}

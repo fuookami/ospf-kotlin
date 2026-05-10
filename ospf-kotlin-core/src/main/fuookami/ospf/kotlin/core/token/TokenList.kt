@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.token
+package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
@@ -65,7 +65,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
         }
     }
 
-    open fun setSolverSolution(solution: List<Flt64>) {
+    open fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
         assert(solution.size >= tokens.size)
         for ((index, token) in tokensInSolver.withIndex()) {
             token._result = solution[index]
@@ -90,7 +90,7 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractTokenList<Flt64>.
+ * Legacy typealias for Flt64-specific AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 @OptIn(ExperimentalStdlibApi::class)
@@ -150,7 +150,7 @@ class TokenList<T : RealNumber<T>>(
         }
     }
 
-    override fun setSolverSolution(solution: List<Flt64>) {
+    override fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
@@ -187,7 +187,7 @@ class TokenList<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific TokenList<Flt64>.
+ * Legacy typealias for Flt64-specific TokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 interface AddableTokenCollection<T : RealNumber<T>> {
@@ -196,7 +196,7 @@ interface AddableTokenCollection<T : RealNumber<T>> {
 }
 
 /**
- * Legacy typealias for Flt64-specific AddableTokenCollection<Flt64>.
+ * Legacy typealias for Flt64-specific AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
@@ -205,7 +205,7 @@ abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T
 }
 
 /**
- * Legacy typealias for Flt64-specific AbstractMutableTokenList<Flt64>.
+ * Legacy typealias for Flt64-specific AbstractMutableTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 sealed class MutableTokenList<T : RealNumber<T>>(
@@ -300,7 +300,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         }
     }
 
-    override fun setSolverSolution(solution: List<Flt64>) {
+    override fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
@@ -339,7 +339,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
 }
 
 /**
- * Legacy typealias for Flt64-specific MutableTokenList<Flt64>.
+ * Legacy typealias for Flt64-specific MutableTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 class AutoTokenList<T : RealNumber<T>> private constructor(
@@ -394,7 +394,7 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
 }
 
 /**
- * Legacy typealias for Flt64-specific AutoTokenList<Flt64>.
+ * Legacy typealias for Flt64-specific AutoTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */
 
 class ManualTokenList<T : RealNumber<T>> private constructor(
@@ -439,5 +439,5 @@ class ManualTokenList<T : RealNumber<T>> private constructor(
 }
 
 /**
- * Legacy typealias for Flt64-specific ManualTokenList<Flt64>.
+ * Legacy typealias for Flt64-specific ManualTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
  */

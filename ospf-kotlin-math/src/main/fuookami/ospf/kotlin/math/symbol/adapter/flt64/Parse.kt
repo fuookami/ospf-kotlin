@@ -252,14 +252,14 @@ private fun multiplyParsedPolynomials(lhs: ParsedPolynomial, rhs: ParsedPolynomi
 
 private fun ParsedPolynomial.toCanonicalPolynomial(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val monomials = terms.map { term ->
-        CanonicalMonomial<Flt64>(
+        CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             coefficient = term.coefficient,
             powers = term.powers
         )
     }
-    return CanonicalPolynomial<Flt64>(
+    return CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         monomials = monomials,
         constant = constant
     ).combineTerms(symbolComparator)
@@ -267,8 +267,8 @@ private fun ParsedPolynomial.toCanonicalPolynomial(
 
 private fun ParsedInequality.toCanonicalInequality(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalInequality<Flt64> {
-    return CanonicalInequality<Flt64>(
+): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    return CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         lhs = lhs.toCanonicalPolynomial(symbolComparator),
         rhs = rhs.toCanonicalPolynomial(symbolComparator),
         comparison = comparison
@@ -283,7 +283,7 @@ fun parseCanonical(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parsePolynomial().toCanonicalPolynomial(symbolComparator)
@@ -292,7 +292,7 @@ fun parseCanonical(
 fun parseLinear(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): LinearPolynomial<Flt64>? {
+): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     return parseCanonical(input, symbolOf).toLinearPolynomialOrNull()
 }
 
@@ -300,14 +300,14 @@ fun parseQuadratic(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<Flt64>? {
+): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     return parseCanonical(input, symbolOf, symbolComparator).toQuadraticPolynomialOrNull(symbolComparator)
 }
 
 fun parseLinearInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): LinearInequality<Flt64>? {
+): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parseInequality().toCanonicalInequality().toLinearInequalityOrNull()
@@ -327,7 +327,7 @@ fun parseCanonicalInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalInequality<Flt64> {
+): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parseInequality().toCanonicalInequality(symbolComparator)
@@ -395,14 +395,14 @@ fun parseCanonicalRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalPolynomial<Flt64>> {
+): ParseResult<CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) { parseCanonical(input, symbolOf, symbolComparator) }
 }
 
 fun parseLinearRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): ParseResult<LinearPolynomial<Flt64>> {
+): ParseResult<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) {
         parseLinear(input, symbolOf)
             ?: throw IllegalArgumentException("Expression is not linear polynomial.")
@@ -413,7 +413,7 @@ fun parseQuadraticRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<QuadraticPolynomial<Flt64>> {
+): ParseResult<QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) {
         parseQuadratic(input, symbolOf, symbolComparator)
             ?: throw IllegalArgumentException("Expression is not quadratic polynomial.")
@@ -424,14 +424,14 @@ fun parseCanonicalInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<CanonicalInequality<Flt64>> {
+): ParseResult<CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) { parseCanonicalInequality(input, symbolOf, symbolComparator) }
 }
 
 fun parseLinearInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier
-): ParseResult<LinearInequality<Flt64>> {
+): ParseResult<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) {
         parseLinearInequality(input, symbolOf)
             ?: throw IllegalArgumentException("Inequality is not linear.")

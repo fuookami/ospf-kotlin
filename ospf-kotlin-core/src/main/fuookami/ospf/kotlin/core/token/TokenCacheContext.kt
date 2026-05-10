@@ -1,4 +1,4 @@
-@file:Suppress("DEPRECATION")
+﻿@file:Suppress("DEPRECATION")
 
 package fuookami.ospf.kotlin.core.token
 
@@ -288,9 +288,9 @@ internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlatten
     )
 }
 
-@Deprecated("Use the V-typed toQuadraticFlattenData() instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@kotlin.Deprecated("Use the V-typed toQuadraticFlattenData() instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @JvmName("toQuadraticFlattenDataFlt64")
-internal fun LinearFlattenData<Flt64>.toQuadraticFlattenDataFlt64(): QuadraticFlattenData<Flt64> {
+internal fun LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticFlattenDataFlt64(): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val monomials = this.monomials.map {
         QuadraticMonomial(
             coefficient = it.coefficient,
@@ -298,7 +298,7 @@ internal fun LinearFlattenData<Flt64>.toQuadraticFlattenDataFlt64(): QuadraticFl
             symbol2 = null
         )
     }
-    return QuadraticFlattenData<Flt64>(
+    return QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         monomials = monomials,
         constant = this.constant
     )

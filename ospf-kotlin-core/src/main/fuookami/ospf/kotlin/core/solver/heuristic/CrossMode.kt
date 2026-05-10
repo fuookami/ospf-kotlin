@@ -19,7 +19,7 @@ interface CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>>
@@ -29,7 +29,7 @@ class OneParentCrossMode<V> : CrossMode<V> where V : RealNumber<V>, V : NumberFi
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
@@ -43,7 +43,7 @@ class TwoParentCrossMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
@@ -93,12 +93,12 @@ class TwoParentCrossMode<V>(
 
 class MultiParentCrossMode<V>(
     val method: CrossMode.Method,
-    val parentAmountCalculator: (Iteration, List<Flt64>, ValueRange<UInt64>) -> UInt64
+    val parentAmountCalculator: (Iteration, List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ValueRange<UInt64>) -> UInt64
 ) : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
             method: CrossMode.Method,
-            randomGenerator: Generator<Flt64>
+            randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         ): MultiParentCrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
             return MultiParentCrossMode(method) { _, _, range ->
                 range.fixedValue
@@ -110,7 +110,7 @@ class MultiParentCrossMode<V>(
     override fun <T : Individual<V>> invoke(
         iteration: Iteration,
         population: List<T>,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         model: AbstractCallBackModelInterface<*, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {

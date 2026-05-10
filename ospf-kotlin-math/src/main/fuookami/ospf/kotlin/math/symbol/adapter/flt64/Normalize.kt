@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.subtractLinear
 
-fun LinearInequality<Flt64>.normalize(): LinearInequality<Flt64> {
+fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val normalizedLhs = lhs.subtractLinear(rhs, Flt64.zero).combineTerms()
     return copy(
         lhs = normalizedLhs,

@@ -138,10 +138,10 @@ class BivariateLinearPiecewiseFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // x constraint: x = sum over all triangles and vertices of (x_coord * lambda)
-        val xMonos = mutableListOf<LinearMonomial<Flt64>>()
+        val xMonos = mutableListOf<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -151,14 +151,14 @@ class BivariateLinearPiecewiseFunction<V>(
         }
         val xPoly = x.asFlt64Poly(converter)
         xMonos += xPoly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos, xPoly.constant),
             LinearPolynomial(emptyList(), Flt64.zero),
             Comparison.EQ, "${name}_x_eq"
         )
 
         // y constraint: y = sum over all triangles and vertices of (y_coord * lambda)
-        val yMonos = mutableListOf<LinearMonomial<Flt64>>()
+        val yMonos = mutableListOf<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
         for (i in triangles.indices) {
             val tri = triangles[i]
             val lambdas = lambdaVars[i]
@@ -168,7 +168,7 @@ class BivariateLinearPiecewiseFunction<V>(
         }
         val yPoly = y.asFlt64Poly(converter)
         yMonos += yPoly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(yMonos, yPoly.constant),
             LinearPolynomial(emptyList(), Flt64.zero),
             Comparison.EQ, "${name}_y_eq"
@@ -176,7 +176,7 @@ class BivariateLinearPiecewiseFunction<V>(
 
         // sum(all lambda) = 1
         val sumLambdaMonos = lambdaVars.flatMap { it.items.map { l -> LinearMonomial(Flt64.one, l) } }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(sumLambdaMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one),
             Comparison.EQ, "${name}_sum_lambda"
@@ -188,7 +188,7 @@ class BivariateLinearPiecewiseFunction<V>(
             val zi = zVars[i]
             val triLambdaMonos = lambdas.items.map { LinearMonomial(Flt64.one, it) } +
                 LinearMonomial(Flt64(-3.0), zi)
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(triLambdaMonos, Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64.zero),
                 Comparison.LE, "${name}_tri_lambda_$i"
@@ -197,7 +197,7 @@ class BivariateLinearPiecewiseFunction<V>(
 
         // sum(z_i) = 1 (exactly one triangle active)
         val sumZMonos = zVars.items.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(sumZMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one),
             Comparison.EQ, "${name}_sum_z"

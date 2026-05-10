@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.model
+package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
@@ -50,7 +50,7 @@ interface CGPipeline<
             shadowPrices: MetaDualSolution
         ): Try {
             val thisShadowPrices = HashMap<ShadowPriceKey, Flt64>()
-            for (constraint in model.constraintsOfGroup(pipeline)) {
+            for (constraint in pipeline.run { model.constraintsOfGroup() }) {
                 val key = (constraint.args as? ShadowPriceKey) ?: continue
                 shadowPrices.constraints[constraint]?.let { price ->
                     thisShadowPrices[key] = (thisShadowPrices[key] ?: Flt64.zero) + price
@@ -69,8 +69,7 @@ interface CGPipeline<
     }
 
     fun refresh(shadowPriceMap: Map, model: Model, shadowPrices: MetaDualSolution): Try {
-        val thisShadowPrices = model
-            .constraintsOfGroup(this)
+        val thisShadowPrices = this.run { model.constraintsOfGroup() }
             .mapNotNull {
                 if (it.args is ShadowPriceKey) {
                     it to (it.args as ShadowPriceKey)
@@ -105,7 +104,7 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
 
     override operator fun invoke(model: M): Try = ok
 
-    operator fun invoke(model: M, solution: List<Flt64>): Ret<Obj> =
+    operator fun invoke(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<Obj> =
         when (val obj = calculate(model, solution)) {
             is Ok -> if (obj.value != null) {
                 Ok(Obj(this.name, obj.value!!))
@@ -118,9 +117,9 @@ interface HAPipeline<in M : Model<*>> : Pipeline<M> {
             is Fatal -> Fatal(obj.errors)
         }
 
-    fun calculate(model: M, solution: List<Flt64>): Ret<Flt64?>
+    fun calculate(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<Flt64?>
 
-    fun check(model: M, solution: List<Flt64>): Try = when (val obj = calculate(model, solution)) {
+    fun check(model: M, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Try = when (val obj = calculate(model, solution)) {
         is Ok -> if (obj.value != null) {
             ok
         } else {

@@ -59,13 +59,13 @@ interface Constraint<V, P> where V : RealNumber<V>, V : NumberField<V>, P : Poly
 }
 
 
-internal data class MetaDualSolution(
+data class MetaDualSolution(
     val constraints: Map<MathConstraint, Flt64>,
     val symbols: Map<IntermediateSymbol<*>, List<Pair<Constraint<Flt64, *>, Flt64>>>
 )
 
 @JvmName("linearDualSolutionToMetaDualSolution")
-internal fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
+fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -79,7 +79,7 @@ internal fun kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>.toMeta(): 
 }
 
 @JvmName("quadraticDualSolutionToMetaDualSolution")
-internal fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
+fun kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>.toMeta(): MetaDualSolution {
     return MetaDualSolution(
         constraints = this
             .filterKeys { it.origin != null }
@@ -211,7 +211,7 @@ class QuadraticConstraintImpl<V>(
 // Type aliases for Constraint<V, P> with specific polynomial kinds
 
 internal fun <V> createLinearCells(
-    monomials: List<LinearMonomial<Flt64>>,
+    monomials: List<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>
 ): ArrayList<LinearCell<V>> where V : RealNumber<V>, V : NumberField<V> {
@@ -227,7 +227,7 @@ internal fun <V> createLinearCells(
 }
 
 internal fun <V> createQuadraticCells(
-    monomials: List<QuadraticMonomial<Flt64>>,
+    monomials: List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>
 ): ArrayList<QuadraticCell<V>> where V : RealNumber<V>, V : NumberField<V> {

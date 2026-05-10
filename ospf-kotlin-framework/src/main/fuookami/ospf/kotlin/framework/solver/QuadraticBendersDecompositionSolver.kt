@@ -27,14 +27,14 @@ interface LinearBendersDecompositionSolver {
 
     suspend fun solveMaster(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput>
 
     suspend fun solveMaster(
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> {
         return solveMaster(
@@ -49,7 +49,7 @@ interface LinearBendersDecompositionSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -67,7 +67,7 @@ interface LinearBendersDecompositionSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
@@ -85,16 +85,16 @@ interface LinearBendersDecompositionSolver {
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface LinearSubResult {
-        val cuts: List<LinearInequality<Flt64>>?
+        val cuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?
     }
 
     data class LinearFeasibleResult(
-        val result: FeasibleSolverOutput<Flt64>,
+        val result: FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
-        override val cuts: List<LinearInequality<Flt64>>?
+        override val cuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?
     ) : LinearSubResult {
         val obj: Flt64 by result::obj
-        val solution: List<Flt64> by result::solution
+        val solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap
@@ -102,12 +102,12 @@ interface LinearBendersDecompositionSolver {
 
     data class LinearInfeasibleResult(
         val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
-        override val cuts: List<LinearInequality<Flt64>>?
+        override val cuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?
     ) : LinearSubResult
 
     suspend fun solveSub(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -116,7 +116,7 @@ interface LinearBendersDecompositionSolver {
     ): Ret<LinearSubResult>
 
     suspend fun solveSub(
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -135,7 +135,7 @@ interface LinearBendersDecompositionSolver {
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -157,7 +157,7 @@ interface LinearBendersDecompositionSolver {
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -176,14 +176,14 @@ interface LinearBendersDecompositionSolver {
 interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver {
     suspend fun solveMaster(
         name: String,
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<SolverOutput>
 
     suspend fun solveMaster(
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): Ret<SolverOutput> {
         return solveMaster(
@@ -198,7 +198,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
         name: String,
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -216,7 +216,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveMasterAsync(
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
         return GlobalScope.future {
@@ -235,18 +235,18 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
      * Otherwise, there should not be any fixed variables in the sub problem model. In other words, the fixed variables should be replaced with their values.
      */
     sealed interface QuadraticSubResult {
-        val linearCuts: List<LinearInequality<Flt64>>?
+        val linearCuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?
         val quadraticCuts: List<QuadraticInequality>?
     }
 
     data class QuadraticFeasibleResult(
-        val result: FeasibleSolverOutput<Flt64>,
+        val result: FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
-        override val linearCuts: List<LinearInequality<Flt64>>?,
+        override val linearCuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?,
         override val quadraticCuts: List<QuadraticInequality>?,
     ) : QuadraticSubResult {
         val obj: Flt64 by result::obj
-        val solution: List<Flt64> by result::solution
+        val solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64> by result::solution
         val time: Duration by result::time
         val possibleBestObj by result::possibleBestObj
         val gap: Flt64 by result::gap
@@ -254,13 +254,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     data class QuadraticInfeasibleResult(
         val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
-        override val linearCuts: List<LinearInequality<Flt64>>?,
+        override val linearCuts: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>?,
         override val quadraticCuts: List<QuadraticInequality>?,
     ) : QuadraticSubResult
 
     suspend fun solveSub(
         name: String,
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -269,7 +269,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     ): Ret<QuadraticSubResult>
 
     suspend fun solveSub(
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -288,7 +288,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
         name: String,
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         toLogModel: Boolean = false,
@@ -310,7 +310,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
 
     @OptIn(DelicateCoroutinesApi::class)
     fun solveSubAsync(
-        metaModel: QuadraticMetaModel<Flt64>,
+        metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()

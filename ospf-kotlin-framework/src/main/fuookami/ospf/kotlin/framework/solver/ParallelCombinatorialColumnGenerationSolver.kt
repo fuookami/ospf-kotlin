@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.solver
+package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
@@ -42,14 +42,14 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveMILP(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         return when (mode) {
             ParallelCombinatorialMode.First -> {
-                var result: FeasibleSolverOutput<Flt64>? = null
+                var result: FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
                 val lock = Any()
                 try {
                     coroutineScope {
@@ -156,7 +156,7 @@ class ParallelCombinatorialColumnGenerationSolver(
 
     override suspend fun solveLP(
         name: String,
-        metaModel: LinearMetaModel<Flt64>,
+        metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         toLogModel: Boolean,
         registrationStatusCallBack: RegistrationStatusCallBack?,
         solvingStatusCallBack: SolvingStatusCallBack?

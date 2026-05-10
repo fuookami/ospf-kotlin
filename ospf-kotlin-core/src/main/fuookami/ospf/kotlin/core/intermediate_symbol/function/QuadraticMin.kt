@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -69,16 +69,16 @@ class QuadraticMinFunction<V>(
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = Linear
-    override val parent: IntermediateSymbol<*>? = null
+    override val parent: IntermediateSymbol<out V>? = null
     override val operationCategory: Category get() = Linear
 
-    override val dependencies: Set<IntermediateSymbol<*>>
+    override val dependencies: Set<IntermediateSymbol<out V>>
         get() {
-            val deps = mutableSetOf<IntermediateSymbol<*>>()
+            val deps = mutableSetOf<IntermediateSymbol<out V>>()
             for (poly in polynomials) {
                 for (m in poly.monomials) {
-                    if (m.symbol1 is IntermediateSymbol<*>) deps.add(m.symbol1 as IntermediateSymbol<*>)
-                    if (m.symbol2 != null && m.symbol2 is IntermediateSymbol<*>) deps.add(m.symbol2 as IntermediateSymbol<*>)
+                    SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol1)?.let { deps.add(it) }
+                    SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol2)?.let { deps.add(it) }
                 }
             }
             return deps
@@ -93,31 +93,31 @@ class QuadraticMinFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
-        return QuadraticInequalityOf<Flt64>(
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             QuadraticPolynomial(emptyList(), Flt64.zero),
             QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
         )
     }
 
-    internal val flattenedMonomials: QuadraticFlattenData<Flt64>
-        get() = QuadraticFlattenData<Flt64>(emptyList(), Flt64.zero)
+    internal val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        get() = QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: QuadraticPolynomial<V>
         get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
 
     override fun toRawString(unfold: UInt64): String = displayName ?: name
@@ -141,7 +141,7 @@ class QuadraticMinFunction<V>(
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
-        val constraints = mutableListOf<QuadraticInequalityOf<Flt64>>()
+        val constraints = mutableListOf<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // y <= pi for each polynomial
         for ((i, poly) in polynomials.withIndex()) {
@@ -149,7 +149,7 @@ class QuadraticMinFunction<V>(
             val negatedMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
             val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            constraints += QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.LE, "${name}_lb_$i")
+            constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.LE, "${name}_lb_$i")
         }
 
         if (exact) {
@@ -161,14 +161,14 @@ class QuadraticMinFunction<V>(
                 val bigMTerm = QuadraticMonomial.linear(mF, uVar)
                 val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon) + listOf(bigMTerm), -flt64Poly.constant)
                 val rhs = QuadraticPolynomial(emptyList(), mF)
-                constraints += QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.GE, "${name}_ub_$i")
+                constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.GE, "${name}_ub_$i")
             }
 
             // sum(ui) = 1
             val sumMonos = binVars.map { QuadraticMonomial.linear(Flt64.one, it) }
             val sumLhs = QuadraticPolynomial(sumMonos, Flt64.zero)
             val sumRhs = QuadraticPolynomial(emptyList(), Flt64.one)
-            constraints += QuadraticInequalityOf<Flt64>(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
+            constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
         }
 
         return addQuadraticConstraints(model, constraints, converter) ?: ok
@@ -186,11 +186,11 @@ class QuadraticMinFunction<V>(
             QuadraticMinFunction(polynomials, exact, bigM, converter, name, displayName)
 
         operator fun invoke(
-            polynomials: List<QuadraticPolynomial<Flt64>>,
+            polynomials: List<QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             exact: Boolean = true,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticMinFunction<Flt64> = QuadraticMinFunction(polynomials, exact, bigM, flt64Converter, name, displayName)
+        ): QuadraticMinFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticMinFunction(polynomials, exact, bigM, flt64Converter, name, displayName)
     }
 }

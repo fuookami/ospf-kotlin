@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -86,31 +86,31 @@ class MaskingFunction<V>(
         val mD = converter.fromValue(bigM)
         val inputPoly = input.asFlt64Poly(converter)
 
-        val constraints = mutableListOf<LinearInequality<Flt64>>()
+        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // c1: y - x + M*mask <= M + x_const  =>  y - x <= M*(1 - mask) + x_const
         val c1LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar)
         val c1Lhs = LinearPolynomial(c1LhsMonos, -inputPoly.constant)
         val c1RhsPoly = LinearPolynomial(listOf(LinearMonomial(mD, mask)), mD)
-        constraints += LinearInequality<Flt64>(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
 
         // c2: y - x >= -M*mask + x_const  =>  y - x >= -M*mask + x_const
         val c2LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar)
         val c2Lhs = LinearPolynomial(c2LhsMonos, -inputPoly.constant)
         val c2RhsPoly = LinearPolynomial(listOf(LinearMonomial(-mD, mask)), Flt64.zero)
-        constraints += LinearInequality<Flt64>(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
 
         // c3: y - M*mask <= 0
         val c3Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(-mD, mask)), Flt64.zero)
         val c3Rhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<Flt64>(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
 
         // c4: y + M*mask >= 0
         val c4Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(mD, mask)), Flt64.zero)
         val c4Rhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<Flt64>(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
 
         return addConstraints(model, constraints, converter) ?: ok
     }
@@ -126,26 +126,26 @@ class MaskingFunction<V>(
             MaskingFunction(input, mask, bigM, converter, name, displayName)
 
         operator fun invoke(
-            input: LinearPolynomial<Flt64>,
+            input: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MaskingFunction(input, mask, bigM, flt64Converter, name, displayName),
             converter = flt64Converter
         
         )
 
         operator fun invoke(
-            input: LinearPolynomial<Flt64>,
+            input: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             maskVarName: String,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> {
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
             val maskVar = BinVar("${name}_${maskVarName}")
-            return LinearFunctionSymbolAdapter<Flt64>(
+            return LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 MaskingFunction(input, maskVar, bigM, flt64Converter, name, displayName),
                 converter = flt64Converter
             )
@@ -157,12 +157,12 @@ class MaskingFunction<V>(
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
         operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
+            x: LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             mask: AbstractVariableItem<*, *>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MaskingFunction(
                 input = x.toLinearPolynomial(),
                 mask = mask,
@@ -175,16 +175,16 @@ class MaskingFunction<V>(
         
         )
 
-        /** Factory: accept ToLinearPolynomial<Flt64> for both x and mask. */
+        /** Factory: accept ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> for both x and mask. */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            x: ToLinearPolynomial<Flt64>,
-            mask: ToLinearPolynomial<Flt64>,
+            x: ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            mask: ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaskingWithPolyMaskFunction<Flt64> = MaskingWithPolyMaskFunction(
+        ): MaskingWithPolyMaskFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MaskingWithPolyMaskFunction(
             input = x.toLinearPolynomial(),
             maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
@@ -228,23 +228,23 @@ class MaskingWithPolyMaskFunction<V>(
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun toRawString(unfold: UInt64): String = name
 
-    internal val flattenedMonomials: LinearFlattenData<Flt64> get() = LinearFlattenData<Flt64>(emptyList(), Flt64.zero)
+    internal val flattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), converter.zero)
     override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), converter.zero)
 
-    internal fun toMathLinearInequality(): LinearInequality<Flt64> {
-        return LinearInequality<Flt64>(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    internal fun toMathLinearInequality(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
-        return QuadraticInequalityOf<Flt64>(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
-        return delegate().evaluate(values as Map<Symbol, V>)?.let { converter.fromValue(it) }
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
+        return delegate().evaluate(SolverBoundaryCasts.mapValuesToV(values, converter))?.let { converter.fromValue(it) }
     }
 
     // V-typed evaluate overrides
@@ -254,9 +254,9 @@ class MaskingWithPolyMaskFunction<V>(
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate().evaluate(values)
     }
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val v = delegate().evaluate(values as Map<Symbol, V>) ?: return null
+        val v = delegate().evaluate(SolverBoundaryCasts.mapValuesToV(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
     }
 
@@ -282,12 +282,12 @@ class MaskingWithPolyMaskFunction<V>(
         val maskPolyF = maskPoly.asFlt64Poly(converter)
         val mF = converter.fromValue(bigM)
 
-        val constraints = mutableListOf<LinearInequality<Flt64>>()
+        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // maskPoly = maskVar constraint
         val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, maskVar)
-        constraints += LinearInequality<Flt64>(
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(monomials = maskMonos, constant = -maskPolyF.constant),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.EQ, "${name}_mask_eq")
 
@@ -295,7 +295,7 @@ class MaskingWithPolyMaskFunction<V>(
         val c1Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar) +
             LinearMonomial(mF, maskVar)
-        constraints += LinearInequality<Flt64>(
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(monomials = c1Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = mF), Comparison.LE, "${name}_ub")
 
@@ -303,19 +303,19 @@ class MaskingWithPolyMaskFunction<V>(
         val c2Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
             LinearMonomial(Flt64.one, resultVar) +
             LinearMonomial(mF, maskVar)
-        constraints += LinearInequality<Flt64>(
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(monomials = c2Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_lb")
 
         // c3: result <= M*mask_var
         val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-mF, maskVar))
-        constraints += LinearInequality<Flt64>(
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(monomials = c3Monos, constant = Flt64.zero),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.LE, "${name}_zero_ub")
 
         // c4: result >= -M*mask_var
         val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(mF, maskVar))
-        constraints += LinearInequality<Flt64>(
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(monomials = c4Monos, constant = Flt64.zero),
             LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_zero_lb")
 
@@ -369,7 +369,7 @@ class MaskingRangeFunction<V>(
         val lowerD = converter.fromValue(lower).toDouble()
         val upperD = converter.fromValue(upper).toDouble()
 
-        val constraints = mutableListOf<LinearInequality<Flt64>>()
+        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Upper: y - upper*mask <= 0
         val upperFlt = Flt64(upperD)
@@ -377,7 +377,7 @@ class MaskingRangeFunction<V>(
             maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperFlt, it.symbol) }
         val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperFlt)
         val upperRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
 
         // Lower: y - lower*mask >= 0
         val lowerFlt = Flt64(lowerD)
@@ -385,7 +385,7 @@ class MaskingRangeFunction<V>(
             maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerFlt, it.symbol) }
         val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerFlt)
         val lowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<Flt64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
+        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
 
         return addConstraints(model, constraints, converter) ?: ok
     }
@@ -401,12 +401,12 @@ class MaskingRangeFunction<V>(
             MaskingRangeFunction(mask, lower, upper, converter, name, displayName)
 
         operator fun invoke(
-            mask: LinearPolynomial<Flt64>,
+            mask: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             lower: Flt64,
             upper: Flt64,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MaskingRangeFunction(mask, lower, upper, flt64Converter, name, displayName),
             converter = flt64Converter
         

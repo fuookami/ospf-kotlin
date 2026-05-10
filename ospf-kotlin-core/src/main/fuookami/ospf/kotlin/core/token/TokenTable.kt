@@ -1,4 +1,4 @@
-Ôªøpackage fuookami.ospf.kotlin.core.token
+package fuookami.ospf.kotlin.core.token
 
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
@@ -40,7 +40,7 @@ private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenColl
 // Solver-boundary bridge: delegates to centralized SolverBoundaryCasts
 private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<*>
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64? {
     return SolverBoundaryCasts.prepareStar(this, fixedValues, tokenTable)
 }
@@ -88,7 +88,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
     }
 
     /** Solver-boundary adapter: sets solution from Flt64 solver output directly into internal storage. */
-    fun setSolverSolution(solution: List<Flt64>) {
+    fun setSolverSolution(solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
         flush()
         tokenList.setSolverSolution(solution)
     }
@@ -111,7 +111,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 
     // --- Solver-boundary cache adapters (Flt64 -> V via converter) ---
 
-    fun cachedSolver(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): Boolean? {
+    fun cachedSolver(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>): Boolean? {
         return cached(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
@@ -119,7 +119,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return cached(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
-    fun cachedSolverValue(cacheKey: Any, solution: List<Flt64>? = null, converter: IntoValue<V>): V? {
+    fun cachedSolverValue(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>): V? {
         return cachedValue(cacheKey, solution?.map { converter.intoValue(it) })
     }
 
@@ -127,7 +127,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return cachedValue(cacheKey, fixedValues.mapValues { converter.intoValue(it.value) })
     }
 
-    fun cacheSolver(cacheKey: Any, solution: List<Flt64>? = null, value: V, converter: IntoValue<V>): V {
+    fun cacheSolver(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, value: V, converter: IntoValue<V>): V {
         return cache(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
@@ -184,7 +184,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
         return cachedValue
     }
 
-    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
+    fun cacheSolverIfNotCached(cacheKey: Any, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, value: () -> V?, converter: IntoValue<V>): V? {
         return cacheIfNotCached(cacheKey, solution?.map { converter.intoValue(it) }, value)
     }
 
@@ -218,7 +218,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("cacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, V>, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>) {
         cache(symbols, solution?.map { converter.intoValue(it) })
     }
 
@@ -230,7 +230,7 @@ interface AbstractTokenTable<V> : AutoCloseable where V : RealNumber<V>, V : Num
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("lazyCacheSolverSymbols")
-    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<Flt64>? = null, converter: IntoValue<V>) {
+    fun cacheSolver(symbols: Map<IntermediateSymbol<*>, () -> V?>, solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null, converter: IntoValue<V>) {
         cache(symbols, solution?.map { converter.intoValue(it) })
     }
 
@@ -503,7 +503,7 @@ sealed class MutableTokenTable<V>(
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
 
-        // B1: Ëß£ÁªëÂíåÁºìÂ≠òÊ∏ÖÁêÜ
+        // B1: Ω‚∞Û∫Õª∫¥Ê«Â¿Ì
         // B1: Unbind and clear caches for removed symbol
         unbindTokenTableContext(symbol, this)
         cacheContexts.linearFlatten.remove(symbol)
@@ -636,7 +636,7 @@ sealed class MutableTokenTable<V>(
 }
 
 
-private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
+private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContext(symbol: IntermediateSymbol<*>) {
     bindTokenTableContext(symbol, this)
     when (symbol) {
         is LinearIntermediateSymbol<*> -> {
@@ -650,7 +650,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
     cacheRange(symbol, SolverBoundaryCasts.rangeAsFlt64(symbol))
 }
 
-private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
+private fun AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {
     for (symbol in symbols) {
         cacheSymbolContext(symbol)
     }
@@ -658,7 +658,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<Inte
 
 @Suppress("USELESS_CAST")
 fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: MutableTokenTable<Flt64>,
+    tokenTable: MutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {
@@ -1085,7 +1085,7 @@ sealed class ConcurrentMutableTokenTable<V>(
             _symbols.remove(symbol)
             _symbolsMap.remove(symbol.name)
 
-            // B1: Ëß£ÁªëÂíåÁºìÂ≠òÊ∏ÖÁêÜ
+            // B1: Ω‚∞Û∫Õª∫¥Ê«Â¿Ì
             // B1: Unbind and clear caches for removed symbol
             unbindTokenTableContext(symbol, this)
             cacheContexts.linearFlatten.remove(symbol)
@@ -1283,7 +1283,7 @@ sealed class ConcurrentMutableTokenTable<V>(
 
 @Suppress("USELESS_CAST")
 suspend fun Collection<IntermediateSymbol<*>>.register(
-    tokenTable: ConcurrentMutableTokenTable<Flt64>,
+    tokenTable: ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     fixedValues: Map<Symbol, Flt64>? = null,
     callBack: RegistrationStatusCallBack? = null
 ): Try {
@@ -1343,14 +1343,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             val thisReadSymbol = readySymbolList
                                 .subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
                             // B2: Batch write value cache via prepare + cache
-                            // B2: ÈÄöËøá prepare + cache ÊâπÈáèÂÜôÂÖ• value ÁºìÂ≠ò
+                            // B2: Õ®π˝ prepare + cache ≈˙¡ø–¥»Î value ª∫¥Ê
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ÊâπÈáèÂÜôÂÖ• flatten/range ÁºìÂ≠ò
+                            // B2: ≈˙¡ø–¥»Î flatten/range ª∫¥Ê
                             tokenTable.cacheSymbolContexts(thisReadSymbol)
                             if (memoryUseOver()) {
                                 System.gc()
@@ -1374,14 +1374,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                     listOf(
                         launch(Dispatchers.Default) {
                             // B2: Batch write value cache via prepare + cache
-                            // B2: ÈÄöËøá prepare + cache ÊâπÈáèÂÜôÂÖ• value ÁºìÂ≠ò
+                            // B2: Õ®π˝ prepare + cache ≈˙¡ø–¥»Î value ª∫¥Ê
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ÊâπÈáèÂÜôÂÖ• flatten/range ÁºìÂ≠ò
+                            // B2: ≈˙¡ø–¥»Î flatten/range ª∫¥Ê
                             tokenTable.cacheSymbolContexts(readySymbols)
 
                             if (callBack != null) {

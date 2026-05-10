@@ -14,22 +14,22 @@ import kotlinx.coroutines.coroutineScope
 interface Selection {
     operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64
 
     suspend operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64>
 }
 
 data class RouletteSelection(
-    private val randomGenerator: Generator<Flt64>
+    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
     override operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         val accumulation = weights.runningFold(Flt64.zero) { acc, weight -> acc + weight }
         val p = randomGenerator()!! * accumulation.last()
@@ -43,7 +43,7 @@ data class RouletteSelection(
 
     override suspend operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         if (amount.toInt() >= weights.size) {
@@ -70,14 +70,14 @@ data class RouletteSelection(
 data object RankSelection : Selection {
     override operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         return UInt64(weights.withIndex().maxBy { it.value }.index)
     }
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         if (amount.toInt() >= weights.size) {
@@ -109,14 +109,14 @@ data class TournamentSelection(
 
     override operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         return RankSelection(iteration, weights)
     }
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         if (amount.toInt() >= weights.size) {
@@ -153,18 +153,18 @@ data class TournamentSelection(
 }
 
 data class StochasticUniversalSelection(
-    private val randomGenerator: Generator<Flt64>
+    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
     override operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         return (randomGenerator()!! * Flt64(weights.size)).round().toUInt64()
     }
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         val sum = weights.sum()
@@ -201,7 +201,7 @@ data class TruncationSelection(
 
     override fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         return UInt64(
             weights
@@ -221,7 +221,7 @@ data class TruncationSelection(
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         return weights
@@ -242,13 +242,13 @@ data class TruncationSelection(
 
 data class BoltzmannSelection(
     private val temperature: (Iteration) -> Flt64,
-    private val randomGenerator: Generator<Flt64>
+    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : Selection {
     companion object {
         operator fun invoke(
             initialTemperature: Flt64,
             decayRate: Flt64,
-            randomGenerator: Generator<Flt64>
+            randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         ): BoltzmannSelection {
             return BoltzmannSelection(
                 { iteration -> initialTemperature * (-decayRate * iteration.iteration.toFlt64()).exp() },
@@ -259,7 +259,7 @@ data class BoltzmannSelection(
 
     override operator fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         val thisTemperature = temperature(iteration)
         val accumulation = weights.runningFold(Flt64.zero) { acc, weight -> acc + (weight / thisTemperature).exp() }
@@ -274,7 +274,7 @@ data class BoltzmannSelection(
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         if (amount.toInt() >= weights.size) {
@@ -301,20 +301,20 @@ data class BoltzmannSelection(
 
 abstract class LocalSelection : Selection {
     protected abstract val neighborhoodSize: (Iteration) -> UInt64
-    protected abstract val randomGenerator: Generator<Flt64>
+    protected abstract val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 
-    protected abstract fun getNeighbours(weights: List<Flt64>, amount: UInt64): Set<UInt64>
+    protected abstract fun getNeighbours(weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, amount: UInt64): Set<UInt64>
 
     override fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     ): UInt64 {
         return (randomGenerator()!! * Flt64(weights.size)).round().toUInt64()
     }
 
     override suspend fun invoke(
         iteration: Iteration,
-        weights: List<Flt64>,
+        weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         amount: UInt64
     ): List<UInt64> {
         val neighbours = getNeighbours(weights, amount)
@@ -339,12 +339,12 @@ abstract class LocalSelection : Selection {
 
 data class RingLocalSelection(
     override val neighborhoodSize: (Iteration) -> UInt64,
-    override val randomGenerator: Generator<Flt64>
+    override val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ) : LocalSelection() {
     companion object {
         operator fun invoke(
             neighborhoodSize: UInt64,
-            randomGenerator: Generator<Flt64>
+            randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         ): LocalSelection {
             return RingLocalSelection(
                 { _ -> neighborhoodSize },
@@ -353,7 +353,7 @@ data class RingLocalSelection(
         }
     }
 
-    override fun getNeighbours(weights: List<Flt64>, amount: UInt64): Set<UInt64> {
+    override fun getNeighbours(weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, amount: UInt64): Set<UInt64> {
         val neighbours = HashSet<UInt64>()
         val medium = (randomGenerator()!! * Flt64(weights.size)).round().toUInt64()
         for (offset in amount.indices) {

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.token
+package fuookami.ospf.kotlin.core.token
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableCombination
@@ -65,7 +65,7 @@ data class Token<V : RealNumber<V>>(
     val type by variable::type
 
     /** Flt64 view of range (solver-compatible). */
-    val range: ValueRange<Flt64>?
+    val range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
         get() = if (lowerBound != null && upperBound != null) {
             ValueRange(
                 lowerBound = lowerBound!!,

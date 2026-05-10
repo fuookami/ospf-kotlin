@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -76,11 +76,11 @@ class MinMaxFunction<V>(
             MinMaxFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MinMaxFunction<Flt64> = MinMaxFunction(polynomials, bigM, flt64Converter, name, displayName)
+        ): MinMaxFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MinMaxFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -88,11 +88,11 @@ class MinMaxFunction<V>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<Flt64>>,
+            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MinMaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
@@ -152,11 +152,11 @@ class MaxMinFunction<V>(
             MaxMinFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): MaxMinFunction<Flt64> = MaxMinFunction(polynomials, bigM, flt64Converter, name, displayName)
+        ): MaxMinFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MaxMinFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         /**
          * Factory: accept List<LinearIntermediateSymbol> for framework compatibility.
@@ -164,11 +164,11 @@ class MaxMinFunction<V>(
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<Flt64>>,
+            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MaxMinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,

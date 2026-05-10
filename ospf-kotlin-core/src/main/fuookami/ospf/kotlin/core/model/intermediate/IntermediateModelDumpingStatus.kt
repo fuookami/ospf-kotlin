@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.intermediate
+package fuookami.ospf.kotlin.core.model.intermediate
 
 import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStage
 import fuookami.ospf.kotlin.core.model.basic.ModelBuildingStatus

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.model
+package fuookami.ospf.kotlin.framework.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution

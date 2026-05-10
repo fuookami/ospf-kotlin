@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -82,15 +82,15 @@ class QuadraticInStepRangeFunction<V>(
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = Quadratic
-    override val parent: IntermediateSymbol<*>? = null
+    override val parent: IntermediateSymbol<out V>? = null
     override val operationCategory: Category get() = Quadratic
 
-    override val dependencies: Set<IntermediateSymbol<*>>
+    override val dependencies: Set<IntermediateSymbol<out V>>
         get() {
-            val deps = mutableSetOf<IntermediateSymbol<*>>()
+            val deps = mutableSetOf<IntermediateSymbol<out V>>()
             for (m in x.monomials) {
-                if (m.symbol1 is IntermediateSymbol<*>) deps.add(m.symbol1 as IntermediateSymbol<*>)
-                if (m.symbol2 != null && m.symbol2 is IntermediateSymbol<*>) deps.add(m.symbol2 as IntermediateSymbol<*>)
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol1)?.let { deps.add(it) }
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol2)?.let { deps.add(it) }
             }
             return deps
         }
@@ -104,31 +104,31 @@ class QuadraticInStepRangeFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
-        return QuadraticInequalityOf<Flt64>(
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             QuadraticPolynomial(emptyList(), Flt64.zero),
             QuadraticPolynomial(emptyList(), Flt64.one),
             Comparison.EQ
         )
     }
 
-    internal val flattenedMonomials: QuadraticFlattenData<Flt64>
-        get() = QuadraticFlattenData<Flt64>(emptyList(), Flt64.zero)
+    internal val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        get() = QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: QuadraticPolynomial<V>
         get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, y)), converter.zero)
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
 
     override fun toRawString(unfold: UInt64): String = displayName ?: name
@@ -159,37 +159,37 @@ class QuadraticInStepRangeFunction<V>(
         val negXMonos = flt64X.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
         val posXMonos = flt64X.monomials
 
-        val constraints = mutableListOf<QuadraticInequalityOf<Flt64>>()
+        val constraints = mutableListOf<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower
         val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), flt64X.constant + mF)
         val c1Rhs = QuadraticPolynomial(emptyList(), lowerF)
-        constraints += QuadraticInequalityOf<Flt64>(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
 
         // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper
         val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), flt64X.constant - mF)
         val c2Rhs = QuadraticPolynomial(emptyList(), upperF)
-        constraints += QuadraticInequalityOf<Flt64>(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
 
         // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0
         val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -flt64X.constant + mF)
         val c3Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequalityOf<Flt64>(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
 
         // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0
         val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -flt64X.constant - mF)
         val c4Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequalityOf<Flt64>(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
 
         // C5: y <= M*z
         val c5Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c5Rhs = QuadraticPolynomial(listOf(zMon), Flt64.zero)
-        constraints += QuadraticInequalityOf<Flt64>(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
 
         // C6: y >= -M*z
         val c6Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
         val c6Rhs = QuadraticPolynomial(listOf(negZMon), Flt64.zero)
-        constraints += QuadraticInequalityOf<Flt64>(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
+        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
 
         return addQuadraticConstraints(model, constraints, converter) ?: ok
     }
@@ -207,12 +207,12 @@ class QuadraticInStepRangeFunction<V>(
             QuadraticInStepRangeFunction(x, lower, upper, bigM, converter, name, displayName)
 
         operator fun invoke(
-            x: QuadraticPolynomial<Flt64>,
+            x: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             lower: Flt64,
             upper: Flt64,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): QuadraticInStepRangeFunction<Flt64> = QuadraticInStepRangeFunction(x, lower, upper, bigM, flt64Converter, name, displayName)
+        ): QuadraticInStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInStepRangeFunction(x, lower, upper, bigM, flt64Converter, name, displayName)
     }
 }

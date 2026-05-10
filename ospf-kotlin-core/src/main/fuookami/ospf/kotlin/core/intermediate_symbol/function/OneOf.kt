@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -89,7 +89,7 @@ class OneOfFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mD = bigM
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
@@ -98,12 +98,12 @@ class OneOfFunction<V>(
 
         // Exactly one indicator must be 1: sum(indicators) = 1
         val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
 
         // result = 1 (since exactly one indicator must be 1)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
 
@@ -121,21 +121,21 @@ class OneOfFunction<V>(
             OneOfFunction(polynomials, bigM, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String = "oneof",
             displayName: String? = null
-        ): OneOfFunction<Flt64> = OneOfFunction(polynomials, bigM, converter = flt64Converter, name = name, displayName = displayName)
+        ): OneOfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = OneOfFunction(polynomials, bigM, converter = flt64Converter, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>>,
+            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            OneOfFunction<Flt64>(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+            OneOfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
                 converter = flt64Converter,

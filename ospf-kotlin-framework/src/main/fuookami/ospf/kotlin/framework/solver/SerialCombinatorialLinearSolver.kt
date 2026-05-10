@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.solver
+package fuookami.ospf.kotlin.framework.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.solver.AbstractLinearSolver
@@ -42,7 +42,7 @@ class SerialCombinatorialLinearSolver(
     override suspend operator fun invoke(
         model: LinearTriadModelView,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<FeasibleSolverOutput<Flt64>> {
+    ): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solvingStatusCallBack)) {
                 is Ok -> {
@@ -69,7 +69,7 @@ class SerialCombinatorialLinearSolver(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack?
-    ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
+    ): Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
         for (solver in solvers) {
             when (val result = solver.value.invoke(model, solutionAmount, solvingStatusCallBack)) {
                 is Ok -> {

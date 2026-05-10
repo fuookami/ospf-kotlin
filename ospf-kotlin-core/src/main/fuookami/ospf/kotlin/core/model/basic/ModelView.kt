@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.basic
+package fuookami.ospf.kotlin.core.model.basic
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
@@ -102,7 +102,7 @@ enum class ConstraintSource {
 abstract class ModelConstraint<ConCell>(
     val constraintCount: Int,
     signs: List<ConstraintRelation>,
-    rhs: List<Flt64>,
+    rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     names: List<String>,
     sources: List<ConstraintSource>
 ) : Cloneable, Copyable<ModelConstraint<ConCell>>, AutoCloseable
@@ -114,7 +114,7 @@ abstract class ModelConstraint<ConCell>(
 
     abstract val lhs: List<List<ConCell>>
     val signs: List<ConstraintRelation> by ::_signs
-    val rhs: List<Flt64> by ::_rhs
+    val rhs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64> by ::_rhs
     val names: List<String> by ::_names
     val sources: List<ConstraintSource> by ::_sources
 

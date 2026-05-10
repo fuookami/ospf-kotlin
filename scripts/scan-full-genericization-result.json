@@ -136,7 +136,7 @@
                                     "whitelisted_math_convenience":  116,
                                     "non_adapter":  0
                                 },
-    "timestamp":  "2026-05-10T21:45:42",
+    "timestamp":  "2026-05-10T22:02:34",
     "i2_classification_detail":  [
                                      {
                                          "path":  "ospf-kotlin-core\\src\\main\\fuookami\\ospf\\kotlin\\core\\intermediate_symbol\\IntermediateSymbol.kt",

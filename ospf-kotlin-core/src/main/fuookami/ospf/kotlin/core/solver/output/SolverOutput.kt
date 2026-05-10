@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.output
 
@@ -37,7 +37,7 @@ data class FeasibleSolverOutput<V>(
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
 
 
-fun <V> FeasibleSolverOutput<Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
+fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.convertTo(converter: IntoValue<V>): FeasibleSolverOutput<V>
         where V : RealNumber<V>, V : NumberField<V> {
     return FeasibleSolverOutput(
         obj = obj,

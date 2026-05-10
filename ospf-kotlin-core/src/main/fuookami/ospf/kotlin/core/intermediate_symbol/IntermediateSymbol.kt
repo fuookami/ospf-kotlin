@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
@@ -95,8 +95,8 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearIntermediateSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -121,8 +121,8 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPol
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticIntermediateSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -144,7 +144,7 @@ interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPol
 internal fun IntermediateSymbol<*>.shouldPrepare(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Boolean {
     val tt = tokenTable
     return (!values.isNullOrEmpty() || tt.cachedSolution) && if (values.isNullOrEmpty()) {
@@ -156,7 +156,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 
 internal fun IntermediateSymbol<*>.shouldPrepare(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Boolean {
     return shouldPrepare(this, values, tokenTable)
 }
@@ -164,7 +164,7 @@ internal fun IntermediateSymbol<*>.shouldPrepare(
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Boolean {
     val tt = tokenTable
     return (!values.isNullOrEmpty() || tt.cachedSolution) && tt.cached(cacheKey) == false
@@ -172,7 +172,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 
 internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Boolean {
     return shouldPrepareWithFixedCacheKey(this, values, tokenTable)
 }
@@ -180,7 +180,7 @@ internal fun IntermediateSymbol<*>.shouldPrepareWithFixedCacheKey(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     block: () -> T?
 ): T? {
     return if (shouldPrepare(cacheKey, values, tokenTable)) {
@@ -192,7 +192,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     block: () -> T?
 ): T? {
     return prepareIfNotCached(this, values, tokenTable, block)
@@ -201,7 +201,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCached(
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     cacheKey: IntermediateSymbol<*>,
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     block: () -> T?
 ): T? {
     return if (shouldPrepareWithFixedCacheKey(cacheKey, values, tokenTable)) {
@@ -213,7 +213,7 @@ internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKe
 
 internal inline fun <T> IntermediateSymbol<*>.prepareIfNotCachedWithFixedCacheKey(
     values: Map<Symbol, Flt64>?,
-    tokenTable: AbstractTokenTable<Flt64>,
+    tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     block: () -> T?
 ): T? {
     return prepareIfNotCachedWithFixedCacheKey(this, values, tokenTable, block)
@@ -250,7 +250,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
 }
 
 private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
-    results: List<Flt64>,
+    results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     tokenTable: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     zeroIfNone: Boolean,
@@ -338,8 +338,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = listOf(LinearMonomial(Flt64.one, item)),
                     constant = Flt64.zero
@@ -356,8 +356,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = listOf(LinearMonomial(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -370,12 +370,12 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            polynomial: LinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = polynomial.monomials,
                     constant = polynomial.constant
@@ -388,12 +388,12 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            monomial: LinearMonomial<Flt64>,
+            monomial: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = listOf(monomial),
                     constant = Flt64.zero
@@ -406,12 +406,12 @@ class LinearExpressionSymbol<V>(
         }
 
         operator fun invoke(
-            polynomial: MutableLinearPolynomial<Flt64>,
+            polynomial: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = polynomial,
                 category = Linear,
                 parent = parent,
@@ -425,8 +425,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -443,8 +443,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -461,8 +461,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
@@ -479,8 +479,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -497,8 +497,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -515,8 +515,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
@@ -532,8 +532,8 @@ class LinearExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<Flt64> {
-            return LinearExpressionSymbol<Flt64>(
+        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -547,15 +547,15 @@ class LinearExpressionSymbol<V>(
     }
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
-    private val _polyFlt64: MutableLinearPolynomial<Flt64> get() = _utilsPolynomial as MutableLinearPolynomial<Flt64>
+    private val _polyFlt64: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = _utilsPolynomial as MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 
     // polynomial property returns immutable version
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
     // flattenedMonomials: extract from monomials
-    @Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
-    val flattenedMonomials: LinearFlattenData<Flt64>
-        get() = LinearFlattenData<Flt64>(
+    @kotlin.Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
+    val flattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        get() = LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             monomials = _polyFlt64.monomials,
             constant = _polyFlt64.constant
         )
@@ -579,13 +579,13 @@ class LinearExpressionSymbol<V>(
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(tokenTable.tokenList as AbstractTokenList<Flt64>, zeroIfNone)
+                symbol.evaluate(tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone)
             }
             else -> null
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -593,7 +593,7 @@ class LinearExpressionSymbol<V>(
                 else if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(results, tokenTable.tokenList as AbstractTokenList<Flt64>, zeroIfNone)
+                symbol.evaluate(results, tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone)
             }
             else -> null
         }
@@ -606,14 +606,14 @@ class LinearExpressionSymbol<V>(
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(values, tokenTable?.tokenList as AbstractTokenList<Flt64>?, zeroIfNone)
+                symbol.evaluate(values, tokenTable?.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone)
             }
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
     }
 
     // Helper: evaluate a single monomial's symbol (Flt64 tokenList path)
-    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val token = tokenList.find(symbol)
@@ -624,7 +624,7 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenList.indexOf(symbol)
@@ -636,7 +636,7 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -658,9 +658,9 @@ class LinearExpressionSymbol<V>(
             .toSet()
 
     // range/lowerBound/upperBound using possibleRange algorithm
-    private fun calculateRange(): ValueRange<Flt64>? {
+    private fun calculateRange(): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
         val poly = _polyFlt64
-        var range: ValueRange<Flt64>? = ValueRange(poly.constant, Flt64).value
+        var range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = ValueRange(poly.constant, Flt64).value
         for (monomial in poly.monomials) {
             val symRange = when (val sym = monomial.symbol) {
                 is AbstractVariableItem<*, *> -> sym.range.valueRange
@@ -700,11 +700,11 @@ class LinearExpressionSymbol<V>(
         category = Linear,
         prefix = "__linear_expression_flatten_cache__"
     )
-    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
+    private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? AbstractTokenTable<Flt64>
+            .firstOrNull() as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
     override val cached: Boolean
@@ -781,7 +781,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
@@ -814,7 +814,7 @@ class LinearExpressionSymbol<V>(
         return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
     }
 
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -854,7 +854,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // Flt64 convenience overloads (solver boundary)
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
@@ -864,7 +864,7 @@ class LinearExpressionSymbol<V>(
         return ret
     }
 
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -924,8 +924,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = listOf(QuadraticMonomial.linear(Flt64.one, item)),
                     constant = Flt64.zero
@@ -942,8 +942,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -960,8 +960,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
                     constant = Flt64.zero
@@ -978,8 +978,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -996,8 +996,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64(constant)
@@ -1014,8 +1014,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = if (constant) Flt64.one else Flt64.zero
@@ -1032,8 +1032,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -1050,8 +1050,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.value.toFlt64()
@@ -1068,8 +1068,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = constant.toFlt64()
@@ -1085,8 +1085,8 @@ class QuadraticExpressionSymbol<V>(
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<Flt64> {
-            return QuadraticExpressionSymbol<Flt64>(
+        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
                     constant = Flt64.zero
@@ -1100,15 +1100,15 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
-    private val _polyFlt64: MutableQuadraticPolynomial<Flt64> get() = _utilsPolynomial as MutableQuadraticPolynomial<Flt64>
+    private val _polyFlt64: MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = _utilsPolynomial as MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 
     // polynomial property returns immutable version
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
     // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
-    @Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
-    val flattenedMonomials: QuadraticFlattenData<Flt64>
-        get() = QuadraticFlattenData<Flt64>(
+    @kotlin.Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
+    val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        get() = QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             monomials = _polyFlt64.monomials,
             constant = _polyFlt64.constant
         )
@@ -1127,7 +1127,7 @@ class QuadraticExpressionSymbol<V>(
     // Helper: evaluate a single symbol (V-typed path)
     // Internally computes in Flt64 (via resultFlt64 / Flt64 evaluate(tokenList)), then the caller converts via converter.intoValue().
     private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable.tokenList as AbstractTokenList<Flt64>
+        val tokenList = tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1138,8 +1138,8 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable.tokenList as AbstractTokenList<Flt64>
+    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
+        val tokenList = tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -1154,7 +1154,7 @@ class QuadraticExpressionSymbol<V>(
 
     // Nullable tokenTable variant for evaluate(values, tokenTable?, ...) path
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable?.tokenList as AbstractTokenList<Flt64>?
+        val tokenList = tokenTable?.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1166,7 +1166,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // Helper: evaluate a single monomial's symbol (Flt64 tokenList path)
-    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val token = tokenList.find(symbol)
@@ -1178,7 +1178,7 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenList.indexOf(symbol)
@@ -1191,7 +1191,7 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenList?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1222,16 +1222,16 @@ class QuadraticExpressionSymbol<V>(
             .toSet()
 
     // range/lowerBound/upperBound using possibleRange algorithm
-    private fun calculateRange(): ValueRange<Flt64>? {
-        var range: ValueRange<Flt64>? = ValueRange(_polyFlt64.constant, Flt64).value
+    private fun calculateRange(): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+        var range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = ValueRange(_polyFlt64.constant, Flt64).value
         for (monomial in _polyFlt64.monomials) {
-            val sym1Range: ValueRange<Flt64>? = when (val sym1 = monomial.symbol1) {
+            val sym1Range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = when (val sym1 = monomial.symbol1) {
                 is AbstractVariableItem<*, *> -> sym1.range.valueRange
                 is LinearIntermediateSymbol<*> -> sym1.range.valueRange
                 is QuadraticIntermediateSymbol<*> -> sym1.range.valueRange
                 else -> null
             }
-            val sym2Range: ValueRange<Flt64>? = if (monomial.symbol2 != null) {
+            val sym2Range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = if (monomial.symbol2 != null) {
                 when (val sym2 = monomial.symbol2!!) {
                     is AbstractVariableItem<*, *> -> sym2.range.valueRange
                     is LinearIntermediateSymbol<*> -> sym2.range.valueRange
@@ -1294,11 +1294,11 @@ class QuadraticExpressionSymbol<V>(
         category = Quadratic,
         prefix = "__quadratic_expression_flatten_cache__"
     )
-    private fun cacheTokenTable(): AbstractTokenTable<Flt64>? {
+    private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
         return dependencies
             .asSequence()
             .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? AbstractTokenTable<Flt64>
+            .firstOrNull() as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
     override val cached: Boolean
@@ -1392,7 +1392,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
@@ -1435,7 +1435,7 @@ class QuadraticExpressionSymbol<V>(
         return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
     }
 
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
@@ -1450,7 +1450,7 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -1467,7 +1467,7 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1573,11 +1573,13 @@ operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol
 }
 
 // Solver-boundary extensions: delegate to SolverBoundaryCasts (single UNCHECKED_CAST location)
-internal val LinearIntermediateSymbol<*>.solverFlattenedMonomials: LinearFlattenData<Flt64>
-    get() = SolverBoundaryCasts.run { solverFlattenedMonomials }
+internal val <V> LinearIntermediateSymbol<V>.solverFlattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
+    get() = SolverBoundaryCasts.linearSolverFlattenedMonomials(this)
 
-internal val QuadraticIntermediateSymbol<*>.solverFlattenedMonomials: QuadraticFlattenData<Flt64>
-    get() = SolverBoundaryCasts.run { solverFlattenedMonomials }
+internal val <V> QuadraticIntermediateSymbol<V>.solverFlattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
+    get() = SolverBoundaryCasts.quadraticSolverFlattenedMonomials(this)
 
 
 

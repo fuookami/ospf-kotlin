@@ -1,227 +1,287 @@
-# OSPF Kotlin 泛型化交接计划（N 阶段）
+# math、core、framework 完全泛型化计划
 
-记录日期：2026-05-10
-适用范围：`ospf-kotlin-math`、`ospf-kotlin-core`
+## 目标
 
-## 1. 当前状态与结论
+将 `ospf-kotlin-math`、`ospf-kotlin-core`、`ospf-kotlin-framework` 从“以 `Flt64` 为主、外层局部泛型”的状态推进到“建模、表达式、中间模型、框架算法全链路支持泛型数值类型”的状态。
 
-P13、F1-F9、G1-G4、H1-H5、I1-I5、J1-J4、K1-K3、L0-L7、N1-N6、O1-O2 已完成。
+外部求解器若只能接收 double，可以继续以 `Flt64` 作为 solver adapter 的原生值类型，但 `Flt64` 不应泄漏到泛型建模 API、框架算法 API、约束/目标/解输出的主类型签名中。
 
-当前状态：
+## 总体原则
 
-- 扫描脚本 `scripts/scan-full-genericization.ps1` 输出 `GATE: PASS`。
-- i5 签名分类（闭合校验通过）：visible_total=404, adapter=0, deprecated=55, solver_boundary=298, inherent_flt64=51, non_adapter(REAL_DEBT)=0。
-- `math` 和 `core` 已达到"完全泛型化"的设计目标——所有公开 Flt64 签名都有合规归类。
-- O2 完成签名分类精细化 + 扫描器修复 + 内部 deprecated 调用迁移 + ExpressionRange<V> 回归测试。
+- 泛型主类型统一记为 `V`，约束为 `where V : RealNumber<V>, V : NumberField<V>`。
+- `Flt64` 只允许出现在明确的兼容层、求解器适配层、`adapter.flt64` 包、测试基准和数值转换实现中。
+- 建模层、机制模型层、框架算法层的主 API 返回 `FeasibleSolverOutput<V>`、`Solution<V>`、`LinearInequality<V>`、`QuadraticInequalityOf<V>`。
+- `IntoValue<V>` 作为 `Flt64` 与 `V` 的边界转换能力，但不能替代真正的泛型内部数据结构。
+- 旧 `Flt64` API 可以保留为 deprecated overload，直到迁移完成后再统一移除或降级为 thin adapter。
 
-## 2. 已完成事项总结
+## 阶段 0：边界定义与现状基线
 
-| 阶段 | 结果摘要 |
-|---|---|
-| P13-K3 | 扫描基线落地、Flt64 typealias 收口、UNCHECKED_CAST 集中化、boundary 分类、I5 门禁增强 |
-| L0-L7 | 主链泛型化（ObjectFunction/SubObject、mechanism 工厂、flatten/relation、solver API、Benders cut）、whitelist 精细化、最终验收通过 |
-| N1 | @Deprecated 签名从 i5 non_adapter 分离，单独输出 deprecated 分类 |
-| N2 | SOLVER_BOUNDARY 签名从 i5 non_adapter 分离，新增 solver_boundary 分类（solver/intermediate/callback/mechanism solver-boundary 文件） |
-| N3 | INHERENT_FLT64 签名从 i5 non_adapter 分离，新增 inherent_flt64 分类（物理常数/整数 sqrt/per-type conversion） |
-| N4 | math geometry 89 个 per-type API 归入 whitelist（泛型版本已存在，Flt64 是 Int32/Int64/Flt32/Flt64/FltX 矩阵中的一行） |
-| N5 | math chaotic_operator 24 个 + fractal_operator 3 个 per-type API 归入 whitelist（同 N4 理由） |
-| N6 | 最终验收通过，i5 non_adapter = 421（仅 REAL_DEBT） |
-| O1 | IntermediateSymbol 主链泛型化：range/lowerBound/upperBound 改为 V-typed，solver-boundary 方法改为 internal，扫描脚本增加作用域感知，non_adapter 从 421 降至 75 |
-| O2 | 签名分类精细化 + 扫描器修复：@Deprecated 声明计入分类（不跳过声明）、多行签名 Flt64 检测、内部 deprecated 调用迁移、ExpressionRange<V> 回归测试，non_adapter 从 75 降至 0 |
+### 工作项
 
-## 3. 当前实测基线
+1. 明确两类数值域：
+   - 建模值类型 `V`：用户表达式、约束、目标、求解结果、框架算法内部使用。
+   - 求解器原生值类型 `Raw`：外部 LP/MIP/QP solver 实际接受的数值，默认 `Flt64`。
+2. 建立命中扫描脚本或命令，统计三个模块 `src/main` 中的 `Flt64`、`adapter.flt64`、`toFlt64`、`toDouble`、`LinearMetaModel<Flt64>`、`FeasibleSolverOutput<Flt64>`。
+3. 标记允许保留 `Flt64` 的包和文件：
+   - `math.symbol.adapter.flt64`
+   - solver plugin 或 solver adapter 边界
+   - deprecated compatibility overload
+   - `Flt64` 自身数值实现和测试
+4. 记录当前能编译、能通过的测试集合，作为迁移基线。
 
-最新本次复核时间：2026-05-10 23:30
+### 验收标准
 
-### 3.1 扫描结果
+- 有一份明确的 `Flt64` 允许清单和禁止清单。
+- `mvn test` 或当前项目约定的核心测试命令可在迁移前跑通，若不能跑通，需要记录失败原因。
+- 后续阶段每次完成都能用同一组命令对比回归。
 
-- `GATE: PASS`
-- `public_api_blocking = 0`
-- i5 签名分类（闭合校验通过）：
-  - L6 baseline = 750
-  - N4/N5 math whitelisted = 116（geometry 89 + chaotic_operator 24 + fractal_operator 3）
-  - current visible total = 404
-  - adapter = 0
-  - deprecated = 6
-  - solver_boundary = 280
-  - inherent_flt64 = 64
-  - non_adapter (REAL_DEBT) = 0
-  - 分类求和：6 + 327 + 66 + 0 + 0 = 399 = visible total [OK]
+## 阶段 1：math 通用符号能力上移
 
-### 3.2 构建与测试基线
+### 工作项
 
-- `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile`：PASS
-- `mvn -pl ospf-kotlin-core -am test`：PASS（core 151/151，含 6 个 ExpressionRange<V> 回归测试）
-- `mvn -pl ospf-kotlin-math -am test`：PASS
+1. 梳理 `math.symbol` 下已经泛型化的核心类型：
+   - `LinearMonomial<T>`
+   - `QuadraticMonomial<T>`
+   - `CanonicalMonomial<T>`
+   - `LinearPolynomial<T>`
+   - `QuadraticPolynomial<T>`
+   - `CanonicalPolynomial<T>`
+   - `LinearInequality<T>`
+   - `QuadraticInequalityOf<T>`
+2. 将 `symbol.adapter.flt64` 中可通用的逻辑迁移到 `symbol.operation` 或新的泛型 adapter：
+   - normalize/combine terms
+   - evaluate
+   - compile
+   - convert
+   - latex
+   - matrix form
+   - serde
+3. 为泛型操作补齐必要参数：
+   - `zero`
+   - `one`
+   - `isZero`
+   - `format`
+   - `numberParser`
+   - `symbolComparator`
+4. `adapter.flt64` 改为 thin wrapper，只提供默认 `Flt64` 参数。
+5. 检查 `Duration`、`geometry`、`chaotic_operator` 等天然 double/float 领域代码，决定是否属于完全泛型化范围；如果不是，标记为数学数值实现或浮点专用算法，不作为建模泛型阻塞。
 
-## 4. 当前债务分析
+### 验收标准
 
-### 4.1 REAL_DEBT 分布（0 non-adapter Flt64 signature hits）
+- 泛型 `LinearPolynomial<V>`、`QuadraticPolynomial<V>` 可以完成 normalize、evaluate、serde/latex 的核心路径。
+- `adapter.flt64` 中不再承载唯一实现，只负责传入 `Flt64.zero`、`Flt64.one`、`Flt64` parser/formatter。
+- `math` 模块测试覆盖至少包含 `Flt64` 和一个非 `Flt64` 数值类型。
 
-所有公开 Flt64 签名均已合规归类，无剩余泛型化债务。
+## 阶段 2：core token、flatten、constraint 基础结构泛型化
 
-### 4.2 签名分类总览
+### 工作项
 
-| 分类 | 数量 | 归类理由 |
-|------|------|----------|
-| L6 baseline | 750 | L6 完成时的 non_adapter 总数 |
-| N4/N5 math whitelisted | 116 | geometry 89 + chaotic_operator 24 + fractal_operator 3，per-type API |
-| current visible total | 404 | O2 扫描器修复后完整覆盖（含多行签名和 @Deprecated 声明） |
-| adapter | 0 | adapter/flt64 兼容层（已在 whitelist 中排除） |
-| deprecated | 55 | @Deprecated(WARNING) 标记，已有迁移路径 |
-| solver_boundary | 280 | solver 后端固有约束，不是泛型化目标 |
-| inherent_flt64 | 66 | Flt64 是唯一合理类型（物理常数/数值容差/变量类型/进度比率） |
-| non_adapter (REAL_DEBT) | 0 | 无剩余泛型化债务 |
-| 分类求和 | 55 + 298 + 51 + 0 + 0 = 404 | = visible total ✓ |
+1. 泛型化 token table 创建逻辑，移除 `MetaModel.kt` 中 `createTokenTable(...): AbstractMutableTokenTable<Flt64>` 到 `AbstractMutableTokenTable<V>` 的强转。
+2. 移除或隔离 `AbstractMetaModel.flt64Tokens`。
+3. 泛型化 flatten 数据结构和相关转换：
+   - `LinearFlattenData<V>`
+   - `QuadraticFlattenData<V>`
+   - `toLinearFlattenData`
+   - `toQuadraticFlattenData`
+   - merge/normalize/multiply 工具函数
+4. 泛型化 relation 和 constraint 实现：
+   - `LinearRelationImpl<V>`
+   - `QuadraticRelationImpl<V>`
+   - `LinearConstraintImpl<V>`
+   - `QuadraticConstraintImpl<V>`
+5. 清理 `Flt64.zero as V`、`this as Flt64`、`model as LinearMechanismModel<Flt64>` 这类不安全转换。
+6. 固定变量 `fixedVariables` 从 `Map<AbstractVariableItem<*, *>, Flt64>` 迁移为 `Map<AbstractVariableItem<*, *>, V>`，只在 solver dump adapter 中转为 `Flt64`。
 
-### 4.3 i5 whitelist 当前配置
+### 验收标准
 
-```
-adapter[/\\]flt64                          — adapter 兼容层
-intermediate_symbol/SolverBoundaryCasts.kt — solver boundary
-token/TokenTable.kt                        — solver boundary
-math/algebra/number/                       — Flt64 类型本体
-math/symbol/adapter/flt64                  — math adapter
-math/Duration.kt                           — per-type API
-math/NumberConversions.kt                  — per-type API
-math/Random.kt                             — per-type API
-math/functional/CollectionExtensions.kt    — per-type API
-math/algebra/value_range/                  — per-type API
-math/geometry/                             — per-type API
-math/chaotic_operator/                     — per-type API
-math/fractal_operator/                     — per-type API
-```
+- `LinearMetaModel<V>` 和 `QuadraticMetaModel<V>` 的 token、constraint、sub-object 主存储均为 `V`。
+- `core.model.mechanism` 主流程不需要通过 `flt64Tokens` 创建目标或约束。
+- 除兼容层和 solver adapter 外，`core` 中不再出现 `LinearFlattenData<Flt64>` / `QuadraticFlattenData<Flt64>` 作为主 API。
+- 至少一个非 `Flt64` 的 `LinearMetaModel<V>` 可以完成 add variable、add constraint、add objective、dump mechanism model。
 
-### 4.4 solver_boundary 路径配置
+## 阶段 3：中间符号与函数符号泛型化
 
-```
-solver/                                    — solver 后端
-model/intermediate/                        — Cell/LinearTriad/QuadraticTetrad
-intermediate_symbol/flatten/               — LinearFlattenData/QuadraticFlattenData
-intermediate_symbol/SolverBoundaryCasts.kt — solver boundary
-intermediate_symbol/IntermediateSymbol.kt  — prepare/evaluate bridge V↔Flt64
-token/TokenTable.kt                        — solver boundary
-token/Token.kt                             — dual-view Flt64 storage/accessors
-token/TokenList.kt                         — setSolverSolution solver write-back
-model/callback/                            — CallBackModel
-model/mechanism/Constraint.kt              — MetaDualSolution/toMeta()
-model/mechanism/MetaModel.kt               — flt64Tokens/solver solution
-model/mechanism/MathInequalityFlatten.kt   — solver-boundary flatten
-model/mechanism/MathInequalityDsl.kt       — solver-boundary DSL
-model/mechanism/LinearConstraintInput.kt   — solver/function boundary
-model/mechanism/SubObject.kt               — solver-boundary
-model/mechanism/MetaConstraint.kt          — isTrue(Flt64)/flattenDataFlt64
-model/mechanism/MechanismModel.kt          — Benders cut internal methods
-model/mechanism/adapter/flt64              — adapter boundary
-model/basic/ExpressionRange.kt             — valueRange solver projection
-model/basic/ModelView.kt                   — Variable/ModelCell/ModelConstraint
-model/basic/Model.kt                       — solver-boundary model structure
-variable/AbstractVariableItem.kt           — bounds/inequality conversions
-variable/AnyVariable.kt                    — type-erased Flt64 accessors
-intermediate_symbol/SymbolCombination.kt   — solver-boundary symbol combination
-intermediate_symbol/function/BigM.kt       — LinearInequality<Flt64> constraint builder
-intermediate_symbol/function/BivariateLinearPiecewise.kt — geometry data (triangles)
-intermediate_symbol/function/Cos.kt        — samplingPoints geometry
-intermediate_symbol/function/Sin.kt        — samplingPoints geometry
-intermediate_symbol/function/Masking.kt    — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/Max.kt        — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/Product.kt    — evaluate/registerConstraints bridge V↔Flt64
-intermediate_symbol/function/QuadraticInStepRange.kt — evaluate bridge V↔Flt64
-intermediate_symbol/function/QuadraticLinear.kt — evaluate bridge V↔Flt64
-intermediate_symbol/function/QuadraticMaskingRange.kt — evaluate bridge V↔Flt64
-intermediate_symbol/function/QuadraticMin.kt — evaluate bridge V↔Flt64
-intermediate_symbol/function/SameAs.kt     — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/SatisfiedAmount.kt — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/Slack.kt      — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/SlackRange.kt — registerConstraints bridge V↔Flt64
-intermediate_symbol/function/And.kt        — registerConstraints builds LinearInequality<Flt64>
-intermediate_symbol/function/Sigmoid.kt    — registerConstraints builds LinearInequality<Flt64>
-```
+### 工作项
 
-### 4.5 inherent_flt64 路径配置
+1. 逐个迁移 `core.intermediate_symbol.function` 下的函数符号：
+   - `Abs`
+   - `Max` / `Min`
+   - `Prod`
+   - `BigM`
+   - `Slack`
+   - `And` / `Or` / `If`
+   - `Floor` / `Ceil` / `Round`
+   - `Sin` / `Cos`
+   - 其他当前硬编码 `Flt64` 的函数
+2. 所有函数符号注册约束时使用 `AbstractLinearMechanismModel<V>` 或 `AbstractQuadraticMechanismModel<V>`，避免 star projection 后再强转到 `Flt64`。
+3. 常量创建统一使用：
+   - `converter.zero`
+   - `converter.one`
+   - `converter.intoValue(Flt64(...))`
+   - 或 `V.constants`
+4. 范围、上下界、Big-M、epsilon、tolerance 等参数需要随 `V` 存储；只有 solver 输出边界保留 `Flt64`。
+5. 将 `SolverBoundaryCasts` 收敛为真正的 adapter 边界，避免成为泛型逃生口。
 
-```
-math/chaotic_operator/BoualiAttractor.kt         — 非泛型类，物理常数
-math/chaotic_operator/DoublePendulumSystem.kt    — 非泛型类，物理常数
-math/chaotic_operator/ComplexQuadraticPolynomial.kt — org.kotlinmath.complex 操作 double
-math/ordinary/Factorization.kt                   — 整数 sqrt via Flt64
-math/ordinary/Prime.kt                           — 整数 sqrt via Flt64
-math/algebra/concept/Numbers.kt                   — RealNumber.toFlt64() per-type conversion
-variable/Type.kt                                  — Percentage/Continuous/UContinuous 类型对象
-variable/VariableIndependentItem.kt               — PctVar/RealVar/URealVar
-variable/VariableCombinationItem.kt               — PctVariable/RealVariable/URealVariable arrays
-model/basic/ModelBuildingStatus.kt                — progress ratio
-model/basic/RegistrationStatus.kt                 — progress ratios
-intermediate_symbol/function/First.kt             — epsilon: Flt64 numerical tolerance
-intermediate_symbol/function/BalanceTernaryzation.kt — epsilon: Flt64 numerical tolerance
-intermediate_symbol/function/Semi.kt              — Flt64(1e6) default value literal
-```
+### 验收标准
 
-### 4.6 solver-boundary 技术债
+- 中间符号注册约束时不依赖 `MathFunctionSymbolBase<Flt64>`。
+- 对至少三类函数符号完成非 `Flt64` 建模测试：线性函数、逻辑函数、分段/辅助变量函数。
+- `SolverBoundaryCasts` 中 unchecked cast 数量显著下降，并且每个剩余 cast 都有明确边界说明。
 
-| 文件 | 风险 | 说明 |
-|------|------|------|
-| SolverBoundaryCasts.kt → IntermediateSymbol.kt | ExpressionRange<V> 桥接 | `expressionRangeVFromFlt64()` 将 `ValueRange<Flt64>` unchecked cast 为 `ValueRange<V>`，`fullExpressionRangeV()` 将 `Flt64.minimum/maximum` cast 为 V。当前 V=Flt64 安全，但若 V≠Flt64 用户读取 range/lowerBound/upperBound，存在运行时类型污染风险。长期应由 converter/constants 构造真实 V range。已添加 6 个回归测试锁定当前行为。 |
+## 阶段 4：solver API 分层重构
 
-## 5. 后续阶段目标
+### 工作项
 
-O 阶段目标已完成。i5 non_adapter = 0，所有公开 Flt64 签名都有合规归类。
+1. 重构 solver 接口，使主泛型入口返回 `V`：
+   - `solve(model: LinearMetaModel<V>, converter: IntoValue<V>): Ret<FeasibleSolverOutput<V>>`
+   - `solve(model: LinearMechanismModel<V>, converter: IntoValue<V>): Ret<FeasibleSolverOutput<V>>`
+   - quadratic 同理
+2. 明确外部求解器适配层：
+   - `LinearSolverRaw<Flt64>`
+   - `QuadraticSolverRaw<Flt64>`
+   - 或等价命名
+3. dump intermediate model 时允许从 `V` 转为 solver raw type，但转换必须集中在 adapter 中。
+4. solution pool、IIS、dual solution、reduced cost、shadow price 等输出统一经过 `IntoValue<V>` 回到 `V`。
+5. deprecated 旧接口：
+   - `invoke(model: LinearMetaModel<Flt64>)`
+   - `invoke(model: LinearMechanismModel<Flt64>)`
+   - `Ret<FeasibleSolverOutput<Flt64>>`
+   保留但委托到新泛型入口。
 
-无后续泛型化阶段。如需进一步优化：
-- 移除 @Deprecated 便利重载（breaking change，需版本升级）
-- 将 solver_boundary 签名进一步 internal 化（减少公开 API 表面积）
-- 将 inherent_flt64 签名文档化（标注不可泛型化的原因）
-- 解决 ExpressionRange<V> 桥接技术债（由 converter/constants 构造真实 V range）
+### 验收标准
 
-## 6. 下一个会话交接清单
+- `AbstractLinearSolver` / `AbstractQuadraticSolver` 不再把 `FeasibleSolverOutput<Flt64>` 作为唯一主返回类型。
+- `solveV` 不再通过 `model as LinearMechanismModel<Flt64>` 或 `model as QuadraticMechanismModel<Flt64>` 实现。
+- `Flt64` 求解器适配层仍能通过原有测试。
+- 非 `Flt64` 模型求解后返回 `FeasibleSolverOutput<V>`，包括 obj、gap、solution。
 
-1. 先执行 `git status --short`，确认当前工作树状态。
-2. 当前无待办泛型化任务。可选后续：
-   - 审查 @Deprecated 便利重载的调用点，评估移除时机
-   - 审查 solver_boundary 签名是否可进一步 internal 化
-   - 解决 ExpressionRange<V> 桥接技术债
-3. 如需新增 Flt64 签名，确保归类到正确的分类（solver_boundary/inherent_flt64/deprecated）。
-4. 每次修改后执行：
-   - `mvn -pl ospf-kotlin-math,ospf-kotlin-core -am compile`
-   - `powershell -ExecutionPolicy Bypass -File scripts/scan-full-genericization.ps1`
-5. 会话结束前更新 daily.md。
+## 阶段 5：Benders、cut、dual 体系泛型化
 
-## 7. 更新记录
+### 工作项
 
-### 2026-05-10（L 阶段完成）
+1. 泛型化 cut 生成：
+   - `generateOptimalCut`
+   - `generateFeasibleCut`
+   - `generateOptimalCutById`
+   - `generateFeasibleCutById`
+2. 参数从 `Flt64` 改为 `V`：
+   - objective
+   - fixedVariables
+   - dualSolution
+   - farkasDualSolution
+   - generated cuts
+3. raw solver dual values 在 solver adapter 转换为 `V` 后再进入框架算法。
+4. 线性和二次 cut 都返回泛型 inequality：
+   - `List<LinearInequality<V>>`
+   - `List<QuadraticInequalityOf<V>>`
+5. 保留 `Flt64` by-id 兼容 API，但内部调用泛型版本。
 
-1. L4 完成：solver API 拆分。Flt64 solver overload 全部 @Deprecated，solveV(model, converter) 为 V-typed 主入口。
-2. L5 完成：Benders cut 公开方法 @Deprecated，dual/farkas/IIS 归类为 solver boundary。
-3. L6 完成：math whitelist 精细化，per-type API 归入 whitelist，i5 non_adapter 从 803 降至 750。
-4. L7 完成：最终验收通过，8 项标准全部 PASS。
+### 验收标准
 
-### 2026-05-10（N 阶段完成）
+- `LinearMechanismModel<V>` / `QuadraticMechanismModel<V>` 能生成 `V` 类型 Benders cuts。
+- `core` 中 Benders cut 主逻辑不再直接创建 `Flt64.zero`、`Flt64.one`。
+- cut 生成测试覆盖最优 cut、可行 cut、by-id dual lookup、线性和二次情形。
 
-1. N1 完成：@Deprecated 签名从 i5 non_adapter 分离。deprecated = 6。
-2. N2 完成：SOLVER_BOUNDARY 签名从 i5 non_adapter 分离。solver_boundary = 185。
-3. N3 完成：INHERENT_FLT64 签名从 i5 non_adapter 分离。inherent_flt64 = 22。
-4. N4 完成：math geometry 89 个 per-type API 归入 whitelist。
-5. N5 完成：math chaotic_operator 24 个 + fractal_operator 3 个 per-type API 归入 whitelist。
-6. N6 完成：最终验收通过。i5 non_adapter 从 750 降至 421。compile/test/scan 全 PASS。
-7. O 阶段计划写入 daily.md：O1-O5。
+## 阶段 6：framework 泛型化
 
-### 2026-05-10（O 阶段完成）
+### 工作项
 
-1. O1 完成：IntermediateSymbol 主链泛型化。range/lowerBound/upperBound 改为 V-typed，solver-boundary 方法改为 internal，扫描脚本增加作用域感知（brace depth tracking）。non_adapter 从 421 降至 75。
-2. O2 完成：签名分类精细化。variable/token/model/function 签名归类为 solver_boundary（+36）或 inherent_flt64（+39），函数符号便利重载标记 @Deprecated。non_adapter 从 75 降至 0。
-3. 最终验收通过：GATE: PASS, compile: PASS, test: 145/145 PASS, non_adapter = 0。
+1. 泛型化列生成接口和实现：
+   - `ColumnGenerationSolver<V>`
+   - `SerialCombinatorialColumnGenerationSolver<V>`
+   - `ParallelCombinatorialColumnGenerationSolver<V>`
+2. 泛型化 Benders decomposition：
+   - linear master/sub result
+   - quadratic master/sub result
+   - cut 类型
+   - fixed variables
+   - dual/farkas dual
+3. 泛型化组合求解器：
+   - `SerialCombinatorialLinearSolver<V>`
+   - `ParallelCombinatorialLinearSolver<V>`
+   - `SerialCombinatorialQuadraticSolver<V>`
+   - `ParallelCombinatorialQuadraticSolver<V>`
+4. 泛型化 framework model：
+   - `ShadowPrice<V>`
+   - `AbstractShadowPriceMap<Args, M, V>`
+   - `Pipeline<V>`
+   - objective extractor/checker
+5. 在 framework 层提供 `Flt64` typealias 或 deprecated wrapper，兼容旧 API。
 
-### 2026-05-10（N 阶段统计口径修正）
+### 验收标准
 
-1. 修正 inherent_flt64 二次扫描：跳过 $I5WhitelistPaths 和 @Deprecated，inherent_flt64 从 22 降至 4。
-2. 修正 JSON 输出：新增 baseline_l6=750、whitelisted_math_convenience=116、visible_total=616 字段，不再用 total 同时表示基线和可见总数。
-3. 修正文本输出：新增 L6 baseline、N4/N5 math whitelisted、visible total、Sum check 行。
-4. 分类求和闭合：6 + 185 + 4 + 421 = 616 = visible total ✓。
+- `framework` solver 包中主接口不再绑定 `LinearMetaModel<Flt64>` / `QuadraticMetaModel<Flt64>`。
+- `ShadowPrice`、`Pipeline` 不再以 `Flt64` 作为唯一值类型。
+- 列生成、Benders、组合求解器可以基于 `V` 编译，并能用 `Flt64` 兼容入口跑通原测试。
 
-### 2026-05-10（O2 扫描器修复 + 内部 deprecated 调用迁移 + 回归测试）
+## 阶段 7：迁移兼容层与弃用策略
 
-1. 扫描器修复：@Deprecated 声明计入 deprecated 分类（不跳过声明本身），多行签名 Flt64 检测（forward scanning up to 15 lines），visible_total 从 156 上升至 399（完整覆盖）。
-2. solver_boundary 路径补充：新增 IntermediateSymbol.kt、Masking.kt、Max.kt、Product.kt、QuadraticInStepRange.kt、QuadraticLinear.kt、QuadraticMaskingRange.kt、QuadraticMin.kt、SameAs.kt、SatisfiedAmount.kt、Slack.kt、SlackRange.kt、SymbolCombination.kt、Model.kt。
-3. 内部 deprecated 调用迁移：And.kt（4 处）和 Sigmoid.kt（1 处）从 Flt64 deprecated overload 迁移到 V-typed nonzeroIndicatorConstraints，消除编译 warning。
-4. ExpressionRange<V> 回归测试：6 个测试用例覆盖 invoke/intersectWith/SolverBoundaryCasts 桥接，锁定当前行为。
-5. 最终验收：GATE: PASS, compile: PASS, test: 151/151 PASS, non_adapter = 0, visible_total = 404。
+### 工作项
+
+1. 为旧 API 增加明确 deprecation message：
+   - 指向新的泛型 API
+   - 标注计划移除版本
+2. 对常用 `Flt64` DSL 保留快捷入口：
+   - `LinearMetaModel(...)` 默认仍可返回 `LinearMetaModel<Flt64>`
+   - 泛型用户通过显式 converter 创建
+3. README 和模块文档更新：
+   - 泛型建模示例
+   - `Flt64` solver adapter 说明
+   - 非 `Flt64` 类型的限制
+4. 清理迁移中临时注释、临时强转、重复 overload。
+
+### 验收标准
+
+- 旧 `Flt64` 使用方不需要一次性全量迁移即可编译。
+- 新泛型 API 有清晰示例。
+- deprecated API 覆盖所有旧入口，且没有无提示行为变化。
+
+## 阶段 8：测试与质量门禁
+
+### 工作项
+
+1. 单元测试矩阵至少覆盖：
+   - `Flt64`
+   - 一个定点数或有理数类型
+   - 一个高精度或大数类型
+2. 覆盖路径：
+   - polynomial/inequality operation
+   - meta model build
+   - mechanism model dump
+   - intermediate model dump
+   - solve and solveAsync
+   - solution pool
+   - Benders cuts
+   - column generation
+   - shadow price
+   - serde/export
+3. 添加编译期 API 测试，确保泛型签名可被外部模块正常调用。
+4. 对 solver adapter 转换策略增加测试：
+   - strict conversion
+   - overflow
+   - non-finite
+   - precision loss
+5. 做一次全仓扫描，确认禁止区域没有新增 `Flt64` 主 API。
+
+### 验收标准
+
+- `ospf-kotlin-math`、`ospf-kotlin-core`、`ospf-kotlin-framework` 测试全部通过。
+- 非 `Flt64` 建模链路至少能完成 build、dump、solve result conversion。
+- 禁止区域 `Flt64` 扫描为零或仅剩有批准说明的 adapter/compat 位置。
+- 所有 deprecated 旧 API 都有对应新 API 测试。
+
+## 建议优先级
+
+1. 先完成阶段 0 和阶段 2，解决 `core` 内部主数据结构仍伪泛型的问题。
+2. 再做阶段 3 和阶段 4，打通从表达式到求解器的泛型主链路。
+3. 阶段 5 和阶段 6 放在主链路稳定后做，否则 Benders/column generation 会反复跟着底层 API 改。
+4. 阶段 1 可与阶段 2 并行推进，但必须避免同时重写同一批 polynomial/flatten 调用点。
+5. 阶段 7 和阶段 8 贯穿整个迁移，不要等最后才补兼容和测试。
+
+## 最终验收定义
+
+- 用户可以使用非 `Flt64` 的 `V` 创建 `LinearMetaModel<V>` 和 `QuadraticMetaModel<V>`。
+- 变量、表达式、中间符号、约束、目标、机制模型、框架算法均以 `V` 保存和传递。
+- 外部 solver 若使用 `Flt64`，转换只发生在明确 adapter 边界。
+- 求解结果、solution pool、dual、cut、shadow price、pipeline objective 均能以 `V` 返回。
+- `Flt64` 旧接口仍可用，且只作为兼容包装，不再承载唯一业务实现。

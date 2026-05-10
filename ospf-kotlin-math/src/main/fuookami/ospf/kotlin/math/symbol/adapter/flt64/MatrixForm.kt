@@ -22,7 +22,7 @@ data class QuadraticMatrixForm(
     val order: List<Symbol>
 )
 
-fun LinearPolynomial<Flt64>.toMatrixForm(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): LinearMatrixForm {
@@ -44,7 +44,7 @@ fun linearPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return typedLinearPolynomialFromMatrixForm(
         c = c.map { Flt64(it) },
         d = d,
@@ -54,7 +54,7 @@ fun linearPolynomialFromMatrixForm(
     )
 }
 
-fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt64> {
+fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return linearPolynomialFromMatrixForm(
         c = form.c,
         d = form.d,
@@ -62,7 +62,7 @@ fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<Flt
     )
 }
 
-fun QuadraticPolynomial<Flt64>.toMatrixForm(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): QuadraticMatrixForm {
@@ -85,7 +85,7 @@ fun QuadraticPolynomial<Flt64>.toMatrixForm(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.toMatrixForm(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null
@@ -115,7 +115,7 @@ fun quadraticPolynomialFromMatrixForm(
     c: DoubleArray,
     d: Flt64,
     order: List<Symbol>
-): QuadraticPolynomial<Flt64> {
+): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return typedQuadraticPolynomialFromMatrixForm(
         q = q.map { row -> row.map { Flt64(it) } },
         c = c.map { Flt64(it) },
@@ -127,7 +127,7 @@ fun quadraticPolynomialFromMatrixForm(
     )
 }
 
-fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<Flt64> {
+fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return quadraticPolynomialFromMatrixForm(
         q = form.q,
         c = form.c,

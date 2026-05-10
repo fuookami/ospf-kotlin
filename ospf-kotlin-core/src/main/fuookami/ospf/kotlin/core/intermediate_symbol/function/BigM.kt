@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+﻿@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -67,10 +67,10 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
  * Returns null on success, or the error result on failure.
  *
  * This is the solver-boundary bridge: function symbols internally construct
- * LinearInequality<Flt64> constraints, but the model is V-typed. The converter
+ * LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints, but the model is V-typed. The converter
  * maps Flt64 coefficients to V.
  */
-internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
+internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
         val vLhs = c.lhs.asVPoly(converter)
         val vRhs = c.rhs.asVPoly(converter)
@@ -84,7 +84,7 @@ internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constrai
     return null
 }
 
-private fun <V> LinearPolynomial<Flt64>.asVPoly(converter: IntoValue<V>): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+private fun <V> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.asVPoly(converter: IntoValue<V>): LinearPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
         monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
         converter.intoValue(constant)
@@ -96,9 +96,9 @@ private fun <V> LinearPolynomial<Flt64>.asVPoly(converter: IntoValue<V>): Linear
  * Returns null on success, or the error result on failure.
  *
  * Solver-boundary bridge: quadratic function symbols internally construct
- * QuadraticInequalityOf<Flt64> constraints, but the model is V-typed.
+ * QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints, but the model is V-typed.
  */
-internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
+internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>, converter: IntoValue<V>): Try? where V : RealNumber<V>, V : NumberField<V> {
     for (c in constraints) {
         val vLhs = c.lhs.asVQuadraticPoly(converter)
         val vRhs = c.rhs.asVQuadraticPoly(converter)
@@ -119,7 +119,7 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  * When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
  * The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
- * Returns a list of named LinearInequality<Flt64> constraints (Flt64-typed for model compatibility).
+ * Returns a list of named LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
  */
 fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
@@ -130,8 +130,8 @@ fun <V> nonzeroIndicatorConstraints(
     strictBoundary: V,
     converter: IntoValue<V>,
     namePrefix: String
-): List<LinearInequality<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
-    val constraints = mutableListOf<LinearInequality<Flt64>>()
+): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val polyF = poly.asFlt64Poly(converter)
     val mF = converter.fromValue(bigM)
     val tolF = converter.fromValue(tolerance)
@@ -140,21 +140,21 @@ fun <V> nonzeroIndicatorConstraints(
     // band_ub: poly - M*ind <= tol
     val ubMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mF, indVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(ubMonos, polyF.constant),
         LinearPolynomial(emptyList(), tolF), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol
     val lbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mF, indVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(lbMonos, polyF.constant),
         LinearPolynomial(emptyList(), -tolF), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
     val outLbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(outLbMonos, polyF.constant),
         LinearPolynomial(emptyList(), sbF - mF - mF),
         Comparison.GE, "${namePrefix}_out_lb")
@@ -162,7 +162,7 @@ fun <V> nonzeroIndicatorConstraints(
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M
     val outUbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(outUbMonos, polyF.constant),
         LinearPolynomial(emptyList(), -sbF + mF),
         Comparison.LE, "${namePrefix}_out_ub")
@@ -176,7 +176,7 @@ fun <V> nonzeroIndicatorConstraints(
  * For LE: when indicator=1, poly <= rhs is enforced.
  * For GE: when indicator=1, poly >= rhs is enforced.
  *
- * Returns LinearInequality<Flt64> constraints (Flt64-typed for model compatibility).
+ * Returns LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
  */
 fun <V> simpleIndicatorConstraints(
     ineq: LinearInequality<V>,
@@ -186,8 +186,8 @@ fun <V> simpleIndicatorConstraints(
     strictBoundary: V,
     converter: IntoValue<V>,
     namePrefix: String
-): List<LinearInequality<Flt64>> where V : RealNumber<V>, V : NumberField<V> {
-    val constraints = mutableListOf<LinearInequality<Flt64>>()
+): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val mF = converter.fromValue(bigM)
     val tolF = converter.fromValue(tolerance)
     val sbF = converter.fromValue(strictBoundary)
@@ -199,21 +199,21 @@ fun <V> simpleIndicatorConstraints(
     when (ineq.comparison) {
         Comparison.LE -> {
             // lb: poly - rhs + M*ind >= 0
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos + LinearMonomial(mF, indicator), shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${namePrefix}_lb")
             // ub: poly - rhs <= M (always true for reasonable M)
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), mF), Comparison.LE, "${namePrefix}_ub")
         }
         Comparison.GE -> {
             // lb: poly - rhs >= -M (always possible)
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), -mF), Comparison.GE, "${namePrefix}_lb")
             // ub: poly - rhs <= 0 (enforced when indicator=1)
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${namePrefix}_ub")
         }
@@ -236,37 +236,37 @@ fun <V> simpleIndicatorConstraints(
  * Flt64-specific overload of nonzeroIndicatorConstraints for convenience.
  * Used when inputs are already Flt64-typed.
  */
-@Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
+@kotlin.Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
 fun nonzeroIndicatorConstraints(
-    poly: LinearPolynomial<Flt64>,
+    poly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     indVar: AbstractVariableItem<*, *>,
     sideVar: AbstractVariableItem<*, *>,
     bigM: Flt64,
     tolerance: Flt64,
     strictBoundary: Flt64,
     namePrefix: String
-): List<LinearInequality<Flt64>> {
-    val constraints = mutableListOf<LinearInequality<Flt64>>()
+): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val mD = bigM
 
     // band_ub: poly - M*ind <= tol
     val ubMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mD, indVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(ubMonos, poly.constant),
         LinearPolynomial(emptyList(), tolerance), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol
     val lbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mD, indVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(lbMonos, poly.constant),
         LinearPolynomial(emptyList(), -tolerance), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
     val outLbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(-mD, indVar) + LinearMonomial(-mD, sideVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(outLbMonos, poly.constant),
         LinearPolynomial(emptyList(), strictBoundary - mD - mD),
         Comparison.GE, "${namePrefix}_out_lb")
@@ -274,7 +274,7 @@ fun nonzeroIndicatorConstraints(
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M
     val outUbMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
         LinearMonomial(mD, indVar) + LinearMonomial(-mD, sideVar)
-    constraints += LinearInequality<Flt64>(
+    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
         LinearPolynomial(outUbMonos, poly.constant),
         LinearPolynomial(emptyList(), -strictBoundary + mD),
         Comparison.LE, "${namePrefix}_out_ub")
@@ -286,34 +286,34 @@ fun nonzeroIndicatorConstraints(
  * Flt64-specific overload of simpleIndicatorConstraints for convenience.
  * Used when inputs are already Flt64-typed.
  */
-@Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
+@kotlin.Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
 fun simpleIndicatorConstraints(
-    ineq: LinearInequality<Flt64>,
+    ineq: LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     indicator: AbstractVariableItem<*, *>,
     bigM: Flt64,
     tolerance: Flt64,
     strictBoundary: Flt64,
     namePrefix: String
-): List<LinearInequality<Flt64>> {
-    val constraints = mutableListOf<LinearInequality<Flt64>>()
+): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val mD = bigM
     val polyMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
     val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
 
     when (ineq.comparison) {
         Comparison.LE -> {
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos + LinearMonomial(mD, indicator), shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${namePrefix}_lb")
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), mD), Comparison.LE, "${namePrefix}_ub")
         }
         Comparison.GE -> {
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), -mD), Comparison.GE, "${namePrefix}_lb")
-            constraints += LinearInequality<Flt64>(
+            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(polyMonos, shiftedConst),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${namePrefix}_ub")
         }

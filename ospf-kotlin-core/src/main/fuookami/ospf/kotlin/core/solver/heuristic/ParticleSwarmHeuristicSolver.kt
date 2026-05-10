@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -49,7 +49,7 @@ class BasicHeuristicPolicy(
 data class Particle<V>(
     val fitness: V,
     val solution: Solution<V>,
-    val velocity: List<Flt64>,
+    val velocity: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     val bestPosition: Solution<V>? = null,
     val bestFitness: V? = null
 ) where V : RealNumber<V>, V : NumberField<V>
@@ -62,13 +62,13 @@ class ParticleSwarmHeuristicSolver<V>(
     val c2: Flt64 = Flt64.two,
     val maxVelocity: Flt64 = Flt64(10000),
     val solveOnObjectiveMiss: Boolean = true,
-    private val randomGenerator: Generator<Flt64> = { Flt64(0.5) },
+    private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64> = { Flt64(0.5) },
     private val initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero },
     private val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
 
-    fun withRandomGenerator(randomGenerator: Generator<Flt64>): ParticleSwarmHeuristicSolver<V> {
+    fun withRandomGenerator(randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>): ParticleSwarmHeuristicSolver<V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
@@ -190,7 +190,7 @@ class ParticleSwarmHeuristicSolver<V>(
     ): Particle<V> {
         val localBest = particle.bestPosition ?: particle.solution
         val newSolution = ArrayList<V>(particle.solution.size)
-        val newVelocity = ArrayList<Flt64>(particle.solution.size)
+        val newVelocity = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>(particle.solution.size)
         for (index in particle.solution.indices) {
             val positionFlt64 = converter.fromValue(particle.solution[index])
             val velocity = particle.velocity.getOrElse(index) { Flt64.zero }
@@ -316,9 +316,9 @@ class ParticleSwarmHeuristicSolver<V>(
             c2: Flt64 = Flt64.two,
             maxVelocity: Flt64 = Flt64(10000),
             solveOnObjectiveMiss: Boolean = true,
-            randomGenerator: Generator<Flt64> = { Flt64(0.5) },
+            randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64> = { Flt64(0.5) },
             initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero }
-        ): ParticleSwarmHeuristicSolver<Flt64> = ParticleSwarmHeuristicSolver(
+        ): ParticleSwarmHeuristicSolver<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
             w = w,

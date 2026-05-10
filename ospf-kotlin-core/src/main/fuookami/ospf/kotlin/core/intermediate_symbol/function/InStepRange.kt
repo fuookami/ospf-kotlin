@@ -14,7 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -106,13 +106,13 @@ class InStepRangeFunction<V>(
             InStepRangeFunction(lb = lb, ub = ub, step = step, m = m, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
-            lb: LinearPolynomial<Flt64>,
-            ub: LinearPolynomial<Flt64>,
+            lb: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            ub: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             step: Flt64 = Flt64.one,
             m: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
+        ): InStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InStepRangeFunction(
             lb = lb,
             ub = ub,
             step = step,
@@ -123,13 +123,13 @@ class InStepRangeFunction<V>(
         )
 
         operator fun invoke(
-            lb: LinearMonomial<Flt64>,
-            ub: LinearMonomial<Flt64>,
+            lb: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            ub: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             step: Flt64 = Flt64.one,
             m: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): InStepRangeFunction<Flt64> = InStepRangeFunction(
+        ): InStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InStepRangeFunction(
             lb = LinearPolynomial(listOf(lb), Flt64.zero),
             ub = LinearPolynomial(listOf(ub), Flt64.zero),
             step = step,

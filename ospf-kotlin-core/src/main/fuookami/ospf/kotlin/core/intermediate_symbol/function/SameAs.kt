@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -32,7 +32,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * Constraint<Flt64> pattern:
+ * Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64> pattern:
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM constraints link each flag to its inequality
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)
@@ -105,7 +105,7 @@ class SameAsFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
@@ -126,7 +126,7 @@ class SameAsFunction<V>(
                     Flt64.zero
                 )
                 val eqRhs = LinearPolynomial(emptyList(), Flt64.zero)
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     eqLhs, eqRhs, Comparison.EQ, "${name}_equal_${i}")
             }
             // result = u[0] (since all are equal)
@@ -137,14 +137,14 @@ class SameAsFunction<V>(
                 ),
                 Flt64.zero
             )
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 resultLink, LinearPolynomial(emptyList(), Flt64.zero),
                 Comparison.EQ, "${name}_result_link")
         } else {
             // Measurement mode: y = 1 iff all u[i] are equal
             if (n == 1) {
                 // Single inequality: always "same" with itself
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
                     LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_result_single")
             } else {
@@ -154,7 +154,7 @@ class SameAsFunction<V>(
                     val diffVar = diffVars[i - 1]
 
                     // diff >= u[i] - u[0]  =>  diff - u[i] + u[0] >= 0
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -167,7 +167,7 @@ class SameAsFunction<V>(
                         Comparison.GE, "${name}_diff_ge_${i}")
 
                     // diff >= u[0] - u[i]  =>  diff - u[0] + u[i] >= 0
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -180,7 +180,7 @@ class SameAsFunction<V>(
                         Comparison.GE, "${name}_diff_le_${i}")
 
                     // diff <= u[i] + u[0]  =>  diff - u[i] - u[0] <= 0
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -193,7 +193,7 @@ class SameAsFunction<V>(
                         Comparison.LE, "${name}_diff_sum_ub_${i}")
 
                     // diff <= 2 - u[i] - u[0]  =>  diff + u[i] + u[0] <= 2
-                    allConstraints += LinearInequality<Flt64>(
+                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                         LinearPolynomial(
                             listOf(
                                 LinearMonomial(Flt64.one, diffVar),
@@ -209,7 +209,7 @@ class SameAsFunction<V>(
                 // y = 1 - sum(diff_i)  =>  y + sum(diff_i) = 1
                 val yPlusSumMonos = listOf(LinearMonomial(Flt64.one, resultVar)) +
                     diffVars.map { LinearMonomial(Flt64.one, it) }
-                allConstraints += LinearInequality<Flt64>(
+                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                     LinearPolynomial(yPlusSumMonos, Flt64.zero),
                     LinearPolynomial(emptyList(), Flt64.one),
                     Comparison.EQ, "${name}_result_sum")
@@ -238,13 +238,13 @@ class SameAsFunction<V>(
         )
 
         operator fun invoke(
-            inequalities: List<LinearInequality<Flt64>>,
+            inequalities: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             constraint: Boolean = true,
             epsilon: Flt64 = Flt64(1e-6),
             m: Flt64 = Flt64(1e6),
             name: String,
             displayName: String? = null
-        ): SameAsFunction<Flt64> = SameAsFunction(
+        ): SameAsFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SameAsFunction(
             inequalities = inequalities,
             constraint = constraint,
             epsilon = epsilon,
@@ -255,10 +255,10 @@ class SameAsFunction<V>(
         )
 
         operator fun invoke(
-            inequalities: List<LinearInequality<Flt64>>,
+            inequalities: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             name: String,
             displayName: String? = null
-        ): SameAsFunction<Flt64> = SameAsFunction(
+        ): SameAsFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SameAsFunction(
             inequalities = inequalities,
             constraint = true,
             epsilon = Flt64(1e-6),

@@ -70,8 +70,8 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
 
     val range = Range(type, constants)
 
-    val lowerBound: Bound<Flt64>? get() = range.lowerBound?.toFlt64()
-    val upperBound: Bound<Flt64>? get() = range.upperBound?.toFlt64()
+    val lowerBound: Bound<fuookami.ospf.kotlin.math.algebra.number.Flt64>? get() = range.lowerBound?.toFlt64()
+    val upperBound: Bound<fuookami.ospf.kotlin.math.algebra.number.Flt64>? get() = range.upperBound?.toFlt64()
 
     val key get() = VariableItemKey(identifier, index)
 
@@ -83,15 +83,15 @@ abstract class AbstractVariableItem<T, Type : VariableType<T>>(
         return identifier == combination.identifier
     }
 
-    fun toMathLinearInequality(): LinearInequality<Flt64> {
+    fun toMathLinearInequality(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val poly = LinearPolynomial(monomials = listOf(LinearMonomial(Flt64.one, this)), constant = Flt64.zero)
-        return LinearInequality<Flt64>(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(poly, LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+    fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val mono = QuadraticMonomial(Flt64.one, this, this)
         val poly = QuadraticPolynomial(monomials = listOf(mono), constant = Flt64.zero)
-        return QuadraticInequalityOf<Flt64>(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(poly, QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
     override fun hashCode() = key.hashCode()

@@ -18,7 +18,7 @@ interface Individual<V> {
 data class PopulationBuilder(
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<Flt64>,
+    val mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 )
 
@@ -28,7 +28,7 @@ data class Population<T : Individual<V>, V>(
     val best: T,
     val eliteAmount: UInt64,
     val densityRange: ValueRange<UInt64>,
-    val mutationRateRange: ValueRange<Flt64>,
+    val mutationRateRange: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     val parentAmountRange: ValueRange<UInt64>
 ) where V : RealNumber<V>, V : NumberField<V> {
     val density by individuals::size

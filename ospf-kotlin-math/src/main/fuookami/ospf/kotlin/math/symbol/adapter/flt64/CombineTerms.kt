@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.combineQuadraticTerms
 import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalMonomials
 import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalPolynomialTerms
 
-fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> {
+fun Iterable<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>.combineTerms(): List<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val coefficientOfSymbol = LinkedHashMap<Symbol, Flt64>()
     for (monomial in this) {
         coefficientOfSymbol[monomial.symbol] =
@@ -29,16 +29,16 @@ fun Iterable<LinearMonomial<Flt64>>.combineTerms(): List<LinearMonomial<Flt64>> 
         .toList()
 }
 
-fun LinearPolynomial<Flt64>.combineTerms(): LinearPolynomial<Flt64> {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.combineTerms(): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return combineLinearTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero }
     )
 }
 
-fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
+fun Iterable<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<QuadraticMonomial<Flt64>> {
+): List<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val comparator = symbolComparator ?: defaultSymbolComparator
     val coefficientOfKey = LinkedHashMap<Pair<Symbol, Symbol?>, Flt64>()
 
@@ -59,9 +59,9 @@ fun Iterable<QuadraticMonomial<Flt64>>.combineTerms(
         .toList()
 }
 
-fun QuadraticPolynomial<Flt64>.combineTerms(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticPolynomial<Flt64> {
+): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return combineQuadraticTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
@@ -69,9 +69,9 @@ fun QuadraticPolynomial<Flt64>.combineTerms(
     )
 }
 
-fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
+fun Iterable<CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>.combineCanonicalTerms(
     symbolComparator: Comparator<Symbol>? = null
-): List<CanonicalMonomial<Flt64>> {
+): List<CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return combineCanonicalMonomials(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },
@@ -79,9 +79,9 @@ fun Iterable<CanonicalMonomial<Flt64>>.combineCanonicalTerms(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.combineTerms(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.combineTerms(
     symbolComparator: Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return combineCanonicalPolynomialTerms(
         zero = Flt64.zero,
         isZero = { it == Flt64.zero },

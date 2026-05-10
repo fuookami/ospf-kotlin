@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -67,23 +67,23 @@ class RoundingFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // k = floor(x), same as FloorFunction constraints
         // k <= x
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_k_lb")
 
         // x < k + 1 => x <= k + 1 - eps
         val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.LE, "${name}_round_k_ub")
 
         // b = x - k (fractional part)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(Flt64.one, kVar)
@@ -93,7 +93,7 @@ class RoundingFunction<V>(
 
         // r = 1 if b >= 0.5 (round up)
         // b >= 0.5*r
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(-Flt64(0.5), rVar)
@@ -105,7 +105,7 @@ class RoundingFunction<V>(
         // Simplified: if b < 0.5 then r = 0, if b >= 0.5 then r = 1
         // b - 0.5*r <= 1 - r ... no.
         // b <= 0.5 + M*(1-r) => b + M*r <= M + 0.5
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(mF, rVar)
@@ -113,7 +113,7 @@ class RoundingFunction<V>(
             LinearPolynomial(emptyList(), mF + Flt64(0.5)), Comparison.LE, "${name}_round_r_ub")
 
         // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(-mF, rVar)
@@ -121,7 +121,7 @@ class RoundingFunction<V>(
             LinearPolynomial(emptyList(), Flt64(0.5) - mF), Comparison.GE, "${name}_round_r_lb2")
 
         // result = k + r
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, kVar),
@@ -143,21 +143,21 @@ class RoundingFunction<V>(
             RoundingFunction(x, bigM, converter, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): RoundingFunction<Flt64> = RoundingFunction(x, bigM, flt64Converter, name = name, displayName = displayName)
+        ): RoundingFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = RoundingFunction(x, bigM, flt64Converter, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            RoundingFunction<Flt64>(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+            RoundingFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,
                 converter = flt64Converter,

@@ -20,22 +20,22 @@ import fuookami.ospf.kotlin.math.symbol.operation.gradientLinear
 import fuookami.ospf.kotlin.math.symbol.operation.gradientQuadratic
 import fuookami.ospf.kotlin.math.symbol.operation.gradientCanonical
 
-fun LinearMonomial<Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
-fun LinearPolynomial<Flt64>.derivative(symbol: Symbol): Flt64 {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(symbol: Symbol): Flt64 {
     return derivativeLinear(symbol, zero = Flt64.zero)
 }
 
-fun LinearPolynomial<Flt64>.gradient(order: List<Symbol>): List<Flt64> {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(order: List<Symbol>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return gradientLinear(order, zero = Flt64.zero)
 }
 
-fun QuadraticMonomial<Flt64>.derivative(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -44,10 +44,10 @@ fun QuadraticMonomial<Flt64>.derivative(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.derivative(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): LinearPolynomial<Flt64> {
+): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return derivativeQuadratic(
         symbol = symbol,
         zero = Flt64.zero,
@@ -56,10 +56,10 @@ fun QuadraticPolynomial<Flt64>.derivative(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.gradient(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<LinearPolynomial<Flt64>> {
+): List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return gradientQuadratic(
         order = order,
         zero = Flt64.zero,
@@ -68,7 +68,7 @@ fun QuadraticPolynomial<Flt64>.gradient(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.hessian(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true
 ): Array<DoubleArray> {
@@ -80,10 +80,10 @@ fun QuadraticPolynomial<Flt64>.hessian(
     }
 }
 
-fun CanonicalMonomial<Flt64>.derivative(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -92,10 +92,10 @@ fun CanonicalMonomial<Flt64>.derivative(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.derivative(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.derivative(
     symbol: Symbol,
     combineTerms: Boolean = true
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return derivativeCanonical(
         symbol = symbol,
         zero = Flt64.zero,
@@ -104,10 +104,10 @@ fun CanonicalPolynomial<Flt64>.derivative(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.gradient(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.gradient(
     order: List<Symbol>,
     combineTerms: Boolean = true
-): List<CanonicalPolynomial<Flt64>> {
+): List<CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return gradientCanonical(
         order = order,
         zero = Flt64.zero,
@@ -116,7 +116,7 @@ fun CanonicalPolynomial<Flt64>.gradient(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.hessian(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.hessian(
     order: List<Symbol>,
     combineTerms: Boolean = true,
     symbolComparator: java.util.Comparator<Symbol>? = null

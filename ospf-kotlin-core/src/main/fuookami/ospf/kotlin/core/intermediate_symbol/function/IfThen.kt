@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -90,7 +90,7 @@ class IfThenFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val thenF = thenPoly.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicator for condition
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_cond")
@@ -98,14 +98,14 @@ class IfThenFunction<V>(
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
         val yMono = LinearMonomial(Flt64.one, resultVar)
         val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
             LinearPolynomial(emptyList(), mF),
             Comparison.LE, "${name}_then_ub"
         )
 
         // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
             LinearPolynomial(emptyList(), -mF),
             Comparison.GE, "${name}_then_lb"
@@ -126,20 +126,20 @@ class IfThenFunction<V>(
             IfThenFunction(condition, thenPoly, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            condition: LinearPolynomial<Flt64>,
-            thenPoly: LinearPolynomial<Flt64>,
+            condition: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfThenFunction<Flt64> = IfThenFunction(condition, thenPoly, flt64Converter, bigM, name = name, displayName = displayName)
+        ): IfThenFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfThenFunction(condition, thenPoly, flt64Converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            condition: LinearMonomial<Flt64>,
-            thenPoly: LinearPolynomial<Flt64>,
+            condition: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): IfThenFunction<Flt64> = IfThenFunction(
+        ): IfThenFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfThenFunction(
             condition = LinearPolynomial(listOf(condition), Flt64.zero),
             thenPoly = thenPoly,
             bigM = bigM,
@@ -156,11 +156,11 @@ class IfThenFunction<V>(
         @JvmName("fromConstraintInput")
         operator fun invoke(
             inequality: fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput,
-            thenPoly: LinearPolynomial<Flt64> = LinearPolynomial(emptyList(), Flt64.one),
+            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearPolynomial(emptyList(), Flt64.one),
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> {
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
             val conditionPoly = LinearPolynomial(
                 inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
                 inequality.flattenData.constant

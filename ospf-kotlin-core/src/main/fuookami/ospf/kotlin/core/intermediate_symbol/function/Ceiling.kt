@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -69,25 +69,25 @@ class CeilingFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // x <= k
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_ceil_ub")
 
         // x > k - 1 => x >= k - 1 + epsilon
         val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.GE, "${name}_ceil_lb")
 
         // b = x - floor(x) => k = x + 1 - b => b - k + x = -1 + ... simplified:
         // k = x + b, so k - x = b
         // k - x - b = 0
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, kVar),
                 LinearMonomial(-Flt64.one, bVar)
@@ -96,7 +96,7 @@ class CeilingFunction<V>(
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_decompose")
 
         // result = k
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, kVar)
@@ -117,20 +117,20 @@ class CeilingFunction<V>(
             CeilingFunction(x, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): CeilingFunction<Flt64> = CeilingFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
+        ): CeilingFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CeilingFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             CeilingFunction(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,

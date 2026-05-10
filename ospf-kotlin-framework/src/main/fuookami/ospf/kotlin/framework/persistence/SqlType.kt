@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.persistence
+package fuookami.ospf.kotlin.framework.persistence
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -30,7 +30,7 @@ fun BaseTable<*>.f32(name: String): Column<Flt32> {
     return float(name).transform({ Flt32(it) }, { it.toFloat() })
 }
 
-fun BaseTable<*>.f64(name: String): Column<Flt64> {
+fun BaseTable<*>.f64(name: String): Column<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return double(name).transform({ Flt64(it) }, { it.toDouble() })
 }
 

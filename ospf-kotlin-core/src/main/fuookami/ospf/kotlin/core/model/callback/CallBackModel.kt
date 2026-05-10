@@ -25,7 +25,7 @@ import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.functional.Order
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -144,7 +144,7 @@ class CallBackModel<V> internal constructor(
         internal operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<Flt64> = CallBackModel(
+        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
             objectCategory = objectCategory,
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = dumpObjectiveComparator(objectCategory, flt64Converter),
@@ -154,9 +154,9 @@ class CallBackModel<V> internal constructor(
         )
 
         internal operator fun invoke(
-            objectiveComparator: PartialComparator<Flt64>,
+            objectiveComparator: PartialComparator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<Flt64> = CallBackModel(
+        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
             policy = FunctionalCallBackModelPolicy(
                 objectiveComparator = objectiveComparator,
                 _initialSolutionsGenerator = initialSolutionGenerator
@@ -203,9 +203,9 @@ class CallBackModel<V> internal constructor(
         }
 
         internal operator fun invoke(
-            model: AbstractMetaModel<Flt64>,
+            model: AbstractMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
+        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
 
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
@@ -253,10 +253,10 @@ class CallBackModel<V> internal constructor(
         }
 
         internal operator fun invoke(
-            model: SingleObjectMechanismModel<Flt64>,
+            model: SingleObjectMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
-        ): CallBackModel<Flt64> = invoke(model, initialSolutionGenerator, concurrent, flt64Converter)
+        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = invoke(model, initialSolutionGenerator, concurrent, flt64Converter)
     }
 
     override val constraints by ::_constraints
@@ -430,9 +430,9 @@ class MultiObjectCallBackModel<V> internal constructor(
 
         internal operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            objectiveLocation: List<MultiObjectLocation<Flt64>> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
+            objectiveLocation: List<MultiObjectLocation<fuookami.ospf.kotlin.math.algebra.number.Flt64>> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): MultiObjectCallBackModel<Flt64> = MultiObjectCallBackModel(
+        ): MultiObjectCallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MultiObjectCallBackModel(
             objectCategory = objectCategory,
             objectiveLocation = objectiveLocation,
             _initialSolutionsGenerator = { pair -> initialSolutionGenerator(pair) },

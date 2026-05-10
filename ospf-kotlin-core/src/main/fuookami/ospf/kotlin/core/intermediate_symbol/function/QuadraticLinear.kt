@@ -34,7 +34,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -64,15 +64,15 @@ class QuadraticLinearFunction<V>(
     override val identifier: UInt64 get() = IdentifierGenerator.gen()
     override val index: Int get() = 0
     override val category: Category get() = if (isLinear) Linear else Quadratic
-    override val parent: IntermediateSymbol<*>? = null
+    override val parent: IntermediateSymbol<out V>? = null
     override val operationCategory: Category get() = category
 
-    override val dependencies: Set<IntermediateSymbol<*>>
+    override val dependencies: Set<IntermediateSymbol<out V>>
         get() {
-            val deps = mutableSetOf<IntermediateSymbol<*>>()
+            val deps = mutableSetOf<IntermediateSymbol<out V>>()
             for (m in _polynomial.monomials) {
-                if (m.symbol1 is IntermediateSymbol<*>) deps.add(m.symbol1 as IntermediateSymbol<*>)
-                if (m.symbol2 != null && m.symbol2 is IntermediateSymbol<*>) deps.add(m.symbol2 as IntermediateSymbol<*>)
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol1)?.let { deps.add(it) }
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(m.symbol2)?.let { deps.add(it) }
             }
             return deps
         }
@@ -86,16 +86,16 @@ class QuadraticLinearFunction<V>(
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         return if (isLinear) {
-            QuadraticInequalityOf<Flt64>(
+            QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 QuadraticPolynomial(_polynomial.monomials.map { QuadraticMonomial.linear(converter.fromValue(it.coefficient), it.symbol1) }, converter.fromValue(_polynomial.constant)),
                 QuadraticPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ
             )
         } else {
             val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
-            QuadraticInequalityOf<Flt64>(
+            QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 flt64Poly,
                 QuadraticPolynomial(emptyList(), Flt64.one),
                 Comparison.EQ
@@ -103,23 +103,23 @@ class QuadraticLinearFunction<V>(
         }
     }
 
-    internal val flattenedMonomials: QuadraticFlattenData<Flt64>
-        get() = _polynomial.asFlt64QuadraticPoly(converter).let { QuadraticFlattenData<Flt64>(it.monomials, it.constant) }
+    internal val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        get() = _polynomial.asFlt64QuadraticPoly(converter).let { QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(it.monomials, it.constant) }
 
     override val polynomial: QuadraticPolynomial<V>
         get() = _polynomial
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? = null
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
 
     override fun toRawString(unfold: UInt64): String = displayName ?: name
@@ -147,7 +147,7 @@ class QuadraticLinearFunction<V>(
             val yMon = QuadraticMonomial.linear(Flt64.one, y!!)
             val lhs = QuadraticPolynomial(listOf(yMon) + flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }, -flt64Poly.constant)
             val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            val constraint = QuadraticInequalityOf<Flt64>(lhs, rhs, Comparison.EQ, name)
+            val constraint = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.EQ, name)
             return addQuadraticConstraints(model, listOf(constraint), converter) ?: ok
         }
         return ok
@@ -163,9 +163,9 @@ class QuadraticLinearFunction<V>(
             QuadraticLinearFunction(polynomial, converter, name, displayName)
 
         operator fun invoke(
-            polynomial: QuadraticPolynomial<Flt64>,
+            polynomial: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             name: String,
             displayName: String? = null
-        ): QuadraticLinearFunction<Flt64> = QuadraticLinearFunction(polynomial, flt64Converter, name, displayName)
+        ): QuadraticLinearFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticLinearFunction(polynomial, flt64Converter, name, displayName)
     }
 }

@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -76,7 +76,7 @@ class AndFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
@@ -85,13 +85,13 @@ class AndFunction<V>(
 
         // sum(indicators) >= n * result
         val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64(n.toDouble()), resultVar)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_and_sum")
 
         // result <= each indicator
         for (i in indicatorVars.indices) {
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_and_le_${i}")
         }
@@ -110,20 +110,20 @@ class AndFunction<V>(
             AndFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): AndFunction<Flt64> = AndFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
+        ): AndFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AndFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>>,
+            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             AndFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
@@ -185,7 +185,7 @@ class OrFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
@@ -194,13 +194,13 @@ class OrFunction<V>(
 
         // sum(indicators) >= result
         val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_sum")
 
         // result >= each indicator
         for (i in indicatorVars.indices) {
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_ge_${i}")
         }
@@ -219,20 +219,20 @@ class OrFunction<V>(
             OrFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): OrFunction<Flt64> = OrFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
+        ): OrFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = OrFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>>,
+            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             OrFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
@@ -286,13 +286,13 @@ class NotFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicator
         allConstraints += nonzeroIndicatorConstraints(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_not_nz")
 
         // result = 1 - indicator => result + indicator = 1
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64.one, indicatorVar)), Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_not_result")
 
@@ -310,20 +310,20 @@ class NotFunction<V>(
             NotFunction(polynomial, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomial: LinearPolynomial<Flt64>,
+            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): NotFunction<Flt64> = NotFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
+        ): NotFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NotFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             NotFunction(
                 polynomial = polynomial.toLinearPolynomial(),
                 bigM = bigM,
@@ -386,7 +386,7 @@ class XorFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
@@ -397,13 +397,13 @@ class XorFunction<V>(
         // For binary indicators, XOR = sum(indicators) - 2*floor(sum/2)
         // Simplification: sum(indicators) <= n*result + (n-1)*(1-result) => sum(indicators) <= result + (n-1)
         val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64((n - 1).toDouble())), Comparison.LE, "${name}_xor_sum_ub")
 
         // sum(indicators) >= result
         val indMonos2 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos2, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_xor_sum_lb")
 
@@ -431,7 +431,7 @@ class XorFunction<V>(
         // Combined:
         //           sum(indicators) <= 1 + (n-1) - (n-1)*result = n - (n-1)*result
         val indMonos3 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(Flt64((n - 1).toDouble()), resultVar)
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(indMonos3, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64(n.toDouble())), Comparison.LE, "${name}_xor_exactly")
 
@@ -449,20 +449,20 @@ class XorFunction<V>(
             XorFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): XorFunction<Flt64> = XorFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
+        ): XorFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = XorFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomials")
         fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>>,
+            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             XorFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,

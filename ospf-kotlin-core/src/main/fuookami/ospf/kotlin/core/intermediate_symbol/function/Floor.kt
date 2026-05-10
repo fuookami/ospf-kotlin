@@ -22,7 +22,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -72,21 +72,21 @@ class FloorFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mF = converter.fromValue(bigM)
         val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
         val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // k <= x
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_floor_lb")
 
         // k + 1 >= x => x <= k + 1
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_floor_ub")
 
         // b = x - k => b + k - x = 0
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, bVar),
                 LinearMonomial(Flt64.one, kVar)
@@ -95,7 +95,7 @@ class FloorFunction<V>(
             LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_decompose")
 
         // result = k
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(listOf(
                 LinearMonomial(Flt64.one, resultVar),
                 LinearMonomial(-Flt64.one, kVar)
@@ -116,20 +116,20 @@ class FloorFunction<V>(
             FloorFunction(x, converter, bigM, name = name, displayName = displayName)
 
         operator fun invoke(
-            x: LinearPolynomial<Flt64>,
+            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): FloorFunction<Flt64> = FloorFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
+        ): FloorFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = FloorFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             FloorFunction(
                 x = x.toLinearPolynomial(),
                 bigM = bigM,

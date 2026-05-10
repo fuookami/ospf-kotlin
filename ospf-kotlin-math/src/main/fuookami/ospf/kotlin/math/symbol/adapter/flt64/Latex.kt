@@ -26,7 +26,7 @@ private fun formatNumber(value: Flt64): String {
     return BigDecimal.valueOf(doubleValue).stripTrailingZeros().toPlainString()
 }
 
-private val flt64LatexOps = LatexNumberOps<Flt64>(
+private val flt64LatexOps = LatexNumberOps<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
     isZero = { it == Flt64.zero },
     isOne = { it == Flt64.one },
     isNegative = { it.toDouble() < 0.0 },
@@ -34,37 +34,37 @@ private val flt64LatexOps = LatexNumberOps<Flt64>(
     format = { formatNumber(it) }
 )
 
-fun LinearMonomial<Flt64>.toLatex(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun QuadraticMonomial<Flt64>.toLatex(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun CanonicalMonomial<Flt64>.toLatex(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun LinearPolynomial<Flt64>.toLatex(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun QuadraticPolynomial<Flt64>.toLatex(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
 }
 
-fun CanonicalPolynomial<Flt64>.toLatex(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return toLatexString(flt64LatexOps, options)
@@ -81,19 +81,19 @@ private fun Comparison.latexSymbol(): String {
     }
 }
 
-fun LinearInequality<Flt64>.toLatex(
+fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
-fun QuadraticInequalityOf<Flt64>.toLatex(
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
 }
 
-fun CanonicalInequality<Flt64>.toLatex(
+fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatex(
     options: LatexOptions = LatexOptions()
 ): String {
     return "${lhs.toLatex(options)} ${comparison.latexSymbol()} ${rhs.toLatex(options)}"
@@ -109,7 +109,7 @@ private fun Flt64.toLatexString(): String {
     }
 }
 
-private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
+private fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val symbolName = symbol.displayName ?: symbol.name
     return when {
@@ -119,7 +119,7 @@ private fun LinearMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
-private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
+private fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val s1Name = symbol1.displayName ?: symbol1.name
     return when {
@@ -149,7 +149,7 @@ private fun QuadraticMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
-private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
+private fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexStringSimple(): String {
     val coeff = coefficient
     val powerParts = powers.entries.joinToString(" \\cdot ") { (symbol, power) ->
         val symbolName = symbol.displayName ?: symbol.name
@@ -163,7 +163,7 @@ private fun CanonicalMonomial<Flt64>.toLatexStringSimple(): String {
     }
 }
 
-fun LinearPolynomial<Flt64>.toLatexString(): String {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
     for ((index, monomial) in monomials.withIndex()) {
@@ -188,7 +188,7 @@ fun LinearPolynomial<Flt64>.toLatexString(): String {
     return parts.joinToString(" ")
 }
 
-fun QuadraticPolynomial<Flt64>.toLatexString(): String {
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
     for ((index, monomial) in monomials.withIndex()) {
@@ -213,7 +213,7 @@ fun QuadraticPolynomial<Flt64>.toLatexString(): String {
     return parts.joinToString(" ")
 }
 
-fun CanonicalPolynomial<Flt64>.toLatexString(): String {
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLatexString(): String {
     if (monomials.isEmpty()) return constant.toLatexString()
     val parts = mutableListOf<String>()
     for ((index, monomial) in monomials.withIndex()) {

@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
  * Rust: `pub trait IntoValue<V>: Clone + Debug + PartialOrd + Send + Sync + 'static`
  * Kotlin: V is bounded by RealNumber<V> which provides all arithmetic + ordering.
  *
- * The primary use case: converting Flt64 (solver standard) â†’ V (generic value type).
+ * The primary use case: converting Flt64 (solver standard) â†?V (generic value type).
  * This enables function symbols to convert literal f64 constants to V.
  *
  * Also provides V-typed constants (zero, one) and reverse conversion (fromValue)

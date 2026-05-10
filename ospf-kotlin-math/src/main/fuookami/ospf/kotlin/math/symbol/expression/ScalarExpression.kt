@@ -1,8 +1,8 @@
 /**
- * 标量表达式
+ * 标量表达�?
  * Scalar Expression
  *
- * 定义标量值的表达式 AST，包括常量、引用、一元操作、二元操作、函数调用和自定义表达式。
+ * 定义标量值的表达�?AST，包括常量、引用、一元操作、二元操作、函数调用和自定义表达式�?
  * Defines the expression AST for scalar values,
  * including constant, reference, unary, binary, function call, and custom expressions.
  */
@@ -11,16 +11,16 @@ package fuookami.ospf.kotlin.math.symbol.expression
 import fuookami.ospf.kotlin.math.symbol.*
 
 /**
- * 标量表达式
+ * 标量表达�?
  * Scalar Expression
  *
- * 表示标量值的表达式，支持多种操作类型。
+ * 表示标量值的表达式，支持多种操作类型�?
  * Represents an expression for scalar values, supporting various operation types.
  */
 sealed interface ScalarExpression<out T> {
 
     /**
-     * 表达式类型名称
+     * 表达式类型名�?
      * Expression type name
      */
     val typeName: String
@@ -46,7 +46,7 @@ sealed interface ScalarExpression<out T> {
     }
 
     /**
-     * 判断表达式是否包含引用
+     * 判断表达式是否包含引�?
      * Check if expression contains references
      */
     fun containsReference(): Boolean = when (this) {
@@ -60,7 +60,7 @@ sealed interface ScalarExpression<out T> {
     }
 
     /**
-     * 获取表达式中的所有引用路径
+     * 获取表达式中的所有引用路�?
      * Get all reference paths in the expression
      */
     fun collectReferences(): Set<PropertyPath> {
@@ -92,7 +92,7 @@ sealed interface ScalarExpression<out T> {
  * 标量常量
  * Scalar Constant
  *
- * 表示常量值。
+ * 表示常量值�?
  * Represents a constant value.
  */
 data class ScalarConstant<T>(
@@ -108,7 +108,7 @@ data class ScalarConstant<T>(
  * 标量引用
  * Scalar Reference
  *
- * 表示对属性路径的引用。
+ * 表示对属性路径的引用�?
  * Represents a reference to a property path.
  */
 data class ScalarReference<T>(
@@ -131,10 +131,10 @@ data class ScalarSymbolReference<T>(
 }
 
 /**
- * 标量一元操作
+ * 标量一元操�?
  * Scalar Unary Operation
  *
- * 表示一元操作表达式，如负号。
+ * 表示一元操作表达式，如负号�?
  * Represents a unary operation expression, such as negation.
  */
 data class ScalarUnary<T>(
@@ -151,7 +151,7 @@ data class ScalarUnary<T>(
  * 标量二元操作
  * Scalar Binary Operation
  *
- * 表示二元操作表达式，如加法、减法。
+ * 表示二元操作表达式，如加法、减法�?
  * Represents a binary operation expression, such as addition, subtraction.
  */
 data class ScalarBinary<T>(
@@ -169,7 +169,7 @@ data class ScalarBinary<T>(
  * 标量函数调用
  * Scalar Function Call
  *
- * 表示函数调用表达式。
+ * 表示函数调用表达式�?
  * Represents a function call expression.
  */
 data class ScalarFunction<T>(
@@ -186,7 +186,7 @@ data class ScalarFunction<T>(
  * 标量自定义表达式
  * Scalar Custom Expression
  *
- * 表示自定义表达式，用于扩展。
+ * 表示自定义表达式，用于扩展�?
  * Represents a custom expression for extension.
  */
 data class ScalarCustom<T>(
@@ -200,27 +200,27 @@ data class ScalarCustom<T>(
 }
 
 /**
- * 标量表达式工厂
+ * 标量表达式工�?
  * Scalar Expression Factory
  *
- * 提供便捷的标量表达式构造方法。
+ * 提供便捷的标量表达式构造方法�?
  * Provides convenient scalar expression construction methods.
  */
 object ScalarExpressionFactory {
     /**
-     * 创建常量表达式
+     * 创建常量表达�?
      * Create constant expression
      */
     fun <T> constant(value: T): ScalarExpression<T> = ScalarConstant(value)
 
     /**
-     * 创建引用表达式
+     * 创建引用表达�?
      * Create reference expression
      */
     fun <T> reference(path: PropertyPath): ScalarExpression<T> = ScalarReference(path)
 
     /**
-     * 创建引用表达式
+     * 创建引用表达�?
      * Create reference expression
      */
     fun <T> reference(path: String): ScalarExpression<T> = reference(PropertyPath.parse(path))
@@ -235,7 +235,7 @@ object ScalarExpressionFactory {
         ScalarUnary(operator, operand)
 
     /**
-     * 创建二元操作表达式
+     * 创建二元操作表达�?
      * Create binary operation expression
      */
     fun <T> binary(
@@ -245,35 +245,35 @@ object ScalarExpressionFactory {
     ): ScalarExpression<T> = ScalarBinary(operator, left, right)
 
     /**
-     * 创建函数调用表达式
+     * 创建函数调用表达�?
      * Create function call expression
      */
     fun <T> function(name: String, arguments: List<ScalarExpression<T>>): ScalarExpression<T> =
         ScalarFunction(name, arguments)
 
     /**
-     * 创建加法表达式
+     * 创建加法表达�?
      * Create addition expression
      */
     fun <T> add(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Add, left, right)
 
     /**
-     * 创建减法表达式
+     * 创建减法表达�?
      * Create subtraction expression
      */
     fun <T> subtract(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Subtract, left, right)
 
     /**
-     * 创建乘法表达式
+     * 创建乘法表达�?
      * Create multiplication expression
      */
     fun <T> multiply(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =
         binary(BinaryOperator.Multiply, left, right)
 
     /**
-     * 创建除法表达式
+     * 创建除法表达�?
      * Create division expression
      */
     fun <T> divide(left: ScalarExpression<T>, right: ScalarExpression<T>): ScalarExpression<T> =

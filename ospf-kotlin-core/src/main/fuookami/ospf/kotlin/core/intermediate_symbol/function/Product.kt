@@ -26,6 +26,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.multiarray.Shape
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
@@ -33,7 +34,9 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
+
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -52,7 +55,7 @@ class ProductFunction<V>(
     override var name: String = "product",
     override var displayName: String? = null
 ) : QuadraticIntermediateSymbol<V>, QuadraticMathFunctionSymbolBase<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    internal var _group: AbstractSymbolCombination<*>? = null
+    internal var _group: AbstractSymbolCombination<out Shape>? = null
     internal var _index: Int? = null
     override val identifier: UInt64 by lazy {
         _group?.identifier ?: IdentifierGenerator.gen()
@@ -62,19 +65,19 @@ class ProductFunction<V>(
     }
 
     override val category: Category = Quadratic
-    override val parent: IntermediateSymbol<*>? = null
+    override val parent: ProductIntermediate<V>? = null
     override val operationCategory: Category = Quadratic
 
-    override val dependencies: Set<IntermediateSymbol<*>>
+    override val dependencies: Set<ProductIntermediate<V>>
         get() {
-            val deps = mutableSetOf<IntermediateSymbol<*>>()
+            val deps = mutableSetOf<ProductIntermediate<V>>()
             for (m in left.monomials) {
                 val s = m.symbol
-                if (s is IntermediateSymbol<*>) deps.add(s)
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(s)?.let { deps.add(it) }
             }
             for (m in right.monomials) {
                 val s = m.symbol
-                if (s is IntermediateSymbol<*>) deps.add(s)
+                SolverBoundaryCasts.symbolAsIntermediateStar<V>(s)?.let { deps.add(it) }
             }
             return deps
         }
@@ -83,9 +86,9 @@ class ProductFunction<V>(
     override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
 
     /** Flt64 view of left polynomial for solver-boundary operations. */
-    private val leftFlt64: LinearPolynomial<Flt64> by lazy { left.asFlt64Poly(converter) }
+    private val leftFlt64: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> by lazy { left.asFlt64Poly(converter) }
     /** Flt64 view of right polynomial for solver-boundary operations. */
-    private val rightFlt64: LinearPolynomial<Flt64> by lazy { right.asFlt64Poly(converter) }
+    private val rightFlt64: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> by lazy { right.asFlt64Poly(converter) }
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) {
@@ -94,8 +97,7 @@ class ProductFunction<V>(
     }
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        val tokenList = tt.tokenList
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         val leftValue = if (values.isNullOrEmpty()) {
             evaluateLinear(leftFlt64, tokenList, false)
         } else {
@@ -114,13 +116,13 @@ class ProductFunction<V>(
     /**
      * Expand left * right into a Flt64 quadratic polynomial (solver boundary).
      */
-    private fun expandedQuadraticPolyFlt64(): QuadraticPolynomial<Flt64> {
+    private fun expandedQuadraticPolyFlt64(): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val leftC = leftFlt64
         val rightC = rightFlt64
         val leftConst = leftC.constant
         val rightConst = rightC.constant
 
-        val monomials = mutableListOf<QuadraticMonomial<Flt64>>()
+        val monomials = mutableListOf<QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         for (lm in leftC.monomials) {
             for (rm in rightC.monomials) {
@@ -148,14 +150,14 @@ class ProductFunction<V>(
         return QuadraticPolynomial(monomials, leftConst * rightConst)
     }
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<Flt64> {
-        return QuadraticInequalityOf<Flt64>(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(expandedQuadraticPolyFlt64(), QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
     }
 
-    internal val flattenedMonomials: QuadraticFlattenData<Flt64>
+    internal val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         get() {
             val poly = expandedQuadraticPolyFlt64()
-            return QuadraticFlattenData<Flt64>(poly.monomials, poly.constant)
+            return QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(poly.monomials, poly.constant)
         }
 
     override val polynomial: QuadraticPolynomial<V>
@@ -163,19 +165,19 @@ class ProductFunction<V>(
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
-    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinear(leftFlt64, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinear(rightFlt64, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromResults(leftFlt64, results, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromResults(rightFlt64, results, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
     }
 
-    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
         val leftVal = evaluateLinearFromValues(leftFlt64, values, tokenList, zeroIfNone) ?: return null
         val rightVal = evaluateLinearFromValues(rightFlt64, values, tokenList, zeroIfNone) ?: return null
         return leftVal * rightVal
@@ -185,32 +187,29 @@ class ProductFunction<V>(
         return prepareSolver(flt64Values, tokenTable, converter)
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        val tokenList = tt.tokenList as AbstractTokenList<Flt64>
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         val result = evaluate(tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        val tokenList = tt.tokenList as AbstractTokenList<Flt64>
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         val flt64Results = results.map { converter.fromValue(it) }
         val result = evaluate(flt64Results, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tokenList = tokenTable?.let { (it as AbstractTokenTable<Flt64>).tokenList as AbstractTokenList<Flt64> }
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64OrNull(tokenTable)
         val flt64Values = values.mapValues { converter.fromValue(it.value) }
         val result = evaluate(flt64Values, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
-    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tt = tokenTable as AbstractTokenTable<Flt64>
-        val tokenList = tt.tokenList as AbstractTokenList<Flt64>
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         val result = evaluate(results, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val tokenList = tokenTable?.let { (it as AbstractTokenTable<Flt64>).tokenList as AbstractTokenList<Flt64> }
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64OrNull(tokenTable)
         val result = evaluate(values, tokenList, zeroIfNone) ?: return null
         return converter.intoValue(result)
     }
@@ -226,7 +225,9 @@ class ProductFunction<V>(
     override fun hashCode(): Int = identifier.toInt() * 31 + index
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
-        if (other !is ProductFunction<*>) return false
+        if (other == null || other::class != this::class) return false
+        @Suppress("UNCHECKED_CAST")
+        other as ProductFunction<V>
         return identifier == other.identifier && index == other.index && name == other.name
     }
     override fun toString(): String = displayName ?: name
@@ -235,15 +236,15 @@ class ProductFunction<V>(
 
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val poly = expandedQuadraticPolyFlt64()
-        val rhs = QuadraticPolynomial<Flt64>(constant = Flt64.zero)
-        val inequality = QuadraticInequalityOf<Flt64>(poly, rhs, Comparison.EQ)
+        val rhs = QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(constant = Flt64.zero)
+        val inequality = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(poly, rhs, Comparison.EQ)
         return addQuadraticConstraints(model, listOf(inequality), converter) ?: ok
     }
 
     companion object {
         private fun evaluateLinear(
-            poly: LinearPolynomial<Flt64>,
-            tokenList: AbstractTokenList<Flt64>,
+            poly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant
@@ -263,9 +264,9 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromResults(
-            poly: LinearPolynomial<Flt64>,
-            results: List<Flt64>,
-            tokenList: AbstractTokenList<Flt64>,
+            poly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant
@@ -287,9 +288,9 @@ class ProductFunction<V>(
         }
 
         private fun evaluateLinearFromValues(
-            poly: LinearPolynomial<Flt64>,
+            poly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             values: Map<Symbol, Flt64>,
-            tokenList: AbstractTokenList<Flt64>?,
+            tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?,
             zeroIfNone: Boolean
         ): Flt64? {
             var value = poly.constant
@@ -320,11 +321,11 @@ class ProductFunction<V>(
 
         // Flt64-specific convenience factory
         operator fun invoke(
-            left: LinearPolynomial<Flt64>,
-            right: LinearPolynomial<Flt64>,
+            left: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            right: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             name: String = "product",
             displayName: String? = null
-        ): ProductFunction<Flt64> = ProductFunction(left, right, flt64Converter, name, displayName)
+        ): ProductFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ProductFunction(left, right, flt64Converter, name, displayName)
     }
 }
 

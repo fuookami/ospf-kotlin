@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -66,7 +66,7 @@ class SigmoidFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
         allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_sig_nz")
@@ -87,21 +87,21 @@ class SigmoidFunction<V>(
             SigmoidFunction(condition, bigM, converter = converter, name = name, displayName = displayName)
 
         operator fun invoke(
-            condition: LinearPolynomial<Flt64>,
+            condition: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String = "sigmoid",
             displayName: String? = null
-        ): SigmoidFunction<Flt64> = SigmoidFunction(condition, bigM, converter = flt64Converter, name = name, displayName = displayName)
+        ): SigmoidFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SigmoidFunction(condition, bigM, converter = flt64Converter, name = name, displayName = displayName)
 
         @JvmStatic
         @JvmName("fromLinearPolynomial")
         fun fromLinearPolynomial(
-            condition: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<Flt64>,
+            condition: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            SigmoidFunction<Flt64>(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+            SigmoidFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 condition = condition.toLinearPolynomial(),
                 bigM = bigM,
                 converter = flt64Converter,

@@ -20,7 +20,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.operation.*
 
-private fun missingValueFailed(symbol: Symbol): Ret<Flt64> {
+private fun missingValueFailed(symbol: Symbol): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return Failed(ErrorCode.DataNotFound, "Missing value for symbol: ${symbol.name}")
 }
 
@@ -44,7 +44,7 @@ private fun resolveValueRet(
     symbol: Symbol,
     provider: ValueProvider,
     policy: MissingValuePolicy
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val value = provider[symbol]
     return if (value != null) {
         Ok(value)
@@ -56,7 +56,7 @@ private fun resolveValueRet(
     }
 }
 
-fun LinearMonomial<Flt64>.evaluate(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -68,17 +68,17 @@ fun LinearMonomial<Flt64>.evaluate(
     }
 }
 
-fun LinearMonomial<Flt64>.evaluate(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun LinearMonomial<Flt64>.evaluateRet(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return when (val result = resolveValueRet(symbol, provider, policy)) {
         is Ok -> Ok(coefficient * result.value)
         is Failed -> Failed(result.error)
@@ -86,16 +86,16 @@ fun LinearMonomial<Flt64>.evaluateRet(
     }
 }
 
-fun LinearMonomial<Flt64>.evaluateRet(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun LinearMonomial<Flt64>.evaluateOrdered(
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
@@ -109,7 +109,7 @@ fun LinearMonomial<Flt64>.evaluateOrdered(
     return coefficient * values[index]
 }
 
-fun LinearMonomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<Flt64> {
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val symbolValue = provider[symbol]
     return if (symbolValue != null) {
         LinearPolynomial(
@@ -124,11 +124,11 @@ fun LinearMonomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolyno
     }
 }
 
-fun LinearMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<Flt64> {
+fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
-fun QuadraticMonomial<Flt64>.evaluate(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -147,17 +147,17 @@ fun QuadraticMonomial<Flt64>.evaluate(
     }
 }
 
-fun QuadraticMonomial<Flt64>.evaluate(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun QuadraticMonomial<Flt64>.evaluateRet(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val v1Result = resolveValueRet(symbol1, provider, policy)
     when (v1Result) {
         is Failed -> return Failed(v1Result.error)
@@ -179,16 +179,16 @@ fun QuadraticMonomial<Flt64>.evaluateRet(
     }
 }
 
-fun QuadraticMonomial<Flt64>.evaluateRet(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun QuadraticMonomial<Flt64>.evaluateOrdered(
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
@@ -208,7 +208,7 @@ fun QuadraticMonomial<Flt64>.evaluateOrdered(
     return result
 }
 
-fun QuadraticMonomial<Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<Flt64> {
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val v1 = provider[symbol1]
     val v2 = if (symbol2 != null) provider[symbol2] else null
 
@@ -254,11 +254,11 @@ fun QuadraticMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Quadratic
     }
 }
 
-fun QuadraticMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<Flt64> {
+fun QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
-fun CanonicalMonomial<Flt64>.evaluate(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -271,17 +271,17 @@ fun CanonicalMonomial<Flt64>.evaluate(
     return result
 }
 
-fun CanonicalMonomial<Flt64>.evaluate(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
     return evaluate(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<Flt64>.evaluateRet(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     var result = coefficient
     for ((symbol, power) in powers) {
         val symbolValueResult = resolveValueRet(symbol, provider, policy)
@@ -294,16 +294,16 @@ fun CanonicalMonomial<Flt64>.evaluateRet(
     return Ok(result)
 }
 
-fun CanonicalMonomial<Flt64>.evaluateRet(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalMonomial<Flt64>.evaluateOrdered(
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     require(order.toSet().size == order.size) {
         "Symbol order contains duplicated symbols."
@@ -321,7 +321,7 @@ fun CanonicalMonomial<Flt64>.evaluateOrdered(
     return result
 }
 
-fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<Flt64> {
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     var newCoefficient = coefficient
     val remainedPowers = LinkedHashMap<Symbol, Int32>()
     for ((symbol, power) in powers) {
@@ -338,11 +338,11 @@ fun CanonicalMonomial<Flt64>.partialEvaluate(provider: ValueProvider): Canonical
     )
 }
 
-fun CanonicalMonomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<Flt64> {
+fun CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): CanonicalMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluate(MapValueProvider(values))
 }
 
-fun LinearPolynomial<Flt64>.evaluate(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -354,11 +354,11 @@ fun LinearPolynomial<Flt64>.evaluate(
     )
 }
 
-fun LinearPolynomial<Flt64>.evaluateRet(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
-    var failure: Ret<Flt64>? = null
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    var failure: Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
     val value = evaluateLinear(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -384,21 +384,21 @@ fun LinearPolynomial<Flt64>.evaluateRet(
     }
 }
 
-fun LinearPolynomial<Flt64>.evaluateRet(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun LinearPolynomial<Flt64>.evaluateOrdered(
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     return evaluateLinearOrdered(order, values)
 }
 
-fun LinearPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<Flt64> {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         provider[monomial.symbol]?.let { values[monomial.symbol] = it }
@@ -410,7 +410,7 @@ fun LinearPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): LinearPoly
     )
 }
 
-fun LinearPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<Flt64> {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluateLinear(
         values = values,
         zero = Flt64.zero,
@@ -418,9 +418,9 @@ fun LinearPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): LinearP
     )
 }
 
-fun LinearPolynomial<Flt64>.evaluateIntervalExtremum(
-    intervals: Map<Symbol, ValueRange<Flt64>>
-): ValueRange<Flt64>? {
+fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateIntervalExtremum(
+    intervals: Map<Symbol, ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
+): ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     var lowerBound = constant
     var upperBound = constant
     for (monomial in monomials) {
@@ -456,7 +456,7 @@ fun LinearPolynomial<Flt64>.evaluateIntervalExtremum(
     }
 }
 
-fun QuadraticPolynomial<Flt64>.evaluate(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -468,11 +468,11 @@ fun QuadraticPolynomial<Flt64>.evaluate(
     )
 }
 
-fun QuadraticPolynomial<Flt64>.evaluateRet(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
-    var failure: Ret<Flt64>? = null
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    var failure: Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
     val value = evaluateQuadratic(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -498,21 +498,21 @@ fun QuadraticPolynomial<Flt64>.evaluateRet(
     }
 }
 
-fun QuadraticPolynomial<Flt64>.evaluateRet(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun QuadraticPolynomial<Flt64>.evaluateOrdered(
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     return evaluateQuadraticOrdered(order, values)
 }
 
-fun QuadraticPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<Flt64> {
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(provider: ValueProvider): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         provider[monomial.symbol1]?.let { values[monomial.symbol1] = it }
@@ -527,7 +527,7 @@ fun QuadraticPolynomial<Flt64>.partialEvaluate(provider: ValueProvider): Quadrat
     )
 }
 
-fun QuadraticPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<Flt64> {
+fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluateQuadratic(
         values = values,
         zero = Flt64.zero,
@@ -535,7 +535,7 @@ fun QuadraticPolynomial<Flt64>.partialEvaluate(values: Map<Symbol, Flt64>): Quad
     )
 }
 
-fun CanonicalPolynomial<Flt64>.evaluate(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluate(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.ReturnNull
 ): Flt64? {
@@ -548,11 +548,11 @@ fun CanonicalPolynomial<Flt64>.evaluate(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.evaluateRet(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     provider: ValueProvider,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
-    var failure: Ret<Flt64>? = null
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    var failure: Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64>? = null
     val value = evaluateCanonical(
         values = emptyMap(),
         onMissing = { symbol ->
@@ -579,24 +579,24 @@ fun CanonicalPolynomial<Flt64>.evaluateRet(
     }
 }
 
-fun CanonicalPolynomial<Flt64>.evaluateRet(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateRet(
     values: Map<Symbol, Flt64>,
     policy: MissingValuePolicy = MissingValuePolicy.Fail
-): Ret<Flt64> {
+): Ret<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return evaluateRet(MapValueProvider(values), policy)
 }
 
-fun CanonicalPolynomial<Flt64>.evaluateOrdered(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.evaluateOrdered(
     order: List<Symbol>,
-    values: List<Flt64>
+    values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): Flt64 {
     return evaluateCanonicalOrdered(order, values, Flt64.one)
 }
 
-fun CanonicalPolynomial<Flt64>.partialEvaluate(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(
     provider: ValueProvider,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val values = LinkedHashMap<Symbol, Flt64>()
     for (monomial in monomials) {
         for (symbol in monomial.powers.keys) {
@@ -612,10 +612,10 @@ fun CanonicalPolynomial<Flt64>.partialEvaluate(
     )
 }
 
-fun CanonicalPolynomial<Flt64>.partialEvaluate(
+fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.partialEvaluate(
     values: Map<Symbol, Flt64>,
     symbolComparator: java.util.Comparator<Symbol>? = null
-): CanonicalPolynomial<Flt64> {
+): CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return partialEvaluateCanonical(
         values = values,
         zero = Flt64.zero,

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.persistence
+package fuookami.ospf.kotlin.framework.persistence
 
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 

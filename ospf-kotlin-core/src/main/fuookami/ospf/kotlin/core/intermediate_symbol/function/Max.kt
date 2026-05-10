@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -77,13 +77,13 @@ class MaxFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
         val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // result >= poly[i] for each i
         for (i in polynomials.indices) {
             val polyF = polynomials[i].asFlt64Poly(converter)
             val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
@@ -94,14 +94,14 @@ class MaxFunction<V>(
             val ubMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(ubMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), mF), Comparison.LE)
         }
 
         // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
@@ -119,20 +119,20 @@ class MaxFunction<V>(
             MaxFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String = "max",
             displayName: String? = null
-        ): MaxFunction<Flt64> = MaxFunction(polynomials, bigM, flt64Converter, name, displayName)
+        ): MaxFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MaxFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<Flt64>>,
+            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
@@ -193,13 +193,13 @@ class MinFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val resultMon = LinearMonomial(Flt64.one, resultVar)
         val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<LinearInequality<Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
 
         // result <= poly[i] for each i
         for (i in polynomials.indices) {
             val polyF = polynomials[i].asFlt64Poly(converter)
             val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(ubMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
         }
@@ -210,14 +210,14 @@ class MinFunction<V>(
             val lbMonos = listOf(resultMon) +
                 polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
                 LinearMonomial(mF, selectorVars[i])
-            allConstraints += LinearInequality<Flt64>(
+            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
                 LinearPolynomial(lbMonos, -polyF.constant),
                 LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
         }
 
         // sum(sel[i]) = 1
         val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<Flt64>(
+        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
             LinearPolynomial(selMonos, Flt64.zero),
             LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
 
@@ -235,20 +235,20 @@ class MinFunction<V>(
             MinFunction(polynomials, bigM, converter, name, displayName)
 
         operator fun invoke(
-            polynomials: List<LinearPolynomial<Flt64>>,
+            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String = "min",
             displayName: String? = null
-        ): MinFunction<Flt64> = MinFunction(polynomials, bigM, flt64Converter, name, displayName)
+        ): MinFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MinFunction(polynomials, bigM, flt64Converter, name, displayName)
 
         @JvmStatic
         @JvmName("fromSymbols")
         operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<Flt64>>,
+            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
             bigM: Flt64? = null,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
             MinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
