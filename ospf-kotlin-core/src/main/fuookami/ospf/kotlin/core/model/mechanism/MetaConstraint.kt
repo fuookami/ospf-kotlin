@@ -260,7 +260,8 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: LinearFlattenData<Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
+    val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData()
+    val flattenDataFlt64: LinearFlattenData<Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -270,7 +271,7 @@ data class LinearInequalityConstraint<V>(
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
-        val lhsValue = evaluateFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
+        val lhsValue = evaluateFlattenDataWithResults(flattenDataFlt64, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
     }
@@ -291,7 +292,8 @@ data class QuadraticInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: QuadraticFlattenData<Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
+    val flattenData: QuadraticFlattenData<V> get() = inequality.toQuadraticFlattenData()
+    val flattenDataFlt64: QuadraticFlattenData<Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String = ""
     val displayName: String? = null
@@ -301,7 +303,7 @@ data class QuadraticInequalityConstraint<V>(
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
-        val lhsValue = evaluateQuadraticFlattenDataWithResults(flattenData, solution, tokenTable, zeroIfNone)
+        val lhsValue = evaluateQuadraticFlattenDataWithResults(flattenDataFlt64, solution, tokenTable, zeroIfNone)
             ?: return null
         return sign.compare(lhsValue, Flt64.zero)
     }
@@ -320,12 +322,12 @@ data class QuadraticInequalityConstraint<V>(
  * This type uses QuadraticFlattenData<Flt64> directly for objective functions,
  * avoiding dependency on frontend/expression types.
  */
-data class QuadraticFlattenSubObject(
+data class QuadraticFlattenSubObject<V>(
     val category: ObjectCategory,
-    val flattenData: QuadraticFlattenData<Flt64>,
+    val flattenData: QuadraticFlattenData<V>,
     val name: String = "",
     val displayName: String? = null
-)
+) where V : RealNumber<V>, V : NumberField<V>
 
 
 

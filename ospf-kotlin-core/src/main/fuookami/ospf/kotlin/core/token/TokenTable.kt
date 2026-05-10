@@ -647,7 +647,7 @@ private fun AbstractTokenTable<Flt64>.cacheSymbolContext(symbol: IntermediateSym
             cacheQuadraticFlatten(symbol, symbol.solverFlattenedMonomials)
         }
     }
-    cacheRange(symbol, symbol.range)
+    cacheRange(symbol, SolverBoundaryCasts.rangeAsFlt64(symbol))
 }
 
 private fun AbstractTokenTable<Flt64>.cacheSymbolContexts(symbols: Iterable<IntermediateSymbol<*>>) {

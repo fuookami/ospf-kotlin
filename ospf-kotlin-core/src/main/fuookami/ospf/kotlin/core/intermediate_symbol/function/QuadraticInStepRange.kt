@@ -2,6 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
+import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
@@ -95,7 +96,7 @@ class QuadraticInStepRangeFunction<V>(
         }
 
     override val cached: Boolean get() = false
-    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) dep.flush(force)

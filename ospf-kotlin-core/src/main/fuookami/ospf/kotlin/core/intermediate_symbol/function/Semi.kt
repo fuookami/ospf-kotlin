@@ -68,6 +68,7 @@ class SemiFunction<V>(
         ): SemiFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SemiFunction(lb, ub, converter, name, displayName)
 
+        @Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
         operator fun invoke(
             lb: Flt64 = Flt64.zero,
             ub: Flt64 = Flt64(1e6),

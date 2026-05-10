@@ -12,6 +12,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 
 /**
  * Generic SubObject<V> with V-typed public evaluation.
@@ -53,6 +55,28 @@ class LinearSubObject<V : RealNumber<V>>(
     }
 
     companion object {
+        operator fun <V> invoke(
+            category: ObjectCategory,
+            flattenData: LinearFlattenData<V>,
+            tokens: AbstractTokenTable<V>,
+            name: String = "",
+            converter: IntoValue<V>
+        ): LinearSubObject<V> where V : RealNumber<V>, V : NumberField<V> {
+            val cells = createLinearCells(
+                flattenData.monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) },
+                tokens,
+                converter
+            )
+            return LinearSubObject(
+                category = category,
+                cells = cells,
+                _constant = flattenData.constant,
+                name = name
+            )
+        }
+
+        @Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmName("invokeFlt64")
         operator fun invoke(
             category: ObjectCategory,
             flattenData: LinearFlattenData<Flt64>,
@@ -68,6 +92,8 @@ class LinearSubObject<V : RealNumber<V>>(
             )
         }
 
+        @Deprecated("Use invoke with LinearFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmName("invokeFlt64Converter")
         operator fun <V> invoke(
             category: ObjectCategory,
             flattenData: LinearFlattenData<Flt64>,
@@ -125,6 +151,28 @@ class QuadraticSubObject<V : RealNumber<V>>(
     }
 
     companion object {
+        operator fun <V> invoke(
+            category: ObjectCategory,
+            flattenData: QuadraticFlattenData<V>,
+            tokens: AbstractTokenTable<V>,
+            name: String = "",
+            converter: IntoValue<V>
+        ): QuadraticSubObject<V> where V : RealNumber<V>, V : NumberField<V> {
+            val cells = createQuadraticCells(
+                flattenData.monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
+                tokens,
+                converter
+            )
+            return QuadraticSubObject(
+                category = category,
+                cells = cells,
+                _constant = flattenData.constant,
+                name = name
+            )
+        }
+
+        @Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmName("invokeFlt64")
         operator fun invoke(
             category: ObjectCategory,
             flattenData: QuadraticFlattenData<Flt64>,
@@ -140,6 +188,8 @@ class QuadraticSubObject<V : RealNumber<V>>(
             )
         }
 
+        @Deprecated("Use invoke with QuadraticFlattenData<V> instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmName("invokeFlt64Converter")
         operator fun <V> invoke(
             category: ObjectCategory,
             flattenData: QuadraticFlattenData<Flt64>,

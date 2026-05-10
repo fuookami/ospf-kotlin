@@ -236,6 +236,7 @@ fun <V> simpleIndicatorConstraints(
  * Flt64-specific overload of nonzeroIndicatorConstraints for convenience.
  * Used when inputs are already Flt64-typed.
  */
+@Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
 fun nonzeroIndicatorConstraints(
     poly: LinearPolynomial<Flt64>,
     indVar: AbstractVariableItem<*, *>,
@@ -285,6 +286,7 @@ fun nonzeroIndicatorConstraints(
  * Flt64-specific overload of simpleIndicatorConstraints for convenience.
  * Used when inputs are already Flt64-typed.
  */
+@Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
 fun simpleIndicatorConstraints(
     ineq: LinearInequality<Flt64>,
     indicator: AbstractVariableItem<*, *>,

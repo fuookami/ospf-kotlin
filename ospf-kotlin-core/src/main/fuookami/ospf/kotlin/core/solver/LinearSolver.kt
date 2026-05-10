@@ -144,6 +144,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMechanismModel<Flt64>,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -156,6 +158,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMechanismModel<Flt64>,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
@@ -170,6 +174,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel<Flt64>,
@@ -185,6 +191,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel<Flt64>,
@@ -203,6 +211,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMechanismModel<Flt64>,
         solutionAmount: UInt64,
@@ -217,6 +227,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMechanismModel<Flt64>,
         solutionAmount: UInt64,
@@ -233,6 +245,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel<Flt64>,
@@ -251,6 +265,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMechanismModel<Flt64>,
@@ -271,6 +287,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -303,6 +321,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMetaModel<Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -321,6 +341,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel<Flt64>,
@@ -341,6 +363,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel<Flt64>,
@@ -363,6 +387,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMetaModel<Flt64>,
         solutionAmount: UInt64,
@@ -395,6 +421,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     suspend operator fun invoke(
         model: LinearMetaModel<Flt64>,
         solutionAmount: UInt64,
@@ -415,6 +443,8 @@ interface AbstractLinearSolver {
         )
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel<Flt64>,
@@ -437,6 +467,8 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+    @Suppress("DEPRECATION")
     @OptIn(DelicateCoroutinesApi::class)
     fun solveAsync(
         model: LinearMetaModel<Flt64>,
@@ -494,11 +526,13 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model: MechanismModel<V>, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     suspend fun <V> solveV(
         model: LinearMechanismModel<Flt64>,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        @Suppress("DEPRECATION")
         return when (val result = invoke(model, solvingStatusCallBack)) {
             is Ok -> Ok(result.value.convertTo(converter))
             is Failed -> Failed(result.error)
@@ -506,12 +540,14 @@ interface AbstractLinearSolver {
         }
     }
 
+    @Deprecated("Use solveV(model: MechanismModel<V>, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     suspend fun <V> solveV(
         model: LinearMechanismModel<Flt64>,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        @Suppress("DEPRECATION")
         return when (val result = invoke(model, solutionAmount, solvingStatusCallBack)) {
             is Ok -> {
                 val (output, solutions) = result.value
@@ -523,6 +559,7 @@ interface AbstractLinearSolver {
     }
 
     // V-generic solveV for generic MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    @Suppress("DEPRECATION")
     suspend fun <V> solveV(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
@@ -533,6 +570,7 @@ interface AbstractLinearSolver {
         return solveV(flt64Model, converter, solvingStatusCallBack)
     }
 
+    @Suppress("DEPRECATION")
     suspend fun <V> solveV(
         model: MechanismModel<V>,
         solutionAmount: UInt64,

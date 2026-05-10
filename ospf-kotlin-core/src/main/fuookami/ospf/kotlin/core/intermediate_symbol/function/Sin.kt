@@ -108,6 +108,7 @@ class SinFunction<V>(
             )
         }
 
+        @Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
         operator fun invoke(
             x: LinearPolynomial<Flt64>,
             name: String = "sin",
@@ -120,6 +121,7 @@ class SinFunction<V>(
             displayName = displayName
         )
 
+        @Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
         operator fun invoke(
             x: LinearMonomial<Flt64>,
             name: String = "sin",

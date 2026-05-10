@@ -44,10 +44,10 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 
     val discrete: Boolean get() = false
 
-    val range: ExpressionRange<Flt64>
-    val lowerBound get() = range.lowerBound?.toFlt64()
-    val upperBound get() = range.upperBound?.toFlt64()
-    val fixedValue get() = range.fixedValue
+    val range: ExpressionRange<V>
+    val lowerBound: Bound<V>? get() = range.lowerBound
+    val upperBound: Bound<V>? get() = range.upperBound
+    val fixedValue: V? get() = range.fixedValue
 
     // --- V-typed primary path (abstract) ---
     fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V?
@@ -553,7 +553,7 @@ class LinearExpressionSymbol<V>(
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
     // flattenedMonomials: extract from monomials
-    @Suppress("DEPRECATION")
+    @Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
     val flattenedMonomials: LinearFlattenData<Flt64>
         get() = LinearFlattenData<Flt64>(
             monomials = _polyFlt64.monomials,
@@ -678,8 +678,8 @@ class LinearExpressionSymbol<V>(
         return range
     }
 
-    override val range: ExpressionRange<Flt64>
-        get() = ExpressionRange(calculateRange(), Flt64)
+    override val range: ExpressionRange<V>
+        get() = SolverBoundaryCasts.expressionRangeVFromFlt64(calculateRange())
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
@@ -729,8 +729,9 @@ class LinearExpressionSymbol<V>(
     }
 
     // prepare: V-typed primary path (P4-5)
-    fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
+        @Suppress("DEPRECATION")
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
@@ -780,7 +781,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, tokenList, zeroIfNone)
@@ -813,7 +814,7 @@ class LinearExpressionSymbol<V>(
         return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
     }
 
-    fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -825,7 +826,7 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
             var ret = _polyFlt64.constant
@@ -853,7 +854,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // Flt64 convenience overloads (solver boundary)
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val symbolValue = evaluateSymbol(monomial.symbol, results, tokenList, zeroIfNone)
@@ -863,7 +864,7 @@ class LinearExpressionSymbol<V>(
         return ret
     }
 
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1105,7 +1106,7 @@ class QuadraticExpressionSymbol<V>(
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
     // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
-    @Suppress("DEPRECATION")
+    @Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
     val flattenedMonomials: QuadraticFlattenData<Flt64>
         get() = QuadraticFlattenData<Flt64>(
             monomials = _polyFlt64.monomials,
@@ -1261,8 +1262,8 @@ class QuadraticExpressionSymbol<V>(
         return range
     }
 
-    override val range: ExpressionRange<Flt64>
-        get() = ExpressionRange(calculateRange(), Flt64)
+    override val range: ExpressionRange<V>
+        get() = SolverBoundaryCasts.expressionRangeVFromFlt64(calculateRange())
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
@@ -1322,8 +1323,9 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // prepare: V-typed primary path (P4-5)
-    fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flattenedMonomials to populate cache
+        @Suppress("DEPRECATION")
         val flatten = flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
@@ -1390,7 +1392,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // evaluate methods - similar to Polynomial.evaluate implementation
-    fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, tokenList, zeroIfNone)
@@ -1433,7 +1435,7 @@ class QuadraticExpressionSymbol<V>(
         return evaluateSolver(flt64Values, tokenTable, converter, zeroIfNone)
     }
 
-    fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(results: List<Flt64>, tokenList: AbstractTokenList<Flt64>, zeroIfNone: Boolean): Flt64? {
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
             val sym1Value = evaluateSymbol(monomial.symbol1, results, tokenList, zeroIfNone)
@@ -1448,7 +1450,7 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(results: List<Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return evaluateWithCachedTokenTable(results, tokenTable, converter, zeroIfNone) {
             var ret = _polyFlt64.constant
             for (monomial in _polyFlt64.monomials) {
@@ -1465,7 +1467,7 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
+    internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<Flt64>?, zeroIfNone: Boolean): Flt64? {
         if (values.containsKey(this)) return values[this]!!
         var ret = _polyFlt64.constant
         for (monomial in _polyFlt64.monomials) {
@@ -1481,7 +1483,7 @@ class QuadraticExpressionSymbol<V>(
         return ret
     }
 
-    fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         if (tokenTable == null) {
             if (values.containsKey(this)) return converter.intoValue(values[this]!!)
             var ret = _polyFlt64.constant
@@ -1556,15 +1558,17 @@ operator fun <V> QuadraticIntermediateSymbol<V>.div(rhs: PhysicalUnit): Quantity
     return Quantity(this, rhs.reciprocal())
 }
 
-operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    val lhs = this.toLinearPolynomial() as LinearPolynomial<Flt64>
-    val rhsPoly = rhs.toLinearPolynomial() as LinearPolynomial<Flt64>
+operator fun <V> LinearIntermediateSymbol<V>.plus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<V>
+    where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = this.toLinearPolynomial()
+    val rhsPoly = rhs.toLinearPolynomial()
     return LinearPolynomial(lhs.monomials + rhsPoly.monomials, lhs.constant + rhsPoly.constant)
 }
 
-operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<Flt64> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
-    val lhs = this.toLinearPolynomial() as LinearPolynomial<Flt64>
-    val rhsPoly = rhs.toLinearPolynomial() as LinearPolynomial<Flt64>
+operator fun <V> LinearIntermediateSymbol<V>.minus(rhs: LinearIntermediateSymbol<V>): LinearPolynomial<V>
+    where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = this.toLinearPolynomial()
+    val rhsPoly = rhs.toLinearPolynomial()
     return LinearPolynomial(lhs.monomials + rhsPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, lhs.constant - rhsPoly.constant)
 }
 

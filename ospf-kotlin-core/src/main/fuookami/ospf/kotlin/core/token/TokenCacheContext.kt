@@ -274,7 +274,23 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
     return symbolTokenTableContext[symbol]
 }
 
-internal fun LinearFlattenData<Flt64>.toQuadraticFlattenData(): QuadraticFlattenData<Flt64> {
+internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlattenData<V> where V : RealNumber<V>, V : NumberField<V> {
+    val monomials = this.monomials.map {
+        QuadraticMonomial(
+            coefficient = it.coefficient,
+            symbol1 = it.symbol as AbstractVariableItem<*, *>,
+            symbol2 = null
+        )
+    }
+    return QuadraticFlattenData<V>(
+        monomials = monomials,
+        constant = this.constant
+    )
+}
+
+@Deprecated("Use the V-typed toQuadraticFlattenData() instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@JvmName("toQuadraticFlattenDataFlt64")
+internal fun LinearFlattenData<Flt64>.toQuadraticFlattenDataFlt64(): QuadraticFlattenData<Flt64> {
     val monomials = this.monomials.map {
         QuadraticMonomial(
             coefficient = it.coefficient,

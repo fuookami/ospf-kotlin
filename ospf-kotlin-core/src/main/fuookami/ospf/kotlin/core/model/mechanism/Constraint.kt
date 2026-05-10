@@ -139,7 +139,7 @@ class LinearConstraintImpl<V>(
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
-            relation: LinearRelation,
+            relation: LinearRelation<V>,
             tokens: AbstractTokenTable<V>,
             converter: IntoValue<V>,
             lazy: Boolean = false,
@@ -148,8 +148,9 @@ class LinearConstraintImpl<V>(
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): LinearConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
-            val lhs = createLinearCells(flattenData.monomials, tokens, converter)
-            val rhs: V = converter.intoValue(-flattenData.constant)
+            val flt64Monomials = flattenData.monomials.map { LinearMonomial(converter.fromValue(it.coefficient), it.symbol) }
+            val lhs = createLinearCells(flt64Monomials, tokens, converter)
+            val rhs: V = -flattenData.constant
             return LinearConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,
@@ -182,7 +183,7 @@ class QuadraticConstraintImpl<V>(
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
-            relation: QuadraticRelation,
+            relation: QuadraticRelation<V>,
             tokens: AbstractTokenTable<V>,
             converter: IntoValue<V>,
             lazy: Boolean = false,
@@ -191,8 +192,9 @@ class QuadraticConstraintImpl<V>(
             from: Pair<IntermediateSymbol<*>, Boolean>? = null,
         ): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
             val flattenData = relation.flattenData
-            val lhs = createQuadraticCells(flattenData.monomials, tokens, converter)
-            val rhs: V = converter.intoValue(-flattenData.constant)
+            val flt64Monomials = flattenData.monomials.map { QuadraticMonomial(converter.fromValue(it.coefficient), it.symbol1, it.symbol2) }
+            val lhs = createQuadraticCells(flt64Monomials, tokens, converter)
+            val rhs: V = -flattenData.constant
             return QuadraticConstraintImpl(
                 lhs = lhs,
                 sign = relation.constraintRelation,

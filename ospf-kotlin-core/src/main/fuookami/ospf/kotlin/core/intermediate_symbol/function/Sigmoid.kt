@@ -66,13 +66,10 @@ class SigmoidFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val tolF = converter.fromValue(tolerance)
-        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraints(condition.asFlt64Poly(converter), indicatorVar, sideVar, mF, tolF, sbF, "${name}_sig_nz")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_sig_nz")
 
         // indicator serves as the result: indicator = 1 when condition > 0
 

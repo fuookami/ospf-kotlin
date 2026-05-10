@@ -80,6 +80,7 @@ class BendersCutApiTest {
         mechanismModel.close()
     }
 
+    @Suppress("DEPRECATION")
     @Test
     fun linearFeasibleCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
@@ -123,6 +124,7 @@ class BendersCutApiTest {
 
     // ── Quadratic by_id ───────────────────────────────────────────
 
+    @Suppress("DEPRECATION")
     @Test
     fun quadraticOptimalCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
@@ -173,6 +175,7 @@ class BendersCutApiTest {
 
         mechanismModel.close()
     }
+    @Suppress("DEPRECATION")
 
     @Test
     fun quadraticFeasibleCutByIdShouldMatchDirectCall() {

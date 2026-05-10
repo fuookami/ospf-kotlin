@@ -972,8 +972,8 @@ class QuadraticMetaModel<V>(
     override val subObjects: List<MetaModel.SubObject<V>> by ::_subObjects
 
     // NEW: FlattenData-based sub-objects storage
-    internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject> = ArrayList()
-    internal val flattenSubObjects: List<QuadraticFlattenSubObject> by ::_flattenSubObjects
+    internal val _flattenSubObjects: MutableList<QuadraticFlattenSubObject<V>> = ArrayList()
+    internal val flattenSubObjects: List<QuadraticFlattenSubObject<V>> by ::_flattenSubObjects
 
     /**
      * Add math LinearInequality constraint - converts to QuadraticInequality internally
@@ -1104,11 +1104,9 @@ class QuadraticMetaModel<V>(
         name: String,
         displayName: String?
     ): Try {
-        val flt64Poly = polynomial.toFlt64QuadraticPoly(converter)
-        // Convert to QuadraticFlattenData<Flt64> for the new API
-        val flattenData = QuadraticFlattenData<Flt64>(
-            monomials = flt64Poly.monomials,
-            constant = flt64Poly.constant
+        val flattenData = QuadraticFlattenData<V>(
+            monomials = polynomial.monomials,
+            constant = polynomial.constant
         )
         _flattenSubObjects.add(
             QuadraticFlattenSubObject(
@@ -1137,6 +1135,7 @@ class QuadraticMetaModel<V>(
 
     /**
      * Add objective using QuadraticFlattenData<Flt64> (new API)
+     * Converts Flt64 coefficients to V-typed using converter.
      */
     override fun addObject(
         category: ObjectCategory,
@@ -1144,10 +1143,14 @@ class QuadraticMetaModel<V>(
         name: String,
         displayName: String?
     ): Try {
+        val vFlattenData = QuadraticFlattenData<V>(
+            monomials = flattenData.monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
+            constant = converter.intoValue(flattenData.constant)
+        )
         _flattenSubObjects.add(
             QuadraticFlattenSubObject(
                 category = category,
-                flattenData = flattenData,
+                flattenData = vFlattenData,
                 name = name,
                 displayName = displayName
             )

@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
+import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
@@ -167,7 +168,7 @@ class LinearFunctionSymbolAdapter<V>(
     override val cached: Boolean get() = false
     override val dependencies: Set<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<Flt64> get() = ExpressionRange()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
 
     override fun flush(force: Boolean) {}
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null

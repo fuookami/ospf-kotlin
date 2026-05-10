@@ -366,9 +366,9 @@ class LinearMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         LinearSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenData<Flt64>(
-                                it.polynomial.monomials.map { m -> LinearMonomial(metaModel.converter.fromValue(m.coefficient), m.symbol) },
-                                metaModel.converter.fromValue(it.polynomial.constant)
+                            flattenData = LinearFlattenData<V>(
+                                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                                it.polynomial.constant
                             ),
                             tokens = tokens,
                             name = it.name,
@@ -439,9 +439,9 @@ class LinearMechanismModel<V>(
                 createSubObject = {
                     LinearSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenData<Flt64>(
-                            it.polynomial.monomials.map { m -> LinearMonomial(metaModel.converter.fromValue(m.coefficient), m.symbol) },
-                            metaModel.converter.fromValue(it.polynomial.constant)
+                        flattenData = LinearFlattenData<V>(
+                            it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                            it.polynomial.constant
                         ),
                         tokens = tokens,
                         name = it.name,
@@ -560,7 +560,7 @@ class LinearMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        val flattenData = relation.toLinearFlattenDataFlt64(parent.converter)
+        val flattenData = relation.toLinearFlattenData()
         _constraints.add(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(flattenData, relation.comparison),
@@ -699,6 +699,7 @@ class LinearMechanismModel<V>(
      * @param farkasDualSolutionById  constraint name → Farkas dual value mapping
      * @return list of linear cuts
      */
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
     fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>
@@ -861,9 +862,9 @@ class QuadraticMechanismModel<V>(
                     objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
                         QuadraticSubObject(
                             category = it.category,
-                            flattenData = LinearFlattenData<Flt64>(
-                                it.polynomial.monomials.map { m -> LinearMonomial(metaModel.converter.fromValue(m.coefficient), m.symbol) },
-                                metaModel.converter.fromValue(it.polynomial.constant)
+                            flattenData = LinearFlattenData<V>(
+                                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                                it.polynomial.constant
                             ).toQuadraticFlattenData(),
                             tokens = tokens,
                             name = it.name,
@@ -935,9 +936,9 @@ class QuadraticMechanismModel<V>(
                 createSubObject = {
                     QuadraticSubObject(
                         category = it.category,
-                        flattenData = LinearFlattenData<Flt64>(
-                            it.polynomial.monomials.map { m -> LinearMonomial(metaModel.converter.fromValue(m.coefficient), m.symbol) },
-                            metaModel.converter.fromValue(it.polynomial.constant)
+                        flattenData = LinearFlattenData<V>(
+                            it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                            it.polynomial.constant
                         ).toQuadraticFlattenData(),
                         tokens = tokens,
                         name = it.name,
@@ -1056,10 +1057,10 @@ class QuadraticMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        val flattenData = relation.toLinearFlattenDataFlt64(parent.converter)
+        val flattenData = relation.toLinearFlattenData()
         // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
-        val qFlattenData = QuadraticFlattenData<Flt64>(qMonomials, flattenData.constant)
+        val qFlattenData = QuadraticFlattenData<V>(qMonomials, flattenData.constant)
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(qFlattenData, relation.comparison),
@@ -1078,7 +1079,7 @@ class QuadraticMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<*>, Boolean>?
     ): Try {
-        val flattenData = relation.toQuadraticFlattenDataFlt64(parent.converter)
+        val flattenData = relation.toQuadraticFlattenData()
         _constraints.add(
             QuadraticConstraintImpl(
                 relation = QuadraticRelationImpl(flattenData, relation.comparison),
@@ -1267,6 +1268,7 @@ class QuadraticMechanismModel<V>(
      * @param dualSolutionById constraint name → dual value mapping
      * @return list of cuts (linear or quadratic inequalities)
      */
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
     fun generateOptimalCutById(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1295,6 +1297,7 @@ class QuadraticMechanismModel<V>(
      * @param farkasDualSolutionById constraint name → Farkas dual value mapping
      * @return list of cuts (linear or quadratic inequalities)
      */
+    @Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
     fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         farkasDualSolutionById: Map<String, Flt64>

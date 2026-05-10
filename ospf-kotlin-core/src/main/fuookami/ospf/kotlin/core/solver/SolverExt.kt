@@ -38,10 +38,13 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
@@ -66,10 +69,14 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solve(model: LinearMetaModel<Flt64>): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearMetaModel<Flt64>,
     options: SolveOptions
@@ -95,14 +102,18 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solve(model: LinearMechanismModel<Flt64>): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
 /**
- * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
+ * V->Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
  * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
  */
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>
 ): Ret<FeasibleSolverOutput<Flt64>> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -117,6 +128,8 @@ suspend fun <V> AbstractLinearSolver.solve(
     return Failed(ErrorCode.IllegalArgument, "LinearSolver requires LinearMechanismModel, got ${f64Model::class.simpleName}")
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearMechanismModel<Flt64>,
     options: SolveOptions
@@ -126,14 +139,19 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModel<Flt64>): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
@@ -158,6 +176,8 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticMetaModel<Flt64>,
     options: SolveOptions
@@ -183,14 +203,18 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModel<Flt64>): Ret<FeasibleSolverOutput<Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
 /**
- * V→Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
+ * V->Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
  * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
  */
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>
 ): Ret<FeasibleSolverOutput<Flt64>> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -205,6 +229,8 @@ suspend fun <V> AbstractQuadraticSolver.solve(
     return Failed(ErrorCode.IllegalArgument, "QuadraticSolver requires QuadraticMechanismModel, got ${f64Model::class.simpleName}")
 }
 
+@Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticMechanismModel<Flt64>,
     options: SolveOptions
@@ -214,6 +240,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
     }
 }
 
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -275,6 +302,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -366,6 +394,8 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearMechanismModel<Flt64>,
     options: SolveOptions,
@@ -376,6 +406,8 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearMechanismModel<Flt64>,
     options: SolveOptions,
@@ -386,6 +418,8 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     model: LinearMetaModel<Flt64>,
     options: SolveOptions,
@@ -414,6 +448,8 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     model: LinearMetaModel<Flt64>,
     options: SolveOptions,
@@ -442,6 +478,7 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -503,6 +540,7 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -594,6 +632,8 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticMechanismModel<Flt64>,
     options: SolveOptions,
@@ -604,6 +644,8 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticMechanismModel<Flt64>,
     options: SolveOptions,
@@ -614,6 +656,8 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticMetaModel<Flt64>,
     options: SolveOptions,
@@ -642,6 +686,8 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     model: QuadraticMetaModel<Flt64>,
     options: SolveOptions,
@@ -686,6 +732,8 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<Flt64>, List<Li
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearMetaModel<Flt64>,
@@ -699,6 +747,8 @@ fun AbstractLinearSolver.solveAsync(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearMechanismModel<Flt64>,
@@ -712,6 +762,8 @@ fun AbstractLinearSolver.solveAsync(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
@@ -725,6 +777,8 @@ fun AbstractLinearSolver.solveAsync(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMetaModel<Flt64>,
@@ -738,6 +792,8 @@ fun AbstractQuadraticSolver.solveAsync(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMechanismModel<Flt64>,
@@ -751,6 +807,8 @@ fun AbstractQuadraticSolver.solveAsync(
     }
 }
 
+@Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+@Suppress("DEPRECATION")
 @OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
@@ -776,6 +834,7 @@ suspend fun <V> AbstractLinearSolver.solve(
     return solveV(model, converter)
 }
 
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractLinearSolver.solve(
     model: LinearMechanismModel<Flt64>,
     converter: IntoValue<V>
@@ -783,6 +842,7 @@ suspend fun <V> AbstractLinearSolver.solve(
     return solveV(model, converter)
 }
 
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>,
     converter: IntoValue<V>
@@ -797,6 +857,7 @@ suspend fun <V> AbstractQuadraticSolver.solve(
     return solveV(model, converter)
 }
 
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: QuadraticMechanismModel<Flt64>,
     converter: IntoValue<V>
@@ -804,6 +865,7 @@ suspend fun <V> AbstractQuadraticSolver.solve(
     return solveV(model, converter)
 }
 
+@Suppress("DEPRECATION")
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>,
     converter: IntoValue<V>

@@ -285,18 +285,17 @@ internal infix fun UInt64.geq(rhs: Symbol): LinearInequality<Flt64> = LinearIneq
 
 // ========== LinearInequality to Constraint<Flt64, Quadratic> direct conversion ==========
 
-internal fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
-    tokens: AbstractTokenTable<V>,
-    converter: IntoValue<V>,
+internal fun LinearInequality<Flt64>.toQuadraticConstraint(
+    tokens: AbstractTokenTable<Flt64>,
     lazy: Boolean = false,
     name: String = "",
     origin: MathConstraint? = null,
     from: Pair<IntermediateSymbol<*>, Boolean>? = null,
-): QuadraticConstraintImpl<V> where V : RealNumber<V>, V : NumberField<V> {
+): QuadraticConstraintImpl<Flt64> {
     return QuadraticConstraintImpl(
         relation = toQuadraticInequality().let { QuadraticRelationImpl(it.flattenData, it.comparison) },
         tokens = tokens,
-        converter = converter,
+        converter = IntoValue.Identity,
         lazy = lazy,
         name = name,
         origin = origin,
@@ -306,7 +305,7 @@ internal fun <V> LinearInequality<Flt64>.toQuadraticConstraint(
 
 // ========== Relation-based constraint creation ==========
 
-internal fun <V> LinearRelation.toConstraint(
+internal fun <V> LinearRelation<V>.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,
@@ -317,7 +316,7 @@ internal fun <V> LinearRelation.toConstraint(
     return LinearConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
-internal fun <V> QuadraticRelation.toConstraint(
+internal fun <V> QuadraticRelation<V>.toConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,
@@ -328,7 +327,7 @@ internal fun <V> QuadraticRelation.toConstraint(
     return QuadraticConstraintImpl(this, tokens, converter, lazy, name, origin, from)
 }
 
-internal fun <V> LinearRelation.toQuadraticConstraint(
+internal fun <V> LinearRelation<V>.toQuadraticConstraint(
     tokens: AbstractTokenTable<V>,
     converter: IntoValue<V>,
     lazy: Boolean = false,
@@ -340,7 +339,7 @@ internal fun <V> LinearRelation.toQuadraticConstraint(
     val qMonomials = normalized.flattenData.monomials.map {
         QuadraticMonomial(it.coefficient, it.symbol, null)
     }
-    val qFlattenData = QuadraticFlattenData<Flt64>(qMonomials, normalized.flattenData.constant)
+    val qFlattenData = QuadraticFlattenData<V>(qMonomials, normalized.flattenData.constant)
     val qRelation = QuadraticRelationImpl(qFlattenData, normalized.sign, normalized.name, normalized.displayName)
     return QuadraticConstraintImpl(qRelation, tokens, converter, lazy, name, origin, from)
 }

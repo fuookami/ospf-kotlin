@@ -113,6 +113,7 @@ class BalanceTernaryzationFunction<V>(
         ): BalanceTernaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             BalanceTernaryzationFunction(x = x, epsilon = epsilon, extract = extract, converter = converter, name = name, displayName = displayName)
 
+        @Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
         operator fun invoke(
             x: LinearMonomial<Flt64>,
             epsilon: Flt64 = Flt64(1e-6),

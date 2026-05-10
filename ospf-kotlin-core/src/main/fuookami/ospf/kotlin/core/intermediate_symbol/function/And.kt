@@ -76,14 +76,11 @@ class AndFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val tolF = converter.fromValue(tolerance)
-        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(converter), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_and_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_and_nz_${i}")
         }
 
         // sum(indicators) >= n * result
@@ -188,14 +185,11 @@ class OrFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val tolF = converter.fromValue(tolerance)
-        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(converter), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_or_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_or_nz_${i}")
         }
 
         // sum(indicators) >= result
@@ -292,13 +286,10 @@ class NotFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val tolF = converter.fromValue(tolerance)
-        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicator
-        allConstraints += nonzeroIndicatorConstraints(polynomial.asFlt64Poly(converter), indicatorVar, sideVar, mF, tolF, sbF, "${name}_not_nz")
+        allConstraints += nonzeroIndicatorConstraints(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_not_nz")
 
         // result = 1 - indicator => result + indicator = 1
         allConstraints += LinearInequality<Flt64>(
@@ -395,14 +386,11 @@ class XorFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val tolF = converter.fromValue(tolerance)
-        val sbF = converter.fromValue(strictBoundary)
         val allConstraints = mutableListOf<LinearInequality<Flt64>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i].asFlt64Poly(converter), indicatorVars[i], sideVars[i], mF, tolF, sbF, "${name}_xor_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_xor_nz_${i}")
         }
 
         // sum(indicators) - 2*slack = result (where slack is integer)

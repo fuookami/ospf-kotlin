@@ -23,6 +23,79 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
+// ========== Converter-based flatten: V-typed inequality -> V-typed flatten data ==========
+
+/**
+ * Flatten a V-typed LinearInequality into LinearFlattenData<V> (identity flatten, no conversion).
+ *
+ * Converts lhs - rhs into a single linear form:
+ *   sum(lhs.monomials) - sum(rhs.monomials) <= lhs.constant - rhs.constant
+ */
+internal fun <V> LinearInequality<V>.toLinearFlattenData(): LinearFlattenData<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val merged = HashMap<VariableItemKey, LinearMonomial<V>>()
+
+    for (mono in lhs.monomials) {
+        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        merged[key] = LinearMonomial(mono.coefficient, mono.symbol)
+    }
+    for (mono in rhs.monomials) {
+        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        val existing = merged[key]
+        merged[key] = if (existing != null) {
+            LinearMonomial(existing.coefficient - mono.coefficient, existing.symbol)
+        } else {
+            LinearMonomial(-mono.coefficient, mono.symbol)
+        }
+    }
+
+    return LinearFlattenData<V>(
+        monomials = merged.values.toList(),
+        constant = lhs.constant - rhs.constant
+    )
+}
+
+/**
+ * Flatten a V-typed QuadraticInequalityOf<V> into QuadraticFlattenData<V> (identity flatten, no conversion).
+ *
+ * Converts lhs - rhs into a single quadratic form.
+ */
+internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFlattenData<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<V>>()
+
+    for (mono in lhs.monomials) {
+        val key = QuadraticMonomialKey.from(mono)
+        merged[key] = QuadraticMonomial(
+            coefficient = mono.coefficient,
+            symbol1 = mono.symbol1,
+            symbol2 = mono.symbol2
+        )
+    }
+    for (mono in rhs.monomials) {
+        val key = QuadraticMonomialKey.from(mono)
+        val existing = merged[key]
+        merged[key] = if (existing != null) {
+            QuadraticMonomial(
+                coefficient = existing.coefficient - mono.coefficient,
+                symbol1 = existing.symbol1,
+                symbol2 = existing.symbol2
+            )
+        } else {
+            QuadraticMonomial(
+                coefficient = -mono.coefficient,
+                symbol1 = mono.symbol1,
+                symbol2 = mono.symbol2
+            )
+        }
+    }
+
+    return QuadraticFlattenData<V>(
+        monomials = merged.values.toList(),
+        constant = lhs.constant - rhs.constant
+    )
+}
+
 // ========== Converter-based flatten: V-typed inequality -> Flt64 flatten data ==========
 
 /**
@@ -137,6 +210,19 @@ private data class QuadraticMonomialKey(
     val sym2Id: Int?
 ) {
     companion object {
+        @JvmName("fromGeneric")
+        fun <V> from(mono: QuadraticMonomial<V>): QuadraticMonomialKey
+                where V : RealNumber<V>, V : NumberField<V> {
+            val id1 = System.identityHashCode(mono.symbol1)
+            val id2 = mono.symbol2?.let { System.identityHashCode(it) }
+            return if (id2 != null && id1 > id2) {
+                QuadraticMonomialKey(id2, id1)
+            } else {
+                QuadraticMonomialKey(id1, id2)
+            }
+        }
+
+        @JvmName("fromGenericWithConverter")
         fun <V> from(mono: QuadraticMonomial<V>, converter: IntoValue<V>): QuadraticMonomialKey
                 where V : RealNumber<V>, V : NumberField<V> {
             val id1 = System.identityHashCode(mono.symbol1)
@@ -148,6 +234,7 @@ private data class QuadraticMonomialKey(
             }
         }
 
+        @JvmName("fromFlt64")
         private fun from(mono: QuadraticMonomial<Flt64>): QuadraticMonomialKey {
             val id1 = System.identityHashCode(mono.symbol1)
             val id2 = mono.symbol2?.let { System.identityHashCode(it) }
