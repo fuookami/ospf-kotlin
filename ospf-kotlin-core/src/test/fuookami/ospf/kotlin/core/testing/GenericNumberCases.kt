@@ -9,20 +9,20 @@ import fuookami.ospf.kotlin.math.algebra.number.Rtn64
 import fuookami.ospf.kotlin.math.algebra.number.RtnX
 import java.util.concurrent.ConcurrentHashMap
 
-data class GenericNumberCase<V>(
+class GenericNumberCase<V>(
     val name: String,
-    private val zeroProvider: () -> V,
-    private val oneProvider: () -> V,
-    private val twoProvider: () -> V,
-    private val fiveProvider: () -> V,
-    private val tenProvider: () -> V,
+    zeroProvider: () -> V,
+    oneProvider: () -> V,
+    twoProvider: () -> V,
+    fiveProvider: () -> V,
+    tenProvider: () -> V,
     val converter: IntoValue<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
-    val zero: V get() = zeroProvider()
-    val one: V get() = oneProvider()
-    val two: V get() = twoProvider()
-    val five: V get() = fiveProvider()
-    val ten: V get() = tenProvider()
+    val zero: V = zeroProvider()
+    val one: V = oneProvider()
+    val two: V = twoProvider()
+    val five: V = fiveProvider()
+    val ten: V = tenProvider()
 }
 
 object GenericNumberCases {
@@ -33,14 +33,16 @@ object GenericNumberCases {
         from: (V) -> Flt64
     ): IntoValue<V> where V : RealNumber<V>, V : NumberField<V> {
         val cache = ConcurrentHashMap<Long, V>()
+        val cachedZero = zeroProvider()
+        val cachedOne = oneProvider()
         return object : IntoValue<V> {
             override fun intoValue(value: Flt64): V {
                 val key = java.lang.Double.doubleToLongBits(value.toDouble())
                 return cache.computeIfAbsent(key) { into(value) }
             }
 
-            override val zero: V get() = zeroProvider()
-            override val one: V get() = oneProvider()
+            override val zero: V get() = cachedZero
+            override val one: V get() = cachedOne
             override fun fromValue(value: V): Flt64 = from(value)
         }
     }
@@ -77,12 +79,12 @@ object GenericNumberCases {
         twoProvider = { FltX.two },
         fiveProvider = { FltX.five },
         tenProvider = { FltX.ten },
-        converter = object : IntoValue<FltX> {
-            override fun intoValue(value: Flt64): FltX = value.toFltX()
-            override val zero: FltX get() = FltX.zero
-            override val one: FltX get() = FltX.one
-            override fun fromValue(value: FltX): Flt64 = value.toFlt64()
-        }
+        converter = cachedConverter(
+            into = { value -> value.toFltX() },
+            zeroProvider = { FltX.zero },
+            oneProvider = { FltX.one },
+            from = { value -> value.toFlt64() }
+        )
     )
 
     val rtnX = GenericNumberCase(

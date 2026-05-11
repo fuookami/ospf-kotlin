@@ -1,12 +1,16 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.Object
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
+import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentTokenTable
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
@@ -14,9 +18,12 @@ import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.ok
 import org.junit.jupiter.api.Tag
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -93,17 +100,16 @@ class FunctionSymbolRoundingGenericRegistrationTest {
 
             val mechanismModel = buildLightweightMechanismModel(model)
 
-            val before = mechanismModel.constraints.size
+            val before = mechanismModel.collectedConstraints.size
             assertTrue(floor.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: floor registerConstraints should succeed")
             assertTrue(ceil.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: ceil registerConstraints should succeed")
             assertTrue(round.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: round registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
+            val after = mechanismModel.collectedConstraints.size
 
             assertTrue(after > before, "${numberCase.name}: rounding constraints should be appended")
 
-            val newConstraint = mechanismModel.constraints.last() as LinearConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
+            val newConstraint = mechanismModel.collectedConstraints.last()
+            val coefficient = newConstraint.lhs.monomials.first().coefficient
             assertTrue(
                 coefficient::class == numberCase.one::class,
                 "${numberCase.name}: rounding constraint coefficient type should stay V instead of leaking Flt64"
@@ -113,22 +119,52 @@ class FunctionSymbolRoundingGenericRegistrationTest {
         }
     }
 
-    private fun <V> buildLightweightMechanismModel(model: LinearMetaModel<V>): LinearMechanismModel<V>
+    private fun <V> buildLightweightMechanismModel(model: LinearMetaModel<V>): CollectingLinearMechanismModel<V>
             where V : RealNumber<V>, V : NumberField<V> {
         val tokenTable = when (val tokens = model.tokens) {
             is MutableTokenTable<V> -> TokenTable(tokens)
             is ConcurrentMutableTokenTable<V> -> ConcurrentTokenTable(tokens)
             else -> error("Unsupported token table type: ${tokens::class.qualifiedName}")
         }
-        return LinearMechanismModel(
-            parent = model,
+        return CollectingLinearMechanismModel(
             name = model.name,
-            constraints = emptyList(),
-            objectFunction = SingleObject(
-                category = model.objectCategory,
-                subObjects = emptyList<LinearSubObject<V>>()
-            ),
+            objectCategory = model.objectCategory,
             tokens = tokenTable
         )
+    }
+
+    private class CollectingLinearMechanismModel<V>(
+        override var name: String,
+        objectCategory: fuookami.ospf.kotlin.core.model.basic.ObjectCategory,
+        override val tokens: AbstractTokenTable<V>
+    ) : AbstractLinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
+        val collectedConstraints = mutableListOf<LinearInequality<V>>()
+
+        override val constraints: List<Constraint<V, *>> = emptyList()
+        override val objectFunction: Object = SingleObject(
+            category = objectCategory,
+            subObjects = emptyList<LinearSubObject<V>>()
+        )
+
+        override fun addConstraint(
+            relation: LinearInequality<V>,
+            name: String?,
+            from: Pair<IntermediateSymbol<out V>, Boolean>?
+        ): Try {
+            if (name != null && name.isNotBlank() && relation.name != name) {
+                collectedConstraints.add(
+                    LinearInequality(
+                        lhs = relation.lhs,
+                        rhs = relation.rhs,
+                        comparison = relation.comparison,
+                        name = name,
+                        displayName = relation.displayName
+                    )
+                )
+            } else {
+                collectedConstraints.add(relation)
+            }
+            return ok
+        }
     }
 }

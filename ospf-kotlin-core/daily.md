@@ -557,3 +557,43 @@
 1. 四类型验收链路可稳定通过。
 2. 日常回归可默认走快测或 `with-slow-tests`，把 `RtnX` 的 `very-slow` 分离到按需全量回归。
 3. 下一步优化重点应放在 `RtnX` 相关路径的性能（优先 `Rounding`）。
+
+## 进度更新（2026-05-11 第二轮）
+
+### 本轮已完成
+
+1. `Rounding` 四类型验收测试轻量化
+   - 将 `FunctionSymbolRoundingGenericRegistrationTest` 中的机制模型由 `LinearMechanismModel` 改为轻量 `CollectingLinearMechanismModel`（测试桩）。
+   - 保留验收语义：
+     - `registerAuxiliaryTokens` 与 `registerConstraints` 必须成功。
+     - 约束数量必须增长。
+     - 约束系数类型仍需保持 `V`（防止 `Flt64` 泄漏）。
+
+2. 四类型 fixture 常量缓存强化
+   - `GenericNumberCase` 常量改为实例级缓存值（`zero/one/two/five/ten`）。
+   - `cachedConverter` 中 `zero/one` 改为一次构造后复用。
+   - `FltX` 也统一走 `cachedConverter`。
+
+### 本轮验证结果
+
+1. `RtnX` 单用例（`with-all-slow-tests`）
+   - 命令：`mvn -pl ospf-kotlin-core -Pwith-all-slow-tests "-Dtest=FunctionSymbolRoundingGenericRegistrationTest#floorAndCeilAndRoundShouldRegisterConstraintsForRtnX" test`
+   - 结果：`BUILD SUCCESS`
+   - `FunctionSymbolRoundingGenericRegistrationTest` 单测耗时：`45.23s`
+   - 对比上一轮同口径约 `347s`，显著下降。
+
+2. 中速慢测（`with-slow-tests`）
+   - 目标组合：`GenericLinearMetaModelBuildTest, GenericQuadraticMetaModelBuildTest, FunctionSymbolGenericRegistrationTest, FunctionSymbolConditionalGenericRegistrationTest, FunctionSymbolPiecewiseGenericRegistrationTest, FunctionSymbolRoundingGenericRegistrationTest`
+   - 结果：`BUILD SUCCESS`，`10 tests`，总耗时约 `1:11`
+   - 其中 `FunctionSymbolRoundingGenericRegistrationTest`（3 个 slow 用例）约 `26.28s`
+
+3. 全量慢测（`with-all-slow-tests`）
+   - 同上目标组合（含 `RtnX` very-slow）
+   - 结果：`BUILD SUCCESS`，`11 tests`，总耗时约 `2:47`
+   - 其中 `FunctionSymbolRoundingGenericRegistrationTest`（4 个用例）约 `122.6s`
+
+### 当前结论
+
+1. `Rounding` 四类型验收已从“重型机制模型路径”切换到“约束注册语义验证路径”，稳定通过且耗时显著下降。
+2. `very-slow` 档位从“分钟级超长”降至可接受区间，适合纳入日常增强回归。
+3. 下一步可继续把同类函数符号验收测试逐步迁移到轻量模型桩，以统一降低非必要的测试计算成本。
