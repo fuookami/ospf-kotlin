@@ -13,6 +13,10 @@
     <name>ospf-kotlin-core</name>
     <artifactId>ospf-kotlin-core</artifactId>
 
+    <properties>
+        <ospf.kotlin.test.excludedGroups>slow,very-slow</ospf.kotlin.test.excludedGroups>
+    </properties>
+
     <dependencies>
         <dependency>
             <groupId>io.github.fuookami.ospf.kotlin</groupId>
@@ -39,6 +43,7 @@
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
                 <configuration>
+                    <excludedGroups>${ospf.kotlin.test.excludedGroups}</excludedGroups>
                     <systemPropertyVariables>
                         <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
                     </systemPropertyVariables>
@@ -46,4 +51,19 @@
             </plugin>
         </plugins>
     </build>
+
+    <profiles>
+        <profile>
+            <id>with-slow-tests</id>
+            <properties>
+                <ospf.kotlin.test.excludedGroups>very-slow</ospf.kotlin.test.excludedGroups>
+            </properties>
+        </profile>
+        <profile>
+            <id>with-all-slow-tests</id>
+            <properties>
+                <ospf.kotlin.test.excludedGroups></ospf.kotlin.test.excludedGroups>
+            </properties>
+        </profile>
+    </profiles>
 </project>

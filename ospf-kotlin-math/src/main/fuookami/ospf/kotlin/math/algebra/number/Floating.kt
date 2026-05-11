@@ -56,7 +56,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
     converter2: (Long) -> I,
     ctor: (I, I) -> R
 ): R {
-    val ds = f.toString().trimEnd('0').trimEnd('.')
+    val ds = BigDecimal(f.toString()).stripTrailingZeros().toPlainString()
     val index = ds.indexOf('.')
     if (index == -1) {
         val num = converter1(ds)
@@ -71,7 +71,7 @@ private fun <F : FloatingNumber<F>, I : Integer<I>, R : Rational<R, I>> floating
         num /= 2L
         den /= 2L
     }
-    while ((num % 5L == 2L) && (den % 5L == 0L)) {
+    while ((num % 5L == 0L) && (den % 5L == 0L)) {
         num /= 5L
         den /= 5L
     }

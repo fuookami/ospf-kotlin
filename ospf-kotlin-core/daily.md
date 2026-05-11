@@ -285,3 +285,275 @@
 - 外部 solver 若使用 `Flt64`，转换只发生在明确 adapter 边界。
 - 求解结果、solution pool、dual、cut、shadow price、pipeline objective 均能以 `V` 返回。
 - `Flt64` 旧接口仍可用，且只作为兼容包装，不再承载唯一业务实现。
+
+## 下一轮交接：先补四类型验收测试，再继续泛型化实现
+
+### 当前已完成或已有基础
+
+从当前文档计划和代码抽样看，以下内容已经有一定基础，但不能视为完全泛型化完成：
+
+1. 已有完整的泛型化路线图，覆盖 `math`、`core`、`framework`、solver API、Benders/cut、framework 算法、兼容层和测试门禁。
+2. `core` 中已经引入 `IntoValue<V>` 作为 `Flt64` 与泛型值 `V` 的边界转换能力，并在部分类型中使用。
+3. token table、cache context、flatten context 等基础结构已有泛型签名和部分回归测试，例如 `GenericTokenTableRegressionTest`。
+4. `LinearFunctionSymbolAdapter`、`MathFunctionSymbol`、部分函数符号已有泛型化外层签名和迁移测试，例如 `FunctionSymbolMigrationTest`。
+5. `daily.md` 中已经明确原则：`Flt64` 只允许留在 solver adapter、compat/deprecated API、`adapter.flt64`、数值实现和测试基准等边界位置。
+6. 现有 `ospf-kotlin-example` 已有大量 `Flt64` 示例和函数符号测试，可作为行为基准，但目前不能证明非 `Flt64` 类型可用。
+
+### 当前主要缺口
+
+当前最大风险是“签名泛型，内部仍然 `Flt64` 特化”的伪泛型状态。典型例子：
+
+- `fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction#registerConstraints` 的入参已经是 `AbstractLinearMechanismModel<V>`，但内部仍然构造 `LinearInequality<Flt64>`、`LinearPolynomial<Flt64>`，并使用 `Flt64.zero`、`Flt64.one`。
+- `core.intermediate_symbol.function` 下多类函数仍有类似模式，例如 `And`、`Or`、`UnivariateLinearPiecewise`、`SlackRange` 等。
+- 当前测试大多只覆盖 `Flt64`，不足以暴露 `Rtn64`、`FltX`、`RtnX` 下的类型泄漏和 unchecked cast 问题。
+
+因此下一轮不应先继续大规模重写实现，而应先建立四类型验收标准，让后续实现修改有稳定红绿灯。
+
+### 意图
+
+在下一轮泛型化实现前，先把 `Flt64`、`Rtn64`、`FltX`、`RtnX` 四种数值类型纳入单元测试和 `ospf-kotlin-example` 的编译样例，形成明确验收矩阵。
+
+目标不是立即要求四种类型都能真实调用外部 solver 求解，而是先确保建模主链路可用：
+
+- build meta model
+- add variables
+- add constraints
+- add objective
+- register intermediate function constraints
+- dump mechanism model
+- 在 solver adapter 边界集中处理 `V <-> Flt64` 转换
+
+### 建议步骤
+
+1. 确认四种数值类型的基础能力
+   - 梳理 `Flt64`、`Rtn64`、`FltX`、`RtnX` 的构造方式。
+   - 确认它们是否满足 `where V : RealNumber<V>, V : NumberField<V>`。
+   - 为每种类型准备 `IntoValue<V>`，至少支持 `zero`、`one`、`intoValue(Flt64)`、`fromValue(V)`。
+
+2. 新增泛型测试 fixture
+   - 在 `ospf-kotlin-core/src/test` 下建立统一测试工具，例如 `GenericNumberCase<V>`。
+   - 为四种类型分别提供 case。
+   - 后续泛型测试通过 case 矩阵运行，避免重复写四份测试。
+
+3. 补 core 主链路验收测试
+   - 覆盖 `LinearMetaModel<V>` 和 `QuadraticMetaModel<V>`。
+   - 覆盖 token table、flatten data、constraint、objective、mechanism model dump。
+   - 每个测试必须跑 `Flt64`、`Rtn64`、`FltX`、`RtnX`。
+
+4. 补中间函数符号验收测试
+   - 第一批至少覆盖三类函数：
+     - 线性辅助函数：`Abs`
+     - 逻辑函数：`And` 或 `Or` 或 `If`
+     - 辅助/分段函数：`Slack` 或 `Max` 或 `Min`
+   - 测试重点：
+     - 可以创建函数符号。
+     - 可以注册辅助变量。
+     - 可以执行 `registerConstraints`。
+     - 注册出的 constraint 主类型为 `V`，不是 `Flt64`。
+
+5. 先给 `AbsFunction` 写红灯测试
+   - 用 `Rtn64` 或 `RtnX` 创建 `AbsFunction<V>`。
+   - 调用 `registerConstraints(AbstractLinearMechanismModel<V>)`。
+   - 当前实现预计会因内部 `LinearInequality<Flt64>` 特化失败或暴露类型泄漏。
+   - 这个失败应作为下一步修复 `AbsFunction` 的明确目标。
+
+6. 补 `ospf-kotlin-example` 泛型样例
+   - 新增一个最小样例，例如 `core_demo/GenericNumberDemo.kt`。
+   - 同一个简单线性模型分别用 `Flt64`、`Rtn64`、`FltX`、`RtnX` 建模。
+   - 样例先要求 build/dump 和编译通过，不强依赖真实 solver。
+
+7. 增加扫描门禁
+   - 扫描禁止区域：
+     - `ospf-kotlin-core/src/main/.../intermediate_symbol/function`
+     - `ospf-kotlin-core/src/main/.../model/mechanism`
+     - `ospf-kotlin-core/src/main/.../intermediate_model`
+   - 禁止主链路新增或保留未批准的：
+     - `LinearInequality<Flt64>`
+     - `QuadraticInequalityOf<Flt64>`
+     - `LinearPolynomial<Flt64>` 作为泛型实现内部主类型
+     - `QuadraticPolynomial<Flt64>` 作为泛型实现内部主类型
+     - `Flt64.zero as V`
+     - `Flt64.one as V`
+     - `this as Flt64`
+     - `model as LinearMechanismModel<Flt64>`
+     - `model as QuadraticMechanismModel<Flt64>`
+
+8. 记录基线测试结果
+   - 跑当前项目约定的 core/example 测试命令。
+   - 若失败，按类型记录：
+     - API 签名不支持。
+     - 实现内部仍 `Flt64` 特化。
+     - `IntoValue<V>` 缺失或转换不完整。
+     - solver adapter 边界仍有 unchecked cast。
+     - 非本轮范围的外部 solver 限制。
+
+### 详细计划
+
+#### A. 测试 fixture 设计
+
+建议新增一个测试辅助文件，集中管理四类型 case：
+
+- `name: String`
+- `zero: V`
+- `one: V`
+- `two: V`
+- `minusOne: V`
+- `fromDouble(value: Double): V`
+- `converter: IntoValue<V>`
+
+测试 case 应尽量只依赖公开 API，不访问实现内部字段。这样可以作为外部用户视角的编译期 API 测试。
+
+#### B. core 主链路测试矩阵
+
+每种类型至少跑以下模型：
+
+1. 线性最小模型
+   - 一个连续变量 `x`
+   - 一个约束 `x >= 1`
+   - 一个目标 `min x`
+   - dump mechanism model
+
+2. 线性多变量模型
+   - 两个变量 `x`、`y`
+   - 约束 `x + 2y <= 10`
+   - 目标 `3x + y`
+   - 验证 constraint 和 objective 中系数类型为 `V`
+
+3. 二次最小模型
+   - 变量 `x`、`y`
+   - 二次目标或二次约束
+   - dump quadratic mechanism model
+
+4. token/flatten/cache 测试
+   - `AutoTokenTable<V>`
+   - `ManualTokenTable<V>`
+   - `LinearFlattenData<V>`
+   - `QuadraticFlattenData<V>`
+   - `TokenCacheContexts<V>`
+
+#### C. 中间函数符号测试矩阵
+
+第一批建议选择：
+
+1. `AbsFunction<V>`
+   - 输入 `x - 2`
+   - 期望生成 abs result、positive slack、negative slack、binary indicator 等辅助结构。
+   - 重点验证 `registerConstraints` 使用 `LinearInequality<V>`。
+
+2. `AndFunction<V>` 或 `OrFunction<V>`
+   - 输入两个线性表达式。
+   - 验证逻辑函数产生的 indicator 约束不再硬编码 `Flt64.one`、`Flt64.zero`。
+
+3. `SlackFunction<V>` 或 `MaxFunction<V>`
+   - 验证辅助变量、范围和 Big-M 参数以 `V` 存储和传递。
+
+#### D. example 编译样例
+
+建议新增：
+
+- `ospf-kotlin-example/src/main/fuookami/ospf/kotlin/example/core_demo/GenericNumberDemo.kt`
+
+内容为一个统一函数：
+
+- `fun <V> buildGenericLinearDemo(case: GenericNumberCase<V>)`
+- 分别由 `Flt64`、`Rtn64`、`FltX`、`RtnX` 调用。
+
+样例不应依赖具体外部 solver。若需要 solver，必须明确这是 `Flt64` raw adapter 边界测试，不作为泛型建模能力的必要条件。
+
+#### E. 扫描门禁
+
+建议新增脚本或测试，先用 allowlist 方式逐步收紧。第一轮只针对高风险目录，避免全仓大量历史 `Flt64` 造成噪音。
+
+高风险目录：
+
+- `core/intermediate_symbol/function`
+- `core/intermediate_model`
+- `core/model/mechanism`
+
+允许保留位置：
+
+- solver adapter
+- deprecated compatibility overload
+- `math.symbol.adapter.flt64`
+- `Flt64` 自身数值实现
+- 明确标注为兼容入口的工厂函数
+- 测试基准
+
+### 下一轮验收标准
+
+下一轮完成时，至少应满足：
+
+1. `Flt64`、`Rtn64`、`FltX`、`RtnX` 四种类型都有统一测试 fixture。
+2. 四种类型都能通过 `LinearMetaModel<V>` 的 build、add variable、add constraint、add objective、dump mechanism model 测试。
+3. 四种类型都能通过至少一个 `QuadraticMetaModel<V>` 的 build/dump 测试。
+4. `AbsFunction<V>` 对四种类型都能完成 auxiliary token 注册和 constraint 注册。
+5. 至少一个逻辑函数和一个辅助/分段函数对四种类型通过同类注册测试。
+6. `ospf-kotlin-example` 中存在四类型泛型样例，并且 example 模块能够编译。
+7. 禁止区域扫描没有未批准的 `LinearInequality<Flt64>`、`QuadraticInequalityOf<Flt64>`、`LinearPolynomial<Flt64>` 主链路泄漏。
+8. 若真实外部 solver 仍只支持 `Flt64` raw type，必须证明转换集中发生在 adapter 边界，并且返回值能够转换为 `FeasibleSolverOutput<V>`。
+9. 所有新增测试失败项都必须归类并记录，不能只标记为“泛型化未完成”。
+
+### 执行顺序建议
+
+1. 先写四类型 fixture 和最小 build/dump 测试。
+2. 再写 `AbsFunction` 红灯测试。
+3. 修复 `AbsFunction`，让它成为函数符号泛型化模板。
+4. 复制该模式迁移逻辑函数和辅助/分段函数。
+5. 补 example 编译样例。
+6. 最后加入扫描门禁，并根据 allowlist 收敛历史 `Flt64`。
+
+这轮交接的核心判断是：先让 `Rtn64`、`FltX`、`RtnX` 进入日常测试矩阵，再继续改实现。否则泛型签名会继续掩盖内部 `Flt64` 特化，导致每轮迭代都只能证明 `Flt64` 可用。
+
+## 进度更新（2026-05-11）
+
+### 本轮已完成
+
+1. `math` 修复（四类型验收前置）
+   - `Floating.kt`：`floatingToRational` 改为 `BigDecimal(...).stripTrailingZeros().toPlainString()`，并修复 `num % 5L == 2L` 为 `num % 5L == 0L`。
+   - `Rational.kt`：`Rtn64/RtnX` 构造约分改为 `gcd(num.abs(), den.abs())`。
+
+2. `core` 四类型验收主链路
+   - 新增四类型 fixture：`GenericNumberCase/GenericNumberCases`。
+   - 新增主链路测试：`GenericLinearMetaModelBuildTest`、`GenericQuadraticMetaModelBuildTest`。
+   - 新增函数符号四类型测试：
+     - `FunctionSymbolGenericRegistrationTest`
+     - `FunctionSymbolConditionalGenericRegistrationTest`
+     - `FunctionSymbolPiecewiseGenericRegistrationTest`
+     - `FunctionSymbolRoundingGenericRegistrationTest`
+
+3. 慢测分层配置（Maven Surefire）
+   - 默认排除：`slow,very-slow`
+   - `-Pwith-slow-tests`：仅包含 `slow`（排除 `very-slow`）
+   - `-Pwith-all-slow-tests`：包含所有慢测
+
+4. `Rounding` 慢测拆分与标记
+   - `FunctionSymbolRoundingGenericRegistrationTest` 拆为 4 个测试方法（`Flt64/FltX/Rtn64/RtnX`）。
+   - 标签策略：
+     - `Flt64/FltX/Rtn64` 标记 `@Tag("slow")`
+     - `RtnX` 单独标记 `@Tag("very-slow")`
+
+### 本轮验证结果
+
+1. 默认快测（排除 `slow,very-slow`）
+   - 目标组合：`GenericLinearMetaModelBuildTest, GenericQuadraticMetaModelBuildTest, FunctionSymbolGenericRegistrationTest, FunctionSymbolConditionalGenericRegistrationTest, FunctionSymbolPiecewiseGenericRegistrationTest, FunctionSymbolRoundingGenericRegistrationTest`
+   - 结果：`BUILD SUCCESS`，`7 tests`，约 `1:10`
+
+2. 中速慢测（`-Pwith-slow-tests`，不含 `RtnX`）
+   - 结果：`BUILD SUCCESS`，`10 tests`，约 `4:19`
+   - 其中 `FunctionSymbolRoundingGenericRegistrationTest`（3 个用例）约 `186.6s`
+
+3. 全量慢测（`-Pwith-all-slow-tests`，含 `RtnX`）
+   - 结果：`BUILD SUCCESS`，`11 tests`，约 `14:16`
+   - 其中 `FunctionSymbolRoundingGenericRegistrationTest`（4 个用例）约 `791.5s`
+
+4. `Rounding` 用例耗时分布（Surefire XML）
+   - `Flt64`：接近 0s
+   - `FltX`：接近 0s
+   - `Rtn64`：约 `152.9s`
+   - `RtnX`：约 `638.6s`（主要瓶颈）
+
+### 当前结论
+
+1. 四类型验收链路可稳定通过。
+2. 日常回归可默认走快测或 `with-slow-tests`，把 `RtnX` 的 `very-slow` 分离到按需全量回归。
+3. 下一步优化重点应放在 `RtnX` 相关路径的性能（优先 `Rounding`）。
