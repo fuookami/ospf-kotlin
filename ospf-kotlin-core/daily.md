@@ -597,3 +597,59 @@
 1. `Rounding` 四类型验收已从“重型机制模型路径”切换到“约束注册语义验证路径”，稳定通过且耗时显著下降。
 2. `very-slow` 档位从“分钟级超长”降至可接受区间，适合纳入日常增强回归。
 3. 下一步可继续把同类函数符号验收测试逐步迁移到轻量模型桩，以统一降低非必要的测试计算成本。
+
+## 进度更新（2026-05-11 第三轮）
+
+### 本轮已完成
+
+1. `core` 主链路去 `deprecated` 调用与 `V` 视图收口
+   - `TokenTable.register`（同步/并发）空表达式判定从 `flattenedMonomials` 改为 `solverFlattenedMonomials`。
+   - `SolverBoundaryCasts` 的 flatten 桥接改为 `flattenedMonomialsAsV`，移除对象级 `DEPRECATION` 抑制。
+   - `IntermediateSymbol.prepareSolver` 触发 flatten 的路径改为 `flattenedMonomialsAsV`。
+
+2. 测试侧 `Flt64` 兼容别名与旧视图迁移
+   - `ApiCompatibilityTest`、`CacheKeyConflictTest`、`TokenCacheContextsTest` 改用 `flattenedMonomialsAsV`。
+   - `BasicModelEntryTest`、`BendersCutApiTest`、`QuadraticMechanismModelCutTest`、`SemanticEquivalenceTest` 中 `QuadraticInequality` 统一迁移为 `QuadraticInequalityOf<Flt64>`。
+   - `GenericTokenTableRegressionTest` 移除恒真 `instance check`，改为有意义的运行时断言。
+
+3. `unchecked cast` 继续集中到边界层
+   - 在 `SolverBoundaryCasts` 新增 `dependencyAsIntermediateV`、`linearPolynomialAsFlt64`、`quadraticPolynomialAsFlt64`、`tokenTableAsFlt64OrNull`。
+   - `IntermediateSymbol` 内部相关强转改为走上述边界函数，减少主链路散落 cast。
+
+4. 剩余高噪声告警收敛
+   - `ExpressionRange` 两个 reified 构造入口增加局部 `@Suppress("UNCHECKED_CAST")`。
+   - `Token.result` getter 增加局部 `@Suppress("UNCHECKED_CAST")`。
+   - `MathInequalityDsl` 文件头增加 `EXTENSION_SHADOWED_BY_MEMBER` 抑制，收敛 `UInt8/UInt64` 扩展遮蔽提示。
+
+### 本轮验证结果
+
+1. 主回归（含 slow，不含 very-slow）
+   - 命令：`mvn -pl ospf-kotlin-core -Pwith-slow-tests "-Dtest=GenericLinearMetaModelBuildTest,GenericQuadraticMetaModelBuildTest,FunctionSymbolGenericRegistrationTest,FunctionSymbolConditionalGenericRegistrationTest,FunctionSymbolPiecewiseGenericRegistrationTest,FunctionSymbolRoundingGenericRegistrationTest,FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest,GenericTokenTableRegressionTest,TokenCacheContextsTest,CacheKeyConflictTest" test`
+   - 结果：`BUILD SUCCESS`，`46 tests`，`Failures: 0, Errors: 0`。
+
+2. 编译告警状态（同口径命令）
+   - `kotlin:compile` 与 `kotlin:test-compile` 告警已清空（仅剩 Maven 对 example 模块插件版本的构建告警，不影响本轮 core 泛型化验证）。
+
+### 本轮提交
+
+1. `6fb95b26` `refactor: remove deprecated flattenedMonomials usage in token register`
+2. `485ac2e3` `refactor: switch solver flatten bridge to V-typed views`
+3. `5e6e5dab` `test: use V-typed flattenedMonomials view in cache tests`
+4. `75f9a0aa` `test: replace deprecated QuadraticInequality alias usage`
+5. `a5d2bf8a` `test: reduce noisy generic warnings in regression suites`
+6. `6bc89eb2` `refactor: centralize intermediate symbol boundary casts`
+7. `89182eb7` `chore: suppress remaining core generic warning hotspots`
+
+### 下一会话交接（直接接力）
+
+1. 先做全量回归口径确认
+   - `mvn -pl ospf-kotlin-core test`
+   - `mvn -pl ospf-kotlin-core -Pwith-all-slow-tests "-Dtest=GenericLinearMetaModelBuildTest,GenericQuadraticMetaModelBuildTest,FunctionSymbolGenericRegistrationTest,FunctionSymbolConditionalGenericRegistrationTest,FunctionSymbolPiecewiseGenericRegistrationTest,FunctionSymbolRoundingGenericRegistrationTest,FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest,GenericTokenTableRegressionTest,TokenCacheContextsTest,CacheKeyConflictTest" test`
+
+2. 回到泛型主线增量点
+   - 优先继续 `core.intermediate_symbol.function` 中剩余 `Flt64` 兼容路径收口（保持“主注册链路 `V` 类型、不经 `Flt64` 桥接”标准）。
+   - 每完成一个函数族（如 `Abs`/逻辑函数/分段辅助函数）补四类型注册回归（`Flt64/FltX/Rtn64/RtnX`）。
+
+3. 分支与状态
+   - 当前分支：`rewrite-bigbang`
+   - 工作区：干净（`git status --short` 为空）
