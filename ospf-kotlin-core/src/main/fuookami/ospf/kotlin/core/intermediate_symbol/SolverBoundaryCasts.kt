@@ -13,6 +13,8 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
@@ -98,6 +100,25 @@ internal object SolverBoundaryCasts {
     fun <V> mapValuesToV(values: Map<Symbol, Flt64>, converter: IntoValue<V>): Map<Symbol, V>
         where V : RealNumber<V>, V : NumberField<V> {
         return values.mapValues { converter.intoValue(it.value) }
+    }
+
+    fun <V> dependencyAsIntermediateV(dependency: IntermediateSymbol<*>): IntermediateSymbol<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return dependency as IntermediateSymbol<V>
+    }
+
+    fun <V> linearPolynomialAsFlt64(polynomial: MutableLinearPolynomial<V>): MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return polynomial as MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    }
+
+    fun <V> quadraticPolynomialAsFlt64(polynomial: MutableQuadraticPolynomial<V>): MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return polynomial as MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    }
+
+    fun tokenTableAsFlt64OrNull(tokenTable: AbstractTokenTable<*>?): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+        return tokenTable as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
     fun <V> symbolAsIntermediateStar(symbol: Symbol?): IntermediateSymbol<out V>?

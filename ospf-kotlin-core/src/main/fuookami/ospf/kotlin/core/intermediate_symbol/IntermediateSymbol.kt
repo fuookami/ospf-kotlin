@@ -232,7 +232,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         ) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    (/* unchecked */ dependency as IntermediateSymbol<V>).evaluate(
+                    SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency).evaluate(
                         tokenTable = tokenTable,
                         converter = converter,
                         zeroIfNone = zeroIfNone
@@ -260,7 +260,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, results, {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    val dep = dependency as IntermediateSymbol<V>
+                    val dep = SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency)
                     when (dep) {
                         is LinearExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
                         is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
@@ -295,7 +295,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, values, {
             for (dependency in dependencies) {
                 if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                    val dep = dependency as IntermediateSymbol<V>
+                    val dep = SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency)
                     when (dep) {
                         is LinearExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
                         is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
@@ -547,7 +547,7 @@ class LinearExpressionSymbol<V>(
     }
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
-    private val _polyFlt64: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = _utilsPolynomial as MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    private val _polyFlt64: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.linearPolynomialAsFlt64(_utilsPolynomial)
 
     // polynomial property returns immutable version
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
@@ -579,7 +579,7 @@ class LinearExpressionSymbol<V>(
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone)
+                symbol.evaluate(SolverBoundaryCasts.tokenListAsFlt64(tokenTable), zeroIfNone)
             }
             else -> null
         }
@@ -593,7 +593,7 @@ class LinearExpressionSymbol<V>(
                 else if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(results, tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone)
+                symbol.evaluate(results, SolverBoundaryCasts.tokenListAsFlt64(tokenTable), zeroIfNone)
             }
             else -> null
         }
@@ -606,7 +606,7 @@ class LinearExpressionSymbol<V>(
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
             }
             is LinearExpressionSymbol<*> -> {
-                symbol.evaluate(values, tokenTable?.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone)
+                symbol.evaluate(values, SolverBoundaryCasts.tokenListAsFlt64OrNull(tokenTable), zeroIfNone)
             }
             else -> values[symbol] ?: if (zeroIfNone) Flt64.zero else null
         }
@@ -701,10 +701,12 @@ class LinearExpressionSymbol<V>(
         prefix = "__linear_expression_flatten_cache__"
     )
     private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
-        return dependencies
-            .asSequence()
-            .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
+            dependencies
+                .asSequence()
+                .mapNotNull { boundTokenTableContext(it) }
+                .firstOrNull()
+        )
     }
 
     override val cached: Boolean
@@ -1099,7 +1101,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
-    private val _polyFlt64: MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = _utilsPolynomial as MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    private val _polyFlt64: MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.quadraticPolynomialAsFlt64(_utilsPolynomial)
 
     // polynomial property returns immutable version
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
@@ -1126,7 +1128,7 @@ class QuadraticExpressionSymbol<V>(
     // Helper: evaluate a single symbol (V-typed path)
     // Internally computes in Flt64 (via resultFlt64 / Flt64 evaluate(tokenList)), then the caller converts via converter.intoValue().
     private fun evaluateSymbol(symbol: Symbol, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 tokenTable.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1138,7 +1140,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     private fun evaluateSymbol(symbol: Symbol, results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64(tokenTable)
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 val index = tokenTable.indexOf(symbol)
@@ -1153,7 +1155,7 @@ class QuadraticExpressionSymbol<V>(
 
     // Nullable tokenTable variant for evaluate(values, tokenTable?, ...) path
     private fun evaluateSymbol(symbol: Symbol, values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): Flt64? {
-        val tokenList = tokenTable?.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
+        val tokenList = SolverBoundaryCasts.tokenListAsFlt64OrNull(tokenTable)
         return when (symbol) {
             is AbstractVariableItem<*, *> -> {
                 values[symbol] ?: tokenTable?.find(symbol)?.resultFlt64 ?: if (zeroIfNone) Flt64.zero else null
@@ -1294,10 +1296,12 @@ class QuadraticExpressionSymbol<V>(
         prefix = "__quadratic_expression_flatten_cache__"
     )
     private fun cacheTokenTable(): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
-        return dependencies
-            .asSequence()
-            .mapNotNull { boundTokenTableContext(it) }
-            .firstOrNull() as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        return SolverBoundaryCasts.tokenTableAsFlt64OrNull(
+            dependencies
+                .asSequence()
+                .mapNotNull { boundTokenTableContext(it) }
+                .firstOrNull()
+        )
     }
 
     override val cached: Boolean
