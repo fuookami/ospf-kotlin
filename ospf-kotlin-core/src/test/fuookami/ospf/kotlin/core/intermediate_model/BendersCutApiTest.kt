@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -134,7 +134,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(
                     QuadraticMonomial.quadratic(Flt64.one, x, y),
@@ -185,7 +185,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, x, y)),
                 constant = Flt64.zero
@@ -330,7 +330,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(
                     QuadraticMonomial.quadratic(Flt64.one, x, y),
@@ -385,7 +385,7 @@ class BendersCutApiTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, x, y)),
                 constant = Flt64.zero
@@ -449,8 +449,8 @@ class BendersCutApiTest {
     }
 
     private fun assertQuadraticInequalityEquals(
-        expected: QuadraticInequality,
-        actual: QuadraticInequality
+        expected: QuadraticInequalityOf<Flt64>,
+        actual: QuadraticInequalityOf<Flt64>
     ) {
         val eFlat = expected.flattenData
         val aFlat = actual.flattenData
@@ -476,8 +476,8 @@ class BendersCutApiTest {
         when (expectedClassName) {
             LinearInequality::class.qualifiedName ->
                 assertLinearInequalityEquals(expected as LinearInequality<Flt64>, actual as LinearInequality<Flt64>)
-            QuadraticInequality::class.qualifiedName ->
-                assertQuadraticInequalityEquals(expected as QuadraticInequality, actual as QuadraticInequality)
+            QuadraticInequalityOf::class.qualifiedName ->
+                assertQuadraticInequalityEquals(expected as QuadraticInequalityOf<Flt64>, actual as QuadraticInequalityOf<Flt64>)
             else -> assertTrue(false, "unexpected cut type: $expectedClassName")
         }
     }

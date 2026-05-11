@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.le
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -80,7 +80,7 @@ class SemanticEquivalenceTest {
             monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, x, y)),
             constant = Flt64.zero
         )
-        val quadInequality: QuadraticInequality = quadLhs le Flt64(5.0)
+        val quadInequality: QuadraticInequalityOf<Flt64> = quadLhs le Flt64(5.0)
         metaModel.addConstraint(relation = quadInequality, name = "qc")
 
         val linLhs = LinearPolynomial(

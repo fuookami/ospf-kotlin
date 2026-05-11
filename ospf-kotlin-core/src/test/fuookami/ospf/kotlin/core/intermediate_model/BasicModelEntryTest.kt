@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -178,7 +178,7 @@ class BasicModelEntryTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(
                     QuadraticMonomial.quadratic(Flt64.one, x, y),

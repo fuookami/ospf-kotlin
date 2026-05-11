@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -38,7 +38,7 @@ class QuadraticMechanismModelCutTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(listOf(x, y)) is Ok<*, *, *>)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(
                     QuadraticMonomial.quadratic(Flt64.one, x, y),
@@ -72,7 +72,7 @@ class QuadraticMechanismModelCutTest {
 
         assertTrue(result is Ok)
         assertEquals(1, result.value.size)
-        assertEquals(QuadraticInequality::class.qualifiedName, result.value.first()::class.qualifiedName)
+        assertEquals(QuadraticInequalityOf::class.qualifiedName, result.value.first()::class.qualifiedName)
 
         mechanismModel.close()
     }
@@ -85,7 +85,7 @@ class QuadraticMechanismModelCutTest {
         val tokens = AutoTokenTable<Flt64>(Quadratic, false)
         assertTrue(tokens.add(x) is Ok<*, *, *>)
 
-        val relation = QuadraticInequality(
+        val relation = QuadraticInequalityOf(
             lhs = QuadraticPolynomial(
                 monomials = listOf(QuadraticMonomial.linear(Flt64.one, x)),
                 constant = Flt64.zero
