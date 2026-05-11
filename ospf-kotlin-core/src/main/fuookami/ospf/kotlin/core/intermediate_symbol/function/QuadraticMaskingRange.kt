@@ -133,27 +133,26 @@ class QuadraticMaskingRangeFunction<V>(
      * Register Big-M masking constraints.
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
-        val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
-        val bigMMon = QuadraticMonomial.linear(mF, z)
+        val m = bigM
+        val resultMon = QuadraticMonomial.linear(converter.one, resultVar)
+        val bigMMon = QuadraticMonomial.linear(m, z)
 
-        val negatedPolyMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
+        val negatedPolyMonos = _polynomial.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
 
-        val constraints = mutableListOf<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<QuadraticInequalityOf<V>>()
 
         // Constraint 1: y - polynomial + M*z <= M
-        val lhs1 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(bigMMon), -flt64Poly.constant)
-        val rhs1 = QuadraticPolynomial(emptyList(), mF)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs1, rhs1, Comparison.LE, "${name}_upper")
+        val lhs1 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(bigMMon), -_polynomial.constant)
+        val rhs1 = QuadraticPolynomial<V>(emptyList(), m)
+        constraints += QuadraticInequalityOf(lhs1, rhs1, Comparison.LE, "${name}_upper")
 
         // Constraint 2: y - polynomial - M*z >= -M
-        val negBigMMon = QuadraticMonomial.linear(-mF, z)
-        val lhs2 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(negBigMMon), -flt64Poly.constant)
-        val rhs2 = QuadraticPolynomial(emptyList(), -mF)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs2, rhs2, Comparison.GE, "${name}_lower")
+        val negBigMMon = QuadraticMonomial.linear(-m, z)
+        val lhs2 = QuadraticPolynomial(listOf(resultMon) + negatedPolyMonos + listOf(negBigMMon), -_polynomial.constant)
+        val rhs2 = QuadraticPolynomial<V>(emptyList(), -m)
+        constraints += QuadraticInequalityOf(lhs2, rhs2, Comparison.GE, "${name}_lower")
 
-        return addQuadraticConstraints(model, constraints, converter) ?: ok
+        return addQuadraticConstraints(model, constraints) ?: ok
     }
 
     companion object {

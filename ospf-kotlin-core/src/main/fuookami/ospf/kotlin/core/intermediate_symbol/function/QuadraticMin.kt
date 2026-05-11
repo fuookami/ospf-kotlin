@@ -139,39 +139,39 @@ class QuadraticMinFunction<V>(
      * Register min constraints (y <= pi, and if exact: y >= pi - M*(1-ui), sum(ui)=1).
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val resultMon = QuadraticMonomial.linear(Flt64.one, resultVar)
-        val constraints = mutableListOf<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val m = bigM
+        val one = converter.one
+        val zero = converter.zero
+        val resultMon = QuadraticMonomial.linear(one, resultVar)
+        val constraints = mutableListOf<QuadraticInequalityOf<V>>()
 
         // y <= pi for each polynomial
         for ((i, poly) in polynomials.withIndex()) {
-            val flt64Poly = poly.asFlt64QuadraticPoly(converter)
-            val negatedMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
-            val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -flt64Poly.constant)
-            val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.LE, "${name}_lb_$i")
+            val negatedMonos = poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
+            val lhs = QuadraticPolynomial(negatedMonos + listOf(resultMon), -poly.constant)
+            val rhs = QuadraticPolynomial<V>(emptyList(), zero)
+            constraints += QuadraticInequalityOf(lhs, rhs, Comparison.LE, "${name}_lb_$i")
         }
 
         if (exact) {
             // y >= pi - M*(1 - ui) for each polynomial
             for ((i, poly) in polynomials.withIndex()) {
                 val uVar = binVars[i]
-                val flt64Poly = poly.asFlt64QuadraticPoly(converter)
-                val negatedPolyMonos = flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
-                val bigMTerm = QuadraticMonomial.linear(mF, uVar)
-                val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon) + listOf(bigMTerm), -flt64Poly.constant)
-                val rhs = QuadraticPolynomial(emptyList(), mF)
-                constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.GE, "${name}_ub_$i")
+                val negatedPolyMonos = poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
+                val bigMTerm = QuadraticMonomial.linear(m, uVar)
+                val lhs = QuadraticPolynomial(negatedPolyMonos + listOf(resultMon, bigMTerm), -poly.constant)
+                val rhs = QuadraticPolynomial<V>(emptyList(), m)
+                constraints += QuadraticInequalityOf(lhs, rhs, Comparison.GE, "${name}_ub_$i")
             }
 
             // sum(ui) = 1
-            val sumMonos = binVars.map { QuadraticMonomial.linear(Flt64.one, it) }
-            val sumLhs = QuadraticPolynomial(sumMonos, Flt64.zero)
-            val sumRhs = QuadraticPolynomial(emptyList(), Flt64.one)
-            constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
+            val sumMonos = binVars.map { QuadraticMonomial.linear(one, it) }
+            val sumLhs = QuadraticPolynomial(sumMonos, zero)
+            val sumRhs = QuadraticPolynomial<V>(emptyList(), one)
+            constraints += QuadraticInequalityOf(sumLhs, sumRhs, Comparison.EQ, "${name}_u")
         }
 
-        return addQuadraticConstraints(model, constraints, converter) ?: ok
+        return addQuadraticConstraints(model, constraints) ?: ok
     }
 
     companion object {

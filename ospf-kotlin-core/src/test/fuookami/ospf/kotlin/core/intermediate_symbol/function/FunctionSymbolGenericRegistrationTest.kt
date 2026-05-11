@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
+import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -58,6 +59,30 @@ class FunctionSymbolGenericRegistrationTest {
         runQuadraticLinearCase(GenericNumberCases.fltX)
         runQuadraticLinearCase(GenericNumberCases.rtn64)
         runQuadraticLinearCase(GenericNumberCases.rtnX)
+    }
+
+    @Test
+    fun quadraticMinShouldRegisterConstraintsForFourNumberTypesOnQuadraticMechanismModel() {
+        runQuadraticMinCase(GenericNumberCases.flt64)
+        runQuadraticMinCase(GenericNumberCases.fltX)
+        runQuadraticMinCase(GenericNumberCases.rtn64)
+        runQuadraticMinCase(GenericNumberCases.rtnX)
+    }
+
+    @Test
+    fun quadraticMaskingRangeShouldRegisterConstraintsForFourNumberTypesOnQuadraticMechanismModel() {
+        runQuadraticMaskingRangeCase(GenericNumberCases.flt64)
+        runQuadraticMaskingRangeCase(GenericNumberCases.fltX)
+        runQuadraticMaskingRangeCase(GenericNumberCases.rtn64)
+        runQuadraticMaskingRangeCase(GenericNumberCases.rtnX)
+    }
+
+    @Test
+    fun quadraticInStepRangeShouldRegisterConstraintsForFourNumberTypesOnQuadraticMechanismModel() {
+        runQuadraticInStepRangeCase(GenericNumberCases.flt64)
+        runQuadraticInStepRangeCase(GenericNumberCases.fltX)
+        runQuadraticInStepRangeCase(GenericNumberCases.rtn64)
+        runQuadraticInStepRangeCase(GenericNumberCases.rtnX)
     }
 
     private fun <V> runFunctionCase(numberCase: GenericNumberCase<V>)
@@ -271,6 +296,180 @@ class FunctionSymbolGenericRegistrationTest {
             val coefficient = firstCell.coefficient
             assertTrue(coefficient::class == numberCase.one::class,
                 "${numberCase.name}: qlinear constraint coefficient type should stay V instead of leaking Flt64")
+        } finally {
+            model.close()
+        }
+    }
+
+    private fun <V> runQuadraticMinCase(numberCase: GenericNumberCase<V>)
+            where V : RealNumber<V>, V : NumberField<V> {
+        val x = RealVar("${numberCase.name.lowercase()}_qmin_x")
+        val y = RealVar("${numberCase.name.lowercase()}_qmin_y")
+
+        val model = QuadraticMetaModel<V>(
+            name = "generic-quadratic-min-${numberCase.name.lowercase()}",
+            converter = numberCase.converter
+        )
+
+        try {
+            assertTrue(model.add(listOf(x, y)) is Ok, "${numberCase.name}: qmin add variables should succeed")
+
+            val objective = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(numberCase.one, x, y)),
+                constant = numberCase.zero
+            )
+            assertTrue(model.minimize(objective) is Ok, "${numberCase.name}: qmin add objective should succeed")
+
+            val p1 = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(numberCase.one, x, y)),
+                constant = numberCase.zero
+            )
+            val p2 = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.linear(numberCase.one, x)),
+                constant = numberCase.one
+            )
+            val function = QuadraticMinFunction(
+                polynomials = listOf(p1, p2),
+                exact = true,
+                bigM = numberCase.ten,
+                converter = numberCase.converter,
+                name = "qmin_${numberCase.name.lowercase()}"
+            )
+            assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qmin auxiliary tokens should succeed")
+
+            @Suppress("DEPRECATION")
+            val mechanismResult = runBlocking {
+                QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok, "${numberCase.name}: qmin dump quadratic mechanism model should succeed")
+            val mechanismModel = mechanismResult.value
+
+            val before = mechanismModel.constraints.size
+            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qmin registerConstraints should succeed")
+            val after = mechanismModel.constraints.size
+            assertTrue(after > before, "${numberCase.name}: qmin constraints should be appended")
+
+            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
+            val firstCell = newConstraint.lhs.first()
+            val coefficient = firstCell.coefficient
+            assertTrue(coefficient::class == numberCase.one::class,
+                "${numberCase.name}: qmin constraint coefficient type should stay V instead of leaking Flt64")
+        } finally {
+            model.close()
+        }
+    }
+
+    private fun <V> runQuadraticMaskingRangeCase(numberCase: GenericNumberCase<V>)
+            where V : RealNumber<V>, V : NumberField<V> {
+        val x = RealVar("${numberCase.name.lowercase()}_qmask_x")
+        val y = RealVar("${numberCase.name.lowercase()}_qmask_y")
+        val z = BinVar("${numberCase.name.lowercase()}_qmask_z")
+
+        val model = QuadraticMetaModel<V>(
+            name = "generic-quadratic-mask-${numberCase.name.lowercase()}",
+            converter = numberCase.converter
+        )
+
+        try {
+            assertTrue(model.add(listOf(x, y, z)) is Ok, "${numberCase.name}: qmask add variables should succeed")
+
+            val objective = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(numberCase.one, x, y)),
+                constant = numberCase.zero
+            )
+            assertTrue(model.minimize(objective) is Ok, "${numberCase.name}: qmask add objective should succeed")
+
+            val polynomial = QuadraticPolynomial(
+                monomials = listOf(
+                    QuadraticMonomial.quadratic(numberCase.one, x, y),
+                    QuadraticMonomial.linear(numberCase.one, x)
+                ),
+                constant = numberCase.zero
+            )
+            val function = QuadraticMaskingRangeFunction(
+                polynomial = polynomial,
+                z = z,
+                bigM = numberCase.ten,
+                converter = numberCase.converter,
+                name = "qmask_${numberCase.name.lowercase()}"
+            )
+            assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qmask auxiliary tokens should succeed")
+
+            @Suppress("DEPRECATION")
+            val mechanismResult = runBlocking {
+                QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok, "${numberCase.name}: qmask dump quadratic mechanism model should succeed")
+            val mechanismModel = mechanismResult.value
+
+            val before = mechanismModel.constraints.size
+            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qmask registerConstraints should succeed")
+            val after = mechanismModel.constraints.size
+            assertTrue(after > before, "${numberCase.name}: qmask constraints should be appended")
+
+            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
+            val firstCell = newConstraint.lhs.first()
+            val coefficient = firstCell.coefficient
+            assertTrue(coefficient::class == numberCase.one::class,
+                "${numberCase.name}: qmask constraint coefficient type should stay V instead of leaking Flt64")
+        } finally {
+            model.close()
+        }
+    }
+
+    private fun <V> runQuadraticInStepRangeCase(numberCase: GenericNumberCase<V>)
+            where V : RealNumber<V>, V : NumberField<V> {
+        val x = RealVar("${numberCase.name.lowercase()}_qstep_x")
+        val y = RealVar("${numberCase.name.lowercase()}_qstep_y")
+
+        val model = QuadraticMetaModel<V>(
+            name = "generic-quadratic-step-${numberCase.name.lowercase()}",
+            converter = numberCase.converter
+        )
+
+        try {
+            assertTrue(model.add(listOf(x, y)) is Ok, "${numberCase.name}: qstep add variables should succeed")
+
+            val objective = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(numberCase.one, x, y)),
+                constant = numberCase.zero
+            )
+            assertTrue(model.minimize(objective) is Ok, "${numberCase.name}: qstep add objective should succeed")
+
+            val input = QuadraticPolynomial(
+                monomials = listOf(
+                    QuadraticMonomial.quadratic(numberCase.one, x, y),
+                    QuadraticMonomial.linear(numberCase.one, x)
+                ),
+                constant = numberCase.zero
+            )
+            val function = QuadraticInStepRangeFunction(
+                x = input,
+                lower = -numberCase.one,
+                upper = numberCase.two,
+                bigM = numberCase.ten,
+                converter = numberCase.converter,
+                name = "qstep_${numberCase.name.lowercase()}"
+            )
+            assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qstep auxiliary tokens should succeed")
+
+            @Suppress("DEPRECATION")
+            val mechanismResult = runBlocking {
+                QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok, "${numberCase.name}: qstep dump quadratic mechanism model should succeed")
+            val mechanismModel = mechanismResult.value
+
+            val before = mechanismModel.constraints.size
+            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qstep registerConstraints should succeed")
+            val after = mechanismModel.constraints.size
+            assertTrue(after > before, "${numberCase.name}: qstep constraints should be appended")
+
+            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
+            val firstCell = newConstraint.lhs.first()
+            val coefficient = firstCell.coefficient
+            assertTrue(coefficient::class == numberCase.one::class,
+                "${numberCase.name}: qstep constraint coefficient type should stay V instead of leaking Flt64")
         } finally {
             model.close()
         }

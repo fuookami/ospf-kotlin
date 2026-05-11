@@ -107,6 +107,21 @@ private fun <V> LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 }
 
 /**
+ * Add a list of V-typed quadratic constraints directly to a V-typed QuadraticMechanismModel.
+ * Returns null on success, or the error result on failure.
+ */
+internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<V>, constraints: List<QuadraticInequalityOf<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    for (c in constraints) {
+        when (val r = model.addConstraint(relation = c, name = c.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+    }
+    return null
+}
+
+/**
  * Add a list of Flt64-typed quadratic constraints to a V-typed QuadraticMechanismModel, converting via IntoValue.
  * Returns null on success, or the error result on failure.
  *

@@ -148,50 +148,48 @@ class QuadraticInStepRangeFunction<V>(
      * Register Big-M constraints for the in-step-range function.
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val lowerF = converter.fromValue(lower)
-        val upperF = converter.fromValue(upper)
-        val flt64X = x.asFlt64QuadraticPoly(converter)
-        val yMon = QuadraticMonomial.linear(Flt64.one, y)
-        val zMon = QuadraticMonomial.linear(mF, z)
-        val negZMon = QuadraticMonomial.linear(-mF, z)
+        val m = bigM
+        val zero = converter.zero
+        val yMon = QuadraticMonomial.linear(converter.one, y)
+        val zMon = QuadraticMonomial.linear(m, z)
+        val negZMon = QuadraticMonomial.linear(-m, z)
 
-        val negXMonos = flt64X.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
-        val posXMonos = flt64X.monomials
+        val negXMonos = x.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
+        val posXMonos = x.monomials
 
-        val constraints = mutableListOf<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<QuadraticInequalityOf<V>>()
 
         // C1: x + M*(1-z) >= lower  =>  x + M - M*z >= lower
-        val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), flt64X.constant + mF)
-        val c1Rhs = QuadraticPolynomial(emptyList(), lowerF)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
+        val c1Lhs = QuadraticPolynomial(posXMonos + listOf(negZMon), x.constant + m)
+        val c1Rhs = QuadraticPolynomial<V>(emptyList(), lower)
+        constraints += QuadraticInequalityOf(c1Lhs, c1Rhs, Comparison.GE, "${name}_range_lb")
 
         // C2: x <= upper + M*(1-z)  =>  x - M + M*z <= upper
-        val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), flt64X.constant - mF)
-        val c2Rhs = QuadraticPolynomial(emptyList(), upperF)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
+        val c2Lhs = QuadraticPolynomial(posXMonos + listOf(zMon), x.constant - m)
+        val c2Rhs = QuadraticPolynomial<V>(emptyList(), upper)
+        constraints += QuadraticInequalityOf(c2Lhs, c2Rhs, Comparison.LE, "${name}_range_ub")
 
         // C3: y - x + M*(1-z) >= 0  =>  y - x + M - M*z >= 0
-        val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -flt64X.constant + mF)
-        val c3Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
+        val c3Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(negZMon), -x.constant + m)
+        val c3Rhs = QuadraticPolynomial<V>(emptyList(), zero)
+        constraints += QuadraticInequalityOf(c3Lhs, c3Rhs, Comparison.GE, "${name}_eq_lb")
 
         // C4: y - x - M*(1-z) <= 0  =>  y - x - M + M*z <= 0
-        val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -flt64X.constant - mF)
-        val c4Rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
+        val c4Lhs = QuadraticPolynomial(listOf(yMon) + negXMonos + listOf(zMon), -x.constant - m)
+        val c4Rhs = QuadraticPolynomial<V>(emptyList(), zero)
+        constraints += QuadraticInequalityOf(c4Lhs, c4Rhs, Comparison.LE, "${name}_eq_ub")
 
         // C5: y <= M*z
-        val c5Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
-        val c5Rhs = QuadraticPolynomial(listOf(zMon), Flt64.zero)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
+        val c5Lhs = QuadraticPolynomial(listOf(yMon), zero)
+        val c5Rhs = QuadraticPolynomial(listOf(zMon), zero)
+        constraints += QuadraticInequalityOf(c5Lhs, c5Rhs, Comparison.LE, "${name}_zero_ub")
 
         // C6: y >= -M*z
-        val c6Lhs = QuadraticPolynomial(listOf(yMon), Flt64.zero)
-        val c6Rhs = QuadraticPolynomial(listOf(negZMon), Flt64.zero)
-        constraints += QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
+        val c6Lhs = QuadraticPolynomial(listOf(yMon), zero)
+        val c6Rhs = QuadraticPolynomial(listOf(negZMon), zero)
+        constraints += QuadraticInequalityOf(c6Lhs, c6Rhs, Comparison.GE, "${name}_zero_lb")
 
-        return addQuadraticConstraints(model, constraints, converter) ?: ok
+        return addQuadraticConstraints(model, constraints) ?: ok
     }
 
     companion object {
