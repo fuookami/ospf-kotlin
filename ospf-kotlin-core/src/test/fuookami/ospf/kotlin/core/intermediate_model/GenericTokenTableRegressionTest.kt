@@ -16,49 +16,49 @@ class GenericTokenTableRegressionTest {
     @Test
     fun mutableTokenTableFlt64IsMutableTokenTableOfFlt64() {
         val table: MutableTokenTable<Flt64> = ManualTokenTable<Flt64>(Linear, false)
-        assertTrue(table is MutableTokenTable<Flt64>)
+        assertTrue(table is ManualTokenTable<*>)
     }
 
     @Test
     fun autoTokenTableFlt64IsMutableTokenTableOfFlt64() {
         val table: MutableTokenTable<Flt64> = AutoTokenTable<Flt64>(Linear, false)
-        assertTrue(table is MutableTokenTable<Flt64>)
+        assertTrue(table is AutoTokenTable<*>)
     }
 
     @Test
     fun concurrentMutableTokenTableFlt64IsConcurrentMutableTokenTableOfFlt64() {
         val table: ConcurrentMutableTokenTable<Flt64> = ConcurrentManualAddTokenTable<Flt64>(Linear, false)
-        assertTrue(table is ConcurrentMutableTokenTable<Flt64>)
+        assertTrue(table is ConcurrentManualAddTokenTable<*>)
     }
 
     @Test
     fun tokenCacheContextsFlt64IsTokenCacheContextsOfFlt64() {
-        val ctx: TokenCacheContexts<Flt64> = TokenCacheContexts<Flt64>()
-        assertTrue(ctx is TokenCacheContexts<Flt64>)
+        val ctx: Any = TokenCacheContexts<Flt64>()
+        assertTrue(ctx is TokenCacheContexts<*>)
     }
 
     @Test
     fun linearFlattenContextFlt64IsLinearFlattenContextOfFlt64() {
-        val ctx: LinearFlattenContext<Flt64> = LinearFlattenContext<Flt64>()
-        assertTrue(ctx is LinearFlattenContext<Flt64>)
+        val ctx: Any = LinearFlattenContext<Flt64>()
+        assertTrue(ctx is LinearFlattenContext<*>)
     }
 
     @Test
     fun quadraticFlattenContextFlt64IsQuadraticFlattenContextOfFlt64() {
-        val ctx: QuadraticFlattenContext<Flt64> = QuadraticFlattenContext<Flt64>()
-        assertTrue(ctx is QuadraticFlattenContext<Flt64>)
+        val ctx: Any = QuadraticFlattenContext<Flt64>()
+        assertTrue(ctx is QuadraticFlattenContext<*>)
     }
 
     @Test
     fun rangeCacheContextFlt64IsRangeCacheContextOfFlt64() {
-        val ctx: RangeCacheContext<Flt64> = RangeCacheContext<Flt64>()
-        assertTrue(ctx is RangeCacheContext<Flt64>)
+        val ctx: Any = RangeCacheContext<Flt64>()
+        assertTrue(ctx is RangeCacheContext<*>)
     }
 
     @Test
     fun valueCacheContextFlt64IsValueCacheContextOfFlt64() {
-        val ctx: ValueCacheContext<Flt64> = ValueCacheContext<Flt64>()
-        assertTrue(ctx is ValueCacheContext<Flt64>)
+        val ctx: Any = ValueCacheContext<Flt64>()
+        assertTrue(ctx is ValueCacheContext<*>)
     }
 
     @Test
@@ -68,7 +68,6 @@ class GenericTokenTableRegressionTest {
         tokenTable.add(x)
         val token = tokenTable.find(x)!!
         val cell: LinearCellImpl<Flt64> = LinearCellImpl<Flt64>(tokenTable, Flt64.one, token, IntoValue.Identity)
-        assertTrue(cell is LinearCellImpl<Flt64>)
         assertEquals(Flt64.one, cell.coefficient)
     }
 
@@ -82,7 +81,6 @@ class GenericTokenTableRegressionTest {
         val token1 = tokenTable.find(x1)!!
         val token2 = tokenTable.find(x2)!!
         val cell: QuadraticCellImpl<Flt64> = QuadraticCellImpl<Flt64>(tokenTable, Flt64.one, token1, token2, IntoValue.Identity)
-        assertTrue(cell is QuadraticCellImpl<Flt64>)
         assertEquals(Flt64.one, cell.coefficient)
     }
 

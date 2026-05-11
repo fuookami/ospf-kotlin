@@ -469,6 +469,7 @@ class BendersCutApiTest {
     }
 
     /** Dispatch to the correct assertion based on cut type (linear or quadratic). */
+    @Suppress("UNCHECKED_CAST")
     private fun assertCutEquals(expected: Any, actual: Any) {
         val expectedClassName = expected::class.qualifiedName
         val actualClassName = actual::class.qualifiedName
