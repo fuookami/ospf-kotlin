@@ -32,7 +32,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  * This object is the single location for all UNCHECKED_CAST suppressions
  * in the framework. Do not add @Suppress("UNCHECKED_CAST") elsewhere.
  */
-@Suppress("UNCHECKED_CAST", "DEPRECATION")
+@Suppress("UNCHECKED_CAST")
 internal object SolverBoundaryCasts {
     private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -106,11 +106,11 @@ internal object SolverBoundaryCasts {
     }
 
     fun linearSolverFlattenedMonomials(symbol: Any): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return (symbol as LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomials
+        return (symbol as LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomialsAsV
     }
 
     fun quadraticSolverFlattenedMonomials(symbol: Any): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return (symbol as QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomials
+        return (symbol as QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomialsAsV
     }
 
     @Suppress("UNCHECKED_CAST")

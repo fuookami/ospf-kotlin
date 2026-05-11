@@ -730,9 +730,8 @@ class LinearExpressionSymbol<V>(
 
     // prepare: V-typed primary path (P4-5)
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        // Trigger flattenedMonomials to populate cache
-        @Suppress("DEPRECATION")
-        val flatten = flattenedMonomials
+        // Trigger flatten view creation before solver-evaluation path.
+        flattenedMonomialsAsV
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant
@@ -1324,9 +1323,8 @@ class QuadraticExpressionSymbol<V>(
 
     // prepare: V-typed primary path (P4-5)
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        // Trigger flattenedMonomials to populate cache
-        @Suppress("DEPRECATION")
-        val flatten = flattenedMonomials
+        // Trigger flatten view creation before solver-evaluation path.
+        flattenedMonomialsAsV
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant
