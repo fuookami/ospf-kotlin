@@ -52,6 +52,14 @@ class FunctionSymbolGenericRegistrationTest {
         runProductCase(GenericNumberCases.rtnX)
     }
 
+    @Test
+    fun quadraticLinearShouldRegisterConstraintsForFourNumberTypesOnQuadraticMechanismModel() {
+        runQuadraticLinearCase(GenericNumberCases.flt64)
+        runQuadraticLinearCase(GenericNumberCases.fltX)
+        runQuadraticLinearCase(GenericNumberCases.rtn64)
+        runQuadraticLinearCase(GenericNumberCases.rtnX)
+    }
+
     private fun <V> runFunctionCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_fn_x")
@@ -208,6 +216,61 @@ class FunctionSymbolGenericRegistrationTest {
             val coefficient = firstCell.coefficient
             assertTrue(coefficient::class == numberCase.one::class,
                 "${numberCase.name}: product constraint coefficient type should stay V instead of leaking Flt64")
+        } finally {
+            model.close()
+        }
+    }
+
+    private fun <V> runQuadraticLinearCase(numberCase: GenericNumberCase<V>)
+            where V : RealNumber<V>, V : NumberField<V> {
+        val x = RealVar("${numberCase.name.lowercase()}_qlin_x")
+        val y = RealVar("${numberCase.name.lowercase()}_qlin_y")
+
+        val model = QuadraticMetaModel<V>(
+            name = "generic-quadratic-linear-${numberCase.name.lowercase()}",
+            converter = numberCase.converter
+        )
+
+        try {
+            assertTrue(model.add(listOf(x, y)) is Ok, "${numberCase.name}: qlinear add variables should succeed")
+
+            val objective = QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(numberCase.one, x, y)),
+                constant = numberCase.zero
+            )
+            assertTrue(model.minimize(objective) is Ok, "${numberCase.name}: qlinear add objective should succeed")
+
+            val polynomial = QuadraticPolynomial(
+                monomials = listOf(
+                    QuadraticMonomial.quadratic(numberCase.one, x, y),
+                    QuadraticMonomial.linear(numberCase.one, x)
+                ),
+                constant = numberCase.zero
+            )
+            val function = QuadraticLinearFunction(
+                polynomial = polynomial,
+                converter = numberCase.converter,
+                name = "qlinear_${numberCase.name.lowercase()}"
+            )
+            assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qlinear auxiliary tokens should succeed")
+
+            @Suppress("DEPRECATION")
+            val mechanismResult = runBlocking {
+                QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
+            }
+            assertTrue(mechanismResult is Ok, "${numberCase.name}: qlinear dump quadratic mechanism model should succeed")
+            val mechanismModel = mechanismResult.value
+
+            val before = mechanismModel.constraints.size
+            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qlinear registerConstraints should succeed")
+            val after = mechanismModel.constraints.size
+            assertTrue(after > before, "${numberCase.name}: qlinear constraints should be appended")
+
+            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
+            val firstCell = newConstraint.lhs.first()
+            val coefficient = firstCell.coefficient
+            assertTrue(coefficient::class == numberCase.one::class,
+                "${numberCase.name}: qlinear constraint coefficient type should stay V instead of leaking Flt64")
         } finally {
             model.close()
         }

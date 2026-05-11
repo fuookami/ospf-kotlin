@@ -143,12 +143,18 @@ class QuadraticLinearFunction<V>(
      */
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         if (!isLinear && y != null) {
-            val flt64Poly = _polynomial.asFlt64QuadraticPoly(converter)
-            val yMon = QuadraticMonomial.linear(Flt64.one, y!!)
-            val lhs = QuadraticPolynomial(listOf(yMon) + flt64Poly.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }, -flt64Poly.constant)
-            val rhs = QuadraticPolynomial(emptyList(), Flt64.zero)
-            val constraint = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, rhs, Comparison.EQ, name)
-            return addQuadraticConstraints(model, listOf(constraint), converter) ?: ok
+            val yMon = QuadraticMonomial.linear(converter.one, y!!)
+            val lhs = QuadraticPolynomial(
+                listOf(yMon) + _polynomial.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) },
+                -_polynomial.constant
+            )
+            val rhs = QuadraticPolynomial<V>(emptyList(), converter.zero)
+            val constraint = QuadraticInequalityOf(lhs, rhs, Comparison.EQ, name)
+            return when (val result = model.addConstraint(relation = constraint, name = name)) {
+                is Ok -> ok
+                is Failed -> Failed(result.error)
+                is Fatal -> Fatal(result.errors)
+            }
         }
         return ok
     }
