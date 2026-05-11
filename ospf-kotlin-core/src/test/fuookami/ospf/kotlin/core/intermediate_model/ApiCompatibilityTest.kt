@@ -25,7 +25,7 @@ class ApiCompatibilityTest {
 
         listOf(symbol).register(tokenTable)
 
-        val flatten = symbol.flattenedMonomials
+        val flatten = symbol.flattenedMonomialsAsV
         tokenTable.cacheLinearFlatten(symbol, flatten)
         tokenTable.cacheLinearFlatten(privateKey, flatten)
 

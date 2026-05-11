@@ -51,7 +51,7 @@ class TokenCacheContextsTest {
         val contexts = TokenCacheContexts<Flt64>()
         val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
 
-        contexts.linearFlatten.put(symbol, symbol.flattenedMonomials)
+        contexts.linearFlatten.put(symbol, symbol.flattenedMonomialsAsV)
         contexts.value.put(symbol, null, Flt64.one)
         contexts.range.put(symbol, range)
 
@@ -76,7 +76,7 @@ class TokenCacheContextsTest {
         )
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
 
-        tokenTable.cacheLinearFlatten(symbol, symbol.flattenedMonomials)
+        tokenTable.cacheLinearFlatten(symbol, symbol.flattenedMonomialsAsV)
         tokenTable.cacheRange(symbol, symbol.range)
 
         assertEquals(true, tokenTable.cachedLinearFlatten(symbol))
@@ -128,7 +128,7 @@ class TokenCacheContextsTest {
         val tokenTable = AutoTokenTable<Flt64>(Linear, false)
         val fixedValues = emptyMap<Symbol, Flt64>()
         val range = ExpressionRange(ValueRange(Flt64.zero, Flt64.one).value!!)
-        val flattened = symbol.flattenedMonomials
+        val flattened = symbol.flattenedMonomialsAsV
 
         tokenTable.cacheLinearFlatten(monomialKey, flattened)
         tokenTable.cacheRange(polynomialKey, range)
