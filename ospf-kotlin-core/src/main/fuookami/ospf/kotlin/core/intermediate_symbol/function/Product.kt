@@ -235,10 +235,10 @@ class ProductFunction<V>(
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try = ok
 
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
-        val poly = expandedQuadraticPolyFlt64()
-        val rhs = QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(constant = Flt64.zero)
-        val inequality = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(poly, rhs, Comparison.EQ)
-        return addQuadraticConstraints(model, listOf(inequality), converter) ?: ok
+        val poly = polynomial
+        val rhs = QuadraticPolynomial<V>(constant = converter.zero)
+        val inequality = QuadraticInequalityOf(poly, rhs, Comparison.EQ)
+        return addQuadraticConstraints(model, listOf(inequality)) ?: ok
     }
 
     companion object {
