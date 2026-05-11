@@ -46,6 +46,7 @@ data class Token<V : RealNumber<V>>(
      * When converter is set, converts Flt64 -> V via IntoValue<V>.
      * When converter is null (V = Flt64), returns _result via unchecked cast.
      */
+    @Suppress("UNCHECKED_CAST")
     val result: V?
         get() = if (converter != null) {
             _result?.let { converter.intoValue(it) }

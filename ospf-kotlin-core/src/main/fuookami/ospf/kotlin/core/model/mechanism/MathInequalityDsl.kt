@@ -1,4 +1,4 @@
-@file:Suppress("unused")
+@file:Suppress("unused", "EXTENSION_SHADOWED_BY_MEMBER")
 
 package fuookami.ospf.kotlin.core.model.mechanism
 

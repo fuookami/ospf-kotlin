@@ -13,10 +13,12 @@ open class ExpressionRange<V>(
     protected open val constants: RealNumberConstants<V>
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
+        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
             val constants = (T::class.companionObjectInstance!! as RealNumberConstants<T>)
             return ExpressionRange(constants)
         }
+        @Suppress("UNCHECKED_CAST")
         inline operator fun <reified T> invoke(
             range: ValueRange<T>
         ): ExpressionRange<T> where T : RealNumber<T>, T : NumberField<T> {
