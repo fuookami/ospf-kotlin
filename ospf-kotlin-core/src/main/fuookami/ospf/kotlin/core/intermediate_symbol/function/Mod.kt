@@ -67,37 +67,36 @@ class ModFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val dF = converter.fromValue(d)
-        val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val zero = converter.zero
+        val one = converter.one
+        val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+        val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // r = x - d*q
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, rVar),
-                LinearMonomial(dF, qVar)
+                LinearMonomial(one, rVar),
+                LinearMonomial(d, qVar)
             ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_decompose")
+                -x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_mod_decompose")
 
         // r >= 0 (from URealVar)
         // r < d => r <= d - epsilon
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, rVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), dF - eps), Comparison.LE, "${name}_mod_r_ub")
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, rVar)), zero),
+            LinearPolynomial(emptyList(), d - eps), Comparison.LE, "${name}_mod_r_ub")
 
         // result = r
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_mod_result")
+                LinearMonomial(one, resultVar),
+                LinearMonomial(-one, rVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_mod_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

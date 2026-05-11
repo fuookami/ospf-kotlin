@@ -70,39 +70,39 @@ class FloorFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+        val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // k <= x
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_floor_lb")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_floor_lb")
 
         // k + 1 >= x => x <= k + 1
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.LE, "${name}_floor_ub")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), one), Comparison.LE, "${name}_floor_ub")
 
         // b = x - k => b + k - x = 0
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(Flt64.one, kVar)
+                LinearMonomial(one, bVar),
+                LinearMonomial(one, kVar)
             ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_decompose")
+                -x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_floor_decompose")
 
         // result = k
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, kVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_floor_result")
+                LinearMonomial(one, resultVar),
+                LinearMonomial(-one, kVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_floor_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

@@ -62,23 +62,22 @@ class BinaryzationFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val polyF = polynomial.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // x <= M*y
-        val xMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-mF, resultVar), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_bin_ub")
+        val xMonos = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-bigM, resultVar), polynomial.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_bin_ub")
 
         // x >= epsilon*y
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_bin_lb")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-eps, resultVar), polynomial.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_bin_lb")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

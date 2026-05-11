@@ -80,30 +80,29 @@ class SlackRangeFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val xPoly = x.asFlt64Poly(converter)
-        val threshPoly = LinearPolynomial(emptyList(), converter.fromValue(threshold))
-
-        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val one = converter.one
+        val threshPoly = LinearPolynomial(emptyList(), threshold)
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         // upper >= x - threshold
         val lhsUpper = LinearPolynomial(
-            xPoly.monomials + LinearMonomial(-Flt64.one, upperVar),
-            xPoly.constant
+            x.monomials + LinearMonomial(-one, upperVar),
+            x.constant
         )
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        constraints += LinearInequality(
             lhsUpper, threshPoly, Comparison.GE, "${name}_upper"
         )
 
         // lower >= threshold - x
         val lhsLower = LinearPolynomial(
-            xPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-Flt64.one, lowerVar),
-            -xPoly.constant
+            x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-one, lowerVar),
+            -x.constant
         )
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            lhsLower, LinearPolynomial(emptyList(), -converter.fromValue(threshold)), Comparison.GE, "${name}_lower"
+        constraints += LinearInequality(
+            lhsLower, LinearPolynomial(emptyList(), -threshold), Comparison.GE, "${name}_lower"
         )
 
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }
     companion object {
         /**

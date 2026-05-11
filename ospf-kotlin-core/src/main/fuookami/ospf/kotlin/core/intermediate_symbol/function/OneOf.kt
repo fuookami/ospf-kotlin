@@ -89,25 +89,27 @@ class OneOfFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mD = bigM
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, converter, "${name}_oneof_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, converter, "${name}_oneof_nz_${i}")
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1
-        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_exactly_one")
+        val indMonos = indicatorVars.map { LinearMonomial(one, it) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos, zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_oneof_exactly_one")
 
         // result = 1 (since exactly one indicator must be 1)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_oneof_result")
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, resultVar)), zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_oneof_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

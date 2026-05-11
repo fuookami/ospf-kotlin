@@ -91,39 +91,41 @@ class IfInFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mVal = bigM
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // x - lower >= 0 indicator (x >= lower)
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ge")
+        allConstraints += nonzeroIndicatorConstraintsV(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ge")
 
         // upper - x >= 0 indicator (x <= upper)
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, converter, "${name}_le")
+        allConstraints += nonzeroIndicatorConstraintsV(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, converter, "${name}_le")
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero),
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, geVar)), zero),
+            LinearPolynomial(emptyList(), zero),
             Comparison.LE, "${name}_link_ge"
         )
 
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, leVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero),
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, leVar)), zero),
+            LinearPolynomial(emptyList(), zero),
             Comparison.LE, "${name}_link_le"
         )
 
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(
-                listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, geVar), LinearMonomial(-Flt64.one, leVar)),
-                Flt64.zero
+                listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, geVar), LinearMonomial(-one, leVar)),
+                zero
             ),
-            LinearPolynomial(emptyList(), -Flt64.one),
+            LinearPolynomial(emptyList(), -one),
             Comparison.GE, "${name}_link_lb"
         )
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

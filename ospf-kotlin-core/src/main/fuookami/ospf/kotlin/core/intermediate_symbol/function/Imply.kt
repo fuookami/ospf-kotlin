@@ -88,27 +88,29 @@ class ImplyFunction<V>(
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val mVal = bigM
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators
-        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_con")
+        allConstraints += nonzeroIndicatorConstraintsV(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ant")
+        allConstraints += nonzeroIndicatorConstraintsV(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_con")
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(
                 listOf(
-                    LinearMonomial(Flt64.one, antecedentIndicatorVar),
-                    LinearMonomial(-Flt64.one, consequentIndicatorVar)
+                    LinearMonomial(one, antecedentIndicatorVar),
+                    LinearMonomial(-one, consequentIndicatorVar)
                 ),
-                Flt64.zero
+                zero
             ),
-            LinearPolynomial(emptyList(), Flt64.zero),
+            LinearPolynomial(emptyList(), zero),
             Comparison.LE, "${name}_imply_link"
         )
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

@@ -63,6 +63,21 @@ internal fun <V> addConstraints(model: AbstractLinearMetaModel<V>, constraints: 
 }
 
 /**
+ * Add a list of V-typed constraints directly to a V-typed MechanismModel.
+ * Returns null on success, or the error result on failure.
+ */
+internal fun <V> addConstraints(model: AbstractLinearMechanismModel<V>, constraints: List<LinearInequality<V>>): Try? where V : RealNumber<V>, V : NumberField<V> {
+    for (c in constraints) {
+        when (val r = model.addConstraint(relation = c, name = c.name)) {
+            is Ok -> {}
+            is Failed -> return Failed(r.error)
+            is Fatal -> return Fatal(r.errors)
+        }
+    }
+    return null
+}
+
+/**
  * Add a list of Flt64-typed constraints to a V-typed MechanismModel, converting via IntoValue.
  * Returns null on success, or the error result on failure.
  *
@@ -131,40 +146,56 @@ fun <V> nonzeroIndicatorConstraints(
     converter: IntoValue<V>,
     namePrefix: String
 ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
-    val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val polyF = poly.asFlt64Poly(converter)
     val mF = converter.fromValue(bigM)
     val tolF = converter.fromValue(tolerance)
     val sbF = converter.fromValue(strictBoundary)
+    return nonzeroIndicatorConstraintsFlt64(polyF, indVar, sideVar, mF, tolF, sbF, namePrefix)
+}
+
+/**
+ * V-typed nonzero-indicator constraints.
+ *
+ * This avoids the V -> Flt64 -> V conversion round-trip and keeps
+ * intermediate-symbol constraints typed as V inside generic paths.
+ */
+fun <V> nonzeroIndicatorConstraintsV(
+    poly: LinearPolynomial<V>,
+    indVar: AbstractVariableItem<*, *>,
+    sideVar: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V,
+    converter: IntoValue<V>,
+    namePrefix: String
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val constraints = mutableListOf<LinearInequality<V>>()
+    val polyMonos = poly.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
     // band_ub: poly - M*ind <= tol
-    val ubMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-        LinearMonomial(-mF, indVar)
-    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        LinearPolynomial(ubMonos, polyF.constant),
-        LinearPolynomial(emptyList(), tolF), Comparison.LE, "${namePrefix}_band_ub")
+    val ubMonos = polyMonos + LinearMonomial(-bigM, indVar)
+    constraints += LinearInequality(
+        LinearPolynomial(ubMonos, poly.constant),
+        LinearPolynomial(emptyList(), tolerance), Comparison.LE, "${namePrefix}_band_ub")
 
     // band_lb: poly + M*ind >= -tol
-    val lbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-        LinearMonomial(mF, indVar)
-    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        LinearPolynomial(lbMonos, polyF.constant),
-        LinearPolynomial(emptyList(), -tolF), Comparison.GE, "${namePrefix}_band_lb")
+    val lbMonos = polyMonos + LinearMonomial(bigM, indVar)
+    constraints += LinearInequality(
+        LinearPolynomial(lbMonos, poly.constant),
+        LinearPolynomial(emptyList(), -tolerance), Comparison.GE, "${namePrefix}_band_lb")
 
     // out_lb: poly - M*ind - M*side >= strict_boundary - 2M
-    val outLbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-        LinearMonomial(-mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        LinearPolynomial(outLbMonos, polyF.constant),
-        LinearPolynomial(emptyList(), sbF - mF - mF),
+    val outLbMonos = polyMonos + LinearMonomial(-bigM, indVar) + LinearMonomial(-bigM, sideVar)
+    constraints += LinearInequality(
+        LinearPolynomial(outLbMonos, poly.constant),
+        LinearPolynomial(emptyList(), strictBoundary - bigM - bigM),
         Comparison.GE, "${namePrefix}_out_lb")
 
     // out_ub: poly + M*ind - M*side <= -strict_boundary + M
-    val outUbMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-        LinearMonomial(mF, indVar) + LinearMonomial(-mF, sideVar)
-    constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        LinearPolynomial(outUbMonos, polyF.constant),
-        LinearPolynomial(emptyList(), -sbF + mF),
+    val outUbMonos = polyMonos + LinearMonomial(bigM, indVar) + LinearMonomial(-bigM, sideVar)
+    constraints += LinearInequality(
+        LinearPolynomial(outUbMonos, poly.constant),
+        LinearPolynomial(emptyList(), -strictBoundary + bigM),
         Comparison.LE, "${namePrefix}_out_ub")
 
     return constraints
@@ -220,9 +251,63 @@ fun <V> simpleIndicatorConstraints(
         Comparison.EQ -> {
             // For EQ, use the full 4-constraint nonzero indicator pattern
             val sideVar = BinVar("${namePrefix}_side")
-            constraints += nonzeroIndicatorConstraints(
+            constraints += nonzeroIndicatorConstraintsFlt64(
                 LinearPolynomial(polyMonos, shiftedConst),
                 indicator, sideVar, mF, tolF, sbF, namePrefix)
+        }
+        Comparison.LT, Comparison.GT, Comparison.NE -> {
+            throw UnsupportedOperationException("Indicator constraints not supported for ${ineq.comparison}")
+        }
+    }
+
+    return constraints
+}
+
+/**
+ * V-typed indicator constraints for a simple inequality (LE/GE/EQ).
+ */
+fun <V> simpleIndicatorConstraintsV(
+    ineq: LinearInequality<V>,
+    indicator: AbstractVariableItem<*, *>,
+    bigM: V,
+    tolerance: V,
+    strictBoundary: V,
+    converter: IntoValue<V>,
+    namePrefix: String
+): List<LinearInequality<V>> where V : RealNumber<V>, V : NumberField<V> {
+    val zero = converter.zero
+    val constraints = mutableListOf<LinearInequality<V>>()
+    val diffMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+        ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+    val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
+
+    when (ineq.comparison) {
+        Comparison.LE -> {
+            // lb: poly - rhs + M*ind >= 0
+            constraints += LinearInequality(
+                LinearPolynomial(diffMonos + LinearMonomial(bigM, indicator), shiftedConst),
+                LinearPolynomial(emptyList(), zero), Comparison.GE, "${namePrefix}_lb")
+            // ub: poly - rhs <= M (always true for reasonable M)
+            constraints += LinearInequality(
+                LinearPolynomial(diffMonos, shiftedConst),
+                LinearPolynomial(emptyList(), bigM), Comparison.LE, "${namePrefix}_ub")
+        }
+        Comparison.GE -> {
+            // lb: poly - rhs >= -M (always possible)
+            constraints += LinearInequality(
+                LinearPolynomial(diffMonos, shiftedConst),
+                LinearPolynomial(emptyList(), -bigM), Comparison.GE, "${namePrefix}_lb")
+            // ub: poly - rhs <= 0 (enforced when indicator=1)
+            constraints += LinearInequality(
+                LinearPolynomial(diffMonos, shiftedConst),
+                LinearPolynomial(emptyList(), zero), Comparison.LE, "${namePrefix}_ub")
+        }
+        Comparison.EQ -> {
+            val sideVar = BinVar("${namePrefix}_side")
+            constraints += nonzeroIndicatorConstraintsV(
+                LinearPolynomial(diffMonos, shiftedConst),
+                indicator, sideVar, bigM, tolerance, strictBoundary, converter, namePrefix
+            )
         }
         Comparison.LT, Comparison.GT, Comparison.NE -> {
             throw UnsupportedOperationException("Indicator constraints not supported for ${ineq.comparison}")
@@ -246,6 +331,18 @@ fun nonzeroIndicatorConstraints(
     strictBoundary: Flt64,
     namePrefix: String
 ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+    return nonzeroIndicatorConstraintsFlt64(poly, indVar, sideVar, bigM, tolerance, strictBoundary, namePrefix)
+}
+
+private fun nonzeroIndicatorConstraintsFlt64(
+    poly: LinearPolynomial<Flt64>,
+    indVar: AbstractVariableItem<*, *>,
+    sideVar: AbstractVariableItem<*, *>,
+    bigM: Flt64,
+    tolerance: Flt64,
+    strictBoundary: Flt64,
+    namePrefix: String
+): List<LinearInequality<Flt64>> {
     val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
     val mD = bigM
 
@@ -319,7 +416,7 @@ fun simpleIndicatorConstraints(
         }
         Comparison.EQ -> {
             val sideVar = BinVar("${namePrefix}_side")
-            constraints += nonzeroIndicatorConstraints(
+            constraints += nonzeroIndicatorConstraintsFlt64(
                 LinearPolynomial(polyMonos, shiftedConst),
                 indicator, sideVar, mD, tolerance, strictBoundary, namePrefix)
         }

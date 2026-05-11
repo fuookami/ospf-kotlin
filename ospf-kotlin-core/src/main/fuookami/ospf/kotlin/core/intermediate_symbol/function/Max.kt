@@ -75,37 +75,38 @@ class MaxFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val resultMon = LinearMonomial(one, resultVar)
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // result >= poly[i] for each i
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly(converter)
-            val lbMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(lbMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
+            val poly = polynomials[i]
+            val lbMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += LinearInequality(
+                LinearPolynomial(lbMonos, -poly.constant),
+                LinearPolynomial(emptyList(), zero), Comparison.GE)
         }
 
         // result - poly[i] + M*sel[i] <= M
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly(converter)
+            val poly = polynomials[i]
             val ubMonos = listOf(resultMon) +
-                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mF, selectorVars[i])
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(ubMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), mF), Comparison.LE)
+                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(bigM, selectorVars[i])
+            allConstraints += LinearInequality(
+                LinearPolynomial(ubMonos, -poly.constant),
+                LinearPolynomial(emptyList(), bigM), Comparison.LE)
         }
 
         // sum(sel[i]) = 1
-        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(selMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        val selMonos = selectorVars.map { LinearMonomial(one, it) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(selMonos, zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ)
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {
@@ -191,37 +192,38 @@ class MinFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val mF = converter.fromValue(bigM)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val resultMon = LinearMonomial(one, resultVar)
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // result <= poly[i] for each i
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly(converter)
-            val ubMonos = listOf(resultMon) + polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(ubMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE)
+            val poly = polynomials[i]
+            val ubMonos = listOf(resultMon) + poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            allConstraints += LinearInequality(
+                LinearPolynomial(ubMonos, -poly.constant),
+                LinearPolynomial(emptyList(), zero), Comparison.LE)
         }
 
         // result - poly[i] + M*sel[i] >= 0
         for (i in polynomials.indices) {
-            val polyF = polynomials[i].asFlt64Poly(converter)
+            val poly = polynomials[i]
             val lbMonos = listOf(resultMon) +
-                polyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-                LinearMonomial(mF, selectorVars[i])
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(lbMonos, -polyF.constant),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE)
+                poly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                LinearMonomial(bigM, selectorVars[i])
+            allConstraints += LinearInequality(
+                LinearPolynomial(lbMonos, -poly.constant),
+                LinearPolynomial(emptyList(), zero), Comparison.GE)
         }
 
         // sum(sel[i]) = 1
-        val selMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(selMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
+        val selMonos = selectorVars.map { LinearMonomial(one, it) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(selMonos, zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ)
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

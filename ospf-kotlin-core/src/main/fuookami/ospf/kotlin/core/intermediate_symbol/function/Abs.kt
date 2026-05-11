@@ -64,27 +64,27 @@ class AbsFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val polyF = polynomial.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // result = pos - neg
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, posVar),
-                LinearMonomial(Flt64.one, negVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_abs_result")
+                LinearMonomial(one, resultVar),
+                LinearMonomial(-one, posVar),
+                LinearMonomial(one, negVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_abs_result")
 
         // poly = pos - neg
-        val polyMonos = polyF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        val polyMonos = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        allConstraints += LinearInequality(
             LinearPolynomial(polyMonos + listOf(
-                LinearMonomial(-Flt64.one, posVar),
-                LinearMonomial(Flt64.one, negVar)
-            ), polyF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_abs_decompose")
+                LinearMonomial(-one, posVar),
+                LinearMonomial(one, negVar)
+            ), polynomial.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_abs_decompose")
 
         // pos <= M (already guaranteed by URealVar upper bound)
         // neg <= M (already guaranteed by URealVar upper bound)
@@ -92,7 +92,7 @@ class AbsFunction<V>(
         // for typical LP/MIP problems. For strict enforcement, additional
         // binary variables would be needed.
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

@@ -87,51 +87,52 @@ class UnivariateLinearPiecewiseFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(m)
-        val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val mV = m
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Exactly one segment must be active: sum(s[i]) = 1
-        val sumMonos = selectorVars.map { LinearMonomial(Flt64.one, it) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(sumMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_select_one")
+        val sumMonos = selectorVars.map { LinearMonomial(one, it) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(sumMonos, zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_select_one")
 
         for (i in 0 until numSegments) {
             val sVar = selectorVars[i]
-            val bpLowF = converter.fromValue(breakpoints[i])
-            val bpHighF = converter.fromValue(breakpoints[i + 1])
-            val slopeF = converter.fromValue(slopes[i])
-            val interceptF = converter.fromValue(intercepts[i])
+            val bpLow = breakpoints[i]
+            val bpHigh = breakpoints[i + 1]
+            val slope = slopes[i]
+            val intercept = intercepts[i]
 
             // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    LinearMonomial(-mF, sVar), xF.constant + mF),
-                LinearPolynomial(emptyList(), bpLowF), Comparison.GE, "${name}_seg_${i}_lb")
+            allConstraints += LinearInequality(
+                LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+                    LinearMonomial(-mV, sVar), x.constant + mV),
+                LinearPolynomial(emptyList(), bpLow), Comparison.GE, "${name}_seg_${i}_lb")
 
             // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    LinearMonomial(mF, sVar), xF.constant),
-                LinearPolynomial(emptyList(), bpHighF + mF), Comparison.LE, "${name}_seg_${i}_ub")
+            allConstraints += LinearInequality(
+                LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
+                    LinearMonomial(mV, sVar), x.constant),
+                LinearPolynomial(emptyList(), bpHigh + mV), Comparison.LE, "${name}_seg_${i}_ub")
 
             // y = slope*x + intercept when s[i]=1
             // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
-            val negSlopeXMonos = xF.monomials.map { LinearMonomial(-it.coefficient * slopeF, it.symbol) }
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
-                    negSlopeXMonos + LinearMonomial(mF, sVar), -interceptF),
-                LinearPolynomial(emptyList(), mF), Comparison.LE, "${name}_seg_${i}_eq_ub")
+            val negSlopeXMonos = x.monomials.map { LinearMonomial(-it.coefficient * slope, it.symbol) }
+            allConstraints += LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
+                    negSlopeXMonos + LinearMonomial(mV, sVar), -intercept),
+                LinearPolynomial(emptyList(), mV), Comparison.LE, "${name}_seg_${i}_eq_ub")
 
             // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)) +
-                    negSlopeXMonos + LinearMonomial(-mF, sVar), -interceptF),
-                LinearPolynomial(emptyList(), -mF), Comparison.GE, "${name}_seg_${i}_eq_lb")
+            allConstraints += LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
+                    negSlopeXMonos + LinearMonomial(-mV, sVar), -intercept),
+                LinearPolynomial(emptyList(), -mV), Comparison.GE, "${name}_seg_${i}_eq_lb")
         }
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

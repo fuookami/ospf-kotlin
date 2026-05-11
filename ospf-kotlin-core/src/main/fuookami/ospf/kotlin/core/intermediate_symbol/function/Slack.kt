@@ -102,23 +102,21 @@ class SlackFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val xPoly = x.asFlt64Poly(converter)
-        val yPoly = y.asFlt64Poly(converter)
-
-        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val one = converter.one
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         if (!threshold) {
-            constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(xPoly, yPoly, Comparison.EQ, name)
+            constraints += LinearInequality(x, y, Comparison.EQ, name)
         } else {
             if (withNegative && negVar != null) {
-                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(Flt64.one, negVar!!), xPoly.constant)
-                constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, yPoly, Comparison.GE, "${name}_neg")
+                val lhs = LinearPolynomial(x.monomials + LinearMonomial(one, negVar!!), x.constant)
+                constraints += LinearInequality(lhs, y, Comparison.GE, "${name}_neg")
             } else if (withPositive && posVar != null) {
-                val lhs = LinearPolynomial(xPoly.monomials + LinearMonomial(-Flt64.one, posVar!!), xPoly.constant)
-                constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lhs, yPoly, Comparison.LE, "${name}_pos")
+                val lhs = LinearPolynomial(x.monomials + LinearMonomial(-one, posVar!!), x.constant)
+                constraints += LinearInequality(lhs, y, Comparison.LE, "${name}_pos")
             }
         }
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }
     val polyX: LinearPolynomial<V> by lazy {
         val unit = x.constant / x.constant

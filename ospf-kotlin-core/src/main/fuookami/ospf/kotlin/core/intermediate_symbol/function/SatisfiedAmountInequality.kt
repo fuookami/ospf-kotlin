@@ -23,7 +23,7 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -141,9 +141,11 @@ open class SatisfiedAmountInequalityFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val eps = converter.fromValue(epsilon)
+        val zero = converter.zero
+        val one = converter.one
+        val eps = epsilon
         val nInputs = inputs.size
-        val constraints = mutableListOf<fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         for ((i, input) in inputs.withIndex()) {
             val lb = input.lowerBound
@@ -157,31 +159,30 @@ open class SatisfiedAmountInequalityFunction<V>(
                     // flag = 1 means constraint satisfied (lhs ~ 0 within bounds)
                     // flag = 0 means violated
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
-                    val m = maxOf(lb.abs(), ub.abs(), Flt64(1e6))
+                    val m = converter.intoValue(maxOf(lb.abs(), ub.abs(), Flt64(1e6)))
 
-                    // Convert LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> to LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-                    val polyFlt64 = LinearPolynomial(
-                        input.flattenData.monomials.map { m2 -> LinearMonomial(m2.coefficient, m2.symbol) },
-                        input.flattenData.constant
-                    )
+                    val polyMonos = input.flattenData.monomials.map { m2 ->
+                        LinearMonomial(converter.intoValue(m2.coefficient), m2.symbol)
+                    }
+                    val polyConstant = converter.intoValue(input.flattenData.constant)
 
                     // When flag=1: lhs <= epsilon and lhs >= -epsilon (satisfied)
                     // When flag=0: lhs <= M and lhs >= -M (no constraint)
                     val upperLhs = LinearPolynomial(
-                        polyFlt64.monomials + listOf(LinearMonomial(m, flag)),
-                        polyFlt64.constant
+                        polyMonos + listOf(LinearMonomial(m, flag)),
+                        polyConstant
                     )
                     val upperRhs = LinearPolynomial(emptyList(), m + eps)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    constraints += LinearInequality(
                         upperLhs, upperRhs, Comparison.LE, "${name}_i${i}_upper"
                     )
 
                     val lowerLhs = LinearPolynomial(
-                        polyFlt64.monomials + listOf(LinearMonomial(-m, flag)),
-                        polyFlt64.constant
+                        polyMonos + listOf(LinearMonomial(-m, flag)),
+                        polyConstant
                     )
                     val lowerRhs = LinearPolynomial(emptyList(), -m - eps)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    constraints += LinearInequality(
                         lowerLhs, lowerRhs, Comparison.GE, "${name}_i${i}_lower"
                     )
                 } else {
@@ -193,10 +194,10 @@ open class SatisfiedAmountInequalityFunction<V>(
                         Comparison.NE -> true
                     }
                     // Fix flag to the trivial value
-                    val fixedValue = if (triviallySatisfied) Flt64.one else Flt64.zero
-                    val poly = LinearPolynomial(listOf(LinearMonomial(Flt64.one, flag)), Flt64.zero)
+                    val fixedValue = if (triviallySatisfied) one else zero
+                    val poly = LinearPolynomial(listOf(LinearMonomial(one, flag)), zero)
                     val rhs = LinearPolynomial(emptyList(), fixedValue)
-                    constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    constraints += LinearInequality(
                         poly, rhs, Comparison.EQ, "${name}_i${i}_flag"
                     )
                 }
@@ -211,36 +212,38 @@ open class SatisfiedAmountInequalityFunction<V>(
                 flagVars.map { LinearMonomial(converter.one, it) },
                 converter.zero
             )
-            val sumPolyFlt64 = sumPoly.asFlt64Poly(converter)
+            val nAsValue = converter.intoValue(Flt64(nInputs.toDouble()))
+            val lbValue = converter.intoValue(Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()))
+            val ubValue = converter.intoValue(Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()))
 
             // sum(u) >= amount.lowerBound - n*(1-y)
             val lbPoly = LinearPolynomial(
-                sumPolyFlt64.monomials + listOf(LinearMonomial(Flt64(nInputs), y)),
-                sumPolyFlt64.constant
+                sumPoly.monomials + listOf(LinearMonomial(nAsValue, y)),
+                sumPoly.constant
             )
             val lbRhs = LinearPolynomial(
                 emptyList(),
-                Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
+                lbValue + nAsValue
             )
-            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+            constraints += LinearInequality(
                 lbPoly, lbRhs, Comparison.GE, "${name}_amount_lb"
             )
 
             // sum(u) <= amount.upperBound + n*(1-y)
             val ubPoly = LinearPolynomial(
-                sumPolyFlt64.monomials + listOf(LinearMonomial(-Flt64(nInputs), y)),
-                sumPolyFlt64.constant
+                sumPoly.monomials + listOf(LinearMonomial(-nAsValue, y)),
+                sumPoly.constant
             )
             val ubRhs = LinearPolynomial(
                 emptyList(),
-                Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()) + Flt64(nInputs.toDouble())
+                ubValue + nAsValue
             )
-            constraints += fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+            constraints += LinearInequality(
                 ubPoly, ubRhs, Comparison.LE, "${name}_amount_ub"
             )
         }
 
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }
     companion object {
         operator fun <V> invoke(

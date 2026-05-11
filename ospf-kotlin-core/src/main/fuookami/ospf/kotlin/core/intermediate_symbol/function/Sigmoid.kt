@@ -66,14 +66,14 @@ class SigmoidFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_sig_nz")
+        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_sig_nz")
 
         // indicator serves as the result: indicator = 1 when condition > 0
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

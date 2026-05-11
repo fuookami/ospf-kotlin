@@ -82,37 +82,39 @@ class MaskingFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val resultIdx = LinearMonomial(Flt64.one, resultVar)
-        val mD = converter.fromValue(bigM)
-        val inputPoly = input.asFlt64Poly(converter)
+        val one = converter.one
+        val zero = converter.zero
+        val resultIdx = LinearMonomial(one, resultVar)
+        val mD = bigM
+        val inputPoly = input
 
-        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         // c1: y - x + M*mask <= M + x_const  =>  y - x <= M*(1 - mask) + x_const
         val c1LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(Flt64.one, resultVar)
+            LinearMonomial(one, resultVar)
         val c1Lhs = LinearPolynomial(c1LhsMonos, -inputPoly.constant)
         val c1RhsPoly = LinearPolynomial(listOf(LinearMonomial(mD, mask)), mD)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
+        constraints += LinearInequality(c1Lhs, c1RhsPoly, Comparison.LE, "${name}_masking_eq_ub")
 
         // c2: y - x >= -M*mask + x_const  =>  y - x >= -M*mask + x_const
         val c2LhsMonos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(Flt64.one, resultVar)
+            LinearMonomial(one, resultVar)
         val c2Lhs = LinearPolynomial(c2LhsMonos, -inputPoly.constant)
-        val c2RhsPoly = LinearPolynomial(listOf(LinearMonomial(-mD, mask)), Flt64.zero)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
+        val c2RhsPoly = LinearPolynomial(listOf(LinearMonomial(-mD, mask)), zero)
+        constraints += LinearInequality(c2Lhs, c2RhsPoly, Comparison.GE, "${name}_masking_eq_lb")
 
         // c3: y - M*mask <= 0
-        val c3Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(-mD, mask)), Flt64.zero)
-        val c3Rhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
+        val c3Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(-mD, mask)), zero)
+        val c3Rhs = LinearPolynomial(emptyList(), zero)
+        constraints += LinearInequality(c3Lhs, c3Rhs, Comparison.LE, "${name}_masking_zero_ub")
 
         // c4: y + M*mask >= 0
-        val c4Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(mD, mask)), Flt64.zero)
-        val c4Rhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
+        val c4Lhs = LinearPolynomial(listOf(resultIdx, LinearMonomial(mD, mask)), zero)
+        val c4Rhs = LinearPolynomial(emptyList(), zero)
+        constraints += LinearInequality(c4Lhs, c4Rhs, Comparison.GE, "${name}_masking_zero_lb")
 
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }
     companion object {
         operator fun <V> invoke(
@@ -278,48 +280,50 @@ class MaskingWithPolyMaskFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val inputPoly = input.asFlt64Poly(converter)
-        val maskPolyF = maskPoly.asFlt64Poly(converter)
-        val mF = converter.fromValue(bigM)
+        val one = converter.one
+        val zero = converter.zero
+        val inputPoly = input
+        val maskPolyF = maskPoly
+        val mF = bigM
 
-        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         // maskPoly = maskVar constraint
         val maskMonos = maskPolyF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(Flt64.one, maskVar)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+            LinearMonomial(one, maskVar)
+        constraints += LinearInequality(
             LinearPolynomial(monomials = maskMonos, constant = -maskPolyF.constant),
-            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.EQ, "${name}_mask_eq")
+            LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.EQ, "${name}_mask_eq")
 
         // c1: result - input <= M*(1 - mask_var_normalized)
         val c1Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(one, resultVar) +
             LinearMonomial(mF, maskVar)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        constraints += LinearInequality(
             LinearPolynomial(monomials = c1Monos, constant = -inputPoly.constant),
             LinearPolynomial(monomials = emptyList(), constant = mF), Comparison.LE, "${name}_ub")
 
         // c2: result - input >= -M*mask_var
         val c2Monos = inputPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } +
-            LinearMonomial(Flt64.one, resultVar) +
+            LinearMonomial(one, resultVar) +
             LinearMonomial(mF, maskVar)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        constraints += LinearInequality(
             LinearPolynomial(monomials = c2Monos, constant = -inputPoly.constant),
-            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_lb")
+            LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.GE, "${name}_lb")
 
         // c3: result <= M*mask_var
-        val c3Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-mF, maskVar))
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(monomials = c3Monos, constant = Flt64.zero),
-            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.LE, "${name}_zero_ub")
+        val c3Monos = listOf(LinearMonomial(one, resultVar), LinearMonomial(-mF, maskVar))
+        constraints += LinearInequality(
+            LinearPolynomial(monomials = c3Monos, constant = zero),
+            LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.LE, "${name}_zero_ub")
 
         // c4: result >= -M*mask_var
-        val c4Monos = listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(mF, maskVar))
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(monomials = c4Monos, constant = Flt64.zero),
-            LinearPolynomial(monomials = emptyList(), constant = Flt64.zero), Comparison.GE, "${name}_zero_lb")
+        val c4Monos = listOf(LinearMonomial(one, resultVar), LinearMonomial(mF, maskVar))
+        constraints += LinearInequality(
+            LinearPolynomial(monomials = c4Monos, constant = zero),
+            LinearPolynomial(monomials = emptyList(), constant = zero), Comparison.GE, "${name}_zero_lb")
 
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }}
 
 /**
@@ -364,30 +368,30 @@ class MaskingRangeFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val resultMon = LinearMonomial(Flt64.one, resultVar)
-        val maskPoly = mask.asFlt64Poly(converter)
-        val lowerD = converter.fromValue(lower).toDouble()
-        val upperD = converter.fromValue(upper).toDouble()
+        val one = converter.one
+        val zero = converter.zero
+        val resultMon = LinearMonomial(one, resultVar)
+        val maskPoly = mask
+        val lowerV = lower
+        val upperV = upper
 
-        val constraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val constraints = mutableListOf<LinearInequality<V>>()
 
         // Upper: y - upper*mask <= 0
-        val upperFlt = Flt64(upperD)
         val upperMonos = listOf(resultMon) +
-            maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperFlt, it.symbol) }
-        val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperFlt)
-        val upperRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperV, it.symbol) }
+        val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperV)
+        val upperRhs = LinearPolynomial(emptyList(), zero)
+        constraints += LinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
 
         // Lower: y - lower*mask >= 0
-        val lowerFlt = Flt64(lowerD)
         val lowerMonos = listOf(resultMon) +
-            maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerFlt, it.symbol) }
-        val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerFlt)
-        val lowerRhs = LinearPolynomial(emptyList(), Flt64.zero)
-        constraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerV, it.symbol) }
+        val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerV)
+        val lowerRhs = LinearPolynomial(emptyList(), zero)
+        constraints += LinearInequality(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
 
-        return addConstraints(model, constraints, converter) ?: ok
+        return addConstraints(model, constraints) ?: ok
     }
     companion object {
         operator fun <V> invoke(

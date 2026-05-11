@@ -76,27 +76,30 @@ class AndFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val nValue = converter.intoValue(Flt64(n.toDouble()))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_and_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_and_nz_${i}")
         }
 
         // sum(indicators) >= n * result
-        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64(n.toDouble()), resultVar)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_and_sum")
+        val indMonos = indicatorVars.map { LinearMonomial(one, it) } + LinearMonomial(-nValue, resultVar)
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos, zero),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_and_sum")
 
         // result <= each indicator
         for (i in indicatorVars.indices) {
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_and_le_${i}")
+            allConstraints += LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVars[i])), zero),
+                LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_and_le_${i}")
         }
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {
@@ -185,27 +188,29 @@ class OrFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_or_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_or_nz_${i}")
         }
 
         // sum(indicators) >= result
-        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_sum")
+        val indMonos = indicatorVars.map { LinearMonomial(one, it) } + LinearMonomial(-one, resultVar)
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos, zero),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_or_sum")
 
         // result >= each indicator
         for (i in indicatorVars.indices) {
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVars[i])), Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_or_ge_${i}")
+            allConstraints += LinearInequality(
+                LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVars[i])), zero),
+                LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_or_ge_${i}")
         }
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {
@@ -286,17 +291,19 @@ class NotFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator
-        allConstraints += nonzeroIndicatorConstraints(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_not_nz")
+        allConstraints += nonzeroIndicatorConstraintsV(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_not_nz")
 
         // result = 1 - indicator => result + indicator = 1
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(Flt64.one, indicatorVar)), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_not_result")
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(LinearMonomial(one, resultVar), LinearMonomial(one, indicatorVar)), zero),
+            LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_not_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {
@@ -386,26 +393,30 @@ class XorFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val nValue = converter.intoValue(Flt64(n.toDouble()))
+        val nMinusOneValue = converter.intoValue(Flt64((n - 1).toDouble()))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_xor_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_xor_nz_${i}")
         }
 
         // sum(indicators) - 2*slack = result (where slack is integer)
         // For binary indicators, XOR = sum(indicators) - 2*floor(sum/2)
         // Simplification: sum(indicators) <= n*result + (n-1)*(1-result) => sum(indicators) <= result + (n-1)
-        val indMonos = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64((n - 1).toDouble())), Comparison.LE, "${name}_xor_sum_ub")
+        val indMonos = indicatorVars.map { LinearMonomial(one, it) } + LinearMonomial(-one, resultVar)
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos, zero),
+            LinearPolynomial(emptyList(), nMinusOneValue), Comparison.LE, "${name}_xor_sum_ub")
 
         // sum(indicators) >= result
-        val indMonos2 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(-Flt64.one, resultVar)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos2, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_xor_sum_lb")
+        val indMonos2 = indicatorVars.map { LinearMonomial(one, it) } + LinearMonomial(-one, resultVar)
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos2, zero),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_xor_sum_lb")
 
         // result <= sum(indicators) ... already covered by sum >= result
         // Additional: sum(indicators) - result <= n - 1
@@ -430,12 +441,12 @@ class XorFunction<V>(
         //           sum(indicators) <= 1 + (n-1)*(1-result) => for result=1, sum<=1; for result=0, sum<=n
         // Combined:
         //           sum(indicators) <= 1 + (n-1) - (n-1)*result = n - (n-1)*result
-        val indMonos3 = indicatorVars.map { LinearMonomial(Flt64.one, it) } + LinearMonomial(Flt64((n - 1).toDouble()), resultVar)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(indMonos3, Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64(n.toDouble())), Comparison.LE, "${name}_xor_exactly")
+        val indMonos3 = indicatorVars.map { LinearMonomial(one, it) } + LinearMonomial(nMinusOneValue, resultVar)
+        allConstraints += LinearInequality(
+            LinearPolynomial(indMonos3, zero),
+            LinearPolynomial(emptyList(), nValue), Comparison.LE, "${name}_xor_exactly")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

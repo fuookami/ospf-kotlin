@@ -67,43 +67,42 @@ class CeilingFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val zero = converter.zero
+        val one = converter.one
+        val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+        val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // x <= k
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.LE, "${name}_ceil_ub")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.LE, "${name}_ceil_ub")
 
         // x > k - 1 => x >= k - 1 + epsilon
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.GE, "${name}_ceil_lb")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), one - eps), Comparison.GE, "${name}_ceil_lb")
 
         // b = x - floor(x) => k = x + 1 - b => b - k + x = -1 + ... simplified:
         // k = x + b, so k - x = b
         // k - x - b = 0
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, kVar),
-                LinearMonomial(-Flt64.one, bVar)
+                LinearMonomial(one, kVar),
+                LinearMonomial(-one, bVar)
             ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_decompose")
+                -x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_ceil_decompose")
 
         // result = k
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, kVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_ceil_result")
+                LinearMonomial(one, resultVar),
+                LinearMonomial(-one, kVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_ceil_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

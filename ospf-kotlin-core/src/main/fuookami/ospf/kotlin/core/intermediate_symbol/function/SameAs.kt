@@ -105,11 +105,14 @@ class SameAsFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val zero = converter.zero
+        val one = converter.one
+        val two = converter.intoValue(Flt64(2.0))
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
-            allConstraints += simpleIndicatorConstraints(
+            allConstraints += simpleIndicatorConstraintsV(
                 inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, converter, "${name}_ineq_${i}")
         }
 
@@ -120,33 +123,33 @@ class SameAsFunction<V>(
             for (i in 1 until n) {
                 val eqLhs = LinearPolynomial(
                     listOf(
-                        LinearMonomial(Flt64.one, satisfactionFlags[0]),
-                        LinearMonomial(-Flt64.one, satisfactionFlags[i])
+                        LinearMonomial(one, satisfactionFlags[0]),
+                        LinearMonomial(-one, satisfactionFlags[i])
                     ),
-                    Flt64.zero
+                    zero
                 )
-                val eqRhs = LinearPolynomial(emptyList(), Flt64.zero)
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                val eqRhs = LinearPolynomial(emptyList(), zero)
+                allConstraints += LinearInequality(
                     eqLhs, eqRhs, Comparison.EQ, "${name}_equal_${i}")
             }
             // result = u[0] (since all are equal)
             val resultLink = LinearPolynomial(
                 listOf(
-                    LinearMonomial(Flt64.one, resultVar),
-                    LinearMonomial(-Flt64.one, satisfactionFlags[0])
+                    LinearMonomial(one, resultVar),
+                    LinearMonomial(-one, satisfactionFlags[0])
                 ),
-                Flt64.zero
+                zero
             )
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                resultLink, LinearPolynomial(emptyList(), Flt64.zero),
+            allConstraints += LinearInequality(
+                resultLink, LinearPolynomial(emptyList(), zero),
                 Comparison.EQ, "${name}_result_link")
         } else {
             // Measurement mode: y = 1 iff all u[i] are equal
             if (n == 1) {
                 // Single inequality: always "same" with itself
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(listOf(LinearMonomial(Flt64.one, resultVar)), Flt64.zero),
-                    LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ, "${name}_result_single")
+                allConstraints += LinearInequality(
+                    LinearPolynomial(listOf(LinearMonomial(one, resultVar)), zero),
+                    LinearPolynomial(emptyList(), one), Comparison.EQ, "${name}_result_single")
             } else {
                 for (i in 1 until n) {
                     val u0 = satisfactionFlags[0]
@@ -154,69 +157,69 @@ class SameAsFunction<V>(
                     val diffVar = diffVars[i - 1]
 
                     // diff >= u[i] - u[0]  =>  diff - u[i] + u[0] >= 0
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
-                                LinearMonomial(Flt64.one, diffVar),
-                                LinearMonomial(-Flt64.one, ui),
-                                LinearMonomial(Flt64.one, u0)
+                                LinearMonomial(one, diffVar),
+                                LinearMonomial(-one, ui),
+                                LinearMonomial(one, u0)
                             ),
-                            Flt64.zero
+                            zero
                         ),
-                        LinearPolynomial(emptyList(), Flt64.zero),
+                        LinearPolynomial(emptyList(), zero),
                         Comparison.GE, "${name}_diff_ge_${i}")
 
                     // diff >= u[0] - u[i]  =>  diff - u[0] + u[i] >= 0
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
-                                LinearMonomial(Flt64.one, diffVar),
-                                LinearMonomial(Flt64.one, ui),
-                                LinearMonomial(-Flt64.one, u0)
+                                LinearMonomial(one, diffVar),
+                                LinearMonomial(one, ui),
+                                LinearMonomial(-one, u0)
                             ),
-                            Flt64.zero
+                            zero
                         ),
-                        LinearPolynomial(emptyList(), Flt64.zero),
+                        LinearPolynomial(emptyList(), zero),
                         Comparison.GE, "${name}_diff_le_${i}")
 
                     // diff <= u[i] + u[0]  =>  diff - u[i] - u[0] <= 0
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
-                                LinearMonomial(Flt64.one, diffVar),
-                                LinearMonomial(-Flt64.one, ui),
-                                LinearMonomial(-Flt64.one, u0)
+                                LinearMonomial(one, diffVar),
+                                LinearMonomial(-one, ui),
+                                LinearMonomial(-one, u0)
                             ),
-                            Flt64.zero
+                            zero
                         ),
-                        LinearPolynomial(emptyList(), Flt64.zero),
+                        LinearPolynomial(emptyList(), zero),
                         Comparison.LE, "${name}_diff_sum_ub_${i}")
 
                     // diff <= 2 - u[i] - u[0]  =>  diff + u[i] + u[0] <= 2
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(
                             listOf(
-                                LinearMonomial(Flt64.one, diffVar),
-                                LinearMonomial(Flt64.one, ui),
-                                LinearMonomial(Flt64.one, u0)
+                                LinearMonomial(one, diffVar),
+                                LinearMonomial(one, ui),
+                                LinearMonomial(one, u0)
                             ),
-                            Flt64.zero
+                            zero
                         ),
-                        LinearPolynomial(emptyList(), Flt64(2.0)),
+                        LinearPolynomial(emptyList(), two),
                         Comparison.LE, "${name}_diff_sum_lb_${i}")
                 }
 
                 // y = 1 - sum(diff_i)  =>  y + sum(diff_i) = 1
-                val yPlusSumMonos = listOf(LinearMonomial(Flt64.one, resultVar)) +
-                    diffVars.map { LinearMonomial(Flt64.one, it) }
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(yPlusSumMonos, Flt64.zero),
-                    LinearPolynomial(emptyList(), Flt64.one),
+                val yPlusSumMonos = listOf(LinearMonomial(one, resultVar)) +
+                    diffVars.map { LinearMonomial(one, it) }
+                allConstraints += LinearInequality(
+                    LinearPolynomial(yPlusSumMonos, zero),
+                    LinearPolynomial(emptyList(), one),
                     Comparison.EQ, "${name}_result_sum")
             }
         }
 
-        return addConstraints(model, allConstraints, converter) ?: ok
+        return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
         operator fun <V> invoke(

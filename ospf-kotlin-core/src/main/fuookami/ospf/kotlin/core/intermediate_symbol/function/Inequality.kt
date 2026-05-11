@@ -92,61 +92,60 @@ class InequalityFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val epsF = converter.fromValue(tolerance)
-        val rhsF = converter.fromValue(rhs)
-        val lhsF = lhs.asFlt64Poly(converter)
-        val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val mV = bigM
+        val epsV = tolerance
+        val rhsV = rhs
+        val lhsMonos = lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         when (sign) {
             Comparison.LE, Comparison.LT -> {
                 // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
-                    LinearPolynomial(emptyList(), rhsF + mF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mV, flagVar), lhs.constant),
+                    LinearPolynomial(emptyList(), rhsV + mV),
                     Comparison.LE, "${name}_satisfied"
                 )
 
                 // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
-                    LinearPolynomial(emptyList(), rhsF + epsF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mV, flagVar), lhs.constant + mV),
+                    LinearPolynomial(emptyList(), rhsV + epsV),
                     Comparison.GE, "${name}_violated"
                 )
             }
 
             Comparison.GE, Comparison.GT -> {
                 // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mF, flagVar), lhsF.constant + mF),
-                    LinearPolynomial(emptyList(), rhsF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(-mV, flagVar), lhs.constant + mV),
+                    LinearPolynomial(emptyList(), rhsV),
                     Comparison.GE, "${name}_satisfied"
                 )
 
                 // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mF, flagVar), lhsF.constant),
-                    LinearPolynomial(emptyList(), rhsF - epsF + mF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(lhsMonos + LinearMonomial(mV, flagVar), lhs.constant),
+                    LinearPolynomial(emptyList(), rhsV - epsV + mV),
                     Comparison.LE, "${name}_violated"
                 )
             }
 
             Comparison.EQ -> {
                 val diffMonos = lhsMonos
-                val diffConst = lhsF.constant - rhsF
+                val diffConst = lhs.constant - rhsV
 
                 // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(diffMonos + LinearMonomial(mF, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), mF + epsF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(mV, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), mV + epsV),
                     Comparison.LE, "${name}_eq_upper"
                 )
 
                 // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
-                allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                    LinearPolynomial(diffMonos + LinearMonomial(-mF, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), -mF - epsF),
+                allConstraints += LinearInequality(
+                    LinearPolynomial(diffMonos + LinearMonomial(-mV, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), -mV - epsV),
                     Comparison.GE, "${name}_eq_lower"
                 )
             }
@@ -161,7 +160,7 @@ class InequalityFunction<V>(
             }
         }
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

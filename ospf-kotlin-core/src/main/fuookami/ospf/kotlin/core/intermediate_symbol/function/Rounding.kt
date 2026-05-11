@@ -65,71 +65,73 @@ class RoundingFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val xF = x.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-        val xMonos = xF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+        val zero = converter.zero
+        val one = converter.one
+        val half = converter.intoValue(Flt64(0.5))
+        val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
+        val mV = bigM
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+        val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
         // k = floor(x), same as FloorFunction constraints
         // k <= x
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_k_lb")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_round_k_lb")
 
         // x < k + 1 => x <= k + 1 - eps
-        val eps = Flt64(NONZERO_TOLERANCE)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(xMonos + LinearMonomial(-Flt64.one, kVar), xF.constant),
-            LinearPolynomial(emptyList(), Flt64.one - eps), Comparison.LE, "${name}_round_k_ub")
+        allConstraints += LinearInequality(
+            LinearPolynomial(xMonos + LinearMonomial(-one, kVar), x.constant),
+            LinearPolynomial(emptyList(), one - eps), Comparison.LE, "${name}_round_k_ub")
 
         // b = x - k (fractional part)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(Flt64.one, kVar)
+                LinearMonomial(one, bVar),
+                LinearMonomial(one, kVar)
             ) + xMonos.map { LinearMonomial(-it.coefficient, it.symbol) },
-                -xF.constant),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_decompose")
+                -x.constant),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_round_decompose")
 
         // r = 1 if b >= 0.5 (round up)
         // b >= 0.5*r
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(-Flt64(0.5), rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.GE, "${name}_round_r_lb")
+                LinearMonomial(one, bVar),
+                LinearMonomial(-half, rVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.GE, "${name}_round_r_lb")
 
         // b <= 0.5 + 0.5*(1-r) = 1 - 0.5*r => b + 0.5*r <= 1... wait
         // b <= 0.5 + (1-r)*0.5 + r*0 = 0.5 + 0.5 - 0.5*r = 1 - 0.5*r
         // Simplified: if b < 0.5 then r = 0, if b >= 0.5 then r = 1
         // b - 0.5*r <= 1 - r ... no.
         // b <= 0.5 + M*(1-r) => b + M*r <= M + 0.5
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(mF, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), mF + Flt64(0.5)), Comparison.LE, "${name}_round_r_ub")
+                LinearMonomial(one, bVar),
+                LinearMonomial(mV, rVar)
+            ), zero),
+            LinearPolynomial(emptyList(), mV + half), Comparison.LE, "${name}_round_r_ub")
 
         // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, bVar),
-                LinearMonomial(-mF, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64(0.5) - mF), Comparison.GE, "${name}_round_r_lb2")
+                LinearMonomial(one, bVar),
+                LinearMonomial(-mV, rVar)
+            ), zero),
+            LinearPolynomial(emptyList(), half - mV), Comparison.GE, "${name}_round_r_lb2")
 
         // result = k + r
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(listOf(
-                LinearMonomial(Flt64.one, resultVar),
-                LinearMonomial(-Flt64.one, kVar),
-                LinearMonomial(-Flt64.one, rVar)
-            ), Flt64.zero),
-            LinearPolynomial(emptyList(), Flt64.zero), Comparison.EQ, "${name}_round_result")
+                LinearMonomial(one, resultVar),
+                LinearMonomial(-one, kVar),
+                LinearMonomial(-one, rVar)
+            ), zero),
+            LinearPolynomial(emptyList(), zero), Comparison.EQ, "${name}_round_result")
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

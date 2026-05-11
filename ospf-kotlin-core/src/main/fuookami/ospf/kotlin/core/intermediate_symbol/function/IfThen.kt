@@ -88,30 +88,29 @@ class IfThenFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mF = converter.fromValue(bigM)
-        val thenF = thenPoly.asFlt64Poly(converter)
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+        val mV = bigM
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_cond")
+        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_cond")
 
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
-        val yMono = LinearMonomial(Flt64.one, resultVar)
-        val negThenMonos = thenF.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mF, indicatorVar), -thenF.constant),
-            LinearPolynomial(emptyList(), mF),
+        val yMono = LinearMonomial(converter.one, resultVar)
+        val negThenMonos = thenPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mV, indicatorVar), -thenPoly.constant),
+            LinearPolynomial(emptyList(), mV),
             Comparison.LE, "${name}_then_ub"
         )
 
         // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mF, indicatorVar), -thenF.constant),
-            LinearPolynomial(emptyList(), -mF),
+        allConstraints += LinearInequality(
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mV, indicatorVar), -thenPoly.constant),
+            LinearPolynomial(emptyList(), -mV),
             Comparison.GE, "${name}_then_lb"
         )
 
-        addConstraints(model, allConstraints, converter)?.let { return it }
+        addConstraints(model, allConstraints)?.let { return it }
         return ok
     }
     companion object {

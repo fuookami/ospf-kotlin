@@ -78,19 +78,21 @@ class IfFunction<V>(
         }
     }
 
-    private fun buildConstraints(): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    private fun buildConstraints(): List<LinearInequality<V>> {
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_if_nz")
+        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_if_nz")
 
         // result = indicator (if condition > 0, result = 1)
-        allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        allConstraints += LinearInequality(
             LinearPolynomial(
-                listOf(LinearMonomial(Flt64.one, resultVar), LinearMonomial(-Flt64.one, indicatorVar)),
-                Flt64.zero
+                listOf(LinearMonomial(one, resultVar), LinearMonomial(-one, indicatorVar)),
+                zero
             ),
-            LinearPolynomial(emptyList(), Flt64.zero),
+            LinearPolynomial(emptyList(), zero),
             Comparison.EQ, "${name}_if_eq"
         )
 
@@ -98,7 +100,7 @@ class IfFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        addConstraints(model, buildConstraints(), converter)?.let { return it }
+        addConstraints(model, buildConstraints())?.let { return it }
         return ok
     }
 

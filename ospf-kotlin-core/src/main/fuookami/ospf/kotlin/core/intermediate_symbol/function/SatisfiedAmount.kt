@@ -102,63 +102,65 @@ class SatisfiedAmountFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val allConstraints = mutableListOf<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-        val mD = converter.fromValue(bigM)
-        val eps = converter.fromValue(epsilon)
+        val zero = converter.zero
+        val one = converter.one
+        val allConstraints = mutableListOf<LinearInequality<V>>()
+        val mD = bigM
+        val eps = epsilon
 
         for (i in inequalities.indices) {
             val ineq = inequalities[i]
             val ui = _uVars[i]
-            val lhsF = ineq.lhs.asFlt64Poly(converter)
-            val rhsF = ineq.rhs.asFlt64Poly(converter)
-            val lhsMonos = lhsF.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
-            val shiftedConst = lhsF.constant - rhsF.constant
+            val lhsMonos = ineq.lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
+            val rhsMonos = ineq.rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
+            val shiftedMonos = lhsMonos + rhsMonos
+            val shiftedConst = ineq.lhs.constant - ineq.rhs.constant
 
             when (ineq.comparison) {
                 Comparison.LE -> {
-                    val monoWithU = lhsMonos + LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val monoWithU = shiftedMonos + LinearMonomial(mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(monoWithU, shiftedConst),
                         LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_le_ub_$i"
                     )
-                    val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                    val rhsMinusLhsMonos = shiftedMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
                         LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_le_lb_$i"
                     )
                 }
                 Comparison.GE -> {
-                    val rhsMinusLhsMonos = lhsMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
+                    val rhsMinusLhsMonos = shiftedMonos.map { LinearMonomial(-it.coefficient, it.symbol) } +
                         LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    allConstraints += LinearInequality(
                         LinearPolynomial(rhsMinusLhsMonos, -shiftedConst),
                         LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_ge_ub_$i"
                     )
-                    val monoWithU = lhsMonos + LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val monoWithU = shiftedMonos + LinearMonomial(-mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(monoWithU, shiftedConst),
                         LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_ge_lb_$i"
                     )
                 }
                 Comparison.EQ -> {
-                    val monoWithU1 = lhsMonos + LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val monoWithU1 = shiftedMonos + LinearMonomial(mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(monoWithU1, shiftedConst),
                         LinearPolynomial(emptyList(), mD), Comparison.LE, "${name}_sat_eq_ub1_$i"
                     )
-                    val monoWithU2 = lhsMonos + LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val monoWithU2 = shiftedMonos + LinearMonomial(-mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(monoWithU2, shiftedConst),
                         LinearPolynomial(emptyList(), -mD), Comparison.GE, "${name}_sat_eq_lb1_$i"
                     )
-                    val relaxMono1 = lhsMonos + LinearMonomial(mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val relaxMono1 = shiftedMonos + LinearMonomial(mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(relaxMono1, shiftedConst),
                         LinearPolynomial(emptyList(), eps), Comparison.GE, "${name}_sat_eq_ub2_$i"
                     )
-                    val relaxMono2 = lhsMonos + LinearMonomial(-mD, ui)
-                    allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+                    val relaxMono2 = shiftedMonos + LinearMonomial(-mD, ui)
+                    allConstraints += LinearInequality(
                         LinearPolynomial(relaxMono2, shiftedConst),
                         LinearPolynomial(emptyList(), -eps), Comparison.LE, "${name}_sat_eq_lb2_$i"
                     )
@@ -173,15 +175,16 @@ class SatisfiedAmountFunction<V>(
 
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
-            val sumMonos = _uVars.map { LinearMonomial(Flt64.one, it) }
-            allConstraints += LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                LinearPolynomial(sumMonos, Flt64.zero),
-                LinearPolynomial(emptyList(), Flt64(amount.toInt().toDouble())),
+            val sumMonos = _uVars.map { LinearMonomial(one, it) }
+            val amountV = converter.intoValue(Flt64(amount.toInt().toDouble()))
+            allConstraints += LinearInequality(
+                LinearPolynomial(sumMonos, zero),
+                LinearPolynomial(emptyList(), amountV),
                 Comparison.GE, "${name}_amount"
             )
         }
 
-        return addConstraints(model, allConstraints, converter) ?: ok
+        return addConstraints(model, allConstraints) ?: ok
     }
     companion object {
         operator fun <V> invoke(
