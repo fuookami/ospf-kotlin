@@ -75,10 +75,7 @@ class IfInFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xDouble = converter.fromValue(xValue).toDouble()
-        val lo = converter.fromValue(lower).toDouble()
-        val hi = converter.fromValue(upper).toDouble()
-        return if (xDouble >= lo && xDouble <= hi) converter.one else converter.zero
+        return if (!(xValue ls lower) && !(xValue gr upper)) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
@@ -97,11 +94,11 @@ class IfInFunction<V>(
 
         // x - lower >= 0 indicator (x >= lower)
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraintsV(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ge")
+        allConstraints += nonzeroIndicatorConstraintsV(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
 
         // upper - x >= 0 indicator (x <= upper)
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraintsV(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, converter, "${name}_le")
+        allConstraints += nonzeroIndicatorConstraintsV(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
         allConstraints += LinearInequality(

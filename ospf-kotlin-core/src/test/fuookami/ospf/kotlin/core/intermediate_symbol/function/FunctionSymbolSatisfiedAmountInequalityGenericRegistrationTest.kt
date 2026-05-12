@@ -3,13 +3,14 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
 import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -53,28 +54,32 @@ class FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest {
             val onePoly = LinearPolynomial<V>(emptyList(), numberCase.one)
             val zeroPoly = LinearPolynomial<V>(emptyList(), numberCase.zero)
 
-            val lhsRange = ValueRange(Flt64(-1000.0), Flt64(1000.0)).value!!
+            val lhsRange = ValueRange(
+                lb = numberCase.converter.intoValue(Flt64(-1000.0)),
+                ub = numberCase.converter.intoValue(Flt64(1000.0)),
+                lbInterval = Interval.Closed,
+                ubInterval = Interval.Closed,
+                constants = numberCase.zero.constants
+            ).value!!
             val inputs = listOf(
-                LinearConstraintInput.from(
+                LinearConstraintInputV.from(
                     relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_ineq_x_le_1"),
-                    converter = numberCase.converter,
                     lhsRange = lhsRange,
-                    rhsConstant = Flt64(1.0)
+                    rhsConstant = numberCase.one
                 ),
-                LinearConstraintInput.from(
+                LinearConstraintInputV.from(
                     relation = LinearInequality(yPoly, zeroPoly, Comparison.GE, "${numberCase.name.lowercase()}_ineq_y_ge_0"),
-                    converter = numberCase.converter,
                     lhsRange = lhsRange,
-                    rhsConstant = Flt64.zero
+                    rhsConstant = numberCase.zero
                 )
             )
 
-            val any = AnyFunction(
+            val any = AnyFunction.typed(
                 inputs = inputs,
                 converter = numberCase.converter,
                 name = "any_${numberCase.name.lowercase()}"
             )
-            val all = AllFunction(
+            val all = AllFunction.typed(
                 inputs = inputs,
                 converter = numberCase.converter,
                 name = "all_${numberCase.name.lowercase()}"

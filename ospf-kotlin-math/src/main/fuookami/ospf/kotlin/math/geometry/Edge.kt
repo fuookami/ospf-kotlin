@@ -1,9 +1,33 @@
+/**
+ * 边
+ * Edge
+ *
+ * 定义几何空间中的边数据结构，表示连接两个点的线段。
+ * 边是几何图形的基本元素，支持长度计算、中点查找、相交检测等操作。
+ * Defines edge data structure in geometric space, representing a line segment connecting two points.
+ * An edge is a fundamental element of geometric shapes, supporting length calculation, midpoint finding, intersection detection, etc.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
 
+/**
+ * 边数据类
+ * Edge Data Class
+ *
+ * 表示连接两个点的线段，支持任意维度和浮点数类型。
+ * 提供长度、方向向量、中点等计算功能。
+ * Represents a line segment connecting two points, supporting arbitrary dimensions and floating-point types.
+ * Provides functionality for length, direction vector, midpoint calculations, etc.
+ *
+ * @param P 点类型 / Point type
+ * @param D 维度类型 / Dimension type
+ * @param V 数值类型 / Number type
+ * @property from 起点 / Starting point
+ * @property to 终点 / Ending point
+ */
 data class Edge<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val from: P,
     val to: P

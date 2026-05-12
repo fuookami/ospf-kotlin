@@ -52,22 +52,18 @@ class SlackRangeFunction<V>(
         get() = listOf(upperVar, lowerVar)
 
     val upper: LinearPolynomial<V> by lazy {
-        val unit = x.constant / x.constant
-        LinearPolynomial(listOf(LinearMonomial(unit, upperVar)), x.constant - x.constant)
+        LinearPolynomial(listOf(LinearMonomial(converter.one, upperVar)), converter.zero)
     }
     val lower: LinearPolynomial<V> by lazy {
-        val unit = x.constant / x.constant
-        LinearPolynomial(listOf(LinearMonomial(unit, lowerVar)), x.constant - x.constant)
+        LinearPolynomial(listOf(LinearMonomial(converter.one, lowerVar)), converter.zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xFlt = converter.fromValue(xValue).toDouble()
-        val threshFlt = converter.fromValue(threshold).toDouble()
-        if (xFlt > threshFlt) {
-            return converter.intoValue(Flt64(xFlt - threshFlt))
+        return if (xValue gr threshold) {
+            xValue - threshold
         } else {
-            return converter.zero
+            converter.zero
         }
     }
 

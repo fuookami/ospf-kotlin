@@ -55,7 +55,7 @@ class CeilingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        return converter.intoValue(Flt64(kotlin.math.ceil(converter.fromValue(xVal).toDouble())))
+        return converter.intoValue(converter.fromValue(xVal).ceil())
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

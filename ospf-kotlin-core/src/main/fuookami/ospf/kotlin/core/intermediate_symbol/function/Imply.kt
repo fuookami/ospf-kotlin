@@ -71,7 +71,9 @@ class ImplyFunction<V>(
         val conValue = consequent.evaluateWith(values) ?: return null
         // Implication: if antecedent > 0, then consequent must be > 0
         // Returns 1 if the implication holds, 0 otherwise
-        return if (converter.fromValue(antValue).toDouble() <= 0.0 || converter.fromValue(conValue).toDouble() > 0.0) {
+        val antecedentPositive = antValue gr converter.zero
+        val consequentPositive = conValue gr converter.zero
+        return if (!antecedentPositive || consequentPositive) {
             converter.one
         } else {
             converter.zero
@@ -93,8 +95,8 @@ class ImplyFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators
-        allConstraints += nonzeroIndicatorConstraintsV(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraintsV(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, converter, "${name}_con")
+        allConstraints += nonzeroIndicatorConstraintsV(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
+        allConstraints += nonzeroIndicatorConstraintsV(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero

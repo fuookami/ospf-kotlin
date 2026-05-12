@@ -77,23 +77,22 @@ class SameAsFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val flags = mutableListOf<Boolean>()
-        val epsDouble = converter.fromValue(epsilon).toDouble()
         for (ineq in inequalities) {
             val lhsVal = ineq.lhs.evaluateWith(values) ?: return null
             val rhsVal = ineq.rhs.evaluateWith(values) ?: return null
-            val diff = converter.fromValue((lhsVal - rhsVal)).toDouble()
+            val diff = lhsVal - rhsVal
             val satisfied = when (ineq.comparison) {
-                Comparison.LE -> diff <= epsDouble
-                Comparison.GE -> diff >= -epsDouble
-                Comparison.EQ -> kotlin.math.abs(diff) <= epsDouble
-                else -> false
+                Comparison.LE -> !(diff gr epsilon)
+                Comparison.LT -> diff ls epsilon
+                Comparison.GE -> !(diff ls -epsilon)
+                Comparison.GT -> diff gr -epsilon
+                Comparison.EQ -> diff.abs() ls epsilon || diff.abs() eq epsilon
+                Comparison.NE -> diff.abs() gr epsilon
             }
             flags += satisfied
         }
         val allSame = flags.all { it == flags[0] }
-        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
-        val zero = unit - unit
-        return if (allSame) unit else zero
+        return if (allSame) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
@@ -113,7 +112,7 @@ class SameAsFunction<V>(
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
             allConstraints += simpleIndicatorConstraintsV(
-                inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, converter, "${name}_ineq_${i}")
+                inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, "${name}_ineq_${i}")
         }
 
         // Link constraints: enforce all satisfaction flags are equal

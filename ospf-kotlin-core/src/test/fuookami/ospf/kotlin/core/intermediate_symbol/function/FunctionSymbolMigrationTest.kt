@@ -7,7 +7,10 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -167,8 +170,8 @@ class FunctionSymbolMigrationTest {
         )
         val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
-        assertTrue(adapter.flattenedMonomials.monomials.isEmpty())
-        assertEquals(Flt64.zero, adapter.flattenedMonomials.constant)
+        assertTrue(adapter.flattenedMonomialsAsV.monomials.isEmpty())
+        assertEquals(Flt64.zero, adapter.flattenedMonomialsAsV.constant)
     }
 
     @Test
@@ -186,5 +189,26 @@ class FunctionSymbolMigrationTest {
 
         val result = testFunc.registerAuxiliaryTokens(tokens)
         assertTrue(result is Ok, "registerAuxiliaryTokens should succeed")
+    }
+
+    @Test
+    fun `token register accepts function adapter symbol`() {
+        val x = RealVar("register_adapter_x")
+        val xPoly = LinearPolynomial(
+            monomials = listOf(LinearMonomial(Flt64.one, x)),
+            constant = Flt64.zero
+        )
+        val slack = SlackFunction(
+            x = xPoly,
+            y = LinearPolynomial(emptyList(), Flt64.zero),
+            converter = flt64Converter,
+            name = "register_adapter_slack"
+        )
+        val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
+        val tokenTable = AutoTokenTable<Flt64>(Linear, false)
+        tokenTable.add(listOf(x))
+
+        val result = listOf<IntermediateSymbol<*>>(adapter).register(tokenTable)
+        assertTrue(result is Ok, "register should support non-expression linear symbols")
     }
 }

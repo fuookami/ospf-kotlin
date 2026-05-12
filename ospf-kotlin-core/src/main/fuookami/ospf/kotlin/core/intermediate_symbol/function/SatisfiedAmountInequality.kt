@@ -4,7 +4,9 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.compare
+import fuookami.ospf.kotlin.core.model.mechanism.toTyped
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -55,7 +57,7 @@ private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebr
  * @param displayName optional human-readable display name
  */
 open class SatisfiedAmountInequalityFunction<V>(
-    val inputs: List<LinearConstraintInput>,
+    val inputs: List<LinearConstraintInputV<V>>,
     open val amount: ValueRange<UInt64>? = null,
     val epsilon: V,
     val converter: IntoValue<V>,
@@ -108,28 +110,27 @@ open class SatisfiedAmountInequalityFunction<V>(
         }
         val countUInt = UInt64(count)
         val currentAmount = amount
-        val resultFlt64 = if (currentAmount != null) {
-            if (currentAmount.contains(countUInt)) Flt64.one else Flt64.zero
+        return if (currentAmount != null) {
+            if (currentAmount.contains(countUInt)) converter.one else converter.zero
         } else {
-            Flt64(count.toDouble())
+            repeatAdd(converter.one, count)
         }
-        return converter.intoValue(resultFlt64)
     }
 
     /**
      * Check whether a single input constraint is satisfied given the current values.
      */
     private fun checkInputSatisfied(
-        input: LinearConstraintInput,
+        input: LinearConstraintInputV<V>,
         values: Map<Symbol, V>
     ): Boolean? {
         var lhsValue = input.flattenData.constant
         for (monomial in input.flattenData.monomials) {
             val symbolValue = values[monomial.symbol]
                 ?: return null
-            lhsValue += monomial.coefficient * converter.fromValue(symbolValue)
+            lhsValue += monomial.coefficient * symbolValue
         }
-        return input.sign.compare(lhsValue, Flt64.zero)
+        return input.sign.compare(converter.fromValue(lhsValue), Flt64.zero)
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
@@ -148,23 +149,25 @@ open class SatisfiedAmountInequalityFunction<V>(
         val constraints = mutableListOf<LinearInequality<V>>()
 
         for ((i, input) in inputs.withIndex()) {
-            val lb = input.lowerBound
-            val ub = input.upperBound
+            val lb = input.lhsRange.lowerBound.value.unwrapOrNull()
+            val ub = input.lhsRange.upperBound.value.unwrapOrNull()
             val flag = flagVars[i]
 
             if (lb != null && ub != null) {
-                val inRange = Flt64.zero geq lb && Flt64.zero leq ub
+                val inRange = zero geq lb && zero leq ub
                 if (inRange) {
                     // Simple encoding: when 0 is within [lb, ub],
                     // flag = 1 means constraint satisfied (lhs ~ 0 within bounds)
                     // flag = 0 means violated
                     // Use Big-M: lhs <= M*flag and lhs >= -M*flag when flag=1
-                    val m = converter.intoValue(maxOf(lb.abs(), ub.abs(), Flt64(1e6)))
+                    val minBigM = converter.intoValue(Flt64(1e6))
+                    val absMax = if (lb.abs() geq ub.abs()) lb.abs() else ub.abs()
+                    val m = if (absMax geq minBigM) absMax else minBigM
 
                     val polyMonos = input.flattenData.monomials.map { m2 ->
-                        LinearMonomial(converter.intoValue(m2.coefficient), m2.symbol)
+                        LinearMonomial(m2.coefficient, m2.symbol)
                     }
-                    val polyConstant = converter.intoValue(input.flattenData.constant)
+                    val polyConstant = input.flattenData.constant
 
                     // When flag=1: lhs <= epsilon and lhs >= -epsilon (satisfied)
                     // When flag=0: lhs <= M and lhs >= -M (no constraint)
@@ -188,8 +191,8 @@ open class SatisfiedAmountInequalityFunction<V>(
                 } else {
                     // When 0 is NOT within [lb, ub], the constraint is trivially satisfied or violated
                     val triviallySatisfied = when (input.sign) {
-                        Comparison.LE, Comparison.LT -> ub ls Flt64.zero
-                        Comparison.GE, Comparison.GT -> lb gr Flt64.zero
+                        Comparison.LE, Comparison.LT -> ub ls zero
+                        Comparison.GE, Comparison.GT -> lb gr zero
                         Comparison.EQ -> false
                         Comparison.NE -> true
                     }
@@ -212,9 +215,9 @@ open class SatisfiedAmountInequalityFunction<V>(
                 flagVars.map { LinearMonomial(converter.one, it) },
                 converter.zero
             )
-            val nAsValue = converter.intoValue(Flt64(nInputs.toDouble()))
-            val lbValue = converter.intoValue(Flt64(currentAmount.lowerBound.value.unwrap().toLong().toDouble()))
-            val ubValue = converter.intoValue(Flt64(currentAmount.upperBound.value.unwrap().toLong().toDouble()))
+            val nAsValue = repeatAdd(one, nInputs)
+            val lbValue = repeatAdd(one, currentAmount.lowerBound.value.unwrap().toInt())
+            val ubValue = repeatAdd(one, currentAmount.upperBound.value.unwrap().toInt())
 
             // sum(u) >= amount.lowerBound - n*(1-y)
             val lbPoly = LinearPolynomial(
@@ -246,8 +249,8 @@ open class SatisfiedAmountInequalityFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             amount: ValueRange<UInt64>? = null,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
@@ -263,6 +266,23 @@ open class SatisfiedAmountInequalityFunction<V>(
                 displayName = displayName
             )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            amount: ValueRange<UInt64>? = null,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): SatisfiedAmountInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
+            SatisfiedAmountInequalityFunction(
+                inputs = inputs.map { it.toTyped(converter) },
+                amount = amount,
+                epsilon = converter.intoValue(epsilon),
+                converter = converter,
+                name = name,
+                displayName = displayName
+            )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             amount: ValueRange<UInt64>? = null,
@@ -270,7 +290,7 @@ open class SatisfiedAmountInequalityFunction<V>(
             name: String,
             displayName: String? = null
         ): SatisfiedAmountInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SatisfiedAmountInequalityFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             amount = amount,
             epsilon = epsilon,
             converter = flt64Converter,
@@ -286,7 +306,7 @@ open class SatisfiedAmountInequalityFunction<V>(
  * Alias: `amount = [1, n]`
  */
 class AnyFunction<V>(
-    inputs: List<LinearConstraintInput>,
+    inputs: List<LinearConstraintInputV<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "any",
@@ -300,8 +320,8 @@ class AnyFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -314,13 +334,27 @@ class AnyFunction<V>(
             displayName = displayName
         )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AnyFunction<V> where V : RealNumber<V>, V : NumberField<V> = AnyFunction(
+            inputs = inputs.map { it.toTyped(converter) },
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): AnyFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AnyFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             epsilon = epsilon,
             converter = flt64Converter,
             name = name,
@@ -335,7 +369,7 @@ class AnyFunction<V>(
  * Alias: `amount = [n, n]`
  */
 class AllFunction<V>(
-    inputs: List<LinearConstraintInput>,
+    inputs: List<LinearConstraintInputV<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "all",
@@ -349,8 +383,8 @@ class AllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -363,13 +397,27 @@ class AllFunction<V>(
             displayName = displayName
         )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AllFunction<V> where V : RealNumber<V>, V : NumberField<V> = AllFunction(
+            inputs = inputs.map { it.toTyped(converter) },
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): AllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AllFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             epsilon = epsilon,
             converter = flt64Converter,
             name = name,
@@ -384,7 +432,7 @@ class AllFunction<V>(
  * Alias: `amount = [k, n]`
  */
 class AtLeastInequalityFunction<V>(
-    inputs: List<LinearConstraintInput>,
+    inputs: List<LinearConstraintInputV<V>>,
     val k: UInt64,
     epsilon: V,
     converter: IntoValue<V>,
@@ -404,8 +452,8 @@ class AtLeastInequalityFunction<V>(
     }
 
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             k: UInt64,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
@@ -420,6 +468,22 @@ class AtLeastInequalityFunction<V>(
             displayName = displayName
         )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            k: UInt64,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): AtLeastInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> = AtLeastInequalityFunction(
+            inputs = inputs.map { it.toTyped(converter) },
+            k = k,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             k: UInt64,
@@ -427,7 +491,7 @@ class AtLeastInequalityFunction<V>(
             name: String,
             displayName: String? = null
         ): AtLeastInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AtLeastInequalityFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             k = k,
             epsilon = epsilon,
             converter = flt64Converter,
@@ -443,7 +507,7 @@ class AtLeastInequalityFunction<V>(
  * Alias: `amount = [1, n-1]`
  */
 class NotAllFunction<V>(
-    inputs: List<LinearConstraintInput>,
+    inputs: List<LinearConstraintInputV<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "not_all",
@@ -457,8 +521,8 @@ class NotAllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -471,13 +535,27 @@ class NotAllFunction<V>(
             displayName = displayName
         )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): NotAllFunction<V> where V : RealNumber<V>, V : NumberField<V> = NotAllFunction(
+            inputs = inputs.map { it.toTyped(converter) },
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             epsilon: Flt64 = Flt64(1e-6),
             name: String,
             displayName: String? = null
         ): NotAllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NotAllFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             epsilon = epsilon,
             converter = flt64Converter,
             name = name,
@@ -490,7 +568,7 @@ class NotAllFunction<V>(
  * NumerableFunction: the count of satisfied inequalities must be within a specified range.
  */
 class NumerableFunction<V>(
-    inputs: List<LinearConstraintInput>,
+    inputs: List<LinearConstraintInputV<V>>,
     override val amount: ValueRange<UInt64>,
     epsilon: V,
     converter: IntoValue<V>,
@@ -505,8 +583,8 @@ class NumerableFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
+        fun <V> typed(
+            inputs: List<LinearConstraintInputV<V>>,
             amount: ValueRange<UInt64>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
@@ -521,6 +599,22 @@ class NumerableFunction<V>(
             displayName = displayName
         )
 
+        operator fun <V> invoke(
+            inputs: List<LinearConstraintInput>,
+            amount: ValueRange<UInt64>,
+            epsilon: Flt64 = Flt64(1e-6),
+            converter: IntoValue<V>,
+            name: String,
+            displayName: String? = null
+        ): NumerableFunction<V> where V : RealNumber<V>, V : NumberField<V> = NumerableFunction(
+            inputs = inputs.map { it.toTyped(converter) },
+            amount = amount,
+            epsilon = converter.intoValue(epsilon),
+            converter = converter,
+            name = name,
+            displayName = displayName
+        )
+
         operator fun invoke(
             inputs: List<LinearConstraintInput>,
             amount: ValueRange<UInt64>,
@@ -528,7 +622,7 @@ class NumerableFunction<V>(
             name: String,
             displayName: String? = null
         ): NumerableFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NumerableFunction(
-            inputs = inputs,
+            inputs = inputs.map { it.toTyped(flt64Converter) },
             amount = amount,
             epsilon = epsilon,
             converter = flt64Converter,

@@ -67,12 +67,13 @@ class UnivariateLinearPiecewiseFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xDouble = converter.fromValue(xValue).toDouble()
         for (i in 0 until numSegments) {
-            val bpLow = converter.fromValue(breakpoints[i]).toDouble()
-            val bpHigh = converter.fromValue(breakpoints[i + 1]).toDouble()
-            if (xDouble >= bpLow && xDouble <= bpHigh) {
-                return converter.intoValue(Flt64(converter.fromValue(slopes[i]).toDouble() * xDouble + converter.fromValue(intercepts[i]).toDouble()))
+            val bpLow = breakpoints[i]
+            val bpHigh = breakpoints[i + 1]
+            val inLower = xValue gr bpLow || xValue eq bpLow
+            val inUpper = xValue ls bpHigh || xValue eq bpHigh
+            if (inLower && inUpper) {
+                return slopes[i] * xValue + intercepts[i]
             }
         }
         return null

@@ -49,13 +49,13 @@ class SinFunction<V>(
         val slopes = mutableListOf<V>()
         val intercepts = mutableListOf<V>()
         for (i in 0 until samplingPoints.size - 1) {
-            val x0 = samplingPoints[i][0].toDouble()
-            val y0 = samplingPoints[i][1].toDouble()
-            val x1 = samplingPoints[i + 1][0].toDouble()
-            val y1 = samplingPoints[i + 1][1].toDouble()
-            val slopeVal = Flt64((y1 - y0) / (x1 - x0))
+            val x0 = samplingPoints[i][0]
+            val y0 = samplingPoints[i][1]
+            val x1 = samplingPoints[i + 1][0]
+            val y1 = samplingPoints[i + 1][1]
+            val slopeVal = (y1 - y0) / (x1 - x0)
             val slope = converter.intoValue(slopeVal)
-            val intercept = converter.intoValue(Flt64(y0 - slopeVal.toDouble() * x0))
+            val intercept = converter.intoValue(y0 - slopeVal * x0)
             slopes.add(slope)
             intercepts.add(intercept)
         }

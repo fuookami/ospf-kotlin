@@ -54,13 +54,10 @@ class MaxFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var maxVal: V? = null
-        var maxValD: Double = Double.NEGATIVE_INFINITY
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            val vD = converter.fromValue(v).toDouble()
-            if (maxVal == null || vD > maxValD) {
+            if (maxVal == null || v gr maxVal) {
                 maxVal = v
-                maxValD = vD
             }
         }
         return maxVal
@@ -171,13 +168,10 @@ class MinFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var minVal: V? = null
-        var minValD: Double = Double.POSITIVE_INFINITY
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            val vD = converter.fromValue(v).toDouble()
-            if (minVal == null || vD < minValD) {
+            if (minVal == null || v ls minVal) {
                 minVal = v
-                minValD = vD
             }
         }
         return minVal

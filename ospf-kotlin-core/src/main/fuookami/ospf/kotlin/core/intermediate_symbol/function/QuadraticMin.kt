@@ -91,18 +91,87 @@ class QuadraticMinFunction<V>(
         for (dep in dependencies) dep.flush(force)
     }
 
-    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
-
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            QuadraticPolynomial(emptyList(), Flt64.zero),
-            QuadraticPolynomial(emptyList(), Flt64.one),
-            Comparison.EQ
-        )
+    private fun evaluateSymbolV(
+        symbol: Symbol,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean
+    ): V? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> tokenTable.find(symbol)?.result ?: if (zeroIfNone) converter.zero else null
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
+            else -> if (zeroIfNone) converter.zero else null
+        }
     }
 
-    internal val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-        get() = QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
+    private fun evaluateSymbolV(
+        symbol: Symbol,
+        results: List<V>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean
+    ): V? {
+        return when (symbol) {
+            is AbstractVariableItem<*, *> -> {
+                val index = tokenTable.indexOf(symbol)
+                if (index != null && index >= 0 && index < results.size) results[index]
+                else if (zeroIfNone) converter.zero else null
+            }
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
+            else -> if (zeroIfNone) converter.zero else null
+        }
+    }
+
+    private fun evaluateSymbolV(
+        symbol: Symbol,
+        values: Map<Symbol, V>,
+        tokenTable: AbstractTokenTable<V>?,
+        zeroIfNone: Boolean
+    ): V? {
+        return values[symbol] ?: when (symbol) {
+            is AbstractVariableItem<*, *> -> tokenTable?.find(symbol)?.result
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
+            else -> null
+        } ?: if (zeroIfNone) converter.zero else null
+    }
+
+    private fun evaluateQuadraticV(
+        poly: QuadraticPolynomial<V>,
+        resolve: (Symbol) -> V?
+    ): V? {
+        var value = poly.constant
+        for (monomial in poly.monomials) {
+            val symbol1Value = resolve(monomial.symbol1) ?: return null
+            var termValue = monomial.coefficient * symbol1Value
+            if (monomial.symbol2 != null) {
+                val symbol2Value = resolve(monomial.symbol2!!) ?: return null
+                termValue *= symbol2Value
+            }
+            value += termValue
+        }
+        return value
+    }
+
+    private fun chooseMin(
+        eval: (QuadraticPolynomial<V>) -> V?
+    ): V? {
+        var minValue: V? = null
+        for (poly in polynomials) {
+            val value = eval(poly) ?: return null
+            if (minValue == null || value ls minValue) {
+                minValue = value
+            }
+        }
+        return minValue
+    }
+
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        return if (typedValues.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(typedValues, tokenTable, converter, false)
+        }
+    }
+
 
     override val polynomial: QuadraticPolynomial<V>
         get() = QuadraticPolynomial(listOf(QuadraticMonomial.linear(converter.one, resultVar)), converter.zero)
@@ -113,12 +182,42 @@ class QuadraticMinFunction<V>(
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? = null
 
-    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
-    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        return if (values.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(values, tokenTable, converter, false)
+        }
+    }
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return chooseMin { poly ->
+            evaluateQuadraticV(poly) { symbol ->
+                evaluateSymbolV(symbol, tokenTable, zeroIfNone)
+            }
+        }
+    }
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return chooseMin { poly ->
+            evaluateQuadraticV(poly) { symbol ->
+                evaluateSymbolV(symbol, results, tokenTable, zeroIfNone)
+            }
+        }
+    }
+    override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        return chooseMin { poly ->
+            evaluateQuadraticV(poly) { symbol ->
+                evaluateSymbolV(symbol, values, tokenTable, zeroIfNone)
+            }
+        }
+    }
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val typedResults = results.map { converter.intoValue(it) }
+        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+    }
+    internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val typedValues = SolverBoundaryCasts.mapValuesToV(values, converter)
+        return evaluate(typedValues, tokenTable, converter, zeroIfNone)
+    }
 
     override fun toRawString(unfold: UInt64): String = displayName ?: name
 

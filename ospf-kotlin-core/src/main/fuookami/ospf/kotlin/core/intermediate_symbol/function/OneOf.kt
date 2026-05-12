@@ -74,7 +74,7 @@ class OneOfFunction<V>(
         var count = 0
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (converter.fromValue(v).toDouble() != 0.0) count++
+            if (v neq converter.zero) count++
         }
         return if (count == 1) converter.one else converter.zero
     }
@@ -95,7 +95,7 @@ class OneOfFunction<V>(
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, converter, "${name}_oneof_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1

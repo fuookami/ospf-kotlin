@@ -1,12 +1,10 @@
 package fuookami.ospf.kotlin.core.token
 
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts
 import fuookami.ospf.kotlin.core.intermediate_symbol.solverFlattenedMonomials
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -663,7 +661,7 @@ fun Collection<IntermediateSymbol<*>>.register(
     callBack: RegistrationStatusCallBack? = null
 ): Try {
     val (emptySymbols, notEmptySymbols) = this@register.partition {
-        it is LinearExpressionSymbol && it.solverFlattenedMonomials.run {
+        it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
             monomials.isEmpty() && constant eq Flt64.zero
         }
     }
@@ -1291,7 +1289,7 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
 ): Try {
     return coroutineScope {
         val (emptySymbols, notEmptySymbols) = this@register.partition {
-            it is LinearExpressionSymbol && it.solverFlattenedMonomials.run {
+            it is LinearIntermediateSymbol<*> && it.solverFlattenedMonomials.run {
                 monomials.isEmpty() && constant eq Flt64.zero
             }
         }

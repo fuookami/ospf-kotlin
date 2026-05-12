@@ -54,7 +54,7 @@ class SigmoidFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
-        return if (converter.fromValue(condValue).toDouble() > 0.0) converter.one else converter.zero
+        return if (condValue gr converter.zero) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
@@ -69,7 +69,7 @@ class SigmoidFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_sig_nz")
+        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_sig_nz")
 
         // indicator serves as the result: indicator = 1 when condition > 0
 

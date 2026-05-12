@@ -7,10 +7,12 @@ import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.toLegacy
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
@@ -310,6 +312,15 @@ class CallBackModel<V> internal constructor(
         )
     }
 
+    @Suppress("UNUSED_PARAMETER")
+    fun addConstraint(
+        inequality: LinearConstraintInputV<V>,
+        name: String?,
+        displayName: String?
+    ) {
+        addConstraint(inequality.toLegacy(_converter), name, displayName)
+    }
+
     override fun addObject(
         category: ObjectCategory,
         variable: AbstractVariableItem<*, *>,
@@ -543,6 +554,15 @@ class MultiObjectCallBackModel<V> internal constructor(
                 name ?: String()
             )
         )
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun addConstraint(
+        inequality: LinearConstraintInputV<V>,
+        name: String? = null,
+        displayName: String? = null
+    ) {
+        addConstraint(inequality.toLegacy(_converter), name, displayName)
     }
 
     override fun addObject(

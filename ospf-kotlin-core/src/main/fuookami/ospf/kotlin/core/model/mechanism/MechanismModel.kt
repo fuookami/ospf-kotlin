@@ -213,7 +213,7 @@ private data class OrderedVariablePair(
 
 private fun validateDualById(
     constraints: List<Constraint<*, *>>,
-    dualById: Map<String, Flt64>,
+    dualById: Map<String, *>,
     log: org.apache.logging.log4j.kotlin.KotlinLogger
 ) {
     // Detect duplicate constraint names �?multiple constraints sharing the same name
@@ -343,11 +343,6 @@ class LinearMechanismModel<V>(
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
     internal val linearConstraints: List<LinearConstraintImpl<V>> get() = _constraints
-
-    @Suppress("UNCHECKED_CAST")
-    private fun linearConstraintsAsFlt64(): List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        return linearConstraints as List<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
-    }
 
     companion object {
         private val logger = logger()
@@ -601,31 +596,29 @@ class LinearMechanismModel<V>(
         return ok
     }
 
-    @Suppress("DEPRECATION")
-    internal fun generateOptimalCut(
+    private fun generateOptimalCutV(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val fixedValues = toFlt64FixedVariables(fixedVariables, parent.converter::fromValue)
-        val constraints = linearConstraintsAsFlt64()
-        val constants = constraints.foldIndexed(Flt64.zero) { _, acc, constraint ->
-            acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
+        dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
+    ): List<LinearInequality<V>> {
+        val zero = parent.converter.zero
+        val one = parent.converter.one
+        val constants = linearConstraints.fold(zero) { acc, constraint ->
+            acc + (dualSolution[constraint] ?: zero) * constraint.rhs
         }
-        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in constraints) {
+        val polynomials = HashMap<AbstractVariableItem<*, *>, V>()
+        for (constraint in linearConstraints) {
             val dual = dualSolution[constraint] ?: continue
-            if (dual eq Flt64.zero) {
+            if (dual eq zero) {
                 continue
             }
 
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
-                if (variable in fixedValues) {
-                    val coefficient = (dualSolution[constraint] ?: Flt64.zero) * cell.coefficient
-                    if (coefficient neq Flt64.zero) {
-                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
+                if (variable in fixedVariables) {
+                    val coefficient = dual * cell.coefficient
+                    if (coefficient neq zero) {
+                        polynomials[variable] = (polynomials[variable] ?: zero) - coefficient
                     }
                 }
             }
@@ -634,31 +627,30 @@ class LinearMechanismModel<V>(
             monomials = polynomials.map { LinearMonomial(it.value, it.key) },
             constant = constants
         )
+        val lhs = LinearPolynomial(listOf(LinearMonomial(one, objectVariable)), zero)
         return when (this.objectFunction.category) {
             ObjectCategory.Maximum -> {
-                listOf((LinearPolynomial(listOf(LinearMonomial(Flt64.one, objectVariable)), Flt64.zero) le rhs).normalize())
+                listOf(lhs le rhs)
             }
 
             ObjectCategory.Minimum -> {
-                listOf((LinearPolynomial(listOf(LinearMonomial(Flt64.one, objectVariable)), Flt64.zero) ge rhs).normalize())
+                listOf(lhs ge rhs)
             }
         }
     }
 
-    @Suppress("DEPRECATION")
-    internal fun generateFeasibleCut(
+    private fun generateFeasibleCutV(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val fixedValues = toFlt64FixedVariables(fixedVariables, parent.converter::fromValue)
-        val constraints = linearConstraintsAsFlt64()
-        var value = Flt64.zero
-        var constants = Flt64.zero
-        val polynomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        for (constraint in constraints) {
+        farkasDualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
+    ): List<LinearInequality<V>> {
+        val zero = parent.converter.zero
+        val one = parent.converter.one
+        var value = zero
+        var constants = zero
+        val polynomials = HashMap<AbstractVariableItem<*, *>, V>()
+        for (constraint in linearConstraints) {
             val dual = farkasDualSolution[constraint] ?: continue
-            if (dual eq Flt64.zero) {
+            if (dual eq zero) {
                 continue
             }
 
@@ -666,25 +658,118 @@ class LinearMechanismModel<V>(
             constants += dual * constraint.rhs
             for (cell in constraint.lhs) {
                 val variable = cell.token.variable
-                if (variable in fixedValues) {
+                if (variable in fixedVariables) {
                     val coefficient = dual * cell.coefficient
-                    if (coefficient neq Flt64.zero) {
-                        polynomials[variable] = (polynomials[variable] ?: Flt64.zero) - coefficient
+                    if (coefficient neq zero) {
+                        polynomials[variable] = (polynomials[variable] ?: zero) - coefficient
                     }
-                    value -= dual * cell.coefficient * fixedValues[variable]!!
+                    value -= dual * cell.coefficient * fixedVariables[variable]!!
                 }
             }
         }
-        if (value ls Flt64.zero) {
+        if (value ls zero) {
             logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
-            constants *= -Flt64.one
+            constants *= -one
             polynomials.replaceAll { _, v -> -v }
         }
         val lhs = LinearPolynomial(
             monomials = polynomials.map { LinearMonomial(it.value, it.key) },
             constant = constants
         )
-        return listOf((lhs le Flt64.zero).normalize())
+        return listOf(lhs le zero)
+    }
+
+    private fun toFlt64LinearCut(cut: LinearInequality<V>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        return LinearInequality(
+            lhs = LinearPolynomial(
+                monomials = cut.lhs.monomials.map { LinearMonomial(parent.converter.fromValue(it.coefficient), it.symbol) },
+                constant = parent.converter.fromValue(cut.lhs.constant)
+            ),
+            rhs = LinearPolynomial(
+                monomials = cut.rhs.monomials.map { LinearMonomial(parent.converter.fromValue(it.coefficient), it.symbol) },
+                constant = parent.converter.fromValue(cut.rhs.constant)
+            ),
+            comparison = cut.comparison,
+            name = cut.name,
+            displayName = cut.displayName
+        ).normalize()
+    }
+
+    internal fun generateOptimalCutByIdV(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        dualSolutionById: Map<String, V>
+    ): List<LinearInequality<V>> {
+        val zero = parent.converter.zero
+        validateDualById(linearConstraints, dualSolutionById, logger)
+        val dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V> = buildMap {
+            for (constraint in linearConstraints) {
+                val dual = dualSolutionById[constraint.name]
+                if (dual != null && dual neq zero) {
+                    put(constraint, dual)
+                }
+            }
+        }
+        return generateOptimalCutV(objectVariable, fixedVariables, dualSolution)
+    }
+
+    internal fun generateFeasibleCutByIdV(
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        farkasDualSolutionById: Map<String, V>
+    ): List<LinearInequality<V>> {
+        val zero = parent.converter.zero
+        validateDualById(linearConstraints, farkasDualSolutionById, logger)
+        val dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V> = buildMap {
+            for (constraint in linearConstraints) {
+                val dual = farkasDualSolutionById[constraint.name]
+                if (dual != null && dual neq zero) {
+                    put(constraint, dual)
+                }
+            }
+        }
+        return generateFeasibleCutV(fixedVariables, dualSolution)
+    }
+
+    internal fun generateOptimalCut(
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+        // 适配器边界：对偶解来自求解器原生类型 / Adapter boundary: dual solution from solver raw type
+        val dualAsV: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
+        for (constraint in linearConstraints) {
+            val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
+            val dual = dualSolution[typed] ?: continue
+            if (dual neq Flt64.zero) {
+                dualAsV[constraint] = parent.converter.intoValue(dual)
+            }
+        }
+
+        return generateOptimalCutV(
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            dualSolution = dualAsV
+        ).map { toFlt64LinearCut(it) }
+    }
+
+    internal fun generateFeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
+    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+        // 适配器边界：Farkas 对偶解来自求解器原生类型 / Adapter boundary: Farkas dual solution from solver raw type
+        val dualAsV: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
+        for (constraint in linearConstraints) {
+            val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
+            val dual = farkasDualSolution[typed] ?: continue
+            if (dual neq Flt64.zero) {
+                dualAsV[constraint] = parent.converter.intoValue(dual)
+            }
+        }
+
+        return generateFeasibleCutV(
+            fixedVariables = fixedVariables,
+            farkasDualSolution = dualAsV
+        ).map { toFlt64LinearCut(it) }
     }
 
     /**
@@ -706,16 +791,14 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolutionById: Map<String, Flt64>
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val constraints = linearConstraintsAsFlt64()
-        validateDualById(constraints, dualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> = buildMap {
-            for (c in constraints) {
-                val v = dualSolutionById[c.name]
-                if (v != null && v neq Flt64.zero) put(c, v)
-            }
+        val dualSolutionByIdV = dualSolutionById.mapValues { (_, value) ->
+            parent.converter.intoValue(value)
         }
-        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
+        return generateOptimalCutByIdV(
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            dualSolutionById = dualSolutionByIdV
+        ).map { toFlt64LinearCut(it) }
     }
 
     /**
@@ -733,16 +816,13 @@ class LinearMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, Flt64>
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val constraints = linearConstraintsAsFlt64()
-        validateDualById(constraints, farkasDualSolutionById, logger)
-        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64> = buildMap {
-            for (c in constraints) {
-                val v = farkasDualSolutionById[c.name]
-                if (v != null && v neq Flt64.zero) put(c, v)
-            }
+        val dualSolutionByIdV = farkasDualSolutionById.mapValues { (_, value) ->
+            parent.converter.intoValue(value)
         }
-        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+        return generateFeasibleCutByIdV(
+            fixedVariables = fixedVariables,
+            farkasDualSolutionById = dualSolutionByIdV
+        ).map { toFlt64LinearCut(it) }
     }
 
     /**
@@ -827,11 +907,6 @@ class QuadraticMechanismModel<V>(
     internal val concurrent by parent.configuration::concurrent
     override val constraints: List<Constraint<V, *>> get() = _constraints
     internal val quadraticConstraints: List<QuadraticConstraintImpl<V>> get() = _constraints
-
-    @Suppress("UNCHECKED_CAST")
-    private fun quadraticConstraintsAsFlt64(): List<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        return quadraticConstraints as List<QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>
-    }
 
     companion object {
         private val logger = logger()
@@ -1108,24 +1183,21 @@ class QuadraticMechanismModel<V>(
         return ok
     }
 
-    @Suppress("DEPRECATION", "UNUSED_PARAMETER")
-    internal fun generateOptimalCut(
-        objective: Flt64,
+    private fun generateOptimalCutV(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
-    ): Ret<List<Any>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val fixedValues = toFlt64FixedVariables(fixedVariables, parent.converter::fromValue)
-        val constraints = quadraticConstraintsAsFlt64()
-        val constants = constraints.fold(Flt64.zero) { acc, constraint ->
-            acc + (dualSolution[constraint] ?: Flt64.zero) * constraint.rhs
+        dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
+    ): List<Any> {
+        val zero = parent.converter.zero
+        val one = parent.converter.one
+        val constants = quadraticConstraints.fold(zero) { acc, constraint ->
+            acc + (dualSolution[constraint] ?: zero) * constraint.rhs
         }
-        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in constraints) {
+        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, V>()
+        val quadraticPolynomial = HashMap<OrderedVariablePair, V>()
+        for (constraint in quadraticConstraints) {
             val dual = dualSolution[constraint] ?: continue
-            if (dual eq Flt64.zero) {
+            if (dual eq zero) {
                 continue
             }
 
@@ -1133,86 +1205,84 @@ class QuadraticMechanismModel<V>(
                 val variable1 = cell.token1.variable
                 val variable2 = cell.token2?.variable
                 if (variable2 == null) {
-                    if (variable1 in fixedValues) {
+                    if (variable1 in fixedVariables) {
                         val projected = -dual * cell.coefficient
-                        if (projected neq Flt64.zero) {
-                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: Flt64.zero) + projected
+                        if (projected neq zero) {
+                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: zero) + projected
                         }
                     }
-                } else if (variable1 in fixedValues && variable2 in fixedValues) {
+                } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
                     val projected = -dual * cell.coefficient
-                    if (projected neq Flt64.zero) {
+                    if (projected neq zero) {
                         val key = OrderedVariablePair.of(variable1, variable2)
-                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: Flt64.zero) + projected
+                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: zero) + projected
                     }
                 }
             }
         }
 
-        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
+        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq zero }
         if (!hasQuadratic) {
             val rhs = LinearPolynomial(
                 monomials = linearPolynomial
-                    .filterValues { it neq Flt64.zero }
+                    .filterValues { it neq zero }
                     .map { LinearMonomial(it.value, it.key) },
                 constant = constants
             )
             val lhs = LinearPolynomial(
-                monomials = listOf(LinearMonomial(Flt64.one, objectVariable)),
-                constant = Flt64.zero
+                monomials = listOf(LinearMonomial(one, objectVariable)),
+                constant = zero
             )
             val cut = when (this.objectFunction.category) {
                 ObjectCategory.Maximum -> {
-                    (lhs le rhs).normalize()
+                    lhs le rhs
                 }
 
                 ObjectCategory.Minimum -> {
-                    (lhs ge rhs).normalize()
+                    lhs ge rhs
                 }
             }
-            return Ok(listOf(cut))
+            return listOf(cut)
         }
 
         val rhs = QuadraticPolynomial(
             monomials = linearPolynomial
-                .filterValues { it neq Flt64.zero }
+                .filterValues { it neq zero }
                 .map { QuadraticMonomial.linear(it.value, it.key) } +
                 quadraticPolynomial
-                    .filterValues { it neq Flt64.zero }
+                    .filterValues { it neq zero }
                     .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
             constant = constants
         )
         val lhs = QuadraticPolynomial(
-            monomials = listOf(QuadraticMonomial.linear(Flt64.one, objectVariable)),
-            constant = Flt64.zero
+            monomials = listOf(QuadraticMonomial.linear(one, objectVariable)),
+            constant = zero
         )
         val cut = when (this.objectFunction.category) {
             ObjectCategory.Maximum -> {
-                (lhs le rhs).normalize()
+                lhs le rhs
             }
 
             ObjectCategory.Minimum -> {
-                (lhs ge rhs).normalize()
+                lhs ge rhs
             }
         }
-        return Ok(listOf(cut))
+        return listOf(cut)
     }
 
-    @Suppress("UNUSED_PARAMETER")
-    internal fun generateFeasibleCut(
+    private fun generateFeasibleCutV(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
-    ): Ret<List<Any>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val fixedValues = toFlt64FixedVariables(fixedVariables, parent.converter::fromValue)
-        val constraints = quadraticConstraintsAsFlt64()
-        var value = Flt64.zero
-        var constants = Flt64.zero
-        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, Flt64>()
-        val quadraticPolynomial = HashMap<OrderedVariablePair, Flt64>()
-        for (constraint in constraints) {
+        farkasDualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
+    ): List<Any> {
+        val zero = parent.converter.zero
+        val one = parent.converter.one
+        var value = zero
+        var constants = zero
+        val linearPolynomial = HashMap<AbstractVariableItem<*, *>, V>()
+        val quadraticPolynomial = HashMap<OrderedVariablePair, V>()
+        for (constraint in quadraticConstraints) {
             val dual = farkasDualSolution[constraint] ?: continue
-            if (dual eq Flt64.zero) {
+            if (dual eq zero) {
                 continue
             }
 
@@ -1222,52 +1292,172 @@ class QuadraticMechanismModel<V>(
                 val variable1 = cell.token1.variable
                 val variable2 = cell.token2?.variable
                 if (variable2 == null) {
-                    if (variable1 in fixedValues) {
+                    if (variable1 in fixedVariables) {
                         val projected = -dual * cell.coefficient
-                        if (projected neq Flt64.zero) {
-                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: Flt64.zero) + projected
+                        if (projected neq zero) {
+                            linearPolynomial[variable1] = (linearPolynomial[variable1] ?: zero) + projected
                         }
-                        value -= dual * cell.coefficient * fixedValues[variable1]!!
+                        value -= dual * cell.coefficient * fixedVariables[variable1]!!
                     }
-                } else if (variable1 in fixedValues && variable2 in fixedValues) {
+                } else if (variable1 in fixedVariables && variable2 in fixedVariables) {
                     val projected = -dual * cell.coefficient
-                    if (projected neq Flt64.zero) {
+                    if (projected neq zero) {
                         val key = OrderedVariablePair.of(variable1, variable2)
-                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: Flt64.zero) + projected
+                        quadraticPolynomial[key] = (quadraticPolynomial[key] ?: zero) + projected
                     }
-                    value -= dual * cell.coefficient * fixedValues[variable1]!! * fixedValues[variable2]!!
+                    value -= dual * cell.coefficient * fixedVariables[variable1]!! * fixedVariables[variable2]!!
                 }
             }
         }
-        if (value ls Flt64.zero) {
+        if (value ls zero) {
             logger.warn { "farkas dual solution is infeasible, value = ${value}, set negative" }
-            constants *= -Flt64.one
+            constants *= -one
             linearPolynomial.replaceAll { _, coefficient -> -coefficient }
             quadraticPolynomial.replaceAll { _, coefficient -> -coefficient }
         }
 
-        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq Flt64.zero }
+        val hasQuadratic = quadraticPolynomial.any { (_, coefficient) -> coefficient neq zero }
         if (!hasQuadratic) {
             val lhs = LinearPolynomial(
                 monomials = linearPolynomial
-                    .filterValues { it neq Flt64.zero }
+                    .filterValues { it neq zero }
                     .map { LinearMonomial(it.value, it.key) },
                 constant = constants
             )
-            return Ok(listOf((lhs le Flt64.zero).normalize()))
+            return listOf(lhs le zero)
         }
 
         val lhs = QuadraticPolynomial(
             monomials = linearPolynomial
-                .filterValues { it neq Flt64.zero }
+                .filterValues { it neq zero }
                 .map { QuadraticMonomial.linear(it.value, it.key) } +
                 quadraticPolynomial
-                    .filterValues { it neq Flt64.zero }
+                    .filterValues { it neq zero }
                     .map { QuadraticMonomial.quadratic(it.value, it.key.first, it.key.second) },
             constant = constants
         )
-        val rhs = QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
-        return Ok(listOf((lhs le rhs).normalize()))
+        val rhs = QuadraticPolynomial(emptyList(), zero)
+        return listOf(lhs le rhs)
+    }
+
+    private fun toFlt64Cut(cut: Any): Any {
+        val linearCut = SolverBoundaryCasts.linearInequalityAsV<V>(cut)
+        if (linearCut != null) {
+            return (LinearInequality(
+                lhs = LinearPolynomial(
+                    monomials = linearCut.lhs.monomials.map { LinearMonomial(parent.converter.fromValue(it.coefficient), it.symbol) },
+                    constant = parent.converter.fromValue(linearCut.lhs.constant)
+                ),
+                rhs = LinearPolynomial(
+                    monomials = linearCut.rhs.monomials.map { LinearMonomial(parent.converter.fromValue(it.coefficient), it.symbol) },
+                    constant = parent.converter.fromValue(linearCut.rhs.constant)
+                ),
+                comparison = linearCut.comparison,
+                name = linearCut.name,
+                displayName = linearCut.displayName
+            ) as LinearInequality<Flt64>).normalize()
+        }
+
+        val quadraticCut = SolverBoundaryCasts.quadraticInequalityAsV<V>(cut)
+        if (quadraticCut != null) {
+            val flt64Cut = QuadraticInequalityOf(
+                lhs = QuadraticPolynomial(
+                    monomials = quadraticCut.lhs.monomials.map { QuadraticMonomial(parent.converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
+                    constant = parent.converter.fromValue(quadraticCut.lhs.constant)
+                ),
+                rhs = QuadraticPolynomial(
+                    monomials = quadraticCut.rhs.monomials.map { QuadraticMonomial(parent.converter.fromValue(it.coefficient), it.symbol1, it.symbol2) },
+                    constant = parent.converter.fromValue(quadraticCut.rhs.constant)
+                ),
+                comparison = quadraticCut.comparison,
+                name = quadraticCut.name,
+                displayName = quadraticCut.displayName
+            )
+            return flt64Cut.normalize()
+        }
+
+        return cut
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    internal fun generateOptimalCutByIdV(
+        objective: V,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        dualSolutionById: Map<String, V>
+    ): List<Any> {
+        val zero = parent.converter.zero
+        validateDualById(quadraticConstraints, dualSolutionById, logger)
+        val dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V> = buildMap {
+            for (constraint in quadraticConstraints) {
+                val dual = dualSolutionById[constraint.name]
+                if (dual != null && dual neq zero) {
+                    put(constraint, dual)
+                }
+            }
+        }
+        return generateOptimalCutV(objectVariable, fixedVariables, dualSolution)
+    }
+
+    internal fun generateFeasibleCutByIdV(
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        farkasDualSolutionById: Map<String, V>
+    ): List<Any> {
+        val zero = parent.converter.zero
+        validateDualById(quadraticConstraints, farkasDualSolutionById, logger)
+        val dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V> = buildMap {
+            for (constraint in quadraticConstraints) {
+                val dual = farkasDualSolutionById[constraint.name]
+                if (dual != null && dual neq zero) {
+                    put(constraint, dual)
+                }
+            }
+        }
+        return generateFeasibleCutV(fixedVariables, dualSolution)
+    }
+
+    internal fun generateOptimalCut(
+        objective: Flt64,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+    ): Ret<List<Any>> {
+        // 兼容性保留原签名；当前公式中 objective 未参与计算 / Keep signature for compatibility; objective is currently unused in this formulation
+        val dualAsV: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
+        for (constraint in quadraticConstraints) {
+            val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
+            val dual = dualSolution[typed] ?: continue
+            if (dual neq Flt64.zero) {
+                dualAsV[constraint] = parent.converter.intoValue(dual)
+            }
+        }
+        val cutsV = generateOptimalCutV(
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            dualSolution = dualAsV
+        )
+        val cutsFlt64 = cutsV.map { cut -> toFlt64Cut(cut) }
+        return Ok(cutsFlt64)
+    }
+
+    internal fun generateFeasibleCut(
+        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
+        farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+    ): Ret<List<Any>> {
+        val dualAsV: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
+        for (constraint in quadraticConstraints) {
+            val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
+            val dual = farkasDualSolution[typed] ?: continue
+            if (dual neq Flt64.zero) {
+                dualAsV[constraint] = parent.converter.intoValue(dual)
+            }
+        }
+        val cutsV = generateFeasibleCutV(
+            fixedVariables = fixedVariables,
+            farkasDualSolution = dualAsV
+        )
+        val cutsFlt64 = cutsV.map { cut -> toFlt64Cut(cut) }
+        return Ok(cutsFlt64)
     }
 
     /**
@@ -1292,16 +1482,16 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val constraints = quadraticConstraintsAsFlt64()
-        validateDualById(constraints, dualSolutionById, logger)
-        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> = buildMap {
-            for (c in constraints) {
-                val v = dualSolutionById[c.name]
-                if (v != null && v neq Flt64.zero) put(c, v)
-            }
+        val dualSolutionByIdV = dualSolutionById.mapValues { (_, value) ->
+            parent.converter.intoValue(value)
         }
-        return generateOptimalCut(objective, objectVariable, fixedVariables, dualSolution)
+        val cutsV = generateOptimalCutByIdV(
+            objective = parent.converter.intoValue(objective),
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            dualSolutionById = dualSolutionByIdV
+        )
+        return Ok(cutsV.map { cut -> toFlt64Cut(cut) })
     }
 
     /**
@@ -1319,16 +1509,14 @@ class QuadraticMechanismModel<V>(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, Flt64>
     ): Ret<List<Any>> {
-        // Adapter boundary: Benders cut operates on Flt64; safe when V=Flt64
-        val constraints = quadraticConstraintsAsFlt64()
-        validateDualById(constraints, farkasDualSolutionById, logger)
-        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64> = buildMap {
-            for (c in constraints) {
-                val v = farkasDualSolutionById[c.name]
-                if (v != null && v neq Flt64.zero) put(c, v)
-            }
+        val dualSolutionByIdV = farkasDualSolutionById.mapValues { (_, value) ->
+            parent.converter.intoValue(value)
         }
-        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+        val cutsV = generateFeasibleCutByIdV(
+            fixedVariables = fixedVariables,
+            farkasDualSolutionById = dualSolutionByIdV
+        )
+        return Ok(cutsV.map { cut -> toFlt64Cut(cut) })
     }
 
     /**

@@ -28,7 +28,6 @@ import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -68,8 +67,7 @@ class MaskingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val maskValue = values[mask] ?: return converter.zero
-        val maskD = converter.fromValue(maskValue).toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
+        if (maskValue eq converter.zero) return converter.zero
         return input.evaluateWith(values)
     }
 
@@ -227,21 +225,20 @@ class MaskingWithPolyMaskFunction<V>(
     override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
 
     override fun flush(force: Boolean) {}
-    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        return if (typedValues.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(typedValues, tokenTable, converter, false)
+        }
+    }
     override fun toRawString(unfold: UInt64): String = name
-
-    internal val flattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
 
     override val polynomial: LinearPolynomial<V> get() = LinearPolynomial(emptyList(), converter.zero)
     override fun asMutable(): MutableLinearPolynomial<V> = MutableLinearPolynomial(emptyList(), converter.zero)
 
-    internal fun toMathLinearInequality(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
@@ -250,13 +247,43 @@ class MaskingWithPolyMaskFunction<V>(
     }
 
     // V-typed evaluate overrides
-    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
-    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        return if (values.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(values, tokenTable, converter, false)
+        }
+    }
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
+        for (token in tokenTable.tokensInSolver) {
+            val tokenValue = token.result ?: if (zeroIfNone) converter.zero else return null
+            values[token.variable] = tokenValue
+        }
+        return delegate().evaluate(values)
+    }
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
+        for ((index, token) in tokenTable.tokensInSolver.withIndex()) {
+            val value = if (index < results.size) {
+                results[index]
+            } else {
+                if (!zeroIfNone) {
+                    return null
+                }
+                converter.zero
+            }
+            values[token.variable] = value
+        }
+        return delegate().evaluate(values)
+    }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate().evaluate(values)
     }
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val typedResults = results.map { converter.intoValue(it) }
+        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+    }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         val v = delegate().evaluate(SolverBoundaryCasts.mapValuesToV(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
@@ -266,8 +293,7 @@ class MaskingWithPolyMaskFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val maskValue = maskPoly.evaluateWith(values) ?: return converter.zero
-        val maskD = converter.fromValue(maskValue).toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
+        if (maskValue eq converter.zero) return converter.zero
         return input.evaluateWith(values)
     }
 
@@ -339,7 +365,7 @@ class MaskingRangeFunction<V>(
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
     init {
-        require(converter.fromValue(lower).toDouble() <= converter.fromValue(upper).toDouble()) {
+        require(lower ls upper || lower eq upper) {
             "MaskingRange lower bound must be <= upper bound"
         }
     }
@@ -351,12 +377,25 @@ class MaskingRangeFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val maskValue = mask.evaluateWith(values) ?: return converter.zero
-        val maskD = converter.fromValue(maskValue).toDouble()
-        if (maskD <= 1e-12 && maskD >= -1e-12) return converter.zero
-        val yVal = values[resultVar]?.let { converter.fromValue(it) }?.toDouble() ?: return converter.zero
-        val lb = converter.fromValue(lower).toDouble() * maskD
-        val ub = converter.fromValue(upper).toDouble() * maskD
-        return converter.intoValue(Flt64(yVal.coerceIn(lb, ub)))
+        if (maskValue eq converter.zero) return converter.zero
+
+        val yValue = values[resultVar] ?: return converter.zero
+        val lowerCandidate = lower * maskValue
+        val upperCandidate = upper * maskValue
+        val lowerBound: V
+        val upperBound: V
+        if (lowerCandidate ls upperCandidate || lowerCandidate eq upperCandidate) {
+            lowerBound = lowerCandidate
+            upperBound = upperCandidate
+        } else {
+            lowerBound = upperCandidate
+            upperBound = lowerCandidate
+        }
+        return when {
+            yValue ls lowerBound -> lowerBound
+            yValue gr upperBound -> upperBound
+            else -> yValue
+        }
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

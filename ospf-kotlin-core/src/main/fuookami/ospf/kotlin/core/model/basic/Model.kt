@@ -5,7 +5,6 @@ package fuookami.ospf.kotlin.core.model.basic
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
-import fuookami.ospf.kotlin.core.intermediate_symbol.solverFlattenedMonomials
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -287,9 +286,10 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         name: String? = null,
         displayName: String? = null
     ): Try {
+        val polynomial = symbol.toLinearPolynomial()
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = symbol.solverFlattenedMonomials,
+            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -300,9 +300,10 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         name: String? = null,
         displayName: String? = null
     ): Try {
+        val polynomial = symbol.toLinearPolynomial()
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = symbol.solverFlattenedMonomials,
+            flattenData = LinearFlattenData(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -420,9 +421,10 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         name: String? = null,
         displayName: String? = null
     ): Try {
+        val polynomial = symbol.toQuadraticPolynomial()
         return addObject(
             category = ObjectCategory.Minimum,
-            flattenData = symbol.solverFlattenedMonomials,
+            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )
@@ -433,9 +435,10 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         name: String? = null,
         displayName: String? = null
     ): Try {
+        val polynomial = symbol.toQuadraticPolynomial()
         return addObject(
             category = ObjectCategory.Maximum,
-            flattenData = symbol.solverFlattenedMonomials,
+            flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
             name = name ?: "",
             displayName = displayName
         )

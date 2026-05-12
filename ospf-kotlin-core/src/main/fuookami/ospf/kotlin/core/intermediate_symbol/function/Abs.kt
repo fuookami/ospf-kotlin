@@ -52,7 +52,7 @@ class AbsFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (converter.fromValue(v).toDouble() >= 0.0) v else -v
+        return if (v ls converter.zero) -v else v
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

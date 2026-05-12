@@ -1,3 +1,12 @@
+/**
+ * 点
+ * Point
+ *
+ * 定义几何空间中的点数据结构，支持任意维度和数值类型。
+ * 点是几何空间中的基本元素，表示空间中的一个位置。
+ * Defines point data structure in geometric space, supporting arbitrary dimensions and number types.
+ * A point is a fundamental element in geometric space, representing a position.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -6,6 +15,20 @@ import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
 
+/**
+ * 点数据类
+ * Point Data Class
+ *
+ * 表示几何空间中的点，支持任意维度和浮点数类型。
+ * 点可以与向量进行加减运算，支持距离计算和相等性比较。
+ * Represents a point in geometric space, supporting arbitrary dimensions and floating-point types.
+ * Points can be added to or subtracted by vectors, supporting distance calculation and equality comparison.
+ *
+ * @param D 维度类型 / Dimension type
+ * @param V 数值类型 / Number type
+ * @property position 点的坐标列表 / List of coordinates of the point
+ * @property dim 维度信息 / Dimension information
+ */
 data class Point<D : Dimension, V : FloatingNumber<V>>(
     val position: List<V>,
     val dim: D

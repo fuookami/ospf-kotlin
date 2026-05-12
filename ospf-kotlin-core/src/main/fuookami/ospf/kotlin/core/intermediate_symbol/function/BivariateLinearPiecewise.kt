@@ -96,36 +96,43 @@ class BivariateLinearPiecewiseFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null
         val yVal = y.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null
+        val zero = Flt64.zero
+        val one = Flt64.one
 
         for (i in triangles.indices) {
             val tri = triangles[i]
             val (u, v) = calculateBarycentric(tri, xVal, yVal)
-            if (u in 0.0..1.0 && v in 0.0..1.0 && u + v <= 1.0) {
-                val zVal = tri.p1.z.toDouble() +
-                    (tri.p2.z - tri.p1.z).toDouble() * u +
-                    (tri.p3.z - tri.p1.z).toDouble() * v
-                return converter.intoValue(Flt64(zVal))
+            if (u != null && v != null &&
+                (u geq zero) && (u leq one) &&
+                (v geq zero) && (v leq one) &&
+                ((u + v) leq one)
+            ) {
+                val zVal = tri.p1.z + (tri.p2.z - tri.p1.z) * u + (tri.p3.z - tri.p1.z) * v
+                return converter.intoValue(zVal)
             }
         }
         return null
     }
 
-    private fun calculateBarycentric(tri: Triangle<Point<Dim3, Flt64>, Dim3, Flt64>, px: Flt64, py: Flt64): Pair<Double, Double> {
-        val x1 = tri.p1.x.toDouble()
-        val y1 = tri.p1.y.toDouble()
-        val x2 = tri.p2.x.toDouble()
-        val y2 = tri.p2.y.toDouble()
-        val x3 = tri.p3.x.toDouble()
-        val y3 = tri.p3.y.toDouble()
-        val pxVal = px.toDouble()
-        val pyVal = py.toDouble()
+    private fun calculateBarycentric(
+        tri: Triangle<Point<Dim3, Flt64>, Dim3, Flt64>,
+        px: Flt64,
+        py: Flt64
+    ): Pair<Flt64?, Flt64?> {
+        val x1 = tri.p1.x
+        val y1 = tri.p1.y
+        val x2 = tri.p2.x
+        val y2 = tri.p2.y
+        val x3 = tri.p3.x
+        val y3 = tri.p3.y
 
         val det = (y2 - y3) * (x1 - x3) + (x3 - x2) * (y1 - y3)
-        if (kotlin.math.abs(det) < 1e-12) {
-            return -1.0 to -1.0 // Degenerate triangle
+        val detTolerance = Flt64(1e-12)
+        if (det.abs() ls detTolerance || det.abs() eq detTolerance) {
+            return null to null
         }
-        val u = ((y2 - y3) * (pxVal - x3) + (x3 - x2) * (pyVal - y3)) / det
-        val v = ((y3 - y1) * (pxVal - x3) + (x1 - x3) * (pyVal - y3)) / det
+        val u = ((y2 - y3) * (px - x3) + (x3 - x2) * (py - y3)) / det
+        val v = ((y3 - y1) * (px - x3) + (x1 - x3) * (py - y3)) / det
         return u to v
     }
 

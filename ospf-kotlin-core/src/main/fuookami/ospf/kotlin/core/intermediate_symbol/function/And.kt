@@ -62,7 +62,7 @@ class AndFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (converter.fromValue(v).toDouble() == 0.0) return converter.zero
+            if (v eq converter.zero) return converter.zero
         }
         return converter.one
     }
@@ -78,12 +78,12 @@ class AndFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val zero = converter.zero
         val one = converter.one
-        val nValue = converter.intoValue(Flt64(n.toDouble()))
+        val nValue = repeatAdd(one, n)
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_and_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_and_nz_${i}")
         }
 
         // sum(indicators) >= n * result
@@ -174,7 +174,7 @@ class OrFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (converter.fromValue(v).toDouble() != 0.0) return converter.one
+            if (v neq converter.zero) return converter.one
         }
         return converter.zero
     }
@@ -194,7 +194,7 @@ class OrFunction<V>(
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_or_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_or_nz_${i}")
         }
 
         // sum(indicators) >= result
@@ -279,7 +279,7 @@ class NotFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
-        return if (converter.fromValue(v).toDouble() == 0.0) converter.one else converter.zero
+        return if (v eq converter.zero) converter.one else converter.zero
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {
@@ -296,7 +296,7 @@ class NotFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator
-        allConstraints += nonzeroIndicatorConstraintsV(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, converter, "${name}_not_nz")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomial, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_not_nz")
 
         // result = 1 - indicator => result + indicator = 1
         allConstraints += LinearInequality(
@@ -379,7 +379,7 @@ class XorFunction<V>(
         var count = 0
         for (poly in polynomials) {
             val v = poly.evaluateWith(values) ?: return null
-            if (converter.fromValue(v).toDouble() != 0.0) count++
+            if (v neq converter.zero) count++
         }
         return if (count == 1) converter.one else converter.zero
     }
@@ -395,13 +395,13 @@ class XorFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val zero = converter.zero
         val one = converter.one
-        val nValue = converter.intoValue(Flt64(n.toDouble()))
-        val nMinusOneValue = converter.intoValue(Flt64((n - 1).toDouble()))
+        val nValue = repeatAdd(one, n)
+        val nMinusOneValue = repeatAdd(one, n - 1)
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, converter, "${name}_xor_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], bigM, tolerance, strictBoundary, "${name}_xor_nz_${i}")
         }
 
         // sum(indicators) - 2*slack = result (where slack is integer)

@@ -72,24 +72,27 @@ class FirstFunction<V>(
      */
     val result: LinearPolynomial<V> by lazy {
         // sum(i * y[i])
+        val one = converter.one
         val indexedMonos = _yVars.items.mapIndexed { i, yi ->
-            LinearMonomial(converter.intoValue(Flt64(i.toDouble())), yi)
+            LinearMonomial(repeatAdd(one, i), yi)
         }
         // n * (1 - sum(y[i])) = n - n * sum(y[i])
-        val nVal = converter.intoValue(Flt64(n.toDouble()))
+        val nVal = repeatAdd(one, n)
         val nSumMonos = _yVars.items.map { LinearMonomial(-nVal, it) }
         val indexedPlus = indexedMonos + nSumMonos
         LinearPolynomial(indexedPlus, nVal)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
+        val one = converter.one
+        val epsilonValue = converter.intoValue(epsilon)
         for ((i, poly) in polynomials.withIndex()) {
             val value = poly.evaluateWith(values) ?: return null
-            if (converter.fromValue(value).toDouble() > epsilon.toDouble()) {
-                return converter.intoValue(Flt64(i.toDouble()))
+            if (value gr epsilonValue) {
+                return repeatAdd(one, i)
             }
         }
-        return converter.intoValue(Flt64(n.toDouble()))
+        return repeatAdd(one, n)
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

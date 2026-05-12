@@ -22,8 +22,6 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -33,7 +31,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
-import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 
 /**
@@ -116,10 +113,9 @@ class LinearFunctionSymbolAdapter<V>(
     val pos: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.posVar?.let { v ->
-            val unit = slack.x.constant / slack.x.constant
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(unit, v)),
-                constant = slack.x.constant - slack.x.constant
+                monomials = listOf(LinearMonomial(converter.one, v)),
+                constant = converter.zero
             )
         }
     }
@@ -131,10 +127,9 @@ class LinearFunctionSymbolAdapter<V>(
     val neg: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
         slack.negVar?.let { v ->
-            val unit = slack.x.constant / slack.x.constant
             LinearPolynomial(
-                monomials = listOf(LinearMonomial(unit, v)),
-                constant = slack.x.constant - slack.x.constant
+                monomials = listOf(LinearMonomial(converter.one, v)),
+                constant = converter.zero
             )
         }
     }
@@ -145,7 +140,7 @@ class LinearFunctionSymbolAdapter<V>(
      */
     val polyX: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V> ?: return@lazy null
-        val unit = slack.x.constant / slack.x.constant
+        val unit = converter.one
         var result = LinearPolynomial(slack.x.monomials.toMutableList(), slack.x.constant)
         if (slack.withNegative && slack.negVar != null) {
             result = LinearPolynomial(result.monomials + LinearMonomial(unit, slack.negVar!!), result.constant)
@@ -171,10 +166,17 @@ class LinearFunctionSymbolAdapter<V>(
     override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
 
     override fun flush(force: Boolean) {}
-    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
+    internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        return if (typedValues.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(typedValues, tokenTable, converter, false)
+        }
+    }
     override fun toRawString(unfold: UInt64): String = name
 
-    internal val flattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(emptyList(), Flt64.zero)
+    internal val flattenedMonomialsAsV: LinearFlattenData<V> get() = LinearFlattenData(emptyList(), converter.zero)
 
     override val polynomial: LinearPolynomial<V>
         get() = LinearPolynomial(emptyList(), converter.zero)
@@ -183,13 +185,7 @@ class LinearFunctionSymbolAdapter<V>(
         return MutableLinearPolynomial(emptyList(), converter.zero)
     }
 
-    internal fun toMathLinearInequality(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(LinearPolynomial(emptyList(), Flt64.zero), LinearPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
-    internal fun toMathQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>(fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.zero), fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(emptyList(), Flt64.one), Comparison.EQ)
-    }
 
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
@@ -198,14 +194,44 @@ class LinearFunctionSymbolAdapter<V>(
         return converter.fromValue(v)
     }
 
-    // V-typed evaluate overrides (P4-5) â€?delegate to Flt64-boundary evaluate + converter
-    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? = null
-    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
-    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    // V-typed evaluate overrides (P4-5) - delegate to Flt64-boundary evaluate + converter
+    override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
+        return if (values.isNullOrEmpty()) {
+            evaluate(tokenTable, converter, false)
+        } else {
+            evaluate(values, tokenTable, converter, false)
+        }
+    }
+    override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
+        for (token in tokenTable.tokensInSolver) {
+            val tokenValue = token.result ?: if (zeroIfNone) converter.zero else return null
+            values[token.variable] = tokenValue
+        }
+        return delegate.evaluate(values)
+    }
+    override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val values = LinkedHashMap<Symbol, V>(tokenTable.tokensInSolver.size)
+        for ((index, token) in tokenTable.tokensInSolver.withIndex()) {
+            val value = if (index < results.size) {
+                results[index]
+            } else {
+                if (!zeroIfNone) {
+                    return null
+                }
+                converter.zero
+            }
+            values[token.variable] = value
+        }
+        return delegate.evaluate(values)
+    }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(values)
     }
-    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? = null
+    internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
+        val typedResults = results.map { converter.intoValue(it) }
+        return evaluate(typedResults, tokenTable, converter, zeroIfNone)
+    }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
         return delegate.evaluate(SolverBoundaryCasts.mapValuesToV(values, converter))
     }

@@ -60,15 +60,15 @@ class SatisfiedAmountFunction<V>(
      * Result polynomial: sum(u[i]) - the count of satisfied inequalities.
      */
     val result: LinearPolynomial<V> by lazy {
-        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
-        val zero = unit - unit
-        val monos = _uVars.map { LinearMonomial(unit, it) }
+        val one = converter.one
+        val zero = converter.zero
+        val monos = _uVars.map { LinearMonomial(one, it) }
         LinearPolynomial(monos, zero)
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
-        val unit = inequalities.first().lhs.constant / inequalities.first().lhs.constant
-        val zero = unit - unit
+        val one = converter.one
+        val zero = converter.zero
         val epsF = converter.fromValue(epsilon)
         var count = 0
         for (ineq in inequalities) {
@@ -85,10 +85,10 @@ class SatisfiedAmountFunction<V>(
             if (satisfied) count++
         }
         return if (amount != null) {
-            if (count >= amount.toInt()) unit else zero
+            if (count >= amount.toInt()) one else zero
         } else {
             var result = zero
-            repeat(count) { result = result + unit }
+            repeat(count) { result = result + one }
             result
         }
     }
@@ -176,7 +176,7 @@ class SatisfiedAmountFunction<V>(
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(one, it) }
-            val amountV = converter.intoValue(Flt64(amount.toInt().toDouble()))
+            val amountV = repeatAdd(one, amount.toInt())
             allConstraints += LinearInequality(
                 LinearPolynomial(sumMonos, zero),
                 LinearPolynomial(emptyList(), amountV),

@@ -13,14 +13,21 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.QuadraticMathFunctionSymbolBase
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.utils.functional.Try
 
@@ -87,6 +94,36 @@ internal object SolverBoundaryCasts {
         return model as QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
+    fun <V> linearConstraintAsFlt64(constraint: LinearConstraintImpl<V>): Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Linear>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return constraint as Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Linear>
+    }
+
+    fun <V> linearConstraintsAsFlt64(constraints: List<LinearConstraintImpl<V>>): List<Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Linear>>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return constraints as List<Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Linear>>
+    }
+
+    fun <V> quadraticConstraintAsFlt64(constraint: QuadraticConstraintImpl<V>): Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Quadratic>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return constraint as Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Quadratic>
+    }
+
+    fun <V> quadraticConstraintsAsFlt64(constraints: List<QuadraticConstraintImpl<V>>): List<Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Quadratic>>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return constraints as List<Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Quadratic>>
+    }
+
+    fun <V> linearInequalityAsV(cut: Any): LinearInequality<V>?
+        where V : RealNumber<V>, V : NumberField<V> {
+        return cut as? LinearInequality<V>
+    }
+
+    fun <V> quadraticInequalityAsV(cut: Any): QuadraticInequalityOf<V>?
+        where V : RealNumber<V>, V : NumberField<V> {
+        return cut as? QuadraticInequalityOf<V>
+    }
+
     fun <V> tokenListAsFlt64(tokenTable: AbstractTokenTable<V>): AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return tokenTable.tokenList as AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>
@@ -127,11 +164,13 @@ internal object SolverBoundaryCasts {
     }
 
     fun linearSolverFlattenedMonomials(symbol: Any): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return (symbol as LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomialsAsV
+        val polynomial = (symbol as LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).toLinearPolynomial()
+        return LinearFlattenData(polynomial.monomials, polynomial.constant)
     }
 
     fun quadraticSolverFlattenedMonomials(symbol: Any): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        return (symbol as QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).flattenedMonomialsAsV
+        val polynomial = (symbol as QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>).toQuadraticPolynomial()
+        return QuadraticFlattenData(polynomial.monomials, polynomial.constant)
     }
 
     @Suppress("UNCHECKED_CAST")

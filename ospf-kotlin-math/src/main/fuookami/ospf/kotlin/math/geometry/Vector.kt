@@ -1,3 +1,12 @@
+/**
+ * 向量
+ * Vector
+ *
+ * 定义几何空间中的向量数据结构，支持任意维度和数值类型。
+ * 向量是具有方向和大小的几何对象，支持内积空间运算。
+ * Defines vector data structure in geometric space, supporting arbitrary dimensions and number types.
+ * A vector is a geometric object with direction and magnitude, supporting inner product space operations.
+ */
 package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
@@ -6,22 +15,62 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
+
+/**
+ * 计算向量的范数（模长）
+ * Calculates the norm (magnitude) of a vector
+ *
+ * @param V 浮点数类型 / Floating-point number type
+ * @param vector 向量分量列表 / List of vector components
+ * @return 向量的范数 / Norm of the vector
+ */
 private fun <V : FloatingNumber<V>> normOf(vector: List<V>): V {
     val v = vector[0]
     return (vector.indices.sumOf(v.constants) { i -> vector[i].sqr() }).sqrt() as V
 }
 
+/**
+ * 计算单位向量
+ * Calculates the unit vector
+ *
+ * @param V 浮点数类型 / Floating-point number type
+ * @param vector 向量分量列表 / List of vector components
+ * @return 单位向量的分量列表 / List of unit vector components
+ */
 private fun <V : FloatingNumber<V>> unitOf(vector: List<V>): List<V> {
     val norm = normOf(vector)
     return vector.map { it / norm }
 }
 
+/**
+ * 计算两个向量的点积
+ * Calculates the dot product of two vectors
+ *
+ * @param V 浮点数类型 / Floating-point number type
+ * @param lhs 左向量 / Left vector
+ * @param rhs 右向量 / Right vector
+ * @return 点积值 / Dot product value
+ */
 private fun <V : FloatingNumber<V>> timesBetween(lhs: List<V>, rhs: List<V>): V {
     assert(lhs.size == rhs.size)
     val v = lhs[0]
     return lhs.indices.sumOf(v.constants) { lhs[it] * rhs[it] }
 }
 
+/**
+ * 向量类
+ * Vector Class
+ *
+ * 表示几何空间中的向量，支持任意维度和浮点数类型。
+ * 实现内积空间接口，支持向量加减、缩放、点积、叉积等运算。
+ * Represents a vector in geometric space, supporting arbitrary dimensions and floating-point types.
+ * Implements inner product space interface, supporting vector addition, subtraction, scaling, dot product, cross product, etc.
+ *
+ * @param D 维度类型 / Dimension type
+ * @param V 数值类型 / Number type
+ * @property vector 向量分量列表 / List of vector components
+ * @property dim 维度信息 / Dimension information
+ */
 open class Vector<D : Dimension, V : FloatingNumber<V>>(
     val vector: List<V>,
     val dim: D

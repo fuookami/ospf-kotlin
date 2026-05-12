@@ -1,8 +1,8 @@
 /**
- * 布尔表达式求�?
+ * 布尔表达式求倌
  * Boolean Expression Evaluation
  *
- * 提供布尔表达式的本地求值能力，支持比较、逻辑、空值检查、集合成员判断、模式匹配�?
+ * 提供布尔表达式的本地求值能力，支持比较、逻辑、空值检查、集合成员判断、模式匹配。
  * Provides local evaluation capability for boolean expressions,
  * supporting comparison, logic, null check, set membership, and pattern matching.
  */
@@ -17,21 +17,21 @@ import java.math.BigInteger
  * 求值上下文
  * Evaluation Context
  *
- * 提供属性路径到值的映射�?
+ * 提供属性路径到值的映射。
  * Provides mapping from property paths to values.
  */
 interface EvaluationContext {
     /**
-     * 获取指定路径的�?
+     * 获取指定路径的倌
      * Get value at specified path
      *
-     * @param path 属性路�?/ Property path
+     * @param path 属性路後/ Property path
      * @return 路径对应的值，如果不存在则返回 null / Value at path, null if not exists
      */
     operator fun get(path: PropertyPath): Any?
 
     /**
-     * 检查指定路径是否存�?
+     * 检查指定路径是否存圌
      * Check if specified path exists
      */
     fun contains(path: PropertyPath): Boolean
@@ -67,10 +67,10 @@ object EmptyEvaluationContext : EvaluationContext {
 }
 
 /**
- * 求值结�?
+ * 求值结枌
  * Evaluation Result
  *
- * 返回 Trivalent 以支持三值逻辑�?
+ * 返回 Trivalent 以支持三值逻辑。
  * Returns Trivalent to support three-valued logic.
  */
 typealias EvaluationResult = Trivalent
@@ -79,9 +79,9 @@ typealias EvaluationResult = Trivalent
  * 求值布尔表达式
  * Evaluate boolean expression
  *
- * @param expr 要求值的表达�?/ Expression to evaluate
+ * @param expr 要求值的表达弌/ Expression to evaluate
  * @param context 求值上下文 / Evaluation context
- * @return 求值结果（三值逻辑�? Evaluation result (three-valued logic)
+ * @return 求值结果（三值逻辑， Evaluation result (three-valued logic)
  */
 fun evaluateBoolean(expr: BooleanExpression, context: EvaluationContext): EvaluationResult {
     return when (expr) {
@@ -117,7 +117,7 @@ fun evaluateBooleanOrNull(expr: BooleanExpression, context: EvaluationContext): 
     }
 }
 
-// ========== 内部求值函�?/ Internal Evaluation Functions ==========
+// ========== 内部求值函敌/ Internal Evaluation Functions ==========
 
 /**
  * 求值比较表达式
@@ -132,7 +132,7 @@ private fun evaluateComparison(expr: Comparison<*>, context: EvaluationContext):
 }
 
 /**
- * 求�?In 表达�?
+ * 求倌In 表达弌
  * Evaluate In expression
  */
 private fun evaluateIn(expr: InExpression<*>, context: EvaluationContext): Trivalent {
@@ -177,7 +177,7 @@ private fun evaluatePatternMatch(expr: PatternMatch<*>, context: EvaluationConte
 }
 
 /**
- * 求值空值检�?
+ * 求值空值检柌
  * Evaluate null check
  */
 private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Trivalent {
@@ -194,7 +194,7 @@ private fun evaluateNullCheck(expr: NullCheck, context: EvaluationContext): Triv
 }
 
 /**
- * 求�?And 表达�?
+ * 求倌And 表达弌
  * Evaluate And expression
  */
 private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trivalent {
@@ -212,7 +212,7 @@ private fun evaluateAnd(expr: AndExpression, context: EvaluationContext): Trival
 }
 
 /**
- * 求�?Or 表达�?
+ * 求倌Or 表达弌
  * Evaluate Or expression
  */
 private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalent {
@@ -230,7 +230,7 @@ private fun evaluateOr(expr: OrExpression, context: EvaluationContext): Trivalen
 }
 
 /**
- * 求�?Not 表达�?
+ * 求倌Not 表达弌
  * Evaluate Not expression
  */
 private fun evaluateNot(expr: NotExpression, context: EvaluationContext): Trivalent {
@@ -252,13 +252,13 @@ private fun evaluateScalar(expr: ScalarExpression<*>, context: EvaluationContext
         is ScalarSymbolReference<*> -> null
         is ScalarUnary<*> -> evaluateUnary(expr, context)
         is ScalarBinary<*> -> evaluateBinary(expr, context)
-        is ScalarFunction<*> -> null  // 函数调用需要额外实�?/ Function call needs extra implementation
+        is ScalarFunction<*> -> null  // 函数调用需要额外实玌/ Function call needs extra implementation
         is ScalarCustom<*> -> null
     }
 }
 
 /**
- * 求值一元操�?
+ * 求值一元操佌
  * Evaluate unary operation
  */
 private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext): Any? {
@@ -266,13 +266,13 @@ private fun evaluateUnary(expr: UnaryExpression<*>, context: EvaluationContext):
     return NumericDispatcher.evaluateUnary(expr.operator, operand)
 }
 
-// 使用类型别名避免与表达式类冲�?
+// 使用类型别名避免与表达式类冲窌
 // Use type alias to avoid conflict with expression class
 private typealias UnaryExpression<T> = ScalarUnary<T>
 private typealias BinaryExpression<T> = ScalarBinary<T>
 
 /**
- * 求值二元操�?
+ * 求值二元操佌
  * Evaluate binary operation
  */
 private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext): Any? {
@@ -284,7 +284,7 @@ private fun evaluateBinary(expr: BinaryExpression<*>, context: EvaluationContext
 // ========== 辅助函数 / Helper Functions ==========
 
 /**
- * 比较两个�?
+ * 比较两个倌
  * Compare two values
  */
 private fun compareValues(left: Any?, right: Any?, operator: ComparisonOperator): Boolean? {
@@ -316,7 +316,7 @@ private fun compareOrder(left: Any, right: Any): Int? {
 }
 
 /**
- * 判断两个值是否相�?
+ * 判断两个值是否相筌
  * Check if two values are equal
  */
 private fun valuesEqual(left: Any?, right: Any?): Boolean {
@@ -350,11 +350,11 @@ private fun Number.toBigDecimalOrNull(): BigDecimal? {
  * LIKE 模式匹配
  * LIKE pattern matching
  *
- * 支持 %（任意字符）�?_（单个字符）通配符�?
+ * 支持 %（任意字符）和_（单个字符）通配符。
  * Supports % (any characters) and _ (single character) wildcards.
  */
 private fun matchLike(value: String, pattern: String): Boolean {
-    // �?SQL LIKE 模式转换为正则表达式
+    // 尌SQL LIKE 模式转换为正则表达式
     // Convert SQL LIKE pattern to regex
     val regexPattern = StringBuilder()
     regexPattern.append("^")

@@ -80,10 +80,11 @@ class InStepRangeFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val lbValue = lb.evaluateWith(values) ?: return null
         val ubValue = ub.evaluateWith(values) ?: return null
-        val diffDouble = (converter.fromValue(ubValue) - converter.fromValue(lbValue)).toDouble()
-        val stepDouble = converter.fromValue(step).toDouble()
-        val qDouble = kotlin.math.floor(diffDouble / stepDouble)
-        return converter.intoValue(converter.fromValue(lbValue) + Flt64(qDouble * stepDouble))
+        val lbFlt = converter.fromValue(lbValue)
+        val ubFlt = converter.fromValue(ubValue)
+        val stepFlt = converter.fromValue(step)
+        val qFlt = ((ubFlt - lbFlt) / stepFlt).floor()
+        return converter.intoValue(lbFlt + qFlt * stepFlt)
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

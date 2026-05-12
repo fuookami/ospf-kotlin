@@ -60,15 +60,13 @@ class SlackFunction<V>(
 
     val neg: LinearPolynomial<V>? by lazy {
         negVar?.let { v ->
-            val unit = x.constant / x.constant
-            LinearPolynomial(listOf(LinearMonomial(unit, v)), x.constant - x.constant)
+            LinearPolynomial(listOf(LinearMonomial(converter.one, v)), converter.zero)
         }
     }
 
     val pos: LinearPolynomial<V>? by lazy {
         posVar?.let { v ->
-            val unit = x.constant / x.constant
-            LinearPolynomial(listOf(LinearMonomial(unit, v)), x.constant - x.constant)
+            LinearPolynomial(listOf(LinearMonomial(converter.one, v)), converter.zero)
         }
     }
 
@@ -79,15 +77,13 @@ class SlackFunction<V>(
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
         val yValue = y.evaluateWith(values) ?: return null
-        val diff = (converter.fromValue(xValue) - converter.fromValue(yValue)).toDouble()
+        val diff = xValue - yValue
         return if (withNegative && withPositive) {
-            converter.intoValue(Flt64(kotlin.math.abs(diff)))
+            diff.abs()
         } else if (withNegative) {
-            val v = kotlin.math.max(0.0, -diff)
-            converter.intoValue(Flt64(v))
+            if (diff ls converter.zero) -diff else converter.zero
         } else if (withPositive) {
-            val v = kotlin.math.max(0.0, diff)
-            converter.intoValue(Flt64(v))
+            if (diff gr converter.zero) diff else converter.zero
         } else {
             converter.zero
         }
@@ -119,7 +115,7 @@ class SlackFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     val polyX: LinearPolynomial<V> by lazy {
-        val unit = x.constant / x.constant
+        val unit = converter.one
         var result = LinearPolynomial(x.monomials.toMutableList(), x.constant)
         if (withNegative && negVar != null) {
             result = LinearPolynomial(result.monomials + LinearMonomial(unit, negVar!!), result.constant)

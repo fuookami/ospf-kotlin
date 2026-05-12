@@ -2,8 +2,12 @@ package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
+import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.utils.functional.Order
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
@@ -74,5 +78,23 @@ class MultiObjectCallBackModelTest {
         val objective = model.objective(emptyList())
 
         assertEquals(listOf(Flt64(-5)), objective)
+    }
+
+    @Test
+    fun addConstraintShouldAcceptTypedLinearConstraintInput() {
+        val model = MultiObjectCallBackModel()
+        val before = model.constraints.size
+
+        model.addConstraint(
+            inequality = LinearConstraintInputV(
+                flattenData = LinearFlattenData(emptyList(), Flt64(-1.0)),
+                sign = Comparison.LE,
+                lhsRange = ValueRange(Flt64(-10.0), Flt64(10.0)).value!!,
+                rhsConstant = Flt64.zero
+            ),
+            name = "typed_constraint"
+        )
+
+        assertEquals(before + 1, model.constraints.size)
     }
 }

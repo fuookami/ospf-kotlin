@@ -72,13 +72,13 @@ class InequalityFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val lhsValue = lhs.evaluateWith(values) ?: return null
-        val lhsDouble = converter.fromValue(lhsValue).toDouble()
-        val rhsDouble = converter.fromValue(rhs).toDouble()
         val satisfied = when (sign) {
-            Comparison.LE, Comparison.LT -> lhsDouble <= rhsDouble
-            Comparison.GE, Comparison.GT -> lhsDouble >= rhsDouble
-            Comparison.EQ -> kotlin.math.abs(lhsDouble - rhsDouble) < 1e-9
-            Comparison.NE -> kotlin.math.abs(lhsDouble - rhsDouble) > 1e-9
+            Comparison.LE -> !(lhsValue gr rhs)
+            Comparison.LT -> lhsValue ls rhs
+            Comparison.GE -> !(lhsValue ls rhs)
+            Comparison.GT -> lhsValue gr rhs
+            Comparison.EQ -> lhsValue eq rhs
+            Comparison.NE -> lhsValue neq rhs
         }
         return if (satisfied) converter.one else converter.zero
     }

@@ -53,7 +53,7 @@ class RoundingFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values) ?: return null
-        return converter.intoValue(Flt64(kotlin.math.round(converter.fromValue(xVal).toDouble())))
+        return converter.intoValue(converter.fromValue(xVal).round())
     }
 
     override fun registerAuxiliaryTokens(tokens: fuookami.ospf.kotlin.core.token.AddableTokenCollection<V>): Try {

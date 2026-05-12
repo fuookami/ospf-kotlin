@@ -53,19 +53,20 @@ class BalanceTernaryzationFunction<V>(
         val xUpper = Flt64(1e6)
         val eps = epsilon
         val precision = Flt64(1e-10)
+        val inversePrecision = Flt64.one / precision
         val breakpoints = listOf(xLower, -eps, -eps + precision, eps - precision, eps, xUpper).map { converter.intoValue(it) }
         val slopes = listOf(
             Flt64.zero,   // segment 0: constant -1
-            Flt64(1.0 / precision.toDouble()), // segment 1: rising from -1 to 0
+            inversePrecision, // segment 1: rising from -1 to 0
             Flt64.zero,   // segment 2: constant 0
-            Flt64(1.0 / precision.toDouble()), // segment 3: rising from 0 to 1
+            inversePrecision, // segment 3: rising from 0 to 1
             Flt64.zero    // segment 4: constant 1
         ).map { converter.intoValue(it) }
         val intercepts = listOf(
             Flt64(-1.0),
-            Flt64(-1.0 - (-eps.toDouble()) / precision.toDouble()),
+            -Flt64.one + eps / precision,
             Flt64.zero,
-            Flt64.zero - Flt64((eps - precision).toDouble() / precision.toDouble()),
+            (precision - eps) / precision,
             Flt64.one
         ).map { converter.intoValue(it) }
         UnivariateLinearPiecewiseFunction(
@@ -86,11 +87,11 @@ class BalanceTernaryzationFunction<V>(
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        val xDouble = converter.fromValue(xValue).toDouble()
-        val epsDouble = epsilon.toDouble()
+        val epsilonValue = converter.intoValue(epsilon)
+        val minusOne = converter.intoValue(Flt64(-1.0))
         return when {
-            xDouble > epsDouble -> converter.one
-            xDouble < -epsDouble -> converter.intoValue(Flt64(-1.0))
+            xValue gr epsilonValue -> converter.one
+            xValue ls -epsilonValue -> minusOne
             else -> converter.zero
         }
     }

@@ -15,11 +15,13 @@ import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.serialization.Serializable
 import kotlin.reflect.KProperty1
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
 // [b, e)
+@Serializable
 data class TimeRange(
     override val start: Instant = Instant.DISTANT_PAST,
     override val end: Instant = Instant.DISTANT_FUTURE
