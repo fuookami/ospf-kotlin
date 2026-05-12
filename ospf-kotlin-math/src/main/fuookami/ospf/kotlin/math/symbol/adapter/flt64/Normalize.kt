@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.math.symbol.adapter.flt64
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
@@ -15,7 +16,7 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize()
     )
 }
 
-fun QuadraticInequality.normalize(): QuadraticInequality {
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.normalize(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val negatedRhsMonomials = rhs.monomials.map { QuadraticMonomial(-it.coefficient, it.symbol1, it.symbol2) }
     val diff = QuadraticPolynomial(
         monomials = lhs.monomials + negatedRhsMonomials,

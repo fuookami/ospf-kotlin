@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -317,7 +318,7 @@ fun parseQuadraticInequality(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): QuadraticInequality? {
+): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val tokens = PolynomialLexer(input).lex()
     val parser = DirectPolynomialParser(tokens, symbolOf)
     return parser.parseInequality().toCanonicalInequality().toQuadraticInequalityOrNull(symbolComparator)
@@ -442,7 +443,7 @@ fun parseQuadraticInequalityRet(
     input: String,
     symbolOf: (String) -> Symbol = ::symbolOfSerializedIdentifier,
     symbolComparator: Comparator<Symbol>? = null
-): ParseResult<QuadraticInequality> {
+): ParseResult<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return wrapRet(input) {
         parseQuadraticInequality(input, symbolOf, symbolComparator)
             ?: throw IllegalArgumentException("Inequality is not quadratic.")

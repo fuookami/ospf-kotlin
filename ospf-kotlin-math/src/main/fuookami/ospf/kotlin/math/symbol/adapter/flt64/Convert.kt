@@ -14,6 +14,7 @@ import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -117,8 +118,8 @@ fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
     }
 }
 
-fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequality(): QuadraticInequality {
-    return QuadraticInequality(
+fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequality(): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    return QuadraticInequalityOf(
         lhs = lhs.toQuadraticPolynomial(),
         rhs = rhs.toQuadraticPolynomial(),
         comparison = comparison
@@ -135,7 +136,7 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCanonical
     )
 }
 
-fun QuadraticInequality.toCanonicalInequality(
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toCanonicalInequality(
     symbolComparator: java.util.Comparator<Symbol>? = null
 ): CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     return CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
@@ -145,13 +146,13 @@ fun QuadraticInequality.toCanonicalInequality(
     )
 }
 
-fun QuadraticInequality.toLinearInequalityOrNull(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityOrNull(): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val linearLhs = lhs.toLinearPolynomialOrNull() ?: return null
     val linearRhs = rhs.toLinearPolynomialOrNull() ?: return null
     return LinearInequality(lhs = linearLhs, rhs = linearRhs, comparison = comparison)
 }
 
-fun QuadraticInequality.toLinearInequalityRet(): Ret<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityRet(): Ret<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val linearInequality = toLinearInequalityOrNull()
     return if (linearInequality != null) {
         Ok(linearInequality)
@@ -168,10 +169,10 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
 
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequalityOrNull(
     symbolComparator: java.util.Comparator<Symbol>? = null
-): QuadraticInequality? {
+): QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
     val quadraticLhs = lhs.toQuadraticPolynomialOrNull(symbolComparator) ?: return null
     val quadraticRhs = rhs.toQuadraticPolynomialOrNull(symbolComparator) ?: return null
-    return QuadraticInequality(lhs = quadraticLhs, rhs = quadraticRhs, comparison = comparison)
+    return QuadraticInequalityOf(lhs = quadraticLhs, rhs = quadraticRhs, comparison = comparison)
 }
 
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinearInequalityRet(): Ret<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
@@ -185,7 +186,7 @@ fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toLinear
 
 fun CanonicalInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticInequalityRet(
     symbolComparator: java.util.Comparator<Symbol>? = null
-): Ret<QuadraticInequality> {
+): Ret<QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     val quadraticInequality = toQuadraticInequalityOrNull(symbolComparator)
     return if (quadraticInequality != null) {
         Ok(quadraticInequality)

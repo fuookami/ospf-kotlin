@@ -6,7 +6,6 @@ import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLatex
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -126,6 +125,5 @@ class LatexTest {
         assertEquals("0", CanonicalPolynomial<Flt64>(constant = Flt64.zero).toLatex())
     }
 }
-
 
 

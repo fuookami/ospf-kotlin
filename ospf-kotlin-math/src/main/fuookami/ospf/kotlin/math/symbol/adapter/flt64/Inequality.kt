@@ -84,14 +84,14 @@ fun LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isSatisfied
     )
 }
 
-fun QuadraticInequality.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isSatisfied(values: Map<Symbol, Flt64>): Boolean? {
     val provider = MapValueProvider(values)
     val lhsValue = lhs.evaluate(provider) ?: return null
     val rhsValue = rhs.evaluate(provider) ?: return null
     return comparison.satisfiedBy(lhsValue, rhsValue)
 }
 
-fun QuadraticInequality.isSatisfiedOrdered(order: List<Symbol>, values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Boolean {
+fun QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isSatisfiedOrdered(order: List<Symbol>, values: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Boolean {
     return comparison.satisfiedBy(
         lhs = lhs.evaluateOrdered(order, values),
         rhs = rhs.evaluateOrdered(order, values)
