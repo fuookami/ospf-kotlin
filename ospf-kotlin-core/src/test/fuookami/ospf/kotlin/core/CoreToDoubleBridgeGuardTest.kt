@@ -6,11 +6,7 @@ import kotlin.test.fail
 
 class CoreToDoubleBridgeGuardTest {
     private val scanRoot = File("src/main")
-    private val pathPrefixes = listOf(
-        "fuookami/ospf/kotlin/core/model/mechanism/",
-        "fuookami/ospf/kotlin/core/solver/value/",
-        "fuookami/ospf/kotlin/core/token/"
-    )
+    private val pathPrefix = "fuookami/ospf/kotlin/core/"
 
     private val allowedPath = "fuookami/ospf/kotlin/core/solver/value/SolveValueConversionContext.kt"
     private val allowedLine = "val converted = this.toDouble()"
@@ -29,7 +25,7 @@ class CoreToDoubleBridgeGuardTest {
             .filter { it.isFile && it.extension == "kt" }
             .forEach { file ->
                 val relativePath = file.toRelativeString(scanRoot).replace('\\', '/')
-                if (pathPrefixes.none { relativePath.startsWith(it) }) {
+                if (!relativePath.startsWith(pathPrefix)) {
                     return@forEach
                 }
                 file.readLines().forEachIndexed { index, line ->

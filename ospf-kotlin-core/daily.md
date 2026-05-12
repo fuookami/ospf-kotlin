@@ -106,3 +106,5 @@
    - 对齐后可直接通过：
      - `mvn -pl ospf-kotlin-core -DskipTests compile`
      - `mvn -pl ospf-kotlin-core "-Dtest=CoreToDoubleBridgeGuardTest,FunctionSymbolToDoubleBridgeGuardTest" test`
+11. 门禁扫描范围已从“3 个高风险目录”扩展到 `src/main/fuookami/ospf/kotlin/core` 全目录；
+    当前全量扫描结果仍为 1 处允许桥接（`SolveValueConversionContext.kt` 中集中边界点）。
