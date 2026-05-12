@@ -21,6 +21,7 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 import kotlin.time.Duration
 
@@ -116,6 +117,13 @@ class BendersSolverVBridgeTest {
         return QuadraticMetaModel(name = "quadratic", converter = IntoValue.Identity)
     }
 
+    private val plusOneConverter = object : IntoValue<Flt64> {
+        override fun intoValue(value: Flt64): Flt64 = value + Flt64.one
+        override val zero: Flt64 get() = Flt64.zero
+        override val one: Flt64 get() = Flt64.one
+        override fun fromValue(value: Flt64): Flt64 = value
+    }
+
     @Test
     fun linearSolveSubVConvertsSolutionAndCuts() = runBlocking {
         val solver = StubBendersSolver()
@@ -145,5 +153,33 @@ class BendersSolverVBridgeTest {
         assertEquals(listOf(Flt64(5.0), Flt64(7.0)), value.solution)
         assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
         assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
+    }
+
+    @Test
+    fun linearSolveMasterVConvertsFeasibleOutput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveMasterV(
+            metaModel = linearModel(),
+            converter = plusOneConverter
+        )
+        val output = (result as Ok).value
+        assertTrue(output is FeasibleSolverOutput<*>)
+        val feasible = output as FeasibleSolverOutput<*>
+        assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
+        assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
+    }
+
+    @Test
+    fun quadraticSolveMasterVConvertsFeasibleOutput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveMasterV(
+            metaModel = quadraticModel(),
+            converter = plusOneConverter
+        )
+        val output = (result as Ok).value
+        assertTrue(output is FeasibleSolverOutput<*>)
+        val feasible = output as FeasibleSolverOutput<*>
+        assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
+        assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
     }
 }
