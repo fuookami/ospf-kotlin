@@ -8,7 +8,12 @@ import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Failed
+import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
@@ -20,7 +25,39 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+import fuookami.ospf.kotlin.core.solver.output.convertTo
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
+
+private fun <V> LinearInequality<Flt64>.convertTo(converter: IntoValue<V>): LinearInequality<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = LinearPolynomial(
+        monomials = this.lhs.monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
+        constant = converter.intoValue(this.lhs.constant)
+    )
+    val rhs = LinearPolynomial(
+        monomials = this.rhs.monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
+        constant = converter.intoValue(this.rhs.constant)
+    )
+    return LinearInequality(lhs, rhs, comparison)
+}
+
+private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>): QuadraticInequalityOf<V>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val lhs = QuadraticPolynomial(
+        monomials = this.lhs.monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
+        constant = converter.intoValue(this.lhs.constant)
+    )
+    val rhs = QuadraticPolynomial(
+        monomials = this.rhs.monomials.map { QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2) },
+        constant = converter.intoValue(this.rhs.constant)
+    )
+    return QuadraticInequalityOf(lhs, rhs, comparison)
+}
 
 interface LinearBendersDecompositionSolver {
     val name: String
@@ -170,6 +207,93 @@ interface LinearBendersDecompositionSolver {
                 options = options
             )
         }
+    }
+
+    sealed interface LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+        val cuts: List<LinearInequality<V>>?
+    }
+
+    data class LinearFeasibleResultV<V>(
+        val result: FeasibleSolverOutput<V>,
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
+        override val cuts: List<LinearInequality<V>>?
+    ) : LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+        val obj: Flt64 by result::obj
+        val solution: List<V> by result::solution
+        val time: Duration by result::time
+        val possibleBestObj by result::possibleBestObj
+        val gap: Flt64 by result::gap
+    }
+
+    data class LinearInfeasibleResultV<V>(
+        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>,
+        override val cuts: List<LinearInequality<V>>?
+    ) : LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V>
+
+    suspend fun <V> solveSubV(
+        name: String,
+        metaModel: LinearMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = solveSub(
+            name = name,
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )) {
+            is Ok -> {
+                when (val value = result.value) {
+                    is LinearFeasibleResult -> {
+                        Ok(
+                            LinearFeasibleResultV(
+                                result = value.result.convertTo(converter),
+                                dualSolution = value.dualSolution,
+                                cuts = value.cuts?.map { it.convertTo(converter) }
+                            )
+                        )
+                    }
+
+                    is LinearInfeasibleResult -> {
+                        Ok(
+                            LinearInfeasibleResultV(
+                                farkasDualSolution = value.farkasDualSolution,
+                                cuts = value.cuts?.map { it.convertTo(converter) }
+                            )
+                        )
+                    }
+                }
+            }
+
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    suspend fun <V> solveSubV(
+        metaModel: LinearMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
     }
 }
 
@@ -323,5 +447,97 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
                 options = options
             )
         }
+    }
+
+    sealed interface QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+        val linearCuts: List<LinearInequality<V>>?
+        val quadraticCuts: List<QuadraticInequalityOf<V>>?
+    }
+
+    data class QuadraticFeasibleResultV<V>(
+        val result: FeasibleSolverOutput<V>,
+        val dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        override val linearCuts: List<LinearInequality<V>>?,
+        override val quadraticCuts: List<QuadraticInequalityOf<V>>?
+    ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
+        val obj: Flt64 by result::obj
+        val solution: List<V> by result::solution
+        val time: Duration by result::time
+        val possibleBestObj by result::possibleBestObj
+        val gap: Flt64 by result::gap
+    }
+
+    data class QuadraticInfeasibleResultV<V>(
+        val farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
+        override val linearCuts: List<LinearInequality<V>>?,
+        override val quadraticCuts: List<QuadraticInequalityOf<V>>?
+    ) : QuadraticSubResultV<V> where V : RealNumber<V>, V : NumberField<V>
+
+    suspend fun <V> solveSubV(
+        name: String,
+        metaModel: QuadraticMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return when (val result = solveSub(
+            name = name,
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )) {
+            is Ok -> {
+                when (val value = result.value) {
+                    is QuadraticFeasibleResult -> {
+                        Ok(
+                            QuadraticFeasibleResultV(
+                                result = value.result.convertTo(converter),
+                                dualSolution = value.dualSolution,
+                                linearCuts = value.linearCuts?.map { it.convertTo(converter) },
+                                quadraticCuts = value.quadraticCuts?.map { it.convertTo(converter) }
+                            )
+                        )
+                    }
+
+                    is QuadraticInfeasibleResult -> {
+                        Ok(
+                            QuadraticInfeasibleResultV(
+                                farkasDualSolution = value.farkasDualSolution,
+                                linearCuts = value.linearCuts?.map { it.convertTo(converter) },
+                                quadraticCuts = value.quadraticCuts?.map { it.convertTo(converter) }
+                            )
+                        )
+                    }
+                }
+            }
+
+            is Failed -> Failed(result.error)
+            is Fatal -> Fatal(result.errors)
+        }
+    }
+
+    suspend fun <V> solveSubV(
+        metaModel: QuadraticMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
     }
 }
