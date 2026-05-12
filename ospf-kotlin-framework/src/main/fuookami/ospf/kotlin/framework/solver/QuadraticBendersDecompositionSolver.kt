@@ -498,6 +498,90 @@ interface LinearBendersDecompositionSolver {
             solvingStatusCallBack = options.solvingStatusCallBack
         )
     }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        name: String,
+        metaModel: LinearMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                converter = converter,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        metaModel: LinearMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                converter = converter,
+                options = options
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        metaModel: LinearMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                options = options
+            )
+        }
+    }
 }
 
 interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver {
@@ -914,5 +998,89 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
         )
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        name: String,
+        metaModel: QuadraticMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                converter = converter,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        metaModel: QuadraticMetaModel<Flt64>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                converter = converter,
+                options = options
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        name: String,
+        metaModel: QuadraticMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                name = name,
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveSubVAsync(
+        metaModel: QuadraticMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveSubV(
+                metaModel = metaModel,
+                objectVariable = objectVariable,
+                fixedVariables = fixedVariables,
+                options = options
+            )
+        }
     }
 }

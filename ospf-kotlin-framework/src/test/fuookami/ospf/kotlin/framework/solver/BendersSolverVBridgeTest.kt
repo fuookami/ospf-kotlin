@@ -183,6 +183,33 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
+    fun linearSolveSubVAsyncSupportsGenericMetaModelInput() {
+        val solver = StubBendersSolver()
+        val result = solver.solveSubVAsync(
+            metaModel = linearModel(),
+            objectVariable = RealVar("x"),
+            fixedVariables = emptyMap()
+        ).get()
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        assertEquals(Flt64(12.0), value.obj)
+        assertEquals(Flt64(3.0), value.cuts!!.first().lhs.constant)
+    }
+
+    @Test
+    fun quadraticSolveSubVAsyncSupportsGenericMetaModelInput() {
+        val solver = StubBendersSolver()
+        val result = solver.solveSubVAsync(
+            metaModel = quadraticModel(),
+            objectVariable = RealVar("y"),
+            fixedVariables = emptyMap()
+        ).get()
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        assertEquals(Flt64(12.0), value.obj)
+        assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
+        assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
+    }
+
+    @Test
     fun linearSolveMasterVConvertsFeasibleOutput() = runBlocking {
         val solver = StubBendersSolver()
         val result = solver.solveMasterV(
