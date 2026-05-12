@@ -342,6 +342,38 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveMasterVAsync(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveMasterV(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveMasterVAsync(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveMasterV(
+                metaModel = metaModel,
+                options = options
+            )
+        }
+    }
+
     sealed interface LinearSubResultV<V> where V : RealNumber<V>, V : NumberField<V> {
         val cuts: List<LinearInequality<V>>?
     }
@@ -717,6 +749,38 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
             return@future solveMasterV(
                 metaModel = metaModel,
                 converter = converter,
+                options = options
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveMasterVAsync(
+        name: String,
+        metaModel: QuadraticMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveMasterV(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+    @OptIn(DelicateCoroutinesApi::class)
+    fun <V> solveMasterVAsync(
+        metaModel: QuadraticMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
+        return GlobalScope.future {
+            return@future solveMasterV(
+                metaModel = metaModel,
                 options = options
             )
         }
