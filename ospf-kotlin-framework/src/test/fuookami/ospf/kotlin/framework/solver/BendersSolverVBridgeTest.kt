@@ -140,6 +140,19 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
+    fun linearSolveSubVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveSubV(
+            metaModel = linearModel(),
+            objectVariable = RealVar("x"),
+            fixedVariables = emptyMap()
+        )
+        val value = (result as Ok).value as LinearBendersDecompositionSolver.LinearFeasibleResultV<Flt64>
+        assertEquals(Flt64(12.0), value.obj)
+        assertEquals(Flt64(3.0), value.cuts!!.first().lhs.constant)
+    }
+
+    @Test
     fun quadraticSolveSubVConvertsSolutionAndCuts() = runBlocking {
         val solver = StubBendersSolver()
         val result = solver.solveSubV(
@@ -151,6 +164,20 @@ class BendersSolverVBridgeTest {
         val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
         assertEquals(Flt64(12.0), value.obj)
         assertEquals(listOf(Flt64(5.0), Flt64(7.0)), value.solution)
+        assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
+        assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
+    }
+
+    @Test
+    fun quadraticSolveSubVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveSubV(
+            metaModel = quadraticModel(),
+            objectVariable = RealVar("y"),
+            fixedVariables = emptyMap()
+        )
+        val value = (result as Ok).value as QuadraticBendersDecompositionSolver.QuadraticFeasibleResultV<Flt64>
+        assertEquals(Flt64(12.0), value.obj)
         assertEquals(Flt64(3.0), value.linearCuts!!.first().lhs.constant)
         assertEquals(Flt64(4.0), value.quadraticCuts!!.first().lhs.constant)
     }
@@ -170,6 +197,17 @@ class BendersSolverVBridgeTest {
     }
 
     @Test
+    fun linearSolveMasterVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveMasterV(metaModel = linearModel())
+        val output = (result as Ok).value
+        assertTrue(output is FeasibleSolverOutput<*>)
+        val feasible = output as FeasibleSolverOutput<*>
+        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
+    }
+
+    @Test
     fun quadraticSolveMasterVConvertsFeasibleOutput() = runBlocking {
         val solver = StubBendersSolver()
         val result = solver.solveMasterV(
@@ -181,5 +219,16 @@ class BendersSolverVBridgeTest {
         val feasible = output as FeasibleSolverOutput<*>
         assertEquals(Flt64(6.0), feasible.solution[0] as Flt64)
         assertEquals(Flt64(8.0), feasible.solution[1] as Flt64)
+    }
+
+    @Test
+    fun quadraticSolveMasterVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubBendersSolver()
+        val result = solver.solveMasterV(metaModel = quadraticModel())
+        val output = (result as Ok).value
+        assertTrue(output is FeasibleSolverOutput<*>)
+        val feasible = output as FeasibleSolverOutput<*>
+        assertEquals(Flt64(5.0), feasible.solution[0] as Flt64)
+        assertEquals(Flt64(7.0), feasible.solution[1] as Flt64)
     }
 }

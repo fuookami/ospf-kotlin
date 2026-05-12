@@ -24,6 +24,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.castLinearMetaModelForSolver
+import fuookami.ospf.kotlin.core.intermediate_symbol.castQuadraticMetaModelForSolver
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.convertTo
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -260,6 +262,23 @@ interface LinearBendersDecompositionSolver {
     }
 
     suspend fun <V> solveMasterV(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMasterV(
+            name = name,
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMasterV(
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -268,6 +287,19 @@ interface LinearBendersDecompositionSolver {
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMasterV(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMasterV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
@@ -379,6 +411,27 @@ interface LinearBendersDecompositionSolver {
     }
 
     suspend fun <V> solveSubV(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = name,
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveSubV(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -391,6 +444,23 @@ interface LinearBendersDecompositionSolver {
             objectVariable = objectVariable,
             fixedVariables = fixedVariables,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveSubV(
+        metaModel: LinearMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<LinearSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
@@ -572,6 +642,23 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     suspend fun <V> solveMasterV(
+        name: String,
+        metaModel: QuadraticMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMasterV(
+            name = name,
+            metaModel = castQuadraticMetaModelForSolver(metaModel),
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMasterV(
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -580,6 +667,19 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMasterV(
+        metaModel: QuadraticMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<SolverOutput> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMasterV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
@@ -696,6 +796,27 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
     }
 
     suspend fun <V> solveSubV(
+        name: String,
+        metaModel: QuadraticMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = name,
+            metaModel = castQuadraticMetaModelForSolver(metaModel),
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveSubV(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
@@ -708,6 +829,23 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
             objectVariable = objectVariable,
             fixedVariables = fixedVariables,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveSubV(
+        metaModel: QuadraticMetaModel<V>,
+        objectVariable: AbstractVariableItem<*, *>,
+        fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<QuadraticSubResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveSubV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
+            objectVariable = objectVariable,
+            fixedVariables = fixedVariables,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
