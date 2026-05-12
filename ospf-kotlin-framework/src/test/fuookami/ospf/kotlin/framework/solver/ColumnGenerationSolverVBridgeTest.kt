@@ -68,6 +68,15 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
+    fun solveMilpVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubSolver(output())
+        val result = solver.solveMILPV(metaModel = model())
+        val value = (result as Ok).value
+        assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
+        assertEquals(Flt64(10.0), value.obj)
+    }
+
+    @Test
     fun solveLpVUsesConverterPipeline() = runBlocking {
         val solver = StubSolver(output())
         val result = solver.solveLPV(
@@ -80,11 +89,32 @@ class ColumnGenerationSolverVBridgeTest {
     }
 
     @Test
+    fun solveLpVSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubSolver(output())
+        val result = solver.solveLPV(metaModel = model())
+        val value = (result as Ok).value
+        assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.solution)
+        assertEquals(Flt64(10.0), value.obj)
+    }
+
+    @Test
     fun solveMilpVPoolUsesConverterPipeline() = runBlocking {
         val solver = StubSolver(output())
         val result = solver.solveMILPVWithSolutionPool(
             metaModel = model(),
             converter = IntoValue.Identity,
+            options = FrameworkSolveOptions(solutionAmount = UInt64.one)
+        )
+        val value = (result as Ok).value
+        assertEquals(1, value.second.size)
+        assertEquals(listOf(Flt64(1.0), Flt64(2.0)), value.second.first())
+    }
+
+    @Test
+    fun solveMilpVPoolSupportsGenericMetaModelInput() = runBlocking {
+        val solver = StubSolver(output())
+        val result = solver.solveMILPVWithSolutionPool(
+            metaModel = model(),
             options = FrameworkSolveOptions(solutionAmount = UInt64.one)
         )
         val value = (result as Ok).value

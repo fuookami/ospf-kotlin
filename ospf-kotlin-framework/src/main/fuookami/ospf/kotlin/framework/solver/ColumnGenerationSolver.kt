@@ -21,6 +21,7 @@ import kotlin.time.Duration
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.intermediate_symbol.castLinearMetaModelForSolver
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.output.convertTo
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
@@ -249,6 +250,23 @@ interface ColumnGenerationSolver {
     }
 
     suspend fun <V> solveMILPV(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMILPV(
+            name = name,
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMILPV(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -257,6 +275,19 @@ interface ColumnGenerationSolver {
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMILPV(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMILPV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
@@ -289,6 +320,25 @@ interface ColumnGenerationSolver {
         }
     }
 
+    suspend fun <V> solveMILPV(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        amount: UInt64,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMILPV(
+            name = name,
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            amount = amount,
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
     suspend fun <V> solveMILPVWithSolutionPool(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -302,6 +352,17 @@ interface ColumnGenerationSolver {
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveMILPVWithSolutionPool(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions
+    ): Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveMILPVWithSolutionPool(
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            converter = metaModel.converter,
+            options = options
         )
     }
 
@@ -338,6 +399,23 @@ interface ColumnGenerationSolver {
     }
 
     suspend fun <V> solveLPV(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): Ret<LPResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveLPV(
+            name = name,
+            metaModel = castLinearMetaModelForSolver(metaModel),
+            converter = metaModel.converter,
+            toLogModel = toLogModel,
+            registrationStatusCallBack = registrationStatusCallBack,
+            solvingStatusCallBack = solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveLPV(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
@@ -346,6 +424,19 @@ interface ColumnGenerationSolver {
             name = options.solveName(metaModel.name),
             metaModel = metaModel,
             converter = converter,
+            toLogModel = options.toLogModel,
+            registrationStatusCallBack = options.registrationStatusCallBack,
+            solvingStatusCallBack = options.solvingStatusCallBack
+        )
+    }
+
+    suspend fun <V> solveLPV(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): Ret<LPResultV<V>> where V : RealNumber<V>, V : NumberField<V> {
+        return solveLPV(
+            name = options.solveName(metaModel.name),
+            metaModel = metaModel,
             toLogModel = options.toLogModel,
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack

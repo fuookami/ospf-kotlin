@@ -25,10 +25,12 @@ import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.utils.functional.Try
 
 /**
@@ -92,6 +94,16 @@ internal object SolverBoundaryCasts {
     fun <V> castQuadraticMechanismModelStar(model: MechanismModel<V>): QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
         return model as QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    }
+
+    fun <V> castLinearMetaModelStar(model: LinearMetaModel<V>): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return model as LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+    }
+
+    fun <V> castQuadraticMetaModelStar(model: QuadraticMetaModel<V>): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+        return model as QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
     fun <V> linearConstraintAsFlt64(constraint: LinearConstraintImpl<V>): Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Linear>
@@ -189,4 +201,14 @@ internal object SolverBoundaryCasts {
         val typed = symbol as IntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         return typed.range as ExpressionRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
     }
+}
+
+fun <V> castLinearMetaModelForSolver(model: LinearMetaModel<V>): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    return SolverBoundaryCasts.castLinearMetaModelStar(model)
+}
+
+fun <V> castQuadraticMetaModelForSolver(model: QuadraticMetaModel<V>): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    return SolverBoundaryCasts.castQuadraticMetaModelStar(model)
 }
