@@ -21,14 +21,34 @@ suspend fun <T> withSolveValueConversionPolicy(
     }
 }
 
-fun Flt64.toSolverDouble(fieldName: String = "solver.value"): Double {
+fun Flt64.toSolverDouble(
+    fieldName: String = "solver.value"
+): Double {
+    return toSolverDouble(
+        policy = currentSolveValueConversionPolicy(),
+        fieldName = fieldName,
+        rejectInfinity = true,
+        nanMessage = "Strict conversion rejected NaN at $fieldName.",
+        infinityMessage = "Strict conversion rejected infinity at $fieldName."
+    )
+}
+
+fun Flt64.toSolverDouble(
+    policy: SolveValueConversionPolicy,
+    fieldName: String,
+    rejectInfinity: Boolean = true,
+    nanMessage: String = "Strict conversion rejected NaN at $fieldName.",
+    infinityMessage: String = "Strict conversion rejected infinity at $fieldName."
+): Double {
     val converted = this.toDouble()
-    if (currentSolveValueConversionPolicy() == SolveValueConversionPolicy.Strict) {
+    if (policy == SolveValueConversionPolicy.Strict) {
         require(!converted.isNaN()) {
-            "Strict conversion rejected NaN at $fieldName."
+            nanMessage
         }
-        require(!converted.isInfinite()) {
-            "Strict conversion rejected infinity at $fieldName."
+        if (rejectInfinity) {
+            require(!converted.isInfinite()) {
+                infinityMessage
+            }
         }
     }
     return converted

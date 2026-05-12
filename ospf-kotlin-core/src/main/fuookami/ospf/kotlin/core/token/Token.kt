@@ -5,8 +5,11 @@ import fuookami.ospf.kotlin.core.variable.VariableCombination
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.solver.value.toSolverDouble
 import kotlin.random.Random
 import kotlin.random.nextULong
 
@@ -39,7 +42,7 @@ data class Token<V : RealNumber<V>>(
 
     /** Flt64 view of result (solver-compatible, internal). */
     val resultFlt64: Flt64? by ::_result
-    val doubleResult get() = _result?.toDouble()
+    val doubleResult get() = _result?.toSolverDouble("token.result")
 
     /**
      * V-typed view of result (primary public API).
@@ -107,24 +110,18 @@ data class Token<V : RealNumber<V>>(
 
     fun random(rng: Random): Flt64 {
         return if (variable.type.isUnsignedIntegerType) {
-            Flt64(
-                rng.nextULong(
-                    lowerBound!!.value.unwrap().round().toDouble().toULong(),
-                    upperBound!!.value.unwrap().round().toDouble().toULong()
-                ).toDouble()
-            )
+            val lower = lowerBound!!.value.unwrap().round().toUInt64().toULong()
+            val upper = upperBound!!.value.unwrap().round().toUInt64().toULong()
+            UInt64(rng.nextULong(lower, upper)).toFlt64()
         } else if (variable.type.isIntegerType) {
-            Flt64(
-                rng.nextLong(
-                    lowerBound!!.value.unwrap().round().toDouble().toLong(),
-                    upperBound!!.value.unwrap().round().toDouble().toLong()
-                ).toDouble()
-            )
+            val lower = lowerBound!!.value.unwrap().round().toInt64().toLong()
+            val upper = upperBound!!.value.unwrap().round().toInt64().toLong()
+            Int64(rng.nextLong(lower, upper)).toFlt64()
         } else {
             Flt64(
                 rng.nextDouble(
-                    lowerBound!!.value.unwrap().toDouble(),
-                    upperBound!!.value.unwrap().toDouble()
+                    lowerBound!!.value.unwrap().toSolverDouble("token.random.lowerBound"),
+                    upperBound!!.value.unwrap().toSolverDouble("token.random.upperBound")
                 )
             )
         }

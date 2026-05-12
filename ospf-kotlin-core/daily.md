@@ -46,10 +46,7 @@
 ## 未完成事项
 
 1. `core` 非 `function` 目录仍有 `.toDouble()` 热点，需分层处理（保留边界 vs 继续泛型化）：
-   - `core/model/mechanism/MathInequalityDsl.kt`
    - `core/solver/value/SolveValueConversionContext.kt`
-   - `core/solver/value/SolveValueValidation.kt`
-   - `core/token/Token.kt`
 2. `function` 目录虽已清零，但门禁目前只覆盖该目录；尚未扩展到 `core` 其他高风险目录。
 3. 尚未进行本轮“全口径慢测回归”确认（`with-slow-tests`、`with-all-slow-tests`）。
 4. `framework` 主链路泛型化（列生成/Benders 组合求解器）尚未开始收口。
@@ -85,3 +82,27 @@
 - 分支：`rewrite-bigbang`
 - 工作区：干净
 - 进度：`origin/rewrite-bigbang` 之上 `ahead 52`
+
+## 本轮执行记录（2026-05-12）
+
+1. 已新增 `core` 级 `.toDouble()` 门禁测试：  
+   `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/CoreToDoubleBridgeGuardTest.kt`
+2. 门禁策略：扫描 `core/model/mechanism`、`core/solver/value`、`core/token` 三个目录，仅允许 allowlist（文件+行号）中的存量 `.toDouble()`。
+3. 当前 allowlist 基线已收缩到 1 处：
+   - `SolveValueConversionContext.kt` 1 处（solver 转换边界集中点）
+4. 已完成 `MathInequalityDsl.kt` 中 `Int/UInt64/Flt64` 的 `.toDouble()` 清理：该文件 `.toDouble()` 由 20 处降为 0。
+5. 已完成 `Token.kt` 中 `.toDouble()` 清理：通过 `toSolverDouble` 与 `Int64/UInt64` 桥接替换，文件内 `.toDouble()` 由 9 处降为 0。
+6. 已将 `SolveValueValidation.kt` 中 2 处 `.toDouble()` 收敛到 `toSolverDouble(...)` helper，校验语义保持不变（value: NaN+∞ 拒绝；bound: 仅 NaN 拒绝）。
+7. 测试执行阻断说明：尝试运行
+   `mvn -pl ospf-kotlin-core "-Dtest=CoreToDoubleBridgeGuardTest,FunctionSymbolToDoubleBridgeGuardTest" test`
+   时，主源码编译阶段先因既有错误失败（主要集中在 `intermediate_symbol/function` 及部分 `mechanism` 相关 unresolved/inference 问题），尚未进入测试执行阶段。
+8. 下一执行点：保持 `SolveValueConversionContext.kt` 中唯一 `.toDouble()` 作为 solver 边界集中点；后续若要继续推进，可考虑把门禁从 allowlist 行号改为“仅允许该文件该函数”级别，降低重排带来的行号维护成本。
+9. 已完成门禁稳健性增强：`CoreToDoubleBridgeGuardTest` 从“行号 allowlist”升级为“语义 allowlist”：
+   - 仅允许 `core/solver/value/SolveValueConversionContext.kt` 中 `val converted = this.toDouble()` 这一处桥接；
+   - 并断言允许桥接总数必须等于 1，防止同文件新增额外 `.toDouble()` 被漏检。
+10. 已修复“无法编译/无法测试”的构建流程问题：
+   - `mvn -pl ospf-kotlin-core -DskipTests compile` 之前失败的根因是本地依赖缓存与当前源码 API 不一致（未先构建/安装上游模块）。
+   - 已执行 `mvn -pl ospf-kotlin-core -am -DskipTests install` 完成本地依赖对齐。
+   - 对齐后可直接通过：
+     - `mvn -pl ospf-kotlin-core -DskipTests compile`
+     - `mvn -pl ospf-kotlin-core "-Dtest=CoreToDoubleBridgeGuardTest,FunctionSymbolToDoubleBridgeGuardTest" test`

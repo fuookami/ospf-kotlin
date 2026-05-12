@@ -18,14 +18,12 @@ fun validateSolverFlt64Value(
         return ok
     }
 
-    val raw = value.toDouble()
-    if (raw.isNaN()) {
-        return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected NaN at $fieldName."))
+    return try {
+        value.toSolverDouble(policy = policy, fieldName = fieldName)
+        ok
+    } catch (e: IllegalArgumentException) {
+        Failed(Err(ErrorCode.IllegalArgument, e.message ?: "Strict conversion rejected value at $fieldName."))
     }
-    if (raw.isInfinite()) {
-        return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected infinity at $fieldName."))
-    }
-    return ok
 }
 
 fun validateSolverFlt64Bound(
@@ -37,11 +35,17 @@ fun validateSolverFlt64Bound(
         return ok
     }
 
-    val raw = value.toDouble()
-    if (raw.isNaN()) {
+    return try {
+        value.toSolverDouble(
+            policy = policy,
+            fieldName = fieldName,
+            rejectInfinity = false,
+            nanMessage = "Strict conversion rejected NaN bound at $fieldName."
+        )
+        ok
+    } catch (_: IllegalArgumentException) {
         return Failed(Err(ErrorCode.IllegalArgument, "Strict conversion rejected NaN bound at $fieldName."))
     }
-    return ok
 }
 
 fun validateLinearModelValueConversion(
