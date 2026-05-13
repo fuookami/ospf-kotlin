@@ -545,3 +545,21 @@
 
 - P2 当前阻塞项（`C8-2`、`P6-0-3`、`P7-0-3`）已全部收口。
 - 现阶段 core 门禁与关键回归均保持绿色，可继续推进后续文档与迁移说明整理。
+
+## 本轮执行进展（2026-05-13，P3 文档收口）
+
+### 已完成
+
+1. README 双语互链修复：
+   - `README.md` 中英文/中文切换链接修正为 `:us: English | :cn: [简体中文](README_ch.md)`。
+   - `README_ch.md` 中双语切换修正为 `:us: [English](README.md) | :cn: 简体中文`。
+2. 新增泛型迁移说明：
+   - 在 `README.md` 增加 `Generic API Migration` 章节，说明 V-typed 主入口与 legacy 字段兼容定位。
+   - 在 `README_ch.md` 增加 `泛型 API 迁移` 章节，给出同等迁移建议。
+3. 新增示例闭环命令：
+   - 两份 README 均加入 `core-demo-only` profile 的验证命令，用于执行 `CoreDemoTest` 泛型闭环。
+
+### 结论
+
+- P3 文档层面的双语互链与泛型迁移说明已补齐。
+- 用户可直接从 README 获取泛型主入口与示例验证路径。

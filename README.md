@@ -1,4 +1,4 @@
-# ospf-kotlin
+﻿# ospf-kotlin
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
@@ -147,6 +147,26 @@ If you need to use the network scheduling development package, add the dependenc
     <artifactId>ospf-kotlin-starter-network-scheduling-jdk8</artifactId>
     <version>1.1.0</version>
 </dependency>
+```
+
+
+## Generic API Migration
+
+From `1.1.0`, the core modeling and solver bridge are aligned to V-typed generic APIs (`Flt64` / `Rtn64` / `FltX` / `RtnX`).
+
+Recommended usage:
+
+1. Use `LinearMetaModel<V>` / `QuadraticMetaModel<V>` with explicit `IntoValue<V>`.
+2. Prefer V-typed objective fields from solver output:
+   - `objValue`
+   - `possibleBestObjValue`
+   - `bestBoundValue`
+3. Keep legacy `Flt64` fields (`obj`, `possibleBestObj`, `bestBound`) only for compatibility.
+
+Example generic demo verification (isolated profile):
+
+```bash
+mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
 ```
 
 ## License

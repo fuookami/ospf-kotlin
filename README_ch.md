@@ -1,27 +1,27 @@
-# ospf-kotlin
+﻿# ospf-kotlin
 
 [![GitHub license](https://img.shields.io/badge/license-Apache%20License%202.0-green.svg?style=flat)](http://www.apache.org/licenses/LICENSE-2.0)
 [![Maven Central](https://img.shields.io/maven-central/v/io.github.fuookami.ospf.kotlin/ospf-kotlin)](https://mvnrepository.com/artifact/io.github.fuookami.ospf.kotlin/ospf-kotlin)
 [![Kotlin](https://img.shields.io/badge/kotlin-1.9.24-yellow.svg?logo=kotlin)](http://kotlinlang.org)
 
-## 介绍
+## 浠嬬粛
 
-ospf-kotlin 是 ospf 的 Kotlin/JVM 实现版本，更详细的介绍、文档与样例可以参考主仓库与文档页面：
+ospf-kotlin 鏄?ospf 鐨?Kotlin/JVM 瀹炵幇鐗堟湰锛屾洿璇︾粏鐨勪粙缁嶃€佹枃妗ｄ笌鏍蜂緥鍙互鍙傝€冧富浠撳簱涓庢枃妗ｉ〉闈細
 
-ospf：https://github.com/fuookami/ospf
+ospf锛歨ttps://github.com/fuookami/ospf
 
-文档：https://fuookami.github.io/ospf/
+鏂囨。锛歨ttps://fuookami.github.io/ospf/
 
 :us: [English](README.md) | :cn: 简体中文
 
-## 安装
+## 瀹夎
 
-版本要求:
+鐗堟湰瑕佹眰:
 
 * JDK: 17+ or 8+
 * Maven: 3+
 
-ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 的话，只需要在 pom.xml 文件里面添加一个依赖即可：
+ospf-kotlin 宸茬粡鍙戝竷鍒?maven 涓績浠撳簱锛屽洜姝わ紝濡傛灉浣犱娇鐢?maven 鐨勮瘽锛屽彧闇€瑕佸湪 pom.xml 鏂囦欢閲岄潰娣诲姞涓€涓緷璧栧嵆鍙細
 
 ```xml
 <dependency>
@@ -37,7 +37,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用一维装箱开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄤ竴缁磋绠卞紑鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -53,7 +53,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用二维装箱开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄤ簩缁磋绠卞紑鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -69,7 +69,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用三维装箱开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄤ笁缁磋绠卞紑鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -85,7 +85,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用一维下料开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄤ竴缁翠笅鏂欏紑鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -101,7 +101,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用二维下料开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄤ簩缁翠笅鏂欏紑鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -117,7 +117,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用甘特图排程开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄧ敇鐗瑰浘鎺掔▼寮€鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -133,7 +133,7 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-如果你需要使用网络流规划开发包，则在 pom.xml 文件里添加依赖：
+濡傛灉浣犻渶瑕佷娇鐢ㄧ綉缁滄祦瑙勫垝寮€鍙戝寘锛屽垯鍦?pom.xml 鏂囦欢閲屾坊鍔犱緷璧栵細
 
 ```xml
 <dependency>
@@ -149,8 +149,28 @@ ospf-kotlin 已经发布到 maven 中心仓库，因此，如果你使用 maven 
 </dependency>
 ```
 
-## 开源协议
 
-ospf-kotlin 是根据 Apache 许可证 2.0 版本的条款许可的。
+## 泛型 API 迁移
 
-更多信息请查看 [LICENSE](LICENSE)。
+从 `1.1.0` 起，core 建模与求解桥接主链路统一到 V-typed 泛型 API（`Flt64` / `Rtn64` / `FltX` / `RtnX`）。
+
+推荐用法：
+
+1. 使用 `LinearMetaModel<V>` / `QuadraticMetaModel<V>`，并显式提供 `IntoValue<V>`。
+2. 优先使用求解输出中的 V-typed 目标值字段：
+   - `objValue`
+   - `possibleBestObjValue`
+   - `bestBoundValue`
+3. `obj` / `possibleBestObj` / `bestBound` 作为兼容字段保留，不建议作为新代码主入口。
+
+泛型示例闭环验证（隔离 profile）：
+
+```bash
+mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
+```
+
+## 寮€婧愬崗璁?
+
+ospf-kotlin 鏄牴鎹?Apache 璁稿彲璇?2.0 鐗堟湰鐨勬潯娆捐鍙殑銆?
+
+鏇村淇℃伅璇锋煡鐪?[LICENSE](LICENSE)銆?
