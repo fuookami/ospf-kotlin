@@ -6,12 +6,14 @@ on:
       - "ospf-kotlin-core/**"
       - "ospf-kotlin-framework/**"
       - "ospf-kotlin-core-plugin/**"
+      - "ospf-kotlin-example/**"
       - ".github/workflows/core-refactor-guards.yml"
   push:
     paths:
       - "ospf-kotlin-core/**"
       - "ospf-kotlin-framework/**"
       - "ospf-kotlin-core-plugin/**"
+      - "ospf-kotlin-example/**"
       - ".github/workflows/core-refactor-guards.yml"
 
 jobs:
@@ -53,3 +55,23 @@ jobs:
             $baseRef = "HEAD~1"
           }
           ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7 -BaseRef $baseRef
+
+  core-demo-only-acceptance:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Setup Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "17"
+          cache: maven
+
+      - name: Run Core Demo Acceptance
+        shell: pwsh
+        run: |
+          mvn -pl ospf-kotlin-example -Pcore-demo-only "-Dtest=CoreDemoTest,GenericNumberDemoTest" -Dsurefire.failIfNoSpecifiedTests=false test
