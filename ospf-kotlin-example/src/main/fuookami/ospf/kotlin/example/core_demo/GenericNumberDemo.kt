@@ -66,21 +66,49 @@ private object GenericNumberCases {
 }
 
 data object GenericNumberDemo {
-    fun runBuildAndDump() {
-        runBlocking {
-            buildLinear(GenericNumberCases.flt64)
-            buildLinear(GenericNumberCases.rtn64)
-            buildLinear(GenericNumberCases.fltX)
-            buildLinear(GenericNumberCases.rtnX)
+    data class LinearBuildSummary(
+        val success: Boolean,
+        val constraintCount: Int,
+        val objectiveCategory: ObjectCategory,
+        val objectiveCoefficients: Map<String, Flt64>
+    )
 
-            buildQuadratic(GenericNumberCases.flt64)
-            buildQuadratic(GenericNumberCases.rtn64)
-            buildQuadratic(GenericNumberCases.fltX)
-            buildQuadratic(GenericNumberCases.rtnX)
+    data class QuadraticBuildSummary(
+        val success: Boolean,
+        val constraintCount: Int,
+        val objectiveCategory: ObjectCategory,
+        val objectiveCoefficients: Map<Pair<String, String?>, Flt64>
+    )
+
+    data class GenericNumberBuildSummary(
+        val numberType: String,
+        val linear: LinearBuildSummary,
+        val quadratic: QuadraticBuildSummary
+    )
+
+    fun runBuildAndDump(): List<GenericNumberBuildSummary> {
+        return runBlocking {
+            return@runBlocking listOf(
+                buildCase(GenericNumberCases.flt64),
+                buildCase(GenericNumberCases.rtn64),
+                buildCase(GenericNumberCases.fltX),
+                buildCase(GenericNumberCases.rtnX)
+            )
         }
     }
 
-    private suspend fun <V> buildLinear(numberCase: GenericNumberCase<V>)
+    private suspend fun <V> buildCase(numberCase: GenericNumberCase<V>): GenericNumberBuildSummary
+            where V : RealNumber<V>, V : NumberField<V> {
+        val linear = buildLinear(numberCase)
+        val quadratic = buildQuadratic(numberCase)
+        return GenericNumberBuildSummary(
+            numberType = numberCase.name,
+            linear = linear,
+            quadratic = quadratic
+        )
+    }
+
+    private suspend fun <V> buildLinear(numberCase: GenericNumberCase<V>): LinearBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_linear_x")
         val y = RealVar("${numberCase.name.lowercase()}_demo_linear_y")
@@ -116,12 +144,33 @@ data object GenericNumberDemo {
             @Suppress("DEPRECATION")
             val mechanismResult = LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             check(mechanismResult is Ok)
+            val mechanismModel = mechanismResult.value
+            val subObject = mechanismModel.objectFunction.subObjects.firstOrNull()
+            val objectiveCategory = subObject?.category ?: mechanismModel.objectFunction.category
+            val objectiveCoefficients = if (subObject != null) {
+                subObject.cells
+                    .groupBy { it.token.variable.name }
+                    .mapValues { (_, cells) ->
+                        cells.fold(numberCase.converter.zero) { acc, cell -> acc + cell.coefficient }
+                    }
+                    .mapValues { (_, value) -> numberCase.converter.fromValue(value) }
+            } else {
+                objective.monomials.associate { monomial ->
+                    monomial.symbol.name to numberCase.converter.fromValue(monomial.coefficient)
+                }
+            }
+            return LinearBuildSummary(
+                success = true,
+                constraintCount = mechanismModel.constraints.size,
+                objectiveCategory = objectiveCategory,
+                objectiveCoefficients = objectiveCoefficients
+            )
         } finally {
             model.close()
         }
     }
 
-    private suspend fun <V> buildQuadratic(numberCase: GenericNumberCase<V>)
+    private suspend fun <V> buildQuadratic(numberCase: GenericNumberCase<V>): QuadraticBuildSummary
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_demo_quad_x")
         val y = RealVar("${numberCase.name.lowercase()}_demo_quad_y")
@@ -154,6 +203,27 @@ data object GenericNumberDemo {
             @Suppress("DEPRECATION")
             val mechanismResult = QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             check(mechanismResult is Ok)
+            val mechanismModel = mechanismResult.value
+            val subObject = mechanismModel.objectFunction.subObjects.firstOrNull()
+            val objectiveCategory = subObject?.category ?: mechanismModel.objectFunction.category
+            val objectiveCoefficients = if (subObject != null) {
+                subObject.cells
+                    .groupBy { it.token1.variable.name to it.token2?.variable?.name }
+                    .mapValues { (_, cells) ->
+                        cells.fold(numberCase.converter.zero) { acc, cell -> acc + cell.coefficient }
+                    }
+                    .mapValues { (_, value) -> numberCase.converter.fromValue(value) }
+            } else {
+                objective.monomials.associate { monomial ->
+                    monomial.symbol1.name to monomial.symbol2?.name to numberCase.converter.fromValue(monomial.coefficient)
+                }
+            }
+            return QuadraticBuildSummary(
+                success = true,
+                constraintCount = mechanismModel.constraints.size,
+                objectiveCategory = objectiveCategory,
+                objectiveCoefficients = objectiveCoefficients
+            )
         } finally {
             model.close()
         }

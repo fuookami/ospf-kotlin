@@ -489,3 +489,34 @@
 
 - 函数符号注册测试从“结构冒烟”进一步提升到“约束语义冒烟”。
 - 删除/反转关键约束方向、替换为错误 rhs 类型、遗漏输入 token 引用时，当前测试将更容易失败。
+
+## 本轮执行进展（2026-05-13，P1 收口提交版）
+
+### 已完成
+
+1. 强化四类型机制模型语义测试：
+   - 更新 `GenericLinearMetaModelBuildTest`、`GenericQuadraticMetaModelBuildTest`，四类型均执行 triad/tetrad 语义断言，不再仅限 `Flt64`。
+2. 新增 Token/Cache 四类型回归：
+   - 新增 `GenericTokenBridgeTest`、`GenericTokenCacheTest`。
+   - 覆盖 `result/resultFlt64/setResultFromV/resultAsV/lowerBoundAsV/upperBoundAsV/containsInBounds` 与 `cacheSolverIfNotCached` 的 key 隔离行为。
+3. 新增数值转换与策略回归：
+   - 新增 `GenericNumberConverterTest`、`SolveValuePrecisionPolicyTest`。
+   - 覆盖四类型 round-trip 与 strict/allow rounding 策略。
+4. example 泛型 demo 闭环落地：
+   - `GenericNumberDemo.runBuildAndDump()` 改为返回结构化 summary。
+   - 增加机制模型目标子对象为空时的回退逻辑，避免运行时 `NoSuchElementException`。
+   - `CoreDemoTest` 改为断言四类型、线性/二次构建成功及关键系数。
+5. 新增 `ospf-kotlin-example` 的 `core-demo-only` profile：
+   - 用于隔离历史示例源码，仅验证 `GenericNumberDemo` + `CoreDemoTest` 闭环，不影响默认全量构建路径。
+
+### 本轮验证结果
+
+1. core 窄测通过（41 tests）：
+   - `mvn --% -pl ospf-kotlin-core -am -Dtest=GenericLinearMetaModelBuildTest,GenericQuadraticMetaModelBuildTest,GenericTokenBridgeTest,GenericTokenCacheTest,GenericTokenTableRegressionTest,TokenCacheContextsTest,SolveValueConversionContextTest,SolveValueValidationTest,GenericNumberConverterTest,SolveValuePrecisionPolicyTest -Dsurefire.failIfNoSpecifiedTests=false test`
+2. example 闭环测试通过（core-demo-only profile）：
+   - `mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test`
+
+### 结论
+
+- P1 目标中的机制模型语义测试、Token/Cache 四类型测试、数值转换策略测试、example 泛型 demo 测试闭环均已落地并通过回归。
+- 当前可按“收口提交版”进入合并或后续 P2 门禁与文档工作。

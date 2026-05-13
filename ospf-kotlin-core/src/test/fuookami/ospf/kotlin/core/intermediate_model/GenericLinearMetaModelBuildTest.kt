@@ -145,9 +145,7 @@ class GenericLinearMetaModelBuildTest {
             }
             assertTrue(mechanismResult is Ok, "${numberCase.name}: dump mechanism model should succeed")
             assertMechanismModel(numberCase, mechanismResult.value)
-            if (numberCase.name == "Flt64") {
-                assertTriadModel(numberCase, mechanismResult.value, mapOf(y to Flt64.two))
-            }
+            assertTriadModel(numberCase, mechanismResult.value, mapOf(y to Flt64.two))
         } finally {
             model.close()
         }
