@@ -120,6 +120,7 @@
                                 <configuration>
                                     <sourceDirs>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/CoreDemoTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/GenericNumberDemoTest.kt</sourceDir>
                                     </sourceDirs>
                                 </configuration>
                             </execution>
@@ -131,6 +132,7 @@
                         <configuration>
                             <includes>
                                 <include>**/CoreDemoTest.*</include>
+                                <include>**/GenericNumberDemoTest.*</include>
                             </includes>
                         </configuration>
                     </plugin>

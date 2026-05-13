@@ -166,7 +166,7 @@ Recommended usage:
 Example generic demo verification (isolated profile):
 
 ```bash
-mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
+mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
 ```
 
 ## License
@@ -174,3 +174,4 @@ mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest -Dsurefire.
 The ospf-kotlin is licensed under the terms of the Apache License 2.0.
 
 See [LICENSE](LICENSE) for more information.
+

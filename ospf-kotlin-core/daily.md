@@ -563,3 +563,25 @@
 
 - P3 文档层面的双语互链与泛型迁移说明已补齐。
 - 用户可直接从 README 获取泛型主入口与示例验证路径。
+
+## 本轮执行进展（2026-05-13，P1 example 测试拆分）
+
+### 已完成
+
+1. 将 `GenericNumberDemo` 详细验收从 `CoreDemoTest` 拆分为独立测试：
+   - 新增 `ospf-kotlin-example/src/test/fuookami/ospf/kotlin/example/GenericNumberDemoTest.kt`。
+   - 保留原有四类型、线性/二次构建与关键系数断言。
+2. `CoreDemoTest` 收敛为 smoke：
+   - 仅保留 `runBuildAndDump()` 返回条目数断言，降低与详细语义断言耦合。
+3. 更新 `core-demo-only` profile：
+   - 测试编译与 surefire include 同时纳入 `CoreDemoTest` + `GenericNumberDemoTest`。
+4. 同步 README 命令：
+   - `README.md` 与 `README_ch.md` 的示例命令更新为同时执行两个测试。
+
+### 本轮验证结果
+
+1. `mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test` 通过（2/2）。
+
+### 结论
+
+- example 泛型 demo 验证已从单测试点扩展为 smoke + 语义双层结构，便于后续继续演进。
