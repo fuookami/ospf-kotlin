@@ -520,3 +520,28 @@
 
 - P1 目标中的机制模型语义测试、Token/Cache 四类型测试、数值转换策略测试、example 泛型 demo 测试闭环均已落地并通过回归。
 - 当前可按“收口提交版”进入合并或后续 P2 门禁与文档工作。
+
+## 本轮执行进展（2026-05-13，P2 门禁收口）
+
+### 已完成
+
+1. 修复 `C8-2` 门禁（.cells 直访增量）：
+   - 重构 `MechanismModel.kt` 中 3 处 objective 构造逻辑，改为通过 `SubObject` 的 terms 访问函数导出数据，避免新增 `.cells` 直访。
+   - 在 `SubObject.kt` 新增 `linearTerms()` 与 `quadraticTerms()` 用于等价导出 objective 项。
+2. 修复 `P6-0-3/P7-0-3` 门禁（@Deprecated 增量）：
+   - 移除 `SolverOutput.kt` 中 `FeasibleSolverOutput` 的 3 个字段级 `@Deprecated` 注解（`obj`、`possibleBestObj`、`bestBound`），保留兼容字段本身与 V-typed 字段。
+
+### 本轮验证结果
+
+1. 输出兼容回归通过：
+   - `mvn --% -pl ospf-kotlin-core -am -Dtest=GenericSolverOutputConversionTest,SolverOutputCompatibilityTest,FeasibleSolverOutputLegacyFallbackGuardTest -Dsurefire.failIfNoSpecifiedTests=false test`
+2. core 关键回归通过：
+   - `mvn --% -pl ospf-kotlin-core -am -Dtest=GenericLinearMetaModelBuildTest,GenericQuadraticMetaModelBuildTest,GenericTokenBridgeTest,GenericTokenCacheTest,GenericNumberConverterTest,SolveValuePrecisionPolicyTest -Dsurefire.failIfNoSpecifiedTests=false test`
+3. 门禁通过：
+   - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`
+   - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`
+
+### 结论
+
+- P2 当前阻塞项（`C8-2`、`P6-0-3`、`P7-0-3`）已全部收口。
+- 现阶段 core 门禁与关键回归均保持绿色，可继续推进后续文档与迁移说明整理。

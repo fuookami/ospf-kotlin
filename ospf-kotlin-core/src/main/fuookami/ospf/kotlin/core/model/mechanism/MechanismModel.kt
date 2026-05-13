@@ -102,10 +102,10 @@ private fun <V> convertLinearSubObjectToFlt64(
     tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): LinearSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData = LinearFlattenData(
-        monomials = subObject.cells.map { cell ->
+        monomials = subObject.linearTerms().map { (coefficient, symbol) ->
             LinearMonomial(
-                coefficient = cell.coefficient.toFlt64(),
-                symbol = cell.token.variable
+                coefficient = coefficient.toFlt64(),
+                symbol = symbol
             )
         },
         constant = subObject.constant.toFlt64()
@@ -123,17 +123,17 @@ private fun <V> convertQuadraticSubObjectToFlt64(
     tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 ): QuadraticSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     val flattenData = QuadraticFlattenData(
-        monomials = subObject.cells.map { cell ->
-            if (cell.token2 == null) {
+        monomials = subObject.quadraticTerms().map { (coefficient, symbol1, symbol2) ->
+            if (symbol2 == null) {
                 QuadraticMonomial.linear(
-                    coefficient = cell.coefficient.toFlt64(),
-                    symbol = cell.token1.variable
+                    coefficient = coefficient.toFlt64(),
+                    symbol = symbol1
                 )
             } else {
                 QuadraticMonomial.quadratic(
-                    coefficient = cell.coefficient.toFlt64(),
-                    symbol1 = cell.token1.variable,
-                    symbol2 = cell.token2!!.variable
+                    coefficient = coefficient.toFlt64(),
+                    symbol1 = symbol1,
+                    symbol2 = symbol2
                 )
             }
         },
@@ -513,7 +513,15 @@ private fun <V> buildLinearObjectiveSubObjects(
         return metaModel.flattenSubObjects.map { source ->
             LinearSubObject(
                 category = source.category,
-                cells = ArrayList(source.cells),
+                cells = ArrayList(
+                    createLinearCells(
+                        source.linearTerms().map { (coefficient, symbol) ->
+                            LinearMonomial(metaModel.converter.fromValue(coefficient), symbol)
+                        },
+                        tokens,
+                        metaModel.converter
+                    )
+                ),
                 _constant = source.constant,
                 name = source.name,
             )

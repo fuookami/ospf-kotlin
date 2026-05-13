@@ -44,6 +44,10 @@ class LinearSubObject<V : RealNumber<V>>(
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
 
+    fun linearTerms(): List<Pair<V, AbstractVariableItem<*, *>>> {
+        return cells.map { it.coefficient to it.token.variable }
+    }
+
     override fun evaluate(): V? {
         var ret = constant
         for (cell in cells) {
@@ -140,6 +144,12 @@ class QuadraticSubObject<V : RealNumber<V>>(
     name: String = ""
 ) : SubObject<V>(category, name) {
     override val constant: V get() = _constant
+
+    fun quadraticTerms(): List<Triple<V, AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>> {
+        return cells.map { cell ->
+            Triple(cell.coefficient, cell.token1.variable, cell.token2?.variable)
+        }
+    }
 
     override fun evaluate(): V? {
         var ret = constant

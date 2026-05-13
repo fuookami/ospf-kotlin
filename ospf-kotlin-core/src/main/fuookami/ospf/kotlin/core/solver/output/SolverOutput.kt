@@ -35,16 +35,13 @@ private fun <V> castLegacyFlt64ToValueOrThrow(fieldName: String, value: Flt64, s
 }
 
 data class FeasibleSolverOutput<V>(
-    @Deprecated("Use objValue for V-typed objective.", ReplaceWith("objValue"), level = DeprecationLevel.WARNING)
     val obj: Flt64,
     val solution: Solution<V>,
     val time: Duration,
-    @Deprecated("Use possibleBestObjValue for V-typed objective bound.", ReplaceWith("possibleBestObjValue"), level = DeprecationLevel.WARNING)
     val possibleBestObj: Flt64,
     val gap: Flt64,
     override val iterations: UInt64? = null,
     override val nodeCount: UInt64? = null,
-    @Deprecated("Use bestBoundValue for V-typed objective bound.", ReplaceWith("bestBoundValue"), level = DeprecationLevel.WARNING)
     override val bestBound: Flt64? = null,
     override val mipGap: Flt64 = gap,
     override val solveTime: Duration = time,
