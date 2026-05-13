@@ -24,7 +24,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 import kotlin.math.min
 
@@ -114,10 +113,9 @@ fun <T> combine(
     return result
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 fun <T> combineAsync(
     input: List<T>,
-    scope: CoroutineScope = GlobalScope,
+    scope: CoroutineScope = combinatoricsAsyncScope,
 ): ChannelGuard<List<T>> {
     val logger = logger("Combinations")
 
@@ -132,13 +130,10 @@ fun <T> combineAsync(
                         combination.add(input[j])
                     }
                 }
-                if (promise.isClosedForSend) {
+                if (promise.trySend(combination).isFailure) {
                     break
                 }
-                promise.send(combination)
             }
-        } catch (e: ClosedSendChannelException) {
-            logger.debug { "Combination generation was stopped by controller." }
         } catch (e: Exception) {
             logger.debug { "Combination generation Error ${e.message}" }
         } finally {

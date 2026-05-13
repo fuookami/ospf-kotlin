@@ -14,8 +14,6 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
@@ -61,6 +59,7 @@ private fun <V> QuadraticInequalityOf<Flt64>.convertTo(converter: IntoValue<V>):
     return QuadraticInequalityOf(lhs, rhs, comparison)
 }
 
+@Suppress("DEPRECATION")
 private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
         where V : RealNumber<V>, V : NumberField<V> {
     return when (this) {
@@ -82,7 +81,10 @@ private fun <V> SolverOutput.convertTo(converter: IntoValue<V>): SolverOutput
                 nodeCount = nodeCount,
                 bestBound = bestBound,
                 mipGap = mipGap,
-                solveTime = solveTime
+                solveTime = solveTime,
+                objValue = converter.intoValue(obj),
+                possibleBestObjValue = converter.intoValue(possibleBestObj),
+                bestBoundValue = bestBound?.let { converter.intoValue(it) }
             )
         }
 
@@ -114,15 +116,14 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMasterAsync(
+        fun solveMasterAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@LinearBendersDecompositionSolver.solveMaster(
                 name = name,
                 metaModel = metaModel,
@@ -133,12 +134,11 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMasterAsync(
+        fun solveMasterAsync(
         metaModel: LinearMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@LinearBendersDecompositionSolver.solveMaster(
                 metaModel = metaModel,
                 options = options
@@ -200,8 +200,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveSubAsync(
+        fun solveSubAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -210,7 +209,7 @@ interface LinearBendersDecompositionSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LinearSubResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@LinearBendersDecompositionSolver.solveSub(
                 name = name,
                 metaModel = metaModel,
@@ -223,14 +222,13 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveSubAsync(
+        fun solveSubAsync(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LinearSubResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@LinearBendersDecompositionSolver.solveSub(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -306,8 +304,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -315,7 +312,7 @@ interface LinearBendersDecompositionSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 name = name,
                 metaModel = metaModel,
@@ -327,13 +324,12 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         metaModel: LinearMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 metaModel = metaModel,
                 converter = converter,
@@ -342,15 +338,14 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 name = name,
                 metaModel = metaModel,
@@ -361,12 +356,11 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         metaModel: LinearMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 metaModel = metaModel,
                 options = options
@@ -499,8 +493,7 @@ interface LinearBendersDecompositionSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -510,7 +503,7 @@ interface LinearBendersDecompositionSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 name = name,
                 metaModel = metaModel,
@@ -524,15 +517,14 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         metaModel: LinearMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -543,8 +535,7 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         name: String,
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -553,7 +544,7 @@ interface LinearBendersDecompositionSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 name = name,
                 metaModel = metaModel,
@@ -566,14 +557,13 @@ interface LinearBendersDecompositionSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         metaModel: LinearMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LinearSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -606,15 +596,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMasterAsync(
+        fun solveMasterAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@QuadraticBendersDecompositionSolver.solveMaster(
                 name = name,
                 metaModel = metaModel,
@@ -625,12 +614,11 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMasterAsync(
+        fun solveMasterAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@QuadraticBendersDecompositionSolver.solveMaster(
                 metaModel = metaModel,
                 options = options
@@ -696,8 +684,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveSubAsync(
+        fun solveSubAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -706,7 +693,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<QuadraticSubResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@QuadraticBendersDecompositionSolver.solveSub(
                 name = name,
                 metaModel = metaModel,
@@ -719,14 +706,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveSubAsync(
+        fun solveSubAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<QuadraticSubResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@QuadraticBendersDecompositionSolver.solveSub(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -802,8 +788,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
@@ -811,7 +796,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 name = name,
                 metaModel = metaModel,
@@ -823,13 +808,12 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 metaModel = metaModel,
                 converter = converter,
@@ -838,15 +822,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 name = name,
                 metaModel = metaModel,
@@ -857,12 +840,11 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveMasterVAsync(
+        fun <V> solveMasterVAsync(
         metaModel: QuadraticMetaModel<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<SolverOutput>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveMasterV(
                 metaModel = metaModel,
                 options = options
@@ -1000,8 +982,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1011,7 +992,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 name = name,
                 metaModel = metaModel,
@@ -1025,15 +1006,14 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         metaModel: QuadraticMetaModel<Flt64>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         converter: IntoValue<V>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 metaModel = metaModel,
                 objectVariable = objectVariable,
@@ -1044,8 +1024,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         name: String,
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
@@ -1054,7 +1033,7 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 name = name,
                 metaModel = metaModel,
@@ -1067,14 +1046,13 @@ interface QuadraticBendersDecompositionSolver : LinearBendersDecompositionSolver
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun <V> solveSubVAsync(
+        fun <V> solveSubVAsync(
         metaModel: QuadraticMetaModel<V>,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<QuadraticSubResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future solveSubV(
                 metaModel = metaModel,
                 objectVariable = objectVariable,

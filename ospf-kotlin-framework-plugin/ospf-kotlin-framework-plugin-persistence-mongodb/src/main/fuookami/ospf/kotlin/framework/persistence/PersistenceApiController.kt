@@ -1,9 +1,7 @@
 package fuookami.ospf.kotlin.framework.persistence
 
 import com.mongodb.client.MongoDatabase
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
@@ -12,7 +10,7 @@ import kotlinx.serialization.serializer
 interface MongoPersistenceApiController {
     val mongoClient: MongoDatabase?
 
-    @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalSerializationApi::class)
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -21,7 +19,7 @@ interface MongoPersistenceApiController {
         request: Req,
         process: (Req) -> Rep
     ): Rep {
-        GlobalScope.launch(Dispatchers.IO) {
+        frameworkPluginAsyncScope.launch(Dispatchers.IO) {
             val cls = request::class
             val serializer = cls.serializer() as KSerializer<Req>
             mongoClient?.insertRequest(
@@ -34,7 +32,7 @@ interface MongoPersistenceApiController {
             )
         }
         val response = process(request)
-        GlobalScope.launch(Dispatchers.IO) {
+        frameworkPluginAsyncScope.launch(Dispatchers.IO) {
             val cls = response::class
             val serializer = cls.serializer() as KSerializer<Rep>
             mongoClient?.insertResponse(
@@ -49,7 +47,7 @@ interface MongoPersistenceApiController {
         return response
     }
 
-    @OptIn(InternalSerializationApi::class, DelicateCoroutinesApi::class)
+    @OptIn(InternalSerializationApi::class)
     fun <Req : RequestDTO<Req>, Rep : ResponseDTO<Rep>, SyncRep : ResponseDTO<Rep>> persistenceApiImpl(
         api: String,
         app: String,
@@ -60,7 +58,7 @@ interface MongoPersistenceApiController {
         asyncResponse: (Rep) -> Unit,
         syncResponse: SyncRep
     ): SyncRep {
-        GlobalScope.launch(Dispatchers.IO) {
+        frameworkPluginAsyncScope.launch(Dispatchers.IO) {
             val cls = request::class
             val serializer = cls.serializer() as KSerializer<Req>
             mongoClient?.insertRequest(
@@ -72,9 +70,9 @@ interface MongoPersistenceApiController {
                 request = request
             )
         }
-        GlobalScope.launch(Dispatchers.Default) {
+        frameworkPluginAsyncScope.launch(Dispatchers.Default) {
             val response = process(request)
-            GlobalScope.launch(Dispatchers.IO) {
+            frameworkPluginAsyncScope.launch(Dispatchers.IO) {
                 val cls = response::class
                 val serializer = cls.serializer() as KSerializer<Rep>
                 mongoClient?.insertResponse(
@@ -92,113 +90,4 @@ interface MongoPersistenceApiController {
     }
 }
 
-// todo: make aop api
-//@Target(AnnotationTarget.FUNCTION)
-//@Retention(AnnotationRetention.RUNTIME)
-//@MustBeDocumented
-//annotation class SyncPersistenceInterface<Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>>(
-//    val name: String = "",
-//    val dataBase: String = ""
-//)
-//
-//@Target(AnnotationTarget.FUNCTION)
-//@Retention(AnnotationRetention.RUNTIME)
-//@MustBeDocumented
-//annotation class AsyncPersistenceInterface<Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>, SynRep: ResponseDTO<SynRep>>(
-//    val syncResponse: SynRep,
-//    val response: (Rep) -> Unit,
-//    val name: String = "",
-//    val dataBase: String = "",
-//)
-//
-//@Aspect
-//@Component
-//class PersistenceInterfaceAspect {
-//    @OptIn(DelicateCoroutinesApi::class, InternalSerializationApi::class)
-//    @Around("@annotation(annotation)")
-//    //    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>> syncProcess(point: ProceedingJoinPoint, annotation: SyncPersistenceInterface<Req, Rep>): Any {
-//        val args = point.args
-//        val request = args.find { it is RequestDTO<*> }?.let { it as Req }
-//        if (request != null) {
-//            GlobalScope.launch(Dispatchers.IO) {
-//                val cls = request::class
-//                val serializer = cls.serializer() as KSerializer<Req>
-//                if (annotation.name.isNotEmpty() && annotation.dataBase.isNotEmpty()) {
-//                    MongoDB(MongoClientKey(annotation.name, annotation.dataBase))
-//                } else if (annotation.name.isNotEmpty()) {
-//                    MongoDB(annotation.name)
-//                } else if (annotation.dataBase.isNotEmpty()) {
-//                    MongoDB.get(annotation.dataBase)
-//                } else {
-//                    MongoDB()
-//                }
-//                    ?.getDatabase(annotation.dataBase)
-//                    ?.insertRequest("", "", "", serializer, request)
-//            }
-//        }
-//        val response = point.proceed(args)
-//        if (response is ResponseDTO<*>) {
-//            GlobalScope.launch(Dispatchers.IO) {
-//                val cls = response::class
-//                val serializer = cls.serializer() as KSerializer<Rep>
-//                if (annotation.name.isNotEmpty() && annotation.dataBase.isNotEmpty()) {
-//                    MongoDB(MongoClientKey(annotation.name, annotation.dataBase))
-//                } else if (annotation.name.isNotEmpty()) {
-//                    MongoDB(annotation.name)
-//                } else if (annotation.dataBase.isNotEmpty()) {
-//                    MongoDB.get(annotation.dataBase)
-//                } else {
-//                    MongoDB()
-//                }
-//                    ?.getDatabase(annotation.dataBase)
-//                    ?.insertResponse("", "", serializer, response as Rep)
-//            }
-//        }
-//        return response
-//    }
-//
-//    @OptIn(DelicateCoroutinesApi::class, InternalSerializationApi::class)
-//    @Around("@annotation(annotation)")
-//    //    fun <Req: RequestDTO<Req>, Rep: ResponseDTO<Rep>, SynRep: ResponseDTO<SynRep>> asyncProcess(point: ProceedingJoinPoint, annotation: AsyncPersistenceInterface<Req, Rep, SynRep>): Any {
-//        val args = point.args
-//        val request = args.find { it is RequestDTO<*> }?.let { it as Req }
-//        if (request != null) {
-//            GlobalScope.launch(Dispatchers.IO) {
-//                val cls = request::class
-//                val serializer = cls.serializer() as KSerializer<Req>
-//                if (annotation.name.isNotEmpty() && annotation.dataBase.isNotEmpty()) {
-//                    MongoDB(MongoClientKey(annotation.name, annotation.dataBase))
-//                } else if (annotation.name.isNotEmpty()) {
-//                    MongoDB(annotation.name)
-//                } else if (annotation.dataBase.isNotEmpty()) {
-//                    MongoDB.get(annotation.dataBase)
-//                } else {
-//                    MongoDB()
-//                }
-//                    ?.getDatabase("")
-//                    ?.insertRequest("", "", "", serializer, request)
-//            }
-//        }
-//        GlobalScope.launch {
-//            val response = point.proceed(args)
-//            if (response is ResponseDTO<*>) {
-//                response as Rep
-//                val cls = response::class
-//                val serializer = cls.serializer() as KSerializer<Rep>
-//                if (annotation.name.isNotEmpty() && annotation.dataBase.isNotEmpty()) {
-//                    MongoDB(MongoClientKey(annotation.name, annotation.dataBase))
-//                } else if (annotation.name.isNotEmpty()) {
-//                    MongoDB(annotation.name)
-//                } else if (annotation.dataBase.isNotEmpty()) {
-//                    MongoDB.get(annotation.dataBase)
-//                } else {
-//                    MongoDB()
-//                }
-//                    ?.getDatabase("")
-//                    ?.insertResponse("", "", serializer, response)
-//                annotation.response(response)
-//            }
-//        }
-//        return annotation.syncResponse
-//    }
-//}
+// TODO: 如需跨切面持久化日志再实现 AOP API. / Implement AOP persistence API if cross-cutting logging is required.

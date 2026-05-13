@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.mindopt
+package fuookami.ospf.kotlin.core.solver.mindopt
 
 import com.alibaba.damo.mindopt.MDO
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
@@ -23,7 +23,6 @@ class MindOPTColumnGenerationSolver(
 ) : ColumnGenerationSolver {
     override val name = "mindopt"
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -33,7 +32,7 @@ class MindOPTColumnGenerationSolver(
     ): Ret<FeasibleSolverOutput<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -70,7 +69,7 @@ class MindOPTColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -101,7 +100,6 @@ class MindOPTColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -112,7 +110,7 @@ class MindOPTColumnGenerationSolver(
     ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -149,7 +147,7 @@ class MindOPTColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -198,7 +196,6 @@ class MindOPTColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -208,7 +205,7 @@ class MindOPTColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -246,7 +243,7 @@ class MindOPTColumnGenerationSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }

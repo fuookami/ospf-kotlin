@@ -16,7 +16,6 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 
 class MultiLayerHeuristicSearchAlgorithm(
@@ -81,8 +80,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                             spaces = result
                             break
                         }
-                    } catch (e: ClosedSendChannelException) {
-                        logger.trace { "Block Loading MLHSA was stopped by controller." }
                     } catch (e: CancellationException) {
                         logger.trace { "Block Loading MLHSA was stopped by controller." }
                     } catch (e: Exception) {
@@ -113,13 +110,12 @@ class MultiLayerHeuristicSearchAlgorithm(
         return Pair(usedBins, restItems.flatten())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         items: Map<Item, UInt64>,
         shape: Container3Shape,
         blockTable: List<Block>,
         fixedSpaces: List<Space> = emptyList(),
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
         val restItems = items.toMutableMap()
         val promise = Channel<List<Space>>()
@@ -132,8 +128,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                     fixedSpaces = fixedSpaces,
                     blockTable = blockTable
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Block Loading MLHSA was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Block Loading MLHSA was stopped by controller." }
             } catch (e: Exception) {
@@ -212,8 +206,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                             dfsPromise.close()
                                             return@async thisSpaces
                                         }
-                                    } catch (e: ClosedSendChannelException) {
-                                        logger.trace { "Block Loading MLHSA was stopped by controller." }
                                     } catch (e: CancellationException) {
                                         logger.trace { "Block Loading MLHSA was stopped by controller." }
                                     } catch (e: Exception) {
@@ -230,8 +222,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                     break
                                 }
                             }
-                        } catch (e: ClosedSendChannelException) {
-                            logger.trace { "Block Loading MLHSA was stopped by controller." }
                         } catch (e: CancellationException) {
                             logger.trace { "Block Loading MLHSA was stopped by controller." }
                         } catch (e: Exception) {
@@ -243,8 +233,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                         heap = promises.mapNotNull { it.await() }.toMutableList()
                         cancel()
                     }
-                } catch (e: ClosedSendChannelException) {
-                    logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: CancellationException) {
                     logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: Exception) {
@@ -290,8 +278,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                                 dfsPromise.close()
                                                 return@async thisSpaces
                                             }
-                                        } catch (e: ClosedSendChannelException) {
-                                            logger.trace { "Block Loading MLHSA was stopped by controller." }
                                         } catch (e: CancellationException) {
                                             logger.trace { "Block Loading MLHSA was stopped by controller." }
                                         } catch (e: Exception) {
@@ -308,8 +294,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                                         break
                                     }
                                 }
-                            } catch (e: ClosedSendChannelException) {
-                                logger.trace { "Block Loading MLHSA was stopped by controller." }
                             } catch (e: CancellationException) {
                                 logger.trace { "Block Loading MLHSA was stopped by controller." }
                             } catch (e: Exception) {
@@ -322,8 +306,6 @@ class MultiLayerHeuristicSearchAlgorithm(
                         heap = promises.mapNotNull { it.await() }.toMutableList()
                         cancel()
                     }
-                } catch (e: ClosedSendChannelException) {
-                    logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: CancellationException) {
                     logger.trace { "Block Loading MLHSA was stopped by controller." }
                 } catch (e: Exception) {
@@ -351,11 +333,11 @@ class MultiLayerHeuristicSearchAlgorithm(
         )
         try {
             for (bin in dfsPromise) {
-                promise.send(bin)
+                if (promise.trySend(bin).isFailure) {
+                    break
+                }
                 break
             }
-        } catch (e: ClosedSendChannelException) {
-            logger.trace { "Block Loading MLHSA was stopped by controller." }
         } catch (e: CancellationException) {
             logger.trace { "Block Loading MLHSA was stopped by controller." }
         } catch (e: Exception) {
@@ -368,6 +350,5 @@ class MultiLayerHeuristicSearchAlgorithm(
         promise.close()
     }
 }
-
 
 

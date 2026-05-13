@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver
+package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
@@ -28,8 +28,6 @@ import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.time.TimeSource
@@ -734,13 +732,12 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.k
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result
@@ -749,13 +746,12 @@ fun AbstractLinearSolver.solveAsync(
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result
@@ -764,13 +760,12 @@ fun AbstractLinearSolver.solveAsync(
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result
@@ -779,13 +774,12 @@ fun AbstractLinearSolver.solveAsync(
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result
@@ -794,13 +788,12 @@ fun AbstractQuadraticSolver.solveAsync(
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result
@@ -809,13 +802,12 @@ fun AbstractQuadraticSolver.solveAsync(
 
 @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @Suppress("DEPRECATION")
-@OptIn(DelicateCoroutinesApi::class)
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,
     callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
 ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return GlobalScope.future {
+    return coreSolverAsyncScope.future {
         val result = solveWithOptions(model, options)
         callBack?.invoke(result)
         result

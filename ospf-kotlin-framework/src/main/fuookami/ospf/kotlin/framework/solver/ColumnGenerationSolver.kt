@@ -13,8 +13,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import kotlin.time.Duration
@@ -66,15 +64,14 @@ interface ColumnGenerationSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMILPAsync(
+        fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Flt64FeasibleSolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
                 metaModel = metaModel,
@@ -85,12 +82,11 @@ interface ColumnGenerationSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMILPAsync(
+        fun solveMILPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<Flt64FeasibleSolverOutput>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 metaModel = metaModel,
                 options = options
@@ -130,8 +126,7 @@ interface ColumnGenerationSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMILPAsync(
+        fun solveMILPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         amount: UInt64,
@@ -139,7 +134,7 @@ interface ColumnGenerationSolver {
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<Pair<Flt64FeasibleSolverOutput, List<List<Flt64>>>>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveMILP(
                 name = name,
                 metaModel = metaModel,
@@ -151,12 +146,11 @@ interface ColumnGenerationSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveMILPWithSolutionPoolAsync(
+        fun solveMILPWithSolutionPoolAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions
     ): CompletableFuture<Ret<Pair<Flt64FeasibleSolverOutput, List<List<Flt64>>>>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveMILPWithSolutionPool(
                 metaModel = metaModel,
                 options = options
@@ -196,15 +190,14 @@ interface ColumnGenerationSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveLPAsync(
+        fun solveLPAsync(
         name: String,
         metaModel: Flt64LinearMetaModel,
         toLogModel: Boolean = false,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): CompletableFuture<Ret<LPResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveLP(
                 name = name,
                 metaModel = metaModel,
@@ -215,12 +208,11 @@ interface ColumnGenerationSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveLPAsync(
+        fun solveLPAsync(
         metaModel: Flt64LinearMetaModel,
         options: FrameworkSolveOptions = FrameworkSolveOptions()
     ): CompletableFuture<Ret<LPResult>> {
-        return GlobalScope.future {
+        return frameworkAsyncScope.future {
             return@future this@ColumnGenerationSolver.solveLP(
                 metaModel = metaModel,
                 options = options
@@ -294,6 +286,70 @@ interface ColumnGenerationSolver {
         )
     }
 
+        fun <V> solveMILPVAsync(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                name = name,
+                metaModel = metaModel,
+                converter = converter,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+        fun <V> solveMILPVAsync(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<FeasibleSolverOutput<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+        fun <V> solveMILPVAsync(
+        metaModel: Flt64LinearMetaModel,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<FeasibleSolverOutput<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                metaModel = metaModel,
+                converter = converter,
+                options = options
+            )
+        }
+    }
+
+        fun <V> solveMILPVAsync(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<FeasibleSolverOutput<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                metaModel = metaModel,
+                options = options
+            )
+        }
+    }
+
     suspend fun <V> solveMILPV(
         name: String,
         metaModel: Flt64LinearMetaModel,
@@ -339,6 +395,48 @@ interface ColumnGenerationSolver {
         )
     }
 
+        fun <V> solveMILPVAsync(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        amount: UInt64,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                name = name,
+                metaModel = metaModel,
+                amount = amount,
+                converter = converter,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+        fun <V> solveMILPVAsync(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        amount: UInt64,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPV(
+                name = name,
+                metaModel = metaModel,
+                amount = amount,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
     suspend fun <V> solveMILPVWithSolutionPool(
         metaModel: Flt64LinearMetaModel,
         converter: IntoValue<V>,
@@ -364,6 +462,32 @@ interface ColumnGenerationSolver {
             converter = metaModel.converter,
             options = options
         )
+    }
+
+        fun <V> solveMILPVWithSolutionPoolAsync(
+        metaModel: Flt64LinearMetaModel,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPVWithSolutionPool(
+                metaModel = metaModel,
+                converter = converter,
+                options = options
+            )
+        }
+    }
+
+        fun <V> solveMILPVWithSolutionPoolAsync(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions
+    ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<V>, List<List<V>>>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveMILPVWithSolutionPool(
+                metaModel = metaModel,
+                options = options
+            )
+        }
     }
 
     data class LPResultV<V>(
@@ -441,5 +565,69 @@ interface ColumnGenerationSolver {
             registrationStatusCallBack = options.registrationStatusCallBack,
             solvingStatusCallBack = options.solvingStatusCallBack
         )
+    }
+
+        fun <V> solveLPVAsync(
+        name: String,
+        metaModel: Flt64LinearMetaModel,
+        converter: IntoValue<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<LPResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveLPV(
+                name = name,
+                metaModel = metaModel,
+                converter = converter,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+        fun <V> solveLPVAsync(
+        name: String,
+        metaModel: LinearMetaModel<V>,
+        toLogModel: Boolean = false,
+        registrationStatusCallBack: RegistrationStatusCallBack? = null,
+        solvingStatusCallBack: SolvingStatusCallBack? = null
+    ): CompletableFuture<Ret<LPResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveLPV(
+                name = name,
+                metaModel = metaModel,
+                toLogModel = toLogModel,
+                registrationStatusCallBack = registrationStatusCallBack,
+                solvingStatusCallBack = solvingStatusCallBack
+            )
+        }
+    }
+
+        fun <V> solveLPVAsync(
+        metaModel: Flt64LinearMetaModel,
+        converter: IntoValue<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<LPResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveLPV(
+                metaModel = metaModel,
+                converter = converter,
+                options = options
+            )
+        }
+    }
+
+        fun <V> solveLPVAsync(
+        metaModel: LinearMetaModel<V>,
+        options: FrameworkSolveOptions = FrameworkSolveOptions()
+    ): CompletableFuture<Ret<LPResultV<V>>> where V : RealNumber<V>, V : NumberField<V> {
+        return frameworkAsyncScope.future {
+            return@future solveLPV(
+                metaModel = metaModel,
+                options = options
+            )
+        }
     }
 }

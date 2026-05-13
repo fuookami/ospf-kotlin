@@ -106,7 +106,7 @@ private fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
     }
 }
 
-// ========== V â†?Flt64 conversion via IntoValue converter ==========
+// ========== V -> Flt64 conversion via IntoValue converter ==========
 
 private fun <V> LinearPolynomial<V>.toFlt64Poly(converter: IntoValue<V>): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return LinearPolynomial(
@@ -932,6 +932,8 @@ class LinearMetaModel<V>(
             LinearInequalityConstraint<V>(
                 inequality = relation,
                 converter = converter,
+                constraintName = name ?: relation.name,
+                constraintDisplayName = displayName ?: relation.displayName,
                 group = group,
                 lazy = lazy,
                 args = args,
@@ -1088,6 +1090,8 @@ class QuadraticMetaModel<V>(
             QuadraticInequalityConstraint<V>(
                 inequality = relation,
                 converter = converter,
+                constraintName = name ?: relation.name,
+                constraintDisplayName = displayName ?: relation.displayName,
                 group = group,
                 lazy = lazy,
                 args = args,

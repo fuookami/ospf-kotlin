@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -100,23 +101,49 @@ class FunctionSymbolRoundingGenericRegistrationTest {
 
             val mechanismModel = buildLightweightMechanismModel(model)
 
-            val before = mechanismModel.collectedConstraints.size
-            assertTrue(floor.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: floor registerConstraints should succeed")
-            assertTrue(ceil.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: ceil registerConstraints should succeed")
-            assertTrue(round.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: round registerConstraints should succeed")
-            val after = mechanismModel.collectedConstraints.size
-
-            assertTrue(after > before, "${numberCase.name}: rounding constraints should be appended")
-
-            val newConstraint = mechanismModel.collectedConstraints.last()
-            val coefficient = newConstraint.lhs.monomials.first().coefficient
-            assertTrue(
-                coefficient::class == numberCase.one::class,
-                "${numberCase.name}: rounding constraint coefficient type should stay V instead of leaking Flt64"
-            )
+            assertConstraintRegistration(numberCase, mechanismModel, "floor") {
+                floor.registerConstraints(mechanismModel)
+            }
+            assertConstraintRegistration(numberCase, mechanismModel, "ceil") {
+                ceil.registerConstraints(mechanismModel)
+            }
+            assertConstraintRegistration(numberCase, mechanismModel, "round") {
+                round.registerConstraints(mechanismModel)
+            }
         } finally {
             model.close()
         }
+    }
+
+    private fun <V> assertConstraintRegistration(
+        numberCase: GenericNumberCase<V>,
+        mechanismModel: CollectingLinearMechanismModel<V>,
+        label: String,
+        register: () -> Try
+    ) where V : RealNumber<V>, V : NumberField<V> {
+        val before = mechanismModel.collectedConstraints.size
+        assertTrue(register() is Ok, "${numberCase.name}: $label registerConstraints should succeed")
+        val after = mechanismModel.collectedConstraints.size
+        assertTrue(after > before, "${numberCase.name}: $label should append constraints")
+
+        val appended = mechanismModel.collectedConstraints.subList(before, after)
+        val coefficients = appended.flatMap { relation -> relation.lhs.monomials.map { it.coefficient } }
+        assertTrue(coefficients.isNotEmpty(), "${numberCase.name}: $label appended constraints should contain coefficients")
+        assertTrue(
+            coefficients.all { it::class == numberCase.one::class },
+            "${numberCase.name}: $label coefficient type should stay V instead of leaking Flt64"
+        )
+        val rhsConstants = appended.map { relation -> relation.rhs.constant }
+        assertTrue(
+            rhsConstants.all { it::class == numberCase.one::class },
+            "${numberCase.name}: $label rhs constant type should stay V"
+        )
+        assertTrue(
+            appended.any {
+                it.comparison == Comparison.LE || it.comparison == Comparison.GE || it.comparison == Comparison.EQ
+            },
+            "${numberCase.name}: $label should produce comparable sign"
+        )
     }
 
     private fun <V> buildLightweightMechanismModel(model: LinearMetaModel<V>): CollectingLinearMechanismModel<V>

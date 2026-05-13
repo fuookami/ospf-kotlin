@@ -27,6 +27,9 @@ class SolverOutputCompatibilityTest {
         assertEquals(output.gap, output.mipGap)
         assertEquals(output.time, output.solveTime)
         assertEquals(UInt64(10), output.iterations)
+        assertEquals(Flt64(100), output.objValue)
+        assertEquals(Flt64(80), output.possibleBestObjValue)
+        assertEquals(Flt64(90), output.bestBoundValue)
     }
 
     @Test

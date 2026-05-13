@@ -19,7 +19,6 @@ import fuookami.ospf.kotlin.utils.functional.ord
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 
 internal fun fitness(space: Space, block: Block): Flt64 {
@@ -104,8 +103,6 @@ class DepthFirstSearchAlgorithm(
                                 blockTable = blockTable,
                                 branch = UInt64.one
                             )
-                        } catch (e: ClosedSendChannelException) {
-                            logger.trace { "Block Loading DFS was stopped by controller." }
                         } catch (e: CancellationException) {
                             logger.trace { "Block Loading DFS was stopped by controller." }
                         } catch (e: Exception) {
@@ -122,8 +119,6 @@ class DepthFirstSearchAlgorithm(
                             spaces = result
                             break
                         }
-                    } catch (e: ClosedSendChannelException) {
-                        logger.trace { "Block Loading DFS was stopped by controller." }
                     } catch (e: CancellationException) {
                         logger.trace { "Block Loading DFS was stopped by controller." }
                     } catch (e: Exception) {
@@ -151,13 +146,12 @@ class DepthFirstSearchAlgorithm(
         return Pair(usedBins, restItems.flatten())
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         items: Map<Item, UInt64>,
         shape: AbstractContainer3Shape,
         blockTable: List<Block>,
         fixedSpaces: List<Space> = emptyList(),
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
         val restItems = items.toMutableMap()
         val promise = Channel<List<Space>>()
@@ -170,8 +164,6 @@ class DepthFirstSearchAlgorithm(
                     fixedSpaces = fixedSpaces,
                     blockTable = blockTable
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Block Loading DFS was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Block Loading DFS was stopped by controller." }
             } catch (e: Exception) {
@@ -184,13 +176,12 @@ class DepthFirstSearchAlgorithm(
         return ChannelGuard(promise)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         items: Map<Item, UInt64>,
         blocks: List<Block>,
         shape: AbstractContainer3Shape,
         fixedSpaces: List<Space> = emptyList(),
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
         val restItems = items.toMutableMap()
 
@@ -204,8 +195,6 @@ class DepthFirstSearchAlgorithm(
                     blocks = blocks,
                     fixedSpaces = fixedSpaces,
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Block Loading DFS was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Block Loading DFS was stopped by controller." }
             } catch (e: Exception) {
@@ -218,12 +207,11 @@ class DepthFirstSearchAlgorithm(
         return ChannelGuard(promise)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         blocks: List<Block>,
         shape: Container3Shape,
         fixedSpaces: List<Space> = emptyList(),
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlockLoadingAsyncScope
     ): ChannelGuard<List<Space>> {
         return this(
             items = blocks.flatMap { block -> block.amounts.keys.map { it as Item } }.associateWith { UInt64.maximum },
@@ -235,8 +223,7 @@ class DepthFirstSearchAlgorithm(
     }
 
     @JvmName("packBlockTable")
-    @OptIn(DelicateCoroutinesApi::class)
-    private suspend fun pack(
+        private suspend fun pack(
         promise: Channel<List<Space>>,
         items: Map<Item, UInt64>,
         shape: AbstractContainer3Shape,
@@ -273,10 +260,6 @@ class DepthFirstSearchAlgorithm(
         val cache = HashMap<Space, List<Block>>()
 
         while (stack.isNotEmpty()) {
-            if (promise.isClosedForSend) {
-                break
-            }
-
             val (enabledSpaces, thisFixedSpaces) = stack.removeAt(stack.lastIndex)
             val restItems = items.toMutableMap()
             for (space in thisFixedSpaces) {
@@ -405,10 +388,9 @@ class DepthFirstSearchAlgorithm(
                 break
             }
             if (!flag) {
-                if (promise.isClosedForSend) {
+                if (promise.trySend(fixedSpaces + thisFixedSpaces).isFailure) {
                     break
                 }
-                promise.send(fixedSpaces + thisFixedSpaces)
             }
         }
 
@@ -416,8 +398,7 @@ class DepthFirstSearchAlgorithm(
         return
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    @JvmName("packBlockSequence")
+        @JvmName("packBlockSequence")
     private suspend fun pack(
         promise: Channel<List<Space>>,
         items: Map<Item, UInt64>,
@@ -454,17 +435,12 @@ class DepthFirstSearchAlgorithm(
         stack.addAll(generateEnabledSpaces(0, blocks[0], enabledSpaces).reversed())
 
         while (stack.isNotEmpty()) {
-            if (promise.isClosedForSend) {
-                break
-            }
-
             val (top, usedSpace, thisEnabledSpaces) = stack.removeAt(stack.lastIndex)
             val i = top + 1
             if (i >= blocks.size) {
-                if (promise.isClosedForSend) {
+                if (promise.trySend(fixedSpaces + spaces.filterNotNull()).isFailure) {
                     break
                 }
-                promise.send(fixedSpaces + spaces.filterNotNull())
             } else {
                 if (usedSpace != null && spaces[top] == null) {
                     for ((item, amount) in blocks[top].amounts) {
@@ -598,6 +574,4 @@ class DepthFirstSearchAlgorithm(
             .map { it.value }
     }
 }
-
-
 

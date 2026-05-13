@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.hexaly
+package fuookami.ospf.kotlin.core.solver.hexaly
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -22,7 +22,6 @@ class HexalyColumnGenerationSolver(
 ) : ColumnGenerationSolver {
     override val name = "hexaly"
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -32,7 +31,7 @@ class HexalyColumnGenerationSolver(
     ): Ret<FeasibleSolverOutput<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -64,7 +63,7 @@ class HexalyColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -95,7 +94,6 @@ class HexalyColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -106,7 +104,7 @@ class HexalyColumnGenerationSolver(
     ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -138,7 +136,7 @@ class HexalyColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -177,7 +175,6 @@ class HexalyColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -187,7 +184,7 @@ class HexalyColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -220,7 +217,7 @@ class HexalyColumnGenerationSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }

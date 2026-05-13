@@ -27,7 +27,6 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 import java.util.Collections.swap
 
@@ -130,10 +129,9 @@ fun <T> permute(
     return result
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 fun <T> permuteAsync(
     input: List<T>,
-    scope: CoroutineScope = GlobalScope
+    scope: CoroutineScope = combinatoricsAsyncScope
 ): ChannelGuard<List<T>> {
     val logger = logger("Permutations")
 
@@ -142,19 +140,18 @@ fun <T> permuteAsync(
         try {
             val a = input.toList()
             val p = input.indices.map { 0 }.toMutableList()
-            if (!promise.isClosedForSend) {
-                promise.send(a.toList())
+            if (promise.trySend(a.toList()).isFailure) {
+                return@launch
             }
 
             var i = 1;
-            while (i < input.size && !promise.isClosedForSend) {
+            while (i < input.size) {
                 if (p[i] < i) {
                     val j = i % 2 * p[i]
                     swap(a, i, j)
-                    if (promise.isClosedForSend) {
+                    if (promise.trySend(a.toList()).isFailure) {
                         break
                     }
-                    promise.send(a.toList())
                     p[i] += 1;
                     i = 1
                 } else {
@@ -162,8 +159,6 @@ fun <T> permuteAsync(
                     ++i;
                 }
             }
-        } catch (e: ClosedSendChannelException) {
-            logger.debug { "Permutation generation was stopped by controller." }
         } catch (e: Exception) {
             logger.debug { "Permutation generation Error ${e.message}" }
         } finally {

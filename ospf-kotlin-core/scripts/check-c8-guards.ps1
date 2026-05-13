@@ -349,6 +349,71 @@ foreach ($root in $bridgeRoots) {
 $toMathLinearPolyBaseline = 13  # Updated 2026-04-29 after P6-2a (was 23 after P5 full closure)
 Write-Baseline "P5-4-1: No new ToMathLinearPolynomial bridge references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
 
+# Guard 14: No new .toDouble() bridge outside SolveValueConversionContext allowlist in core/src/main.
+$toDoubleAllowedPath = "fuookami/ospf/kotlin/core/solver/value/SolveValueConversionContext.kt"
+$toDoubleAllowedLine = "val converted = this.toDouble()"
+$toDoubleViolations = @()
+$toDoubleAllowedHits = @()
+Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" | ForEach-Object {
+    $relativePath = Get-RelativePath -Root $coreMain -FilePath $_.FullName
+    $lineNumber = 0
+    Get-Content $_.FullName | ForEach-Object {
+        $lineNumber++
+        $trimmed = $_.Trim()
+        if ($trimmed -notmatch "^(//|\*|/\*\*)") {
+            if ($trimmed -match "\.toDouble\(\)") {
+                $location = "${relativePath}:$lineNumber"
+                $isAllowed = $relativePath -eq $toDoubleAllowedPath -and $trimmed -eq $toDoubleAllowedLine
+                if ($isAllowed) {
+                    $toDoubleAllowedHits += $location
+                } else {
+                    $toDoubleViolations += "${location}: $trimmed"
+                }
+            }
+        }
+    }
+}
+Write-Result "P5-5-1: No .toDouble() usage outside SolveValueConversionContext allowlist in core/src/main" ($toDoubleViolations.Count -eq 0) "Found $($toDoubleViolations.Count) violations"
+if (($Verbose -or $toDoubleViolations.Count -gt 0) -and $toDoubleViolations.Count -gt 0) {
+    $preview = ($toDoubleViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+Write-Result "P5-5-2: Exactly one allowlisted .toDouble() bridge in SolveValueConversionContext" ($toDoubleAllowedHits.Count -eq 1) "Found $($toDoubleAllowedHits.Count) allowlisted hits"
+
+# Guard 15: No isClosedForSend usage in primary modules (zero-tolerance)
+$coroutineGuardRoots = @(
+    "ospf-kotlin-core/src/main",
+    "ospf-kotlin-framework/src/main",
+    "ospf-kotlin-framework-plugin",
+    "ospf-kotlin-math/src/main",
+    "ospf-kotlin-framework-bpp3d"
+)
+$isClosedForSendMatches = @()
+$closedSendExceptionMatches = @()
+$globalScopeMatches = @()
+$delicateApiMatches = @()
+foreach ($root in $coroutineGuardRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    $isClosedForSendMatches += Get-ChildItem -Path $root -Recurse -Filter "*.kt" |
+        Select-String -Pattern "\bisClosedForSend\b" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $closedSendExceptionMatches += Get-ChildItem -Path $root -Recurse -Filter "*.kt" |
+        Select-String -Pattern "\bClosedSendChannelException\b" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $globalScopeMatches += Get-ChildItem -Path $root -Recurse -Filter "*.kt" |
+        Select-String -Pattern "\bGlobalScope\b" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+    $delicateApiMatches += Get-ChildItem -Path $root -Recurse -Filter "*.kt" |
+        Select-String -Pattern "\bDelicateCoroutinesApi\b" |
+        Where-Object { $_.Line -notmatch "^\s*//" }
+}
+Write-Result "P5-6-1: No isClosedForSend usage in primary modules" ($isClosedForSendMatches.Count -eq 0) "Found $($isClosedForSendMatches.Count) violations"
+Write-Result "P5-6-2: No ClosedSendChannelException usage in primary modules" ($closedSendExceptionMatches.Count -eq 0) "Found $($closedSendExceptionMatches.Count) violations"
+Write-Result "P5-6-3: No GlobalScope usage in primary modules" ($globalScopeMatches.Count -eq 0) "Found $($globalScopeMatches.Count) violations"
+Write-Result "P5-6-4: No DelicateCoroutinesApi usage in primary modules" ($delicateApiMatches.Count -eq 0) "Found $($delicateApiMatches.Count) violations"
+
 # --- P6/P7 Metric Guards ---
 
 $mathMain = "ospf-kotlin-math/src/main"

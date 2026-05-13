@@ -32,7 +32,6 @@ class MindOPTLinearBendersDecompositionSolver(
 ) : LinearBendersDecompositionSolver {
     override val name = "mindopt"
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -42,7 +41,7 @@ class MindOPTLinearBendersDecompositionSolver(
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -74,7 +73,7 @@ class MindOPTLinearBendersDecompositionSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -105,7 +104,6 @@ class MindOPTLinearBendersDecompositionSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -117,7 +115,7 @@ class MindOPTLinearBendersDecompositionSolver(
     ): Ret<LinearBendersDecompositionSolver.LinearSubResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -151,7 +149,7 @@ class MindOPTLinearBendersDecompositionSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -241,7 +239,6 @@ class MindOPTQuadraticBendersDecompositionSolver(
     override val name = "mindopt"
     private val linear = MindOPTLinearBendersDecompositionSolver(config, linearCallBack)
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -258,7 +255,6 @@ class MindOPTQuadraticBendersDecompositionSolver(
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMaster(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
@@ -268,7 +264,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     ): Ret<SolverOutput> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -300,7 +296,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -331,7 +327,6 @@ class MindOPTQuadraticBendersDecompositionSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -352,7 +347,6 @@ class MindOPTQuadraticBendersDecompositionSolver(
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveSub(
         name: String,
         metaModel: QuadraticMetaModel<Flt64>,
@@ -364,7 +358,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
     ): Ret<QuadraticBendersDecompositionSolver.QuadraticSubResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -398,7 +392,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }

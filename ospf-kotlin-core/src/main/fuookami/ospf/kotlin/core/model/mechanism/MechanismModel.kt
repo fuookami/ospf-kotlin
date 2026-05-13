@@ -44,9 +44,13 @@ import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.Quadratic
 import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.MutableTokenTable
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.Token
+import fuookami.ospf.kotlin.core.token.TokenList
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
 // Solver-boundary bridge: registerConstraints on star-projected function symbols
 // Delegates to SolverBoundaryCasts (single UNCHECKED_CAST location)
@@ -58,14 +62,29 @@ private fun QuadraticMathFunctionSymbolBase<*>.registerConstraintsUnchecked(mode
     return SolverBoundaryCasts.registerConstraintsQuadraticStar(this, model)
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun MechanismModel<*>.asLinearMechanismModelFlt64OrNull(): LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
-    return this as? LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+
+private fun <V> copyTokenWithFlt64Converter(token: Token<V>): Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val copied = Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        variable = token.variable,
+        solverIndex = token.solverIndex,
+        refreshCallbacks = mutableMapOf<AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, (Boolean) -> Unit>(),
+        converter = IntoValue.Identity
+    )
+    copied.__result = token.resultFlt64
+    return copied
 }
 
-@Suppress("UNCHECKED_CAST")
-private fun MechanismModel<*>.asQuadraticMechanismModelFlt64OrNull(): QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
-    return this as? QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+private fun <V> createFlt64TokenTable(tokens: AbstractTokenTable<V>): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val copiedTokens = tokens.tokens.map { copyTokenWithFlt64Converter(it) }
+    val copiedTokenMap = copiedTokens.associateBy { it.key }
+    val copiedTokenList = TokenList(copiedTokenMap)
+    return TokenTable(
+        category = tokens.category,
+        tokenList = copiedTokenList,
+        symbols = tokens.symbols.toList()
+    )
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -76,6 +95,160 @@ private fun <V> copyMutableTokenTableAsFlt64(tokens: MutableTokenTable<V>): Muta
 @Suppress("UNCHECKED_CAST")
 private fun <V> copyConcurrentMutableTokenTableAsFlt64(tokens: ConcurrentMutableTokenTable<V>): ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
     return tokens.copy() as ConcurrentMutableTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+}
+
+private fun <V> convertLinearSubObjectToFlt64(
+    subObject: LinearSubObject<V>,
+    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+): LinearSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    val flattenData = LinearFlattenData(
+        monomials = subObject.cells.map { cell ->
+            LinearMonomial(
+                coefficient = cell.coefficient.toFlt64(),
+                symbol = cell.token.variable
+            )
+        },
+        constant = subObject.constant.toFlt64()
+    )
+    return LinearSubObject.invoke(
+        category = subObject.category,
+        flattenData = flattenData,
+        tokens = tokens,
+        name = subObject.name
+    )
+}
+
+private fun <V> convertQuadraticSubObjectToFlt64(
+    subObject: QuadraticSubObject<V>,
+    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+): QuadraticSubObject<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    val flattenData = QuadraticFlattenData(
+        monomials = subObject.cells.map { cell ->
+            if (cell.token2 == null) {
+                QuadraticMonomial.linear(
+                    coefficient = cell.coefficient.toFlt64(),
+                    symbol = cell.token1.variable
+                )
+            } else {
+                QuadraticMonomial.quadratic(
+                    coefficient = cell.coefficient.toFlt64(),
+                    symbol1 = cell.token1.variable,
+                    symbol2 = cell.token2!!.variable
+                )
+            }
+        },
+        constant = subObject.constant.toFlt64()
+    )
+    return QuadraticSubObject.invoke(
+        category = subObject.category,
+        flattenData = flattenData,
+        tokens = tokens,
+        name = subObject.name
+    )
+}
+
+private fun <V> convertLinearConstraintToFlt64(
+    constraint: LinearConstraintImpl<V>,
+    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+): LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    val relation = LinearRelationImpl(
+        flattenData = LinearFlattenData(
+            monomials = constraint.lhs.map { cell ->
+                LinearMonomial(
+                    coefficient = cell.coefficient.toFlt64(),
+                    symbol = cell.token.variable
+                )
+            },
+            constant = -constraint.rhs.toFlt64()
+        ),
+        sign = constraint.sign.toComparison(),
+        name = constraint.name
+    )
+    return LinearConstraintImpl(
+        relation = relation,
+        tokens = tokens,
+        converter = IntoValue.Identity,
+        lazy = constraint.lazy,
+        name = constraint.name,
+        origin = constraint.origin,
+        from = constraint.from
+    )
+}
+
+private fun <V> convertQuadraticConstraintToFlt64(
+    constraint: QuadraticConstraintImpl<V>,
+    tokens: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+): QuadraticConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64> where V : RealNumber<V>, V : NumberField<V> {
+    val relation = QuadraticRelationImpl(
+        flattenData = QuadraticFlattenData(
+            monomials = constraint.lhs.map { cell ->
+                if (cell.token2 == null) {
+                    QuadraticMonomial.linear(
+                        coefficient = cell.coefficient.toFlt64(),
+                        symbol = cell.token1.variable
+                    )
+                } else {
+                    QuadraticMonomial.quadratic(
+                        coefficient = cell.coefficient.toFlt64(),
+                        symbol1 = cell.token1.variable,
+                        symbol2 = cell.token2!!.variable
+                    )
+                }
+            },
+            constant = -constraint.rhs.toFlt64()
+        ),
+        sign = constraint.sign.toComparison(),
+        name = constraint.name
+    )
+    return QuadraticConstraintImpl(
+        relation = relation,
+        tokens = tokens,
+        converter = IntoValue.Identity,
+        lazy = constraint.lazy,
+        name = constraint.name,
+        origin = constraint.origin,
+        from = constraint.from
+    )
+}
+
+private fun <V> convertLinearMechanismModelToFlt64(model: LinearMechanismModel<V>): LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val flt64Tokens = createFlt64TokenTable(model.tokens)
+    val flt64Parent = LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        name = model.parent.name,
+        objectCategory = model.parent.objectCategory,
+        configuration = model.parent.configuration,
+        converter = IntoValue.Identity
+    )
+    val flt64Constraints = model.linearConstraints.map { convertLinearConstraintToFlt64(it, flt64Tokens) }
+    val flt64SubObjects = model.objectFunction.subObjects.map { convertLinearSubObjectToFlt64(it, flt64Tokens) }
+    return LinearMechanismModel(
+        parent = flt64Parent,
+        name = model.name,
+        constraints = flt64Constraints,
+        objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
+        tokens = flt64Tokens
+    )
+}
+
+private fun <V> convertQuadraticMechanismModelToFlt64(model: QuadraticMechanismModel<V>): QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+        where V : RealNumber<V>, V : NumberField<V> {
+    val flt64Tokens = createFlt64TokenTable(model.tokens)
+    val flt64Parent = QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        name = model.parent.name,
+        objectCategory = model.parent.objectCategory,
+        configuration = model.parent.configuration,
+        converter = IntoValue.Identity
+    )
+    val flt64Constraints = model.quadraticConstraints.map { convertQuadraticConstraintToFlt64(it, flt64Tokens) }
+    val flt64SubObjects = model.objectFunction.subObjects.map { convertQuadraticSubObjectToFlt64(it, flt64Tokens) }
+    return QuadraticMechanismModel(
+        parent = flt64Parent,
+        name = model.name,
+        constraints = flt64Constraints,
+        objectFunction = SingleObject(model.objectFunction.category, flt64SubObjects),
+        tokens = flt64Tokens
+    )
 }
 
 @Suppress("UNCHECKED_CAST")
@@ -125,10 +298,16 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
  */
 internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
-        is LinearMechanismModel<*> -> model.asLinearMechanismModelFlt64OrNull()?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to Flt64: linear cast failed"))
-        is QuadraticMechanismModel<*> -> model.asQuadraticMechanismModelFlt64OrNull()?.let { Ok(it) }
-            ?: Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to Flt64: quadratic cast failed"))
+        is LinearMechanismModel<*> -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(convertLinearMechanismModelToFlt64(model as LinearMechanismModel<V>))
+        }
+
+        is QuadraticMechanismModel<*> -> {
+            @Suppress("UNCHECKED_CAST")
+            Ok(convertQuadraticMechanismModelToFlt64(model as QuadraticMechanismModel<V>))
+        }
+
         else -> {
             Failed(Err(ErrorCode.IllegalArgument, "Cannot convert MechanismModel<V> to Flt64: unexpected model type ${model::class.simpleName}"))
         }
@@ -326,6 +505,83 @@ private suspend fun <V, RC, SO, C, S> dumpMechanismPartsAsync(
     return constraints to dumpedSubObjects
 }
 
+private fun <V> buildLinearObjectiveSubObjects(
+    metaModel: LinearMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): List<LinearSubObject<V>> where V : RealNumber<V>, V : NumberField<V> {
+    if (metaModel.flattenSubObjects.isNotEmpty()) {
+        return metaModel.flattenSubObjects.map { source ->
+            LinearSubObject(
+                category = source.category,
+                cells = ArrayList(source.cells),
+                _constant = source.constant,
+                name = source.name,
+            )
+        }
+    }
+    return metaModel._subObjects.map {
+        LinearSubObject(
+            category = it.category,
+            flattenData = LinearFlattenData(
+                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                it.polynomial.constant
+            ),
+            tokens = tokens,
+            name = it.name,
+            converter = metaModel.converter
+        )
+    }
+}
+
+private fun <V> buildQuadraticObjectiveSubObjects(
+    metaModel: QuadraticMetaModel<V>,
+    tokens: AbstractTokenTable<V>
+): List<QuadraticSubObject<V>> where V : RealNumber<V>, V : NumberField<V> {
+    if (metaModel.flattenSubObjects.isNotEmpty()) {
+        return metaModel.flattenSubObjects.map { source ->
+            QuadraticSubObject(
+                category = source.category,
+                cells = ArrayList(
+                    source.flattenData.monomials.mapNotNull { monomial ->
+                        val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                        val token1 = tokens.find(variable1) ?: return@mapNotNull null
+                        val token2 = if (monomial.symbol2 != null) {
+                            tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: return@mapNotNull null
+                        } else {
+                            null
+                        }
+                        if (monomial.coefficient eq metaModel.converter.zero) {
+                            null
+                        } else {
+                            fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl(
+                                tokenTable = tokens,
+                                _coefficientFlt64 = metaModel.converter.fromValue(monomial.coefficient),
+                                token1 = token1,
+                                token2 = token2,
+                                converter = metaModel.converter
+                            )
+                        }
+                    }
+                ),
+                _constant = source.flattenData.constant,
+                name = source.name
+            )
+        }
+    }
+    return metaModel._subObjects.map {
+        QuadraticSubObject(
+            category = it.category,
+            flattenData = LinearFlattenData(
+                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
+                it.polynomial.constant
+            ).toQuadraticFlattenData(),
+            tokens = tokens,
+            name = it.name,
+            converter = metaModel.converter
+        )
+    }
+}
+
 class LinearMechanismModel<V>(
     internal val parent: LinearMetaModel<V>,
     override var name: String,
@@ -402,21 +658,13 @@ class LinearMechanismModel<V>(
                         LinearConstraintImpl(
                             relation = LinearRelationImpl(it.flattenData, it.sign),
                             tokens = tokens,
-                            converter = metaModel.converter
+                            converter = metaModel.converter,
+                            lazy = it.lazy,
+                            name = it.name,
+                            origin = it
                         )
                     }.toMutableList(),
-                    objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
-                        LinearSubObject(
-                            category = it.category,
-                            flattenData = LinearFlattenData<V>(
-                                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
-                                it.polynomial.constant
-                            ),
-                            tokens = tokens,
-                            name = it.name,
-                            converter = metaModel.converter
-                        )
-                    }),
+                    objectFunction = SingleObject(metaModel.objectCategory, buildLinearObjectiveSubObjects(metaModel, tokens)),
                     tokens = tokens
                 )
             }
@@ -464,33 +712,41 @@ class LinearMechanismModel<V>(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): LinearMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
-            val (constraints, subObjects) = dumpMechanismPartsAsync(
-                metaModel = metaModel,
-                relationConstraints = metaModel._relationConstraints,
-                subObjects = metaModel._subObjects,
+            val constraints = dumpItemsAsync(
+                items = metaModel._relationConstraints,
                 scope = scope,
-                callBack = callBack,
                 memoryCheckInSingleTask = true,
-                createConstraint = {
+                onProgress = callBack?.let { callback ->
+                    { ready ->
+                        callback(
+                            MechanismModelDumpingStatus.dumpingConstrains(
+                                ready = ready,
+                                model = metaModel
+                            )
+                        )
+                    }
+                },
+                transform = {
                     LinearConstraintImpl(
                         relation = LinearRelationImpl(it.flattenData, it.sign),
                         tokens = tokens,
-                        converter = metaModel.converter
-                    )
-                },
-                createSubObject = {
-                    LinearSubObject(
-                        category = it.category,
-                        flattenData = LinearFlattenData<V>(
-                            it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
-                            it.polynomial.constant
-                        ),
-                        tokens = tokens,
+                        converter = metaModel.converter,
+                        lazy = it.lazy,
                         name = it.name,
-                        converter = metaModel.converter
+                        origin = it
                     )
                 }
             )
+            val subObjects = buildLinearObjectiveSubObjects(metaModel, tokens)
+
+            if (callBack != null) {
+                callBack(
+                    MechanismModelDumpingStatus.dumpingConstrains(
+                        ready = metaModel.constraints.usize,
+                        model = metaModel
+                    )
+                )
+            }
 
             return LinearMechanismModel<V>(
                 parent = metaModel,
@@ -966,21 +1222,13 @@ class QuadraticMechanismModel<V>(
                         QuadraticConstraintImpl(
                             relation = QuadraticRelationImpl(it.flattenData, it.sign),
                             tokens = tokens,
-                            converter = metaModel.converter
+                            converter = metaModel.converter,
+                            lazy = it.lazy,
+                            name = it.name,
+                            origin = it
                         )
                     }.toMutableList(),
-                    objectFunction = SingleObject(metaModel.objectCategory, metaModel._subObjects.map {
-                        QuadraticSubObject(
-                            category = it.category,
-                            flattenData = LinearFlattenData<V>(
-                                it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
-                                it.polynomial.constant
-                            ).toQuadraticFlattenData(),
-                            tokens = tokens,
-                            name = it.name,
-                            converter = metaModel.converter
-                        )
-                    }),
+                    objectFunction = SingleObject(metaModel.objectCategory, buildQuadraticObjectiveSubObjects(metaModel, tokens)),
                     tokens = tokens
                 )
             }
@@ -1029,33 +1277,41 @@ class QuadraticMechanismModel<V>(
             scope: CoroutineScope,
             callBack: MechanismModelDumpingStatusCallBack? = null
         ): QuadraticMechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
-            val (constraints, subObjects) = dumpMechanismPartsAsync(
-                metaModel = metaModel,
-                relationConstraints = metaModel._relationConstraints,
-                subObjects = metaModel._subObjects,
+            val constraints = dumpItemsAsync(
+                items = metaModel._relationConstraints,
                 scope = scope,
-                callBack = callBack,
                 memoryCheckInSingleTask = false,
-                createConstraint = {
+                onProgress = callBack?.let { callback ->
+                    { ready ->
+                        callback(
+                            MechanismModelDumpingStatus.dumpingConstrains(
+                                ready = ready,
+                                model = metaModel
+                            )
+                        )
+                    }
+                },
+                transform = {
                     QuadraticConstraintImpl(
                         relation = QuadraticRelationImpl(it.flattenData, it.sign),
                         tokens = tokens,
-                        converter = metaModel.converter
-                    )
-                },
-                createSubObject = {
-                    QuadraticSubObject(
-                        category = it.category,
-                        flattenData = LinearFlattenData<V>(
-                            it.polynomial.monomials.map { m -> LinearMonomial(m.coefficient, m.symbol) },
-                            it.polynomial.constant
-                        ).toQuadraticFlattenData(),
-                        tokens = tokens,
+                        converter = metaModel.converter,
+                        lazy = it.lazy,
                         name = it.name,
-                        converter = metaModel.converter
+                        origin = it
                     )
                 }
             )
+            val subObjects = buildQuadraticObjectiveSubObjects(metaModel, tokens)
+
+            if (callBack != null) {
+                callBack(
+                    MechanismModelDumpingStatus.dumpingConstrains(
+                        ready = metaModel.constraints.usize,
+                        model = metaModel
+                    )
+                )
+            }
 
             return QuadraticMechanismModel<V>(
                 parent = metaModel,

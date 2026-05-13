@@ -186,7 +186,6 @@ data object LogRecordDAO {
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 class LogRecordPersistenceSaving(
     private val db: Database,
     private val tableName: String,

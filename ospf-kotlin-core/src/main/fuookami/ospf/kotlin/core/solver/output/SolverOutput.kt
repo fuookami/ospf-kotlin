@@ -23,17 +23,34 @@ sealed interface UnifiedSolverOutput : SolverOutput {
 sealed interface LinearSolverOutput : SolverOutput {}
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
+@Suppress("UNCHECKED_CAST")
+private fun <V> castLegacyFlt64ToValueOrThrow(fieldName: String, value: Flt64, solution: Solution<V>): V {
+    if (solution.any { it !is Flt64 }) {
+        throw IllegalArgumentException(
+            "FeasibleSolverOutput.$fieldName default fallback only supports Flt64 solution. " +
+                    "Please provide explicit V-typed $fieldName."
+        )
+    }
+    return value as V
+}
+
 data class FeasibleSolverOutput<V>(
+    @Deprecated("Use objValue for V-typed objective.", ReplaceWith("objValue"), level = DeprecationLevel.WARNING)
     val obj: Flt64,
     val solution: Solution<V>,
     val time: Duration,
+    @Deprecated("Use possibleBestObjValue for V-typed objective bound.", ReplaceWith("possibleBestObjValue"), level = DeprecationLevel.WARNING)
     val possibleBestObj: Flt64,
     val gap: Flt64,
     override val iterations: UInt64? = null,
     override val nodeCount: UInt64? = null,
+    @Deprecated("Use bestBoundValue for V-typed objective bound.", ReplaceWith("bestBoundValue"), level = DeprecationLevel.WARNING)
     override val bestBound: Flt64? = null,
     override val mipGap: Flt64 = gap,
-    override val solveTime: Duration = time
+    override val solveTime: Duration = time,
+    val objValue: V = castLegacyFlt64ToValueOrThrow("objValue", obj, solution),
+    val possibleBestObjValue: V = castLegacyFlt64ToValueOrThrow("possibleBestObjValue", possibleBestObj, solution),
+    val bestBoundValue: V? = bestBound?.let { castLegacyFlt64ToValueOrThrow("bestBoundValue", it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
 
 
@@ -49,7 +66,10 @@ fun <V> FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>.con
         nodeCount = nodeCount,
         bestBound = bestBound,
         mipGap = mipGap,
-        solveTime = solveTime
+        solveTime = solveTime,
+        objValue = converter.intoValue(obj),
+        possibleBestObjValue = converter.intoValue(possibleBestObj),
+        bestBoundValue = bestBound?.let { converter.intoValue(it) }
     )
 }
 

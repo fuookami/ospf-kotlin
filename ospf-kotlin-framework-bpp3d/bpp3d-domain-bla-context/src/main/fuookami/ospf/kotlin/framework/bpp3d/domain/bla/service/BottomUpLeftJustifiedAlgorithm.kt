@@ -14,7 +14,6 @@ import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 
 private fun compareWithPosition(
@@ -118,10 +117,9 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    operator fun invoke(
+        operator fun invoke(
         originProjections: List<Projection<*, P>>,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlaAsyncScope
     ): ChannelGuard<List<Placement2<*, P>?>> {
         val projections = config.comparator.let { originProjections.sortedWithThreeWayComparator { lhs, rhs -> it(lhs, rhs) } }
 
@@ -134,8 +132,6 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                     placements = placements,
                     projections = projections
                 )
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "BLA was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "BLA was stopped by controller." }
             } catch (e: Exception) {
@@ -149,10 +145,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     @JvmName("invokeT")
-    @OptIn(ExperimentalCoroutinesApi::class, DelicateCoroutinesApi::class)
+    @OptIn(ExperimentalCoroutinesApi::class)
     operator fun <T : Cuboid<T>> invoke(
         projections: List<Projection<T, P>>,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dBlaAsyncScope
     ): ChannelGuard<List<Placement2<T, P>?>> {
         val promiseWrapper = Channel<List<Placement2<T, P>?>>()
         scope.launch(Dispatchers.Default) {
@@ -162,13 +158,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
             )
             try {
                 for (result in promise) {
-                    if (promiseWrapper.isClosedForSend) {
+                    if (promiseWrapper.trySend(result as List<Placement2<T, P>?>).isFailure) {
                         break
                     }
-                    promiseWrapper.send(result as List<Placement2<T, P>?>)
                 }
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "BLA was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "BLA was stopped by controller." }
             } catch (e: Exception) {
@@ -182,8 +175,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return ChannelGuard(promiseWrapper)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private suspend fun bla(
+        private suspend fun bla(
         promise: Channel<List<Placement2<*, P>?>>,
         placements: MutableList<Placement2<*, P>?>,
         projections: List<Projection<*, P>>
@@ -213,20 +205,15 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         var lastImpossible = false
         var lastFeasiblePoints: List<Point2> = emptyList()
         while (stack.isNotEmpty()) {
-            if (promise.isClosedForSend) {
-                return
-            }
-
             val top = stack.removeAt(stack.lastIndex)
             placements[top.first] = top.second
             val i = top.first + 1
             if (top.first == projections.lastIndex) {
-                if (promise.isClosedForSend) {
-                    return
-                }
                 lastImpossible = false
                 lastFeasiblePoints = emptyList()
-                promise.send(placements.toList())
+                if (promise.trySend(placements.toList()).isFailure) {
+                    return
+                }
             } else {
                 stack.add(Pair(i, null))
                 if (lastImpossible

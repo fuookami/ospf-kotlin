@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.copt
+package fuookami.ospf.kotlin.core.solver.copt
 
 import copt.COPT
 import copt.get
@@ -25,7 +25,6 @@ class CoptColumnGenerationSolver(
 ) : ColumnGenerationSolver {
     override val name = "copt"
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -35,7 +34,7 @@ class CoptColumnGenerationSolver(
     ): Ret<FeasibleSolverOutput<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -72,7 +71,7 @@ class CoptColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -103,7 +102,6 @@ class CoptColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -114,7 +112,7 @@ class CoptColumnGenerationSolver(
     ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -151,7 +149,7 @@ class CoptColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -199,7 +197,6 @@ class CoptColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -209,7 +206,7 @@ class CoptColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -247,7 +244,7 @@ class CoptColumnGenerationSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }

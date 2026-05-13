@@ -131,10 +131,9 @@ fun <A, B, C> cross3Sequence(a: List<A>, b: List<B>, c: List<C>): Sequence<Tripl
     }
 }
 
-@OptIn(DelicateCoroutinesApi::class)
 fun <T> crossAsync(
     input: List<List<T>>,
-    scope: CoroutineScope = GlobalScope,
+    scope: CoroutineScope = combinatoricsAsyncScope,
 ): ChannelGuard<List<T>> {
     val logger = logger("Cross")
 
@@ -151,7 +150,9 @@ fun <T> crossAsync(
                 for (i in 0 until n) {
                     row.add(input[i][indices[i]])
                 }
-                promise.send(row)
+                if (promise.trySend(row).isFailure) {
+                    break
+                }
                 var i = n - 1
                 while (i >= 0 && indices[i] == input[i].lastIndex) {
                     i--
@@ -164,8 +165,6 @@ fun <T> crossAsync(
                     indices[j] = 0
                 }
             }
-        } catch (e: ClosedSendChannelException) {
-            logger.debug { "Combination generation was stopped by controller." }
         } catch (e: Exception) {
             logger.debug { "Combination generation Error ${e.message}" }
         } finally {

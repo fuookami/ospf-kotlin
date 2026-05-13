@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.gurobi
+package fuookami.ospf.kotlin.core.solver.gurobi
 
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
 import fuookami.ospf.kotlin.core.model.basic.ModelFileFormat
@@ -23,7 +23,6 @@ class GurobiColumnGenerationSolver(
 ) : ColumnGenerationSolver {
     override val name = "gurobi"
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -33,7 +32,7 @@ class GurobiColumnGenerationSolver(
     ): Ret<FeasibleSolverOutput<Flt64>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -70,7 +69,7 @@ class GurobiColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -101,7 +100,6 @@ class GurobiColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveMILP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -112,7 +110,7 @@ class GurobiColumnGenerationSolver(
     ): Ret<Pair<FeasibleSolverOutput<Flt64>, List<List<Flt64>>>> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -149,7 +147,7 @@ class GurobiColumnGenerationSolver(
                 concurrent = config.dumpIntermediateModelConcurrent
             ).use { model ->
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }
@@ -200,7 +198,6 @@ class GurobiColumnGenerationSolver(
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
     override suspend fun solveLP(
         name: String,
         metaModel: LinearMetaModel<Flt64>,
@@ -210,7 +207,7 @@ class GurobiColumnGenerationSolver(
     ): Ret<ColumnGenerationSolver.LPResult> {
         val jobs = ArrayList<Job>()
         if (toLogModel) {
-            jobs.add(GlobalScope.launch(Dispatchers.IO) {
+            jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                 metaModel.export("$name.opm")
             })
         }
@@ -248,7 +245,7 @@ class GurobiColumnGenerationSolver(
             ).use { model ->
                 model.linearRelax()
                 if (toLogModel) {
-                    jobs.add(GlobalScope.launch(Dispatchers.IO) {
+                    jobs.add(pluginSolverAsyncScope.launch(Dispatchers.IO) {
                         model.export("$name.lp", ModelFileFormat.LP)
                     })
                 }

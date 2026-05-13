@@ -6,6 +6,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -18,6 +19,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.utils.functional.Ok
+import fuookami.ospf.kotlin.utils.functional.Try
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertTrue
@@ -168,22 +170,48 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: dump mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(abs.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: abs registerConstraints should succeed")
-            assertTrue(and.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: and registerConstraints should succeed")
-            assertTrue(ifFunc.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: if registerConstraints should succeed")
-            assertTrue(or.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: or registerConstraints should succeed")
-            assertTrue(not.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: not registerConstraints should succeed")
-            assertTrue(xor.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: xor registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-
-            assertTrue(after > before, "${numberCase.name}: function constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as LinearConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: constraint coefficient type should stay V instead of leaking Flt64")
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "abs",
+                register = { abs.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name)
+            )
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "and",
+                register = { and.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "if",
+                register = { ifFunc.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name)
+            )
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "or",
+                register = { or.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "not",
+                register = { not.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name)
+            )
+            assertLinearConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "xor",
+                register = { xor.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
         } finally {
             model.close()
         }
@@ -231,16 +259,13 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: product dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(product.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: product registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-            assertTrue(after > before, "${numberCase.name}: product constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: product constraint coefficient type should stay V instead of leaking Flt64")
+            assertQuadraticConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "product",
+                register = { product.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
         } finally {
             model.close()
         }
@@ -286,16 +311,13 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: qlinear dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qlinear registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-            assertTrue(after > before, "${numberCase.name}: qlinear constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: qlinear constraint coefficient type should stay V instead of leaking Flt64")
+            assertQuadraticConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "qlinear",
+                register = { function.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
         } finally {
             model.close()
         }
@@ -344,16 +366,13 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: qmin dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qmin registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-            assertTrue(after > before, "${numberCase.name}: qmin constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: qmin constraint coefficient type should stay V instead of leaking Flt64")
+            assertQuadraticConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "qmin",
+                register = { function.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
         } finally {
             model.close()
         }
@@ -402,16 +421,13 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: qmask dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qmask registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-            assertTrue(after > before, "${numberCase.name}: qmask constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: qmask constraint coefficient type should stay V instead of leaking Flt64")
+            assertQuadraticConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "qmask",
+                register = { function.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name, z.name)
+            )
         } finally {
             model.close()
         }
@@ -460,18 +476,100 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(mechanismResult is Ok, "${numberCase.name}: qstep dump quadratic mechanism model should succeed")
             val mechanismModel = mechanismResult.value
 
-            val before = mechanismModel.constraints.size
-            assertTrue(function.registerConstraints(mechanismModel) is Ok, "${numberCase.name}: qstep registerConstraints should succeed")
-            val after = mechanismModel.constraints.size
-            assertTrue(after > before, "${numberCase.name}: qstep constraints should be appended")
-
-            val newConstraint = mechanismModel.constraints.last() as QuadraticConstraintImpl<V>
-            val firstCell = newConstraint.lhs.first()
-            val coefficient = firstCell.coefficient
-            assertTrue(coefficient::class == numberCase.one::class,
-                "${numberCase.name}: qstep constraint coefficient type should stay V instead of leaking Flt64")
+            assertQuadraticConstraintRegistration(
+                numberCase = numberCase,
+                mechanismModel = mechanismModel,
+                label = "qstep",
+                register = { function.registerConstraints(mechanismModel) },
+                expectedInputTokenNames = setOf(x.name, y.name)
+            )
         } finally {
             model.close()
         }
+    }
+
+    private fun <V> assertLinearConstraintRegistration(
+        numberCase: GenericNumberCase<V>,
+        mechanismModel: LinearMechanismModel<V>,
+        label: String,
+        register: () -> Try,
+        expectedInputTokenNames: Set<String>
+    ) where V : RealNumber<V>, V : NumberField<V> {
+        val before = mechanismModel.constraints.size
+        assertTrue(register() is Ok, "${numberCase.name}: $label registerConstraints should succeed")
+        val after = mechanismModel.constraints.size
+        assertTrue(after > before, "${numberCase.name}: $label should append constraints")
+
+        val appended = mechanismModel.constraints.subList(before, after)
+        assertTrue(
+            appended.all { it is LinearConstraintImpl<*> },
+            "${numberCase.name}: $label should append linear constraints"
+        )
+        @Suppress("UNCHECKED_CAST")
+        val appendedLinear = appended.map { it as LinearConstraintImpl<V> }
+        val coefficients = appendedLinear.flatMap { constraint -> constraint.lhs.map { cell -> cell.coefficient } }
+        assertTrue(coefficients.isNotEmpty(), "${numberCase.name}: $label appended constraints should contain coefficients")
+        assertTrue(
+            coefficients.all { it::class == numberCase.one::class },
+            "${numberCase.name}: $label coefficients should stay V instead of leaking Flt64"
+        )
+        assertTrue(
+            appendedLinear.all { it.rhs::class == numberCase.one::class },
+            "${numberCase.name}: $label rhs type should stay V"
+        )
+        assertTrue(
+            appendedLinear.any { constraint ->
+                constraint.lhs.any { cell -> cell.token.variable.name in expectedInputTokenNames }
+            },
+            "${numberCase.name}: $label should reference input token(s) ${expectedInputTokenNames.joinToString()}"
+        )
+        assertTrue(
+            appendedLinear.any { it.sign == ConstraintRelation.LessEqual || it.sign == ConstraintRelation.GreaterEqual || it.sign == ConstraintRelation.Equal },
+            "${numberCase.name}: $label should produce comparable sign"
+        )
+    }
+
+    private fun <V> assertQuadraticConstraintRegistration(
+        numberCase: GenericNumberCase<V>,
+        mechanismModel: QuadraticMechanismModel<V>,
+        label: String,
+        register: () -> Try,
+        expectedInputTokenNames: Set<String>
+    ) where V : RealNumber<V>, V : NumberField<V> {
+        val before = mechanismModel.constraints.size
+        assertTrue(register() is Ok, "${numberCase.name}: $label registerConstraints should succeed")
+        val after = mechanismModel.constraints.size
+        assertTrue(after > before, "${numberCase.name}: $label should append constraints")
+
+        val appended = mechanismModel.constraints.subList(before, after)
+        assertTrue(
+            appended.all { it is QuadraticConstraintImpl<*> },
+            "${numberCase.name}: $label should append quadratic constraints"
+        )
+        @Suppress("UNCHECKED_CAST")
+        val appendedQuadratic = appended.map { it as QuadraticConstraintImpl<V> }
+        val coefficients = appendedQuadratic.flatMap { constraint -> constraint.lhs.map { cell -> cell.coefficient } }
+        assertTrue(coefficients.isNotEmpty(), "${numberCase.name}: $label appended constraints should contain coefficients")
+        assertTrue(
+            coefficients.all { it::class == numberCase.one::class },
+            "${numberCase.name}: $label coefficients should stay V instead of leaking Flt64"
+        )
+        assertTrue(
+            appendedQuadratic.all { it.rhs::class == numberCase.one::class },
+            "${numberCase.name}: $label rhs type should stay V"
+        )
+        assertTrue(
+            appendedQuadratic.any { constraint ->
+                constraint.lhs.any { cell ->
+                    cell.token1.variable.name in expectedInputTokenNames ||
+                        cell.token2?.variable?.name in expectedInputTokenNames
+                }
+            },
+            "${numberCase.name}: $label should reference input token(s) ${expectedInputTokenNames.joinToString()}"
+        )
+        assertTrue(
+            appendedQuadratic.any { it.sign == ConstraintRelation.LessEqual || it.sign == ConstraintRelation.GreaterEqual || it.sign == ConstraintRelation.Equal },
+            "${numberCase.name}: $label should produce comparable sign"
+        )
     }
 }

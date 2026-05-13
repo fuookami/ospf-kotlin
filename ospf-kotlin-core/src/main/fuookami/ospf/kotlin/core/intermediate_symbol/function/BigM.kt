@@ -101,7 +101,7 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  *
  * Returns a list of named LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
  */
-@Deprecated(
+@kotlin.Deprecated(
     message = "Use nonzeroIndicatorConstraintsV(...) to keep constraints V-typed.",
     replaceWith = ReplaceWith("nonzeroIndicatorConstraintsV(poly, indVar, sideVar, bigM, tolerance, strictBoundary, namePrefix)"),
     level = DeprecationLevel.WARNING
@@ -182,7 +182,7 @@ fun <V> nonzeroIndicatorConstraintsV(
  *
  * Returns LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
  */
-@Deprecated(
+@kotlin.Deprecated(
     message = "Use simpleIndicatorConstraintsV(...) to keep constraints V-typed.",
     replaceWith = ReplaceWith("simpleIndicatorConstraintsV(ineq, indicator, bigM, tolerance, strictBoundary, namePrefix)"),
     level = DeprecationLevel.WARNING

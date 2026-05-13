@@ -10,7 +10,6 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 
 data object ItemHeightCombinator {
@@ -296,15 +295,14 @@ data object ItemHeightCombinator {
         return items
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun <T> getItem(
+        private fun <T> getItem(
         itemsGroup: Map<Flt64, List<T>>,
         itemsAmount: Map<Item, UInt64>,
         height: Flt64,
         mapper: (T) -> Item,
         restWeight: Flt64 = Flt64.infinity,
         averageWeight: Flt64? = null,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<T> {
         val promise = Channel<T>(Channel.UNLIMITED)
         scope.launch(Dispatchers.Default) {
@@ -318,17 +316,14 @@ data object ItemHeightCombinator {
                         if (itemsAmount[mapper(item)]?.let { it >= UInt64.one } == true
                             && mapper(item).weight leq restWeight
                         ) {
-                            if (promise.isClosedForSend) {
+                            if (promise.trySend(item).isFailure) {
                                 break
                             }
-                            promise.send(item)
                         }
                     }
                 }
 
                 promise.close()
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Item height combination was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Item height combination was stopped by controller." }
             } catch (e: Exception) {
@@ -340,15 +335,14 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun <T> getItem2(
+        private fun <T> getItem2(
         itemsGroup: Map<Flt64, List<T>>,
         itemsAmount: Map<Item, UInt64>,
         height: Flt64,
         mapper: (T) -> Item,
         restWeight: Flt64 = Flt64.infinity,
         averageWeight: Flt64? = null,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dItemServiceAsyncScope
     ): ChannelGuard<Pair<T, T>> {
         val promise = Channel<Pair<T, T>>(Channel.UNLIMITED)
         scope.launch(Dispatchers.Default) {
@@ -372,15 +366,12 @@ data object ItemHeightCombinator {
                             if ((mapper(list[i]).weight + mapper(list[j]).weight) gr restWeight) {
                                 continue
                             }
-                            if (promise.isClosedForSend) {
+                            if (promise.trySend(Pair(list[i], list[j])).isFailure) {
                                 break
                             }
-                            promise.send(Pair(list[i], list[j]))
                         }
                     }
                 }
-            } catch (e: ClosedSendChannelException) {
-                logger.trace { "Item height combination was stopped by controller." }
             } catch (e: CancellationException) {
                 logger.trace { "Item height combination was stopped by controller." }
             } catch (e: Exception) {
@@ -392,6 +383,4 @@ data object ItemHeightCombinator {
         return ChannelGuard(promise)
     }
 }
-
-
 

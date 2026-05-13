@@ -32,12 +32,12 @@ data class LinearConstraintInputV<V>(
     val displayName: String? = null,
     val rhsConstant: V
 ) where V : RealNumber<V>, V : NumberField<V> {
-    @Deprecated(
+    @kotlin.Deprecated(
         message = "Use lhsRange.lowerBound directly for V-typed range access.",
         replaceWith = ReplaceWith("lhsRange.lowerBound.value.unwrapOrNull()")
     )
     val lowerBound: Flt64? get() = lhsRange.lowerBound.value.unwrapOrNull()?.toFlt64()
-    @Deprecated(
+    @kotlin.Deprecated(
         message = "Use lhsRange.upperBound directly for V-typed range access.",
         replaceWith = ReplaceWith("lhsRange.upperBound.value.unwrapOrNull()")
     )

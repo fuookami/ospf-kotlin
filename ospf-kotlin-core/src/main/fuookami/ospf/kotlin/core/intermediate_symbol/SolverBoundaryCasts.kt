@@ -166,7 +166,7 @@ internal object SolverBoundaryCasts {
         return polynomial as MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 
-    fun tokenTableAsFlt64OrNull(tokenTable: AbstractTokenTable<*>?): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
+    fun tokenTableAsFlt64OrNull(tokenTable: Any?): AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>? {
         return tokenTable as? AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     }
 

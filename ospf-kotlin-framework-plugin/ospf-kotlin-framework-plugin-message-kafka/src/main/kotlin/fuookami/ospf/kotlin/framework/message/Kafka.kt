@@ -2,9 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.message
 
-import kotlinx.coroutines.DelicateCoroutinesApi
 import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.launch
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
@@ -137,8 +135,7 @@ data class KafkaClient(
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun listen(
+        fun listen(
         topics: List<String>,
         process: (String, KafkaMessageRecord) -> Unit,
         groupId: String? = null
@@ -156,11 +153,11 @@ data class KafkaClient(
             consumer.subscribe(topics)
             this.topicConsumer = consumer
 
-            GlobalScope.launch(Dispatchers.IO) {
+            frameworkPluginAsyncScope.launch(Dispatchers.IO) {
                 while (true) {
                     val records = consumer.poll(100.milliseconds.toJavaDuration())
                     for (record in records) {
-                        GlobalScope.launch(Dispatchers.Default) {
+                        frameworkPluginAsyncScope.launch(Dispatchers.Default) {
                             topicProcessor[record.topic()]?.let { (record.value()) }
                         }
                     }
@@ -237,8 +234,7 @@ data class KafkaClient(
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun listenPattern(
+        fun listenPattern(
         pattern: String,
         process: (String, KafkaMessageRecord) -> Unit,
         groupId: String? = null
@@ -247,11 +243,11 @@ data class KafkaClient(
         consumer.subscribe(Pattern.compile(pattern))
         this.patternConsumers.add(consumer)
 
-        GlobalScope.launch(Dispatchers.IO) {
+        frameworkPluginAsyncScope.launch(Dispatchers.IO) {
             while (true) {
                 val records = consumer.poll(100.milliseconds.toJavaDuration())
                 for (record in records) {
-                    GlobalScope.launch(Dispatchers.Default) {
+                    frameworkPluginAsyncScope.launch(Dispatchers.Default) {
                         process(record.value(), record)
                     }
                 }

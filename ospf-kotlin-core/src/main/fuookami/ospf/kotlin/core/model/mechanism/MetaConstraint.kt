@@ -262,6 +262,8 @@ interface MathConstraint {
 data class LinearInequalityConstraint<V>(
     val inequality: LinearInequality<V>,
     val converter: IntoValue<V>,
+    val constraintName: String = "",
+    val constraintDisplayName: String? = null,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
@@ -270,8 +272,8 @@ data class LinearInequalityConstraint<V>(
     val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData()
     val flattenDataFlt64: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
-    val name: String = ""
-    val displayName: String? = null
+    val name: String get() = constraintName
+    val displayName: String? get() = constraintDisplayName
 
     override fun <V1> isTrue(
         solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
@@ -294,6 +296,8 @@ data class LinearInequalityConstraint<V>(
 data class QuadraticInequalityConstraint<V>(
     val inequality: QuadraticInequalityOf<V>,
     val converter: IntoValue<V>,
+    val constraintName: String = "",
+    val constraintDisplayName: String? = null,
     override val group: MetaConstraintGroup? = null,
     override val lazy: Boolean = false,
     override val args: Any? = null,
@@ -302,8 +306,8 @@ data class QuadraticInequalityConstraint<V>(
     val flattenData: QuadraticFlattenData<V> get() = inequality.toQuadraticFlattenData()
     val flattenDataFlt64: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
-    val name: String = ""
-    val displayName: String? = null
+    val name: String get() = constraintName
+    val displayName: String? get() = constraintDisplayName
 
     override fun <V1> isTrue(
         solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,

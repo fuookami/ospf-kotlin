@@ -23,7 +23,6 @@ import fuookami.ospf.kotlin.math.operator.abs
 import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
-import kotlinx.coroutines.channels.ClosedSendChannelException
 import org.apache.logging.log4j.kotlin.logger
 
 private data class PatternItemInfo(
@@ -331,8 +330,7 @@ abstract class Pattern {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private fun generatePlanePlacements(
+        private fun generatePlanePlacements(
         originItems: List<PatternItemInfo>,
         itemsGroup: Map<Flt64, List<PatternItemInfo>>,
         twoSumHeight: List<Pair<Flt64, Flt64>>,
@@ -341,7 +339,7 @@ abstract class Pattern {
         restWeight: Flt64,
         patterns: List<List<Step>>,
         config: Config,
-        scope: CoroutineScope = GlobalScope
+        scope: CoroutineScope = bpp3dItemModelAsyncScope
     ): ChannelGuard<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>> {
         val promise = Channel<Result<List<ItemPlacement2<Bottom>>, ErrorCode, Error<ErrorCode>>>(Channel.UNLIMITED)
         for (pattern in patterns) {
@@ -358,8 +356,6 @@ abstract class Pattern {
                         config = config,
                         promise = promise
                     )
-                } catch (e: ClosedSendChannelException) {
-                    logger.debug { "Pattern generation was stopped by controller." }
                 } catch (e: Exception) {
                     logger.debug { "Pattern generation Error ${e.message}" }
                 } finally {
@@ -370,8 +366,7 @@ abstract class Pattern {
         return ChannelGuard(promise)
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    private suspend fun generatePlanePlacements(
+        private suspend fun generatePlanePlacements(
         originItems: List<PatternItemInfo>,
         itemsGroup: Map<Flt64, List<PatternItemInfo>>,
         twoSumHeight: List<Pair<Flt64, Flt64>>,
@@ -418,16 +413,12 @@ abstract class Pattern {
                     }
 
                     is Failed -> {
-                        if (!promise.isClosedForSend) {
-                            promise.send(Failed(ret.error))
-                        }
+                        promise.trySend(Failed(ret.error))
                         return
                     }
 
                     is Fatal -> {
-                        if (!promise.isClosedForSend) {
-                            promise.send(Fatal(ret.errors))
-                        }
+                        promise.trySend(Fatal(ret.errors))
                         return
                     }
                 }
@@ -476,16 +467,12 @@ abstract class Pattern {
                         }
 
                         is Failed -> {
-                            if (!promise.isClosedForSend) {
-                                promise.send(Failed(ret.error))
-                            }
+                            promise.trySend(Failed(ret.error))
                             return
                         }
 
                         is Fatal -> {
-                            if (!promise.isClosedForSend) {
-                                promise.send(Fatal(ret.errors))
-                            }
+                            promise.trySend(Fatal(ret.errors))
                             return
                         }
                     }
@@ -571,16 +558,12 @@ abstract class Pattern {
                                 }
 
                                 is Failed -> {
-                                    if (!promise.isClosedForSend) {
-                                        promise.send(Failed(ret.error))
-                                    }
+                                    promise.trySend(Failed(ret.error))
                                     return
                                 }
 
                                 is Fatal -> {
-                                    if (!promise.isClosedForSend) {
-                                        promise.send(Fatal(ret.errors))
-                                    }
+                                    promise.trySend(Fatal(ret.errors))
                                     return
                                 }
                             }
@@ -617,10 +600,9 @@ abstract class Pattern {
                 val thisAmount = placements.sumOf { it.projection.amount(item.item) }
                 item.amount -= thisAmount
             }
-            if (promise.isClosedForSend) {
+            if (promise.trySend(Ok(placements)).isFailure) {
                 return
             }
-            promise.send(Ok(placements))
 
             if (config.withRemainder && placements.size != pattern.size) {
                 break
@@ -628,6 +610,4 @@ abstract class Pattern {
         }
     }
 }
-
-
 

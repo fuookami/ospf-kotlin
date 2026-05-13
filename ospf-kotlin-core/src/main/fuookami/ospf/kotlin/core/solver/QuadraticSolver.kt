@@ -1,8 +1,7 @@
-﻿package fuookami.ospf.kotlin.core.solver
+package fuookami.ospf.kotlin.core.solver
 
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
-import fuookami.ospf.kotlin.core.intermediate_symbol.SolverBoundaryCasts.castQuadraticMechanismModelStar
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.iis.IISConfig
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
@@ -16,14 +15,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import kotlinx.coroutines.DelicateCoroutinesApi
-import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.future.future
 import java.util.concurrent.CompletableFuture
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
@@ -51,13 +51,12 @@ interface AbstractQuadraticSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solvingStatusCallBack = solvingStatusCallBack
@@ -67,14 +66,13 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticTetradModelView,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solvingStatusCallBack = solvingStatusCallBack,
@@ -107,14 +105,13 @@ interface AbstractQuadraticSolver {
         )
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -125,15 +122,14 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -177,8 +173,7 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
@@ -194,14 +189,13 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solvingStatusCallBack = solvingStatusCallBack,
@@ -248,14 +242,13 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -268,15 +261,14 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solutionAmount: UInt64,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         iisConfig: IISConfig,
         callBack: ((Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -344,15 +336,14 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
     ): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -366,8 +357,7 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
         dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null,
@@ -375,7 +365,7 @@ interface AbstractQuadraticSolver {
         iisConfig: IISConfig,
         callBack: ((Ret<SolverOutput>) -> Unit)? = null
     ): CompletableFuture<Ret<SolverOutput>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 registrationStatusCallBack = registrationStatusCallBack,
@@ -446,8 +436,7 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -455,7 +444,7 @@ interface AbstractQuadraticSolver {
         solvingStatusCallBack: SolvingStatusCallBack? = null,
         callBack: ((Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -470,8 +459,7 @@ interface AbstractQuadraticSolver {
 
     @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
     @Suppress("DEPRECATION")
-    @OptIn(DelicateCoroutinesApi::class)
-    fun solveAsync(
+        fun solveAsync(
         model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
         solutionAmount: UInt64,
         registrationStatusCallBack: RegistrationStatusCallBack? = null,
@@ -480,7 +468,7 @@ interface AbstractQuadraticSolver {
         iisConfig: IISConfig,
         callBack: ((Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>) -> Unit)? = null
     ): CompletableFuture<Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>> {
-        return GlobalScope.future {
+        return coreSolverAsyncScope.future {
             val result = this@AbstractQuadraticSolver.invoke(
                 model = model,
                 solutionAmount = solutionAmount,
@@ -566,9 +554,21 @@ interface AbstractQuadraticSolver {
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-        // Adapter boundary: external solvers require Flt64. Convert model, solve, then convert back.
-        val flt64Model = castQuadraticMechanismModelStar(model)
-        return solveV(flt64Model, converter, solvingStatusCallBack)
+        return when (val converted = convertMechanismModelToFlt64(model)) {
+            is Ok -> {
+                val quadraticModel = converted.value as? QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+                    ?: return Failed(Err(ErrorCode.IllegalArgument, "Quadratic solver requires QuadraticMechanismModel, but got ${converted.value::class.simpleName}"))
+                solveV(quadraticModel, converter, solvingStatusCallBack)
+            }
+
+            is Failed -> {
+                Failed(converted.error)
+            }
+
+            is Fatal -> {
+                Fatal(converted.errors)
+            }
+        }
     }
 
     @Suppress("DEPRECATION")
@@ -578,8 +578,21 @@ interface AbstractQuadraticSolver {
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
     ): Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>> where V : RealNumber<V>, V : NumberField<V> {
-        val flt64Model = castQuadraticMechanismModelStar(model)
-        return solveV(flt64Model, solutionAmount, converter, solvingStatusCallBack)
+        return when (val converted = convertMechanismModelToFlt64(model)) {
+            is Ok -> {
+                val quadraticModel = converted.value as? QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+                    ?: return Failed(Err(ErrorCode.IllegalArgument, "Quadratic solver requires QuadraticMechanismModel, but got ${converted.value::class.simpleName}"))
+                solveV(quadraticModel, solutionAmount, converter, solvingStatusCallBack)
+            }
+
+            is Failed -> {
+                Failed(converted.error)
+            }
+
+            is Fatal -> {
+                Fatal(converted.errors)
+            }
+        }
     }
 
     suspend fun dump(model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticTetradModel {
