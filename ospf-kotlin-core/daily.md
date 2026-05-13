@@ -73,3 +73,33 @@
 - 分支：`rewrite-bigbang`
 - 工作区：干净
 - 进度：`origin/rewrite-bigbang` 之上 `ahead 11`
+
+## 本会话任务单（提交级执行版）
+
+1. `chore: establish genericization baseline and gap list`
+   - 执行基线命令：`git status -sb`、`git log --oneline -12`、bridge 定向测试。
+   - 盘点 `framework/solver` 中 `ColumnGeneration` 与 `Benders` 的异步 `V` 入口差异。
+   - 产出差异清单（命名、参数顺序、重载入口是否对齐）。
+2. `feat: align column-generation async v-input bridges with benders`
+   - 若 `ColumnGeneration` 缺失与 `Benders` 对齐的异步 `V` 入口，补齐线性/二次泛型输入重载。
+   - 保持旧 `Flt64` 入口兼容，主实现收敛到 `V` 桥接。
+   - 补充/调整对应测试，覆盖新增入口与向后兼容路径。
+3. `refactor: normalize v-solver method naming and parameter order`
+   - 统一 `framework/solver` 包内 `V` 相关方法命名与参数顺序。
+   - 消除歧义重载，必要时通过 wrapper 保持二进制/源码兼容。
+   - 保证公共 API 文义一致：输入模型、converter、上下文参数顺序稳定。
+4. `chore: enforce toDouble boundary in core pipeline`
+   - 全仓扫描 `.toDouble()` 调用并分类（允许区/禁止区）。
+   - 主链路仅允许通过 `SolveValueConversionContext.kt` 进入 double 边界。
+   - 新增或强化门禁规则，阻止 `.toDouble()` 回流到泛型主链路目录。
+5. `test: run staged regression for framework generic bridges`
+   - 每完成一个主题提交先跑对应定向测试。
+   - 阶段完成后执行 `mvn --% -pl ospf-kotlin-framework -am test` 全量回归。
+   - 若失败，先最小化修复再继续下一提交，避免跨主题污染。
+
+## 本会话执行顺序（从现在开始）
+
+1. 先执行任务 1：基线确认 + 差异清单。
+2. 立即进入任务 2：按差异补齐 `ColumnGeneration` 异步 `V` 入口并补测试。
+3. 然后执行任务 3：统一命名与参数顺序并回归。
+4. 最后推进任务 4：`.toDouble()` 门禁治理并跑阶段全量测试。
