@@ -1,0 +1,88 @@
+/**
+ * Flt64 转换桥接接口
+ * Flt64 Conversion Bridge Interface
+ *
+ * 定义数值类型与 Flt64 之间的双向转换能力，使 companion 对象可直接充当 converter，
+ * 消除 core/framework 中大量重复的 flt64Converter 样板代码。
+ *
+ * Defines bidirectional conversion capability between numeric types and Flt64,
+ * enabling companion objects to serve as converters directly,
+ * eliminating repetitive flt64Converter boilerplate in core/framework.
+ *
+ * 四种核心数值类型（Flt64、FltX、Rtn64、RtnX）的 companion 对象均实现此接口，
+ * 因此可直接作为 IntoValue<V> 的等价提供者使用。
+ *
+ * The companion objects of the four core numeric types (Flt64, FltX, Rtn64, RtnX)
+ * all implement this interface, and can thus be used directly as IntoValue<V>-equivalent providers.
+ */
+package fuookami.ospf.kotlin.math.algebra.concept
+
+import fuookami.ospf.kotlin.math.algebra.number.Flt64
+
+/**
+ * Flt64 转换桥接接口
+ * Flt64 conversion bridge interface
+ *
+ * 提供从 Flt64 到 V 的正向转换（intoValue）和从 V 到 Flt64 的反向转换（fromValue），
+ * 以及 V 类型的零和一常量。
+ * 与 core 层的 IntoValue<V> 接口语义完全对齐，但定义在 math 层以允许 companion 对象直接实现。
+ *
+ * Provides forward conversion from Flt64 to V (intoValue) and reverse conversion from V to Flt64 (fromValue),
+ * along with V-typed zero and one constants.
+ * Semantically aligned with core's IntoValue<V> interface, but defined in the math layer
+ * to allow companion objects to implement it directly.
+ *
+ * infinity 和 negativeInfinity 不在此接口中声明（避免与 HasInfinity<V?> 的 nullable 签名冲突），
+ * 由 core 层的 IntoValue<V> 通过 intoValue(Flt64.infinity) 默认实现提供。
+ *
+ * infinity and negativeInfinity are not declared in this interface
+ * (to avoid conflict with HasInfinity<V?>'s nullable signature),
+ * and are provided by core's IntoValue<V> via intoValue(Flt64.infinity) default implementation.
+ *
+ * @param V 目标数值类型，必须是实数且满足数域约束
+ * @param V The target numeric type, must be a real number satisfying number field constraints
+ */
+interface Flt64Bridge<V : RealNumber<V>> : HasZero<V>, HasOne<V> {
+    /**
+     * 将 Flt64 值转换为 V 类型
+     * Convert a Flt64 value to type V
+     *
+     * @param value Flt64 源值
+     *              The Flt64 source value
+     * @return V 类型目标值
+     *         The V-typed target value
+     */
+    fun intoValue(value: Flt64): V
+
+    /**
+     * 将 V 类型值转换为 Flt64
+     * Convert a V-typed value to Flt64
+     *
+     * 默认实现使用 RealNumber 的 toFlt64() 方法。
+     * Default implementation uses RealNumber's toFlt64() method.
+     *
+     * @param value V 类型源值
+     *              The V-typed source value
+     * @return Flt64 目标值
+     *         The Flt64 target value
+     */
+    fun fromValue(value: V): Flt64 = value.toFlt64()
+}
+
+/**
+ * 通过伴生对象反射解析 Flt64Bridge
+ * Resolve Flt64Bridge through companion object reflection
+ *
+ * @param V 目标数值类型
+ * @param V The target numeric type
+ * @param caller 调用者名称
+ * @param caller The caller name
+ * @return 解析到的 Flt64Bridge 提供者
+ * @return The resolved Flt64Bridge provider
+ */
+inline fun <reified V> resolveFlt64Bridge(caller: String): Flt64Bridge<V> where V : RealNumber<V> {
+    return resolveCompanionProvider<V, Flt64Bridge<V>>(
+        caller,
+        "Flt64Bridge<${V::class.simpleName}>"
+    )
+}

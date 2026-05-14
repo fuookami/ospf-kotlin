@@ -35,6 +35,9 @@ import fuookami.ospf.kotlin.core.model.basic.QuadraticModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.FltX
+import fuookami.ospf.kotlin.math.algebra.number.Rtn64
+import fuookami.ospf.kotlin.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -52,12 +55,7 @@ import kotlin.io.path.isDirectory
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+private val flt64Converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
 
 /**
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
@@ -944,7 +942,7 @@ class LinearMetaModel<V>(
     }
 
     companion object {
-        internal operator fun invoke(
+        operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
@@ -952,7 +950,40 @@ class LinearMetaModel<V>(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = flt64Converter
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+        )
+
+        fun fltX(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.FltX> = LinearMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.FltX)
+        )
+
+        fun rtn64(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Rtn64> = LinearMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Rtn64)
+        )
+
+        fun rtnX(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.RtnX> = LinearMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.RtnX)
         )
     }
 }
@@ -1158,7 +1189,7 @@ class QuadraticMetaModel<V>(
     }
 
     companion object {
-        internal operator fun invoke(
+        operator fun invoke(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
@@ -1166,7 +1197,40 @@ class QuadraticMetaModel<V>(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = flt64Converter
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+        )
+
+        fun fltX(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.FltX> = QuadraticMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.FltX)
+        )
+
+        fun rtn64(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Rtn64> = QuadraticMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Rtn64)
+        )
+
+        fun rtnX(
+            name: String = "",
+            objectCategory: ObjectCategory = ObjectCategory.Minimum,
+            configuration: MetaModelConfiguration = MetaModelConfiguration()
+        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.RtnX> = QuadraticMetaModel(
+            name = name,
+            objectCategory = objectCategory,
+            configuration = configuration,
+            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.RtnX)
         )
     }
 }
