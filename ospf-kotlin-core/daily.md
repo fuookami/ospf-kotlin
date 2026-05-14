@@ -368,3 +368,18 @@ mvn --% -f E:/workspace/poit/psp/pom.xml -DskipTests compile
 **残余风险：**
 
 - Rtn64/RtnX 的 `intoValue` 对非整数 Flt64 值有精度截断（符合有理数语义），后续如需精确转换可扩展接口
+
+### P1：四类数值易用入口 — 已完成
+
+**修改文件：**
+
+- `ospf-kotlin-core/src/main/.../mechanism/MetaModel.kt` — LinearMetaModel/QuadraticMetaModel companion 从 `internal` 改为 `public`，新增 `fltX()`/`rtn64()`/`rtnX()` 工厂
+- `ospf-kotlin-core/src/test/.../ApiCompatibilityTest.kt` — 四类型入口验证
+- `ospf-kotlin-core/src/test/.../GenericNumberCases.kt` — 使用 `IntoValue.fromBridge()` 替代手写 converter
+
+**验收证据：**
+
+- `ApiCompatibilityTest` 8 个测试全部通过
+- `Flt64BridgeTest` 8 个测试全部通过
+- `LinearMetaModel("name")` / `LinearMetaModel.fltX("name")` / `.rtn64()` / `.rtnX()` 均可跨模块使用
+- `QuadraticMetaModel("name")` / `.fltX()` / `.rtn64()` / `.rtnX()` 同理

@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.Flt64Bridge
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -35,9 +36,6 @@ import fuookami.ospf.kotlin.core.model.basic.QuadraticModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.FltX
-import fuookami.ospf.kotlin.math.algebra.number.Rtn64
-import fuookami.ospf.kotlin.math.algebra.number.RtnX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -946,44 +944,23 @@ class LinearMetaModel<V>(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearMetaModel(
+        ): LinearMetaModel<Flt64> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+            converter = flt64Converter
         )
 
-        fun fltX(
-            name: String = "",
+        operator fun <V> invoke(
+            name: String,
+            bridge: Flt64Bridge<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.FltX> = LinearMetaModel(
+        ): LinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.FltX)
-        )
-
-        fun rtn64(
-            name: String = "",
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Rtn64> = LinearMetaModel(
-            name = name,
-            objectCategory = objectCategory,
-            configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Rtn64)
-        )
-
-        fun rtnX(
-            name: String = "",
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.RtnX> = LinearMetaModel(
-            name = name,
-            objectCategory = objectCategory,
-            configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.RtnX)
+            converter = IntoValue.fromBridge(bridge)
         )
     }
 }
@@ -1193,44 +1170,23 @@ class QuadraticMetaModel<V>(
             name: String = "",
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticMetaModel(
+        ): QuadraticMetaModel<Flt64> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+            converter = flt64Converter
         )
 
-        fun fltX(
-            name: String = "",
+        operator fun <V> invoke(
+            name: String,
+            bridge: Flt64Bridge<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.FltX> = QuadraticMetaModel(
+        ): QuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.FltX)
-        )
-
-        fun rtn64(
-            name: String = "",
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Rtn64> = QuadraticMetaModel(
-            name = name,
-            objectCategory = objectCategory,
-            configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Rtn64)
-        )
-
-        fun rtnX(
-            name: String = "",
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            configuration: MetaModelConfiguration = MetaModelConfiguration()
-        ): QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.RtnX> = QuadraticMetaModel(
-            name = name,
-            objectCategory = objectCategory,
-            configuration = configuration,
-            converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.RtnX)
+            converter = IntoValue.fromBridge(bridge)
         )
     }
 }

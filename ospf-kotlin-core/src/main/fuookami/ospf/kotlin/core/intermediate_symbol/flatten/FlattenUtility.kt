@@ -26,9 +26,9 @@ import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
  * @return Merged LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> with combined coefficients
  */
 internal fun mergeLinearMonomials(
-    monomials: List<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
+    monomials: List<LinearMonomial<Flt64>>,
     constant: Flt64
-): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+): LinearFlattenData<Flt64> {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
     var totalConstant = constant
 

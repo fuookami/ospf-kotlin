@@ -273,13 +273,10 @@ inline fun <reified V> Duration.toQuantity(unit: PhysicalUnit): Ret<Quantity<V>>
     val secondsValue = this.toDouble(DurationUnit.SECONDS)
 
     // 获取从秒到目标单位的转换因子
-    val factor = Second.to(unit)?.value?.toFlt64()?.toDouble()
-    if (factor == null) {
-        return Failed(
-            ErrorCode.Other,
-            "Failed to convert seconds to ${unit.name}"
-        )
-    }
+    val factor = Second.to(unit)?.value?.toFlt64()?.toDouble() ?: return Failed(
+        ErrorCode.Other,
+        "Failed to convert seconds to ${unit.name}"
+    )
 
     // 计算目标单位下的值
     return when (val valueResult = converter.fromDouble(secondsValue * factor)) {
@@ -323,7 +320,7 @@ fun <V> Duration.toQuantity(unit: PhysicalUnit, converter: DurationConverter<V>)
     // 计算目标单位下的值
     return when (val valueResult = converter.fromDouble(secondsValue * factor)) {
         is Ok -> {
-            Ok((valueResult.value * unit) as Quantity<V>)
+            Ok((valueResult.value * unit))
         }
         is Failed -> Failed(valueResult.error)
         is Fatal -> Fatal(valueResult.errors)
