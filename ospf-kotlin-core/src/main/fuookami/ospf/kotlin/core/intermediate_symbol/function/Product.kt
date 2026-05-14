@@ -290,7 +290,7 @@ class ProductFunction<V>(
     override fun registerConstraints(model: AbstractQuadraticMechanismModel<V>): Try {
         val poly = polynomial
         val rhs = QuadraticPolynomial<V>(constant = converter.zero)
-        val inequality = QuadraticInequalityOf(poly, rhs, Comparison.EQ)
+        val inequality = QuadraticInequalityOf(poly, rhs, Comparison.EQ, "${name}_eq")
         return addQuadraticConstraints(model, listOf(inequality)) ?: ok
     }
 

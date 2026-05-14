@@ -414,6 +414,38 @@ Write-Result "P5-6-2: No ClosedSendChannelException usage in primary modules" ($
 Write-Result "P5-6-3: No GlobalScope usage in primary modules" ($globalScopeMatches.Count -eq 0) "Found $($globalScopeMatches.Count) violations"
 Write-Result "P5-6-4: No DelicateCoroutinesApi usage in primary modules" ($delicateApiMatches.Count -eq 0) "Found $($delicateApiMatches.Count) violations"
 
+# Guard 16: No empty smoke assertions in example tests (zero-tolerance)
+$exampleTestRoot = "ospf-kotlin-example/src/test"
+$emptySmokeViolations = @()
+$emptyAssertPattern = "(?:^|\\W)(?:Assertions\\.)?assertTrue\\s*\\(\\s*true\\s*\\)"
+$kotlinEmptyAssertPattern = "(?:^|\\W)kotlin\\.test\\.assertTrue\\s*\\(\\s*true\\s*\\)"
+$assertThatEmptyPattern = "assertThat\\s*\\(\\s*true\\s*\\)\\s*\\.isTrue\\s*\\(\\s*\\)"
+
+if (Test-Path $exampleTestRoot) {
+    Get-ChildItem -Path $exampleTestRoot -Recurse -Filter "*.kt" | ForEach-Object {
+        $relativePath = Get-RelativePath -Root $exampleTestRoot -FilePath $_.FullName
+        $lineNumber = 0
+        Get-Content $_.FullName | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\\*|/\\*\\*)" -and
+                ($trimmed -match $emptyAssertPattern -or
+                 $trimmed -match $kotlinEmptyAssertPattern -or
+                 $trimmed -match $assertThatEmptyPattern)) {
+                $emptySmokeViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+} else {
+    Write-Host "[SKIP] P1-EX-1: example test root not found ($exampleTestRoot)" -ForegroundColor Yellow
+}
+
+Write-Result "P1-EX-1: No empty smoke assertions in example tests" ($emptySmokeViolations.Count -eq 0) "Found $($emptySmokeViolations.Count) violations"
+if (($Verbose -or $emptySmokeViolations.Count -gt 0) -and $emptySmokeViolations.Count -gt 0) {
+    $preview = ($emptySmokeViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
 # --- P6/P7 Metric Guards ---
 
 $mathMain = "ospf-kotlin-math/src/main"

@@ -199,7 +199,7 @@ class ProduceQuantityConstraint<
         shadowPrices: MetaDualSolution
     ): Try {
         val thisShadowPrices = HashMap<P, Flt64>()
-        for (constraint in model.constraintsOfGroup(this)) {
+        for (constraint in with(this) { model.constraintsOfGroup() }) {
             val product = (constraint.args as? ProduceQuantityShadowPriceKey<P>)?.product ?: continue
             shadowPrices.constraints[constraint]?.let { price ->
                 thisShadowPrices[product] = (thisShadowPrices[product] ?: Flt64.zero) + price

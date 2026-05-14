@@ -994,7 +994,7 @@ class LinearMechanismModel<V>(
         return generateFeasibleCutV(fixedVariables, dualSolution)
     }
 
-    internal fun generateOptimalCut(
+    fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
@@ -1016,7 +1016,7 @@ class LinearMechanismModel<V>(
         ).map { toFlt64LinearCut(it) }
     }
 
-    internal fun generateFeasibleCut(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
@@ -1680,7 +1680,7 @@ class QuadraticMechanismModel<V>(
         return generateFeasibleCutV(fixedVariables, dualSolution)
     }
 
-    internal fun generateOptimalCut(
+    fun generateOptimalCut(
         objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1704,7 +1704,7 @@ class QuadraticMechanismModel<V>(
         return Ok(cutsFlt64)
     }
 
-    internal fun generateFeasibleCut(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {

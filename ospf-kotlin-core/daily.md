@@ -59,13 +59,17 @@
    - P6/P7 门禁通过，覆盖 `.toDouble()`、`Flt64` 主 API 泄漏、unchecked cast 等回流风险。
    - README 双语互链与泛型 API 迁移说明已补齐。
 
+8. `ProductFunction` build-only 约束命名已补齐稳定前缀：
+   - `registerConstraints` 生成的二次等式名称改为 `${name}_eq`，避免空名称导致结构化断言不稳定。
+   - `QuadraticProductBuildOnlyStructureTest` 已据此通过，确保 product 示例具备可追踪的约束标签。
+
 ## 当前审查结论
 
 截至 2026-05-14，本轮核查确认：
 
 1. `ospf-kotlin-core/src/test` 未发现 `assertTrue(true)` 占位断言。
-2. `assertTrue(true)` 仍存在于 `ospf-kotlin-example/src/test` 的历史示例测试中，共 22 处，主要集中在 `linear_function/*Test.kt`、`quadratic_function/SemiTest.kt` 以及顶层 `QuadraticTest`、`FrameworkDemoTest`、`HeuristicDemoTest`。
-3. 这些遗留占位测试不影响 core 泛型化主链路验收结论，但会造成“测试仍然只是 smoke”的外观误判，应作为下一阶段测试债务收口。
+2. `ospf-kotlin-example/src/test` 中历史 `assertTrue(true)` 已清零（当前扫描 0 命中）。
+3. example 层已从空 smoke 收口为结构化断言，默认回归路径保持 build-only，不要求外部 solver。
 
 本轮已验证通过：
 
@@ -80,125 +84,67 @@
 5. P6/P7 门禁：
    - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`
    - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`
+6. example 空 smoke 清零与结构化补强：
+   - `Get-ChildItem -Recurse -Path 'ospf-kotlin-example/src/test' -Filter *.kt | Select-String -Pattern 'assertTrue\\(true\\)'`（0 输出）
+   - `build_project(filesToRebuild=[example 已修改测试集合])`（编译通过）
+   - `build_project(filesToRebuild=[LinearFunctionBuildOnlyStructureTest, ConditionalFunctionBuildOnlyStructureTest, QuadraticProductBuildOnlyStructureTest])`（编译通过）
+7. example build-only 结构化测试回归：
+   - `mvn --% -pl ospf-kotlin-example -am -Pbuild-only-function-tests -Dtest=LinearFunctionBuildOnlyStructureTest,ConditionalFunctionBuildOnlyStructureTest,QuadraticProductBuildOnlyStructureTest -Dsurefire.failIfNoSpecifiedTests=false test`（3/3 通过，报告时间：2026-05-14 11:33，来源为仓库 surefire 报告）
+   - 说明：后续审阅复跑该命令在 5 分钟窗口内发生超时，不影响既有通过记录，但不应表述为“审阅当轮 Maven 完整复跑通过”。
+8. example 泛型 demo 闭环（联编）：
+   - `mvn --% -pl ospf-kotlin-example -am -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test`（2/2 通过）
+9. core 泛型关键窄测（联编）：
+   - `mvn --% -pl ospf-kotlin-core -am -Dtest=GenericSolveVBridgeTest,GenericSolverOutputConversionTest,SolverOutputCompatibilityTest,FeasibleSolverOutputLegacyFallbackGuardTest,GenericLinearMetaModelBuildTest,GenericQuadraticMetaModelBuildTest,GenericTokenBridgeTest,GenericTokenCacheTest,GenericNumberConverterTest,SolveValuePrecisionPolicyTest -Dsurefire.failIfNoSpecifiedTests=false test`（15/15 通过）
+10. 函数注册默认标签回归（联编）：
+   - `mvn --% -pl ospf-kotlin-core -am -Dtest=FunctionSymbolGenericRegistrationTest,FunctionSymbolConditionalGenericRegistrationTest,FunctionSymbolPiecewiseGenericRegistrationTest,FunctionSymbolSameAsGenericRegistrationTest,FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest,FunctionSymbolConstraintInputVFactoryTest,FunctionSymbolRoundingGenericRegistrationTest -Dsurefire.failIfNoSpecifiedTests=false test`（13/13 通过）
+11. rounding 慢测全集：
+   - `mvn --% -pl ospf-kotlin-core -Dtest=FunctionSymbolRoundingGenericRegistrationTest -Dospf.kotlin.test.excludedGroups= -Dsurefire.failIfNoSpecifiedTests=false test`（4/4 通过）
+12. P6/P7 门禁复跑：
+   - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`（通过）
+   - `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`（通过）
 
-## 下一步计划
+## 收口结论（审阅版）
 
-### P0：清理 example 历史空 smoke 测试
+### 范围闭环状态
 
-背景：
+1. `P0`（example 空 smoke 清理）已完成：
+   - `ospf-kotlin-example/src/test` 下 `assertTrue(true)` 清零。
+   - 历史 smoke 已替换为真实代码路径调用与结构化断言。
+2. `P1`（example 空 smoke 防回流门禁）已完成：
+   - `check-c8-guards.ps1` 增加 `P1-EX-1` 规则。
+   - 规则覆盖 `assertTrue(true)`、`Assertions.assertTrue(true)`、`kotlin.test.assertTrue(true)` 及 `assertThat(true).isTrue()`。
+3. `P2`（example build-only 样例补强）已完成：
+   - 新增/补强 3 个 build-only 结构化测试：
+     - `linear_function/LinearFunctionBuildOnlyStructureTest`
+     - `linear_function/ConditionalFunctionBuildOnlyStructureTest`
+     - `quadratic_function/QuadraticProductBuildOnlyStructureTest`
+   - 已验证默认回归不依赖外部 solver。
 
-- `ospf-kotlin-core` 泛型化主链路已具备实质验收。
-- `ospf-kotlin-example` 中仍有一批历史测试只包含 `assertTrue(true)`。
-- 这些测试不验证示例可用性，也容易让后续审查误以为泛型化验收仍停留在空 smoke。
+### 验收标准判定
 
-计划：
+1. example 空断言清零：通过。
+2. smoke 结构化断言：通过。
+3. 门禁防回流：通过（P6/P7 复跑通过）。
+4. core 泛型主链路回归：通过（窄测、函数注册、rounding 慢测均通过）。
+5. 默认 example build-only 回归：通过（基于既有 surefire 报告；审阅当轮复跑超时，未形成新的完整 Maven 通过记录）。
 
-1. 盘点 `ospf-kotlin-example/src/test` 中全部 `assertTrue(true)`。
-2. 按测试性质分类：
-   - 纯建模示例：改为调用示例构建路径并断言 build/dump 结构。
-   - 函数符号示例：断言变量、token、约束、目标或关键系数。
-   - 需要外部 solver 的示例：先避免依赖真实 solver，改为 build/dump 或放入显式 integration profile。
-   - framework/heuristic 示例：若当前难以稳定运行，先改成结构化构造验收或明确隔离。
-3. 将每个空 smoke 替换为至少一个真实代码路径调用和一个可观察断言。
-4. 保留 `CoreDemoTest` 轻量 smoke，但继续由 `GenericNumberDemoTest` 承担详细语义验收。
+### 与原计划差异说明
 
-详细步骤：
+1. 本轮额外完成了 `ProductFunction` 约束命名稳定化：
+   - `registerConstraints` 生成二次等式名称为 `${name}_eq`，减少结构断言脆弱性。
+2. 为打通 `-pl ospf-kotlin-example -am` 联编链路，补充了机制层可见性与 DSL 可见性修复：
+   - `MechanismModel` cut 生成函数可见性放开。
+   - `MathInequalityDsl` 中 `internal infix` 暴露为 `infix`，满足跨模块调用。
+   - gantt produce-context 两处 `constraintsOfGroup` 调用签名对齐。
 
-1. 扫描占位测试：
-   - 使用 `Select-String -Pattern 'assertTrue\(true\)'` 生成文件清单。
-   - 记录每个文件对应的 example main 源文件或可替代的构建入口。
-2. 优先处理纯函数示例：
-   - `ospf-kotlin-example/src/test/.../linear_function/*Test.kt`
-   - `ospf-kotlin-example/src/test/.../quadratic_function/SemiTest.kt`
-   - 每个测试至少断言：构建成功、约束数量、目标方向、关键 token 或关键系数之一。
-3. 再处理顶层示例：
-   - `QuadraticTest`
-   - `FrameworkDemoTest`
-   - `HeuristicDemoTest`
-   - 对依赖外部 solver 或运行成本高的场景，优先抽出 build-only 验收路径。
-4. 如现有 example main 文件不暴露结构化结果：
-   - 增加 summary 返回值或轻量 helper。
-   - helper 只服务示例验收，不引入真实 solver 依赖。
-5. 保持测试命名清晰：
-   - 轻量 smoke 使用 `SmokeTest` 后缀时，必须断言真实返回值。
-   - 详细语义测试使用 `Should...` 命名，表达断言目标。
+## 残余风险与可选后续
 
-验收标准：
+1. `MathInequalityDsl.kt` 变更面较大（主要为可见性提升），建议后续增加针对 DSL 公开面的 API 边界测试，以防未来误收缩。
+2. JVM `CodeHeap` 在长链路 Maven 回归中多次告警（不影响当前结果），若作为常态 CI 路径建议后续调高 `NonProfiledCodeHeapSize`。
+3. 若后续希望进一步压缩 default 回归耗时，可将当前 `build-only-function-tests` profile 纳入标准审阅脚本。
 
-1. `ospf-kotlin-example/src/test` 下 `assertTrue(true)` 数量为 0。
-2. 所有保留的 smoke 测试都调用真实代码路径，并至少断言一个输出、状态或结构结果。
-3. 纯建模示例不依赖外部 solver 即可通过。
-4. 需要外部 solver 的测试不会进入默认 example 回归路径，除非提供稳定的测试桩或 profile。
-5. `GenericNumberDemoTest` 继续覆盖四类型、线性/二次构建与关键系数。
+## 审阅建议
 
-### P1：新增 example 空 smoke 防回流门禁
-
-背景：
-
-- core 门禁已能防止 `.toDouble()`、`Flt64` 主 API、unchecked cast 等问题回流。
-- 目前尚无门禁防止 example 测试重新引入 `assertTrue(true)`。
-
-计划：
-
-1. 在现有门禁脚本或新增轻量脚本中扫描 example test。
-2. 禁止 `assertTrue(true)`、`assertThat(true).isTrue()` 等空断言模式。
-3. 输出违规文件与行号，方便修复。
-
-详细步骤：
-
-1. 优先扩展 `ospf-kotlin-core/scripts/check-c8-guards.ps1`：
-   - 新增 example test root：`ospf-kotlin-example/src/test`。
-   - 新增规则：`No empty smoke assertions in example tests`。
-2. 首版规则至少覆盖：
-   - `assertTrue(true)`
-   - `Assertions.assertTrue(true)`
-   - `kotlin.test.assertTrue(true)`
-3. 若未来需要兼容临时占位：
-   - 必须使用显式白名单 map。
-   - 白名单默认应为空。
-4. 在 README 或 daily.md 中补充门禁命令。
-
-验收标准：
-
-1. 新门禁在当前清理后通过。
-2. 任意 example test 新增 `assertTrue(true)` 时门禁失败，并输出文件路径与行号。
-3. P6/P7 原有门禁仍保持通过。
-
-### P2：可选补强 example 泛型用户样例覆盖
-
-背景：
-
-- `GenericNumberDemoTest` 已覆盖四类型 build/dump summary。
-- 后续可进一步把用户侧示例从“构建可用”推进到“关键函数符号示例可用”。
-
-计划：
-
-1. 从 example 中选择 2 到 3 个代表函数示例。
-2. 为每个示例提供 build-only summary。
-3. 断言用户可观察的模型结构，而非依赖真实 solver。
-
-候选范围：
-
-1. 线性函数：abs/max/min/if/slack range。
-2. 二次函数：quadratic/semi/product。
-3. framework demo：只验 DTO、策略构造或 model build，不默认接外部 solver。
-
-验收标准：
-
-1. example 中至少 2 个非 `GenericNumberDemo` 示例具备真实结构断言。
-2. 默认回归不需要本机安装 Gurobi/SCIP 等外部 solver。
-3. 删除对应示例构建逻辑或关键字段时测试失败。
-
-## 建议执行顺序
-
-1. 先清理 `assertTrue(true)`，把 example 测试外观债务清零。
-2. 再补 example 空 smoke 门禁，防止回流。
-3. 最后按需要扩展更多用户样例的结构化验收。
-
-## 建议起手命令
-
-1. `git status -sb`
-2. `Get-ChildItem -Recurse -Path 'ospf-kotlin-example/src/test' -Filter *.kt | Select-String -Pattern 'assertTrue\(true\)'`
-3. `mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test`
-4. `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P6`
-5. `powershell -ExecutionPolicy Bypass -File ./ospf-kotlin-core/scripts/check-c8-guards.ps1 -GuardMode P7`
+1. 优先审阅 `P1-EX-1` 门禁规则与误报/漏报风险。
+2. 审阅 `example` 测试替换是否覆盖真实用户路径（尤其是 `FrameworkDemoTest`、`HeuristicDemoTest`、`QuadraticTest`）。
+3. 审阅 `MechanismModel` 与 `MathInequalityDsl` 的可见性调整是否符合长期 API 策略。
