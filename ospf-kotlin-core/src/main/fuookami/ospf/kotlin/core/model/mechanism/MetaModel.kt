@@ -352,6 +352,12 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     fun registerConstraintGroup(group: MetaConstraintGroup)
     fun indicesOfConstraintGroup(group: MetaConstraintGroup): IntRange?
 
+    fun constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint> {
+        return indicesOfConstraintGroup(group)?.let { indices ->
+            indices.map { constraints[it] }
+        } ?: emptyList()
+    }
+
     override fun setSolution(solution: List<V>) {
         tokens.setSolution(solution)
     }
@@ -506,6 +512,8 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
 // Backward compatibility: typealias aliases
 
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintVariableWithGroup")
     fun addConstraint(
         constraint: AbstractVariableItem<*, *>,
         group: MetaConstraintGroup?,
@@ -529,6 +537,8 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
         )
     }
 
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintLinearPolynomialWithGroup")
     fun addConstraint(
         constraint: LinearPolynomial<V>,
         group: MetaConstraintGroup?,

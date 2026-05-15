@@ -7,6 +7,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -176,6 +177,87 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
 interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> {
     val converter: IntoValue<V>
 
+    // ========== addConstraint convenience overloads ==========
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintVariable")
+    fun addConstraint(
+        constraint: AbstractVariableItem<*, *>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        val lhs = LinearPolynomial(listOf(LinearMonomial(converter.one, constraint)), converter.zero)
+        val rhs = LinearPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = LinearInequality(lhs, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintLinearMonomial")
+    fun addConstraint(
+        constraint: LinearMonomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        val lhs = LinearPolynomial(listOf(constraint), converter.zero)
+        val rhs = LinearPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = LinearInequality(lhs, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintLinearPolynomial")
+    fun addConstraint(
+        constraint: LinearPolynomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        val rhs = LinearPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = LinearInequality(constraint, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintLinearSymbol")
+    fun addConstraint(
+        constraint: LinearIntermediateSymbol<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = false
+    ): Try {
+        val lhs = constraint.toLinearPolynomial()
+        val rhs = LinearPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = LinearInequality(lhs, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
     /**
      * Add constraint using math LinearInequality
      */
@@ -186,6 +268,81 @@ interface LinearModel<V> : Model<V> where V : RealNumber<V>, V : NumberField<V> 
         displayName: String? = null,
         withRangeSet: Boolean? = false
     ): Try
+
+    // ========== partition overloads ==========
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionVariables")
+    fun partition(
+        variables: Iterable<AbstractVariableItem<*, *>>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(
+            polynomial = LinearPolynomial(
+                monomials = variables.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
+            ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearSymbols")
+    fun partition(
+        symbols: Iterable<LinearIntermediateSymbol<V>>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(
+            polynomial = LinearPolynomial(
+                monomials = symbols.map { LinearMonomial(converter.one, it) }.toList(),
+                constant = converter.zero
+            ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearMonomials")
+    fun partition(
+        monomials: Iterable<LinearMonomial<V>>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(
+            polynomial = LinearPolynomial(monomials.toList(), converter.zero),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionLinearPolynomial")
+    fun partition(
+        polynomial: LinearPolynomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        val rhs = LinearPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = LinearInequality(polynomial, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    // ========== addObject overloads ==========
 
     override fun addObject(
         category: ObjectCategory,
@@ -440,6 +597,121 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
             category = ObjectCategory.Maximum,
             flattenData = QuadraticFlattenData(polynomial.monomials, polynomial.constant),
             name = name ?: "",
+            displayName = displayName
+        )
+    }
+
+    // ========== addConstraint convenience overloads ==========
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintQuadraticMonomial")
+    fun addConstraint(
+        constraint: QuadraticMonomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        val lhs = QuadraticPolynomial(listOf(constraint), converter.zero)
+        val rhs = QuadraticPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = QuadraticInequalityOf(lhs, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintQuadraticPolynomial")
+    fun addConstraint(
+        constraint: QuadraticPolynomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        val rhs = QuadraticPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = QuadraticInequalityOf(constraint, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addConstraintQuadraticSymbol")
+    fun addConstraint(
+        constraint: QuadraticIntermediateSymbol<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null,
+        withRangeSet: Boolean? = null
+    ): Try {
+        val lhs = constraint.toQuadraticPolynomial()
+        val rhs = QuadraticPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = QuadraticInequalityOf(lhs, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName,
+            withRangeSet = withRangeSet
+        )
+    }
+
+    // ========== partition overloads ==========
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticSymbols")
+    fun partition(
+        symbols: Iterable<QuadraticIntermediateSymbol<V>>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(
+            polynomial = QuadraticPolynomial(
+                monomials = symbols.map { it.toQuadraticPolynomial() }.flatMap { it.monomials }.toList(),
+                constant = converter.zero
+            ),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticMonomials")
+    fun partition(
+        monomials: Iterable<QuadraticMonomial<V>>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        return partition(
+            polynomial = QuadraticPolynomial(monomials.toList(), converter.zero),
+            lazy = lazy,
+            name = name,
+            displayName = displayName
+        )
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("partitionQuadraticPolynomial")
+    fun partition(
+        polynomial: QuadraticPolynomial<V>,
+        lazy: Boolean = false,
+        name: String? = null,
+        displayName: String? = null
+    ): Try {
+        val rhs = QuadraticPolynomial<V>(emptyList(), converter.one)
+        return addConstraint(
+            relation = QuadraticInequalityOf(polynomial, rhs, Comparison.EQ),
+            lazy = lazy,
+            name = name,
             displayName = displayName
         )
     }
