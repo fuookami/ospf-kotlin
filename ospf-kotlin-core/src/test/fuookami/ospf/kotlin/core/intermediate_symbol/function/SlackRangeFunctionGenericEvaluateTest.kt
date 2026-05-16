@@ -26,7 +26,8 @@ class SlackRangeFunctionGenericEvaluateTest {
         val x = RealVar("${numberCase.name.lowercase()}_slack_range_x")
         val function = SlackRangeFunction(
             x = LinearPolynomial(listOf(LinearMonomial(numberCase.one, x)), numberCase.zero),
-            threshold = numberCase.two,
+            lb = LinearPolynomial(emptyList(), -numberCase.two),
+            ub = LinearPolynomial(emptyList(), numberCase.two),
             converter = numberCase.converter,
             name = "slack_range_eval_${numberCase.name.lowercase()}"
         )

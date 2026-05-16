@@ -6,8 +6,8 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UContinuous
-import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.core.variable.UIntVar
+import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.core.variable.VariableTypeKind
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -33,35 +33,63 @@ private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebr
         override fun fromValue(value: Flt64) = value
     }
 
+/**
+ * Slack range function: bounds x within [lb, ub] using slack variables.
+ *
+ * Original semantics: polyX = x + neg - pos, with constraints polyX leq ub / geq lb.
+ * neg = lower slack (x below lb), pos = upper slack (x above ub).
+ *
+ * @param x the expression to bound
+ * @param lb lower bound polynomial
+ * @param ub upper bound polynomial
+ * @param type variable type kind (UInteger or UContinuous)
+ * @param constraint whether to add polyX leq ub / geq lb constraints
+ * @param converter value type converter
+ */
 class SlackRangeFunction<V>(
     val x: LinearPolynomial<V>,
-    val threshold: V,
+    val lb: LinearPolynomial<V>,
+    val ub: LinearPolynomial<V>,
     val type: VariableTypeKind = UContinuous,
+    val constraint: Boolean = true,
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
 ) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
-    private val upperVar: AbstractVariableItem<*, *> by lazy {
-        if (type.isIntegerType) UIntVar("${name}_ub") else URealVar("${name}_ub")
+
+    private val negVar: AbstractVariableItem<*, *> by lazy {
+        if (type.isIntegerType) UIntVar("${name}_neg") else URealVar("${name}_neg")
     }
-    private val lowerVar: AbstractVariableItem<*, *> by lazy {
-        if (type.isIntegerType) UIntVar("${name}_lb") else URealVar("${name}_lb")
+    private val posVar: AbstractVariableItem<*, *> by lazy {
+        if (type.isIntegerType) UIntVar("${name}_pos") else URealVar("${name}_pos")
     }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
-        get() = listOf(upperVar, lowerVar)
+        get() = listOf(negVar, posVar)
 
-    val upper: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(converter.one, upperVar)), converter.zero)
+    val neg: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(converter.one, negVar)), converter.zero)
     }
-    val lower: LinearPolynomial<V> by lazy {
-        LinearPolynomial(listOf(LinearMonomial(converter.one, lowerVar)), converter.zero)
+    val pos: LinearPolynomial<V> by lazy {
+        LinearPolynomial(listOf(LinearMonomial(converter.one, posVar)), converter.zero)
+    }
+
+    val polyX: LinearPolynomial<V> by lazy {
+        val unit = converter.one
+        LinearPolynomial(
+            x.monomials + LinearMonomial(unit, negVar) + LinearMonomial(-unit, posVar),
+            x.constant
+        )
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null
-        return if (xValue gr threshold) {
-            xValue - threshold
+        val lbValue = lb.evaluateWith(values) ?: return null
+        val ubValue = ub.evaluateWith(values) ?: return null
+        return if (xValue ls lbValue) {
+            lbValue - xValue
+        } else if (xValue gr ubValue) {
+            xValue - ubValue
         } else {
             converter.zero
         }
@@ -76,104 +104,204 @@ class SlackRangeFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val one = converter.one
-        val threshPoly = LinearPolynomial(emptyList(), threshold)
-        val constraints = mutableListOf<LinearInequality<V>>()
-
-        // upper >= x - threshold
-        val lhsUpper = LinearPolynomial(
-            x.monomials + LinearMonomial(-one, upperVar),
-            x.constant
-        )
-        constraints += LinearInequality(
-            lhsUpper, threshPoly, Comparison.GE, "${name}_upper"
-        )
-
-        // lower >= threshold - x
-        val lhsLower = LinearPolynomial(
-            x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) } + LinearMonomial(-one, lowerVar),
-            -x.constant
-        )
-        constraints += LinearInequality(
-            lhsLower, LinearPolynomial(emptyList(), -threshold), Comparison.GE, "${name}_lower"
-        )
-
-        return addConstraints(model, constraints) ?: ok
+        if (constraint) {
+            val constraints = mutableListOf<LinearInequality<V>>()
+            constraints += LinearInequality(polyX, ub, Comparison.LE, "${name}_ub")
+            constraints += LinearInequality(polyX, lb, Comparison.GE, "${name}_lb")
+            return addConstraints(model, constraints) ?: ok
+        }
+        return ok
     }
+
     companion object {
-        /**
-         * V-generic factory: accept LinearPolynomial<V> for x and V threshold.
-         */
+        /** V-generic factory with lb/ub polynomials. */
         operator fun <V> invoke(
             x: LinearPolynomial<V>,
-            threshold: V,
+            lb: LinearPolynomial<V>,
+            ub: LinearPolynomial<V>,
             type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
             converter: IntoValue<V>,
             name: String,
             displayName: String? = null
         ): SlackRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            SlackRangeFunction(x, threshold, type, converter, name, displayName)
+            SlackRangeFunction(x, lb, ub, type, constraint, converter, name, displayName)
 
-        /**
-         * Factory: accept LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> for x and Flt64 threshold.
-         */
+        /** Flt64-specific factory with lb/ub polynomials. */
         operator fun invoke(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            threshold: Flt64,
+            x: LinearPolynomial<Flt64>,
+            lb: LinearPolynomial<Flt64>,
+            ub: LinearPolynomial<Flt64>,
             type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): SlackRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SlackRangeFunction(x, threshold, type, flt64Converter, name, displayName)
+        ): SlackRangeFunction<Flt64> = SlackRangeFunction(
+            x, lb, ub, type, constraint, flt64Converter, name, displayName
+        )
 
-        /**
-         * Factory: accept LinearIntermediateSymbol for x and Flt64 threshold.
-         */
+        /** Flt64-specific factory with LinearIntermediateSymbol and lb/ub polynomials. */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            threshold: Flt64,
+            x: LinearIntermediateSymbol<Flt64>,
+            lb: LinearPolynomial<Flt64>,
+            ub: LinearPolynomial<Flt64>,
             type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            SlackRangeFunction(x.toLinearPolynomial(), lb, ub, type, constraint, flt64Converter, name, displayName),
+            converter = flt64Converter
+        )
+
+        /** Flt64-specific factory with LinearIntermediateSymbol and scalar lb/ub. */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol<Flt64>,
+            lb: Flt64,
+            ub: Flt64,
+            type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
             SlackRangeFunction(
                 x = x.toLinearPolynomial(),
-                threshold = threshold,
+                lb = LinearPolynomial(emptyList(), lb),
+                ub = LinearPolynomial(emptyList(), ub),
                 type = type,
+                constraint = constraint,
                 converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
             converter = flt64Converter
-        
         )
 
-        /**
-         * Factory: accept LinearIntermediateSymbol for x and UInt64 threshold.
-         */
+        /** Flt64-specific factory with AbstractVariableItem and scalar lb/ub. */
         @JvmStatic
         operator fun invoke(
-            x: LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+            x: AbstractVariableItem<*, *>,
+            lb: Flt64,
+            ub: Flt64,
+            type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            SlackRangeFunction(
+                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
+                lb = LinearPolynomial(emptyList(), lb),
+                ub = LinearPolynomial(emptyList(), ub),
+                type = type,
+                constraint = constraint,
+                converter = flt64Converter,
+                name = name,
+                displayName = displayName
+            ),
+            converter = flt64Converter
+        )
+
+        /** Flt64-specific factory with LinearIntermediateSymbol and UInt64 lb/ub. */
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol<Flt64>,
+            lb: UInt64,
+            ub: UInt64,
+            type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = x,
+            lb = lb.toFlt64(),
+            ub = ub.toFlt64(),
+            type = type,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+
+        /** Flt64-specific factory with AbstractVariableItem and UInt64 lb/ub. */
+        @JvmStatic
+        operator fun invoke(
+            x: AbstractVariableItem<*, *>,
+            lb: UInt64,
+            ub: UInt64,
+            type: VariableTypeKind = UContinuous,
+            constraint: Boolean = true,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = x,
+            lb = lb.toFlt64(),
+            ub = ub.toFlt64(),
+            type = type,
+            constraint = constraint,
+            name = name,
+            displayName = displayName
+        )
+
+        /** Deprecated: single-threshold factory. Use lb/ub instead. */
+        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmStatic
+        operator fun invoke(
+            x: LinearPolynomial<Flt64>,
+            threshold: Flt64,
+            type: VariableTypeKind = UContinuous,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
+            SlackRangeFunction(
+                x = x,
+                lb = LinearPolynomial(emptyList(), -threshold),
+                ub = LinearPolynomial(emptyList(), threshold),
+                type = type,
+                constraint = true,
+                converter = flt64Converter,
+                name = name,
+                displayName = displayName
+            ),
+            converter = flt64Converter
+        )
+
+        /** Deprecated: single-threshold factory with LinearIntermediateSymbol. */
+        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol<Flt64>,
+            threshold: Flt64,
+            type: VariableTypeKind = UContinuous,
+            name: String,
+            displayName: String? = null
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = x.toLinearPolynomial(),
+            threshold = threshold,
+            type = type,
+            name = name,
+            displayName = displayName
+        )
+
+        /** Deprecated: single-threshold factory with UInt64 threshold. */
+        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
+        @JvmStatic
+        operator fun invoke(
+            x: LinearIntermediateSymbol<Flt64>,
             threshold: UInt64,
             type: VariableTypeKind = UContinuous,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = x.toLinearPolynomial(),
-                threshold = threshold.toFlt64(),
-                type = type,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = x.toLinearPolynomial(),
+            threshold = threshold.toFlt64(),
+            type = type,
+            name = name,
+            displayName = displayName
         )
 
-        /**
-         * Factory: accept AbstractVariableItem for x and Flt64 threshold.
-         */
+        /** Deprecated: single-threshold factory with AbstractVariableItem. */
+        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmStatic
         operator fun invoke(
             x: AbstractVariableItem<*, *>,
@@ -181,22 +309,16 @@ class SlackRangeFunction<V>(
             type: VariableTypeKind = UContinuous,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
-                threshold = threshold,
-                type = type,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
+            threshold = threshold,
+            type = type,
+            name = name,
+            displayName = displayName
         )
 
-        /**
-         * Factory: accept AbstractVariableItem for x and UInt64 threshold.
-         */
+        /** Deprecated: single-threshold factory with UInt64 threshold and AbstractVariableItem. */
+        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
         @JvmStatic
         operator fun invoke(
             x: AbstractVariableItem<*, *>,
@@ -204,17 +326,12 @@ class SlackRangeFunction<V>(
             type: VariableTypeKind = UContinuous,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
-                threshold = threshold.toFlt64(),
-                type = type,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
+        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
+            x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
+            threshold = threshold.toFlt64(),
+            type = type,
+            name = name,
+            displayName = displayName
         )
     }
 }

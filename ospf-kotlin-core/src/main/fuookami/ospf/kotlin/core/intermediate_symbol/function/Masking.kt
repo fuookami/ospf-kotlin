@@ -208,10 +208,13 @@ class MaskingWithPolyMaskFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : LinearIntermediateSymbol<V>, MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     val maskVar: AbstractVariableItem<*, *> = URealVar("${name}_mask_var")
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_result")
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(maskVar, resultVar)

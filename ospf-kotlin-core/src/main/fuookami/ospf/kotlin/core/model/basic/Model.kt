@@ -717,6 +717,8 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
     }
 }
 
+@Suppress("INAPPLICABLE_JVM_NAME")
+@JvmName("addObjectLinearFlt64")
 @kotlin.Deprecated("Use addObject(category, flattenData: LinearFlattenData<V>) instead.", level = DeprecationLevel.WARNING)
 fun <V> LinearModel<V>.addObject(
     category: ObjectCategory,
@@ -735,6 +737,8 @@ fun <V> LinearModel<V>.addObject(
     )
 }
 
+@Suppress("INAPPLICABLE_JVM_NAME")
+@JvmName("addObjectQuadraticFlt64")
 @kotlin.Deprecated("Use addObject(category, flattenData: QuadraticFlattenData<V>) instead.", level = DeprecationLevel.WARNING)
 fun <V> QuadraticModel<V>.addObject(
     category: ObjectCategory,

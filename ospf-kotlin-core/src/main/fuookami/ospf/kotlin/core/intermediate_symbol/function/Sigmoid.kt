@@ -41,13 +41,16 @@ class SigmoidFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "sigmoid",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
 
     val indicatorVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_ind")
     val sideVar: AbstractVariableItem<*, *> = BinVar("${name}_sig_side")
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, indicatorVar)), converter.zero)
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(indicatorVar, sideVar)

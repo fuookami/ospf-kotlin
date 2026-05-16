@@ -45,7 +45,7 @@ class UnivariateLinearPiecewiseFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "piecewise",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val m: V = m ?: converter.intoValue(Flt64(1e6))
 
     init {
@@ -64,6 +64,7 @@ class UnivariateLinearPiecewiseFunction<V>(
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
+    override val resultPolynomial: LinearPolynomial<V> get() = result
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xValue = x.evaluateWith(values) ?: return null

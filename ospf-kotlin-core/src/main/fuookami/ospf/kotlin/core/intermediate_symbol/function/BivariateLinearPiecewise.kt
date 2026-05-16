@@ -51,7 +51,7 @@ class BivariateLinearPiecewiseFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 
     private val n: Int get() = triangles.size
 
@@ -92,6 +92,7 @@ class BivariateLinearPiecewiseFunction<V>(
         }
         LinearPolynomial(monos, converter.zero)
     }
+    override val resultPolynomial: LinearPolynomial<V> get() = result
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val xVal = x.evaluateWith(values)?.let { converter.fromValue(it) } ?: return null

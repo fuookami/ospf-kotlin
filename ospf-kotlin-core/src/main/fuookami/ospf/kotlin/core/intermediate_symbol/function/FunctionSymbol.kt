@@ -50,6 +50,16 @@ interface MathFunctionSymbolBase<V> where V : RealNumber<V>, V : NumberField<V> 
 }
 
 /**
+ * Optional interface for [MathFunctionSymbol] implementations that expose
+ * a result polynomial. [LinearFunctionSymbolAdapter] uses this to provide
+ * a non-zero [polynomial] so that model.maximize(fn) and LinearPolynomial(fn)
+ * produce the correct objective term.
+ */
+interface HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
+    val resultPolynomial: LinearPolynomial<V>
+}
+
+/**
  * Base interface for math-symbol-based function symbols.
  * Each function symbol creates helper variables and generates linear constraints.
  *
@@ -176,13 +186,20 @@ class LinearFunctionSymbolAdapter<V>(
     }
     override fun toRawString(unfold: UInt64): String = name
 
-    internal val flattenedMonomialsAsV: LinearFlattenData<V> get() = LinearFlattenData(emptyList(), converter.zero)
+    internal val flattenedMonomialsAsV: LinearFlattenData<V> get() {
+        val poly = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
+            ?: LinearPolynomial(emptyList(), converter.zero)
+        return LinearFlattenData(poly.monomials, poly.constant)
+    }
 
     override val polynomial: LinearPolynomial<V>
-        get() = LinearPolynomial(emptyList(), converter.zero)
+        get() = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
+            ?: LinearPolynomial(emptyList(), converter.zero)
 
     override fun asMutable(): MutableLinearPolynomial<V> {
-        return MutableLinearPolynomial(emptyList(), converter.zero)
+        val poly = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
+            ?: LinearPolynomial(emptyList(), converter.zero)
+        return MutableLinearPolynomial(poly.monomials, poly.constant)
     }
 
 
