@@ -93,6 +93,29 @@ class PolynomialTest {
         val minusConst = q - Flt64.one
         assertEquals(Flt64.zero, minusConst.constant)
     }
+
+    @Test
+    fun sumAggregationShouldWork() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val monomials = listOf(LinearMonomial(Flt64.one, x), LinearMonomial(Flt64.two, y))
+        val result = sum(monomials)
+        assertEquals(2, result.monomials.size)
+        assertEquals(Flt64.zero, result.constant)
+    }
+
+    @Test
+    fun qsumAggregationShouldWork() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val monomials = listOf(
+            QuadraticMonomial.quadratic(Flt64.one, x, y),
+            QuadraticMonomial.linear(Flt64.two, x)
+        )
+        val result = qsum(monomials)
+        assertEquals(2, result.monomials.size)
+        assertEquals(Flt64.zero, result.constant)
+    }
 }
 
 

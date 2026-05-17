@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.eq
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
@@ -24,7 +25,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 class ULPTest {
     @Test
     fun univariate() {
-        assumeTrue(isScipAvailable(), "SCIP runtime not available in current environment")
+        assumeTrue(ScipAvailability.isAvailable(), "SCIP runtime not available in current environment")
 
         val x = URealVar("x")
         x.range.leq(Flt64.two)
@@ -49,7 +50,4 @@ class ULPTest {
         assert(result.value!!.solution[0] eq Flt64.one)
     }
 
-    private fun isScipAvailable(): Boolean {
-        return runCatching { Class.forName("jscip.Scip") }.isSuccess
     }
-}

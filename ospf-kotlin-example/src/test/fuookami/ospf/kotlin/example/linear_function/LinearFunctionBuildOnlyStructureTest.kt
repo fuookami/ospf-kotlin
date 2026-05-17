@@ -36,7 +36,8 @@ class LinearFunctionBuildOnlyStructureTest {
         )
         val slackRange = fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction(
             x = xPoly,
-            threshold = Flt64.two,
+            lb = LinearPolynomial(emptyList(), -Flt64.two),
+            ub = LinearPolynomial(emptyList(), Flt64.two),
             converter = flt64Converter,
             name = "example_slack_range_build"
         )
@@ -73,8 +74,8 @@ class LinearFunctionBuildOnlyStructureTest {
             assertTrue(absRows.any { it.sign == ConstraintRelation.Equal })
             assertTrue(slackRows.any { it.sign == ConstraintRelation.GreaterEqual })
             assertNotNull(abs.resultVar)
-            assertNotNull(slackRange.upper)
-            assertNotNull(slackRange.lower)
+            assertNotNull(slackRange.pos)
+            assertNotNull(slackRange.neg)
         } finally {
             model.close()
         }

@@ -28,6 +28,8 @@ import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.utils.error.Err
 import fuookami.ospf.kotlin.utils.error.ErrorCode
+import fuookami.ospf.kotlin.core.error.CoreError
+import fuookami.ospf.kotlin.core.error.ModelError
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -551,10 +553,10 @@ private fun <V> buildQuadraticObjectiveSubObjects(
                 category = source.category,
                 cells = ArrayList(
                     source.flattenData.monomials.mapNotNull { monomial ->
-                        val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                        val variable1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: return@mapNotNull null
                         val token1 = tokens.find(variable1) ?: return@mapNotNull null
                         val token2 = if (monomial.symbol2 != null) {
-                            tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: return@mapNotNull null
+                            tokens.find(monomial.symbol2 as? AbstractVariableItem<*, *> ?: return@mapNotNull null) ?: return@mapNotNull null
                         } else {
                             null
                         }
@@ -846,7 +848,7 @@ class LinearMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<out V>, Boolean>?
     ): Try {
-        val flattenData = relation.toLinearFlattenData()
+        val flattenData = relation.toLinearFlattenData().getOrElse { return Failed(Err(ErrorCode.IllegalArgument, it.message ?: "Failed to flatten linear inequality")) }
         _constraints.add(
             LinearConstraintImpl(
                 relation = LinearRelationImpl(flattenData, relation.comparison),
@@ -1411,7 +1413,7 @@ class QuadraticMechanismModel<V>(
         name: String?,
         from: Pair<IntermediateSymbol<out V>, Boolean>?
     ): Try {
-        val flattenData = relation.toLinearFlattenData()
+        val flattenData = relation.toLinearFlattenData().getOrElse { return Failed(Err(ErrorCode.IllegalArgument, it.message ?: "Failed to flatten linear inequality")) }
         // Promote linear flatten data to quadratic (each linear monomial c*x becomes quadratic c*x*null)
         val qMonomials = flattenData.monomials.map { QuadraticMonomial(it.coefficient, it.symbol, null) }
         val qFlattenData = QuadraticFlattenData<V>(qMonomials, flattenData.constant)

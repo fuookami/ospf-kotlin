@@ -112,6 +112,44 @@ infix fun <T : Ring<T>> T.ne(rhs: LinearPolynomial<T>): LinearInequality<T> = as
 infix fun <T : Ring<T>> T.ge(rhs: LinearPolynomial<T>): LinearInequality<T> = asLinearPolynomial() ge rhs
 infix fun <T : Ring<T>> T.gt(rhs: LinearPolynomial<T>): LinearInequality<T> = asLinearPolynomial() gt rhs
 
+// ========== Alias names (leq/geq/neq/ls/gr) matching core convention ==========
+
+infix fun <T : Ring<T>> LinearPolynomial<T>.leq(rhs: LinearPolynomial<T>): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.geq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.neq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.ls(rhs: LinearPolynomial<T>): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.gr(rhs: LinearPolynomial<T>): LinearInequality<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearMonomial<T>.leq(rhs: LinearMonomial<T>): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.geq(rhs: LinearMonomial<T>): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.neq(rhs: LinearMonomial<T>): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.ls(rhs: LinearMonomial<T>): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.gr(rhs: LinearMonomial<T>): LinearInequality<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearMonomial<T>.leq(rhs: LinearPolynomial<T>): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.geq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.neq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.ls(rhs: LinearPolynomial<T>): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.gr(rhs: LinearPolynomial<T>): LinearInequality<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearPolynomial<T>.leq(rhs: LinearMonomial<T>): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.geq(rhs: LinearMonomial<T>): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.neq(rhs: LinearMonomial<T>): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.ls(rhs: LinearMonomial<T>): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.gr(rhs: LinearMonomial<T>): LinearInequality<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearPolynomial<T>.leq(rhs: T): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.geq(rhs: T): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.neq(rhs: T): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.ls(rhs: T): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.gr(rhs: T): LinearInequality<T> = this gt rhs
+
+infix fun <T : Ring<T>> T.leq(rhs: LinearPolynomial<T>): LinearInequality<T> = this le rhs
+infix fun <T : Ring<T>> T.geq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ge rhs
+infix fun <T : Ring<T>> T.neq(rhs: LinearPolynomial<T>): LinearInequality<T> = this ne rhs
+infix fun <T : Ring<T>> T.ls(rhs: LinearPolynomial<T>): LinearInequality<T> = this lt rhs
+infix fun <T : Ring<T>> T.gr(rhs: LinearPolynomial<T>): LinearInequality<T> = this gt rhs
+
 // ========== Named inequality constructors ==========
 
 fun <T : Ring<T>> LinearPolynomial<T>.lt(rhs: LinearPolynomial<T>, name: String, displayName: String = ""): LinearInequality<T> =

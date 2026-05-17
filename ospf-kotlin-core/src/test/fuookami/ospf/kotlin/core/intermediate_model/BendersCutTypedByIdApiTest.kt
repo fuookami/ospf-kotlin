@@ -63,7 +63,7 @@ class BendersCutTypedByIdApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.toLinearFlattenData(), relation.comparison),
+            relation = LinearRelationImpl(relation.toLinearFlattenData().getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = numberCase.converter,
             name = "lin_cut_${numberCase.name.lowercase()}"
@@ -243,8 +243,8 @@ class BendersCutTypedByIdApiTest {
         actual: LinearInequality<Flt64>,
         caseName: String
     ) {
-        val eFlat = expected.flattenData
-        val aFlat = actual.flattenData
+        val eFlat = expected.flattenData.getOrThrow()
+        val aFlat = actual.flattenData.getOrThrow()
         assertEquals(expected.comparison, actual.comparison, "$caseName: comparison mismatch")
         assertTrue(eFlat.constant eq aFlat.constant, "$caseName: constant mismatch")
         assertEquals(eFlat.monomials.size, aFlat.monomials.size, "$caseName: monomial count mismatch")

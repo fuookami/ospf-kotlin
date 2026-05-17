@@ -196,6 +196,58 @@ class InequalityTest {
     }
 
     @Test
+    fun linearInequalityAliasNamesShouldWork() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val lhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.two, x)), Flt64.one)
+        val rhs = LinearPolynomial<Flt64>(listOf(LinearMonomial<Flt64>(Flt64.one, y)), Flt64.zero)
+
+        val leqIneq = lhs leq rhs
+        assertEquals(Comparison.LE, leqIneq.comparison)
+
+        val geqIneq = lhs geq rhs
+        assertEquals(Comparison.GE, geqIneq.comparison)
+
+        val neqIneq = lhs neq rhs
+        assertEquals(Comparison.NE, neqIneq.comparison)
+
+        val lsIneq = lhs ls rhs
+        assertEquals(Comparison.LT, lsIneq.comparison)
+
+        val grIneq = lhs gr rhs
+        assertEquals(Comparison.GT, grIneq.comparison)
+    }
+
+    @Test
+    fun quadraticInequalityAliasNamesShouldWork() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+        val q = QuadraticPolynomial<Flt64>(
+            listOf(QuadraticMonomial<Flt64>(coefficient = Flt64.one, symbol1 = x, symbol2 = y)),
+            Flt64.one
+        )
+        val l = LinearPolynomial<Flt64>(
+            listOf(LinearMonomial<Flt64>(Flt64.two, x)),
+            Flt64.zero
+        )
+
+        val leqIneq = q leq l
+        assertEquals(Comparison.LE, leqIneq.comparison)
+
+        val geqIneq = q geq l
+        assertEquals(Comparison.GE, geqIneq.comparison)
+
+        val neqIneq = q neq l
+        assertEquals(Comparison.NE, neqIneq.comparison)
+
+        val lsIneq = q ls l
+        assertEquals(Comparison.LT, lsIneq.comparison)
+
+        val grIneq = q gr l
+        assertEquals(Comparison.GT, grIneq.comparison)
+    }
+
+    @Test
     fun canonicalInequalityShouldSupportSatisfiabilityCheck() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")

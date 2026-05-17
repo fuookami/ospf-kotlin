@@ -59,14 +59,8 @@ sealed class AbstractMultiArray<out T : Any, S : Shape>(
     init {
         if (ctor != null) {
             init(ctor)
-        } else {
-            if (shape.size == 0) {
-                list = mutableListOf()
-            } else {
-                throw IllegalArgumentException(
-                    "MultiArray must be initialized. Use factory methods: MultiArray.new, MultiArray.newWith, or MultiArray.newBy"
-                )
-            }
+        } else if (shape.size == 0) {
+            list = mutableListOf()
         }
     }
 

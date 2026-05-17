@@ -160,6 +160,9 @@
                                     <sourceDirs>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/CoreDemoTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/GenericNumberDemoTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/ScipAvailability.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/DemoBuildSummary.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/CoreDemoBuildOnlyStructureTest.kt</sourceDir>
                                     </sourceDirs>
                                 </configuration>
                             </execution>
@@ -172,6 +175,75 @@
                             <includes>
                                 <include>**/CoreDemoTest.*</include>
                                 <include>**/GenericNumberDemoTest.*</include>
+                                <include>**/CoreDemoBuildOnlyStructureTest.*</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>business-source-compat</id>
+            <properties>
+                <example.source.directory>src/core-demo-none</example.source.directory>
+                <example.test.source.directory>src/core-demo-none</example.test.source.directory>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-compile</id>
+                                <configuration>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/business_compat/BusinessSourceCompatTest.kt</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/BusinessSourceCompatTest.*</include>
+                            </includes>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
+        <profile>
+            <id>framework-starter-compat</id>
+            <properties>
+                <example.source.directory>src/core-demo-none</example.source.directory>
+                <example.test.source.directory>src/core-demo-none</example.test.source.directory>
+            </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-compile</id>
+                                <configuration>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/business_compat/FrameworkStarterCompatTest.kt</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/FrameworkStarterCompatTest.*</include>
                             </includes>
                         </configuration>
                     </plugin>

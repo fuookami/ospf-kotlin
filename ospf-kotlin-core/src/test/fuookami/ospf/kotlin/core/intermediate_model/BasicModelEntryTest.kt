@@ -81,7 +81,7 @@ class BasicModelEntryTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
+            relation = LinearRelationImpl(relation.flattenData.getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "c1"

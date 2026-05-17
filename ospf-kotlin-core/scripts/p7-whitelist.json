@@ -15,6 +15,7 @@
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Cos.kt": 4,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/First.kt": 3,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Floor.kt": 5,
+      "fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionCompat.kt": 51,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionSymbol.kt": 22,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/If.kt": 15,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/IfIn.kt": 5,
@@ -35,7 +36,7 @@
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Sigmoid.kt": 4,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Sin.kt": 4,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Slack.kt": 5,
-      "fuookami/ospf/kotlin/core/intermediate_symbol/function/SlackRange.kt": 12,
+      "fuookami/ospf/kotlin/core/intermediate_symbol/function/SlackRange.kt": 22,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/UnivariateLinearPiecewise.kt": 10,
       "fuookami/ospf/kotlin/core/model/basic/Model.kt": 9,
       "fuookami/ospf/kotlin/core/model/basic/ModelView.kt": 2,
@@ -50,6 +51,7 @@
       "fuookami/ospf/kotlin/core/model/mechanism/LinearConstraintInput.kt": 6,
       "fuookami/ospf/kotlin/core/model/mechanism/MathInequalityBridge.kt": 10,
       "fuookami/ospf/kotlin/core/model/mechanism/MathInequalityDsl.kt": 2,
+      "fuookami/ospf/kotlin/core/model/mechanism/MathInequalityFlatten.kt": 22,
       "fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt": 9,
       "fuookami/ospf/kotlin/core/model/mechanism/MetaConstraint.kt": 3,
       "fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt": 19,
@@ -92,6 +94,7 @@
       "fuookami/ospf/kotlin/core/model/mechanism/BasicModel.kt": 7,
       "fuookami/ospf/kotlin/core/model/mechanism/Constraint.kt": 8,
       "fuookami/ospf/kotlin/core/model/mechanism/MathInequalityDsl.kt": 4,
+      "fuookami/ospf/kotlin/core/model/mechanism/MathInequalityFlatten.kt": 1,
       "fuookami/ospf/kotlin/core/model/mechanism/MechanismModel.kt": 10,
       "fuookami/ospf/kotlin/core/model/mechanism/MetaModel.kt": 18,
       "fuookami/ospf/kotlin/core/model/mechanism/Object.kt": 1,
@@ -102,7 +105,9 @@
       "fuookami/ospf/kotlin/core/variable/AnyVariable.kt": 2,
       "fuookami/ospf/kotlin/core/variable/VariableCombinationItem.kt": 1
     },
-    "deprecated": {}
+    "deprecated": {
+      "fuookami/ospf/kotlin/core/intermediate_symbol/function/SlackRange.kt": 5
+    }
   },
   "math": {
     "flt64": {
@@ -131,6 +136,8 @@
       "fuookami/ospf/kotlin/math/symbol/parse/NumberParser.kt": 1,
       "fuookami/ospf/kotlin/math/symbol/parse/PolynomialParser.kt": 11,
       "fuookami/ospf/kotlin/math/symbol/parser/Parser.kt": 4,
+      "fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickDsl.kt": 54,
+      "fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickOps.kt": 17,
       "fuookami/ospf/kotlin/math/symbol/polynomial/QuickDsl.kt": 35,
       "fuookami/ospf/kotlin/math/symbol/serde/InequalitySerde.kt": 7,
       "fuookami/ospf/kotlin/math/symbol/serde/PolynomialSerde.kt": 18

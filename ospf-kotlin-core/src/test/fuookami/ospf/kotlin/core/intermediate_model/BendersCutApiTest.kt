@@ -52,7 +52,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
+            relation = LinearRelationImpl(relation.flattenData.getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-opt"
@@ -94,7 +94,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
+            relation = LinearRelationImpl(relation.flattenData.getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-feas"
@@ -240,7 +240,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
+            relation = LinearRelationImpl(relation.flattenData.getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-opt-out"
@@ -286,7 +286,7 @@ class BendersCutApiTest {
             comparison = Comparison.LE
         )
         val constraint = LinearConstraintImpl(
-            relation = LinearRelationImpl(relation.flattenData, relation.comparison),
+            relation = LinearRelationImpl(relation.flattenData.getOrThrow(), relation.comparison),
             tokens = tokens,
             converter = IntoValue.Identity,
             name = "lc-feas-out"
@@ -435,8 +435,8 @@ class BendersCutApiTest {
         expected: LinearInequality<Flt64>,
         actual: LinearInequality<Flt64>
     ) {
-        val eFlat = expected.flattenData
-        val aFlat = actual.flattenData
+        val eFlat = expected.flattenData.getOrThrow()
+        val aFlat = actual.flattenData.getOrThrow()
         assertEquals(expected.comparison, actual.comparison, "comparison mismatch")
         assertTrue(eFlat.constant eq aFlat.constant,
             "constant mismatch: expected ${eFlat.constant}, actual ${aFlat.constant}")

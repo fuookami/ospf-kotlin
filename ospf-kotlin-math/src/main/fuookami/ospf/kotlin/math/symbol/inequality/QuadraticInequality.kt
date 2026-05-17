@@ -113,6 +113,68 @@ infix fun <T : Ring<T>> T.ne(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf
 infix fun <T : Ring<T>> T.ge(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = asQuadraticPolynomial() ge rhs
 infix fun <T : Ring<T>> T.gt(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = asQuadraticPolynomial() gt rhs
 
+// ========== Alias names (leq/geq/neq/ls/gr) matching core convention ==========
+
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.leq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.geq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.neq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.ls(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.gr(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticMonomial<T>.leq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.geq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.neq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.ls(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.gr(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.leq(rhs: LinearPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.geq(rhs: LinearPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.neq(rhs: LinearPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.ls(rhs: LinearPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.gr(rhs: LinearPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearPolynomial<T>.leq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.geq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.neq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.ls(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> LinearPolynomial<T>.gr(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.leq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.geq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.neq(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.ls(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.gr(rhs: QuadraticMonomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticMonomial<T>.leq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.geq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.neq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.ls(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticMonomial<T>.gr(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.leq(rhs: LinearMonomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.geq(rhs: LinearMonomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.neq(rhs: LinearMonomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.ls(rhs: LinearMonomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.gr(rhs: LinearMonomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> LinearMonomial<T>.leq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.geq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.neq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.ls(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> LinearMonomial<T>.gr(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.leq(rhs: T): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.geq(rhs: T): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.neq(rhs: T): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.ls(rhs: T): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> QuadraticPolynomial<T>.gr(rhs: T): QuadraticInequalityOf<T> = this gt rhs
+
+infix fun <T : Ring<T>> T.leq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this le rhs
+infix fun <T : Ring<T>> T.geq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ge rhs
+infix fun <T : Ring<T>> T.neq(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this ne rhs
+infix fun <T : Ring<T>> T.ls(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this lt rhs
+infix fun <T : Ring<T>> T.gr(rhs: QuadraticPolynomial<T>): QuadraticInequalityOf<T> = this gt rhs
+
 fun <T : Ring<T>> QuadraticPolynomial<T>.lt(rhs: QuadraticPolynomial<T>, name: String, displayName: String = ""): QuadraticInequalityOf<T> =
     QuadraticInequalityOf(this, rhs, Comparison.LT, name, displayName)
 fun <T : Ring<T>> QuadraticPolynomial<T>.le(rhs: QuadraticPolynomial<T>, name: String, displayName: String = ""): QuadraticInequalityOf<T> =

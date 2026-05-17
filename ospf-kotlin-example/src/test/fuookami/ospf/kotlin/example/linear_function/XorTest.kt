@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.variable.BinVar
 import kotlinx.coroutines.runBlocking
 import org.junit.jupiter.api.Test
+import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
 import org.junit.jupiter.api.Assumptions.assumeTrue
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 
@@ -24,7 +25,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 class XorTest {
     @Test
     fun xor2() {
-        assumeTrue(isScipAvailable(), "SCIP runtime not available in current environment")
+        assumeTrue(ScipAvailability.isAvailable(), "SCIP runtime not available in current environment")
 
         val x = BinVar("x")
         val y = BinVar("y")
@@ -52,7 +53,4 @@ class XorTest {
         assert(result2.value!!.obj geq Flt64.two)
     }
 
-    private fun isScipAvailable(): Boolean {
-        return runCatching { Class.forName("jscip.Scip") }.isSuccess
     }
-}

@@ -269,8 +269,8 @@ data class LinearInequalityConstraint<V>(
     override val args: Any? = null,
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
-    val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData()
-    val flattenDataFlt64: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toLinearFlattenDataFlt64(converter)
+    val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData().getOrThrow()
+    val flattenDataFlt64: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toLinearFlattenDataFlt64(converter).getOrThrow()
     val sign: Comparison get() = inequality.comparison
     val name: String get() = constraintName
     val displayName: String? get() = constraintDisplayName

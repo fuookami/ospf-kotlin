@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.multiarray
 
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertFalse
 import kotlin.test.assertTrue
 
 /**
@@ -16,8 +17,8 @@ import kotlin.test.assertTrue
  *   Empty array toStorageOrder
  * - reshape 的 same-size / shrink / empty->larger
  *   reshape same-size / shrink / empty->larger
- * - ctor == null fail-fast 行为
- *   ctor == null fail-fast behavior
+ * - ctor == null 延迟初始化行为（VariableCombination 模式）
+ *   ctor == null deferred initialization behavior (VariableCombination pattern)
  */
 class MultiArrayBoundaryTest {
 
@@ -192,21 +193,18 @@ class MultiArrayBoundaryTest {
     }
 
     // ========================================================================
-    // ctor fail-fast 测试
-    // ctor fail-fast tests
+    // ctor 延迟初始化测试
+    // ctor deferred initialization tests
     // ========================================================================
 
     @Test
-    fun testCtorNullWithNonEmptyShapeThrows() {
-        // 测试 ctor=null 且非空 shape 时抛出异常
-        // Test ctor=null with non-empty shape throws exception
+    fun testCtorNullWithNonEmptyShapeDefersInit() {
+        // ctor=null with non-empty shape defers initialization (VariableCombination pattern)
         val shape = DynShape(intArrayOf(2, 3))
+        val array = MultiArray<Int, DynShape>(shape, null as ((Int, IntArray) -> Int)?)
 
-        // MultiArray(shape) without ctor should use factory methods
-        // Direct construction without ctor is restricted
-        org.junit.jupiter.api.assertThrows<IllegalArgumentException> {
-            MultiArray<Int, DynShape>(shape, null as ((Int, IntArray) -> Int)?)
-        }
+        // Construction must not throw; shape is preserved
+        assertEquals(6, array.shape.size)
     }
 
     @Test

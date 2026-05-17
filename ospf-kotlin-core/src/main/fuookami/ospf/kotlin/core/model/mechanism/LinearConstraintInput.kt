@@ -52,7 +52,7 @@ data class LinearConstraintInputV<V>(
             displayName: String? = null
         ): LinearConstraintInputV<V> where V : RealNumber<V>, V : NumberField<V> {
             return LinearConstraintInputV(
-                flattenData = relation.toLinearFlattenData(),
+                flattenData = relation.toLinearFlattenData().getOrThrow(),
                 sign = relation.comparison,
                 lhsRange = lhsRange,
                 name = name,
@@ -176,7 +176,7 @@ data class LinearConstraintInput(
             name: String = "",
             displayName: String? = null
         ): LinearConstraintInput where V : RealNumber<V>, V : NumberField<V> {
-            val flattenData = relation.toLinearFlattenDataFlt64(converter)
+            val flattenData = relation.toLinearFlattenDataFlt64(converter).getOrThrow()
             return LinearConstraintInput(
                 flattenData = flattenData,
                 sign = relation.comparison,

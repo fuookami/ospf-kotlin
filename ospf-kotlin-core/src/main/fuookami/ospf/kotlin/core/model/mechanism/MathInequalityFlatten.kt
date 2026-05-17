@@ -1,10 +1,12 @@
 package fuookami.ospf.kotlin.core.model.mechanism
 
+import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.VariableItemKey
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -15,31 +17,89 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.utils.functional.Failed
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
         override fun fromValue(value: Flt64) = value
     }
 
+// ========== Recursive expansion of intermediate symbols ==========
+
+/**
+ * Recursively expand a [LinearMonomial] whose symbol may be a [LinearIntermediateSymbol]
+ * into a pair of (variable-item monomials, constant contribution).
+ *
+ * - [AbstractVariableItem]: returned as-is with zero constant contribution.
+ * - [LinearIntermediateSymbol]: its [polynomial][LinearIntermediateSymbol.polynomial]
+ *   monomials are scaled by the original coefficient and recursively expanded.
+ *   The polynomial's constant is also scaled and accumulated.
+ * - Other symbol types: treated as an error (returns a [Failed] result).
+ */
+@Suppress("UNCHECKED_CAST")
+private fun <V> expandLinearMonomial(mono: LinearMonomial<V>): Result<Pair<List<LinearMonomial<V>>, V>>
+        where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+    return when (val sym = mono.symbol) {
+        is AbstractVariableItem<*, *> -> Result.success(Pair(listOf(mono), (mono.coefficient - mono.coefficient)))
+        is LinearIntermediateSymbol<*> -> {
+            val intermediate = sym as LinearIntermediateSymbol<V>
+            val expanded = mutableListOf<LinearMonomial<V>>()
+            var constantContribution = mono.coefficient * intermediate.polynomial.constant
+            for (inner in intermediate.polynomial.monomials) {
+                val scaled = LinearMonomial(mono.coefficient * inner.coefficient, inner.symbol)
+                val innerResult = expandLinearMonomial(scaled).getOrElse { return Result.failure(it) }
+                expanded.addAll(innerResult.first)
+                constantContribution += innerResult.second
+            }
+            Result.success(Pair(expanded, constantContribution))
+        }
+        else -> Result.failure(
+            IllegalArgumentException("Cannot flatten monomial with symbol type ${sym::class.simpleName}: ${sym.name}")
+        )
+    }
+}
+
+/**
+ * Expand all monomials in a [LinearPolynomial], returning only variable-item monomials.
+ * Accumulates constants from intermediate symbol expansion into the polynomial's constant.
+ */
+private fun <V> expandLinearPolynomial(poly: LinearPolynomial<V>): Result<Pair<List<LinearMonomial<V>>, V>>
+        where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+    val expanded = mutableListOf<LinearMonomial<V>>()
+    var totalConstant = poly.constant
+    for (mono in poly.monomials) {
+        val result = expandLinearMonomial(mono).getOrElse { return Result.failure(it) }
+        for (m in result.first) {
+            expanded.add(m)
+        }
+        totalConstant += result.second
+    }
+    return Result.success(Pair(expanded, totalConstant))
+}
+
 // ========== Converter-based flatten: V-typed inequality -> V-typed flatten data ==========
 
 /**
- * Flatten a V-typed LinearInequality into LinearFlattenData<V> (identity flatten, no conversion).
+ * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<V> (identity flatten, no conversion).
  *
- * Converts lhs - rhs into a single linear form:
- *   sum(lhs.monomials) - sum(rhs.monomials) <= lhs.constant - rhs.constant
+ * Intermediate symbols ([LinearIntermediateSymbol]) are recursively expanded into
+ * their constituent variable-item monomials before merging. Unsupported symbol types
+ * produce a [Failed] result instead of a [ClassCastException].
  */
-internal fun <V> LinearInequality<V>.toLinearFlattenData(): LinearFlattenData<V>
+internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlattenData<V>>
         where V : RealNumber<V>, V : NumberField<V> {
+    val (lhsExpanded, lhsExtra) = expandLinearPolynomial(lhs).getOrElse { return Result.failure(it) }
+    val (rhsExpanded, rhsExtra) = expandLinearPolynomial(rhs).getOrElse { return Result.failure(it) }
+
     val merged = HashMap<VariableItemKey, LinearMonomial<V>>()
 
-    for (mono in lhs.monomials) {
+    for (mono in lhsExpanded) {
         val key = (mono.symbol as AbstractVariableItem<*, *>).key
         merged[key] = LinearMonomial(mono.coefficient, mono.symbol)
     }
-    for (mono in rhs.monomials) {
+    for (mono in rhsExpanded) {
         val key = (mono.symbol as AbstractVariableItem<*, *>).key
         val existing = merged[key]
         merged[key] = if (existing != null) {
@@ -49,14 +109,14 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): LinearFlattenData<V>
         }
     }
 
-    return LinearFlattenData<V>(
+    return Result.success(LinearFlattenData<V>(
         monomials = merged.values.toList(),
-        constant = lhs.constant - rhs.constant
-    )
+        constant = lhsExtra - rhsExtra
+    ))
 }
 
 /**
- * Flatten a V-typed QuadraticInequalityOf<V> into QuadraticFlattenData<V> (identity flatten, no conversion).
+ * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<V> (identity flatten, no conversion).
  *
  * Converts lhs - rhs into a single quadratic form.
  */
@@ -99,24 +159,24 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenData(): QuadraticFla
 // ========== Converter-based flatten: V-typed inequality -> Flt64 flatten data ==========
 
 /**
- * Flatten a V-typed LinearInequality into LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> using an explicit converter.
+ * Flatten a V-typed [LinearInequality] into [LinearFlattenData]<Flt64> using an explicit converter.
  *
- * Converts lhs - rhs into a single linear form:
- *   sum(lhs.monomials) - sum(rhs.monomials) <= lhs.constant - rhs.constant
- *
- * This is the V-generic replacement for the old `LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.flattenData`
- * extension that required casting `LinearInequality<V>` to `LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>`.
+ * Intermediate symbols are recursively expanded before merging.
+ * Unsupported symbol types produce a [Failed] result instead of a [ClassCastException].
  */
-internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoValue<V>): Result<LinearFlattenData<Flt64>>
         where V : RealNumber<V>, V : NumberField<V> {
-    val merged = HashMap<VariableItemKey, LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    val (lhsExpanded, lhsExtra) = expandLinearPolynomial(lhs).getOrElse { return Result.failure(it) }
+    val (rhsExpanded, rhsExtra) = expandLinearPolynomial(rhs).getOrElse { return Result.failure(it) }
 
-    for (mono in lhs.monomials) {
+    val merged = HashMap<VariableItemKey, LinearMonomial<Flt64>>()
+
+    for (mono in lhsExpanded) {
         val key = (mono.symbol as AbstractVariableItem<*, *>).key
         val flt64Coeff = converter.fromValue(mono.coefficient)
         merged[key] = LinearMonomial(flt64Coeff, mono.symbol)
     }
-    for (mono in rhs.monomials) {
+    for (mono in rhsExpanded) {
         val key = (mono.symbol as AbstractVariableItem<*, *>).key
         val flt64Coeff = converter.fromValue(mono.coefficient)
         val existing = merged[key]
@@ -127,20 +187,20 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
         }
     }
 
-    return LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    return Result.success(LinearFlattenData<Flt64>(
         monomials = merged.values.toList(),
-        constant = converter.fromValue(lhs.constant) - converter.fromValue(rhs.constant)
-    )
+        constant = converter.fromValue(lhsExtra) - converter.fromValue(rhsExtra)
+    ))
 }
 
 /**
- * Flatten a V-typed QuadraticInequalityOf<V> into QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> using an explicit converter.
+ * Flatten a V-typed [QuadraticInequalityOf] into [QuadraticFlattenData]<Flt64> using an explicit converter.
  *
  * Converts lhs - rhs into a single quadratic form.
  */
-internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter: IntoValue<V>): QuadraticFlattenData<Flt64>
         where V : RealNumber<V>, V : NumberField<V> {
-    val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
+    val merged = HashMap<QuadraticMonomialKey, QuadraticMonomial<Flt64>>()
 
     for (mono in lhs.monomials) {
         val key = QuadraticMonomialKey.from(mono, converter)
@@ -170,7 +230,7 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
         }
     }
 
-    return QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+    return QuadraticFlattenData<Flt64>(
         monomials = merged.values.toList(),
         constant = converter.fromValue(lhs.constant) - converter.fromValue(rhs.constant)
     )
@@ -179,27 +239,27 @@ internal fun <V> QuadraticInequalityOf<V>.toQuadraticFlattenDataFlt64(converter:
 // ========== Flt64-specific flatten extensions (for Flt64-typed inequalities) ==========
 
 /** Alias for comparison, matching the old Relation.sign property */
-internal val LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.sign: Comparison get() = comparison
+internal val LinearInequality<Flt64>.sign: Comparison get() = comparison
 
 /** Alias for comparison, matching the old Relation.sign property */
-internal val QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.sign: Comparison get() = comparison
+internal val QuadraticInequalityOf<Flt64>.sign: Comparison get() = comparison
 
 /**
- * Compute LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> from LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
+ * Compute [LinearFlattenData]<Flt64> from [LinearInequality]<Flt64>.
  * Flattens lhs - rhs into a single linear form.
  *
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
  */
-internal val LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>.flattenData: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64>>
     get() = toLinearFlattenDataFlt64(flt64Converter)
 
 /**
- * Compute QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> from QuadraticInequality (Flt64).
+ * Compute [QuadraticFlattenData]<Flt64> from QuadraticInequality (Flt64).
  * Flattens lhs - rhs into a single quadratic form.
  *
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
  */
-internal val QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.flattenData: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
+internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt64>
     get() = toQuadraticFlattenDataFlt64(flt64Converter)
 
 // ========== Internal key for merging quadratic monomials ==========
@@ -223,7 +283,7 @@ private data class QuadraticMonomialKey(
         }
 
         @JvmName("fromGenericWithConverter")
-        fun <V> from(mono: QuadraticMonomial<V>, converter: IntoValue<V>): QuadraticMonomialKey
+        fun <V> from(mono: QuadraticMonomial<V>, @Suppress("UNUSED_PARAMETER") converter: IntoValue<V>): QuadraticMonomialKey
                 where V : RealNumber<V>, V : NumberField<V> {
             val id1 = System.identityHashCode(mono.symbol1)
             val id2 = mono.symbol2?.let { System.identityHashCode(it) }
@@ -235,7 +295,7 @@ private data class QuadraticMonomialKey(
         }
 
         @JvmName("fromFlt64")
-        private fun from(mono: QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticMonomialKey {
+        private fun from(mono: QuadraticMonomial<Flt64>): QuadraticMonomialKey {
             val id1 = System.identityHashCode(mono.symbol1)
             val id2 = mono.symbol2?.let { System.identityHashCode(it) }
             return if (id2 != null && id1 > id2) {
@@ -250,22 +310,22 @@ private data class QuadraticMonomialKey(
 // ========== Conversion from math types to frontend types ==========
 
 /**
- * Create LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> directly from math LinearPolynomial.
+ * Create [LinearFlattenData]<Flt64> directly from math [LinearPolynomial].
  * Used when only one side of the inequality is needed.
  */
-internal fun fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlattenData(): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+internal fun LinearPolynomial<Flt64>.toFlattenData(): LinearFlattenData<Flt64> {
+    return LinearFlattenData<Flt64>(
         monomials = monomials.map { LinearMonomial(it.coefficient, it.symbol) },
         constant = constant
     )
 }
 
 /**
- * Create QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> directly from math QuadraticPolynomial.
+ * Create [QuadraticFlattenData]<Flt64> directly from math [QuadraticPolynomial].
  * Used when only one side of the inequality is needed.
  */
-internal fun fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toFlattenData(): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+internal fun QuadraticPolynomial<Flt64>.toFlattenData(): QuadraticFlattenData<Flt64> {
+    return QuadraticFlattenData<Flt64>(
         monomials = monomials.map {
             QuadraticMonomial(
                 coefficient = it.coefficient,

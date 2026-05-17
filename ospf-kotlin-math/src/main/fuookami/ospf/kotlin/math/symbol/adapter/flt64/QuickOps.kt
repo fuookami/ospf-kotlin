@@ -7,39 +7,78 @@ import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
-operator fun Flt64.times(rhs: Symbol): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+// ========== Flt64 arithmetic ==========
+
+operator fun Flt64.times(rhs: Symbol): LinearMonomial<Flt64> {
     return LinearMonomial(this, rhs)
 }
 
-operator fun Symbol.times(rhs: Flt64): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun Symbol.times(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(rhs, this)
 }
 
-operator fun Flt64.times(rhs: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun Flt64.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
     return LinearMonomial(this * rhs.coefficient, rhs.symbol)
 }
 
-operator fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.times(rhs: Flt64): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun LinearMonomial<Flt64>.times(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient * rhs, symbol)
 }
 
-operator fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.times(rhs: Symbol): QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun LinearMonomial<Flt64>.times(rhs: Symbol): QuadraticMonomial<Flt64> {
     return QuadraticMonomial(coefficient, symbol, rhs)
 }
 
-operator fun Symbol.times(rhs: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>): QuadraticMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun Symbol.times(rhs: LinearMonomial<Flt64>): QuadraticMonomial<Flt64> {
     return QuadraticMonomial(rhs.coefficient, this, rhs.symbol)
 }
 
-operator fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.div(rhs: Flt64): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+operator fun LinearMonomial<Flt64>.div(rhs: Flt64): LinearMonomial<Flt64> {
     return LinearMonomial(coefficient / rhs, symbol)
 }
 
-operator fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.plus(rhs: Flt64): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return this
+// ========== Int arithmetic ==========
+
+operator fun Int.times(rhs: Symbol): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(this.toDouble()), rhs)
 }
 
-operator fun LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.minus(rhs: Flt64): LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return this
+operator fun Symbol.times(rhs: Int): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(rhs.toDouble()), this)
+}
+
+operator fun Int.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(this.toDouble()) * rhs.coefficient, rhs.symbol)
+}
+
+operator fun LinearMonomial<Flt64>.times(rhs: Int): LinearMonomial<Flt64> {
+    return LinearMonomial(coefficient * Flt64(rhs.toDouble()), symbol)
+}
+
+operator fun LinearMonomial<Flt64>.div(rhs: Int): LinearMonomial<Flt64> {
+    return LinearMonomial(coefficient / Flt64(rhs.toDouble()), symbol)
+}
+
+// ========== Double arithmetic ==========
+
+operator fun Double.times(rhs: Symbol): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(this), rhs)
+}
+
+operator fun Symbol.times(rhs: Double): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(rhs), this)
+}
+
+operator fun Double.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
+    return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
+}
+
+operator fun LinearMonomial<Flt64>.times(rhs: Double): LinearMonomial<Flt64> {
+    return LinearMonomial(coefficient * Flt64(rhs), symbol)
+}
+
+operator fun LinearMonomial<Flt64>.div(rhs: Double): LinearMonomial<Flt64> {
+    return LinearMonomial(coefficient / Flt64(rhs), symbol)
 }

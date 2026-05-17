@@ -3,12 +3,12 @@
  * Linear Polynomial
  *
  * 定义线性多项式的数据结构和运算。线性多项式是线性单项式的线性组合，
- * 形如 c?x? + c?x? + ... + c?x? + b，其中 c? 为系数，x? 为符号变量，b 为常数项。
+ * 形如 c₁x₁ + c₂x₂ + ... + cₙxₙ + b，其中 cᵢ 为系数，xᵢ 为符号变量，b 为常数项。
  * 在线性规划和混合整数规划中广泛使用。
  * Defines data structures and operations for linear polynomials.
  * A linear polynomial is a linear combination of linear monomials,
- * in the form c?x? + c?x? + ... + c?x? + b, where c? are coefficients,
- * x? are symbol variables, and b is the constant term.
+ * in the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b, where cᵢ are coefficients,
+ * xᵢ are symbol variables, and b is the constant term.
  * Widely used in linear programming and mixed-integer programming.
  */
 package fuookami.ospf.kotlin.math.symbol.polynomial
@@ -37,10 +37,10 @@ import kotlin.jvm.JvmName
  * 线性多项式
  * Linear Polynomial
  *
- * 表示线性多项式，形如 c?x? + c?x? + ... + c?x? + b。
+ * 表示线性多项式，形如 c₁x₁ + c₂x₂ + ... + cₙxₙ + b。
  * 线性多项式是线性单项式的线性组合加上一个常数项，
  * 在线性规划和混合整数规划中是最基本的表达式形式。
- * Represents a linear polynomial of the form c?x? + c?x? + ... + c?x? + b.
+ * Represents a linear polynomial of the form c₁x₁ + c₂x₂ + ... + cₙxₙ + b.
  * A linear polynomial is a linear combination of linear monomials plus a constant term,
  * being the most fundamental expression form in linear programming and mixed-integer programming.
  *
@@ -195,107 +195,6 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: T): LinearPolynomial<T
 operator fun <T : Ring<T>> T.minus(rhs: LinearPolynomial<T>): LinearPolynomial<T> {
     return LinearPolynomial(
         rhs.monomials.map { LinearMonomial(-it.coefficient, it.symbol) },
-        this - rhs.constant
+      this - rhs.constant
     )
 }
-
-/**
- * 对线性单项式集合求和
- * Sum of linear monomials
- *
- * 将多个线性单项式合并为一个线性多项式。
- * Combines multiple linear monomials into a single linear polynomial.
- *
- * @param monomials 线性单项式集合 / Collection of linear monomials
- * @return 合并后的线性多项式 / Combined linear polynomial
- */
-@JvmName("sumLinearMonomials")
-fun <T : Ring<T>> sum(monomials: Iterable<LinearMonomial<T>>): LinearPolynomial<T> {
-    return LinearPolynomial(monomials.toList(), zeroOf(monomials.firstOrNull()?.coefficient ?: error("empty monomials")))
-}
-
-/**
- * 对线性多项式集合求和
- * Sum of linear polynomials
- *
- * 将多个线性多项式的单项式和常数项分别累加。
- * Sums the monomials and constants of multiple linear polynomials.
- *
- * @param polynomials 线性多项式集合 / Collection of linear polynomials
- * @return 累加后的线性多项式 / Accumulated linear polynomial
- */
-@JvmName("sumLinearPolynomials")
-fun <T : Ring<T>> sum(polynomials: Iterable<LinearPolynomial<T>>): LinearPolynomial<T> {
-    val monomials = ArrayList<LinearMonomial<T>>()
-    var constant: T? = null
-    for (polynomial in polynomials) {
-        monomials.addAll(polynomial.monomials)
-        constant = if (constant == null) polynomial.constant else constant + polynomial.constant
-    }
-    return LinearPolynomial(monomials, constant ?: error("empty polynomials"))
-}
-
-/**
- * 带映射函数的线性单项式求和
- * Sum of linear monomials with mapping function
- *
- * 对集合中每个元素应用映射函数得到单项式后求和。
- * Applies a mapping function to each element to produce a monomial, then sums them.
- *
- * @param elements 元素集合 / Collection of elements
- * @param selector 映射函数，将元素映射为单项式 / Mapping function from element to monomial
- * @return 合并后的线性多项式 / Combined linear polynomial
- */
-fun <T : Ring<T>, E> sum(
-    elements: Iterable<E>,
-    selector: (E) -> LinearMonomial<T>
-): LinearPolynomial<T> {
-    val monomials = ArrayList<LinearMonomial<T>>()
-    var constant: T? = null
-    for (element in elements) {
-        val monomial = selector(element)
-        monomials.add(monomial)
-        if (constant == null) constant = zeroOf(monomial.coefficient)
-    }
-    return LinearPolynomial(monomials, constant ?: error("empty elements"))
-}
-
-/**
- * 带映射函数的线性多项式求和
- * Sum of linear polynomials with mapping function
- *
- * 对集合中每个元素应用映射函数得到多项式后求和。
- * Applies a mapping function to each element to produce a polynomial, then sums them.
- *
- * @param elements 元素集合 / Collection of elements
- * @param selector 映射函数，将元素映射为多项式 / Mapping function from element to polynomial
- * @return 累加后的线性多项式 / Accumulated linear polynomial
- */
-fun <T : Ring<T>, E> sumPolynomials(
-    elements: Iterable<E>,
-    selector: (E) -> LinearPolynomial<T>
-): LinearPolynomial<T> {
-    val monomials = ArrayList<LinearPolynomial<T>>()
-    for (element in elements) {
-        monomials.add(selector(element))
-    }
-    return sum(monomials)
-}
-
-/**
- * 展平求和：对每个元素映射为单项式列表后展平求和
- * Flat sum: map each element to a list of monomials, flatten, then sum
- *
- * @param elements 元素集合 / Collection of elements
- * @param selector 映射函数，将元素映射为单项式列表 / Mapping function from element to list of monomials
- * @return 合并后的线性多项式 / Combined linear polynomial
- */
-fun <T : Ring<T>, E> flatSum(
-    elements: Iterable<E>,
-    selector: (E) -> Iterable<LinearMonomial<T>>
-): LinearPolynomial<T> {
-    return sum(elements.flatMap(selector))
-}
-
-internal fun <T : Ring<T>> zeroOf(value: T): T = value - value
-

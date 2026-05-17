@@ -33,7 +33,7 @@ internal fun mergeLinearMonomials(
     var totalConstant = constant
 
     for (m in monomials) {
-        val variable = m.symbol as AbstractVariableItem<*, *>
+        val variable = m.symbol as? AbstractVariableItem<*, *> ?: continue
         if (m.coefficient neq Flt64.zero) {
             mergedMonomials[variable] = (mergedMonomials[variable] ?: Flt64.zero) + m.coefficient
         }
@@ -75,8 +75,8 @@ internal fun mergeQuadraticMonomials(
     var totalConstant = constant
 
     for (m in monomials) {
-        val v1 = m.symbol1 as AbstractVariableItem<*, *>
-        val v2 = m.symbol2 as AbstractVariableItem<*, *>?
+        val v1 = m.symbol1 as? AbstractVariableItem<*, *> ?: continue
+        val v2 = m.symbol2 as? AbstractVariableItem<*, *>?
 
         // Normalize key: use deterministic ordering based on identifier
         // This ensures x*y and y*x produce the same key
@@ -134,8 +134,8 @@ internal fun multiplyLinear(
         for (m2 in rhs.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = m1.coefficient * m2.coefficient,
-                symbol1 = m1.symbol as AbstractVariableItem<*, *>,
-                symbol2 = m2.symbol as AbstractVariableItem<*, *>
+                symbol1 = m1.symbol as? AbstractVariableItem<*, *> ?: continue,
+                symbol2 = m2.symbol as? AbstractVariableItem<*, *> ?: continue
             ))
         }
     }
@@ -145,7 +145,7 @@ internal fun multiplyLinear(
         for (m1 in lhs.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = m1.coefficient * rhs.constant,
-                symbol1 = m1.symbol as AbstractVariableItem<*, *>,
+                symbol1 = (m1.symbol as? AbstractVariableItem<*, *> ?: continue),
                 symbol2 = null
             ))
         }
@@ -156,7 +156,7 @@ internal fun multiplyLinear(
         for (m2 in rhs.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = lhs.constant * m2.coefficient,
-                symbol1 = m2.symbol as AbstractVariableItem<*, *>,
+                symbol1 = (m2.symbol as? AbstractVariableItem<*, *> ?: continue),
                 symbol2 = null
             ))
         }
@@ -191,7 +191,7 @@ internal fun multiplyLinearQuadratic(
         for (lm in linear.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = lm.coefficient * quadratic.constant,
-                symbol1 = lm.symbol as AbstractVariableItem<*, *>,
+                symbol1 = lm.symbol as? AbstractVariableItem<*, *> ?: continue,
                 symbol2 = null
             ))
         }
@@ -202,8 +202,8 @@ internal fun multiplyLinearQuadratic(
         for (qm in quadratic.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = linear.constant * qm.coefficient,
-                symbol1 = qm.symbol1 as AbstractVariableItem<*, *>,
-                symbol2 = qm.symbol2 as AbstractVariableItem<*, *>?
+                symbol1 = qm.symbol1 as? AbstractVariableItem<*, *> ?: continue,
+                symbol2 = qm.symbol2 as? AbstractVariableItem<*, *>?
             ))
         }
     }
@@ -229,8 +229,8 @@ internal fun multiplyQuadratic(
         for (m in lhs.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = m.coefficient * rhs.constant,
-                symbol1 = m.symbol1 as AbstractVariableItem<*, *>,
-                symbol2 = m.symbol2 as AbstractVariableItem<*, *>?
+                symbol1 = m.symbol1 as? AbstractVariableItem<*, *> ?: continue,
+                symbol2 = m.symbol2 as? AbstractVariableItem<*, *>?
             ))
         }
     }
@@ -240,8 +240,8 @@ internal fun multiplyQuadratic(
         for (m in rhs.monomials) {
             monomials.add(QuadraticMonomial(
                 coefficient = lhs.constant * m.coefficient,
-                symbol1 = m.symbol1 as AbstractVariableItem<*, *>,
-                symbol2 = m.symbol2 as AbstractVariableItem<*, *>?
+                symbol1 = m.symbol1 as? AbstractVariableItem<*, *> ?: continue,
+                symbol2 = m.symbol2 as? AbstractVariableItem<*, *>?
             ))
         }
     }

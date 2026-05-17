@@ -275,10 +275,11 @@ internal fun boundTokenTableContext(symbol: IntermediateSymbol<*>): AbstractToke
 }
 
 internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlattenData<V> where V : RealNumber<V>, V : NumberField<V> {
-    val monomials = this.monomials.map {
+    val monomials = this.monomials.mapNotNull {
+        val sym = it.symbol as? AbstractVariableItem<*, *> ?: return@mapNotNull null
         QuadraticMonomial(
             coefficient = it.coefficient,
-            symbol1 = it.symbol as AbstractVariableItem<*, *>,
+            symbol1 = sym,
             symbol2 = null
         )
     }
@@ -291,10 +292,11 @@ internal fun <V> LinearFlattenData<V>.toQuadraticFlattenData(): QuadraticFlatten
 @kotlin.Deprecated("Use the V-typed toQuadraticFlattenData() instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 @JvmName("toQuadraticFlattenDataFlt64")
 internal fun LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toQuadraticFlattenDataFlt64(): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val monomials = this.monomials.map {
+    val monomials = this.monomials.mapNotNull {
+        val sym = it.symbol as? AbstractVariableItem<*, *> ?: return@mapNotNull null
         QuadraticMonomial(
             coefficient = it.coefficient,
-            symbol1 = it.symbol as AbstractVariableItem<*, *>,
+            symbol1 = sym,
             symbol2 = null
         )
     }

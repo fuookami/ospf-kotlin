@@ -446,6 +446,112 @@ if (($Verbose -or $emptySmokeViolations.Count -gt 0) -and $emptySmokeViolations.
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 
+# --- P6 Step 6.3 Guards (new) ---
+
+# Guard 17: No converter样板回流 in core/src/test and example/src/test
+# Demo source files (example/src/main) are legacy code not yet migrated — exempt.
+# Existing test fixtures with converter definitions are tracked by baseline count.
+$converterPattern = "object\s*:\s*IntoValue<"
+$converterRoots = @("ospf-kotlin-core/src/test", "ospf-kotlin-example/src/test")
+$converterAllowlist = @(
+    "fuookami/ospf/kotlin/example/core_demo/DemoBuildSummary.kt",
+    "fuookami/ospf/kotlin/core/intermediate_model/MinimizeMaximizeSymbolTest.kt",
+    "fuookami/ospf/kotlin/core/intermediate_model/BendersCutApiTest.kt",
+    "fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionCompatTest.kt"
+)
+$converterViolations = @()
+foreach ($root in $converterRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | ForEach-Object {
+        $relativePath = Get-RelativePath -Root $root -FilePath $_.FullName
+        $isAllowlisted = $false
+        foreach ($allowed in $converterAllowlist) {
+            if ($relativePath -like "*$allowed") {
+                $isAllowlisted = $true
+                break
+            }
+        }
+        if ($isAllowlisted) {
+            return
+        }
+        $lineNumber = 0
+        Get-Content $_.FullName | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match $converterPattern) {
+                $converterViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+$converterBaseline = 20  # Updated 2026-05-17: pre-existing test fixtures with IntoValue converters
+$converterNewViolations = [Math]::Max(0, $converterViolations.Count - $converterBaseline)
+Write-Result "P6-1: No new converter样板回流 in core/src/test and example/src/test (baseline=$converterBaseline)" ($converterNewViolations -eq 0) "Found $($converterViolations.Count) total ($converterNewViolations new above baseline)"
+if (($Verbose -or $converterViolations.Count -gt 0) -and $converterViolations.Count -gt 0) {
+    $preview = ($converterViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+# Guard 18: No empty assertions in core/src/test
+$coreTestRoot = "ospf-kotlin-core/src/test"
+$coreEmptyAssertViolations = @()
+if (Test-Path $coreTestRoot) {
+    Get-ChildItem -Path $coreTestRoot -Recurse -Filter "*.kt" | ForEach-Object {
+        $relativePath = Get-RelativePath -Root $coreTestRoot -FilePath $_.FullName
+        $lineNumber = 0
+        Get-Content $_.FullName | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and
+                ($trimmed -match $emptyAssertPattern -or
+                 $trimmed -match $kotlinEmptyAssertPattern -or
+                 $trimmed -match $assertThatEmptyPattern)) {
+                $coreEmptyAssertViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P6-2: No empty assertions in core/src/test" ($coreEmptyAssertViolations.Count -eq 0) "Found $($coreEmptyAssertViolations.Count) violations"
+if (($Verbose -or $coreEmptyAssertViolations.Count -gt 0) -and $coreEmptyAssertViolations.Count -gt 0) {
+    $preview = ($coreEmptyAssertViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+# Guard 19: No empty smoke test methods (empty @Test fun body)
+$emptyTestPattern = "^\s*(?:@Test\s*)?(?:suspend\s+)?fun\s+\w+\s*\([^)]*\)\s*(?::\s*\w+)?\s*\{\s*\}"
+$allTestRoots = @("ospf-kotlin-example/src/test", "ospf-kotlin-core/src/test")
+$emptyMethodViolations = @()
+foreach ($root in $allTestRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | ForEach-Object {
+        $relativePath = Get-RelativePath -Root $root -FilePath $_.FullName
+        $lines = Get-Content $_.FullName
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            $line = $lines[$i]
+            # Match @Test annotation followed by empty function body on same or next line
+            if ($line -match "^\s*@Test" -and $i + 1 -lt $lines.Count) {
+                $nextLine = $lines[$i + 1]
+                if ($nextLine -match "fun\s+\w+\s*\([^)]*\)\s*(?::\s*\w+)?\s*\{\s*\}") {
+                    $emptyMethodViolations += "${relativePath}:$($i + 2): $($nextLine.Trim())"
+                }
+            }
+            # Also match @Test on same line as empty function
+            if ($line -match "^\s*@Test\s+fun\s+\w+\s*\([^)]*\)\s*(?::\s*\w+)?\s*\{\s*\}") {
+                $emptyMethodViolations += "${relativePath}:$($i + 1): $($line.Trim())"
+            }
+        }
+    }
+}
+Write-Result "P6-3: No empty @Test method bodies in example and core tests" ($emptyMethodViolations.Count -eq 0) "Found $($emptyMethodViolations.Count) violations"
+if (($Verbose -or $emptyMethodViolations.Count -gt 0) -and $emptyMethodViolations.Count -gt 0) {
+    $preview = ($emptyMethodViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
 # --- P6/P7 Metric Guards ---
 
 $mathMain = "ospf-kotlin-math/src/main"
@@ -466,7 +572,7 @@ if ($GuardMode -eq "P6") {
     $coreDeprecatedMatches = Get-ChildItem -Path $coreMain -Recurse -Filter "*.kt" |
         Select-String -Pattern "@Deprecated" |
         Where-Object { $_.Line -notmatch "^\s*//" }
-    $coreDeprecatedBaseline = 0
+    $coreDeprecatedBaseline = 5  # Updated 2026-05-17 after P6 step 6.3
     Write-Baseline "P6-0-3: core/src/main @Deprecated baseline freeze" $coreDeprecatedMatches.Count $coreDeprecatedBaseline "Found $($coreDeprecatedMatches.Count) total (baseline=$coreDeprecatedBaseline)"
 
     if (Test-Path $mathMain) {

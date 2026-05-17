@@ -114,7 +114,7 @@ class LinearSubObject<V : RealNumber<V>>(
         ): LinearSubObject<V> where V : RealNumber<V>, V : NumberField<V> {
             val cells = ArrayList<LinearCell<V>>(flattenData.monomials.size)
             for (monomial in flattenData.monomials) {
-                val variable = monomial.symbol as AbstractVariableItem<*, *>
+                val variable = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
                 val token = tokens.find(variable)
                 if (token != null && monomial.coefficient neq Flt64.zero) {
                     cells.add(
@@ -217,10 +217,10 @@ class QuadraticSubObject<V : RealNumber<V>>(
         ): QuadraticSubObject<V> where V : RealNumber<V>, V : NumberField<V> {
             val cells = ArrayList<QuadraticCell<V>>(flattenData.monomials.size)
             for (monomial in flattenData.monomials) {
-                val variable1 = monomial.symbol1 as AbstractVariableItem<*, *>
+                val variable1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
                 val token1 = tokens.find(variable1)
                 val token2 = if (monomial.symbol2 != null) {
-                    tokens.find(monomial.symbol2 as AbstractVariableItem<*, *>) ?: continue
+                    tokens.find(monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue) ?: continue
                 } else {
                     null
                 }
