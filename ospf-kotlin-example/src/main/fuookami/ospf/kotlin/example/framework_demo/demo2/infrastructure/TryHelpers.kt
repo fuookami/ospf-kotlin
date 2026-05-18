@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.utils.functional.*
  */
 inline fun Try.orReturn(failedHandler: (Error<ErrorCode>) -> Nothing, fatalHandler: (List<Error<ErrorCode>>) -> Nothing) {
     when (this) {
-        is Ok -> {}
-        is Failed -> failedHandler(error)
-        is Fatal -> fatalHandler(errors)
+        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> failedHandler(error)
+        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> fatalHandler(errors)
     }
 }
 
@@ -22,9 +22,10 @@ inline fun <T> Ret<T>.orReturn(
     failedHandler: (Error<ErrorCode>) -> Nothing,
     fatalHandler: (List<Error<ErrorCode>>) -> Nothing
 ): T {
+    @Suppress("UNCHECKED_CAST")
     return when (this) {
-        is Ok -> value
-        is Failed -> failedHandler(error)
-        is Fatal -> fatalHandler(errors)
+        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> value as T
+        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> failedHandler(error)
+        is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> fatalHandler(errors)
     }
 }

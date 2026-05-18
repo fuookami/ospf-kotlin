@@ -6,6 +6,23 @@
 
 External direct compile is not the default P7 gate because these projects still pin old OSPF coordinates and old `core.frontend` package names. The in-repo `business-source-compat` profile is the source-compat fixture for the restored current API surface.
 
+## External direct compile status
+
+Checked on `2026-05-18`:
+
+| Project | Direct compile against ospf-kotlin 1.1.0 | Default gate scope | Notes |
+|---|---|---|---|
+| APS | Not enabled | Excluded | Large-scale old package imports (`core.frontend.*`, `utils.math.*`) still need project-side migration |
+| CSP1D | Not enabled | Excluded | Same as APS; migration map provided by `scripts/p13-migration-map.md` |
+| BOP | Not enabled | Excluded | Includes quadratic-path migration and starter wiring updates |
+| PSP | Not enabled | Excluded | Includes gantt/starter migration and old package replacement |
+
+Current policy:
+
+1. Repository default gate uses `-Pbusiness-source-compat` fixtures instead of direct external compile.
+2. External direct compile remains a project-side migration step and is tracked as non-blocking release evidence.
+3. Promote to default gate only after all four projects complete package/API migration to 1.1.0.
+
 ## Project matrix
 
 | Project | Kotlin files | LinearMetaModel | QuadraticMetaModel | AbstractLinearMetaModel | AbstractQuadraticMetaModel | Pipeline/PipelineList | LinearIntermediateSymbolsN | LinearExpressionSymbolsN | QuadraticIntermediateSymbolsN | BinVariableN | UIntVariableN | UReal/PctVariableN | vectorView/belongsTo | sum/qsum | Function symbols | Solver builders | Solver calls |

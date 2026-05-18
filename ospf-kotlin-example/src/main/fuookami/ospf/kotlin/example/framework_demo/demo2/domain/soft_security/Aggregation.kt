@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -34,13 +34,13 @@ class Aggregation(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         when (val result = divideEmptyLoading.register(model)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }

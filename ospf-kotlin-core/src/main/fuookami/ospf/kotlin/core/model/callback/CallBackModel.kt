@@ -143,7 +143,7 @@ class CallBackModel<V> internal constructor(
             _converter = converter
         )
 
-        internal operator fun invoke(
+        operator fun invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
@@ -155,7 +155,7 @@ class CallBackModel<V> internal constructor(
             _converter = flt64Converter
         )
 
-        internal operator fun invoke(
+        operator fun invoke(
             objectiveComparator: PartialComparator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
@@ -204,7 +204,7 @@ class CallBackModel<V> internal constructor(
             )
         }
 
-        internal operator fun invoke(
+        operator fun invoke(
             model: AbstractMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
         ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
@@ -254,7 +254,7 @@ class CallBackModel<V> internal constructor(
             )
         }
 
-        internal operator fun invoke(
+        operator fun invoke(
             model: SingleObjectMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
             concurrent: Boolean = true
@@ -414,6 +414,44 @@ class CallBackModel<V> internal constructor(
         tokens.clearSolution()
     }
 }
+
+@Suppress("FunctionName")
+fun CallBackModel(
+    objectCategory: ObjectCategory = ObjectCategory.Minimum,
+    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
+    objectCategory = objectCategory,
+    initialSolutionGenerator = initialSolutionGenerator
+)
+
+@Suppress("FunctionName")
+fun CallBackModel(
+    objectiveComparator: PartialComparator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
+    objectiveComparator = objectiveComparator,
+    initialSolutionGenerator = initialSolutionGenerator
+)
+
+@Suppress("FunctionName")
+fun CallBackModel(
+    model: AbstractMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
+): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
+    model = model,
+    initialSolutionGenerator = initialSolutionGenerator
+)
+
+@Suppress("FunctionName")
+fun CallBackModel(
+    model: SingleObjectMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
+    concurrent: Boolean = true
+): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
+    model = model,
+    initialSolutionGenerator = initialSolutionGenerator,
+    concurrent = concurrent
+)
 
 
 class MultiObjectCallBackModel<V> internal constructor(

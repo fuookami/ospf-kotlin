@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -32,15 +32,15 @@ class LoadingEffectivenessContext {
                 stowageAggregation = stowageContext.aggregation,
                 input = input
             )) {
-                is Ok -> {
-                    aggregation = result.value
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                    aggregation = result.value!!
                 }
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }
@@ -58,13 +58,13 @@ class LoadingEffectivenessContext {
             stowageMode = stowageMode,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -74,28 +74,28 @@ class LoadingEffectivenessContext {
             stowageMode = stowageMode,
             parameter = parameter
         )) {
-            is Ok -> {
-                result.value
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                result.value!!
             }
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
 
         for (pipeline in pipelines) {
             when (val result = pipeline(model)) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }

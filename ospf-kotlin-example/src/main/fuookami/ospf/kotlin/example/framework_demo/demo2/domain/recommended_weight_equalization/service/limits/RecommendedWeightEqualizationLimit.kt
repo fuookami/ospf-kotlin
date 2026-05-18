@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.service.limits
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -40,9 +40,9 @@ class RecommendedWeightEqualizationLimit(
                     relation = load.z[j1].value leq LinearPolynomial(rhs1.monomials, rhs1.constant),
                     name = "${name}_${position1}_${position2}"
                 )) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
                 }
 
                 val rhs2 = MutableLinearPolynomial()
@@ -52,9 +52,9 @@ class RecommendedWeightEqualizationLimit(
                     relation = load.z[j2].value leq LinearPolynomial(rhs2.monomials, rhs2.constant),
                     name = "${name}_${position2}_${position1}"
                 )) {
-                    is Ok -> {}
-                    is Failed -> return Failed(result.error)
-                    is Fatal -> return Fatal(result.errors)
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
                 }
             }
         }

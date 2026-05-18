@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo2
 
@@ -76,13 +76,13 @@ private class FullLoadAlgorithmImpl {
         val notes = mutableListOf<String>()
 
         when (val result = init(request)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -106,8 +106,8 @@ private class FullLoadAlgorithmImpl {
                     parameter = parameter,
                     runningHeartBeatCallBack = runningHeartBeatCallBack
                 )) {
-                    is Ok -> result.value
-                    is Failed -> {
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders failed, falling back to MILP")
                             Diagnostics.pushGroupedNote(
@@ -120,15 +120,15 @@ private class FullLoadAlgorithmImpl {
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok -> milpResult.value
-                                is Failed -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
+                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
+                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO.noSolution("BendersFailed", notes) to null
                         }
                     }
-                    is Fatal -> {
+                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         if (request.solvePolicy.bendersFallbackToMilp) {
                             notes.add("Benders fatal, falling back to MILP")
                             when (val milpResult = solveWithMILP(
@@ -137,9 +137,9 @@ private class FullLoadAlgorithmImpl {
                                 startTime = startTime,
                                 runningHeartBeatCallBack = runningHeartBeatCallBack
                             )) {
-                                is Ok -> milpResult.value
-                                is Failed -> return ResponseDTO(request, milpResult.error) to null
-                                is Fatal -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> milpResult.value!!
+                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.error) to null
+                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, milpResult.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                             }
                         } else {
                             return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
@@ -157,9 +157,9 @@ private class FullLoadAlgorithmImpl {
                             startTime = startTime,
                             runningHeartBeatCallBack = runningHeartBeatCallBack
                         )) {
-                            is Ok -> result.value
-                            is Failed -> return ResponseDTO(request, result.error) to null
-                            is Fatal -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
+                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value!!
+                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.error) to null
+                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
                         }
                     }
                     AircraftType.B767 -> TODO("not implemented yet")
@@ -173,19 +173,19 @@ private class FullLoadAlgorithmImpl {
             solution = solution,
             input = request
         )) {
-            is Ok -> {
-                result.value to if (withRender) {
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                result.value!! to if (withRender) {
                     solution.render()
                 } else {
                     null
                 }
             }
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return ResponseDTO(request, result.error) to null
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return ResponseDTO(request, result.firstError ?: Err(ErrorCode.ApplicationFailed)) to null
             }
         }
@@ -209,13 +209,13 @@ private class FullLoadAlgorithmImpl {
         when (val result = aircraftContext.init(
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -224,13 +224,13 @@ private class FullLoadAlgorithmImpl {
             aircraftContext = aircraftContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -240,13 +240,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -257,13 +257,13 @@ private class FullLoadAlgorithmImpl {
             macContext = macContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -273,13 +273,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -290,13 +290,13 @@ private class FullLoadAlgorithmImpl {
             macContext = macContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -306,13 +306,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -322,13 +322,13 @@ private class FullLoadAlgorithmImpl {
             stowageContext = stowageContext,
             input = request
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -344,13 +344,13 @@ private class FullLoadAlgorithmImpl {
     ): Ret<fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Solution> {
         val model = LinearMetaModel<Flt64>(converter = flt64Converter)
         when (val result = register(parameter, model)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -424,11 +424,11 @@ private class FullLoadAlgorithmImpl {
                 ok
             }
         )) {
-            is Ok -> {
-                result.value
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                result.value!!
             }
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 if (result.error.code == ErrorCode.ORModelInfeasible || result.error.code == ErrorCode.ORModelInfeasibleOrUnbounded) {
                     TODO("not implemented yet")
                 } else {
@@ -436,7 +436,7 @@ private class FullLoadAlgorithmImpl {
                 }
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Fatal(result.errors)
             }
         }
@@ -445,15 +445,15 @@ private class FullLoadAlgorithmImpl {
             solution = modelSolution.solution,
             model = model
         )) {
-            is Ok -> {
-                result.value
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                result.value!!
             }
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -469,13 +469,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -484,13 +484,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -499,13 +499,13 @@ private class FullLoadAlgorithmImpl {
             stowageMode = StowageMode.FullLoad,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -515,13 +515,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -531,13 +531,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -547,13 +547,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -563,13 +563,13 @@ private class FullLoadAlgorithmImpl {
             parameter = parameter,
             model = model
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }

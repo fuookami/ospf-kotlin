@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -67,13 +67,13 @@ class Stowage(
             for ((j, position) in positions.withIndex()) {
                 if (stowageNeeded(item, position)) {
                     when (val result = model.add(x[i, j])) {
-                        is Ok -> {}
+                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                        is Failed -> {
+                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
                     }
@@ -96,13 +96,13 @@ class Stowage(
             for ((j, position) in positions.withIndex()) {
                 if (adjustmentNeeded(item, position)) {
                     when (val result = model.add(u[i, j])) {
-                        is Ok -> {}
+                        is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                        is Failed -> {
+                        is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
                     }
@@ -144,13 +144,13 @@ class Stowage(
             }
         }
         when (val result = model.add(stowage)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -182,13 +182,13 @@ class Stowage(
             }
         }
         when (val result = model.add(loaded)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }

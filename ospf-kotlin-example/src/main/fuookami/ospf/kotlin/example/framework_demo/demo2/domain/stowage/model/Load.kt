@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -86,13 +86,13 @@ class Load(
         for ((j, position) in positions.withIndex()) {
             if (position.status.predicateWeightNeeded) {
                 when (val result = model.add(y[j])) {
-                    is Ok -> {}
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                    is Failed -> {
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
                 }
@@ -113,13 +113,13 @@ class Load(
         for ((j, position) in positions.withIndex()) {
             if (position.status.recommendedWeightNeeded) {
                 when (val result = model.add(z[j])) {
-                    is Ok -> {}
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                    is Failed -> {
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
                 }
@@ -173,13 +173,13 @@ class Load(
             }
         }
         when (val result = model.add(predicateLoadWeightSlack)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -197,13 +197,13 @@ class Load(
             }
         }
         when (val result = model.add(loadAmount)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -236,13 +236,13 @@ class Load(
             }
         }
         when (val result = model.add(full)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -271,13 +271,13 @@ class Load(
                 }
             }
             when (val result = model.add(estimateLoadWeight)) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }
@@ -300,13 +300,13 @@ class Load(
             }
         }
         when (val result = model.add(actualLoadWeight)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -384,13 +384,13 @@ class Load(
             }
         }
         when (val result = model.add(estimateLoaded)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -423,13 +423,13 @@ class Load(
             }
         }
         when (val result = model.add(actualLoaded)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -448,13 +448,13 @@ class Load(
             }
         }
         when (val result = model.add(loadEstimateLongitudinalTorque)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -473,13 +473,13 @@ class Load(
             }
         }
         when (val result = model.add(loadEstimateLongitudinalTorque)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }
@@ -499,13 +499,13 @@ class Load(
                 }
             }
             when (val result = model.add(loadLateralTorque)) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }
@@ -523,13 +523,13 @@ class Load(
                 }
             }
             when (val result = model.add(loadCLIM)) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }
@@ -562,13 +562,13 @@ class Load(
             }
         }
         when (val result = model.add(loadIndex)) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
         }

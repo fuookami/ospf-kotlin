@@ -57,9 +57,9 @@ object BendersSolver {
                     bendersIterationLimit = fuookami.ospf.kotlin.math.algebra.number.UInt64(1)
                 }
             )) {
-                is Ok -> result.value
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
             }
 
             val masterFeasible = masterOutput as? FeasibleSolverOutput<Flt64>
@@ -85,9 +85,9 @@ object BendersSolver {
                 fixedVariables = fixedVariables,
                 options = FrameworkSolveOptions()
             )) {
-                is Ok -> result.value
-                is Failed -> return Failed(result.error)
-                is Fatal -> return Fatal(result.errors)
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> result.value
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
             }
 
             when (subResult) {
@@ -97,8 +97,8 @@ object BendersSolver {
                         totalCuts += cuts.size
                         for (cut in cuts) {
                             when (val addResult = masterModel.addConstraint(cut, group = null, name = "benders_opt_cut_${iteration}_$totalCuts")) {
-                                is Failed -> return Failed(addResult.error)
-                                is Fatal -> return Fatal(addResult.errors)
+                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(addResult.error)
+                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(addResult.errors)
                                 else -> {}
                             }
                         }
@@ -133,12 +133,15 @@ object BendersSolver {
                         totalCuts += cuts.size
                         for (cut in cuts) {
                             when (val addResult = masterModel.addConstraint(cut, group = null, name = "benders_feas_cut_${iteration}_$totalCuts")) {
-                                is Failed -> return Failed(addResult.error)
-                                is Fatal -> return Fatal(addResult.errors)
+                                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(addResult.error)
+                                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(addResult.errors)
                                 else -> {}
                             }
                         }
                     }
+                }
+                null -> {
+                    return Failed(fuookami.ospf.kotlin.utils.error.Err(fuookami.ospf.kotlin.utils.error.ErrorCode.ApplicationError, "Unexpected null benders sub result"))
                 }
             }
 

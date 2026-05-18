@@ -96,11 +96,19 @@ internal fun <V> LinearInequality<V>.toLinearFlattenData(): Result<LinearFlatten
     val merged = HashMap<VariableItemKey, LinearMonomial<V>>()
 
     for (mono in lhsExpanded) {
-        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        val variable = mono.symbol as? AbstractVariableItem<*, *>
+            ?: return Result.failure(
+                IllegalArgumentException("Cannot flatten lhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
+            )
+        val key = variable.key
         merged[key] = LinearMonomial(mono.coefficient, mono.symbol)
     }
     for (mono in rhsExpanded) {
-        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        val variable = mono.symbol as? AbstractVariableItem<*, *>
+            ?: return Result.failure(
+                IllegalArgumentException("Cannot flatten rhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
+            )
+        val key = variable.key
         val existing = merged[key]
         merged[key] = if (existing != null) {
             LinearMonomial(existing.coefficient - mono.coefficient, existing.symbol)
@@ -172,12 +180,20 @@ internal fun <V> LinearInequality<V>.toLinearFlattenDataFlt64(converter: IntoVal
     val merged = HashMap<VariableItemKey, LinearMonomial<Flt64>>()
 
     for (mono in lhsExpanded) {
-        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        val variable = mono.symbol as? AbstractVariableItem<*, *>
+            ?: return Result.failure(
+                IllegalArgumentException("Cannot flatten lhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
+            )
+        val key = variable.key
         val flt64Coeff = converter.fromValue(mono.coefficient)
         merged[key] = LinearMonomial(flt64Coeff, mono.symbol)
     }
     for (mono in rhsExpanded) {
-        val key = (mono.symbol as AbstractVariableItem<*, *>).key
+        val variable = mono.symbol as? AbstractVariableItem<*, *>
+            ?: return Result.failure(
+                IllegalArgumentException("Cannot flatten rhs monomial with non-variable symbol: ${mono.symbol::class.simpleName}: ${mono.symbol.name}")
+            )
+        val key = variable.key
         val flt64Coeff = converter.fromValue(mono.coefficient)
         val existing = merged[key]
         merged[key] = if (existing != null) {

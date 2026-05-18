@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.service.limits
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -21,16 +21,16 @@ class HorizontalStabilizerLimit(
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((key, hs) in horizontalStabilizers) {
             when (val result = model.minimize(
-                coefficient(key) * hs.warnSlack,
+                LinearMonomial(coefficient(key), hs.warnSlack),
                 "horizontal stabilizer $key"
             )) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }

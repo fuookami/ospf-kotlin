@@ -34,7 +34,14 @@ class FrameworkDemoTest {
         )
         val slackRange = SlackRangeFunction(
             x = xPoly,
-            threshold = Flt64.two,
+            lb = LinearPolynomial(
+                monomials = emptyList(),
+                constant = -Flt64.two
+            ),
+            ub = LinearPolynomial(
+                monomials = emptyList(),
+                constant = Flt64.two
+            ),
             converter = flt64Converter,
             name = "framework_slack_range"
         )

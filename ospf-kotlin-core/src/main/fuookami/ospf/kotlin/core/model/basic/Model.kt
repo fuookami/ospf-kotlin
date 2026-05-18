@@ -5,6 +5,8 @@ package fuookami.ospf.kotlin.core.model.basic
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticIntermediateSymbol
+import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
+import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
@@ -17,7 +19,7 @@ import fuookami.ospf.kotlin.core.token.AddableTokenCollection
 import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
-import fuookami.ospf.kotlin.utils.functional.Try
+import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -97,6 +99,54 @@ interface Model<V> : AddableTokenCollection<V> where V : RealNumber<V>, V : Numb
     @JvmName("addQuantityVariables")
     fun add(items: Iterable<Quantity<AbstractVariableItem<*, *>>>): Try {
         return add(items.map { it.value })
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuantityIntermediateSymbol")
+    fun add(item: Quantity<IntermediateSymbol<*>>): Try {
+        return when (this) {
+            is MetaModel<*> -> {
+                @Suppress("UNCHECKED_CAST")
+                (this as MetaModel<V>).add(item.value)
+            }
+
+            else -> {
+                @Suppress("UNCHECKED_CAST")
+                (item.value as IntermediateSymbol<V>).registerAuxiliaryTokens(this)
+            }
+        }
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addQuantityIntermediateSymbols")
+    fun add(items: Iterable<Quantity<IntermediateSymbol<*>>>): Try {
+        for (item in items) {
+            when (val result = add(item)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return ok
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapQuantityIntermediateSymbols")
+    fun <K> add(symbols: Map<K, Quantity<IntermediateSymbol<*>>>): Try {
+        return add(symbols.values)
+    }
+
+    @Suppress("INAPPLICABLE_JVM_NAME")
+    @JvmName("addMapQuantityIntermediateSymbolLists")
+    fun <K> add(symbols: Map<K, Iterable<Quantity<IntermediateSymbol<*>>>>): Try {
+        for (batch in symbols.values) {
+            when (val result = add(batch)) {
+                is Ok -> {}
+                is Failed -> return Failed(result.error)
+                is Fatal -> return Fatal(result.errors)
+            }
+        }
+        return ok
     }
 
     fun remove(item: Quantity<AbstractVariableItem<*, *>>) {

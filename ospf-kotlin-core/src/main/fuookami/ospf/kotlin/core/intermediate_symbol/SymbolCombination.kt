@@ -94,6 +94,7 @@ typealias QuantityLinearIntermediateSymbols2<V> = QuantitySymbolCombination<Line
 typealias QuantityLinearIntermediateSymbols3<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape3>
 typealias QuantityLinearIntermediateSymbols4<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape4>
 typealias DynQuantityLinearIntermediateSymbols<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, DynShape>
+typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol<Flt64>>
 
 typealias QuadraticExpressionSymbols1<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
 typealias QuadraticExpressionSymbols2<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape2>

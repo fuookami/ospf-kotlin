@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -42,13 +42,13 @@ class CumulativeLoadWeightLimit(
                 relation = LinearPolynomial(poly.monomials, poly.constant) leq checkPoint.maxSum.to(aircraftModel.weightUnit)!!.value,
                 name = "${name}_${checkPoint.zone.name}_${checkPoint.toArm.value}"
             )) {
-                is Ok -> {}
+                is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                is Failed -> {
+                is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Failed(result.error)
                 }
 
-                is Fatal -> {
+                is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                     return Fatal(result.errors)
                 }
             }

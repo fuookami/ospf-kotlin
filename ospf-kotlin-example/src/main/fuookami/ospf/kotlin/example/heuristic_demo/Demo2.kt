@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.heuristic_demo
+package fuookami.ospf.kotlin.example.heuristic_demo
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -55,26 +55,26 @@ class Demo2 {
         obj += LinearMonomial(Flt64.one, y)
         metaModel.maximize(LinearPolynomial(obj.monomials, obj.constant))
         val model = when (val result = runBlocking { LinearMechanismModel(metaModel) }) {
-            is Ok -> {
-                result.value
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
+                result.value ?: return Failed(Err(ErrorCode.ApplicationError, "linear mechanism model is null"))
             }
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Failed(result.error)
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Fatal(result.errors)
             }
         }
 //        val solver = ScipLinearSolver()
 //        val result = when (val ret = runBlocking { solver(model) }) {
-//            is Ok -> {
+//            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
 //                metaModel.tokens.setSolution(ret.value.results)
 //                ret.value.results
 //            }
 //
-//            is Failed -> {
+//            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
 //                return ret
 //            }
 //        }
@@ -84,7 +84,6 @@ class Demo2 {
         return ok
     }
 }
-
 
 
 

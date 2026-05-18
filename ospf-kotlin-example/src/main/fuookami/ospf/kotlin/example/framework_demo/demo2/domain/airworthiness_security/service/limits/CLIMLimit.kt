@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -28,13 +28,13 @@ class CLIMLimit(
             relation = LinearPolynomial(upper.monomials, upper.constant) leq Flt64.zero,
             name = "${name}_ub"
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Failed(result.error)
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Fatal(result.errors)
             }
         }
@@ -46,13 +46,13 @@ class CLIMLimit(
             relation = LinearPolynomial(lower.monomials, lower.constant) geq Flt64.zero,
             name = "${name}_lb"
         )) {
-            is Ok -> {}
+            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-            is Failed -> {
+            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Failed(result.error)
             }
 
-            is Fatal -> {
+            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                 return Fatal(result.errors)
             }
         }

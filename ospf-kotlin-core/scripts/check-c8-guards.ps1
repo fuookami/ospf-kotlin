@@ -552,6 +552,140 @@ if (($Verbose -or $emptyMethodViolations.Count -gt 0) -and $emptyMethodViolation
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 
+$flattenGuardFile = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MathInequalityFlatten.kt"
+$p10DangerousCastViolations = @()
+if (Test-Path $flattenGuardFile) {
+    $lineNumber = 0
+    Get-Content $flattenGuardFile | ForEach-Object {
+        $lineNumber++
+        $trimmed = $_.Trim()
+        if ($trimmed -notmatch "^(//|\*|/\*\*)" -and
+            ($trimmed -match "mono\.symbol\s+as\s+AbstractVariableItem<\*,\s*\*>" -or
+             $trimmed -match "mono\.symbol\s+as\s+LinearExpressionSymbol<" -or
+             $trimmed -match "mono\.symbol\s+as\s+LinearFunctionSymbolAdapter<")) {
+            $p10DangerousCastViolations += "${flattenGuardFile}:${lineNumber}: $trimmed"
+        }
+    }
+} else {
+    Write-Host "[SKIP] P10-1: flatten guard file not found ($flattenGuardFile)" -ForegroundColor Yellow
+}
+Write-Result "P10-1: No dangerous symbol hard-casts in toLinearFlattenData path" ($p10DangerousCastViolations.Count -eq 0) "Found $($p10DangerousCastViolations.Count) violations"
+if (($Verbose -or $p10DangerousCastViolations.Count -gt 0) -and $p10DangerousCastViolations.Count -gt 0) {
+    $preview = ($p10DangerousCastViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$solverGatedTestFiles = @(
+    "ospf-kotlin-example/src/test/fuookami/ospf/kotlin/example/linear_function/LinearFunctionSolveTest.kt",
+    "ospf-kotlin-example/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveTest.kt",
+    "ospf-kotlin-example/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticFunctionSolveTest.kt"
+)
+$solverGatedMissingFiles = @()
+$solverGatedEmptyAssertViolations = @()
+$solverGatedUnconditionalAssumeViolations = @()
+foreach ($file in $solverGatedTestFiles) {
+    if (-not (Test-Path $file)) {
+        $solverGatedMissingFiles += $file
+        continue
+    }
+    $lineNumber = 0
+    Get-Content $file | ForEach-Object {
+        $lineNumber++
+        $trimmed = $_.Trim()
+        if ($trimmed -match "^(//|\*|/\*\*)") {
+            return
+        }
+        if ($trimmed -match $emptyAssertPattern -or
+            $trimmed -match $kotlinEmptyAssertPattern -or
+            $trimmed -match $assertThatEmptyPattern) {
+            $solverGatedEmptyAssertViolations += "${file}:${lineNumber}: $trimmed"
+        }
+        if ($trimmed -match "assumeTrue\s*\(\s*true\s*(?:,|\))" -or
+            $trimmed -match "Assumptions\.assumeTrue\s*\(\s*true\s*(?:,|\))") {
+            $solverGatedUnconditionalAssumeViolations += "${file}:${lineNumber}: $trimmed"
+        }
+    }
+}
+Write-Result "P11-12-1: Solver-gated test files exist" ($solverGatedMissingFiles.Count -eq 0) "Missing $($solverGatedMissingFiles.Count) files"
+if (($Verbose -or $solverGatedMissingFiles.Count -gt 0) -and $solverGatedMissingFiles.Count -gt 0) {
+    $preview = ($solverGatedMissingFiles | Select-Object -First 8) -join "; "
+    Write-Host "      Missing: $preview" -ForegroundColor DarkGray
+}
+Write-Result "P11-12-2: No empty assertions in solver-gated tests" ($solverGatedEmptyAssertViolations.Count -eq 0) "Found $($solverGatedEmptyAssertViolations.Count) violations"
+if (($Verbose -or $solverGatedEmptyAssertViolations.Count -gt 0) -and $solverGatedEmptyAssertViolations.Count -gt 0) {
+    $preview = ($solverGatedEmptyAssertViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+Write-Result "P11-12-3: No unconditional assumeTrue(true) in solver-gated tests" ($solverGatedUnconditionalAssumeViolations.Count -eq 0) "Found $($solverGatedUnconditionalAssumeViolations.Count) violations"
+if (($Verbose -or $solverGatedUnconditionalAssumeViolations.Count -gt 0) -and $solverGatedUnconditionalAssumeViolations.Count -gt 0) {
+    $preview = ($solverGatedUnconditionalAssumeViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$defaultExampleSourceRoots = @(
+    "ospf-kotlin-example/src/main",
+    "ospf-kotlin-example/src/test"
+)
+$p14LegacyImportViolations = @()
+foreach ($root in $defaultExampleSourceRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root $root -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -match "^\s*import\s+fuookami\.ospf\.kotlin\.core\.frontend\.") {
+                $p14LegacyImportViolations += "${root}/${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P14-1: No legacy core.frontend imports in default example source set" ($p14LegacyImportViolations.Count -eq 0) "Found $($p14LegacyImportViolations.Count) violations"
+if (($Verbose -or $p14LegacyImportViolations.Count -gt 0) -and $p14LegacyImportViolations.Count -gt 0) {
+    $preview = ($p14LegacyImportViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$nonDefaultRoots = @(
+    "ospf-kotlin-example/src/non-default-main",
+    "ospf-kotlin-example/src/non-default-test"
+)
+$existingNonDefaultRoots = @($nonDefaultRoots | Where-Object { Test-Path $_ })
+Write-Result "P16-1: No non-default source roots in ospf-kotlin-example/src" ($existingNonDefaultRoots.Count -eq 0) "Found $($existingNonDefaultRoots.Count) non-default roots"
+if (($Verbose -or $existingNonDefaultRoots.Count -gt 0) -and $existingNonDefaultRoots.Count -gt 0) {
+    $preview = ($existingNonDefaultRoots | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p16LegacyImportViolations = @()
+$legacyImportPattern = "^\s*import\s+fuookami\.ospf\.kotlin\.(core\.frontend|core\.backend|utils\.math)\."
+foreach ($root in $defaultExampleSourceRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root $root -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -match $legacyImportPattern) {
+                $p16LegacyImportViolations += "${root}/${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P16-2: No legacy core.frontend/core.backend/utils.math imports in default example source set" ($p16LegacyImportViolations.Count -eq 0) "Found $($p16LegacyImportViolations.Count) violations"
+if (($Verbose -or $p16LegacyImportViolations.Count -gt 0) -and $p16LegacyImportViolations.Count -gt 0) {
+    $preview = ($p16LegacyImportViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
 # --- P6/P7 Metric Guards ---
 
 $mathMain = "ospf-kotlin-math/src/main"

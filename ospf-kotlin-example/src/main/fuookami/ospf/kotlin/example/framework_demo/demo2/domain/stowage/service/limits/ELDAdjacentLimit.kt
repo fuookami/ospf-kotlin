@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -49,9 +49,9 @@ class ELDAdjacentLimit(
                             relation = LinearPolynomial(poly1.monomials, poly1.constant) leq Flt64.one,
                             name = "${name}_${item1}_${item2}_${position1}_${position2}"
                         )) {
-                            is Ok -> {}
-                            is Failed -> return Failed(result.error)
-                            is Fatal -> return Fatal(result.errors)
+                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
                         }
                     }
                     if (Stowage.stowageNeeded(item1, position2) || Stowage.stowageNeeded(item2, position1)) {
@@ -62,9 +62,9 @@ class ELDAdjacentLimit(
                             relation = LinearPolynomial(poly2.monomials, poly2.constant) leq Flt64.one,
                             name = "${name}_${item1}_${item2}_${position2}_${position1}"
                         )) {
-                            is Ok -> {}
-                            is Failed -> return Failed(result.error)
-                            is Fatal -> return Fatal(result.errors)
+                            is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
+                            is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Failed(result.error)
+                            is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> return Fatal(result.errors)
                         }
                     }
                 }

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -25,13 +25,13 @@ class EnvelopeLimit(
                     relation = index.value leq envelope.maxIndex.value,
                     name = "${name}_${envelope.name}_ub"
                 )) {
-                    is Ok -> {}
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                    is Failed -> {
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         return Failed(result.error)
                     }
 
-                    is Fatal -> {
+                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         return Fatal(result.errors)
                     }
                 }
@@ -40,13 +40,13 @@ class EnvelopeLimit(
                     relation = index.value geq envelope.minIndex.value,
                     name = "${name}_${envelope.name}_lb"
                 )) {
-                    is Ok -> {}
+                    is Ok<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {}
 
-                    is Failed -> {
+                    is Failed<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         return Failed(result.error)
                     }
 
-                    is Fatal -> {
+                    is Fatal<*, fuookami.ospf.kotlin.utils.error.ErrorCode, fuookami.ospf.kotlin.utils.error.Error<fuookami.ospf.kotlin.utils.error.ErrorCode>> -> {
                         return Fatal(result.errors)
                     }
                 }
