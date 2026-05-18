@@ -720,7 +720,7 @@ P1-P9 的默认迁移验收目标已经完成：当前仓库内 source-compat、
 1. P10：修复 `MathInequalityFlattenKt.toLinearFlattenData` 的 ClassCast blocker。
 2. P11：恢复 solver-gated 示例和函数真实求解回归。
 3. P12：恢复 `QuadraticTest`/二次示例的 build-only 与 solver-gated 分层。
-4. P13：建立外部 POIT 业务仓库直接编译门禁。
+4. ~~P13：建立外部 POIT 业务仓库直接编译门禁~~ — **跳过，不在本轮处理，由各业务项目自行完成更新**。
 5. P14：清理 example 旧 demo，恢复 IDE/默认全量构建可用性。
 6. P15：把 P10-P14 的成果纳入统一 release gate 和文档。
 
@@ -876,48 +876,87 @@ mvn --% -pl ospf-kotlin-example -am -Pbusiness-source-compat -Dsurefire.failIfNo
 mvn --% -pl ospf-kotlin-example -am -Psolver-integration-tests -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
-### P13：外部 POIT 业务仓库直接编译门禁
+### P12：恢复二次示例与 QuadraticTest 分层 — 已完成（2026-05-18）
 
-**目标：** 在当前仓库 source-compat fixture 通过的基础上，建立对 `E:\workspace\poit\poit-or` 中 APS/CSP1D/BOP/PSP 的真实外部编译验证。该阶段不要求真实业务运行，只要求迁移后的业务源码能直接编译。
+**目标：** 解决 `QuadraticProductBuildOnlyStructureTest` 的既有断言问题，并把二次模型示例拆成 build-only 结构测试与 solver-gated 结果测试。
 
-#### 详细步骤
+#### 完成内容
 
-1. 确认外部业务仓库位置和模块：
-   - `E:\workspace\poit\poit-or\aps`
-   - `E:\workspace\poit\poit-or\csp1d`
-   - `E:\workspace\poit\poit-or\bop`
-   - `E:\workspace\poit\poit-or\psp`
-2. 确认父 POM 和 OSPF 版本策略：
-   - 不直接修改私有父 POM 的长期版本，优先通过 Maven 本地安装或临时 profile 指向当前 `1.1.0-SNAPSHOT`/本地版本。
-   - 若必须改外部仓库文件，先单独记录补丁，不混入当前仓库提交。
-3. 建立包名迁移清单：
-   - `core.frontend.*` 到当前 `core.model.*`、`core.variable.*`、`core.intermediate_symbol.*`、`math.symbol.*`
-   - `utils.math.*` 到当前 `math.algebra.*` / `math.symbol.*`
-   - framework/starter 旧入口到 P7/P8 已确认的新入口或兼容 typealias。
-4. 处理 POIT 业务 solver builder：
-   - 明确哪些是 POIT infrastructure 封装，不属于 OSPF public API。
-   - 对仅编译需要的 builder，提供 compile-only shim 或外部仓库迁移补丁。
-   - 不把真实 JNI solver、数据库、消息队列或外部服务纳入默认门禁。
-5. 新增或扩展扫描脚本，输出外部直接编译阻塞清单：
-   - 旧包名命中
-   - 缺失符号
-   - 私有依赖
-   - solver/JNI 依赖
-   - 父 POM 版本问题
-6. 在外部仓库逐个模块执行 compile，先按 APS/CSP1D/BOP/PSP 分开验证，再汇总。
+1. **QuadraticProductBuildOnlyStructureTest 断言修正**：原测试断言 `model.tokens.symbols.isNotEmpty()` 失败，因为 `ProductFunction` 通过 `registerAuxiliaryTokens` 注册时不添加到 `model.tokens.symbols`。修正为断言 `model.tokens.tokens.size`（2 个变量 token）、`mechanismModel.numVariables`（2）、`mechanismModel.objectFunction.subObjects.isNotEmpty()`、约束数量和约束名称。P10 ClassCast 修复后该测试不再阻塞。
 
-#### 验收标准
+2. **新增 QuadraticFunctionBuildOnlyStructureTest**（5 个 build-only 测试）：
+   - `semiFunctionShouldExposeBoundsAndNoHelperVariables` — SemiFunction bounds/evaluate
+   - `productFunctionShouldBuildAndRegisterConstraints` — ProductFunction 约束注册
+   - `quadraticLinearFunctionWithQuadraticTermsShouldRegisterHelperAndConstraint` — QuadraticLinearFunction 辅助变量和约束
+   - `quadraticLinearFunctionWithOnlyLinearTermsShouldNotAddConstraint` — 纯线性多项式无辅助变量
+   - `fullQuadraticModelingChainShouldBuildMechanismModel` — QuadraticInequalityOf 约束 + QuadraticMechanismModel.invoke
 
-1. 四个业务项目至少各有一个代表模块能在当前 OSPF 本地版本下直接编译。
-2. 最终目标是 APS/CSP1D/BOP/PSP 的业务 domain + application 编译通过；infrastructure 中真实 solver/外部服务可继续 profile-gated。
-3. 当前仓库保留外部编译脚本或说明，能复现结果。
-4. 外部编译失败项必须分类记录，不能只保留 Maven 错误日志。
-5. 当前仓库内以下命令继续通过：
+3. **新增 QuadraticFunctionSolveTest**（2 个 solver-gated 测试）：
+   - `productFunctionSolveShouldMinimizeToZero` — min x*y s.t. x+y=10 => obj=0
+   - `quadraticModelWithInequalityConstraintShouldSolve` — min x^2+y^2 s.t. x+y>=4 => obj=8, x=y=2
 
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pbusiness-source-compat -Dsurefire.failIfNoSpecifiedTests=false test
-mvn --% -pl ospf-kotlin-example -am -Pframework-starter-compat -Dsurefire.failIfNoSpecifiedTests=false test
-```
+4. **新增 QuadraticProductEvaluateTest** — ProductFunction evaluate 测试，使用 `IntoValue.Identity` 替代手写 converter。
+
+5. **增强 BusinessSourceCompatTest BOP fixture**：
+   - 新增 `QuadraticInequalityOf<Flt64>` 二次约束（`select[0,0]*select[1,1] le 1`）
+   - 新增 `QuadraticMechanismModel.invoke<Flt64>` 验证
+   - 断言 `mechanismModel.constraints.isNotEmpty()` 和 `mechanismModel.objectFunction.subObjects.isNotEmpty()`
+
+6. **Maven profile 更新**：
+   - `build-only-function-tests`：新增 QuadraticFunctionBuildOnlyStructureTest.kt 和 QuadraticProductEvaluateTest.kt
+   - `solver-integration-tests`：新增 QuadraticFunctionSolveTest.kt 和 ScipAvailability.kt
+
+#### 关键发现
+
+- `Flt64.value` 是 `internal` 属性，从 example 模块不可访问。应使用 `.toDouble()` 公开 API。
+- `FeasibleSolverOutput` 没有 `solved` 属性；`result is Ok` 即表示求解成功，`output is FeasibleSolverOutput<*>` 即表示找到可行解。
+- `Ok<*, *, *>` 需要 3 个类型参数，不能只写 `is Ok`。
+- `QuadraticPolynomial` 的 adapter.flt64 工厂函数会遮蔽 data class 构造器。需要 `monomials` 列表时，应使用 `fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial` 全限定名。
+- `mechanismModel.objectFunction.cells` 不存在，应使用 `.subObjects.isNotEmpty()`。
+
+#### 变更文件清单
+
+| 文件 | 操作 |
+|------|------|
+| `ospf-kotlin-example/src/test/.../quadratic_function/QuadraticProductBuildOnlyStructureTest.kt` | 修正结构断言 |
+| `ospf-kotlin-example/src/test/.../quadratic_function/QuadraticFunctionBuildOnlyStructureTest.kt` | 新建，5 个 build-only 测试 |
+| `ospf-kotlin-example/src/test/.../quadratic_function/QuadraticFunctionSolveTest.kt` | 新建，2 个 solver-gated 测试 |
+| `ospf-kotlin-example/src/test/.../quadratic_function/QuadraticProductEvaluateTest.kt` | 新建，evaluate 测试 |
+| `ospf-kotlin-example/src/test/.../business_compat/BusinessSourceCompatTest.kt` | 增强 BOP 二次约束断言 |
+| `ospf-kotlin-example/pom.xml` | 更新 Maven profile |
+
+#### 测试证据
+
+- IntelliJ 编译检查：5 个测试文件均无编译错误
+- `build-only-function-tests` profile（JDK 21）：9 个测试通过（LinearFunction 1 + ConditionalFunction 1 + QuadraticProduct 1 + QuadraticFunction 5 + QuadraticProductEvaluate 1）
+- `business-source-compat` profile（JDK 21）：4 个测试通过（APS + CSP1D + BOP + PSP，含新增二次约束断言）
+- `solver-integration-tests` profile（JDK 21 + SCIP JNI）：6 个测试通过（LinearFunctionSolve 2 + ConditionalFunctionSolve 2 + QuadraticFunctionSolve 2），二次真实求解断言已验证：
+  - `productFunctionSolveShouldMinimizeToZero`：min x*y s.t. x+y=10 => obj≈0, x+y≈10
+  - `quadraticModelWithInequalityConstraintShouldSolve`：min x^2+y^2 s.t. x+y>=4 => obj≈8, x≈2, y≈2
+
+**环境配置要点：**
+- JDK 21（GraalVM 21.0.10）用于 solver-integration-tests，因为 jscip.jar class file version 65 需要 Java 21+
+- JSCIP_HOME（`D:\environment\solvers\jscip`）需包含 jscip.dll + libscip.dll + tbb12.dll + 其他 scip924/bin 依赖 DLL，否则 `Can't find dependent libraries`
+- pom.xml 已更新 `java.library.path` 为 `${env.JSCIP_HOME};${env.SCIP_HOME};${java.library.path}`，但 surefire 的 `systemPropertyVariables` 对 `java.library.path` 无效（JVM 启动后不可变），实际依赖 PATH 环境变量或 DLL 同目录放置
+
+#### 残余风险
+
+- Maven 长链路构建出现 JVM CodeHeap 'non-profiled nmethods' is full 告警，不影响本次通过，建议 P15 或统一门禁脚本加 JVM 参数（如 `-XX:CodeHeapSize=128m`）。
+
+#### 已知阻塞状态更新
+
+- **QuadraticProductBuildOnlyStructureTest 断言失败**：已修正，不再是已知阻塞。P10 ClassCast 修复后约束注册路径正常工作。
+- **旧 QuadraticTest.kt / SemiTest.kt**：仍存在于源码树但不在任何 Maven profile 中，待 P14 清理。
+
+### ~~P13：外部 POIT 业务仓库直接编译门禁~~ — 跳过
+
+**决定：** P13 不在本轮处理。ospf-kotlin 1.1.0 的包名和 API 变更较大（`core.frontend.*` → `core.model.*`/`core.variable.*`/`core.intermediate_symbol.*`/`math.symbol.*`，`core.backend.*` → `core.solver.*`，`utils.math.*` → `math.algebra.*`），不添加兼容层，由各业务项目（APS/CSP1D/BOP/PSP）自行完成更新。
+
+**已完成的探索工作：**
+- 扫描确认 4 个业务仓库共 ~1344 条旧 import 需迁移（APS: 445, BOP: 218, CSP1D: 517, PSP: 164）
+- 建立了包名迁移清单（见 `scripts/p13-migration-map.md`）
+- 编写了扫描和迁移脚本（见 `scripts/scan-p13-migration.ps1`），供业务项目参考使用
+- 业务仓库当前引用版本 1.0.72，需更新至 1.1.0
 
 ### P14：恢复 example 默认全量构建与 IDE 构建
 

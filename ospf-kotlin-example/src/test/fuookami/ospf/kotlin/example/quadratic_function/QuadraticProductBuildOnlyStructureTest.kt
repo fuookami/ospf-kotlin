@@ -3,7 +3,6 @@ package fuookami.ospf.kotlin.example.quadratic_function
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -17,13 +16,6 @@ import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
 
 class QuadraticProductBuildOnlyStructureTest {
-    private val flt64Converter = object : IntoValue<Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
     @Test
     fun productFunctionShouldAppendQuadraticEqualityWithoutSolver() {
         val x = RealVar("example_quad_build_x")
@@ -41,14 +33,10 @@ class QuadraticProductBuildOnlyStructureTest {
         val function = fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction(
             left = left,
             right = right,
-            converter = flt64Converter,
             name = "example_product_build"
         )
 
-        val model = QuadraticMetaModel<Flt64>(
-            name = "quadratic-build-only",
-            converter = flt64Converter
-        )
+        val model = QuadraticMetaModel(name = "quadratic-build-only")
 
         try {
             assertTrue(model.add(listOf(x, y)) is Ok)
@@ -62,6 +50,9 @@ class QuadraticProductBuildOnlyStructureTest {
                 ) is Ok
             )
 
+            // Structure assertions on MetaModel
+            assertEquals(2, model.tokens.tokens.size, "MetaModel should have 2 tokens (x, y)")
+
             @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
@@ -69,13 +60,21 @@ class QuadraticProductBuildOnlyStructureTest {
             assertTrue(mechanismRet is Ok)
             val mechanismModel = requireNotNull(mechanismRet.value)
 
+            // MechanismModel structure: variables + objective
+            assertEquals(2, mechanismModel.numVariables, "MechanismModel should have 2 variables")
+            assertTrue(mechanismModel.objectFunction.subObjects.isNotEmpty(),
+                "MechanismModel objective should have sub-objects")
+
             val before = mechanismModel.constraints.size
             assertTrue(function.registerConstraints(mechanismModel) is Ok)
             val appended = mechanismModel.constraints.subList(before, mechanismModel.constraints.size)
 
-            assertEquals(1, appended.size, "product 应只追加 1 条等式约束")
+            // ProductFunction constraint assertions
+            assertEquals(1, appended.size, "product should append exactly 1 equality constraint")
             assertEquals(ConstraintRelation.Equal, appended.first().sign)
             assertTrue(appended.first().name.contains("example_product_build"))
+            assertTrue(appended.first().lhs.isNotEmpty(),
+                "product constraint lhs should have cells (quadratic terms)")
         } finally {
             model.close()
         }

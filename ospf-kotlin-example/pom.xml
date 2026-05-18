@@ -115,6 +115,8 @@
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/LinearFunctionBuildOnlyStructureTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionBuildOnlyStructureTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticProductBuildOnlyStructureTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticFunctionBuildOnlyStructureTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticProductEvaluateTest.kt</sourceDir>
                                     </sourceDirs>
                                 </configuration>
                             </execution>
@@ -128,6 +130,8 @@
                                 <include>**/LinearFunctionBuildOnlyStructureTest.*</include>
                                 <include>**/ConditionalFunctionBuildOnlyStructureTest.*</include>
                                 <include>**/QuadraticProductBuildOnlyStructureTest.*</include>
+                                <include>**/QuadraticFunctionBuildOnlyStructureTest.*</include>
+                                <include>**/QuadraticProductEvaluateTest.*</include>
                             </includes>
                         </configuration>
                     </plugin>
@@ -276,6 +280,7 @@
                                     <sourceDirs>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/LinearFunctionSolveTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/quadratic_function/QuadraticFunctionSolveTest.kt</sourceDir>
                                         <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/ScipAvailability.kt</sourceDir>
                                     </sourceDirs>
                                 </configuration>
@@ -289,10 +294,11 @@
                             <includes>
                                 <include>**/LinearFunctionSolveTest.*</include>
                                 <include>**/ConditionalFunctionSolveTest.*</include>
+                                <include>**/QuadraticFunctionSolveTest.*</include>
                             </includes>
                             <systemPropertyVariables>
                                 <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
-                                <java.library.path>${env.JSCIP_HOME};${java.library.path}</java.library.path>
+                                <java.library.path>${env.JSCIP_HOME};${env.SCIP_HOME};${java.library.path}</java.library.path>
                             </systemPropertyVariables>
                         </configuration>
                     </plugin>

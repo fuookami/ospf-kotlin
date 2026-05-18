@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.solver.LinearSolver
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
@@ -48,11 +49,14 @@ import fuookami.ospf.kotlin.math.symbol.adapter.flt64.minus
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.plus
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.qsum
 import fuookami.ospf.kotlin.math.symbol.adapter.flt64.sum
+import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Try
+import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -188,6 +192,32 @@ class BusinessSourceCompatTest {
             assertEquals(2, useSum.monomials.size)
             val objective = QuadraticPolynomial(QuadraticMonomial.quadratic(Flt64.one, select[0, 0], select[1, 1]))
             assertOk(model.minimize(objective), "BOP quadratic objective should be accepted")
+
+            // P12: quadratic constraint and mechanism model verification
+            val lhsPoly = fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(
+                monomials = listOf(QuadraticMonomial.quadratic(Flt64.one, select[0, 0], select[1, 1])),
+                constant = Flt64.zero
+            )
+            val rhsPoly = fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial(
+                monomials = emptyList(),
+                constant = Flt64.one
+            )
+            val quadraticConstraint = QuadraticInequalityOf<Flt64>(
+                lhs = lhsPoly,
+                rhs = rhsPoly,
+                comparison = Comparison.LE,
+                name = "bop_select_product_limit"
+            )
+            assertOk(model.addConstraint(quadraticConstraint), "BOP quadratic inequality constraint should be accepted")
+
+            @Suppress("DEPRECATION")
+            val mechanismRet = runBlocking { QuadraticMechanismModel.invoke<Flt64>(metaModel = model) }
+            assertTrue(mechanismRet is Ok<*, *, *>, "BOP QuadraticMechanismModel.invoke should succeed")
+            val mechanismModel = requireNotNull(mechanismRet.value)
+            assertTrue(mechanismModel.constraints.isNotEmpty(),
+                "BOP mechanism model should have at least 1 constraint")
+            assertTrue(mechanismModel.objectFunction.subObjects.isNotEmpty(),
+                "BOP mechanism model should have objective sub-objects")
         } finally {
             model.close()
         }
