@@ -39,13 +39,16 @@ class AbsFunction<V>(
     bigM: V? = null,
     override var name: String = "abs",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_abs")
     val posVar: AbstractVariableItem<*, *> = URealVar("${name}_abs_pos")
     val negVar: AbstractVariableItem<*, *> = URealVar("${name}_abs_neg")
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar, posVar, negVar)

@@ -50,7 +50,7 @@ class IfFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "if",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -63,9 +63,11 @@ class IfFunction<V>(
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar, indicatorVar, sideVar)
 
-    val result: LinearPolynomial<V> by lazy {
+    override val resultPolynomial: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
+
+    val result: LinearPolynomial<V> get() = resultPolynomial
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null

@@ -250,5 +250,54 @@
                 </plugins>
             </build>
         </profile>
+        <profile>
+            <id>solver-integration-tests</id>
+            <properties>
+                <example.source.directory>src/core-demo-none</example.source.directory>
+                <example.test.source.directory>src/core-demo-none</example.test.source.directory>
+            </properties>
+            <dependencies>
+                <dependency>
+                    <groupId>scip</groupId>
+                    <artifactId>jscip</artifactId>
+                    <version>1.0.0</version>
+                    <scope>test</scope>
+                </dependency>
+            </dependencies>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>test-compile</id>
+                                <configuration>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/LinearFunctionSolveTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/linear_function/ConditionalFunctionSolveTest.kt</sourceDir>
+                                        <sourceDir>${project.basedir}/src/test/fuookami/ospf/kotlin/example/core_demo/ScipAvailability.kt</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-surefire-plugin</artifactId>
+                        <configuration>
+                            <includes>
+                                <include>**/LinearFunctionSolveTest.*</include>
+                                <include>**/ConditionalFunctionSolveTest.*</include>
+                            </includes>
+                            <systemPropertyVariables>
+                                <ospf.kotlin.math.enableCompanionReflectionFallback>true</ospf.kotlin.math.enableCompanionReflectionFallback>
+                                <java.library.path>${env.JSCIP_HOME};${java.library.path}</java.library.path>
+                            </systemPropertyVariables>
+                        </configuration>
+                    </plugin>
+                </plugins>
+            </build>
+        </profile>
     </profiles>
 </project>

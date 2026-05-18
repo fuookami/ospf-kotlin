@@ -121,8 +121,10 @@ class LinearFunctionSymbolAdapter<V>(
      * Only meaningful when the delegate is a SlackFunction with withPositive=true.
      */
     val pos: LinearPolynomial<V>? by lazy {
-        val slack = delegate as? SlackFunction<V> ?: return@lazy null
-        slack.posVar?.let { v ->
+        val slack = delegate as? SlackFunction<V>
+        val slackRange = delegate as? SlackRangeFunction<V>
+        val posV = slack?.posVar ?: slackRange?.posVar
+        posV?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
                 constant = converter.zero
@@ -130,13 +132,11 @@ class LinearFunctionSymbolAdapter<V>(
         }
     }
 
-    /**
-     * Expose negative slack variable as a LinearPolynomial<V>.
-     * Only meaningful when the delegate is a SlackFunction with withNegative=true.
-     */
     val neg: LinearPolynomial<V>? by lazy {
-        val slack = delegate as? SlackFunction<V> ?: return@lazy null
-        slack.negVar?.let { v ->
+        val slack = delegate as? SlackFunction<V>
+        val slackRange = delegate as? SlackRangeFunction<V>
+        val negV = slack?.negVar ?: slackRange?.negVar
+        negV?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
                 constant = converter.zero
@@ -144,21 +144,28 @@ class LinearFunctionSymbolAdapter<V>(
         }
     }
 
-    /**
-     * Expose the full slack expression (x + neg - pos) as a LinearPolynomial<V>.
-     * Only meaningful when the delegate is a SlackFunction.
-     */
     val polyX: LinearPolynomial<V>? by lazy {
-        val slack = delegate as? SlackFunction<V> ?: return@lazy null
-        val unit = converter.one
-        var result = LinearPolynomial(slack.x.monomials.toMutableList(), slack.x.constant)
-        if (slack.withNegative && slack.negVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(unit, slack.negVar!!), result.constant)
+        when (val d = delegate) {
+            is SlackFunction<V> -> {
+                val unit = converter.one
+                var result = LinearPolynomial(d.x.monomials.toMutableList(), d.x.constant)
+                if (d.withNegative && d.negVar != null) {
+                    result = LinearPolynomial(result.monomials + LinearMonomial(unit, d.negVar!!), result.constant)
+                }
+                if (d.withPositive && d.posVar != null) {
+                    result = LinearPolynomial(result.monomials + LinearMonomial(-unit, d.posVar!!), result.constant)
+                }
+                result
+            }
+            is SlackRangeFunction<V> -> {
+                val unit = converter.one
+                var result = LinearPolynomial(d.x.monomials.toMutableList(), d.x.constant)
+                d.negVar?.let { result = LinearPolynomial(result.monomials + LinearMonomial(unit, it), result.constant) }
+                d.posVar?.let { result = LinearPolynomial(result.monomials + LinearMonomial(-unit, it), result.constant) }
+                result
+            }
+            else -> null
         }
-        if (slack.withPositive && slack.posVar != null) {
-            result = LinearPolynomial(result.monomials + LinearMonomial(-unit, slack.posVar!!), result.constant)
-        }
-        result
     }
 
     override fun evaluate(values: Map<Symbol, V>): V? = delegate.evaluate(values)

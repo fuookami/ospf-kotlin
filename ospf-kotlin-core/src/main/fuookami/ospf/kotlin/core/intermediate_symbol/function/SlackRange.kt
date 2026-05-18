@@ -55,17 +55,20 @@ class SlackRangeFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
 
-    private val negVar: AbstractVariableItem<*, *> by lazy {
+    val negVar: AbstractVariableItem<*, *> by lazy {
         if (type.isIntegerType) UIntVar("${name}_neg") else URealVar("${name}_neg")
     }
-    private val posVar: AbstractVariableItem<*, *> by lazy {
+    val posVar: AbstractVariableItem<*, *> by lazy {
         if (type.isIntegerType) UIntVar("${name}_pos") else URealVar("${name}_pos")
     }
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(negVar, posVar)
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, posVar)), converter.zero)
 
     val neg: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, negVar)), converter.zero)

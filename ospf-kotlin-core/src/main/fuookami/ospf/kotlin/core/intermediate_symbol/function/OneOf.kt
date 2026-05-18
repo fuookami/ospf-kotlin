@@ -53,7 +53,7 @@ class OneOfFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "oneof",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
     private val strictBoundary: V = strictBoundary ?: converter.intoValue(Flt64(STRICT_BOUNDARY))
@@ -69,6 +69,9 @@ class OneOfFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var count = 0

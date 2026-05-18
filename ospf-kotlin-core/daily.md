@@ -821,37 +821,28 @@ mvn --% -pl ospf-kotlin-example -am -Pbusiness-source-compat -Dsurefire.failIfNo
 - **ClassCast blocker 已修复**：P6/P7/P8 中记录的 `LinearExpressionSymbol → AbstractVariableItem` ClassCast blocker 已通过 P10 修复。中间符号约束不再触发 ClassCastException。
 - **QuadraticProductBuildOnlyStructureTest 断言失败**：仍为预先存在问题，不阻塞 P10 默认验收。
 
-### P11：恢复 solver-gated 真实求解回归
+### P11：恢复 solver-gated 真实求解回归（已完成 2026-05-18）
 
 **目标：** 在 P10 修复后，把原先只做 build-only 的关键示例升级为 solver-gated 真实求解回归。默认仍不强制依赖 JNI solver，但 solver 可用时必须跑真实模型并断言结果。
 
-#### 详细步骤
+**完成内容：**
 
-1. 复查已有 `solver-integration-tests` profile 与 `ScipAvailability.kt`，统一 SCIP/Gurobi 可用性判断。
-2. 为线性函数示例恢复 solver-gated 测试，优先覆盖：
-   - `SemiTest`
-   - `XorTest`
-   - `ULPTest`
-   - `LinearFunctionBuildOnlyStructureTest` 中已具备结构断言的代表用例
-3. 将只断言 build 成功的测试分成两层：
-   - 默认层：build-only / structure-only，不依赖 solver。
-   - solver-gated 层：solver 可用时求解并断言目标值、变量值、约束满足或函数符号输出。
-4. 不允许使用 `assertTrue(true)` 或“solver 不可用时空通过”。solver 不可用时应通过 JUnit assumption 或明确 skip 信息跳过。
-5. 对 solver-gated profile 增加 surefire include，避免默认 test 扫到本地 JNI 不可用的测试。
+1. 新增 `solver-integration-tests` Maven profile（`ospf-kotlin-example/pom.xml`），编译并运行 solver-gated 测试。
+2. 原有 3 个 solver-gated 测试（SemiTest、XorTest、ULPTest）使用旧 API（`register(model)`、`semi.y`）无法编译，已用新测试替代。
+3. 新增 `LinearFunctionSolveTest`：AbsFunction 和 SlackRangeFunction 的真实求解断言，包含变量值语义验证（x=0 时 |x|=0，slack range 约束 x∈[lb,ub]）。
+4. 新增 `ConditionalFunctionSolveTest`：IfFunction 和 OneOfFunction 的真实求解断言，包含变量值语义验证（if 条件满足时 result=1，oneOf 恰好一个为 1）。
+5. 所有 solver-gated 测试使用 `assumeTrue(ScipAvailability.isAvailable())` 跳过无 solver 环境，无空断言。
+6. 复用 `IntoValue.Identity` 而非自定义 converter 样板，P7 guard P6-1 通过。
+7. 验收标准全部满足：默认 profile、`core-demo-only`、`build-only-function-tests`、`solver-integration-tests` 均通过；P7 guard 通过。
 
-#### 验收标准
+**关键发现：**
 
-1. solver 不可用时，默认 profile、`core-demo-only`、`build-only-function-tests` 均通过。
-2. solver 可用时，`solver-integration-tests` 至少覆盖线性函数真实求解路径，并有非空结果断言。
-3. 以下命令通过：
+- 辅助变量（resultVar、posVar、negVar 等）只存在于 MechanismModel 的 token 表中，不在 MetaModel 的 token 表中。`model.setSolution(solution)` 只填充 MetaModel 的 token 表，因此 `model.tokens.find(absResultVar)?.result` 对辅助变量返回 null。
+- 正确的断言模式：使用 `result.value!!.obj` 断言目标值，使用 `model.tokens.find(x)?.result` 断言用户定义变量值，不直接查找辅助变量。
+- 函数符号必须通过 `LinearFunctionSymbolAdapter` 包装才能与 `model.add()` 和 `model.minimize()`/`model.maximize()` 一起使用，因为它们需要 `LinearIntermediateSymbol` 接口。
+- `HasResultPolynomial<V>` 接口是关键：没有它，`LinearFunctionSymbolAdapter` 的 `polynomial` 返回空多项式，导致符号被 `symbols.register` 分区逻辑归类为"空符号"，辅助 token 不注册、约束不生效。
 
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pcore-demo-only -Dsurefire.failIfNoSpecifiedTests=false test
-mvn --% -pl ospf-kotlin-example -am -Pbuild-only-function-tests -Dsurefire.failIfNoSpecifiedTests=false test
-mvn --% -pl ospf-kotlin-example -am -Psolver-integration-tests -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-4. `check-c8-guards.ps1 -GuardMode P7` 继续通过，尤其不能新增空断言或空测试。
+**注意：** 旧 SemiTest.kt、XorTest.kt、ULPTest.kt 仍保留在源码树中但不再被任何 profile 编译，待后续清理。
 
 ### P12：恢复二次示例与 QuadraticTest 分层
 
