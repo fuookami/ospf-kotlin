@@ -24,4 +24,3 @@ interface MultiplicativeGroup<Self> : MultiplicativeMonoid<Self>,
     Div<Self, Self>,
     IntDiv<Self, Self>,
     Rem<Self, Self>
-

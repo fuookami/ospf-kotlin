@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
@@ -34,4 +34,3 @@ sealed class AircraftCapacity {
 
     abstract val category: AircraftCategory
 }
-

@@ -39,13 +39,13 @@ interface AbstractContainer2Shape<P : ProjectivePlane> {
     val width: Flt64
     val plane: P
 
-    fun restSpace(offset: Point2) = Container2Shape(
+    fun restSpace(offset: Point<Dim2, Flt64>) = Container2Shape(
         length = length - offset.x,
         width = width - offset.y,
         plane = plane
     )
 
-    fun restSpace(offset: Vector2) = Container2Shape(
+    fun restSpace(offset: Vector<Dim2, Flt64>) = Container2Shape(
         length = length - offset.x,
         width = width - offset.y,
         plane = plane
@@ -159,13 +159,13 @@ interface AbstractContainer3Shape : Eq<AbstractContainer3Shape> {
         return xAmount * yAmount * zAmount
     }
 
-    fun restSpace(offset: Point3) = Container3Shape(
+    fun restSpace(offset: Point<Dim3, Flt64>) = Container3Shape(
         width = width - offset.x,
         height = height - offset.y,
         depth = depth - offset.z
     )
 
-    fun restSpace(offset: Vector3) = Container3Shape(
+    fun restSpace(offset: Vector<Dim3, Flt64>) = Container3Shape(
         width = width - offset.x,
         height = height - offset.y,
         depth = depth - offset.z
@@ -236,6 +236,5 @@ interface Container3<S : Container3<S>> : AbstractCuboid, Copyable<S> {
 }
 
 interface Container3CuboidUnit<S> : Container3<S>, Cuboid<S> where S : Container3<S>, S : Cuboid<S>
-
 
 

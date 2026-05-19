@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION")
+@file:Suppress("DEPRECATION")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
@@ -84,6 +84,5 @@ class OrderConstraint<A : ProductionAction>(
         return ok
     }
 }
-
 
 

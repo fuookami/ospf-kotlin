@@ -56,8 +56,6 @@ class ConditionalFunctionBuildOnlyStructureTest {
             assertTrue(ifFunction.registerAuxiliaryTokens(model.tokens) is Ok)
             assertTrue(oneOfFunction.registerAuxiliaryTokens(model.tokens) is Ok)
             assertTrue(model.minimize(xPoly) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 LinearMechanismModel.invoke<Flt64>(metaModel = model)
             }

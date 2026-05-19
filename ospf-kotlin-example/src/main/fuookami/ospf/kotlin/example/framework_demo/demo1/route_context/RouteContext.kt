@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context
+package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -117,7 +117,6 @@ class RouteContext {
         return ok
     }
 }
-
 
 
 

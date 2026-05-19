@@ -1,8 +1,8 @@
-﻿package fuookami.ospf.kotlin.math.symbol.operation
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLatex
+import fuookami.ospf.kotlin.math.symbol.operation.toLatex
 import fuookami.ospf.kotlin.math.symbol.inequality.CanonicalInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -125,5 +125,4 @@ class LatexTest {
         assertEquals("0", CanonicalPolynomial<Flt64>(constant = Flt64.zero).toLatex())
     }
 }
-
 

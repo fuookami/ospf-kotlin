@@ -188,4 +188,3 @@ typealias PalletLayerView = CuboidView<PalletLayer>
 typealias PalletLayerPlacement = Placement3<PalletLayer>
 
 
-

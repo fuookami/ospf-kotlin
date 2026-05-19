@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.service
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -239,4 +239,3 @@ class TopologicalLoadingOrderNeighbourCalculator {
         return Ok(neighbours)
     }
 }
-

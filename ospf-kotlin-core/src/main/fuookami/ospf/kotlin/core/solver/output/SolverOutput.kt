@@ -24,7 +24,7 @@ sealed interface LinearSolverOutput : SolverOutput {}
 sealed interface QuadraticSolverOutput : SolverOutput {}
 
 @Suppress("UNCHECKED_CAST")
-private fun <V> castLegacyFlt64ToValueOrThrow(fieldName: String, value: Flt64, solution: Solution<V>): V {
+private fun <V> castSolverFlt64FallbackToValueOrThrow(fieldName: String, value: Flt64, solution: Solution<V>): V {
     if (solution.any { it !is Flt64 }) {
         throw IllegalArgumentException(
             "FeasibleSolverOutput.$fieldName default fallback only supports Flt64 solution. " +
@@ -45,9 +45,9 @@ data class FeasibleSolverOutput<V>(
     override val bestBound: Flt64? = null,
     override val mipGap: Flt64 = gap,
     override val solveTime: Duration = time,
-    val objValue: V = castLegacyFlt64ToValueOrThrow("objValue", obj, solution),
-    val possibleBestObjValue: V = castLegacyFlt64ToValueOrThrow("possibleBestObjValue", possibleBestObj, solution),
-    val bestBoundValue: V? = bestBound?.let { castLegacyFlt64ToValueOrThrow("bestBoundValue", it, solution) }
+    val objValue: V = castSolverFlt64FallbackToValueOrThrow("objValue", obj, solution),
+    val possibleBestObjValue: V = castSolverFlt64FallbackToValueOrThrow("possibleBestObjValue", possibleBestObj, solution),
+    val bestBoundValue: V? = bestBound?.let { castSolverFlt64FallbackToValueOrThrow("bestBoundValue", it, solution) }
 ) : LinearSolverOutput, QuadraticSolverOutput, UnifiedSolverOutput
 
 
@@ -120,5 +120,4 @@ fun QuadraticInfeasibleSolverOutput.withIIS(): SolverOutputWithIIS<QuadraticTetr
         iis = iis
     )
 }
-
 

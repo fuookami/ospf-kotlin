@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.mac_optimization.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -41,4 +41,3 @@ class MACRange(
         }
     }
 }
-

@@ -1876,4 +1876,3 @@ open class ContinuousProductivityCalendar<P, T, U>(
     },
     floor = { it }
 ) where P : Productivity<Flt64, T, U>
-

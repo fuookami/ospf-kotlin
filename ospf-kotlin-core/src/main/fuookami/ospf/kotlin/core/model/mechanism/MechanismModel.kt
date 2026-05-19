@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.model.mechanism
+package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
@@ -21,7 +21,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.normalize
+import fuookami.ospf.kotlin.math.symbol.operation.normalize
 import fuookami.ospf.kotlin.math.symbol.inequality.le
 import fuookami.ospf.kotlin.math.symbol.inequality.ge
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -35,7 +35,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.usize
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.token.register
 import fuookami.ospf.kotlin.utils.memoryUseOver
@@ -116,7 +116,8 @@ private fun <V> convertLinearSubObjectToFlt64(
         category = subObject.category,
         flattenData = flattenData,
         tokens = tokens,
-        name = subObject.name
+        name = subObject.name,
+        converter = IntoValue.Identity
     )
 }
 
@@ -145,7 +146,8 @@ private fun <V> convertQuadraticSubObjectToFlt64(
         category = subObject.category,
         flattenData = flattenData,
         tokens = tokens,
-        name = subObject.name
+        name = subObject.name,
+        converter = IntoValue.Identity
     )
 }
 
@@ -287,16 +289,13 @@ sealed interface MechanismModel<V> : AutoCloseable where V : RealNumber<V>, V : 
 }
 
 /**
- * Convert a generic [MechanismModel]<V> to a Flt64-specific [MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>].
+ * Convert a typed [MechanismModel]<V> to the Flt64 solver-boundary model.
  *
- * Validates that V is compatible with Flt64 by verifying the model is an instance
- * of a concrete MechanismModel subclass. Since all internal numerical data is
- * already Flt64, the conversion is safe when the model is a concrete
- * [LinearMechanismModel] or [QuadraticMechanismModel].
+ * Validates that the model is a concrete mechanism-model subclass before
+ * crossing the solver boundary.
  * Returns [Failed] for unexpected model types.
  *
- * This function is intended to replace inlined V-to-Flt64 conversion logic in
- * invoke() methods.
+ * This keeps solver-boundary V-to-Flt64 conversion in one place.
  */
 internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<MechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
     return when (model) {
@@ -315,8 +314,6 @@ internal fun <V> convertMechanismModelToFlt64(model: MechanismModel<V>): Ret<Mec
         }
     }
 }
-
-// Backward compatibility: typealias aliases
 
 interface AbstractLinearMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     /**
@@ -363,8 +360,6 @@ interface AbstractQuadraticMechanismModel<V> : AbstractLinearMechanismModel<V> w
         )
     }
 }
-
-// Backward compatibility: typealias aliases
 
 interface SingleObjectMechanismModel<V> : MechanismModel<V> where V : RealNumber<V>, V : NumberField<V> {
     override val objectFunction: SingleObject<SubObject<V>>
@@ -767,26 +762,6 @@ class LinearMechanismModel<V>(
             )
         }
 
-        @kotlin.Deprecated("Use invoke(metaModel: LinearMetaModel<V>) instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmName("invokeFlt64")
-        suspend operator fun invoke(
-            metaModel: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            concurrent: Boolean? = null,
-            blocking: Boolean? = null,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            registrationStatusCallBack: RegistrationStatusCallBack? = null,
-            dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-            return invoke<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                metaModel = metaModel,
-                concurrent = concurrent,
-                blocking = blocking,
-                fixedVariables = fixedVariables,
-                registrationStatusCallBack = registrationStatusCallBack,
-                dumpingStatusCallBack = dumpingStatusCallBack
-            )
-        }
-
         private suspend fun <V> unfold(
             tokens: AbstractMutableTokenTable<V>,
             fixedVariables: Map<AbstractVariableItem<*, *>, V>? = null,
@@ -1039,59 +1014,6 @@ class LinearMechanismModel<V>(
     }
 
     /**
-     * Generate optimal Benders cut using constraint-name-based dual solution lookup.
-     *
-     * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
-     * (constraint name �?dual value) instead of `Map<Constraint<Flt64, Linear>, Flt64>`.
-     * Use when the caller has dual values keyed by constraint name (e.g., from
-     * serialized results, cross-process communication, or log output) rather than
-     * direct Constraint object references.
-     *
-     * @param objectVariable  the objective variable (theta) to project onto
-     * @param fixedVariables  variables fixed in the sub-problem and their values
-     * @param dualSolutionById  constraint name �?dual value mapping
-     * @return list of linear cuts
-     */
-    internal fun generateOptimalCutById(
-        objectVariable: AbstractVariableItem<*, *>,
-        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolutionById: Map<String, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        val dualSolutionByIdV = dualSolutionById.mapValues { (_, value) ->
-            parent.converter.intoValue(value)
-        }
-        return generateOptimalCutByIdV(
-            objectVariable = objectVariable,
-            fixedVariables = fixedVariables,
-            dualSolutionById = dualSolutionByIdV
-        ).map { toFlt64LinearCut(it) }
-    }
-
-    /**
-     * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
-     *
-     * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
-     * (constraint name �?Farkas dual value) instead of `Map<Constraint<Flt64, Linear>, Flt64>`.
-     *
-     * @param fixedVariables  variables fixed in the sub-problem and their values
-     * @param farkasDualSolutionById  constraint name �?Farkas dual value mapping
-     * @return list of linear cuts
-     */
-    @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
-    fun generateFeasibleCutById(
-        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolutionById: Map<String, Flt64>
-    ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        val dualSolutionByIdV = farkasDualSolutionById.mapValues { (_, value) ->
-            parent.converter.intoValue(value)
-        }
-        return generateFeasibleCutByIdV(
-            fixedVariables = fixedVariables,
-            farkasDualSolutionById = dualSolutionByIdV
-        ).map { toFlt64LinearCut(it) }
-    }
-
-    /**
      * Generate optimal Benders cut from raw solver dual output.
      *
      * Convenience overload that accepts raw dual values ([Solution]) and a
@@ -1153,8 +1075,6 @@ class LinearMechanismModel<V>(
         return name
     }
 }
-
-// Backward compatibility: typealias aliases
 
 class QuadraticMechanismModel<V>(
     internal val parent: QuadraticMetaModel<V>,
@@ -1329,26 +1249,6 @@ class QuadraticMechanismModel<V>(
                 constraints = constraints.toMutableList(),
                 objectFunction = SingleObject(metaModel.objectCategory, subObjects),
                 tokens = tokens
-            )
-        }
-
-        @kotlin.Deprecated("Use invoke(metaModel: QuadraticMetaModel<V>) instead. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmName("invokeFlt64")
-        suspend operator fun invoke(
-            metaModel: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            concurrent: Boolean? = null,
-            blocking: Boolean? = null,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
-            registrationStatusCallBack: RegistrationStatusCallBack? = null,
-            dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-        ): Ret<QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-            return invoke<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                metaModel = metaModel,
-                concurrent = concurrent,
-                blocking = blocking,
-                fixedVariables = fixedVariables,
-                registrationStatusCallBack = registrationStatusCallBack,
-                dumpingStatusCallBack = dumpingStatusCallBack
             )
         }
 
@@ -1645,9 +1545,7 @@ class QuadraticMechanismModel<V>(
         return cut
     }
 
-    @Suppress("UNUSED_PARAMETER")
     internal fun generateOptimalCutByIdV(
-        objective: V,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolutionById: Map<String, V>
@@ -1683,12 +1581,10 @@ class QuadraticMechanismModel<V>(
     }
 
     fun generateOptimalCut(
-        objective: Flt64,
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
-        // 兼容性保留原签名；当前公式中 objective 未参与计算 / Keep signature for compatibility; objective is currently unused in this formulation
         val dualAsV: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
             val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
@@ -1727,65 +1623,6 @@ class QuadraticMechanismModel<V>(
     }
 
     /**
-     * Generate optimal Benders cut using constraint-name-based dual solution lookup.
-     *
-     * Convenience overload of [generateOptimalCut] that accepts a `Map<String, Flt64>`
-     * (constraint name �?dual value) instead of `Map<Constraint<Flt64, Quadratic>, Flt64>`.
-     * Use when the caller has dual values keyed by constraint name (e.g., from
-     * serialized results, cross-process communication, or log output) rather than
-     * direct Constraint object references.
-     *
-     * @param objective        the objective value of the sub-problem solution
-     * @param objectVariable   the objective variable (theta) to project onto
-     * @param fixedVariables   variables fixed in the sub-problem and their values
-     * @param dualSolutionById constraint name �?dual value mapping
-     * @return list of cuts (linear or quadratic inequalities)
-     */
-    @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
-    fun generateOptimalCutById(
-        objective: Flt64,
-        objectVariable: AbstractVariableItem<*, *>,
-        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        dualSolutionById: Map<String, Flt64>
-    ): Ret<List<Any>> {
-        val dualSolutionByIdV = dualSolutionById.mapValues { (_, value) ->
-            parent.converter.intoValue(value)
-        }
-        val cutsV = generateOptimalCutByIdV(
-            objective = parent.converter.intoValue(objective),
-            objectVariable = objectVariable,
-            fixedVariables = fixedVariables,
-            dualSolutionById = dualSolutionByIdV
-        )
-        return Ok(cutsV.map { cut -> toFlt64Cut(cut) })
-    }
-
-    /**
-     * Generate feasible Benders cut using constraint-name-based Farkas dual solution lookup.
-     *
-     * Convenience overload of [generateFeasibleCut] that accepts a `Map<String, Flt64>`
-     * (constraint name �?Farkas dual value) instead of `Map<Constraint<Flt64, Quadratic>, Flt64>`.
-     *
-     * @param fixedVariables         variables fixed in the sub-problem and their values
-     * @param farkasDualSolutionById constraint name �?Farkas dual value mapping
-     * @return list of cuts (linear or quadratic inequalities)
-     */
-    @kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific Benders cut method will be removed in a future version.", level = DeprecationLevel.WARNING)
-    fun generateFeasibleCutById(
-        fixedVariables: Map<AbstractVariableItem<*, *>, V>,
-        farkasDualSolutionById: Map<String, Flt64>
-    ): Ret<List<Any>> {
-        val dualSolutionByIdV = farkasDualSolutionById.mapValues { (_, value) ->
-            parent.converter.intoValue(value)
-        }
-        val cutsV = generateFeasibleCutByIdV(
-            fixedVariables = fixedVariables,
-            farkasDualSolutionById = dualSolutionByIdV
-        )
-        return Ok(cutsV.map { cut -> toFlt64Cut(cut) })
-    }
-
-    /**
      * Generate optimal Benders cut from raw solver dual output.
      *
      * Convenience overload that accepts raw dual values ([Solution]) and a
@@ -1811,7 +1648,7 @@ class QuadraticMechanismModel<V>(
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val dualSolution = tetradModel.tidyDualSolution(dualValues)
-        return generateOptimalCut(objective, objectVariable, fixedVariables, dualSolution)
+        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
     /**
@@ -1849,7 +1686,4 @@ class QuadraticMechanismModel<V>(
         return name
     }
 }
-
-// Backward compatibility: typealias aliases
-
 

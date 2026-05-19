@@ -8,7 +8,8 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.sortedWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.x
 import fuookami.ospf.kotlin.math.geometry.y
 import fuookami.ospf.kotlin.math.geometry.z
@@ -20,6 +21,7 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.math.geometry.point3
 
 internal fun fitness(space: Space, block: Block): Flt64 {
     return when (space.forwardLink?.first ?: Side) {
@@ -574,4 +576,3 @@ class DepthFirstSearchAlgorithm(
             .map { it.value }
     }
 }
-

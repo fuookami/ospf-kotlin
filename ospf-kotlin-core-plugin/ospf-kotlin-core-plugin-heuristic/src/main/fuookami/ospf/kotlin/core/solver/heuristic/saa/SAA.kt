@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic.saa
 
@@ -255,6 +255,5 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
 
 typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64>
 typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
-
 
 

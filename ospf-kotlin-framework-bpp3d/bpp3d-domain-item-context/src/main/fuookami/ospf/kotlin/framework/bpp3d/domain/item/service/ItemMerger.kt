@@ -7,15 +7,16 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point3
-import fuookami.ospf.kotlin.math.geometry.Vector3
-import fuookami.ospf.kotlin.math.geometry.point3
-import fuookami.ospf.kotlin.math.geometry.vector3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
+import fuookami.ospf.kotlin.math.geometry.Vector
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.abs
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 data object ItemMerger {
     data class Config(
@@ -594,19 +595,18 @@ data object ItemMerger {
     @JvmName("dumpPlacements")
     fun dump(
         placements: List<Placement3<*>>,
-        offset: Vector3 = vector3()
+        offset: Vector<Dim3, Flt64> = vector3()
     ): List<ItemPlacement3> {
         return placements.map {
             when (it.unit) {
                 is Item -> listOf(Placement3(it.view as ItemView, it.position + offset))
-                is Block -> (it as BlockPlacement3).dumpAbsolutely(Point3(offset))
-                is BinLayer -> (it as BinLayerPlacement).dumpAbsolutely(Point3(offset))
-                is PalletLayer -> (it as PalletLayerPlacement).dumpAbsolutely(Point3(offset))
+                is Block -> (it as BlockPlacement3).dumpAbsolutely(point3(offset))
+                is BinLayer -> (it as BinLayerPlacement).dumpAbsolutely(point3(offset))
+                is PalletLayer -> (it as PalletLayerPlacement).dumpAbsolutely(point3(offset))
                 else -> emptyList()
             }
         }.flatten()
     }
 }
-
 
 

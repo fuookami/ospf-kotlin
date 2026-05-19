@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
@@ -8,6 +10,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
@@ -64,7 +67,6 @@ class QuadraticMechanismModelCutTest {
         )
 
         val result = mechanismModel.generateOptimalCut(
-            objective = Flt64.zero,
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64.one, y to Flt64(2.0)),
             dualSolution = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64(2.0))
@@ -108,7 +110,6 @@ class QuadraticMechanismModelCutTest {
         )
 
         val result = mechanismModel.generateOptimalCut(
-            objective = Flt64.zero,
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64(2.0)),
             dualSolution = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)

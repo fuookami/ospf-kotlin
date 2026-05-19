@@ -10,13 +10,15 @@ import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.combinatorics.permuteAsync
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.utils.functional.Order
 import fuookami.ospf.kotlin.utils.functional.ord
 import kotlinx.coroutines.CancellationException
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.coroutineScope
+import fuookami.ospf.kotlin.math.geometry.point3
 
 class BinType(
     // inherited from Container3Shape
@@ -228,6 +230,5 @@ typealias ItemBin = Bin<Item>
 fun LayerBin.dump(): ItemBin {
     return Bin(this.shape, this.units.flatMap { it.unit.dumpAbsolutely() })
 }
-
 
 

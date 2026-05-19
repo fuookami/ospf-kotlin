@@ -9,4 +9,3 @@ enum class ModelBuildingStage {
     FlattenQuadraticModel,
     BuildObjective
 }
-

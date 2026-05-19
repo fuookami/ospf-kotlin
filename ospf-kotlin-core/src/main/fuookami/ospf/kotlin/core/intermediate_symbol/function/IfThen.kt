@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
@@ -14,7 +13,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -23,13 +21,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * If-Then function: `y = then_poly if condition > 0, else y = 0`.
@@ -55,7 +46,7 @@ class IfThenFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "ifthen",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -71,6 +62,9 @@ class IfThenFunction<V>(
     val result: LinearPolynomial<V> by lazy {
         LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
     }
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = result
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val condValue = condition.evaluateWith(values) ?: return null
@@ -126,32 +120,9 @@ class IfThenFunction<V>(
         ): IfThenFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             IfThenFunction(condition, thenPoly, converter, bigM, name = name, displayName = displayName)
 
-        operator fun invoke(
-            condition: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfThenFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfThenFunction(condition, thenPoly, flt64Converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            condition: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfThenFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfThenFunction(
-            condition = LinearPolynomial(listOf(condition), Flt64.zero),
-            thenPoly = thenPoly,
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
         /**
-         * Factory: accept LinearConstraintInput for framework compatibility.
-         * Extracts the condition polynomial from the constraint input's flatten data.
-         * Defaults thenPoly to Flt64.one (binary indicator).
+         * 类型化工厂：从约束输入提取条件多项式，默认 then 多项式为一。
+         * Typed factory: extracts the condition polynomial and defaults thenPoly to one.
          */
         fun <V> typed(
             inequality: LinearConstraintInputV<V>,
@@ -179,25 +150,6 @@ class IfThenFunction<V>(
                     displayName = displayName
                 ),
                 converter = converter
-            )
-        }
-
-        @JvmStatic
-        @JvmName("fromConstraintInput")
-        operator fun invoke(
-            inequality: LinearConstraintInput,
-            thenPoly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearPolynomial(emptyList(), Flt64.one),
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            val conditionPoly = LinearPolynomial(
-                inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
-                inequality.flattenData.constant
-            )
-            return LinearFunctionSymbolAdapter(
-                IfThenFunction(conditionPoly, thenPoly, bigM, name = name, displayName = displayName),
-                converter = flt64Converter
             )
         }
     }

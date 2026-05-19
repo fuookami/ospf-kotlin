@@ -19,7 +19,7 @@ class SolveValueConversionContextTest {
     }
 
     @Test
-    fun allowRoundingPolicyShouldKeepInfinityCompatible() = runBlocking {
+    fun allowRoundingPolicyShouldKeepInfinityStable() = runBlocking {
         val value = withSolveValueConversionPolicy(SolveValueConversionPolicy.AllowRounding) {
             Flt64.infinity.toSolverDouble("field")
         }

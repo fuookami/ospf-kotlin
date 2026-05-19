@@ -54,4 +54,3 @@ class AnyVariable<V : RealNumber<V>>(
         }
     }
 }
-

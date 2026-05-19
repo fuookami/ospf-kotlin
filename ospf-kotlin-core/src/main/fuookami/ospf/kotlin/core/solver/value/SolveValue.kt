@@ -4,4 +4,3 @@ enum class SolveValueConversionPolicy {
     Strict,
     AllowRounding
 }
-

@@ -61,4 +61,3 @@ class FieldLaw<Self>(
             && multiplicativeInverse()
     }
 }
-

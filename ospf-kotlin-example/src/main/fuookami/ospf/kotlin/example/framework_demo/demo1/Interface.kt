@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1
+package fuookami.ospf.kotlin.example.framework_demo.demo1
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -125,7 +125,6 @@ class SPP {
         )
     }
 }
-
 
 
 

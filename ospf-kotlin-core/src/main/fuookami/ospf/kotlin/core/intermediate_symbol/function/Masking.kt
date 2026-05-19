@@ -9,7 +9,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.eq
 import fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenTable
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -39,13 +38,6 @@ import fuookami.ospf.kotlin.core.token.AbstractTokenList
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 /**
  * Masking function: y = x * mask where mask is binary.
  * When mask=1, y=x. When mask=0, y=0.
@@ -57,13 +49,16 @@ class MaskingFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String,
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
 
     val resultVar: AbstractVariableItem<*, *> = URealVar("${name}_masking")
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar)
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val maskValue = values[mask] ?: return converter.zero
@@ -125,70 +120,64 @@ class MaskingFunction<V>(
         ): MaskingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MaskingFunction(input, mask, bigM, converter, name, displayName)
 
-        operator fun invoke(
-            input: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            mask: AbstractVariableItem<*, *>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            MaskingFunction(input, mask, bigM, flt64Converter, name, displayName),
-            converter = flt64Converter
-        
-        )
-
-        operator fun invoke(
-            input: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        fun <V> withMaskVarName(
+            input: LinearPolynomial<V>,
             maskVarName: String,
-            bigM: Flt64? = null,
+            bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> {
             val maskVar = BinVar("${name}_${maskVarName}")
-            return LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                MaskingFunction(input, maskVar, bigM, flt64Converter, name, displayName),
-                converter = flt64Converter
+            return LinearFunctionSymbolAdapter(
+                MaskingFunction(input, maskVar, bigM, converter, name, displayName),
+                converter = converter
             )
         }
 
         /**
-         * Factory: accept LinearIntermediateSymbol for framework compatibility.
+         * 类型化符号工厂：将线性中间符号转换为线性多项式。
+         * Typed symbol factory: converts a linear intermediate symbol to a linear polynomial.
          */
         @JvmStatic
         @JvmName("fromLinearIntermediateSymbol")
-        operator fun invoke(
-            x: LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        fun <V> fromLinearIntermediateSymbol(
+            x: LinearIntermediateSymbol<V>,
             mask: AbstractVariableItem<*, *>,
-            bigM: Flt64? = null,
+            bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
             MaskingFunction(
                 input = x.toLinearPolynomial(),
                 mask = mask,
                 bigM = bigM,
-                converter = flt64Converter,
+                converter = converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = flt64Converter
-        
+            converter = converter
         )
 
-        /** Factory: accept ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> for both x and mask. */
+        /**
+         * 类型化多项式工厂：接受 input 与 mask 的线性多项式视图。
+         * Typed polynomial factory: accepts linear-polynomial views for input and mask.
+         */
         @JvmStatic
         @JvmName("fromLinearPolynomials")
-        fun fromLinearPolynomials(
-            x: ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            mask: ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
+        fun <V> fromLinearPolynomials(
+            x: ToLinearPolynomial<V>,
+            mask: ToLinearPolynomial<V>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): MaskingWithPolyMaskFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MaskingWithPolyMaskFunction(
+        ): MaskingWithPolyMaskFunction<V> where V : RealNumber<V>, V : NumberField<V> = MaskingWithPolyMaskFunction(
             input = x.toLinearPolynomial(),
             maskPoly = mask.toLinearPolynomial(),
             bigM = bigM,
-            converter = flt64Converter,
+            converter = converter,
             name = name,
             displayName = displayName
         )
@@ -445,17 +434,5 @@ class MaskingRangeFunction<V>(
             displayName: String? = null
         ): MaskingRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MaskingRangeFunction(mask, lower, upper, converter, name, displayName)
-
-        operator fun invoke(
-            mask: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            lower: Flt64,
-            upper: Flt64,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            MaskingRangeFunction(mask, lower, upper, flt64Converter, name, displayName),
-            converter = flt64Converter
-        
-        )
     }
 }

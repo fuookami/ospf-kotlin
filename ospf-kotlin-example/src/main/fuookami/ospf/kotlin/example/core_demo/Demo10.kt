@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.core_demo
+package fuookami.ospf.kotlin.example.core_demo
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -20,6 +20,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 private val flt64Converter = object : IntoValue<Flt64> {
@@ -211,7 +212,7 @@ data object Demo10 {
 
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
-        when (val ret = solver(metaModel)) {
+        when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }
@@ -240,7 +241,6 @@ data object Demo10 {
         return ok
     }
 }
-
 
 
 

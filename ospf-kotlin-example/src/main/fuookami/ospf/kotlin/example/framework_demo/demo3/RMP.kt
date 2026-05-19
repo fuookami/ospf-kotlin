@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo3
+package fuookami.ospf.kotlin.example.framework_demo.demo3
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -162,7 +162,6 @@ class RMP(
         return solution
     }
 }
-
 
 
 

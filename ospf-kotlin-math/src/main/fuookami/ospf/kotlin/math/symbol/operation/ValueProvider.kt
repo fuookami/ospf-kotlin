@@ -5,7 +5,7 @@
  * used to retrieve numeric values for symbols during expression evaluation.
  * Supports different value sources such as Map, function calls, or custom implementations.
  */
-package fuookami.ospf.kotlin.math.symbol.adapter.flt64
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*

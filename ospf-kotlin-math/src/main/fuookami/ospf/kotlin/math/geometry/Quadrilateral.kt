@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.vector2
 
 class Quadrilateral<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,

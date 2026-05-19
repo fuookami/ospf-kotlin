@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.geometry.point2
 
 class MinLowPayload(
     private val aircraftModel: AircraftModel,
@@ -56,7 +57,7 @@ class MinLowPayload(
                 val zfwEst = totalWeight.estimateTotalWeight[FlightPhase.ZeroFuel]!!.to(aircraftModel.weightUnit)!!.value
                 val sorted = points
                     .map {
-                        Point2(
+                        point2(
                             it.zfw.to(aircraftModel.weightUnit)!!.value,
                             it.minLowPayload.to(aircraftModel.weightUnit)!!.value
                         )
@@ -96,7 +97,7 @@ class MinLowPayload(
     private fun interpolate(zfw: Flt64): Flt64 {
         val sorted = points
             .map {
-                Point2(
+                point2(
                     it.zfw.to(aircraftModel.weightUnit)!!.value,
                     it.minLowPayload.to(aircraftModel.weightUnit)!!.value
                 )
@@ -122,7 +123,6 @@ class MinLowPayload(
         return sorted.last().y
     }
 }
-
 
 
 

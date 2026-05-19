@@ -268,4 +268,3 @@ operator fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.divAssign(rhs: T
     }
     _constant = _constant / rhs
 }
-

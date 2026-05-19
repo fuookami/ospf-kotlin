@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_security.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -47,4 +47,3 @@ class MaxUnsymmetricalLinearDensity(
         }
     }
 }
-

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model
+package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -12,4 +12,3 @@ class Service(
 ) : AutoIndexed(Service::class) {
     override fun toString() = "S$id"
 }
-

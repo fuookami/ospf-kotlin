@@ -2,10 +2,8 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -21,13 +19,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Inequality satisfaction indicator function.
@@ -174,39 +165,5 @@ class InequalityFunction<V>(
             displayName: String? = null
         ): InequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             InequalityFunction(lhs = lhs, rhs = rhs, sign = sign, converter = converter, bigM = bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            lhs: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            rhs: Flt64,
-            sign: Comparison,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): InequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InequalityFunction(
-            lhs = lhs,
-            rhs = rhs,
-            sign = sign,
-            converter = flt64Converter,
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            lhs: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            rhs: Flt64,
-            sign: Comparison,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): InequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InequalityFunction(
-            lhs = LinearPolynomial(listOf(lhs), Flt64.zero),
-            rhs = rhs,
-            sign = sign,
-            converter = flt64Converter,
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
     }
 }

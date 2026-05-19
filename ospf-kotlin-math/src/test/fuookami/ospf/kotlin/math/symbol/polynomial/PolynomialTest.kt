@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.symbol.polynomial
+package fuookami.ospf.kotlin.math.symbol.polynomial
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -117,6 +117,5 @@ class PolynomialTest {
         assertEquals(Flt64.zero, result.constant)
     }
 }
-
 
 

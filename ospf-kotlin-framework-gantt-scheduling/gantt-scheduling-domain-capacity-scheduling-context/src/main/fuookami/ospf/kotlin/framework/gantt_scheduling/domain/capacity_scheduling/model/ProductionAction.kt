@@ -94,4 +94,3 @@ interface ProductionAction {
     fun upperBound(slot: TimeSlot, timeWindow: TimeWindow): UInt64
 }
 
-

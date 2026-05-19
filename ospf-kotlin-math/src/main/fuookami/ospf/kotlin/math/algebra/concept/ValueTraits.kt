@@ -216,4 +216,3 @@ interface Epsilon<Self> {
     val hasEpsilon: Boolean
         get() = precisionEpsilon != null
 }
-

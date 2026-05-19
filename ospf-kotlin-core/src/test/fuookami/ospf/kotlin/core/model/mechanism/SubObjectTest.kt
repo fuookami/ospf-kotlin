@@ -1,5 +1,6 @@
-@file:Suppress("DEPRECATION")
 package fuookami.ospf.kotlin.core.model.mechanism
+
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
@@ -50,7 +51,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test_sub_object"
+            name = "test_sub_object",
+            converter = IntoValue.Identity
         )
 
         assertEquals(2, subObject.cells.size)
@@ -78,7 +80,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test_sub_object"
+            name = "test_sub_object",
+            converter = IntoValue.Identity
         )
 
         assertEquals(2, subObject.cells.size)
@@ -107,7 +110,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test"
+            name = "test",
+            converter = IntoValue.Identity
         )
 
         // Create using the same flattenData again
@@ -115,7 +119,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test"
+            name = "test",
+            converter = IntoValue.Identity
         )
 
         assertEquals(subObject1.cells.size, subObject2.cells.size)
@@ -144,7 +149,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test"
+            name = "test",
+            converter = IntoValue.Identity
         )
 
         // Create using the same flattenData again
@@ -152,7 +158,8 @@ class SubObjectTest {
             category = ObjectCategory.Minimum,
             flattenData = flattenData,
             tokens = tokens,
-            name = "test"
+            name = "test",
+            converter = IntoValue.Identity
         )
 
         assertEquals(subObject1.cells.size, subObject2.cells.size)

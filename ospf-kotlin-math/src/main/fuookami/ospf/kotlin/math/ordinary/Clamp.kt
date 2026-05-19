@@ -22,4 +22,3 @@ fun <T : Ord<T>> clamp(v: T, min: T, max: T): T = if (v < min) min else if (v > 
 
 
 
-

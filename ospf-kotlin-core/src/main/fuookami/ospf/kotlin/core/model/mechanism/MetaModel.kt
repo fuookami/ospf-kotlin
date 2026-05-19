@@ -40,7 +40,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticInequality
 import fuookami.ospf.kotlin.core.token.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import kotlinx.coroutines.Dispatchers
@@ -53,7 +53,7 @@ import kotlin.io.path.isDirectory
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val flt64Converter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+private val solverValueConverter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
 
 /**
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
@@ -509,8 +509,6 @@ sealed interface MetaModel<V> : Model<V>, AutoCloseable where V : RealNumber<V>,
     }
 }
 
-// Backward compatibility: typealias aliases
-
 interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : RealNumber<V>, V : NumberField<V> {
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("addConstraintVariableWithGroup")
@@ -663,8 +661,6 @@ interface AbstractLinearMetaModel<V> : MetaModel<V>, LinearModel<V> where V : Re
     }
 }
 
-// Backward compatibility: typealias aliases
-
 interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where V : RealNumber<V>, V : NumberField<V> {
     fun addConstraint(
         constraint: QuadraticPolynomial<V>,
@@ -766,8 +762,6 @@ interface AbstractQuadraticMetaModel<V> : MetaModel<V>, QuadraticModel<V> where 
     }
 }
 
-// Backward compatibility: typealias aliases
-
 data class MetaModelConfiguration(
     internal val manualTokenAddition: Boolean = true,
     internal val concurrent: Boolean = true,
@@ -836,8 +830,6 @@ abstract class AbstractMetaModel<V>(
         return constraintGroupIndexMap[group]
     }
 }
-
-// Backward compatibility: typealias aliases
 
 class LinearMetaModel<V>(
     override var name: String = "",
@@ -958,7 +950,7 @@ class LinearMetaModel<V>(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = flt64Converter
+            converter = solverValueConverter
         )
 
         operator fun <V> invoke(
@@ -1137,7 +1129,8 @@ class QuadraticMetaModel<V>(
                 displayName = displayName
             )
         )
-        // Also add a linear approximation to subObjects for compatibility
+        // Keep the linear projection for shared object-function handling.
+        // 保留线性投影视图，供共享目标函数流程使用。
         val linearPoly = LinearPolynomial(
             monomials = polynomial.monomials.map { LinearMonomial(it.coefficient, it.symbol1) },
             constant = polynomial.constant
@@ -1184,7 +1177,7 @@ class QuadraticMetaModel<V>(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = flt64Converter
+            converter = solverValueConverter
         )
 
         operator fun <V> invoke(
@@ -1200,5 +1193,4 @@ class QuadraticMetaModel<V>(
         )
     }
 }
-
 

@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.math.symbol.adapter.flt64
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32

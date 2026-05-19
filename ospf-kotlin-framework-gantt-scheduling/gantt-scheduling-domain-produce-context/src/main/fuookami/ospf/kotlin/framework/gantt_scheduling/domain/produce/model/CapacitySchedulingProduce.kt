@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -91,7 +91,6 @@ abstract class CapacitySchedulingProduce<
         return ok
     }
 }
-
 
 
 

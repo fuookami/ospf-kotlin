@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service
+package fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.service
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -26,4 +26,3 @@ class PipelineListGenerator(
         return Ok(list)
     }
 }
-

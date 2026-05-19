@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.math.symbol.parser
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.Flt64NumberParser
+import fuookami.ospf.kotlin.math.symbol.operation.Flt64NumberParser
 import fuookami.ospf.kotlin.math.symbol.parse.Int64NumberParser
 import fuookami.ospf.kotlin.math.symbol.parse.NumberParser
 import org.junit.jupiter.api.Test

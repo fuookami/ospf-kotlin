@@ -1,17 +1,17 @@
-﻿package fuookami.ospf.kotlin.math.symbol.operation
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineCanonicalTerms
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toLinearPolynomialRet
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toQuadraticPolynomialRet
+import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
+import fuookami.ospf.kotlin.math.symbol.operation.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalTerms
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.operation.toLinearPolynomialRet
+import fuookami.ospf.kotlin.math.symbol.operation.toQuadraticPolynomialRet
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -164,6 +164,5 @@ class CanonicalOperationTest {
         assertEquals(x, linear.monomials.first().symbol)
     }
 }
-
 
 

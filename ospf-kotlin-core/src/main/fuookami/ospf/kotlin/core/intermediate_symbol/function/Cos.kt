@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -11,18 +11,11 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
+import fuookami.ospf.kotlin.math.geometry.point2
 
 /**
  * Cosine function approximated by piecewise linear interpolation.
@@ -100,38 +93,12 @@ class CosFunction<V>(
             val pi = Flt64(kotlin.math.PI)
             val pi2 = pi / Flt64(2.0)
             return listOf(
-                Point<Dim2, Flt64>(-pi, Flt64(-1.0)),
-                Point<Dim2, Flt64>(-pi2, Flt64.zero),
-                Point<Dim2, Flt64>(Flt64.zero, Flt64.one),
-                Point<Dim2, Flt64>(pi2, Flt64.zero),
-                Point<Dim2, Flt64>(pi, Flt64(-1.0))
+                point2(-pi, Flt64(-1.0)),
+                point2(-pi2, Flt64.zero),
+                point2(Flt64.zero, Flt64.one),
+                point2(pi2, Flt64.zero),
+                point2(pi, Flt64(-1.0))
             )
         }
-
-        @kotlin.Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            name: String = "cos",
-            displayName: String? = null
-        ): CosFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CosFunction(
-            x = x,
-            samplingPoints = defaultPoints(),
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
-
-        @kotlin.Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            x: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            name: String = "cos",
-            displayName: String? = null
-        ): CosFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CosFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            samplingPoints = defaultPoints(),
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }

@@ -19,13 +19,13 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
 import org.kotlinmath.complex
 import org.kotlinmath.pow
 import kotlin.random.Random
+import fuookami.ospf.kotlin.math.geometry.point2
 
 /**
  * 复平方映射
@@ -34,7 +34,7 @@ import kotlin.random.Random
 data object ComplexSquaringMap : Extractor<Point<Dim2, Flt64>, Point<Dim2, Flt64>> {
     override operator fun invoke(x: Point<Dim2, Flt64>): Point<Dim2, Flt64> {
         val complexNumber = pow(complex(x[0].value, x[1].value), complex(2.0, 0.0))
-        return Point<Dim2, Flt64>(
+        return point2(
             Flt64(complexNumber.re),
             Flt64(complexNumber.im)
         )
@@ -75,7 +75,6 @@ data class ComplexSquaringMapGenerator(
         return x
     }
 }
-
 
 
 

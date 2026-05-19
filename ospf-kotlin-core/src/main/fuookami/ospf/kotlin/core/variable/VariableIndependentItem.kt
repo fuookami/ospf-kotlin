@@ -43,4 +43,3 @@ typealias QuantityIntVar = QuantityVariable<Integer>
 typealias QuantityUIntVar = QuantityVariable<UInteger>
 typealias QuantityRealVar = QuantityVariable<Continuous>
 typealias QuantityURealVar = QuantityVariable<UContinuous>
-

@@ -546,7 +546,7 @@ data class QuadraticTetradModel(
     companion object {
         private val logger = logger()
 
-        /** V¡úFlt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
+        /** Vï¿½ï¿½Flt64 conversion boundary: generic V resolves to concrete Flt64 for quadratic intermediate model construction. */
         suspend operator fun invoke(
             model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
@@ -2232,4 +2232,3 @@ suspend fun solveFarkasDual(
         }
     }
 }
-

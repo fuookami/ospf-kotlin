@@ -60,4 +60,3 @@ class LCMTest {
         assertEquals(UInt64(0), lcm(listOf(UInt64(4), UInt64(0), UInt64(8)), UInt64))
     }
 }
-

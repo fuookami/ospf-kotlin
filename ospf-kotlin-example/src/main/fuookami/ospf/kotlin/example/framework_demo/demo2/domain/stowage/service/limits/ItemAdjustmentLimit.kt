@@ -1,10 +1,10 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -47,7 +47,6 @@ class ItemAdjustmentLimit(
         return ok
     }
 }
-
 
 
 

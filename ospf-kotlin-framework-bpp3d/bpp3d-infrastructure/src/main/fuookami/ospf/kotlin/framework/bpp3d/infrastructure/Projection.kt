@@ -8,6 +8,9 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 data class ProjectionShape(
     val length: Flt64,
@@ -57,10 +60,10 @@ sealed class ProjectivePlane {
         width = this.width(space)
     )
 
-    abstract fun distance(point3: Point3): Flt64
-    abstract fun point2(point3: Point3): Point2
-    abstract fun point3(point2: Point2, distance: Flt64 = Flt64.zero): Point3
-    abstract fun vector(distance: Flt64 = Flt64.one): Vector3
+    abstract fun distance(point: Point<Dim3, Flt64>): Flt64
+    abstract fun point2(point: Point<Dim3, Flt64>): Point<Dim2, Flt64>
+    abstract fun point3(point: Point<Dim2, Flt64>, distance: Flt64 = Flt64.zero): Point<Dim3, Flt64>
+    abstract fun vector(distance: Flt64 = Flt64.one): Vector<Dim3, Flt64>
 }
 
 typealias Direction = ProjectivePlane
@@ -77,9 +80,9 @@ object Bottom : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.width
     override fun height(space: AbstractContainer3Shape) = space.height
 
-    override fun distance(point3: Point3) = point3.y
-    override fun point2(point3: Point3) = point2(x = point3.z, y = point3.x)
-    override fun point3(point2: Point2, distance: Flt64) = point3(x = point2.y, y = distance, z = point2.x)
+    override fun distance(point: Point<Dim3, Flt64>) = point.y
+    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.z, y = point.x)
+    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = point.y, y = distance, z = point.x)
     override fun vector(distance: Flt64) = vector3(y = distance)
 
     override fun toString(): String {
@@ -101,9 +104,9 @@ object Side : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.depth
 
-    override fun distance(point3: Point3) = point3.z
-    override fun point2(point3: Point3) = point2(x = point3.x, y = point3.y)
-    override fun point3(point2: Point2, distance: Flt64) = point3(x = point2.x, y = point2.y, z = distance)
+    override fun distance(point: Point<Dim3, Flt64>) = point.z
+    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.x, y = point.y)
+    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = point.x, y = point.y, z = distance)
     override fun vector(distance: Flt64) = vector3(z = distance)
 
     override fun toString(): String {
@@ -125,9 +128,9 @@ object Front : ProjectivePlane() {
     override fun width(space: AbstractContainer3Shape) = space.height
     override fun height(space: AbstractContainer3Shape) = space.width
 
-    override fun distance(point3: Point3) = point3.x
-    override fun point2(point3: Point3) = point2(x = point3.y, y = point3.z)
-    override fun point3(point2: Point2, distance: Flt64) = point3(x = distance, y = point2.x, z = point2.y)
+    override fun distance(point: Point<Dim3, Flt64>) = point.x
+    override fun point2(point: Point<Dim3, Flt64>) = point2(x = point.y, y = point.z)
+    override fun point3(point: Point<Dim2, Flt64>, distance: Flt64) = point3(x = distance, y = point.x, z = point.y)
     override fun vector(distance: Flt64) = vector3(x = distance)
 
     override fun toString(): String {
@@ -214,6 +217,4 @@ data class MultiPileProjection<
 
     override fun copy() = MultiPileProjection(views.map { it.copy() }, plane)
 }
-
-
 

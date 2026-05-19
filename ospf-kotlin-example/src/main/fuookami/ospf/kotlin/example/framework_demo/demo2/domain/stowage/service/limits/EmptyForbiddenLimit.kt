@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.framework.model.*
@@ -39,7 +39,6 @@ class EmptyForbiddenLimit(
         return ok
     }
 }
-
 
 
 

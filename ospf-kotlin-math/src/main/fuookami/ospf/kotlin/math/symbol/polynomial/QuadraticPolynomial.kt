@@ -312,4 +312,3 @@ operator fun <T : Ring<T>> T.minus(rhs: QuadraticPolynomial<T>): QuadraticPolyno
         this - rhs.constant
     )
 }
-

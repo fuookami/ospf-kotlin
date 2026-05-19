@@ -222,4 +222,3 @@ fun getValue(scale: Scale): FltX {
 
 
 
-

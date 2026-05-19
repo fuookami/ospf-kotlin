@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -21,18 +20,11 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 /**
  * SameAs function symbol: returns 1 if all inequalities have the same satisfaction status
  * (all true or all false), returns 0 otherwise.
  *
- * Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64> pattern:
+ * Constraint pattern:
  * - Each input inequality gets a binary flag `u[i]` (1 if satisfied, 0 if not)
  * - BigM constraints link each flag to its inequality
  * - In constraint mode: all flags are forced equal (all satisfied or all unsatisfied)
@@ -235,37 +227,6 @@ class SameAsFunction<V>(
             epsilon = epsilon,
             m = m,
             converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inequalities: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            constraint: Boolean = true,
-            epsilon: Flt64 = Flt64(1e-6),
-            m: Flt64 = Flt64(1e6),
-            name: String,
-            displayName: String? = null
-        ): SameAsFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SameAsFunction(
-            inequalities = inequalities,
-            constraint = constraint,
-            epsilon = epsilon,
-            m = m,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inequalities: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            name: String,
-            displayName: String? = null
-        ): SameAsFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SameAsFunction(
-            inequalities = inequalities,
-            constraint = true,
-            epsilon = Flt64(1e-6),
-            m = Flt64(1e6),
-            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

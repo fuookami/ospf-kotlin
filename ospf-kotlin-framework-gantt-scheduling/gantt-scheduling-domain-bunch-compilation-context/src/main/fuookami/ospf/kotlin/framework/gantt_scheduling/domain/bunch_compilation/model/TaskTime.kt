@@ -7,9 +7,11 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTaskBunch
@@ -23,8 +25,31 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.multiarray.Shape1
 import kotlin.time.Duration
+
+private fun slackSymbol(
+    x: ToLinearPolynomial<Flt64>,
+    y: Flt64,
+    type: VariableTypeKind,
+    withNegative: Boolean = true,
+    withPositive: Boolean = true,
+    name: String
+): LinearFunctionSymbolAdapter<Flt64> {
+    return LinearFunctionSymbolAdapter(
+        delegate = SlackFunction(
+            x = x.toLinearPolynomial(),
+            y = LinearPolynomial(emptyList(), y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            converter = IntoValue.Identity,
+            name = name
+        ),
+        converter = IntoValue.Identity
+    )
+}
 
 open class BunchSchedulingTaskTime<
         B : AbstractTaskBunch<T, E, A>,
@@ -189,7 +214,7 @@ open class BunchSchedulingTaskTime<
                             } else {
                                 with(timeWindow) { time.start.value }.floor()
                             }
-                            val slack = SlackFunction(
+                            val slack = slackSymbol(
                                 x = estimateStartTime[task],
                                 y = y,
                                 type = if (timeWindow.continues) {
@@ -255,7 +280,6 @@ open class BunchSchedulingTaskTime<
         return ok
     }
 }
-
 
 
 

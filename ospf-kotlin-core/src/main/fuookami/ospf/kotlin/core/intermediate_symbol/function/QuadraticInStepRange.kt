@@ -33,14 +33,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Quadratic in-step-range function: y = x if x in [lower, upper], else y = 0.
@@ -296,14 +288,5 @@ class QuadraticInStepRangeFunction<V>(
             displayName: String? = null
         ): QuadraticInStepRangeFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
             QuadraticInStepRangeFunction(x, lower, upper, bigM, converter, name, displayName)
-
-        operator fun invoke(
-            x: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            lower: Flt64,
-            upper: Flt64,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): QuadraticInStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticInStepRangeFunction(x, lower, upper, bigM, flt64Converter, name, displayName)
     }
 }

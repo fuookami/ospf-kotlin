@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial

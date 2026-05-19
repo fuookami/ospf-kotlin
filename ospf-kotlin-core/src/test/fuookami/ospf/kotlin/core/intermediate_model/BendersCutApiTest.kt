@@ -1,11 +1,34 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.basic.Variable
+import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.LinearObjective
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModel
+import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticObjective
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModel
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -24,7 +47,6 @@ import fuookami.ospf.kotlin.utils.functional.ok
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
-import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
 private val flt64Converter = object : IntoValue<Flt64> {
@@ -70,7 +92,7 @@ class BendersCutApiTest {
         val dualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-        val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+        val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
 
         assertEquals(direct.size, byId.size)
         for (i in direct.indices) {
@@ -80,7 +102,6 @@ class BendersCutApiTest {
         mechanismModel.close()
     }
 
-    @Suppress("DEPRECATION")
     @Test
     fun linearFeasibleCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
@@ -112,7 +133,7 @@ class BendersCutApiTest {
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
+        val byId = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasDualById)
 
         assertEquals(direct.size, byId.size)
         for (i in direct.indices) {
@@ -124,7 +145,6 @@ class BendersCutApiTest {
 
     // ── Quadratic by_id ───────────────────────────────────────────
 
-    @Suppress("DEPRECATION")
     @Test
     fun quadraticOptimalCutByIdShouldMatchDirectCall() {
         val x = RealVar("x")
@@ -163,19 +183,17 @@ class BendersCutApiTest {
         val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64(2.0))
         val dualById = mapOf(constraint.name to Flt64(2.0))
 
-        val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
-        val byId = mechanismModel.generateOptimalCutById(Flt64.zero, theta, fixedVars, dualById)
+        val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+        val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
 
         assertTrue(direct is Ok)
-        assertTrue(byId is Ok)
-        assertEquals(direct.value.size, byId.value.size)
+        assertEquals(direct.value.size, byId.size)
         for (i in direct.value.indices) {
-            assertCutEquals(direct.value[i], byId.value[i])
+            assertCutEquals(direct.value[i], byId[i])
         }
 
         mechanismModel.close()
     }
-    @Suppress("DEPRECATION")
 
     @Test
     fun quadraticFeasibleCutByIdShouldMatchDirectCall() {
@@ -212,13 +230,12 @@ class BendersCutApiTest {
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
+        val byId = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasDualById)
 
         assertTrue(direct is Ok)
-        assertTrue(byId is Ok)
-        assertEquals(direct.value.size, byId.value.size)
+        assertEquals(direct.value.size, byId.size)
         for (i in direct.value.indices) {
-            assertCutEquals(direct.value[i], byId.value[i])
+            assertCutEquals(direct.value[i], byId[i])
         }
 
         mechanismModel.close()
@@ -361,7 +378,7 @@ class BendersCutApiTest {
 
         val tetradModel = RecordingQuadraticTetradModelView(dualSolution)
 
-        val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
+        val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
         val fromOutput = mechanismModel.generateOptimalCutFromOutput(Flt64.zero, theta, fixedVars, dualValues, tetradModel)
 
         // Verify the stub received the exact dualValues we passed

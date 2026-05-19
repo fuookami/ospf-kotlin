@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.math.symbol.adapter.bridged
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -13,15 +13,15 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class BridgedQuickDslTest {
+class TypedQuickDslTest {
     private data class TestSymbol(
         override val name: String,
         override val displayName: String? = null
     ) : Symbol
 
     @Test
-    fun fltXBridgedQuickDslShouldWork() {
-        val dsl = BridgedQuickDsl(FltX)
+    fun fltXTypedQuickDslShouldWork() {
+        val dsl = TypedQuickDsl(FltX)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<FltX> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -29,8 +29,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun rtn64BridgedQuickDslShouldWork() {
-        val dsl = BridgedQuickDsl(Rtn64)
+    fun rtn64TypedQuickDslShouldWork() {
+        val dsl = TypedQuickDsl(Rtn64)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<Rtn64> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -38,8 +38,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun rtnXBridgedQuickDslShouldWork() {
-        val dsl = BridgedQuickDsl(RtnX)
+    fun rtnXTypedQuickDslShouldWork() {
+        val dsl = TypedQuickDsl(RtnX)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<RtnX> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -47,8 +47,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun flt64BridgedQuickDslShouldWork() {
-        val dsl = BridgedQuickDsl(Flt64)
+    fun flt64TypedQuickDslShouldWork() {
+        val dsl = TypedQuickDsl(Flt64)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<Flt64> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -56,8 +56,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedSumVarsShouldWork() {
-        val dsl = BridgedQuickDsl(FltX)
+    fun typedSumVarsShouldWork() {
+        val dsl = TypedQuickDsl(FltX)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val items = listOf(x, y)
@@ -67,8 +67,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedQSumVarsShouldWork() {
-        val dsl = BridgedQuickDsl(Rtn64)
+    fun typedQSumVarsShouldWork() {
+        val dsl = TypedQuickDsl(Rtn64)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val items = listOf(x, y)
@@ -78,8 +78,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedQuadraticPolynomialShouldWork() {
-        val dsl = BridgedQuickDsl(FltX)
+    fun typedQuadraticPolynomialShouldWork() {
+        val dsl = TypedQuickDsl(FltX)
         val x = TestSymbol("x")
         val poly: QuadraticPolynomial<FltX> = dsl.QuadraticPolynomial(x)
         assertNotNull(poly)
@@ -87,8 +87,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedQuickOpsShouldWork() {
-        val ops = BridgedQuickOps(FltX)
+    fun typedQuickOpsShouldWork() {
+        val ops = TypedQuickOps(FltX)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val result: LinearPolynomial<FltX> = with(ops) { x + y }
@@ -97,8 +97,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedInequalityShouldWork() {
-        val ineq = BridgedInequality(FltX)
+    fun typedInequalityShouldWork() {
+        val ineq = TypedInequalityDsl(FltX)
         val x = TestSymbol("x")
         val result = with(ineq) { x le Flt64(10.0) }
         assertNotNull(result)
@@ -106,8 +106,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedInequalityAliasNamesShouldWork() {
-        val ineq = BridgedInequality(Rtn64)
+    fun typedInequalityAliasNamesShouldWork() {
+        val ineq = TypedInequalityDsl(Rtn64)
         val x = TestSymbol("x")
         val leqResult = with(ineq) { x leq Flt64(10.0) }
         val geqResult = with(ineq) { x geq Flt64(0.0) }
@@ -121,8 +121,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedInequalityIntComparisonShouldWork() {
-        val ineq = BridgedInequality(FltX)
+    fun typedInequalityIntComparisonShouldWork() {
+        val ineq = TypedInequalityDsl(FltX)
         val x = TestSymbol("x")
         val result = with(ineq) { x le 10 }
         assertNotNull(result)
@@ -130,8 +130,8 @@ class BridgedQuickDslTest {
     }
 
     @Test
-    fun bridgedInequalityDoubleComparisonShouldWork() {
-        val ineq = BridgedInequality(Rtn64)
+    fun typedInequalityDoubleComparisonShouldWork() {
+        val ineq = TypedInequalityDsl(Rtn64)
         val x = TestSymbol("x")
         val result = with(ineq) { x le 10.0 }
         assertNotNull(result)

@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation
 
@@ -45,7 +45,6 @@ class BunchCompilationContext : fuookami.ospf.kotlin.framework.gantt_scheduling.
         TODO("Not yet implemented")
     }
 }
-
 
 
 

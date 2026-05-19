@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.math.geometry
 import fuookami.ospf.kotlin.math.algebra.number.*
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
 
 /**
  * Edge 测试类

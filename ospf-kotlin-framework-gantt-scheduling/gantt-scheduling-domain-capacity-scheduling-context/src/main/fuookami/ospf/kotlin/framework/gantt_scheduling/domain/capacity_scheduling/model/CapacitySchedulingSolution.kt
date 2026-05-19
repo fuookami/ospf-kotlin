@@ -175,4 +175,3 @@ data class CapacitySchedulingSolution<A : ProductionAction>(
     }
 }
 
-

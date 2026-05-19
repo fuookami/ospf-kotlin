@@ -501,7 +501,7 @@ sealed class MutableTokenTable<V>(
         _symbols.remove(symbol)
         _symbolsMap.remove(symbol.name)
 
-        // B1: ½â°óºÍ»º´æÇåÀí
+        // B1: ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
         // B1: Unbind and clear caches for removed symbol
         unbindTokenTableContext(symbol, this)
         cacheContexts.linearFlatten.remove(symbol)
@@ -1085,7 +1085,7 @@ sealed class ConcurrentMutableTokenTable<V>(
             _symbols.remove(symbol)
             _symbolsMap.remove(symbol.name)
 
-            // B1: ½â°óºÍ»º´æÇåÀí
+            // B1: ï¿½ï¿½ï¿½Í»ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½ï¿½
             // B1: Unbind and clear caches for removed symbol
             unbindTokenTableContext(symbol, this)
             cacheContexts.linearFlatten.remove(symbol)
@@ -1343,14 +1343,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                             val thisReadSymbol = readySymbolList
                                 .subList((i * segment), minOf(readySymbolList.size, (i + 1) * segment))
                             // B2: Batch write value cache via prepare + cache
-                            // B2: Í¨¹ý prepare + cache ÅúÁ¿Ð´Èë value »º´æ
+                            // B2: Í¨ï¿½ï¿½ prepare + cache ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ value ï¿½ï¿½ï¿½ï¿½
                             tokenTable.cache(
                                 symbols = thisReadSymbol.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ÅúÁ¿Ð´Èë flatten/range »º´æ
+                            // B2: ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ flatten/range ï¿½ï¿½ï¿½ï¿½
                             tokenTable.cacheSymbolContexts(thisReadSymbol)
                             if (memoryUseOver()) {
                                 System.gc()
@@ -1374,14 +1374,14 @@ suspend fun Collection<IntermediateSymbol<*>>.register(
                     listOf(
                         launch(Dispatchers.Default) {
                             // B2: Batch write value cache via prepare + cache
-                            // B2: Í¨¹ý prepare + cache ÅúÁ¿Ð´Èë value »º´æ
+                            // B2: Í¨ï¿½ï¿½ prepare + cache ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ value ï¿½ï¿½ï¿½ï¿½
                             tokenTable.cache(
                                 symbols = readySymbols.associateWithNotNull {
                                     it.prepareStar(fixedValues, tokenTable)
                                 }.mapKeys { it.key as IntermediateSymbol<*> }
                             )
                             // B2: Batch write flatten/range cache
-                            // B2: ÅúÁ¿Ð´Èë flatten/range »º´æ
+                            // B2: ï¿½ï¿½ï¿½ï¿½Ð´ï¿½ï¿½ flatten/range ï¿½ï¿½ï¿½ï¿½
                             tokenTable.cacheSymbolContexts(readySymbols)
 
                             if (callBack != null) {
@@ -1492,7 +1492,6 @@ class ConcurrentManualAddTokenTable<V>(
         )
     }
 }
-
 
 
 

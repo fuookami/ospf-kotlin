@@ -169,18 +169,18 @@ Example generic demo verification (isolated profile):
 mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
 ```
 
-## Migration Release Gate (P16)
+## Migration Release Gate (Compatibility-Free Core/Math)
 
 Use one command to run the default migration acceptance gate:
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1
 ```
 
 Optional solver-gated run (requires SCIP/JNI environment):
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1 -WithSolverIntegration
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1 -WithSolverIntegration
 ```
 
 This script covers:
@@ -188,8 +188,8 @@ This script covers:
 1. Core source-compat and math bridge/DSL tests.
 2. Default example compile/test.
 3. `core-demo-only`, `build-only-function-tests`, `business-source-compat`, `framework-starter-compat`.
-4. `check-c8-guards.ps1` in `P6` and `P7` modes (including P10/P11/P12/P14/P16 static guards).
-5. P16 restoration checks: no `src/non-default-main` / `src/non-default-test` roots and no legacy `core.frontend.*` / `core.backend.*` / `utils.math.*` imports in default example source sets.
+4. `check-c8-guards.ps1` in `P6` and `P7` modes (including P10/P11/P12/P14/P16/P17 static guards).
+5. Compatibility-free checks: no `src/non-default-main` / `src/non-default-test` roots, no legacy `core.frontend.*` / `core.backend.*` / `utils.math.*` imports, no `math.symbol.adapter.*` / `FunctionCompat` / `MetaModelFlt64Adapter` backflow, and no old direct `solver(metaModel)` / `SlackFunction` compatibility calls in default example source sets.
 
 ## Migration Entry Quick Reference
 
@@ -197,6 +197,8 @@ This script covers:
    - `core.frontend.*` -> `core.model.*` / `core.variable.*` / `core.intermediate_symbol.*`
    - `core.backend.*` -> `core.solver.*`
    - modeling expressions and inequalities are migrated under `math.symbol.*`
+   - `math.symbol.adapter.*` -> `math.symbol.operation.*`
+   - direct meta-model solver calls -> explicit dump to mechanism/triad solver flow
 2. Four-number-type converter entry:
    - `Flt64`: `IntoValue.Identity`
    - `FltX`: `FltX.toIntoValue()`

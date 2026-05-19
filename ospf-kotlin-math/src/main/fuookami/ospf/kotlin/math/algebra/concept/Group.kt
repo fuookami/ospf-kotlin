@@ -19,4 +19,3 @@ import fuookami.ospf.kotlin.math.operator.Neg
  * A group is a set equipped with an associative binary operation, identity element, and inverse elements.
  */
 interface Group<Self> : Monoid<Self>, Neg<Self>, Minus<Self, Self>, Dec<Self>
-

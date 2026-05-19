@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic.mvo
 
@@ -264,5 +264,4 @@ class MultiVerseOptimizer<Obj, V>(
 
 typealias MVO = MultiVerseOptimizer<Flt64, Flt64>
 typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
-
 

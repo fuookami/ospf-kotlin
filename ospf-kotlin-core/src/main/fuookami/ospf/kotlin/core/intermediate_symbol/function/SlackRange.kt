@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -11,8 +10,6 @@ import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.core.variable.VariableTypeKind
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -25,13 +22,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Slack range function: bounds x within [lb, ub] using slack variables.
@@ -130,211 +120,21 @@ class SlackRangeFunction<V>(
         ): SlackRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SlackRangeFunction(x, lb, ub, type, constraint, converter, name, displayName)
 
-        /** Flt64-specific factory with lb/ub polynomials. */
-        operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            lb: LinearPolynomial<Flt64>,
-            ub: LinearPolynomial<Flt64>,
+        /** V-generic factory with LinearIntermediateSymbol and lb/ub polynomials. */
+        @JvmStatic
+        fun <V> fromLinearIntermediateSymbol(
+            x: LinearIntermediateSymbol<V>,
+            lb: LinearPolynomial<V>,
+            ub: LinearPolynomial<V>,
             type: VariableTypeKind = UContinuous,
             constraint: Boolean = true,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): SlackRangeFunction<Flt64> = SlackRangeFunction(
-            x, lb, ub, type, constraint, flt64Converter, name, displayName
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
+            SlackRangeFunction(x.toLinearPolynomial(), lb, ub, type, constraint, converter, name, displayName),
+            converter = converter
         )
 
-        /** Flt64-specific factory with LinearIntermediateSymbol and lb/ub polynomials. */
-        @JvmStatic
-        operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
-            lb: LinearPolynomial<Flt64>,
-            ub: LinearPolynomial<Flt64>,
-            type: VariableTypeKind = UContinuous,
-            constraint: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(x.toLinearPolynomial(), lb, ub, type, constraint, flt64Converter, name, displayName),
-            converter = flt64Converter
-        )
-
-        /** Flt64-specific factory with LinearIntermediateSymbol and scalar lb/ub. */
-        @JvmStatic
-        operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
-            lb: Flt64,
-            ub: Flt64,
-            type: VariableTypeKind = UContinuous,
-            constraint: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = x.toLinearPolynomial(),
-                lb = LinearPolynomial(emptyList(), lb),
-                ub = LinearPolynomial(emptyList(), ub),
-                type = type,
-                constraint = constraint,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        )
-
-        /** Flt64-specific factory with AbstractVariableItem and scalar lb/ub. */
-        @JvmStatic
-        operator fun invoke(
-            x: AbstractVariableItem<*, *>,
-            lb: Flt64,
-            ub: Flt64,
-            type: VariableTypeKind = UContinuous,
-            constraint: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
-                lb = LinearPolynomial(emptyList(), lb),
-                ub = LinearPolynomial(emptyList(), ub),
-                type = type,
-                constraint = constraint,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        )
-
-        /** Flt64-specific factory with LinearIntermediateSymbol and UInt64 lb/ub. */
-        @JvmStatic
-        operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
-            lb: UInt64,
-            ub: UInt64,
-            type: VariableTypeKind = UContinuous,
-            constraint: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = x,
-            lb = lb.toFlt64(),
-            ub = ub.toFlt64(),
-            type = type,
-            constraint = constraint,
-            name = name,
-            displayName = displayName
-        )
-
-        /** Flt64-specific factory with AbstractVariableItem and UInt64 lb/ub. */
-        @JvmStatic
-        operator fun invoke(
-            x: AbstractVariableItem<*, *>,
-            lb: UInt64,
-            ub: UInt64,
-            type: VariableTypeKind = UContinuous,
-            constraint: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = x,
-            lb = lb.toFlt64(),
-            ub = ub.toFlt64(),
-            type = type,
-            constraint = constraint,
-            name = name,
-            displayName = displayName
-        )
-
-        /** Deprecated: single-threshold factory. Use lb/ub instead. */
-        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmStatic
-        operator fun invoke(
-            x: LinearPolynomial<Flt64>,
-            threshold: Flt64,
-            type: VariableTypeKind = UContinuous,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = LinearFunctionSymbolAdapter(
-            SlackRangeFunction(
-                x = x,
-                lb = LinearPolynomial(emptyList(), -threshold),
-                ub = LinearPolynomial(emptyList(), threshold),
-                type = type,
-                constraint = true,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        )
-
-        /** Deprecated: single-threshold factory with LinearIntermediateSymbol. */
-        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmStatic
-        operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
-            threshold: Flt64,
-            type: VariableTypeKind = UContinuous,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = x.toLinearPolynomial(),
-            threshold = threshold,
-            type = type,
-            name = name,
-            displayName = displayName
-        )
-
-        /** Deprecated: single-threshold factory with UInt64 threshold. */
-        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmStatic
-        operator fun invoke(
-            x: LinearIntermediateSymbol<Flt64>,
-            threshold: UInt64,
-            type: VariableTypeKind = UContinuous,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = x.toLinearPolynomial(),
-            threshold = threshold.toFlt64(),
-            type = type,
-            name = name,
-            displayName = displayName
-        )
-
-        /** Deprecated: single-threshold factory with AbstractVariableItem. */
-        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmStatic
-        operator fun invoke(
-            x: AbstractVariableItem<*, *>,
-            threshold: Flt64,
-            type: VariableTypeKind = UContinuous,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
-            threshold = threshold,
-            type = type,
-            name = name,
-            displayName = displayName
-        )
-
-        /** Deprecated: single-threshold factory with UInt64 threshold and AbstractVariableItem. */
-        @Deprecated("Use lb/ub overload instead. This threshold-based overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-        @JvmStatic
-        operator fun invoke(
-            x: AbstractVariableItem<*, *>,
-            threshold: UInt64,
-            type: VariableTypeKind = UContinuous,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<Flt64> = invoke(
-            x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, x)), Flt64.zero),
-            threshold = threshold.toFlt64(),
-            type = type,
-            name = name,
-            displayName = displayName
-        )
     }
 }

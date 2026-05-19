@@ -68,4 +68,3 @@ data class CapacityColumn<E : Executor, A : ProductionAction>(
         get() = allocations.isEmpty() || allocations.values.all { it == UInt64.zero }
 }
 
-

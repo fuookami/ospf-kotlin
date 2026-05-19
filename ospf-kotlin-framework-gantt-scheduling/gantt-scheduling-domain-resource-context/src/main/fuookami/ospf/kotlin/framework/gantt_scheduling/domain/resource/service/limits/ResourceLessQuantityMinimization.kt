@@ -1,13 +1,13 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.service.limits
 
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.AbstractResourceCapacity
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.Resource
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceTimeSlot
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.ResourceUsage
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model.resourceSlack
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -46,10 +46,12 @@ class ResourceLessQuantityMinimization<
                 if (thresholdValue eq Flt64.zero) {
                     cost += LinearMonomial(thisCoefficient, quantity.lessQuantity[slot])
                 } else {
-                    val slack = SlackFunction(
+                    val slack = resourceSlack(
                         x = quantity.lessQuantity[slot],
                         threshold = thresholdValue,
                         type = UContinuous,
+                        withNegative = false,
+                        withPositive = true,
                         name = "${quantity.name}_${slot}_${name}_over_quantity_threshold"
                     )
                     when (val result = model.add(slack)) {

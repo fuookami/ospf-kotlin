@@ -19,13 +19,13 @@ import fuookami.ospf.kotlin.math.algebra.value_range.*
 import fuookami.ospf.kotlin.utils.functional.Extractor
 import fuookami.ospf.kotlin.utils.functional.Generator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.geometry.Point
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.nextFlt64
 import org.kotlinmath.complex
 import org.kotlinmath.pow
 import kotlin.random.Random
+import fuookami.ospf.kotlin.math.geometry.point2
 
 /**
  * 复二次多项式
@@ -85,7 +85,6 @@ data class ComplexQuadraticPolynomialGenerator(
         return x
     }
 }
-
 
 
 

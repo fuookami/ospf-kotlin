@@ -69,4 +69,3 @@ data class FinnishHeartBeat(
         }
     }
 }
-

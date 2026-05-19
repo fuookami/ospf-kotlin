@@ -2,11 +2,11 @@
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialDemand
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Produce
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.produceSlack
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -41,10 +41,12 @@ class ProduceOverQuantityMinimization<
                 if (thresholdValue eq Flt64.zero) {
                     cost += LinearMonomial(coefficient(product), produce.overQuantity[product])
                 } else {
-                    val slack = SlackFunction(
+                    val slack = produceSlack(
                         x = produce.overQuantity[product],
                         threshold = thresholdValue,
                         type = UContinuous,
+                        withNegative = false,
+                        withPositive = true,
                         name = "produce_over_quantity_minimization_threshold_${product}"
                     )
                     when (val result = model.add(slack)) {

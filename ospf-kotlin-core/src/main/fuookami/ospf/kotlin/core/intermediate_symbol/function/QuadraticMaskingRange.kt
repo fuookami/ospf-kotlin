@@ -33,14 +33,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Quadratic masking range: when z = 1, y is forced to equal polynomial;
@@ -255,13 +247,5 @@ class QuadraticMaskingRangeFunction<V>(
             displayName: String? = null
         ): QuadraticMaskingRangeFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
             QuadraticMaskingRangeFunction(polynomial, z, bigM, converter, name, displayName)
-
-        operator fun invoke(
-            polynomial: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            z: AbstractVariableItem<*, *>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): QuadraticMaskingRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticMaskingRangeFunction(polynomial, z, bigM, flt64Converter, name, displayName)
     }
 }

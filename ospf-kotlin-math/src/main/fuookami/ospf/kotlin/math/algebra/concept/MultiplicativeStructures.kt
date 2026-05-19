@@ -31,4 +31,3 @@ interface TimesSemiGroup<Self> : MultiplicativeSemigroup<Self>, Times<Self, Self
  */
 interface TimesGroup<Self> : MultiplicativeGroup<Self>, TimesSemiGroup<Self>,
     Reciprocal<Self>, Div<Self, Self>, IntDiv<Self, Self>, Rem<Self, Self>
-

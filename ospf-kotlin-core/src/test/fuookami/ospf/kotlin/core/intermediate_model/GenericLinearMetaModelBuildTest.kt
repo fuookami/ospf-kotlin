@@ -138,8 +138,6 @@ class GenericLinearMetaModelBuildTest {
                 ) is Ok,
                 "${numberCase.name}: add objective should succeed"
             )
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -238,8 +236,6 @@ class GenericLinearMetaModelBuildTest {
         assertTrue(flt64ModelResult is Ok, "${numberCase.name}: mechanism -> Flt64 conversion should succeed")
         val flt64Model = flt64ModelResult.value as? LinearMechanismModel<Flt64>
         assertNotNull(flt64Model, "${numberCase.name}: converted model should be linear mechanism model")
-
-        @Suppress("DEPRECATION")
         val triadModel = runBlocking {
             LinearTriadModel.invoke(
                 model = flt64Model,

@@ -1,8 +1,8 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.model
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -69,4 +69,3 @@ class NodeBandwidth(
         return ok
     }
 }
-

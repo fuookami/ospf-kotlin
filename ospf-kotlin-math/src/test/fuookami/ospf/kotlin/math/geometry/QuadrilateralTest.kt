@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.math.geometry
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.point2
 
 class QuadrilateralTest {
     @Test

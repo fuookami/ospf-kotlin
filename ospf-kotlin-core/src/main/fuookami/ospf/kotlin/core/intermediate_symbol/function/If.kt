@@ -4,7 +4,6 @@ package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -13,7 +12,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
@@ -22,13 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * If function: `y = 1 if condition > 0, else y = 0`.
@@ -118,28 +109,9 @@ class IfFunction<V>(
         ): IfFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             IfFunction(condition, converter, bigM, name = name, displayName = displayName)
 
-        operator fun invoke(
-            condition: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfFunction(condition, flt64Converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            condition: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfFunction(
-            condition = LinearPolynomial(listOf(condition), Flt64.zero),
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
-
         /**
-         * Factory: accept LinearConstraintInput for framework compatibility.
-         * Extracts the condition polynomial from the constraint input's flatten data.
+         * 类型化工厂：从约束输入提取条件多项式。
+         * Typed factory: extracts the condition polynomial from the constraint input.
          */
         fun <V> typed(
             inequality: LinearConstraintInputV<V>,
@@ -165,24 +137,6 @@ class IfFunction<V>(
                     displayName = displayName
                 ),
                 converter = converter
-            )
-        }
-
-        @JvmStatic
-        @JvmName("fromConstraintInput")
-        operator fun invoke(
-            inequality: LinearConstraintInput,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            val conditionPoly = LinearPolynomial(
-                inequality.flattenData.monomials.map { LinearMonomial(it.coefficient, it.symbol) },
-                inequality.flattenData.constant
-            )
-            return LinearFunctionSymbolAdapter(
-                IfFunction(conditionPoly, flt64Converter, bigM, name = name, displayName = displayName),
-                converter = flt64Converter
             )
         }
     }

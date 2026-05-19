@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.core_demo
+package fuookami.ospf.kotlin.example.core_demo
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -10,7 +10,7 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -20,6 +20,10 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
+import fuookami.ospf.kotlin.example.flt64Constant
+import fuookami.ospf.kotlin.example.flt64Linear
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -90,20 +94,20 @@ data object Demo9 {
 
     private suspend fun initSymbol(): Try {
         dx = LinearIntermediateSymbols1<Flt64>("dx", Shape1(settlements.size)) { i, _ ->
-            SlackFunction(
+            exampleAbsoluteSlack(
                 type = UInteger,
-                x = x,
-                y = settlements[i].x.toFlt64(),
+                x = flt64Linear(x),
+                y = flt64Constant(settlements[i].x),
                 name = "dx_$i"
             )
         }
         metaModel.add(dx)
 
         dy = LinearIntermediateSymbols1<Flt64>("dy", Shape1(settlements.size)) { i, _ ->
-            SlackFunction(
+            exampleAbsoluteSlack(
                 type = UInteger,
-                x = y,
-                y = settlements[i].y.toFlt64(),
+                x = flt64Linear(y),
+                y = flt64Constant(settlements[i].y),
                 name = "dy_$i"
             )
         }
@@ -130,7 +134,7 @@ data object Demo9 {
 
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
-        when (val ret = solver(metaModel)) {
+        when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }
@@ -161,7 +165,6 @@ data object Demo9 {
         return ok
     }
 }
-
 
 
 

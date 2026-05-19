@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model
 
@@ -172,4 +172,3 @@ class FlightLeg internal constructor(
 
     override fun toString() = "${plan.no}, ${aircraft.regNo}, ${dep.icao} - ${arr.icao}, ${time!!.start.toShortString()} - ${time!!.end.toShortString()}"
 }
-

@@ -19,7 +19,7 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.utils.functional.Failed
 
-private val flt64Converter = object : IntoValue<Flt64> {
+private val solverValueConverter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -267,7 +267,7 @@ internal val QuadraticInequalityOf<Flt64>.sign: Comparison get() = comparison
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
  */
 internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64>>
-    get() = toLinearFlattenDataFlt64(flt64Converter)
+    get() = toLinearFlattenDataFlt64(solverValueConverter)
 
 /**
  * Compute [QuadraticFlattenData]<Flt64> from QuadraticInequality (Flt64).
@@ -276,7 +276,7 @@ internal val LinearInequality<Flt64>.flattenData: Result<LinearFlattenData<Flt64
  * This is the Flt64-specific convenience for when V=Flt64 is already known.
  */
 internal val QuadraticInequalityOf<Flt64>.flattenData: QuadraticFlattenData<Flt64>
-    get() = toQuadraticFlattenDataFlt64(flt64Converter)
+    get() = toQuadraticFlattenDataFlt64(solverValueConverter)
 
 // ========== Internal key for merging quadratic monomials ==========
 

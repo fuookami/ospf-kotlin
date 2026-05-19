@@ -212,4 +212,3 @@ operator fun Duration.div(value: UIntX) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt32) = this.div(value.toFlt64())
 operator fun Duration.div(value: Flt64) = this.div(value.toDouble())
 operator fun Duration.div(value: FltX) = this.div(value.toFlt64())
-

@@ -1,10 +1,9 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.basic.ExpressionRange
 import fuookami.ospf.kotlin.core.variable.UContinuous
@@ -127,10 +126,12 @@ abstract class AbstractResourceUsage<
                     ) { i, _ ->
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.overEnabled) {
-                            val slack = SlackFunction(
+                            val slack = resourceSlack(
                                 x = quantity[slot],
                                 threshold = slot.resourceCapacity.quantity.upperBound.value.unwrap(),
                                 type = UContinuous,
+                                withNegative = false,
+                                withPositive = true,
                                 constraint = false,
                                 name = "${name}_over_quantity_$slot"
                             )
@@ -166,9 +167,11 @@ abstract class AbstractResourceUsage<
                     ) { i, _ ->
                         val slot = timeSlots[i]
                         if (slot.resourceCapacity.lessEnabled) {
-                            val slack = SlackFunction(
+                            val slack = resourceSlack(
                                 x = quantity[slot],
                                 threshold = slot.resourceCapacity.quantity.lowerBound.value.unwrap(),
+                                type = UContinuous,
+                                withNegative = true,
                                 withPositive = false,
                                 constraint = false,
                                 name = "${name}_less_quantity_$slot"
@@ -255,7 +258,6 @@ abstract class AbstractResourceUsage<
         return ok
     }
 }
-
 
 
 

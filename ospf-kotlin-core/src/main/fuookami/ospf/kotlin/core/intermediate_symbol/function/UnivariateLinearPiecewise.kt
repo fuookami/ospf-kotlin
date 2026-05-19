@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
+import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.Point
@@ -23,13 +23,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Univariate linear piecewise function: y = f(x) defined by breakpoints and slopes.
@@ -153,40 +146,16 @@ class UnivariateLinearPiecewiseFunction<V>(
                 converter = converter, name = name, displayName = displayName
             )
 
-        operator fun invoke(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            breakpoints: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            slopes: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            intercepts: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            m: Flt64 = Flt64(1e6),
-            name: String = "piecewise",
-            displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = UnivariateLinearPiecewiseFunction(
-            x = x, breakpoints = breakpoints, slopes = slopes, intercepts = intercepts, m = m,
-            converter = flt64Converter, name = name, displayName = displayName)
-
-        operator fun invoke(
-            x: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            breakpoints: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            slopes: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            intercepts: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            m: Flt64 = Flt64(1e6),
-            name: String = "piecewise",
-            displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = UnivariateLinearPiecewiseFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            breakpoints = breakpoints, slopes = slopes, intercepts = intercepts, m = m,
-            converter = flt64Converter, name = name, displayName = displayName)
-
         @JvmStatic
         @JvmName("fromPoints")
-        fun fromPoints(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            points: List<Point<Dim2, Flt64>>,
-            m: Flt64 = Flt64(1e6),
+        fun <V> fromPoints(
+            x: LinearPolynomial<V>,
+            points: List<Point<Dim2, V>>,
+            m: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): UnivariateLinearPiecewiseFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+        ): UnivariateLinearPiecewiseFunction<V> where V : FloatingNumber<V>, V : RealNumber<V>, V : NumberField<V> {
             require(points.size >= 2) { "Need at least 2 points" }
             val breakpoints = points.map { it[0] }
             val slopes = (0 until points.size - 1).map { i ->
@@ -195,7 +164,7 @@ class UnivariateLinearPiecewiseFunction<V>(
             val intercepts = (0 until points.size - 1).map { i ->
                 points[i][1] - slopes[i] * points[i][0]
             }
-            return UnivariateLinearPiecewiseFunction(x, breakpoints, slopes, intercepts, m, flt64Converter, name, displayName)
+            return UnivariateLinearPiecewiseFunction(x, breakpoints, slopes, intercepts, m, converter, name, displayName)
         }
     }
 }

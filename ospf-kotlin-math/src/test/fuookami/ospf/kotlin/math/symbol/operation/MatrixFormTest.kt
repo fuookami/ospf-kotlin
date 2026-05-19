@@ -1,13 +1,13 @@
-﻿package fuookami.ospf.kotlin.math.symbol.operation
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticMatrixForm
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.combineTerms
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.hessian
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toMatrixForm
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.linearPolynomialFromMatrixForm
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.quadraticPolynomialFromMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.QuadraticMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
+import fuookami.ospf.kotlin.math.symbol.operation.hessian
+import fuookami.ospf.kotlin.math.symbol.operation.toMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.linearPolynomialFromMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.quadraticPolynomialFromMatrixForm
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -202,6 +202,5 @@ class MatrixFormTest {
         }
     }
 }
-
 
 

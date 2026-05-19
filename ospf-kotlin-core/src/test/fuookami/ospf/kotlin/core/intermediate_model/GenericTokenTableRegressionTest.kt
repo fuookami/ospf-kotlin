@@ -1,6 +1,21 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.intermediate.LinearCellImpl
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticCellImpl
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentAutoTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
+import fuookami.ospf.kotlin.core.token.ConcurrentMutableTokenTable
+import fuookami.ospf.kotlin.core.token.LinearFlattenContext
+import fuookami.ospf.kotlin.core.token.LinearFlattenData
+import fuookami.ospf.kotlin.core.token.ManualTokenTable
+import fuookami.ospf.kotlin.core.token.MutableTokenTable
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenContext
+import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
+import fuookami.ospf.kotlin.core.token.RangeCacheContext
+import fuookami.ospf.kotlin.core.token.TokenCacheContexts
+import fuookami.ospf.kotlin.core.token.ValueCacheContext
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear

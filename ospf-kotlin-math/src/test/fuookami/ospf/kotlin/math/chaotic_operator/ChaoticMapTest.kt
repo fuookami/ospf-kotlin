@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.point2
 
 class ChaoticMapTest {
     @Test
@@ -54,4 +56,3 @@ class ChaoticMapTest {
         assertTrue(generator.x[1] eq Flt64(0.65))
     }
 }
-

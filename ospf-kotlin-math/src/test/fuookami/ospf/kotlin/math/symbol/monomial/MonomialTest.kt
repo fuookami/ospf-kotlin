@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.symbol.monomial
+package fuookami.ospf.kotlin.math.symbol.monomial
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
@@ -86,6 +86,5 @@ class MonomialTest {
         assertEquals(Flt64(-1.0), poly3.constant)
     }
 }
-
 
 

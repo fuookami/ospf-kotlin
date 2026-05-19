@@ -1,5 +1,3 @@
-@file:Suppress("DEPRECATION")
-
 package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
@@ -12,27 +10,18 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
 import fuookami.ospf.kotlin.core.model.mechanism.SingleObjectMechanismModel
-import fuookami.ospf.kotlin.core.model.mechanism.toLegacy
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.Solution
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Category
 import fuookami.ospf.kotlin.math.symbol.Nonlinear
 import fuookami.ospf.kotlin.utils.functional.Order
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 interface CallBackModelPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
     val comparator: ThreeWayComparator<V>
@@ -143,29 +132,6 @@ class CallBackModel<V> internal constructor(
             _converter = converter
         )
 
-        operator fun invoke(
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
-            objectCategory = objectCategory,
-            policy = FunctionalCallBackModelPolicy(
-                objectiveComparator = dumpObjectiveComparator(objectCategory, flt64Converter),
-                _initialSolutionsGenerator = initialSolutionGenerator
-            ),
-            _converter = flt64Converter
-        )
-
-        operator fun invoke(
-            objectiveComparator: PartialComparator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel(
-            policy = FunctionalCallBackModelPolicy(
-                objectiveComparator = objectiveComparator,
-                _initialSolutionsGenerator = initialSolutionGenerator
-            ),
-            _converter = flt64Converter
-        )
-
         operator fun <V> invoke(
             model: AbstractMetaModel<V>,
             initialSolutionGenerator: Extractor<V, Pair<UInt64, UInt64>> = { _ -> throw UnsupportedOperationException("no initialSolutionsGenerator provided") },
@@ -174,7 +140,7 @@ class CallBackModel<V> internal constructor(
             val tokens = model.tokens.copy()
             val constraints = model.constraints.map { constraint ->
                 Pair(
-                    { solution: Solution<V> -> constraint.isTrue(solution, converter, tokens) },
+                    { solution: Solution<V> -> constraint.isTrue(solution, tokens) },
                     constraint.toString()
                 )
             }.toMutableList()
@@ -203,11 +169,6 @@ class CallBackModel<V> internal constructor(
                 _converter = converter
             )
         }
-
-        operator fun invoke(
-            model: AbstractMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = invoke(model, initialSolutionGenerator, flt64Converter)
 
         operator fun <V> invoke(
             model: SingleObjectMechanismModel<V>,
@@ -254,11 +215,6 @@ class CallBackModel<V> internal constructor(
             )
         }
 
-        operator fun invoke(
-            model: SingleObjectMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
-            concurrent: Boolean = true
-        ): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = invoke(model, initialSolutionGenerator, concurrent, flt64Converter)
     }
 
     override val constraints by ::_constraints
@@ -318,7 +274,12 @@ class CallBackModel<V> internal constructor(
         name: String?,
         displayName: String?
     ) {
-        addConstraint(inequality.toLegacy(_converter), name, displayName)
+        _constraints.add(
+            Pair(
+                { solution: Solution<V> -> inequality.isTrue(solution, tokens) },
+                name ?: String()
+            )
+        )
     }
 
     override fun addObject(
@@ -415,45 +376,6 @@ class CallBackModel<V> internal constructor(
     }
 }
 
-@Suppress("FunctionName")
-fun CallBackModel(
-    objectCategory: ObjectCategory = ObjectCategory.Minimum,
-    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
-    objectCategory = objectCategory,
-    initialSolutionGenerator = initialSolutionGenerator
-)
-
-@Suppress("FunctionName")
-fun CallBackModel(
-    objectiveComparator: PartialComparator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
-    objectiveComparator = objectiveComparator,
-    initialSolutionGenerator = initialSolutionGenerator
-)
-
-@Suppress("FunctionName")
-fun CallBackModel(
-    model: AbstractMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
-    model = model,
-    initialSolutionGenerator = initialSolutionGenerator
-)
-
-@Suppress("FunctionName")
-fun CallBackModel(
-    model: SingleObjectMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero },
-    concurrent: Boolean = true
-): CallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CallBackModel.invoke(
-    model = model,
-    initialSolutionGenerator = initialSolutionGenerator,
-    concurrent = concurrent
-)
-
-
 class MultiObjectCallBackModel<V> internal constructor(
     category: Category = Nonlinear,
     override val objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -477,16 +399,6 @@ class MultiObjectCallBackModel<V> internal constructor(
             _converter = converter
         )
 
-        internal operator fun invoke(
-            objectCategory: ObjectCategory = ObjectCategory.Minimum,
-            objectiveLocation: List<MultiObjectLocation<fuookami.ospf.kotlin.math.algebra.number.Flt64>> = listOf(MultiObjectLocation(UInt64.zero, Flt64.one)),
-            initialSolutionGenerator: Extractor<Flt64, Pair<UInt64, UInt64>> = { Flt64.zero }
-        ): MultiObjectCallBackModel<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MultiObjectCallBackModel(
-            objectCategory = objectCategory,
-            objectiveLocation = objectiveLocation,
-            _initialSolutionsGenerator = { pair -> initialSolutionGenerator(pair) },
-            _converter = flt64Converter
-        )
     }
 
     init {
@@ -600,7 +512,12 @@ class MultiObjectCallBackModel<V> internal constructor(
         name: String? = null,
         displayName: String? = null
     ) {
-        addConstraint(inequality.toLegacy(_converter), name, displayName)
+        _constraints.add(
+            Pair(
+                { solution: Solution<V> -> inequality.isTrue(solution, tokens) },
+                name ?: String()
+            )
+        )
     }
 
     override fun addObject(
@@ -672,4 +589,3 @@ class MultiObjectCallBackModel<V> internal constructor(
         tokens.clearSolution()
     }
 }
-

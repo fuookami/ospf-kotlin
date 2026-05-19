@@ -17,4 +17,3 @@ import fuookami.ospf.kotlin.math.operator.Plus
  * A semigroup is a set equipped with an associative addition operation.
  */
 interface Semigroup<Self> : Plus<Self, Self>
-

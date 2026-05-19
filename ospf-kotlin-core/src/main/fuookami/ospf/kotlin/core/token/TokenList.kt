@@ -89,10 +89,6 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
     }
 }
 
-/**
- * Legacy typealias for Flt64-specific AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
-
 @OptIn(ExperimentalStdlibApi::class)
 class TokenList<T : RealNumber<T>>(
     val list: Map<VariableItemKey, Token<T>>
@@ -186,27 +182,15 @@ class TokenList<T : RealNumber<T>>(
     }
 }
 
-/**
- * Legacy typealias for Flt64-specific TokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
-
 interface AddableTokenCollection<T : RealNumber<T>> {
     fun add(item: AbstractVariableItem<*, *>): Try
     fun add(items: Iterable<AbstractVariableItem<*, *>>): Try
 }
 
-/**
- * Legacy typealias for Flt64-specific AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
-
 abstract class AbstractMutableTokenList<T : RealNumber<T>> : AbstractTokenList<T>(), AddableTokenCollection<T> {
     abstract fun remove(item: AbstractVariableItem<*, *>)
     open fun flush() {}
 }
-
-/**
- * Legacy typealias for Flt64-specific AbstractMutableTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
 
 sealed class MutableTokenList<T : RealNumber<T>>(
     internal val list: MutableMap<VariableItemKey, Token<T>> = HashMap(),
@@ -338,10 +322,6 @@ sealed class MutableTokenList<T : RealNumber<T>>(
     }
 }
 
-/**
- * Legacy typealias for Flt64-specific MutableTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
-
 class AutoTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
     checkTokenExisted: Boolean,
@@ -393,10 +373,6 @@ class AutoTokenList<T : RealNumber<T>> private constructor(
     }
 }
 
-/**
- * Legacy typealias for Flt64-specific AutoTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */
-
 class ManualTokenList<T : RealNumber<T>> private constructor(
     list: MutableMap<VariableItemKey, Token<T>>,
     checkTokenExisted: Boolean,
@@ -438,6 +414,3 @@ class ManualTokenList<T : RealNumber<T>> private constructor(
     }
 }
 
-/**
- * Legacy typealias for Flt64-specific ManualTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- */

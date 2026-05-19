@@ -138,8 +138,6 @@ class GenericQuadraticMetaModelBuildTest {
                 ) is Ok,
                 "${numberCase.name}: add objective should succeed"
             )
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -250,8 +248,6 @@ class GenericQuadraticMetaModelBuildTest {
         assertTrue(flt64ModelResult is Ok, "${numberCase.name}: mechanism -> Flt64 conversion should succeed")
         val flt64Model = flt64ModelResult.value as? QuadraticMechanismModel<Flt64>
         assertNotNull(flt64Model, "${numberCase.name}: converted model should be quadratic mechanism model")
-
-        @Suppress("DEPRECATION")
         val tetradModel = runBlocking {
             QuadraticTetradModel.invoke(
                 model = flt64Model,

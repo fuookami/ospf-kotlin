@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.bunch_compilation.model
 
@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.utils.concept.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -17,6 +17,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
 import fuookami.ospf.kotlin.example.framework_demo.demo4.domain.task.model.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -115,9 +116,10 @@ class FleetBalance(
                 ) { l, _ ->
                     val poly = MutableLinearPolynomial()
                     poly += LinearMonomial(Flt64.one, fleet[l])
-                    SlackFunction(
+                    exampleThresholdSlack(
                         x = LinearPolynomial(poly.monomials, poly.constant),
                         threshold = limits[l].second.amount.toFlt64(),
+                        withNegative = true,
                         withPositive = false,
                         name = "fleet_slack_$l"
                     )
@@ -159,7 +161,6 @@ class FleetBalance(
         return ok
     }
 }
-
 
 
 

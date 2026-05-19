@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service.limits
 
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.utils.error.*
@@ -75,7 +75,6 @@ class AppointmentLimit(
         return ok
     }
 }
-
 
 
 

@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -13,7 +13,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -99,37 +98,6 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  * When `indicator = 0`: polynomial can be nonzero (relaxed by Big-M).
  * The `sideVar` distinguishes positive vs negative deviation for equality checks.
  *
- * Returns a list of named LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
- */
-@kotlin.Deprecated(
-    message = "Use nonzeroIndicatorConstraintsV(...) to keep constraints V-typed.",
-    replaceWith = ReplaceWith("nonzeroIndicatorConstraintsV(poly, indVar, sideVar, bigM, tolerance, strictBoundary, namePrefix)"),
-    level = DeprecationLevel.WARNING
-)
-fun <V> nonzeroIndicatorConstraints(
-    poly: LinearPolynomial<V>,
-    indVar: AbstractVariableItem<*, *>,
-    sideVar: AbstractVariableItem<*, *>,
-    bigM: V,
-    tolerance: V,
-    strictBoundary: V,
-    converter: IntoValue<V>,
-    namePrefix: String
-): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
-    return nonzeroIndicatorConstraintsV(
-        poly = poly,
-        indVar = indVar,
-        sideVar = sideVar,
-        bigM = bigM,
-        tolerance = tolerance,
-        strictBoundary = strictBoundary,
-        namePrefix = namePrefix
-    ).map { it.asFlt64Inequality(converter) }
-}
-
-/**
- * V-typed nonzero-indicator constraints.
- *
  * This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints typed as V inside generic paths.
  */
@@ -179,35 +147,6 @@ fun <V> nonzeroIndicatorConstraintsV(
  *
  * For LE: when indicator=1, poly <= rhs is enforced.
  * For GE: when indicator=1, poly >= rhs is enforced.
- *
- * Returns LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64> constraints (Flt64-typed for model compatibility).
- */
-@kotlin.Deprecated(
-    message = "Use simpleIndicatorConstraintsV(...) to keep constraints V-typed.",
-    replaceWith = ReplaceWith("simpleIndicatorConstraintsV(ineq, indicator, bigM, tolerance, strictBoundary, namePrefix)"),
-    level = DeprecationLevel.WARNING
-)
-fun <V> simpleIndicatorConstraints(
-    ineq: LinearInequality<V>,
-    indicator: AbstractVariableItem<*, *>,
-    bigM: V,
-    tolerance: V,
-    strictBoundary: V,
-    converter: IntoValue<V>,
-    namePrefix: String
-): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : RealNumber<V>, V : NumberField<V> {
-    return simpleIndicatorConstraintsV(
-        ineq = ineq,
-        indicator = indicator,
-        bigM = bigM,
-        tolerance = tolerance,
-        strictBoundary = strictBoundary,
-        namePrefix = namePrefix
-    ).map { it.asFlt64Inequality(converter) }
-}
-
-/**
- * V-typed indicator constraints for a simple inequality (LE/GE/EQ).
  */
 fun <V> simpleIndicatorConstraintsV(
     ineq: LinearInequality<V>,
@@ -269,62 +208,4 @@ internal fun <V> repeatAdd(
         result += one
     }
     return result
-}
-
-/**
- * Flt64-specific overload of nonzeroIndicatorConstraints for convenience.
- * Used when inputs are already Flt64-typed.
- */
-@kotlin.Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-fun nonzeroIndicatorConstraints(
-    poly: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    indVar: AbstractVariableItem<*, *>,
-    sideVar: AbstractVariableItem<*, *>,
-    bigM: Flt64,
-    tolerance: Flt64,
-    strictBoundary: Flt64,
-    namePrefix: String
-): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return nonzeroIndicatorConstraintsV(
-        poly = poly,
-        indVar = indVar,
-        sideVar = sideVar,
-        bigM = bigM,
-        tolerance = tolerance,
-        strictBoundary = strictBoundary,
-        namePrefix = namePrefix
-    )
-}
-
-/**
- * Flt64-specific overload of simpleIndicatorConstraints for convenience.
- * Used when inputs are already Flt64-typed.
- */
-@kotlin.Deprecated("Use the generic V-typed version with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-fun simpleIndicatorConstraints(
-    ineq: LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    indicator: AbstractVariableItem<*, *>,
-    bigM: Flt64,
-    tolerance: Flt64,
-    strictBoundary: Flt64,
-    namePrefix: String
-): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return simpleIndicatorConstraintsV(
-        ineq = ineq,
-        indicator = indicator,
-        bigM = bigM,
-        tolerance = tolerance,
-        strictBoundary = strictBoundary,
-        namePrefix = namePrefix
-    )
-}
-
-private fun <V> LinearInequality<V>.asFlt64Inequality(converter: IntoValue<V>): LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-        where V : RealNumber<V>, V : NumberField<V> {
-    return LinearInequality(
-        lhs = lhs.asFlt64Poly(converter),
-        rhs = rhs.asFlt64Poly(converter),
-        comparison = comparison,
-        name = name
-    )
 }

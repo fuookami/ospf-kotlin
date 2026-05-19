@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.service.limits
 
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model.Capacity

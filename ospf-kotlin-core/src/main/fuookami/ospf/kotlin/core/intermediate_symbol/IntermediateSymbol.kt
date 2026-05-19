@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol
 
@@ -552,14 +552,6 @@ class LinearExpressionSymbol<V>(
     // polynomial property returns immutable version
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
-    // flattenedMonomials: extract from monomials
-    @kotlin.Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
-    val flattenedMonomials: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-        get() = LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            monomials = _polyFlt64.monomials,
-            constant = _polyFlt64.constant
-        )
-
     val flattenedMonomialsAsV: LinearFlattenData<V>
         get() = LinearFlattenData(
             monomials = _utilsPolynomial.monomials,
@@ -1106,14 +1098,6 @@ class QuadraticExpressionSymbol<V>(
     // polynomial property returns immutable version
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
-    // flattenedMonomials: extract from monomials (distinguish linear vs quadratic)
-    @kotlin.Deprecated("Use flattenedMonomialsAsV instead. This Flt64-specific property will be removed in a future version.", level = DeprecationLevel.WARNING)
-    val flattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-        get() = QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-            monomials = _polyFlt64.monomials,
-            constant = _polyFlt64.constant
-        )
-
     val flattenedMonomialsAsV: QuadraticFlattenData<V>
         get() = QuadraticFlattenData(
             monomials = _utilsPolynomial.monomials,
@@ -1582,7 +1566,6 @@ internal val <V> LinearIntermediateSymbol<V>.solverFlattenedMonomials: LinearFla
 internal val <V> QuadraticIntermediateSymbol<V>.solverFlattenedMonomials: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>
     where V : RealNumber<V>, V : Ring<V>, V : NumberField<V>
     get() = SolverBoundaryCasts.quadraticSolverFlattenedMonomials(this)
-
 
 
 

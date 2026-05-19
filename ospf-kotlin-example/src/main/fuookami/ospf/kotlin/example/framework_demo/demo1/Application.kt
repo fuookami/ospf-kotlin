@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1
+package fuookami.ospf.kotlin.example.framework_demo.demo1
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -11,6 +11,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.route_context.*
 import fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.*
@@ -163,7 +164,7 @@ class SSP {
 
     private suspend fun solve(metaModel: LinearMetaModel<Flt64>): Ret<List<Flt64>> {
         val solver = ScipLinearSolver()
-        return when (val ret = solver(metaModel)) {
+        return when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
                 Ok(ret.value.solution)
@@ -179,7 +180,6 @@ class SSP {
         }
     }
 }
-
 
 
 

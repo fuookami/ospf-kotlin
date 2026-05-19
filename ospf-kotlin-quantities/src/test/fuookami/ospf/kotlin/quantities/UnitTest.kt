@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.quantities
+package fuookami.ospf.kotlin.quantities
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.quantities.unit.*
@@ -21,6 +21,5 @@ class UnitTest {
         assert(Meter.to(Kilometer)!!.value eq FltX(0.001))
     }
 }
-
 
 

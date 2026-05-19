@@ -49,4 +49,3 @@ fun BaseTable<*>.kotlinDatetime(name: String): Column<LocalDateTime> {
 inline fun <reified T : Enum<T>> BaseTable<*>.enums(name: String): Column<List<T>> {
     return varchar(name).transform({ it.split(',').map { value -> java.lang.Enum.valueOf(T::class.java, value) } }, { it.joinToString(",") { value -> value.name } })
 }
-

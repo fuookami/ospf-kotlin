@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
+package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.capacity_scheduling.model
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols2
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor

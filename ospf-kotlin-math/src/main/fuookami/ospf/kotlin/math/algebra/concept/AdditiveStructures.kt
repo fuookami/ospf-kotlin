@@ -31,4 +31,3 @@ interface PlusSemiGroup<Self> : Semigroup<Self>, Plus<Self, Self>, Inc<Self>
  */
 interface PlusGroup<Self> : AbelianGroup<Self>, PlusSemiGroup<Self>,
     Neg<Self>, Minus<Self, Self>, Dec<Self>
-

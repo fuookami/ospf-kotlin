@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.symbol
+package fuookami.ospf.kotlin.math.symbol
 
 class TmpDefaultTypeArgCheck<T>(val value: T)
 

@@ -207,4 +207,3 @@ interface ModelView<ConCell, ObjCell> : BasicModelView<ConCell>
 }
 
 
-

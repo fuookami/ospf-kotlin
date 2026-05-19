@@ -186,4 +186,3 @@ open class Label<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
 }
 
 
-

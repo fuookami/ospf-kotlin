@@ -1,10 +1,10 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -48,6 +48,7 @@ class PassengerFlightChangeConstraint(
                     )
                     val estCondition = IfFunction(
                         condition = -earliestStartTime,
+                        converter = flt64Converter,
                         name = "${passenger}_${toFlight}_est"
                     )
                     when (val result = model.add(estCondition.helperVariables)) {
@@ -108,6 +109,7 @@ class PassengerFlightChangeConstraint(
                     )
                     val eetCondition = IfFunction(
                         condition = -lastestEndTime,
+                        converter = flt64Converter,
                         name = "${passenger}_${toFlight}_eet"
                     )
                     when (val result = model.add(eetCondition.helperVariables)) {
@@ -160,7 +162,6 @@ class PassengerFlightChangeConstraint(
         return ok
     }
 }
-
 
 
 

@@ -1,9 +1,11 @@
 package fuookami.ospf.kotlin.math.fractal_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.point2
 
 class MandelbrotSetTest {
     @Test

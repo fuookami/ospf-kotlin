@@ -119,4 +119,3 @@ data object UContinuous : VariableType<fuookami.ospf.kotlin.math.algebra.number.
     override val shortName = "ureal"
     override fun toString(): String = "UContinues"
 }
-

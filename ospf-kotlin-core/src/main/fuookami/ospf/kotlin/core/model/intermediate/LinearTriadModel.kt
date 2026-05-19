@@ -537,7 +537,7 @@ data class LinearTriadModel(
     companion object {
         private val logger = logger()
 
-        /** V¡úFlt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
+        /** Vï¿½ï¿½Flt64 conversion boundary: generic V resolves to concrete Flt64 for linear intermediate model construction. */
         suspend operator fun invoke(
             model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null,
@@ -1004,7 +1004,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ??lb => ¦Ë ??0
+                        // x ??lb => ï¿½ï¿½ ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1019,7 +1019,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ??ub => ¦Ë ??0
+                        // x ??ub => ï¿½ï¿½ ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1034,7 +1034,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
+                        // lb ??x ??ub => ï¿½ï¿½ ??0, ï¿½ï¿½' ??0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1067,7 +1067,7 @@ data class LinearTriadModel(
                     if (it.negativeNormalized || it.positiveNormalized || it.free) {
                         null to null
                     } else if (it.positiveFree) {
-                        // x ??lb => ¦Ë ??0
+                        // x ??lb => ï¿½ï¿½ ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1082,7 +1082,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         variable to null
                     } else if (it.negativeFree) {
-                        // x ??ub => ¦Ë ??0
+                        // x ??ub => ï¿½ï¿½ ??0
                         val variable = Variable(
                             index = colIndex,
                             lowerBound = Flt64.negativeInfinity,
@@ -1097,7 +1097,7 @@ data class LinearTriadModel(
                         colIndex += 1
                         null to variable
                     } else {
-                        // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
+                        // lb ??x ??ub => ï¿½ï¿½ ??0, ï¿½ï¿½' ??0
                         val variable1 = Variable(
                             index = colIndex,
                             lowerBound = Flt64.zero,
@@ -1324,7 +1324,7 @@ data class LinearTriadModel(
             if (it.free) {
                 null to null
             } else if (it.positiveFree) {
-                // x ??lb => ¦Ë ??0
+                // x ??lb => ï¿½ï¿½ ??0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -1339,7 +1339,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 variable to null
             } else if (it.negativeFree) {
-                // x ??ub => ¦Ë ??0
+                // x ??ub => ï¿½ï¿½ ??0
                 val variable = Variable(
                     index = colIndex,
                     lowerBound = Flt64.zero,
@@ -1354,7 +1354,7 @@ data class LinearTriadModel(
                 colIndex += 1
                 null to variable
             } else {
-                // lb ??x ??ub => ¦Ë ??0, ¦Ë' ??0
+                // lb ??x ??ub => ï¿½ï¿½ ??0, ï¿½ï¿½' ??0
                 val variable1 = Variable(
                     index = colIndex,
                     lowerBound = Flt64.negativeInfinity,
@@ -2365,6 +2365,5 @@ suspend fun solveFarkasDual(
         }
     }
 }
-
 
 

@@ -11,9 +11,9 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.Point2
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
 import fuookami.ospf.kotlin.math.geometry.originPoint2
-import fuookami.ospf.kotlin.math.geometry.point2
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
@@ -24,6 +24,7 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.math.geometry.point2
 
 private data class PatternItemInfo(
     val item: Item,
@@ -32,7 +33,7 @@ private data class PatternItemInfo(
     override fun copy() = PatternItemInfo(item, amount)
 }
 
-private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> Point2
+private typealias NextPointExtractor = (projection: ItemProjection<Bottom>, placements: List<ItemPlacement2<Bottom>>) -> Point<Dim2, Flt64>
 
 abstract class Pattern {
     data class Step(
@@ -610,4 +611,3 @@ abstract class Pattern {
         }
     }
 }
-

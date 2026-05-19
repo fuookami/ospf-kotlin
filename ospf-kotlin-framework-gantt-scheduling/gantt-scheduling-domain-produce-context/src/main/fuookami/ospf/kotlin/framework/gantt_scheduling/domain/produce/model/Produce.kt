@@ -8,7 +8,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbols1
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaDualSolution
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.geq
@@ -61,10 +60,12 @@ abstract class AbstractProduce<
                 ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.overEnabled) {
-                        val slack = SlackFunction(
+                        val slack = produceSlack(
                             x = quantity[product],
                             threshold = demand.quantity.upperBound.value.unwrap(),
                             type = UContinuous,
+                            withNegative = false,
+                            withPositive = true,
                             constraint = false,
                             name = "produce_over_quantity_${product}"
                         )
@@ -109,10 +110,11 @@ abstract class AbstractProduce<
                 ) { i, _ ->
                     val (product, demand) = products[i]
                     if (demand != null && demand.lessEnabled) {
-                        val slack = SlackFunction(
+                        val slack = produceSlack(
                             x = quantity[product],
                             threshold = demand.quantity.lowerBound.value.unwrap(),
                             type = UContinuous,
+                            withNegative = true,
                             withPositive = false,
                             constraint = false,
                             name = "produce_less_quantity_${product}"

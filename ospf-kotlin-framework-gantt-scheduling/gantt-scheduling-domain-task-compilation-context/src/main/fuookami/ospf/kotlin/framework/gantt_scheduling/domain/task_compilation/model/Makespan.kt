@@ -4,6 +4,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaxFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MinMaxFunction
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractTask
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.Executor
@@ -24,17 +25,19 @@ class Makespan<
     fun register(model: MetaModel<Flt64>): Try {
         if (!::makespan.isInitialized) {
             makespan = if (extra) {
-                MinMaxFunction(
+                MinMaxFunction.fromSymbols(
                     tasks.map {
                         taskTime.estimateEndTime[it]
                     },
+                    converter = IntoValue.Identity,
                     name = "makespan"
                 )
             } else {
-                MaxFunction(
+                MaxFunction.fromSymbols(
                     tasks.map {
                         taskTime.estimateEndTime[it]
                     },
+                    converter = IntoValue.Identity,
                     name = "makespan"
                 )
             }

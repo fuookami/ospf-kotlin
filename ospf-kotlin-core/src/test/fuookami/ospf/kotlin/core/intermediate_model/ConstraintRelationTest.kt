@@ -1,5 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.InvalidConstraintSignFromComparison
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import org.junit.jupiter.api.Test
@@ -51,7 +53,6 @@ class ConstraintRelationTest {
 
     @Test
     fun signTypealiasShouldWork() {
-        @Suppress("DEPRECATION")
         val sign: ConstraintRelation = ConstraintRelation.Equal
         assertEquals(ConstraintRelation.Equal, sign)
     }

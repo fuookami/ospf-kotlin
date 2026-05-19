@@ -1,10 +1,13 @@
 package fuookami.ospf.kotlin.math.chaotic_operator
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.point2
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim2
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
 
 class ChaoticContinuousTest {
     @Test
@@ -77,4 +80,3 @@ class ChaoticContinuousTest {
         assertTrue(generator.x[2].toDouble().isFinite())
     }
 }
-

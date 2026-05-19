@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.soft_security.service
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -99,5 +99,4 @@ data class PipelineListGenerator(
         return Ok(pipelines)
     }
 }
-
 

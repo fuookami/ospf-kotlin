@@ -2,11 +2,8 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.compare
-import fuookami.ospf.kotlin.core.model.mechanism.toTyped
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -26,13 +23,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Satisfied Amount function: counts how many inequalities in a list are satisfied.
@@ -265,38 +255,6 @@ open class SatisfiedAmountInequalityFunction<V>(
                 name = name,
                 displayName = displayName
             )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            amount: ValueRange<UInt64>? = null,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): SatisfiedAmountInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> =
-            SatisfiedAmountInequalityFunction(
-                inputs = inputs.map { it.toTyped(converter) },
-                amount = amount,
-                epsilon = converter.intoValue(epsilon),
-                converter = converter,
-                name = name,
-                displayName = displayName
-            )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            amount: ValueRange<UInt64>? = null,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): SatisfiedAmountInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SatisfiedAmountInequalityFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            amount = amount,
-            epsilon = epsilon,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }
 
@@ -333,33 +291,6 @@ class AnyFunction<V>(
             name = name,
             displayName = displayName
         )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): AnyFunction<V> where V : RealNumber<V>, V : NumberField<V> = AnyFunction(
-            inputs = inputs.map { it.toTyped(converter) },
-            epsilon = converter.intoValue(epsilon),
-            converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): AnyFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AnyFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            epsilon = epsilon,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }
 
@@ -393,33 +324,6 @@ class AllFunction<V>(
             inputs = inputs,
             epsilon = converter.intoValue(epsilon),
             converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): AllFunction<V> where V : RealNumber<V>, V : NumberField<V> = AllFunction(
-            inputs = inputs.map { it.toTyped(converter) },
-            epsilon = converter.intoValue(epsilon),
-            converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): AllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AllFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            epsilon = epsilon,
-            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -467,37 +371,6 @@ class AtLeastInequalityFunction<V>(
             name = name,
             displayName = displayName
         )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            k: UInt64,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): AtLeastInequalityFunction<V> where V : RealNumber<V>, V : NumberField<V> = AtLeastInequalityFunction(
-            inputs = inputs.map { it.toTyped(converter) },
-            k = k,
-            epsilon = converter.intoValue(epsilon),
-            converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            k: UInt64,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): AtLeastInequalityFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AtLeastInequalityFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            k = k,
-            epsilon = epsilon,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }
 
@@ -531,33 +404,6 @@ class NotAllFunction<V>(
             inputs = inputs,
             epsilon = converter.intoValue(epsilon),
             converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): NotAllFunction<V> where V : RealNumber<V>, V : NumberField<V> = NotAllFunction(
-            inputs = inputs.map { it.toTyped(converter) },
-            epsilon = converter.intoValue(epsilon),
-            converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): NotAllFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NotAllFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            epsilon = epsilon,
-            converter = flt64Converter,
             name = name,
             displayName = displayName
         )
@@ -595,37 +441,6 @@ class NumerableFunction<V>(
             amount = amount,
             epsilon = converter.intoValue(epsilon),
             converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun <V> invoke(
-            inputs: List<LinearConstraintInput>,
-            amount: ValueRange<UInt64>,
-            epsilon: Flt64 = Flt64(1e-6),
-            converter: IntoValue<V>,
-            name: String,
-            displayName: String? = null
-        ): NumerableFunction<V> where V : RealNumber<V>, V : NumberField<V> = NumerableFunction(
-            inputs = inputs.map { it.toTyped(converter) },
-            amount = amount,
-            epsilon = converter.intoValue(epsilon),
-            converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inputs: List<LinearConstraintInput>,
-            amount: ValueRange<UInt64>,
-            epsilon: Flt64 = Flt64(1e-6),
-            name: String,
-            displayName: String? = null
-        ): NumerableFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NumerableFunction(
-            inputs = inputs.map { it.toTyped(flt64Converter) },
-            amount = amount,
-            epsilon = epsilon,
-            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

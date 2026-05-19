@@ -33,14 +33,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Quadratic min function: y = min(p1, p2, ..., pn).
@@ -283,13 +275,5 @@ class QuadraticMinFunction<V>(
             displayName: String? = null
         ): QuadraticMinFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
             QuadraticMinFunction(polynomials, exact, bigM, converter, name, displayName)
-
-        operator fun invoke(
-            polynomials: List<QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            exact: Boolean = true,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): QuadraticMinFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticMinFunction(polynomials, exact, bigM, flt64Converter, name, displayName)
     }
 }

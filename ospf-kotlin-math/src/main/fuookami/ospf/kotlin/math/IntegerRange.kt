@@ -261,4 +261,3 @@ class NumericUIntegerRange<NI, I>(
         "$first downTo $last step ${-step}"
     }
 }
-

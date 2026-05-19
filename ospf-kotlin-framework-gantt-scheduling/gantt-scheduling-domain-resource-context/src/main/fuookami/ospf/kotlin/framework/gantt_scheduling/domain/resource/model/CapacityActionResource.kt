@@ -67,4 +67,3 @@ data class CapacityActionResourceTimeSlot<
 }
 
 
-

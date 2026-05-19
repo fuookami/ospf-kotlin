@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service.limits
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
@@ -28,4 +28,3 @@ class DemandConstraint(
         return ok
     }
 }
-

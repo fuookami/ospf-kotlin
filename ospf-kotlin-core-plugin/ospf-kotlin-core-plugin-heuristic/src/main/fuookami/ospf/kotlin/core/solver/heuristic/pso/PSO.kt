@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
@@ -209,5 +209,4 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
 
 typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
 typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
-
 

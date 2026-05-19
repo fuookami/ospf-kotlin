@@ -7,6 +7,8 @@ import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.Ret
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
 
 data class DelaunayTriangulation2(
     val triangles: List<Triangle<Point<Dim2, Flt64>, Dim2, Flt64>>,
@@ -190,9 +192,9 @@ data object Delaunay {
 
         val dMax = max(dx, dy)
         return Triangle(
-            Point<Dim2, Flt64>(midX - Flt64.two * dMax, midY - dMax),
-            Point<Dim2, Flt64>(midX, midY + Flt64.two * dMax),
-            Point<Dim2, Flt64>(midX + Flt64.two * dMax, midY - dMax)
+            point2(midX - Flt64.two * dMax, midY - dMax),
+            point2(midX, midY + Flt64.two * dMax),
+            point2(midX + Flt64.two * dMax, midY - dMax)
         )
     }
 }
@@ -227,11 +229,11 @@ fun triangulate(points: List<Point<Dim3, Flt64>>): List<Triangle<Point<Dim3, Flt
         }
     }
 
-    fun get(point2: Point<Dim2, Flt64>): Point<Dim3, Flt64> {
-        return points.find { (it.x eq point2.x) && (it.y eq point2.y) }!!
+    fun get(point: Point<Dim2, Flt64>): Point<Dim3, Flt64> {
+        return points.find { (it.x eq point.x) && (it.y eq point.y) }!!
     }
 
-    val triangles = triangulate(points.map { Point<Dim2, Flt64>(it.x, it.y) })
+    val triangles = triangulate(points.map { point2(it.x, it.y) })
     return triangles.map {
         Triangle<Point<Dim3, Flt64>, Dim3, Flt64>(get(it.p1), get(it.p2), get(it.p3))
     }

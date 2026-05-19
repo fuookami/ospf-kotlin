@@ -1,13 +1,13 @@
 /**
- * 桥接快捷 DSL
- * Bridged Quick DSL
+ * 泛型快捷 DSL
+ * Typed Quick DSL
  *
  * 提供基于 Flt64Bridge 的泛型快捷 DSL，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
  * Provides generic quick DSL based on Flt64Bridge, supporting Flt64/FltX/Rtn64/RtnX numeric types.
  */
 @file:Suppress("unused")
 
-package fuookami.ospf.kotlin.math.symbol.adapter.bridged
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
@@ -20,8 +20,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
 
 /**
- * 桥接快捷 DSL
- * Bridged Quick DSL
+ * 泛型快捷 DSL
+ * Typed Quick DSL
  *
  * 通过 Flt64Bridge 提供泛型多项式构造和聚合函数。
  * Provides generic polynomial construction and aggregation functions via Flt64Bridge.
@@ -29,7 +29,7 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
  * @param bridge Flt64 到 V 的桥接转换器 / Flt64 to V bridge converter
  */
-class BridgedQuickDsl<V>(private val bridge: Flt64Bridge<V>) where V : NumberField<V>, V : RealNumber<V> {
+class TypedQuickDsl<V>(private val bridge: Flt64Bridge<V>) where V : NumberField<V>, V : RealNumber<V> {
     // ========== LinearPolynomial constructors ==========
 
     fun LinearPolynomial(): LinearPolynomial<V> =

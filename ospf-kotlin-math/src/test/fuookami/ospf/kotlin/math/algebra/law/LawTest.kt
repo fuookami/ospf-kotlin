@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.algebra.law
+package fuookami.ospf.kotlin.math.algebra.law
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.FltX
@@ -250,7 +250,6 @@ class LawTest {
         )
     }
 }
-
 
 
 

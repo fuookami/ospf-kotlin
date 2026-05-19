@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.parallel
+package fuookami.ospf.kotlin.utils.parallel
 
 import kotlinx.coroutines.Deferred
 import kotlinx.coroutines.Dispatchers
@@ -648,6 +648,5 @@ suspend inline fun <T> Iterable<T>.exTryFoldRightIndexedParallelly(
     }
     return exResultOf(accumulator, errors)
 }
-
 
 

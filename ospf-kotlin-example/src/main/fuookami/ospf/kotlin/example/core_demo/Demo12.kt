@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.core_demo
+package fuookami.ospf.kotlin.example.core_demo
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
@@ -22,6 +22,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -97,9 +98,13 @@ data object Demo12 {
             "assignment",
             Shape1(products.size)
         ) { i, _ ->
-            BinaryzationFunction.fromLinearPolynomial(
-                polynomial = LinearPolynomial(x[i]),
-                name = "assignment_$i"
+            LinearFunctionSymbolAdapter(
+                delegate = BinaryzationFunction(
+                    polynomial = LinearPolynomial(x[i]),
+                    converter = flt64Converter,
+                    name = "assignment_$i"
+                ),
+                converter = flt64Converter
             )
         }
         metaModel.add(assignment)
@@ -159,7 +164,7 @@ data object Demo12 {
 
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver()
-        when (val ret = solver(metaModel)) {
+        when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }
@@ -187,7 +192,6 @@ data object Demo12 {
         return ok
     }
 }
-
 
 
 

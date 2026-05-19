@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.intermediate.*

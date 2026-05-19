@@ -214,8 +214,8 @@ interface MetaConstraintGroup {
     }
 }
 
-// Compatibility extension: keep call style `model.constraintsOfGroup(group)`
-// for existing framework/example modules while meta constraint API is being migrated.
+// Group-scoped query helper.
+// 约束组作用域查询辅助函数。
 fun <V> MetaModel<V>.constraintsOfGroup(group: MetaConstraintGroup): List<MathConstraint>
         where V : RealNumber<V>, V : NumberField<V> {
     return group.run { this@constraintsOfGroup.constraintsOfGroup() }
@@ -232,28 +232,11 @@ interface MathConstraint {
     val args: Any?
     val priority: Int?
 
-    /**
-     * Evaluate whether this constraint is satisfied given Flt64 solution values.
-     */
     fun <V> isTrue(
-        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        solution: List<V>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean = false
     ): Boolean? where V : RealNumber<V>, V : NumberField<V>
-
-    /**
-     * Evaluate whether this constraint is satisfied given V-typed solution values.
-     * Converts V to Flt64 via converter, then delegates to Flt64 evaluation.
-     */
-    fun <V> isTrue(
-        solution: List<V>,
-        converter: IntoValue<V>,
-        tokenTable: AbstractTokenTable<V>,
-        zeroIfNone: Boolean = false
-    ): Boolean? where V : RealNumber<V>, V : NumberField<V> {
-        val flt64Solution = solution.map { converter.fromValue(it) }
-        return isTrue(flt64Solution, tokenTable, zeroIfNone)
-    }
 }
 
 /**
@@ -270,19 +253,20 @@ data class LinearInequalityConstraint<V>(
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: LinearFlattenData<V> get() = inequality.toLinearFlattenData().getOrThrow()
-    val flattenDataFlt64: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toLinearFlattenDataFlt64(converter).getOrThrow()
     val sign: Comparison get() = inequality.comparison
     val name: String get() = constraintName
     val displayName: String? get() = constraintDisplayName
 
     override fun <V1> isTrue(
-        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        solution: List<V1>,
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
-        val lhsValue = evaluateFlattenDataWithResults(flattenDataFlt64, solution, tokenTable, zeroIfNone)
+        @Suppress("UNCHECKED_CAST")
+        val typedFlattenData = flattenData as LinearFlattenData<V1>
+        val lhsValue = evaluateTypedFlattenDataWithResults(typedFlattenData, solution, tokenTable, zeroIfNone)
             ?: return null
-        return sign.compare(lhsValue, Flt64.zero)
+        return sign.compare(lhsValue.toFlt64(), Flt64.zero)
     }
 
     override fun toString(): String {
@@ -304,19 +288,20 @@ data class QuadraticInequalityConstraint<V>(
     override val priority: Int? = null
 ) : MathConstraint where V : RealNumber<V>, V : NumberField<V> {
     val flattenData: QuadraticFlattenData<V> get() = inequality.toQuadraticFlattenData()
-    val flattenDataFlt64: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = inequality.toQuadraticFlattenDataFlt64(converter)
     val sign: Comparison get() = inequality.comparison
     val name: String get() = constraintName
     val displayName: String? get() = constraintDisplayName
 
     override fun <V1> isTrue(
-        solution: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        solution: List<V1>,
         tokenTable: AbstractTokenTable<V1>,
         zeroIfNone: Boolean
     ): Boolean? where V1 : RealNumber<V1>, V1 : NumberField<V1> {
-        val lhsValue = evaluateQuadraticFlattenDataWithResults(flattenDataFlt64, solution, tokenTable, zeroIfNone)
+        @Suppress("UNCHECKED_CAST")
+        val typedFlattenData = flattenData as QuadraticFlattenData<V1>
+        val lhsValue = evaluateTypedQuadraticFlattenDataWithResults(typedFlattenData, solution, tokenTable, zeroIfNone)
             ?: return null
-        return sign.compare(lhsValue, Flt64.zero)
+        return sign.compare(lhsValue.toFlt64(), Flt64.zero)
     }
 
     override fun toString(): String {
@@ -339,7 +324,6 @@ data class QuadraticFlattenSubObject<V>(
     val name: String = "",
     val displayName: String? = null
 ) where V : RealNumber<V>, V : NumberField<V>
-
 
 
 

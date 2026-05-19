@@ -7,6 +7,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFalse
 import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.vector2
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 class VectorTest {
     @Test

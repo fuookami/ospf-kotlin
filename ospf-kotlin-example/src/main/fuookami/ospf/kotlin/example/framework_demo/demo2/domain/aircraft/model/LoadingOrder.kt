@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -42,4 +42,3 @@ data class LoadingOrder(
         return !succ.contains(other)
     }
 }
-

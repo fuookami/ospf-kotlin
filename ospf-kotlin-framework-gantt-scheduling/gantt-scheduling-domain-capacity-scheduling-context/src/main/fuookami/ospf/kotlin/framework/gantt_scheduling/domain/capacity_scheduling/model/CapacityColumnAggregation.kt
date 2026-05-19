@@ -145,4 +145,3 @@ class CapacityColumnAggregation<E : Executor, A : ProductionAction>(
 }
 
 
-

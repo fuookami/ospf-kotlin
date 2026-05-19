@@ -7,7 +7,7 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -15,6 +15,7 @@ import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.Position
@@ -35,12 +36,13 @@ class AdviceLoading(
             amountSlack = LinearIntermediateSymbols1<Flt64>("advice_amount_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.ala != null) {
-                    SlackFunction(
+                    exampleThresholdSlack(
                         x = LinearPolynomial(
                             monomials = listOf(LinearMonomial(Flt64.one, load.loadAmount[j])),
                             constant = Flt64.zero
                         ),
                         threshold = position.ala!!.toFlt64(),
+                        withNegative = false,
                         withPositive = true,
                         name = "advice_amount_slack_${position}"
                     )
@@ -68,12 +70,13 @@ class AdviceLoading(
             weightSlack = LinearIntermediateSymbols1<Flt64>("advice_weight_slack", Shape1(positions.size)) { j, _ ->
                 val position = positions[j]
                 if (position.alw != null) {
-                    SlackFunction(
+                    exampleThresholdSlack(
                         x = LinearPolynomial(
                             monomials = listOf(LinearMonomial(Flt64.one, load.estimateLoadWeight[j].to(aircraftModel.weightUnit)!!.value)),
                             constant = Flt64.zero
                         ),
                         threshold = position.alw!!.to(aircraftModel.weightUnit)!!.value,
+                        withNegative = false,
                         withPositive = true,
                         name = "advice_weight_slack_${position}"
                     )
@@ -100,7 +103,6 @@ class AdviceLoading(
         return ok
     }
 }
-
 
 
 

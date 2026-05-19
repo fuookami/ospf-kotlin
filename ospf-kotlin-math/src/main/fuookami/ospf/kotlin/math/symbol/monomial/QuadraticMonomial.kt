@@ -392,4 +392,3 @@ operator fun <T : Ring<T>> LinearPolynomial<T>.minus(rhs: QuadraticMonomial<T>):
     val lifted = monomials.map { QuadraticMonomial.linear(it.coefficient, it.symbol) }
     return QuadraticPolynomial(lifted + (-rhs), constant)
 }
-

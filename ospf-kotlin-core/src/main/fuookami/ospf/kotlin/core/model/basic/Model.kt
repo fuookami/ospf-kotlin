@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused", "DEPRECATION")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.model.basic
 
@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.MultiMap2
 import fuookami.ospf.kotlin.utils.functional.MultiMap3
 import fuookami.ospf.kotlin.utils.functional.MultiMap4
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.quantities.quantity.Quantity
@@ -766,49 +765,4 @@ interface QuadraticModel<V> : LinearModel<V> where V : RealNumber<V>, V : Number
         )
     }
 }
-
-@Suppress("INAPPLICABLE_JVM_NAME")
-@JvmName("addObjectLinearFlt64")
-@kotlin.Deprecated("Use addObject(category, flattenData: LinearFlattenData<V>) instead.", level = DeprecationLevel.WARNING)
-fun <V> LinearModel<V>.addObject(
-    category: ObjectCategory,
-    flattenData: LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    name: String = "",
-    displayName: String? = null
-): Try where V : RealNumber<V>, V : NumberField<V> {
-    return addObject(
-        category = category,
-        flattenData = LinearFlattenData(
-            monomials = flattenData.monomials.map { LinearMonomial(converter.intoValue(it.coefficient), it.symbol) },
-            constant = converter.intoValue(flattenData.constant)
-        ),
-        name = name,
-        displayName = displayName
-    )
-}
-
-@Suppress("INAPPLICABLE_JVM_NAME")
-@JvmName("addObjectQuadraticFlt64")
-@kotlin.Deprecated("Use addObject(category, flattenData: QuadraticFlattenData<V>) instead.", level = DeprecationLevel.WARNING)
-fun <V> QuadraticModel<V>.addObject(
-    category: ObjectCategory,
-    flattenData: QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    name: String = "",
-    displayName: String? = null
-): Try where V : RealNumber<V>, V : NumberField<V> {
-    return addObject(
-        category = category,
-        flattenData = QuadraticFlattenData(
-            monomials = flattenData.monomials.map {
-                QuadraticMonomial(converter.intoValue(it.coefficient), it.symbol1, it.symbol2)
-            },
-            constant = converter.intoValue(flattenData.constant)
-        ),
-        name = name,
-        displayName = displayName
-    )
-}
-
-
-
 

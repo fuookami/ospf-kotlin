@@ -12,6 +12,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.math.geometry.point3
 
 data class PriorityAttribute(
     val key: String,
@@ -688,7 +689,7 @@ fun List<Item>.group(): Map<Item, UInt64> {
     return this.groupBy { it }.map { Pair(it.key, UInt64(it.value.size)) }.toMap()
 }
 
-fun List<Placement3<*>>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
+fun List<Placement3<*>>.dump(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
@@ -706,7 +707,7 @@ fun List<Placement3<*>>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
     return items
 }
 
-fun List<Placement3<*>>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
+fun List<Placement3<*>>.dumpAbsolutely(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     val items = ArrayList<ItemPlacement3>()
     for (placement in this) {
         when (val unit = placement.unit) {
@@ -863,7 +864,6 @@ val Placement3<*>.topFlat: Boolean
     get() {
         return unit.topFlat
     }
-
 
 
 

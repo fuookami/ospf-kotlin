@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.mechanism.MetaModel
@@ -65,12 +65,14 @@ class TaskSchedulingSwitch<
                             name = "front_of_${task1}_${task2}"
                         )
                     } else {
-                        IfFunction(
-                            inequality = LinearConstraintInput.from(
+                        IfFunction.typed(
+                            inequality = LinearConstraintInputV.from(
                                 relation = taskTime.estimateStartTime[task1] leq taskTime.estimateStartTime[task2],
                                 converter = flt64Converter,
-                                lhsRange = taskTime.estimateStartTime[task1].range.range!!
+                                lhsRange = taskTime.estimateStartTime[task1].range.range!!,
+                                rhsConstant = Flt64.zero
                             ),
+                            converter = flt64Converter,
                             name = "front_of_${task1}_$task2"
                         )
                     }
@@ -109,6 +111,7 @@ class TaskSchedulingSwitch<
                                 frontOf[task1, task3],
                                 frontOf[task3, task2]
                             ),
+                            converter = flt64Converter,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     }
@@ -157,6 +160,7 @@ class TaskSchedulingSwitch<
                     }
                     AndFunction.fromLinearPolynomials(
                         polynomials = conditions,
+                        converter = flt64Converter,
                         name = "switch_${executor}_${task1}_${task2}"
                     )
                 } else {
@@ -168,6 +172,7 @@ class TaskSchedulingSwitch<
                                 compilation.taskAssignment[executor, task1],
                                 compilation.taskAssignment[executor, task2]
                             ),
+                            converter = flt64Converter,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     } else {
@@ -204,6 +209,7 @@ class TaskSchedulingSwitch<
                         name = "switch_time_x_${task1}_$task2"
                     ),
                     mask = thisSwitch,
+                    converter = flt64Converter,
                     name = "switch_time_${task1}_$task2"
                 )
             }

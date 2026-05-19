@@ -129,4 +129,3 @@ fun List<Orientation>.ord(lhs: Orientation, rhs: Orientation): Order {
 }
 
 
-

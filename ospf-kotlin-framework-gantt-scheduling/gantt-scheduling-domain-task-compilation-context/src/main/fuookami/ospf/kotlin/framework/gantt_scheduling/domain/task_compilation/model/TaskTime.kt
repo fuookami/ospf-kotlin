@@ -3,6 +3,7 @@
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task_compilation.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbols1
@@ -13,7 +14,7 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfFunction
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.IfThenFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.MaskingFunction
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.geq
 import fuookami.ospf.kotlin.core.model.mechanism.leq
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
@@ -39,6 +40,28 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override val one get() = Flt64.one
         override fun fromValue(value: Flt64) = value
     }
+
+private fun slackSymbol(
+    x: ToLinearPolynomial<Flt64>,
+    y: Flt64,
+    type: VariableTypeKind,
+    withNegative: Boolean = true,
+    withPositive: Boolean = true,
+    name: String
+): LinearFunctionSymbolAdapter<Flt64> {
+    return LinearFunctionSymbolAdapter(
+        delegate = SlackFunction(
+            x = x.toLinearPolynomial(),
+            y = LinearPolynomial(emptyList(), y),
+            type = type,
+            withNegative = withNegative,
+            withPositive = withPositive,
+            converter = flt64Converter,
+            name = name
+        ),
+        converter = flt64Converter
+    )
+}
 
 interface TaskTime {
     val delayEnabled: Boolean
@@ -112,6 +135,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
+                            converter = flt64Converter,
                             name = "delay_time_${task}"
                         )
                     } else {
@@ -175,6 +199,7 @@ abstract class TaskTimeImpl<
                         MaskingFunction.fromLinearPolynomials(
                             x = LinearExpressionSymbol(polynomial),
                             mask = compilation.taskCompilation[task],
+                            converter = flt64Converter,
                             name = "advance_time_${task}"
                         )
                     } else {
@@ -242,7 +267,7 @@ abstract class TaskTimeImpl<
                                 }
 
                                 else -> {
-                                    val slack = SlackFunction(
+                                    val slack = slackSymbol(
                                         x = delayTime[task],
                                         y = with(timeWindow) { maxDelayTime.value },
                                         type = if (timeWindow.continues) {
@@ -269,6 +294,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
+                                            converter = flt64Converter,
                                             name = "over_max_delay_time_${task}"
                                         )
                                     } else {
@@ -334,7 +360,7 @@ abstract class TaskTimeImpl<
                                 }
 
                                 else -> {
-                                    val slack = SlackFunction(
+                                    val slack = slackSymbol(
                                         x = advanceTime[task],
                                         y = with(timeWindow) { maxAdvanceTime.value },
                                         type = if (timeWindow.continues) {
@@ -361,6 +387,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
+                                            converter = flt64Converter,
                                             name = "over_max_advance_time_${task}"
                                         )
                                     } else {
@@ -426,7 +453,7 @@ abstract class TaskTimeImpl<
                                 }
 
                                 else -> {
-                                    val slack = SlackFunction(
+                                    val slack = slackSymbol(
                                         x = estimateEndTime[task],
                                         y = with(timeWindow) { lastEndTime.value },
                                         type = if (timeWindow.continues) {
@@ -453,6 +480,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
+                                            converter = flt64Converter,
                                             name = "delay_last_end_time_${task}"
                                         )
                                     } else {
@@ -514,7 +542,7 @@ abstract class TaskTimeImpl<
                                 }
 
                                 else -> {
-                                    val slack = SlackFunction(
+                                    val slack = slackSymbol(
                                         x = estimateEndTime[task],
                                         y = with(timeWindow) { earliestEndTime.value },
                                         type = if (timeWindow.continues) {
@@ -541,6 +569,7 @@ abstract class TaskTimeImpl<
                                         MaskingFunction.fromLinearPolynomials(
                                             x = slack,
                                             mask = compilation.taskCompilation[task],
+                                            converter = flt64Converter,
                                             name = "advance_earliest_end_time_${task}"
                                         )
                                     } else {
@@ -605,12 +634,14 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction(
-                                    inequality = LinearConstraintInput.from(
+                                IfThenFunction.typed(
+                                    inequality = LinearConstraintInputV.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
                                         converter = flt64Converter,
-                                        lhsRange = estimateEndTime[task].range.range!!
+                                        lhsRange = estimateEndTime[task].range.range!!,
+                                        rhsConstant = Flt64.zero
                                     ),
+                                    converter = flt64Converter,
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -651,12 +682,14 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction(
-                                    inequality = LinearConstraintInput.from(
+                                IfThenFunction.typed(
+                                    inequality = LinearConstraintInputV.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { earliestEndTime.value },
                                         converter = flt64Converter,
-                                        lhsRange = estimateEndTime[task].range.range!!
+                                        lhsRange = estimateEndTime[task].range.range!!,
+                                        rhsConstant = Flt64.zero
                                     ),
+                                    converter = flt64Converter,
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -731,12 +764,14 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction(
-                                    inequality = LinearConstraintInput.from(
+                                IfThenFunction.typed(
+                                    inequality = LinearConstraintInputV.from(
                                         relation = estimateEndTime[task] geq with(timeWindow) { (lastEndTime + timeWindow.duration).value },
                                         converter = flt64Converter,
-                                        lhsRange = estimateEndTime[task].range.range!!
+                                        lhsRange = estimateEndTime[task].range.range!!,
+                                        rhsConstant = Flt64.zero
                                     ),
+                                    converter = flt64Converter,
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -777,12 +812,14 @@ abstract class TaskTimeImpl<
                             }
 
                             else -> {
-                                IfThenFunction(
-                                    inequality = LinearConstraintInput.from(
+                                IfThenFunction.typed(
+                                    inequality = LinearConstraintInputV.from(
                                         relation = estimateEndTime[task] leq with(timeWindow) { (earliestEndTime - timeWindow.duration).value },
                                         converter = flt64Converter,
-                                        lhsRange = estimateEndTime[task].range.range!!
+                                        lhsRange = estimateEndTime[task].range.range!!,
+                                        rhsConstant = Flt64.zero
                                     ),
+                                    converter = flt64Converter,
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }
@@ -946,8 +983,8 @@ class TaskSchedulingTaskTime<
                                 } else {
                                     with(timeWindow) { time.start.value }.floor()
                                 }
-                                val slack = SlackFunction(
-                                    x = est[task],
+                                val slack = slackSymbol(
+                                    x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, est[task])), Flt64.zero),
                                     y = y,
                                     type = if (timeWindow.continues) {
                                         UContinuous
@@ -1183,9 +1220,9 @@ open class IterativeTaskSchedulingTaskTime<
                             } else {
                                 with(timeWindow) { time.start.value }.floor()
                             }
-                            val slack = LinearFunctionSymbolAdapter(delegate = SlackFunction(
+                            val slack = slackSymbol(
                                 x = LinearPolynomial(listOf(LinearMonomial(Flt64.one, estimateStartTime[task])), Flt64.zero),
-                                y = LinearPolynomial(emptyList(), y),
+                                y = y,
                                 type = if (timeWindow.continues) {
                                     UContinuous
                                 } else {
@@ -1194,7 +1231,7 @@ open class IterativeTaskSchedulingTaskTime<
                                 withNegative = advanceEnabled && task.advanceEnabled,
                                 withPositive = delayEnabled && task.delayEnabled,
                                 name = "est_slack_${task}"
-                            ), converter = flt64Converter)
+                            )
                             slack.range.set(ValueRange(-y, with(timeWindow) { end.value } - y).value!!)
                             slack
                         }
@@ -1249,7 +1286,6 @@ open class IterativeTaskSchedulingTaskTime<
         return ok
     }
 }
-
 
 
 

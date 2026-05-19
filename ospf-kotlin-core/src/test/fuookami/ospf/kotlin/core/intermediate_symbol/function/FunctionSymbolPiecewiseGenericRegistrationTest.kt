@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
@@ -73,8 +73,6 @@ class FunctionSymbolPiecewiseGenericRegistrationTest {
             assertTrue(min.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: min auxiliary tokens should succeed")
 
             assertTrue(model.minimize(xPoly) is Ok, "${numberCase.name}: add objective should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }

@@ -14,6 +14,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
 
 /**
  * 点数据类
@@ -139,7 +141,7 @@ val Point<Dim2, Flt64>.pair get() = Pair(x, y)
 val originPoint2 = point2()
 
 fun point2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Point<Dim2, Flt64> {
-    return Point<Dim2, Flt64>(x, y)
+    return Point(listOf(x, y), Dim2)
 }
 
 @get:JvmName("Point3X")
@@ -156,5 +158,5 @@ val Point<Dim3, Flt64>.triple get() = Triple(x, y, z)
 val originPoint3 = point3()
 
 fun point3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Point<Dim3, Flt64> {
-    return Point<Dim3, Flt64>(x, y, z)
+    return Point(listOf(x, y, z), Dim3)
 }

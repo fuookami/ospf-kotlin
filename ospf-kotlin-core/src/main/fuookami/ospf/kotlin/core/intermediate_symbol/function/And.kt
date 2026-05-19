@@ -2,13 +2,13 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -20,13 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * AND function: y = 1 iff all inputs are nonzero.
@@ -41,7 +34,7 @@ class AndFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "and",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -58,6 +51,9 @@ class AndFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
@@ -112,30 +108,21 @@ class AndFunction<V>(
         ): AndFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             AndFunction(polynomials, converter, bigM, name = name, displayName = displayName)
 
-        operator fun invoke(
-            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
+        fun <V> fromLinearPolynomials(
+            polynomials: List<ToLinearPolynomial<V>>,
+            converter: IntoValue<V>,
+            bigM: V? = null,
             name: String,
             displayName: String? = null
-        ): AndFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = AndFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
-
-        @JvmStatic
-        @JvmName("fromLinearPolynomials")
-        fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
             AndFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
+                converter = converter,
                 bigM = bigM,
-                converter = flt64Converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = flt64Converter
-        
+            converter = converter
         )
     }
 }
@@ -153,7 +140,7 @@ class OrFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "or",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -170,6 +157,9 @@ class OrFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         for (poly in polynomials) {
@@ -222,32 +212,6 @@ class OrFunction<V>(
             displayName: String? = null
         ): OrFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             OrFunction(polynomials, converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): OrFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = OrFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
-
-        @JvmStatic
-        @JvmName("fromLinearPolynomials")
-        fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            OrFunction(
-                polynomials = polynomials.map { it.toLinearPolynomial() },
-                bigM = bigM,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
-        )
     }
 }
 
@@ -264,7 +228,7 @@ class NotFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "not",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -276,6 +240,9 @@ class NotFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(indicatorVar, sideVar, resultVar)
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         val v = polynomial.evaluateWith(values) ?: return null
@@ -315,32 +282,6 @@ class NotFunction<V>(
             displayName: String? = null
         ): NotFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             NotFunction(polynomial, converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): NotFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = NotFunction(polynomial, flt64Converter, bigM, name = name, displayName = displayName)
-
-        @JvmStatic
-        @JvmName("fromLinearPolynomial")
-        fun fromLinearPolynomial(
-            polynomial: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            NotFunction(
-                polynomial = polynomial.toLinearPolynomial(),
-                bigM = bigM,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
-        )
     }
 }
 
@@ -357,7 +298,7 @@ class XorFunction<V>(
     strictBoundary: V? = null,
     override var name: String = "xor",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val converter: IntoValue<V> = converter
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val tolerance: V = tolerance ?: converter.intoValue(Flt64(NONZERO_TOLERANCE))
@@ -374,6 +315,9 @@ class XorFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + indicatorVars + sideVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var count = 0
@@ -458,31 +402,5 @@ class XorFunction<V>(
             displayName: String? = null
         ): XorFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             XorFunction(polynomials, converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): XorFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = XorFunction(polynomials, flt64Converter, bigM, name = name, displayName = displayName)
-
-        @JvmStatic
-        @JvmName("fromLinearPolynomials")
-        fun fromLinearPolynomials(
-            polynomials: List<fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            XorFunction(
-                polynomials = polynomials.map { it.toLinearPolynomial() },
-                bigM = bigM,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
-        )
     }
 }

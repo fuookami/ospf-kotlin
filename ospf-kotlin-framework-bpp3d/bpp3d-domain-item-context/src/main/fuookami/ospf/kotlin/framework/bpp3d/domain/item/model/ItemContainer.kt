@@ -5,11 +5,12 @@ package fuookami.ospf.kotlin.framework.bpp3d.domain.item.model
 import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.utils.functional.minOfWithThreeWayComparator
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.geometry.Point3
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.utils.functional.Eq
 import fuookami.ospf.kotlin.utils.functional.ord
 import kotlinx.coroutines.*
+import fuookami.ospf.kotlin.math.geometry.point3
 
 sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, Eq<ItemContainer<S>> {
     val items: List<ItemPlacement3> get() = dump()
@@ -39,8 +40,8 @@ sealed interface ItemContainer<S : ItemContainer<S>> : Container3CuboidUnit<S>, 
     // inherit from CuboidUnit<Block>
     override val enabledOrientations: List<Orientation> get() = listOf(Orientation.Upright)
 
-    fun dump(offset: Point3 = point3()) = units.dump(offset)
-    fun dumpAbsolutely(offset: Point3 = point3()) = units.dumpAbsolutely(offset)
+    fun dump(offset: Point<Dim3, Flt64> = point3()) = units.dump(offset)
+    fun dumpAbsolutely(offset: Point<Dim3, Flt64> = point3()) = units.dumpAbsolutely(offset)
 
     override fun view(orientation: Orientation): CuboidView<S>? = CuboidView(copy(), orientation)
 
@@ -87,11 +88,11 @@ val <S : ItemContainer<S>> CuboidView<S>.topFlat: Boolean
         return unit.topFlat
     }
 
-fun <S : ItemContainer<S>> CuboidView<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> CuboidView<S>.dump(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     return unit.dump(offset)
 }
 
-fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> CuboidView<S>.dumpAbsolutely(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     return unit.dumpAbsolutely(offset)
 }
 
@@ -107,11 +108,11 @@ val <S : ItemContainer<S>> Placement3<S>.packageCategory: PackageCategory
         return unit.packageCategory
     }
 
-fun <S : ItemContainer<S>> Placement3<S>.dump(offset: Point3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> Placement3<S>.dump(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     return unit.dump(position + offset)
 }
 
-fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: Point3 = point3()): List<ItemPlacement3> {
+fun <S : ItemContainer<S>> Placement3<S>.dumpAbsolutely(offset: Point<Dim3, Flt64> = point3()): List<ItemPlacement3> {
     return unit.dump(absolutePosition + offset)
 }
 @JvmName("itemContainerPlacement2SideEnabledStackingOn")
@@ -200,6 +201,5 @@ suspend fun <S : ItemContainer<S>> Placement3<S>.enabledStackingOn(
         return false
     }
 }
-
 
 

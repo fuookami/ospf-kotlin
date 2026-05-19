@@ -1,12 +1,13 @@
 package fuookami.ospf.kotlin.example.linear_function
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
+import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -32,9 +33,13 @@ class LinearFunctionSolveTest {
             monomials = listOf(LinearMonomial(Flt64.one, x)),
             constant = Flt64.zero
         )
-        val absSymbol = AbsFunction.fromLinearPolynomial(
-            polynomial = xPoly,
-            name = "p11_abs"
+        val absSymbol = LinearFunctionSymbolAdapter(
+            delegate = AbsFunction(
+                polynomial = xPoly,
+                converter = converter,
+                name = "p11_abs"
+            ),
+            converter = converter
         )
 
         val model = LinearMetaModel<Flt64>(
@@ -47,8 +52,7 @@ class LinearFunctionSolveTest {
             assertTrue(model.minimize(absSymbol) is Ok, "minimize |x| objective should be accepted")
 
             val solver = ScipLinearSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(model) }
+            val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             assertTrue(result.value!!.obj eq Flt64.zero, "min |x| should be 0 when x can be 0")
 
@@ -76,6 +80,7 @@ class LinearFunctionSolveTest {
             x = xPoly,
             lb = LinearPolynomial(emptyList(), Flt64(2.0)),
             ub = LinearPolynomial(emptyList(), Flt64(4.0)),
+            converter = converter,
             name = "p11_slack_range"
         )
         val slackSymbol = LinearFunctionSymbolAdapter(slackFn, converter)
@@ -90,8 +95,7 @@ class LinearFunctionSolveTest {
             assertTrue(model.minimize(slackSymbol.pos!!) is Ok, "minimize positive slack objective should be accepted")
 
             val solver = ScipLinearSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(model) }
+            val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             assertTrue(result.value!!.obj ls Flt64(4.0), "positive slack should be less than upper bound")
 

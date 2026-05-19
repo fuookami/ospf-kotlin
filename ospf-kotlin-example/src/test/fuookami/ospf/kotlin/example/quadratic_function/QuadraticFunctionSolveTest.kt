@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.example.quadratic_function
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
 import fuookami.ospf.kotlin.core.solver.scip.ScipQuadraticSolver
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -39,7 +40,7 @@ class QuadraticFunctionSolveTest {
             constant = Flt64.zero
         )
 
-        val product = ProductFunction(left, right, name = "p12_solve_product")
+        val product = ProductFunction(left, right, converter = IntoValue.Identity, name = "p12_solve_product")
 
         val model = QuadraticMetaModel(name = "p12-product-solve")
         try {
@@ -58,8 +59,6 @@ class QuadraticFunctionSolveTest {
 
             // Minimize x*y
             assertTrue(model.minimize(product.polynomial) is Ok<*, *, *>)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
@@ -69,8 +68,10 @@ class QuadraticFunctionSolveTest {
             assertTrue(product.registerConstraints(mechanismModel) is Ok<*, *, *>)
 
             val solver = ScipQuadraticSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(mechanismModel) }
+            val result = runBlocking {
+                val tetrad = solver.dump(mechanismModel)
+                solver(tetrad)
+            }
             assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
 
             val output = requireNotNull(result.value)
@@ -125,8 +126,6 @@ class QuadraticFunctionSolveTest {
                 constant = Flt64.zero
             )
             assertTrue(model.minimize(objective) is Ok<*, *, *>)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
@@ -134,8 +133,10 @@ class QuadraticFunctionSolveTest {
             val mechanismModel = requireNotNull(mechanismRet.value)
 
             val solver = ScipQuadraticSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(mechanismModel) }
+            val result = runBlocking {
+                val tetrad = solver.dump(mechanismModel)
+                solver(tetrad)
+            }
             assertTrue(result is Ok<*, *, *>, "SCIP quadratic solve should succeed")
 
             val output = requireNotNull(result.value)

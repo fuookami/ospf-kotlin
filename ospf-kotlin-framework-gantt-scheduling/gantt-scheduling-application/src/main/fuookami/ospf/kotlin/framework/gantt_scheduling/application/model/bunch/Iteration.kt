@@ -142,4 +142,3 @@ class Iteration<T : AbstractTask<E, A>, E : Executor, A : AssignmentPolicy<E>>(
     }
 }
 
-

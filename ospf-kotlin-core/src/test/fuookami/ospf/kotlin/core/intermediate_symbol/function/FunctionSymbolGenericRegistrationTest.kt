@@ -1,7 +1,7 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMechanismModel
-import fuookami.ospf.kotlin.core.intermediate_model.LinearMetaModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
@@ -162,8 +162,6 @@ class FunctionSymbolGenericRegistrationTest {
             assertTrue(xor.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: xor auxiliary tokens should succeed")
 
             assertTrue(model.minimize(xPoly) is Ok, "${numberCase.name}: add objective should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -251,8 +249,6 @@ class FunctionSymbolGenericRegistrationTest {
                 name = "product_${numberCase.name.lowercase()}"
             )
             assertTrue(product.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: product auxiliary tokens should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -303,8 +299,6 @@ class FunctionSymbolGenericRegistrationTest {
                 name = "qlinear_${numberCase.name.lowercase()}"
             )
             assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qlinear auxiliary tokens should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -358,8 +352,6 @@ class FunctionSymbolGenericRegistrationTest {
                 name = "qmin_${numberCase.name.lowercase()}"
             )
             assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qmin auxiliary tokens should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -413,8 +405,6 @@ class FunctionSymbolGenericRegistrationTest {
                 name = "qmask_${numberCase.name.lowercase()}"
             )
             assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qmask auxiliary tokens should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }
@@ -468,8 +458,6 @@ class FunctionSymbolGenericRegistrationTest {
                 name = "qstep_${numberCase.name.lowercase()}"
             )
             assertTrue(function.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: qstep auxiliary tokens should succeed")
-
-            @Suppress("DEPRECATION")
             val mechanismResult = runBlocking {
                 QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             }

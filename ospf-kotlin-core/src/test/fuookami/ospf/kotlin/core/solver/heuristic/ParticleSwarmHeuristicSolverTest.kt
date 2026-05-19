@@ -2,6 +2,7 @@ package fuookami.ospf.kotlin.core.solver.heuristic
 
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.callback.CallBackModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -25,7 +26,8 @@ class ParticleSwarmHeuristicSolverTest {
                     1 -> Flt64.one
                     else -> Flt64(3)
                 }
-            }
+            },
+            converter = IntoValue.Identity
         )
         assertTrue(model.add(listOf(x, y)) is Ok)
         model.minimize(
@@ -40,7 +42,8 @@ class ParticleSwarmHeuristicSolverTest {
             w = Flt64.zero,
             c1 = Flt64.zero,
             c2 = Flt64.zero,
-            maxVelocity = Flt64(10)
+            maxVelocity = Flt64(10),
+            converter = IntoValue.Identity
         ).withSolveOnObjectiveMiss(false)
         val result = solver(
             model = model,

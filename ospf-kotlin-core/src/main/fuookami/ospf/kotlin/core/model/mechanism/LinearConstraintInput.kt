@@ -32,16 +32,15 @@ data class LinearConstraintInputV<V>(
     val displayName: String? = null,
     val rhsConstant: V
 ) where V : RealNumber<V>, V : NumberField<V> {
-    @kotlin.Deprecated(
-        message = "Use lhsRange.lowerBound directly for V-typed range access.",
-        replaceWith = ReplaceWith("lhsRange.lowerBound.value.unwrapOrNull()")
-    )
-    val lowerBound: Flt64? get() = lhsRange.lowerBound.value.unwrapOrNull()?.toFlt64()
-    @kotlin.Deprecated(
-        message = "Use lhsRange.upperBound directly for V-typed range access.",
-        replaceWith = ReplaceWith("lhsRange.upperBound.value.unwrapOrNull()")
-    )
-    val upperBound: Flt64? get() = lhsRange.upperBound.value.unwrapOrNull()?.toFlt64()
+    fun isTrue(
+        results: List<V>,
+        tokenTable: AbstractTokenTable<V>,
+        zeroIfNone: Boolean = false
+    ): Boolean? {
+        val lhsValue = evaluateTypedFlattenDataWithResults(flattenData, results, tokenTable, zeroIfNone)
+            ?: return null
+        return sign.compare(lhsValue.toFlt64(), Flt64.zero)
+    }
 
     companion object {
         fun <V> from(
@@ -95,24 +94,6 @@ fun <V> LinearConstraintInput.toTyped(
         name = name,
         displayName = displayName,
         rhsConstant = converter.intoValue(rhsConstant)
-    )
-}
-
-fun <V> LinearConstraintInputV<V>.toLegacy(
-    converter: IntoValue<V>
-): LinearConstraintInput where V : RealNumber<V>, V : NumberField<V> {
-    return LinearConstraintInput(
-        flattenData = LinearFlattenData(
-            monomials = flattenData.monomials.map {
-                LinearMonomial(converter.fromValue(it.coefficient), it.symbol)
-            },
-            constant = converter.fromValue(flattenData.constant)
-        ),
-        sign = sign,
-        lhsRange = lhsRange.toFlt64(),
-        name = name,
-        displayName = displayName,
-        rhsConstant = converter.fromValue(rhsConstant)
     )
 }
 
@@ -356,6 +337,23 @@ internal fun <V> evaluateFlattenDataWithResults(
     return result
 }
 
+internal fun <V> evaluateTypedFlattenDataWithResults(
+    data: LinearFlattenData<V>,
+    results: List<V>,
+    tokenTable: AbstractTokenTable<V>,
+    zeroIfNone: Boolean
+): V? where V : RealNumber<V>, V : NumberField<V> {
+    var result = data.constant
+    val zero = data.constant - data.constant
+    for (monomial in data.monomials) {
+        val symbol = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
+        val idx = tokenTable.indexOf(symbol) ?: if (zeroIfNone) 0 else return null
+        val value = results.getOrElse(idx) { if (zeroIfNone) zero else return null }
+        result = result + monomial.coefficient * value
+    }
+    return result
+}
+
 /**
  * Evaluate QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> with values from `results` and symbol index from token table.
  * 使用 `results` 中的值并结合 token table 的索引来评估 QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>。
@@ -375,6 +373,30 @@ internal fun <V> evaluateQuadraticFlattenDataWithResults(
             val symbol2 = monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue
             val index2 = tokenTable.indexOf(symbol2) ?: if (zeroIfNone) 0 else return null
             results.getOrElse(index2) { if (zeroIfNone) Flt64.zero else return null }
+        } else {
+            value1
+        }
+        result = result + monomial.coefficient * value1 * value2
+    }
+    return result
+}
+
+internal fun <V> evaluateTypedQuadraticFlattenDataWithResults(
+    data: QuadraticFlattenData<V>,
+    results: List<V>,
+    tokenTable: AbstractTokenTable<V>,
+    zeroIfNone: Boolean
+): V? where V : RealNumber<V>, V : NumberField<V> {
+    var result = data.constant
+    val zero = data.constant - data.constant
+    for (monomial in data.monomials) {
+        val symbol1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
+        val index1 = tokenTable.indexOf(symbol1) ?: if (zeroIfNone) 0 else return null
+        val value1 = results.getOrElse(index1) { if (zeroIfNone) zero else return null }
+        val value2 = if (monomial.symbol2 != null) {
+            val symbol2 = monomial.symbol2 as? AbstractVariableItem<*, *> ?: continue
+            val index2 = tokenTable.indexOf(symbol2) ?: if (zeroIfNone) 0 else return null
+            results.getOrElse(index2) { if (zeroIfNone) zero else return null }
         } else {
             value1
         }
@@ -451,4 +473,3 @@ internal fun <V> evaluateQuadraticFlattenData(
     }
     return result
 }
-

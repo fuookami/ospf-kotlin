@@ -8,6 +8,7 @@ import fuookami.ospf.kotlin.core.solver.scip.ScipLinearSolver
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.example.core_demo.ScipAvailability
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -35,6 +36,7 @@ class ConditionalFunctionSolveTest {
         )
         val ifFn = IfFunction(
             condition = xPoly - Flt64(2.0),
+            converter = converter,
             name = "p11_if"
         )
         val ifSymbol = LinearFunctionSymbolAdapter(ifFn, converter)
@@ -49,8 +51,7 @@ class ConditionalFunctionSolveTest {
             assertTrue(model.minimize(ifSymbol) is Ok, "minimize if(x-2) objective should be accepted")
 
             val solver = ScipLinearSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(model) }
+            val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             val obj = result.value!!.obj
             assertTrue(obj geq Flt64.zero, "if function result should be non-negative")
@@ -84,6 +85,7 @@ class ConditionalFunctionSolveTest {
         )
         val oneOfFn = OneOfFunction(
             polynomials = listOf(aPoly, bPoly),
+            converter = converter,
             name = "p11_oneof"
         )
         val oneOfSymbol = LinearFunctionSymbolAdapter(oneOfFn, converter)
@@ -99,8 +101,7 @@ class ConditionalFunctionSolveTest {
             assertTrue(model.minimize(oneOfSymbol) is Ok, "minimize oneOf(a,b) objective should be accepted")
 
             val solver = ScipLinearSolver()
-            @Suppress("DEPRECATION")
-            val result = runBlocking { solver(model) }
+            val result = runBlocking { solveLinearMetaModel(solver, model) }
             assertNotNull(result.value, "Solver should return a feasible solution")
             val obj = result.value!!.obj
             assertTrue(obj geq Flt64.zero, "oneOf result should be non-negative")

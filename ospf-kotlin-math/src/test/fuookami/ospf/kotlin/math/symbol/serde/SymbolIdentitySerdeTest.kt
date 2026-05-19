@@ -5,8 +5,8 @@ import fuookami.ospf.kotlin.math.symbol.OwnedSymbol
 import fuookami.ospf.kotlin.math.symbol.OwnedSymbolLike
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.SymbolId
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.toJsonString
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.linearPolynomialFromJson
+import fuookami.ospf.kotlin.math.symbol.operation.toJsonString
+import fuookami.ospf.kotlin.math.symbol.operation.linearPolynomialFromJson
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.serialization.writeJson

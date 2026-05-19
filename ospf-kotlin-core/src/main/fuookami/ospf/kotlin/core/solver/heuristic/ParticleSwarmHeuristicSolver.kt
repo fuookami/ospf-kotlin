@@ -16,14 +16,6 @@ import fuookami.ospf.kotlin.utils.functional.Ret
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.minutes
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
-
 enum class HeuristicSolutionStatus {
     Feasible,
     Infeasible
@@ -307,28 +299,4 @@ class ParticleSwarmHeuristicSolver<V>(
         )
     }
 
-    companion object {
-        operator fun invoke(
-            particleAmount: UInt64 = UInt64(100),
-            solutionAmount: UInt64 = UInt64.one,
-            w: Flt64 = Flt64(0.4),
-            c1: Flt64 = Flt64.two,
-            c2: Flt64 = Flt64.two,
-            maxVelocity: Flt64 = Flt64(10000),
-            solveOnObjectiveMiss: Boolean = true,
-            randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64> = { Flt64(0.5) },
-            initialVelocityGenerator: (index: Int) -> Flt64 = { Flt64.zero }
-        ): ParticleSwarmHeuristicSolver<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ParticleSwarmHeuristicSolver(
-            particleAmount = particleAmount,
-            solutionAmount = solutionAmount,
-            w = w,
-            c1 = c1,
-            c2 = c2,
-            maxVelocity = maxVelocity,
-            solveOnObjectiveMiss = solveOnObjectiveMiss,
-            randomGenerator = randomGenerator,
-            initialVelocityGenerator = initialVelocityGenerator,
-            converter = flt64Converter
-        )
-    }
 }

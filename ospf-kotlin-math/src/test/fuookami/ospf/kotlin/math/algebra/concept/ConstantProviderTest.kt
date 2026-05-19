@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.algebra.concept
+package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int32

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.express_effectiveness.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -22,4 +22,3 @@ class AbsoluteOrder(
         return coefficient[priority]?.let { it(position) } ?: Flt64.one
     }
 }
-

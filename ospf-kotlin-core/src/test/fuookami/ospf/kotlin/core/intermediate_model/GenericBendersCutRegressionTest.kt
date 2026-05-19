@@ -1,19 +1,34 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
-import fuookami.ospf.kotlin.core.testing.GenericNumberCase
-import fuookami.ospf.kotlin.core.testing.GenericNumberCases
-import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
-import fuookami.ospf.kotlin.core.variable.RealVar
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
+import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
 import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.model.mechanism.toQuadraticFlattenData
+import fuookami.ospf.kotlin.core.testing.GenericNumberCase
+import fuookami.ospf.kotlin.core.testing.GenericNumberCases
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
+import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
+import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
+import fuookami.ospf.kotlin.math.symbol.operation.normalize
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
@@ -43,7 +58,6 @@ class GenericBendersCutRegressionTest {
         runQuadraticCase(GenericNumberCases.rtnX)
     }
 
-    @Suppress("DEPRECATION")
     private fun <V> runLinearCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_benders_lin_x")
@@ -82,13 +96,13 @@ class GenericBendersCutRegressionTest {
             @Suppress("UNCHECKED_CAST")
             val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
                 mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
-            val dualById = mapOf(constraint.name to Flt64.one)
+            val dualById = mapOf(constraint.name to numberCase.one)
 
             val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-            val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+            val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
             assertEquals(1, direct.size, "${numberCase.name}: direct cut size should be one")
             assertEquals(direct.size, byId.size, "${numberCase.name}: by-id cut size mismatch")
-            assertLinearInequalityEquals(direct.first(), byId.first(), numberCase.name)
+            assertLinearInequalityEquals(direct.first(), toFlt64LinearInequality(byId.first(), numberCase), numberCase.name)
             assertTrue(
                 direct.first().flattenData.getOrThrow().monomials.any { it.symbol == theta },
                 "${numberCase.name}: optimal cut should contain theta"
@@ -97,19 +111,18 @@ class GenericBendersCutRegressionTest {
             @Suppress("UNCHECKED_CAST")
             val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
                 mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
-            val farkasById = mapOf(constraint.name to Flt64.one)
+            val farkasById = mapOf(constraint.name to numberCase.one)
 
             val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, farkasById)
+            val byIdFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasById)
             assertEquals(1, directFeasible.size, "${numberCase.name}: direct feasible cut size should be one")
             assertEquals(directFeasible.size, byIdFeasible.size, "${numberCase.name}: by-id feasible cut size mismatch")
-            assertLinearInequalityEquals(directFeasible.first(), byIdFeasible.first(), numberCase.name)
+            assertLinearInequalityEquals(directFeasible.first(), toFlt64LinearInequality(byIdFeasible.first(), numberCase), numberCase.name)
         } finally {
             mechanismModel.close()
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun <V> runQuadraticCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_benders_quad_x")
@@ -155,29 +168,27 @@ class GenericBendersCutRegressionTest {
             @Suppress("UNCHECKED_CAST")
             val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
                 mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
-            val dualById = mapOf(constraint.name to Flt64.one)
+            val dualById = mapOf(constraint.name to numberCase.one)
 
-            val direct = mechanismModel.generateOptimalCut(Flt64.zero, theta, fixedVars, dualSolution)
-            val byId = mechanismModel.generateOptimalCutById(Flt64.zero, theta, fixedVars, dualById)
+            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+            val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
             assertTrue(direct is Ok, "${numberCase.name}: direct quadratic optimal cut should succeed")
-            assertTrue(byId is Ok, "${numberCase.name}: by-id quadratic optimal cut should succeed")
-            assertEquals(direct.value.size, byId.value.size, "${numberCase.name}: by-id quadratic optimal cut size mismatch")
+            assertEquals(direct.value.size, byId.size, "${numberCase.name}: by-id quadratic optimal cut size mismatch")
             for (i in direct.value.indices) {
-                assertCutEquals(direct.value[i], byId.value[i], numberCase.name)
+                assertCutEquals(direct.value[i], toFlt64Cut(byId[i], numberCase), numberCase.name)
             }
 
             @Suppress("UNCHECKED_CAST")
             val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
                 mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
-            val farkasById = mapOf(constraint.name to Flt64.one)
+            val farkasById = mapOf(constraint.name to numberCase.one)
 
             val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, farkasById)
+            val byIdFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasById)
             assertTrue(directFeasible is Ok, "${numberCase.name}: direct quadratic feasible cut should succeed")
-            assertTrue(byIdFeasible is Ok, "${numberCase.name}: by-id quadratic feasible cut should succeed")
-            assertEquals(directFeasible.value.size, byIdFeasible.value.size, "${numberCase.name}: by-id quadratic feasible cut size mismatch")
+            assertEquals(directFeasible.value.size, byIdFeasible.size, "${numberCase.name}: by-id quadratic feasible cut size mismatch")
             for (i in directFeasible.value.indices) {
-                assertCutEquals(directFeasible.value[i], byIdFeasible.value[i], numberCase.name)
+                assertCutEquals(directFeasible.value[i], toFlt64Cut(byIdFeasible[i], numberCase), numberCase.name)
             }
         } finally {
             mechanismModel.close()
@@ -198,6 +209,60 @@ class GenericBendersCutRegressionTest {
             val am = aFlat.monomials.firstOrNull { it.symbol == em.symbol }
             assertTrue(am != null && am.coefficient eq em.coefficient,
                 "$caseName: monomial mismatch for ${em.symbol}")
+        }
+    }
+
+    private fun <V> toFlt64LinearInequality(
+        inequality: LinearInequality<V>,
+        numberCase: GenericNumberCase<V>
+    ): LinearInequality<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+        return LinearInequality(
+            lhs = LinearPolynomial(
+                monomials = inequality.lhs.monomials.map { LinearMonomial(numberCase.converter.fromValue(it.coefficient), it.symbol) },
+                constant = numberCase.converter.fromValue(inequality.lhs.constant)
+            ),
+            rhs = LinearPolynomial(
+                monomials = inequality.rhs.monomials.map { LinearMonomial(numberCase.converter.fromValue(it.coefficient), it.symbol) },
+                constant = numberCase.converter.fromValue(inequality.rhs.constant)
+            ),
+            comparison = inequality.comparison,
+            name = inequality.name,
+            displayName = inequality.displayName
+        ).normalize()
+    }
+
+    private fun <V> toFlt64QuadraticInequality(
+        inequality: QuadraticInequalityOf<V>,
+        numberCase: GenericNumberCase<V>
+    ): QuadraticInequalityOf<Flt64> where V : RealNumber<V>, V : NumberField<V> {
+        return QuadraticInequalityOf(
+            lhs = QuadraticPolynomial(
+                monomials = inequality.lhs.monomials.map {
+                    QuadraticMonomial(numberCase.converter.fromValue(it.coefficient), it.symbol1, it.symbol2)
+                },
+                constant = numberCase.converter.fromValue(inequality.lhs.constant)
+            ),
+            rhs = QuadraticPolynomial(
+                monomials = inequality.rhs.monomials.map {
+                    QuadraticMonomial(numberCase.converter.fromValue(it.coefficient), it.symbol1, it.symbol2)
+                },
+                constant = numberCase.converter.fromValue(inequality.rhs.constant)
+            ),
+            comparison = inequality.comparison,
+            name = inequality.name,
+            displayName = inequality.displayName
+        ).normalize()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun <V> toFlt64Cut(
+        cut: Any,
+        numberCase: GenericNumberCase<V>
+    ): Any where V : RealNumber<V>, V : NumberField<V> {
+        return when (cut) {
+            is LinearInequality<*> -> toFlt64LinearInequality(cut as LinearInequality<V>, numberCase)
+            is QuadraticInequalityOf<*> -> toFlt64QuadraticInequality(cut as QuadraticInequalityOf<V>, numberCase)
+            else -> cut
         }
     }
 

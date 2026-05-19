@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
+package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -42,4 +42,3 @@ value class HorizontalStabilizerAngle(val angle: String)
 
 @JvmInline
 value class HorizontalStabilizerThrustDrate(val mod: String)
-

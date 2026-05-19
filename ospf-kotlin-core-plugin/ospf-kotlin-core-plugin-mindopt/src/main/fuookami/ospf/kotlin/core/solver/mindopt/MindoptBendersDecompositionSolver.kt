@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.output.SolverOutput
 import fuookami.ospf.kotlin.core.solver.output.SolverStatus
 import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.QuadraticInequality
+import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
@@ -436,7 +436,6 @@ class MindOPTQuadraticBendersDecompositionSolver(
                         jobs.joinAll()
                         val tidyDualSolution = dualSolution
                         val cuts = when (val result = mechanismModel.generateOptimalCut(
-                            objective = result.value.obj,
                             objectVariable = objectVariable,
                             fixedVariables = fixedVariables,
                             dualSolution = tidyDualSolution
@@ -458,7 +457,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                                 result = result.value,
                                 dualSolution = tidyDualSolution,
                                 linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
-                                quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                                quadraticCuts = cuts.filterIsInstance<QuadraticInequalityOf<Flt64>>()
                             )
                         )
                     }
@@ -486,7 +485,7 @@ class MindOPTQuadraticBendersDecompositionSolver(
                                 QuadraticBendersDecompositionSolver.QuadraticInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
                                     linearCuts = cuts.filterIsInstance<LinearInequality<Flt64>>(),
-                                    quadraticCuts = cuts.filterIsInstance<QuadraticInequality>()
+                                    quadraticCuts = cuts.filterIsInstance<QuadraticInequalityOf<Flt64>>()
                                 )
                             )
                         } else {
@@ -503,5 +502,4 @@ class MindOPTQuadraticBendersDecompositionSolver(
         }
     }
 }
-
 

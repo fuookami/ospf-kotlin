@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.math.geometry
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import kotlin.math.sqrt
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.vector2
 
 data class Circle<P : Point<D, Va>, Vec : Vector<D, Va>, D : Dimension, Va : FloatingNumber<Va>>(
     val center: P,
@@ -149,5 +151,5 @@ fun Circle.Companion.circumcircleOf(triangle: Triangle<Point<Dim2, Flt64>, Dim2,
     val y = ((triangle.p1.x - triangle.p3.x) * m + (triangle.p2.x - triangle.p1.x) * u) * s
     val r = ((triangle.p1.x - x).sqr() + (triangle.p1.y - y).sqr()).sqrt()
 
-    return Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(Point<Dim2, Flt64>(x, y), Vector<Dim2, Flt64>(r, Flt64.zero))
+    return Circle<Point<Dim2, Flt64>, Vector<Dim2, Flt64>, Dim2, Flt64>(point2(x, y), vector2(r, Flt64.zero))
 }

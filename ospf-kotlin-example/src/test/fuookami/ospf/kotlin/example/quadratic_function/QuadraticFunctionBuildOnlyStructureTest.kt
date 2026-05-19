@@ -53,7 +53,7 @@ class QuadraticFunctionBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val product = ProductFunction(left, right, name = "p12_product")
+        val product = ProductFunction(left, right, converter = IntoValue.Identity, name = "p12_product")
 
         val model = QuadraticMetaModel(name = "p12-product-build")
         try {
@@ -62,8 +62,6 @@ class QuadraticFunctionBuildOnlyStructureTest {
             assertTrue(model.minimize(product.polynomial) is Ok)
 
             assertEquals(2, model.tokens.tokens.size, "MetaModel should have 2 tokens (x, y)")
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
@@ -100,7 +98,7 @@ class QuadraticFunctionBuildOnlyStructureTest {
             constant = Flt64(3.0)
         )
 
-        val qlin = QuadraticLinearFunction(poly, name = "p12_qlin")
+        val qlin = QuadraticLinearFunction(poly, converter = IntoValue.Identity, name = "p12_qlin")
 
         val model = QuadraticMetaModel(name = "p12-qlin-build")
         try {
@@ -112,8 +110,6 @@ class QuadraticFunctionBuildOnlyStructureTest {
                 "MetaModel should have 3 tokens (x, y, helper)")
 
             assertTrue(model.minimize(qlin.polynomial) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
@@ -142,7 +138,7 @@ class QuadraticFunctionBuildOnlyStructureTest {
             constant = Flt64.zero
         )
 
-        val qlin = QuadraticLinearFunction(poly, name = "p12_qlin_linear")
+        val qlin = QuadraticLinearFunction(poly, converter = IntoValue.Identity, name = "p12_qlin_linear")
 
         val model = QuadraticMetaModel(name = "p12-qlin-linear-build")
         try {
@@ -154,8 +150,6 @@ class QuadraticFunctionBuildOnlyStructureTest {
                 "MetaModel should have only 1 token (no helper for linear-only poly)")
 
             assertTrue(model.minimize(qlin.polynomial) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }
@@ -208,8 +202,6 @@ class QuadraticFunctionBuildOnlyStructureTest {
             assertEquals(2, model.tokens.tokens.size, "MetaModel should have 2 tokens")
             assertTrue(model.constraints.isNotEmpty(),
                 "MetaModel should have at least 1 constraint")
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }

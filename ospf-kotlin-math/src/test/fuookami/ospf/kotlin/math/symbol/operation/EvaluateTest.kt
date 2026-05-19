@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.symbol.operation
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Ok
@@ -6,13 +6,13 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateRet
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateOrdered
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.partialEvaluate
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateIntervalExtremum
+import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
+import fuookami.ospf.kotlin.math.symbol.operation.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.operation.evaluateRet
+import fuookami.ospf.kotlin.math.symbol.operation.evaluateOrdered
+import fuookami.ospf.kotlin.math.symbol.operation.partialEvaluate
+import fuookami.ospf.kotlin.math.symbol.operation.evaluateIntervalExtremum
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -313,4 +313,3 @@ class EvaluateTest {
         assertNull(extremum)
     }
 }
-

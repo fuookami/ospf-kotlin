@@ -6,7 +6,7 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.Vector
-import fuookami.ospf.kotlin.math.geometry.Vector3
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Deferred
@@ -36,7 +36,7 @@ data class WeightAttribute(
 }
 
 interface AbstractDeformationAttribute {
-    fun deformationQuantity(volume: Flt64): Vector3
+    fun deformationQuantity(volume: Flt64): Vector<Dim3, Flt64>
     fun deformationQuantity(unit: AbstractCuboid) = deformationQuantity(unit.volume)
 }
 
@@ -545,6 +545,5 @@ data class PackageAttribute(
         return result
     }
 }
-
 
 

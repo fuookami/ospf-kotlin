@@ -39,7 +39,7 @@ class MandelbrotSet<V : FloatingNumber<V>>(
 ) {
     companion object {
         operator fun invoke(real: Flt64, imag: Flt64): MandelbrotSet<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return MandelbrotSet(Point<Dim2, Flt64>(listOf(real, imag), Dim2))
+            return MandelbrotSet(point2(real, imag))
         }
     }
 

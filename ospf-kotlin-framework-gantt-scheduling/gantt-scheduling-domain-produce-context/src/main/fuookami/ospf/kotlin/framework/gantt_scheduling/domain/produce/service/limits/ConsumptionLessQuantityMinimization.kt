@@ -2,11 +2,11 @@
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
-import fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackFunction
 import fuookami.ospf.kotlin.core.variable.UContinuous
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.AbstractMaterial
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.Consumption
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.MaterialReserves
+import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model.produceSlack
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingCGPipeline
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AbstractGanttSchedulingShadowPriceArguments
 import fuookami.ospf.kotlin.framework.gantt_scheduling.domain.task.model.AssignmentPolicy
@@ -41,10 +41,12 @@ class ConsumptionLessQuantityMinimization<
                 if (thresholdValue eq Flt64.zero) {
                     cost += LinearMonomial(coefficient(material), consumption.lessQuantity[material])
                 } else {
-                    val slack = SlackFunction(
+                    val slack = produceSlack(
                         x = consumption.lessQuantity[material],
                         threshold = thresholdValue,
                         type = UContinuous,
+                        withNegative = false,
+                        withPositive = true,
                         name = "consumption_less_quantity_minimization_threshold_$material"
                     )
                     when (val result = model.add(slack)) {

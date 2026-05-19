@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -13,13 +12,6 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * In-Step-Range function: `y = lb + floor((ub - lb) / step) * step`.
@@ -105,39 +97,5 @@ class InStepRangeFunction<V>(
             displayName: String? = null
         ): InStepRangeFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             InStepRangeFunction(lb = lb, ub = ub, step = step, m = m, converter = converter, name = name, displayName = displayName)
-
-        operator fun invoke(
-            lb: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            ub: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            step: Flt64 = Flt64.one,
-            m: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): InStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InStepRangeFunction(
-            lb = lb,
-            ub = ub,
-            step = step,
-            m = m,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            lb: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            ub: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            step: Flt64 = Flt64.one,
-            m: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): InStepRangeFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = InStepRangeFunction(
-            lb = LinearPolynomial(listOf(lb), Flt64.zero),
-            ub = LinearPolynomial(listOf(ub), Flt64.zero),
-            step = step,
-            m = m,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }

@@ -8,7 +8,7 @@ class FunctionSymbolFlt64LeakageGuardTest {
     private val root = File("src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function")
 
     // 允许保留在兼容/边界层的 Flt64 约束构造点。
-    // Allowed legacy/compatibility Flt64 constraint-construction points.
+    // Allowed solver-boundary Flt64 constraint-construction points.
     private val allowlist = setOf(
         "fuookami/ospf/kotlin/core/intermediate_symbol/function/BigM.kt:195",
         "fuookami/ospf/kotlin/core/intermediate_symbol/function/BigM.kt:207",

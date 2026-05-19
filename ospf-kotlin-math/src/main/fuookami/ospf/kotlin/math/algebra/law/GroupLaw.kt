@@ -58,4 +58,3 @@ class GroupLaw<Self>(
         return isAssociative() && hasIdentity() && hasInverse()
     }
 }
-

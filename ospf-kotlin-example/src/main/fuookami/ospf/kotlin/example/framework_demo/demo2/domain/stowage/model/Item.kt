@@ -50,7 +50,7 @@ data class ItemLocation(
         return when (location) {
             DeckLocation.Main -> {
                 if (low) {
-                    Failed(ErrorCode.ApplicationFailed, "主货舱不能装载下货舱物品")
+                    Failed(ErrorCode.ApplicationFailed, "锟斤拷锟斤拷锟秸诧拷锟斤拷装锟斤拷锟铰伙拷锟斤拷锟斤拷品")
                 } else {
                     ok
                 }
@@ -58,7 +58,7 @@ data class ItemLocation(
 
             DeckLocation.LowForward, DeckLocation.LowAft -> {
                 if (main) {
-                    Failed(ErrorCode.ApplicationFailed, "下货舱不能装载主货舱物品")
+                    Failed(ErrorCode.ApplicationFailed, "锟铰伙拷锟秸诧拷锟斤拷装锟斤拷锟斤拷锟斤拷锟斤拷锟斤拷品")
                 } else {
                     ok
                 }
@@ -68,22 +68,22 @@ data class ItemLocation(
 
     fun enabledIn(location: PositionLocation): Try {
         if (low && location.main) {
-            return Failed(ErrorCode.ApplicationFailed, "主货舱不能装载下货舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "锟斤拷锟斤拷锟秸诧拷锟斤拷装锟斤拷锟铰伙拷锟斤拷锟斤拷品")
         }
         if (main && location.low) {
-            return Failed(ErrorCode.ApplicationFailed, "下货舱不能装载主舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "锟铰伙拷锟秸诧拷锟斤拷装锟斤拷锟斤拷锟斤拷锟斤拷品")
         }
         if (!bulk && location.bulk) {
-            return Failed(ErrorCode.ApplicationFailed, "散舱不能装载非散舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "散锟秸诧拷锟斤拷装锟截凤拷散锟斤拷锟斤拷品")
         }
         if (bulk && !location.bulk) {
-            return Failed(ErrorCode.ApplicationFailed, "非散舱不能装载散舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "锟斤拷散锟秸诧拷锟斤拷装锟斤拷散锟斤拷锟斤拷品")
         }
         if (head && !location.head) {
-            return Failed(ErrorCode.ApplicationFailed, "非头舱不能装载头舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "锟斤拷头锟秸诧拷锟斤拷装锟斤拷头锟斤拷锟斤拷品")
         }
         if (tail && !location.tail) {
-            return Failed(ErrorCode.ApplicationFailed, "非尾舱不能装载尾舱物品")
+            return Failed(ErrorCode.ApplicationFailed, "锟斤拷尾锟秸诧拷锟斤拷装锟斤拷尾锟斤拷锟斤拷品")
         }
         return ok
     }
@@ -174,5 +174,4 @@ class Item(
 }
 
 typealias ItemPair = Pair<Item, Item>
-
 

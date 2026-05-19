@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context.service
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -104,5 +104,4 @@ class SolutionAnalyzer(
         }
     }
 }
-
 

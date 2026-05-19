@@ -143,4 +143,3 @@ operator fun <T : Ring<T>> CanonicalMonomial<T>.times(rhs: T): CanonicalMonomial
 operator fun <T : Field<T>> CanonicalMonomial<T>.div(rhs: T): CanonicalMonomial<T> {
     return copy(coefficient = coefficient / rhs)
 }
-

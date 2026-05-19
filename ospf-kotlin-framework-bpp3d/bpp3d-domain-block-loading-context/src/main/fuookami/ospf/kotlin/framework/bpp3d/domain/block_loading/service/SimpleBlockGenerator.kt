@@ -12,8 +12,10 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.ordinary.min
+import fuookami.ospf.kotlin.math.geometry.point3
 
 class SimpleBlockGenerator(
     val config: Config
@@ -339,6 +341,5 @@ class SimpleBlockGenerator(
         return blocks
     }
 }
-
 
 

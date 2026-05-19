@@ -3,6 +3,8 @@ package fuookami.ospf.kotlin.math.geometry
 import fuookami.ospf.kotlin.math.algebra.concept.FloatingNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 class Triangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,

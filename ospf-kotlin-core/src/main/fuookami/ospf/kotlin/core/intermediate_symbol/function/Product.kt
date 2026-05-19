@@ -30,13 +30,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 
 private typealias ProductIntermediate<V> = IntermediateSymbol<out V>
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 /**
  * Product of two linear polynomials: y = left * right.
  *
@@ -295,7 +288,6 @@ class ProductFunction<V>(
     }
 
     companion object {
-        // V-generic main factory
         operator fun <V> invoke(
             left: LinearPolynomial<V>,
             right: LinearPolynomial<V>,
@@ -304,14 +296,5 @@ class ProductFunction<V>(
             displayName: String? = null
         ): ProductFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
             ProductFunction(left, right, converter, name, displayName)
-
-        // Flt64-specific convenience factory
-        operator fun invoke(
-            left: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            right: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            name: String = "product",
-            displayName: String? = null
-        ): ProductFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = ProductFunction(left, right, flt64Converter, name, displayName)
     }
 }
-

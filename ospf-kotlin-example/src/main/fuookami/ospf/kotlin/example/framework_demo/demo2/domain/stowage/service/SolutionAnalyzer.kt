@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -72,5 +72,4 @@ data class SolutionAnalyzer(
         )
     }
 }
-
 

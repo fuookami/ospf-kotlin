@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.core.variable.IntVar
@@ -22,13 +21,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Ceiling function: y = ceil(x).
@@ -114,31 +106,5 @@ class CeilingFunction<V>(
             displayName: String? = null
         ): CeilingFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             CeilingFunction(x, converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): CeilingFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = CeilingFunction(x, flt64Converter, bigM, name = name, displayName = displayName)
-
-        @JvmStatic
-        @JvmName("fromLinearPolynomial")
-        fun fromLinearPolynomial(
-            x: fuookami.ospf.kotlin.math.symbol.operation.ToLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
-            CeilingFunction(
-                x = x.toLinearPolynomial(),
-                bigM = bigM,
-                converter = flt64Converter,
-                name = name,
-                displayName = displayName
-            ),
-            converter = flt64Converter
-        
-        )
     }
 }

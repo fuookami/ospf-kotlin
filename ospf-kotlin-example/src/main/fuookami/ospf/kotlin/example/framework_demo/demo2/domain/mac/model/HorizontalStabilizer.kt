@@ -9,7 +9,7 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
@@ -19,6 +19,7 @@ import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.UContinuous
+import fuookami.ospf.kotlin.example.exampleThresholdSlack
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.MAC
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
@@ -111,16 +112,18 @@ class HorizontalStabilizer(
                         converter = flt64Converter
                     )
                 } else if (limit.warnMinTrim != null) {
-                    SlackFunction(
+                    exampleThresholdSlack(
                         x = trim,
                         threshold = limit.warnMinTrim,
+                        withNegative = true,
                         withPositive = false,
                         name = "${key}_trim_warn_slack"
                     )
                 } else if (limit.warnMaxTrim != null) {
-                    SlackFunction(
+                    exampleThresholdSlack(
                         x = trim,
                         threshold = limit.warnMaxTrim,
+                        withNegative = false,
                         withPositive = true,
                         name = "${key}_trim_warn_slack"
                     )
@@ -155,7 +158,6 @@ class HorizontalStabilizer(
         return source.map { it.mac to it.trim }.sortedBy { it.first.mac }
     }
 }
-
 
 
 

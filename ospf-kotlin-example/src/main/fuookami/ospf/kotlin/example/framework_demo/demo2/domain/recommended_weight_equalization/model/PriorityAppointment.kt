@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.recommended_weight_equalization.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -25,4 +25,3 @@ data class PriorityAppointment(
         return appointment[priority]?.contains(position.loadingOrder.precDepth) == true
     }
 }
-

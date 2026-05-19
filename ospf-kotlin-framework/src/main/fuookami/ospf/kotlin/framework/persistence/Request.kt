@@ -13,4 +13,3 @@ interface ResponseDTO<T : ResponseDTO<T>> {
 }
 
 
-

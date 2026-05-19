@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
+package fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure
 
 import java.util.*
 import fuookami.ospf.kotlin.utils.functional.*
@@ -77,4 +77,3 @@ data object LinearSolverBuilder {
         }
     }
 }
-

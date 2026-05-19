@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
+package fuookami.ospf.kotlin.framework.bpp3d.domain.layer_assignment.model
 
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -128,6 +128,5 @@ class PreciseLoad(
         return super.register(model)
     }
 }
-
 
 

@@ -242,4 +242,3 @@ operator fun <T : NumberField<T>> MutableCanonicalPolynomial<T>.divAssign(rhs: T
     }
     _constant = _constant / rhs
 }
-

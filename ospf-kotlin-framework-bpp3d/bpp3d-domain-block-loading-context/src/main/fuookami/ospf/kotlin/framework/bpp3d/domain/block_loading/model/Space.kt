@@ -8,9 +8,11 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.utils.memoryUseOver
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 data class Space(
-    val position: Point3,
+    val position: Point<Dim3, Flt64>,
     val shape: AbstractContainer3Shape,
     val parentShape: AbstractContainer3Shape = shape,
     val block: Block? = null,
@@ -24,7 +26,7 @@ data class Space(
         fun from(
             blocks: List<BlockPlacement3>,
             shape: AbstractContainer3Shape = Container3Shape(),
-            offset: Point3 = point3()
+            offset: Point<Dim3, Flt64> = point3()
         ): List<Space>? {
             val absoluteBlocks = blocks.map { BlockPlacement3(it.view.copy(), it.position + offset) }
             val spaces = ArrayList<Space>()
@@ -284,6 +286,5 @@ data class Space(
         }
     }
 }
-
 
 

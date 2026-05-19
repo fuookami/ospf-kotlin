@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.service.limits
 
@@ -43,7 +43,6 @@ class PassengerFlightCapacityConstraint(
         return ok
     }
 }
-
 
 
 

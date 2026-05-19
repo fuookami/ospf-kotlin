@@ -686,6 +686,132 @@ if (($Verbose -or $p16LegacyImportViolations.Count -gt 0) -and $p16LegacyImportV
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 
+# P17: 禁止兼容层回流 / Prevent compatibility-layer backflow
+$compatLayerRootsToReject = @(
+    "ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/adapter",
+    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/adapter/flt64"
+)
+$existingCompatLayerRoots = @($compatLayerRootsToReject | Where-Object { Test-Path $_ })
+Write-Result "P17-1: No deleted compatibility-layer source roots" ($existingCompatLayerRoots.Count -eq 0) "Found $($existingCompatLayerRoots.Count) compatibility-layer roots"
+if (($Verbose -or $existingCompatLayerRoots.Count -gt 0) -and $existingCompatLayerRoots.Count -gt 0) {
+    $preview = ($existingCompatLayerRoots | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$compatScanRoots = @(
+    "ospf-kotlin-core/src/main",
+    "ospf-kotlin-core/src/test",
+    "ospf-kotlin-math/src/main",
+    "ospf-kotlin-math/src/test",
+    "ospf-kotlin-example/src/main",
+    "ospf-kotlin-example/src/test",
+    "ospf-kotlin-framework/src/main",
+    "ospf-kotlin-framework-gantt-scheduling",
+    "ospf-kotlin-starters"
+)
+$compatForbiddenPattern = "math\.symbol\.adapter|FunctionCompat|MetaModelFlt64Adapter|BridgedQuickDsl|BridgedQuickOps|BridgedInequality"
+$compatForbiddenViolations = @()
+foreach ($root in $compatScanRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match $compatForbiddenPattern) {
+                $compatForbiddenViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P17-2: No compatibility-layer symbols/imports in Kotlin sources" ($compatForbiddenViolations.Count -eq 0) "Found $($compatForbiddenViolations.Count) violations"
+if (($Verbose -or $compatForbiddenViolations.Count -gt 0) -and $compatForbiddenViolations.Count -gt 0) {
+    $preview = ($compatForbiddenViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$exampleSolverCallViolations = @()
+foreach ($root in $defaultExampleSourceRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root $root -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and
+                ($trimmed -match "solver\s*\(\s*metaModel\s*\)" -or
+                 $trimmed -match "solver\s*\(\s*model\s*=\s*model\s*,")) {
+                $exampleSolverCallViolations += "${root}/${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P17-3: No old direct solver(metaModel/model=...) calls in example source sets" ($exampleSolverCallViolations.Count -eq 0) "Found $($exampleSolverCallViolations.Count) violations"
+if (($Verbose -or $exampleSolverCallViolations.Count -gt 0) -and $exampleSolverCallViolations.Count -gt 0) {
+    $preview = ($exampleSolverCallViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+function Get-SlackFunctionBlocksWithoutConverter {
+    param([string]$Root)
+    $violations = @()
+    if (-not (Test-Path $Root)) {
+        return $violations
+    }
+    Get-ChildItem -Path $Root -Recurse -Filter "*.kt" | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root $Root -FilePath $filePath
+        $lines = Get-Content $filePath
+        $inside = $false
+        $depth = 0
+        $startLine = 0
+        $block = @()
+        for ($i = 0; $i -lt $lines.Count; $i++) {
+            $line = $lines[$i]
+            if (-not $inside -and $line -match "SlackFunction\s*\(") {
+                $inside = $true
+                $depth = 0
+                $startLine = $i + 1
+                $block = @()
+            }
+            if ($inside) {
+                $block += $line
+                $depth += ([regex]::Matches($line, "\(")).Count
+                $depth -= ([regex]::Matches($line, "\)")).Count
+                if ($depth -le 0) {
+                    $blockText = $block -join "`n"
+                    if ($blockText -notmatch "converter\s*=") {
+                        $violations += "${Root}/${relativePath}:${startLine}: SlackFunction without explicit converter"
+                    }
+                    $inside = $false
+                    $block = @()
+                }
+            }
+        }
+    }
+    return $violations
+}
+
+$slackWithoutConverterViolations = @()
+foreach ($root in $defaultExampleSourceRoots) {
+    $slackWithoutConverterViolations += Get-SlackFunctionBlocksWithoutConverter -Root $root
+}
+Write-Result "P17-4: No old SlackFunction constructor usage without converter in example source sets" ($slackWithoutConverterViolations.Count -eq 0) "Found $($slackWithoutConverterViolations.Count) violations"
+if (($Verbose -or $slackWithoutConverterViolations.Count -gt 0) -and $slackWithoutConverterViolations.Count -gt 0) {
+    $preview = ($slackWithoutConverterViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
 # --- P6/P7 Metric Guards ---
 
 $mathMain = "ospf-kotlin-math/src/main"

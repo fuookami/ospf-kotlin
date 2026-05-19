@@ -15,7 +15,6 @@
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Cos.kt": 4,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/First.kt": 3,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/Floor.kt": 5,
-      "fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionCompat.kt": 51,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/FunctionSymbol.kt": 22,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/If.kt": 15,
       "fuookami/ospf/kotlin/core/intermediate_symbol/function/IfIn.kt": 5,
@@ -137,8 +136,8 @@
       "fuookami/ospf/kotlin/math/symbol/parse/NumberParser.kt": 1,
       "fuookami/ospf/kotlin/math/symbol/parse/PolynomialParser.kt": 11,
       "fuookami/ospf/kotlin/math/symbol/parser/Parser.kt": 4,
-      "fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickDsl.kt": 54,
-      "fuookami/ospf/kotlin/math/symbol/adapter/flt64/QuickOps.kt": 17,
+      "fuookami/ospf/kotlin/math/symbol/operation/QuickDsl.kt": 54,
+      "fuookami/ospf/kotlin/math/symbol/operation/QuickOps.kt": 17,
       "fuookami/ospf/kotlin/math/symbol/polynomial/QuickDsl.kt": 35,
       "fuookami/ospf/kotlin/math/symbol/serde/InequalitySerde.kt": 7,
       "fuookami/ospf/kotlin/math/symbol/serde/PolynomialSerde.kt": 18

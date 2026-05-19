@@ -1,9 +1,9 @@
-﻿package fuookami.ospf.kotlin.math.symbol.inequality
+package fuookami.ospf.kotlin.math.symbol.inequality
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.isSatisfied
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.isSatisfiedOrdered
+import fuookami.ospf.kotlin.math.symbol.operation.isSatisfied
+import fuookami.ospf.kotlin.math.symbol.operation.isSatisfiedOrdered
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -282,6 +282,5 @@ class InequalityTest {
         )
     }
 }
-
 
 

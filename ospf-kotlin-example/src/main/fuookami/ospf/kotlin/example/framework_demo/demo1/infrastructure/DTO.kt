@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure
+package fuookami.ospf.kotlin.example.framework_demo.demo1.infrastructure
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -27,4 +27,3 @@ data class Input(
 data class Output(
     val links: List<List<UInt64>>
 )
-

@@ -15,6 +15,8 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.operator.Minus
 import fuookami.ospf.kotlin.math.operator.Plus
+import fuookami.ospf.kotlin.math.geometry.vector2
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 /**
  * 计算向量的范数（模长）
@@ -144,7 +146,7 @@ val Vector<Dim2, Flt64>.x get() = this[0]
 val Vector<Dim2, Flt64>.y get() = this[1]
 
 fun vector2(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero): Vector<Dim2, Flt64> {
-    return Vector<Dim2, Flt64>(x, y)
+    return Vector(listOf(x, y), Dim2)
 }
 
 @get:JvmName("Vector3X")
@@ -157,7 +159,7 @@ val Vector<Dim3, Flt64>.y get() = this[1]
 val Vector<Dim3, Flt64>.z get() = this[2]
 
 fun vector3(x: Flt64 = Flt64.zero, y: Flt64 = Flt64.zero, z: Flt64 = Flt64.zero): Vector<Dim3, Flt64> {
-    return Vector<Dim3, Flt64>(x, y, z)
+    return Vector(listOf(x, y, z), Dim3)
 }
 
 operator fun <D : Dimension, V : FloatingNumber<V>> V.times(rhs: Vector<D, V>): Vector<D, V> {

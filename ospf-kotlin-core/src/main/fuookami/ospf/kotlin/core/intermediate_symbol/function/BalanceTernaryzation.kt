@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -9,18 +9,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Balance Ternaryzation function: maps x to sign(x) in {-1, 0, 1}.
@@ -35,7 +27,7 @@ private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebr
  *
  * @param x the input linear polynomial
  * @param epsilon zero threshold (default 1e-6)
- * @param extract legacy parameter kept for API compatibility; currently unused (piecewise is always used)
+ * @param extract reserved parameter; currently unused (piecewise is always used)
  * @param name unique name for this function
  * @param displayName optional human-readable display name
  */
@@ -113,21 +105,5 @@ class BalanceTernaryzationFunction<V>(
             displayName: String? = null
         ): BalanceTernaryzationFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             BalanceTernaryzationFunction(x = x, epsilon = epsilon, extract = extract, converter = converter, name = name, displayName = displayName)
-
-        @kotlin.Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            x: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            epsilon: Flt64 = Flt64(1e-6),
-            extract: Boolean = true,
-            name: String,
-            displayName: String? = null
-        ): BalanceTernaryzationFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = BalanceTernaryzationFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            epsilon = epsilon,
-            extract = extract,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }

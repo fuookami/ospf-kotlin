@@ -68,4 +68,3 @@ fun <T : Individual<V>, V> refreshGoodIndividuals(
 
 
 
-

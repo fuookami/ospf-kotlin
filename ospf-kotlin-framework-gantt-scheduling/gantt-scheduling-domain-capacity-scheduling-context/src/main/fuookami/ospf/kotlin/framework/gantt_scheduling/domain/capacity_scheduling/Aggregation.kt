@@ -116,4 +116,3 @@ class CapacitySchedulingAggregation<A : ProductionAction>(
     }
 }
 
-

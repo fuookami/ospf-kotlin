@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.utils.parallel
+package fuookami.ospf.kotlin.utils.parallel
 
 import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.utils.error.ErrorCode

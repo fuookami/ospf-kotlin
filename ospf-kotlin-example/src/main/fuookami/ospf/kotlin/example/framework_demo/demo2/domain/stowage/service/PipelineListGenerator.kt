@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.service
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -142,4 +142,3 @@ data class PipelineListGenerator(
         return Ok(pipelines)
     }
 }
-

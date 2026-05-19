@@ -34,4 +34,3 @@ data class SolvingStatus(
 typealias SolvingStatusCallBack = (SolvingStatus) -> Try
 
 
-

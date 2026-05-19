@@ -2,10 +2,8 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
-import fuookami.ospf.kotlin.core.variable.URealVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -21,13 +19,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * If-In function: `y = 1 if a <= x <= b, else y = 0`.
@@ -136,30 +127,5 @@ class IfInFunction<V>(
             displayName: String? = null
         ): IfInFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             IfInFunction(x, lower, upper, converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            x: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            lower: Flt64,
-            upper: Flt64,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfInFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfInFunction(x, lower, upper, flt64Converter, bigM, name = name, displayName = displayName)
-
-        operator fun invoke(
-            x: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            lower: Flt64,
-            upper: Flt64,
-            bigM: Flt64? = null,
-            name: String,
-            displayName: String? = null
-        ): IfInFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = IfInFunction(
-            x = LinearPolynomial(listOf(x), Flt64.zero),
-            lower = lower,
-            upper = upper,
-            bigM = bigM,
-            name = name,
-            displayName = displayName
-        )
     }
 }

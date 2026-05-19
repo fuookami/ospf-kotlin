@@ -200,4 +200,3 @@ fun <T : Ring<T>> QuadraticPolynomial<T>.ge(rhs: T, name: String, displayName: S
     QuadraticInequalityOf(this, rhs.asQuadraticPolynomial(), Comparison.GE, name, displayName)
 fun <T : Ring<T>> QuadraticPolynomial<T>.gt(rhs: T, name: String, displayName: String = ""): QuadraticInequalityOf<T> =
     QuadraticInequalityOf(this, rhs.asQuadraticPolynomial(), Comparison.GT, name, displayName)
-

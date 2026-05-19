@@ -334,4 +334,3 @@ operator fun <T : NumberField<T>> MutableLinearPolynomial<T>.divAssign(rhs: T) {
     }
     _constant = _constant / rhs
 }
-

@@ -45,7 +45,7 @@ import fuookami.ospf.kotlin.utils.functional.Try
  */
 @Suppress("UNCHECKED_CAST")
 internal object SolverBoundaryCasts {
-    private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    private val solverValueConverter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         override fun intoValue(value: Flt64) = value
         override val zero get() = Flt64.zero
         override val one get() = Flt64.one
@@ -66,9 +66,9 @@ internal object SolverBoundaryCasts {
     ): Flt64? {
         val sym = symbol as IntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>
         return if (fixedValues.isNullOrEmpty()) {
-            sym.prepare(null, tokenTable, flt64Converter)
+            sym.prepare(null, tokenTable, solverValueConverter)
         } else {
-            sym.prepare(fixedValues, tokenTable, flt64Converter)
+            sym.prepare(fixedValues, tokenTable, solverValueConverter)
         }
     }
 

@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.quantities
+package fuookami.ospf.kotlin.quantities
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.Scale
@@ -350,6 +350,5 @@ class QuantityTest {
         // 注意：由于量纲简化可能包含其他幂次为 0 的量纲，所以只验证包含 M 即可
     }
 }
-
 
 

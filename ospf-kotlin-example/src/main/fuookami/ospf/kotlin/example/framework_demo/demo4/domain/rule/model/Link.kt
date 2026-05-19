@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.rule.model
 
@@ -118,4 +118,3 @@ class LinkMap(
         return rightMapper[task] ?: emptyList()
     }
 }
-

@@ -11,13 +11,16 @@ import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.Ord
 import fuookami.ospf.kotlin.utils.functional.Order
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.vector3
 
 data class Placement2<
         T : Cuboid<T>,
         P : ProjectivePlane
         >(
     val projection: Projection<T, P>,
-    val position: Point2
+    val position: Point<Dim2, Flt64>
 ) : Copyable<Placement2<T, P>> {
     constructor(placement3: Placement3<T>, plane: P) : this(
         projection = PlaneProjection(placement3.view, plane),
@@ -38,10 +41,10 @@ data class Placement2<
 
     val maxX = x + length
     val maxY = y + width
-    val maxPosition = Point2(maxX, maxY)
+    val maxPosition = point2(maxX, maxY)
 
     fun contains(
-        point: Point2,
+        point: Point<Dim2, Flt64>,
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
@@ -83,13 +86,13 @@ data class Placement2<
         return true
     }
 
-    fun intersect(rhs: Placement2<*, P>): Rectangle2? {
+    fun intersect(rhs: Placement2<*, P>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>? {
         val minX = max(x, rhs.x)
         val maxX = min(maxX, rhs.maxX)
         val minY = max(y, rhs.y)
         val maxY = min(maxY, rhs.maxY)
         return if (minX ls maxX && minY ls maxY) {
-            Rectangle2(
+            Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>(
                 point2(x = minX, y = minY),
                 point2(x = minX, y = maxY),
                 point2(x = maxX, y = maxY),
@@ -133,7 +136,7 @@ data class Placement2<
 
 data class Placement3<T : Cuboid<T>>(
     val view: CuboidView<T>,
-    val position: Point3
+    val position: Point<Dim3, Flt64>
 ) : Copyable<Placement3<T>>, Ord<Placement3<T>> {
     private var _parent: Placement3<*>? = null
 
@@ -147,7 +150,7 @@ data class Placement3<T : Cuboid<T>>(
     val y by position::y
     val z by position::z
 
-    val absolutePosition: Point3 get() = position + (parent?.absolutePosition ?: point3())
+    val absolutePosition: Point<Dim3, Flt64> get() = position + (parent?.absolutePosition ?: point3())
     val absoluteX: Flt64 get() = x + (parent?.absoluteX ?: Flt64.zero)
     val absoluteY: Flt64 get() = y + (parent?.absoluteY ?: Flt64.zero)
     val absoluteZ: Flt64 get() = z + (parent?.absoluteZ ?: Flt64.zero)
@@ -161,12 +164,12 @@ data class Placement3<T : Cuboid<T>>(
     val maxX: Flt64 = x + width
     val maxY: Flt64 = y + height
     val maxZ: Flt64 = z + depth
-    val maxPosition: Point3 = position + vector3(x = width, y = height, z = depth)
+    val maxPosition: Point<Dim3, Flt64> = position + vector3(x = width, y = height, z = depth)
 
     val maxAbsoluteX: Flt64 get() = absoluteX + width
     val maxAbsoluteY: Flt64 get() = absoluteY + height
     val maxAbsoluteZ: Flt64 get() = absoluteZ + depth
-    val maxAbsolutePosition: Point3 get() = absolutePosition + vector3(x = width, y = height, z = depth)
+    val maxAbsolutePosition: Point<Dim3, Flt64> get() = absolutePosition + vector3(x = width, y = height, z = depth)
 
     init {
         if (unit is Container3<*>) {
@@ -177,7 +180,7 @@ data class Placement3<T : Cuboid<T>>(
     }
 
     fun contains(
-        point: Point3,
+        point: Point<Dim3, Flt64>,
         withLowerBound: Boolean = true,
         withUpperBound: Boolean = true,
         withBorder: Boolean = true
@@ -307,7 +310,6 @@ fun bottomPlacements(placements: List<Placement3<*>>): List<Placement3<*>> {
     }
     return bottomPlacements
 }
-
 
 
 

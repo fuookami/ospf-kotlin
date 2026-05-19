@@ -1,13 +1,26 @@
 package fuookami.ospf.kotlin.core.intermediate_model
 
+import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.Constraint
+import fuookami.ospf.kotlin.core.model.mechanism.Linear as MechanismLinear
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.LinearSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.Quadratic as MechanismQuadratic
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticConstraintImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticRelationImpl
+import fuookami.ospf.kotlin.core.model.mechanism.QuadraticSubObject
+import fuookami.ospf.kotlin.core.model.mechanism.SingleObject
 import fuookami.ospf.kotlin.core.model.mechanism.flattenData
 import fuookami.ospf.kotlin.core.model.mechanism.toLinearFlattenData
 import fuookami.ospf.kotlin.core.model.mechanism.toQuadraticFlattenData
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
+import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
@@ -15,7 +28,7 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Linear
 import fuookami.ospf.kotlin.math.symbol.Quadratic
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.normalize
+import fuookami.ospf.kotlin.math.symbol.operation.normalize
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
@@ -30,7 +43,7 @@ import kotlin.test.assertTrue
 
 class BendersCutTypedByIdApiTest {
     @Test
-    fun linearTypedByIdShouldMatchLegacyByIdForFourNumberTypes() {
+    fun linearTypedByIdShouldGenerateCutsForFourNumberTypes() {
         runLinearCase(GenericNumberCases.flt64)
         runLinearCase(GenericNumberCases.fltX)
         runLinearCase(GenericNumberCases.rtn64)
@@ -38,14 +51,13 @@ class BendersCutTypedByIdApiTest {
     }
 
     @Test
-    fun quadraticTypedByIdShouldMatchLegacyByIdForFourNumberTypes() {
+    fun quadraticTypedByIdShouldGenerateCutsForFourNumberTypes() {
         runQuadraticCase(GenericNumberCases.flt64)
         runQuadraticCase(GenericNumberCases.fltX)
         runQuadraticCase(GenericNumberCases.rtn64)
         runQuadraticCase(GenericNumberCases.rtnX)
     }
 
-    @Suppress("DEPRECATION")
     private fun <V> runLinearCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_lin_x")
@@ -82,25 +94,36 @@ class BendersCutTypedByIdApiTest {
         try {
             val fixedVars: Map<AbstractVariableItem<*, *>, V> = mapOf(x to numberCase.two)
             val typedDualById = mapOf(constraint.name to numberCase.one)
-            val legacyDualById = mapOf(constraint.name to Flt64.one)
+            @Suppress("UNCHECKED_CAST")
+            val directDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
+                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
 
+            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, directDual)
             val typedOptimal = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, typedDualById)
-            val legacyOptimal = mechanismModel.generateOptimalCutById(theta, fixedVars, legacyDualById)
-            assertEquals(legacyOptimal.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
-            for (i in legacyOptimal.indices) {
+            assertEquals(direct.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            for (i in direct.indices) {
                 assertLinearInequalityEquals(
-                    legacyOptimal[i],
+                    direct[i],
                     toFlt64LinearInequality(typedOptimal[i], numberCase),
                     "${numberCase.name}: optimal[$i]"
                 )
             }
 
+            @Suppress("UNCHECKED_CAST")
+            val directFeasibleDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
+                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, directFeasibleDual)
+            assertEquals(1, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            assertTrue(
+                typedOptimal.first().toLinearFlattenData().getOrThrow().monomials.any { it.symbol == theta },
+                "${numberCase.name}: optimal cut should contain theta"
+            )
+
             val typedFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, typedDualById)
-            val legacyFeasible = mechanismModel.generateFeasibleCutById(fixedVars, legacyDualById)
-            assertEquals(legacyFeasible.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
-            for (i in legacyFeasible.indices) {
+            assertEquals(directFeasible.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
+            for (i in directFeasible.indices) {
                 assertLinearInequalityEquals(
-                    legacyFeasible[i],
+                    directFeasible[i],
                     toFlt64LinearInequality(typedFeasible[i], numberCase),
                     "${numberCase.name}: feasible[$i]"
                 )
@@ -110,7 +133,6 @@ class BendersCutTypedByIdApiTest {
         }
     }
 
-    @Suppress("DEPRECATION")
     private fun <V> runQuadraticCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val x = RealVar("${numberCase.name.lowercase()}_quad_x")
@@ -154,27 +176,32 @@ class BendersCutTypedByIdApiTest {
                 y to numberCase.two
             )
             val typedDualById = mapOf(constraint.name to numberCase.one)
-            val legacyDualById = mapOf(constraint.name to Flt64.one)
+            @Suppress("UNCHECKED_CAST")
+            val directDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
+                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
 
-            val typedOptimal = mechanismModel.generateOptimalCutByIdV(numberCase.zero, theta, fixedVars, typedDualById)
-            val legacyOptimal = mechanismModel.generateOptimalCutById(Flt64.zero, theta, fixedVars, legacyDualById)
-            assertTrue(legacyOptimal is Ok, "${numberCase.name}: legacy optimal cut should succeed")
-            assertEquals(legacyOptimal.value.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
-            for (i in typedOptimal.indices) {
+            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, directDual)
+            val typedOptimal = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, typedDualById)
+            assertTrue(direct is Ok, "${numberCase.name}: direct optimal cut should succeed")
+            assertEquals(direct.value.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            for (i in direct.value.indices) {
                 assertCutEquals(
-                    legacyOptimal.value[i],
+                    direct.value[i],
                     toFlt64Cut(typedOptimal[i], numberCase),
                     "${numberCase.name}: optimal[$i]"
                 )
             }
 
+            @Suppress("UNCHECKED_CAST")
+            val directFeasibleDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
+                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
+            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, directFeasibleDual)
             val typedFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, typedDualById)
-            val legacyFeasible = mechanismModel.generateFeasibleCutById(fixedVars, legacyDualById)
-            assertTrue(legacyFeasible is Ok, "${numberCase.name}: legacy feasible cut should succeed")
-            assertEquals(legacyFeasible.value.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
-            for (i in typedFeasible.indices) {
+            assertTrue(directFeasible is Ok, "${numberCase.name}: direct feasible cut should succeed")
+            assertEquals(directFeasible.value.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
+            for (i in directFeasible.value.indices) {
                 assertCutEquals(
-                    legacyFeasible.value[i],
+                    directFeasible.value[i],
                     toFlt64Cut(typedFeasible[i], numberCase),
                     "${numberCase.name}: feasible[$i]"
                 )

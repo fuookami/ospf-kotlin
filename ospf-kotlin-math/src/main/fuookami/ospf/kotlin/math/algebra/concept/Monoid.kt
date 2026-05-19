@@ -17,4 +17,3 @@ import fuookami.ospf.kotlin.math.operator.Inc
  * A monoid is a set equipped with an associative binary operation and an identity element.
  */
 interface Monoid<Self> : Semigroup<Self>, Inc<Self>
-

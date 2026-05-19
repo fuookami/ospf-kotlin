@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
@@ -21,13 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.Fatal
 import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * SatisfiedAmountFunction - Counts how many of a list of inequalities are satisfied.
@@ -201,23 +193,6 @@ class SatisfiedAmountFunction<V>(
             epsilon = epsilon,
             bigM = bigM,
             converter = converter,
-            name = name,
-            displayName = displayName
-        )
-
-        operator fun invoke(
-            inequalities: List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            amount: UInt64? = null,
-            epsilon: Flt64 = Flt64(1e-6),
-            bigM: Flt64 = Flt64(BIG_M_DEFAULT),
-            name: String,
-            displayName: String? = null
-        ): SatisfiedAmountFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SatisfiedAmountFunction(
-            inequalities = inequalities,
-            amount = amount,
-            epsilon = epsilon,
-            bigM = bigM,
-            converter = flt64Converter,
             name = name,
             displayName = displayName
         )

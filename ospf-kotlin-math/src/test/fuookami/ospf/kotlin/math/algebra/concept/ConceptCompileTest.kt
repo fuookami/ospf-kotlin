@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.algebra.concept
+package fuookami.ospf.kotlin.math.algebra.concept
 
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.NumberRing
@@ -46,5 +46,4 @@ class ConceptCompileTest {
         requireField<TestNumberField>()
     }
 }
-
 

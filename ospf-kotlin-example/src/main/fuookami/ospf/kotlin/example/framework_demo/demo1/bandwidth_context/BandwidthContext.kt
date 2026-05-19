@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -97,7 +97,6 @@ class BandwidthContext(
         return analyzer(model, result)
     }
 }
-
 
 
 

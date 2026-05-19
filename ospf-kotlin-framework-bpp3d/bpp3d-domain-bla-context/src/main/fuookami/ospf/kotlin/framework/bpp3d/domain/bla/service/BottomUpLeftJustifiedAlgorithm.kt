@@ -15,10 +15,11 @@ import fuookami.ospf.kotlin.utils.parallel.ChannelGuard
 import kotlinx.coroutines.*
 import kotlinx.coroutines.channels.Channel
 import org.apache.logging.log4j.kotlin.logger
+import fuookami.ospf.kotlin.math.geometry.point2
 
 private fun compareWithPosition(
-    lhs: Point2,
-    rhs: Point2,
+    lhs: Point<Dim2, Flt64>,
+    rhs: Point<Dim2, Flt64>,
     withManhattanDistance: Boolean = true
 ): Order {
     if (withManhattanDistance) {
@@ -94,7 +95,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         val withDisplacementX: Boolean = true,
         val withDisplacementY: Boolean = true,
         val comparator: ThreeWayComparator<Projection<*, P>> = ::compareWithShapeAndWeight,
-        val positionComparator: ThreeWayComparator<Point2> = { lhs, rhs -> compareWithPosition(lhs, rhs) }
+        val positionComparator: ThreeWayComparator<Point<Dim2, Flt64>> = { lhs, rhs -> compareWithPosition(lhs, rhs) }
     ) {
         val withDisplacement = withDisplacementX || withDisplacementY
 
@@ -105,7 +106,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
                 withDisplacement: Boolean? = null,
                 withManhattanDistance: Boolean? = null,
                 comparator: ThreeWayComparator<Projection<*, P>>? = null,
-                positionComparator: ThreeWayComparator<Point2>? = null
+                positionComparator: ThreeWayComparator<Point<Dim2, Flt64>>? = null
             ): Config<P> {
                 return Config(
                     withDisplacementX = withDisplacementX ?: withDisplacement ?: true,
@@ -203,7 +204,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         }
 
         var lastImpossible = false
-        var lastFeasiblePoints: List<Point2> = emptyList()
+        var lastFeasiblePoints: List<Point<Dim2, Flt64>> = emptyList()
         while (stack.isNotEmpty()) {
             val top = stack.removeAt(stack.lastIndex)
             placements[top.first] = top.second
@@ -263,7 +264,7 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     private suspend fun feasiblePoints(
         placements: List<Placement2<*, P>?>,
         reverse: Boolean = true
-    ): List<Point2> {
+    ): List<Point<Dim2, Flt64>> {
         return feasiblePoints(
             targetPlacements = placements,
             fixedPlacements = placements,
@@ -275,11 +276,11 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         targetPlacements: List<Placement2<*, P>?>,
         fixedPlacements: List<Placement2<*, P>?>,
         reverse: Boolean = true
-    ): List<Point2> {
-        val ret = HashSet<Point2>()
+    ): List<Point<Dim2, Flt64>> {
+        val ret = HashSet<Point<Dim2, Flt64>>()
         for (placement in targetPlacements) {
             if (placement != null) {
-                val thisPoints = HashSet<Point2>()
+                val thisPoints = HashSet<Point<Dim2, Flt64>>()
 
                 val upperLeftPoint = point2(x = placement.x, y = placement.maxY)
                 val bottomRightPoint = point2(x = placement.maxX, y = placement.y)
@@ -326,12 +327,12 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private fun actualFeasiblePoints(
-        point: Point2,
+        point: Point<Dim2, Flt64>,
         placement: Placement2<*, *>,
         fixedPlacements: List<Placement2<*, *>?>
-    ): List<Point2> {
+    ): List<Point<Dim2, Flt64>> {
         val stack = arrayListOf(point)
-        val points = ArrayList<Point2>()
+        val points = ArrayList<Point<Dim2, Flt64>>()
         while (stack.isNotEmpty()) {
             val thisPoint = stack.removeAt(stack.lastIndex)
             points.add(thisPoint)
@@ -362,10 +363,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private fun actualFeasiblePointOnX(
-        point: Point2,
+        point: Point<Dim2, Flt64>,
         placement: Placement2<*, *>,
         fixedPlacements: List<Placement2<*, *>?>
-    ): Point2? {
+    ): Point<Dim2, Flt64>? {
         if (point.x eq Flt64.zero) {
             return null
         }
@@ -391,10 +392,10 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
     }
 
     private fun actualFeasiblePointOnY(
-        point: Point2,
+        point: Point<Dim2, Flt64>,
         placement: Placement2<*, *>,
         fixedPlacements: List<Placement2<*, *>?>
-    ): Point2? {
+    ): Point<Dim2, Flt64>? {
         if (point.y eq Flt64.zero) {
             return null
         }
@@ -474,7 +475,6 @@ class BottomUpLeftJustifiedAlgorithm<P : ProjectivePlane>(
         return fixedPlacements.asSequence().filterNotNull().all { !it.overlapped(placement) }
     }
 }
-
 
 
 

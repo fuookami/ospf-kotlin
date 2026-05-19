@@ -1,4 +1,4 @@
-﻿@file:Suppress("DEPRECATION", "UNCHECKED_CAST")
+@file:Suppress("DEPRECATION", "UNCHECKED_CAST")
 
 @file:OptIn(kotlin.time.ExperimentalTime::class)
 
@@ -999,6 +999,5 @@ class BranchAndPriceAlgorithm<
         return ok
     }
 }
-
 
 

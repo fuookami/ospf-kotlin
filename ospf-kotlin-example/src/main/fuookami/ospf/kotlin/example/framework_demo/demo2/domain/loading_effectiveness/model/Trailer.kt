@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.loading_effectiveness.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -21,4 +21,3 @@ data class Trailer(
         return name
     }
 }
-

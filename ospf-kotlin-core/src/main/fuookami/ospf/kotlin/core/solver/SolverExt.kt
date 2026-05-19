@@ -36,13 +36,10 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
 
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
 suspend fun AbstractLinearSolver.solve(model: LinearTriadModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 suspend fun AbstractLinearSolver.solveWithOptions(
     model: LinearTriadModelView,
     options: SolveOptions
@@ -67,89 +64,10 @@ suspend fun AbstractLinearSolver.solveWithOptions(
     }
 }
 
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solve(model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return solveWithOptions(model, SolveOptions())
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptions(
-    model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = false)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = registrationStatusCallBack,
-        dumpingStatusCallBack = dumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptions(it, options)
-    }
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solve(model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return solveWithOptions(model, SolveOptions())
-}
-
-/**
- * V->Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
- * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
- */
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun <V> AbstractLinearSolver.solve(
-    model: MechanismModel<V>
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
-    val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    if (f64Model is LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
-        return solve(f64Model)
-    }
-    return Failed(ErrorCode.IllegalArgument, "LinearSolver requires LinearMechanismModel, got ${f64Model::class.simpleName}")
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptions(
-    model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return dump(model).use {
-        solveWithOptions(it, options)
-    }
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return solveWithOptions(model, SolveOptions())
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solve(model: QuadraticTetradModelView): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return solveWithOptions(model, SolveOptions())
 }
 
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
 suspend fun AbstractQuadraticSolver.solveWithOptions(
     model: QuadraticTetradModelView,
     options: SolveOptions
@@ -171,70 +89,6 @@ suspend fun AbstractQuadraticSolver.solveWithOptions(
             model = model,
             solvingStatusCallBack = options.solvingStatusCallBack
         )
-    }
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptions(
-    model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    val registrationStatusCallBack: RegistrationStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = true)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = registrationStatusCallBack,
-        dumpingStatusCallBack = dumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptions(it, options)
-    }
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solve(model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return solveWithOptions(model, SolveOptions())
-}
-
-/**
- * V->Flt64 boundary: solve a generic [MechanismModel]<V> by converting to Flt64 first.
- * Uses [convertMechanismModelToFlt64] to validate V=Flt64 at the solver boundary.
- */
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun <V> AbstractQuadraticSolver.solve(
-    model: MechanismModel<V>
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
-    val f64Model = when (val result = convertMechanismModelToFlt64(model)) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    if (f64Model is QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>) {
-        return solve(f64Model)
-    }
-    return Failed(ErrorCode.IllegalArgument, "QuadraticSolver requires QuadraticMechanismModel, got ${f64Model::class.simpleName}")
-}
-
-@kotlin.Deprecated("Use solve(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptions(
-    model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions
-): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-    return dump(model).use {
-        solveWithOptions(it, options)
     }
 }
 
@@ -392,90 +246,6 @@ suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
-    model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig
-): Ret<SolverOutput> {
-    return dump(model).use {
-        solveWithOptionsAndIIS(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
-    model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
-    return dump(model).use {
-        solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptionsAndIIS(
-    model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig,
-    registrationStatusCallBack: RegistrationStatusCallBack? = null,
-    dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<SolverOutput> {
-    val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val actualDumpingStatusCallBack = dumpingStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = false)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = actualRegistrationStatusCallBack,
-        dumpingStatusCallBack = actualDumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptionsAndIIS(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractLinearSolver.solveWithOptionsAndIISForSolutionPool(
-    model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig,
-    registrationStatusCallBack: RegistrationStatusCallBack? = null,
-    dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
-    val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val actualDumpingStatusCallBack = dumpingStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = false)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = actualRegistrationStatusCallBack,
-        dumpingStatusCallBack = actualDumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
-    }
-}
-
 @Suppress("DEPRECATION")
 suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
     model: QuadraticTetradModelView,
@@ -630,90 +400,6 @@ suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
     }
 }
 
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
-    model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig
-): Ret<SolverOutput> {
-    return dump(model).use {
-        solveWithOptionsAndIIS(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
-    model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
-    return dump(model).use {
-        solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptionsAndIIS(
-    model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig,
-    registrationStatusCallBack: RegistrationStatusCallBack? = null,
-    dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<SolverOutput> {
-    val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val actualDumpingStatusCallBack = dumpingStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = true)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = actualRegistrationStatusCallBack,
-        dumpingStatusCallBack = actualDumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptionsAndIIS(it, options, iisConfig)
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-suspend fun AbstractQuadraticSolver.solveWithOptionsAndIISForSolutionPool(
-    model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    iisConfig: IISConfig,
-    registrationStatusCallBack: RegistrationStatusCallBack? = null,
-    dumpingStatusCallBack: MechanismModelDumpingStatusCallBack? = null
-): Ret<Pair<SolverOutput, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>> {
-    val actualRegistrationStatusCallBack = registrationStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name)) }
-    }
-    val actualDumpingStatusCallBack = dumpingStatusCallBack ?: options.modelBuildingStatusCallBack?.let { callback ->
-        { status -> callback(status.toModelBuildingStatus(model.name, quadratic = true)) }
-    }
-
-    val mechanismModel = when (val result = dump(
-        model = model,
-        registrationStatusCallBack = actualRegistrationStatusCallBack,
-        dumpingStatusCallBack = actualDumpingStatusCallBack
-    )) {
-        is Ok -> result.value
-        is Failed -> return Failed(result.error)
-        is Fatal -> return Fatal(result.errors)
-    }
-    return mechanismModel.use {
-        solveWithOptionsAndIISForSolutionPool(it, options, iisConfig)
-    }
-}
-
 private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<List<fuookami.ospf.kotlin.math.algebra.number.Flt64>>>>): Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
     return when (result) {
         is Ok -> {
@@ -730,36 +416,6 @@ private fun unwrapSolution(result: Ret<Pair<FeasibleSolverOutput<fuookami.ospf.k
     }
 }
 
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-fun AbstractLinearSolver.solveAsync(
-    model: LinearMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return coreSolverAsyncScope.future {
-        val result = solveWithOptions(model, options)
-        callBack?.invoke(result)
-        result
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-fun AbstractLinearSolver.solveAsync(
-    model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return coreSolverAsyncScope.future {
-        val result = solveWithOptions(model, options)
-        callBack?.invoke(result)
-        result
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
 fun AbstractLinearSolver.solveAsync(
     model: LinearTriadModelView,
     options: SolveOptions,
@@ -772,36 +428,6 @@ fun AbstractLinearSolver.solveAsync(
     }
 }
 
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-fun AbstractQuadraticSolver.solveAsync(
-    model: QuadraticMetaModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return coreSolverAsyncScope.future {
-        val result = solveWithOptions(model, options)
-        callBack?.invoke(result)
-        result
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
-fun AbstractQuadraticSolver.solveAsync(
-    model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    options: SolveOptions,
-    callBack: ((Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>) -> Unit)? = null
-): CompletableFuture<Ret<FeasibleSolverOutput<fuookami.ospf.kotlin.math.algebra.number.Flt64>>> {
-    return coreSolverAsyncScope.future {
-        val result = solveWithOptions(model, options)
-        callBack?.invoke(result)
-        result
-    }
-}
-
-@kotlin.Deprecated("Use solveV(model, converter) for V-typed results. This Flt64-specific overload will be removed in a future version.", level = DeprecationLevel.WARNING)
-@Suppress("DEPRECATION")
 fun AbstractQuadraticSolver.solveAsync(
     model: QuadraticTetradModelView,
     options: SolveOptions,
@@ -817,7 +443,6 @@ fun AbstractQuadraticSolver.solveAsync(
 // ========== V-generic primary solve extensions ==========
 // These are the recommended V-generic entry points. They delegate to solveV which
 // contains the full pipeline (validate -> dump -> solve -> convert).
-// Flt64 solve() overloads above are adapter boundary for backward compatibility.
 
 suspend fun <V> AbstractLinearSolver.solve(
     model: LinearTriadModelView,
@@ -826,15 +451,6 @@ suspend fun <V> AbstractLinearSolver.solve(
     return solveV(model, converter)
 }
 
-@Suppress("DEPRECATION")
-suspend fun <V> AbstractLinearSolver.solve(
-    model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}
-
-@Suppress("DEPRECATION")
 suspend fun <V> AbstractLinearSolver.solve(
     model: MechanismModel<V>,
     converter: IntoValue<V>
@@ -849,15 +465,6 @@ suspend fun <V> AbstractQuadraticSolver.solve(
     return solveV(model, converter)
 }
 
-@Suppress("DEPRECATION")
-suspend fun <V> AbstractQuadraticSolver.solve(
-    model: QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}
-
-@Suppress("DEPRECATION")
 suspend fun <V> AbstractQuadraticSolver.solve(
     model: MechanismModel<V>,
     converter: IntoValue<V>

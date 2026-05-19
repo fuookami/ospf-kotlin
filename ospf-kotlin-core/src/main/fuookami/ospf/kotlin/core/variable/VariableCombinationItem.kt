@@ -267,4 +267,3 @@ class QuantityURealVariable2(name: String = "", shape: Shape2, unit: PhysicalUni
 class QuantityURealVariable3(name: String = "", shape: Shape3, unit: PhysicalUnit) : QuantityVariableCombination3<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class QuantityURealVariable4(name: String = "", shape: Shape4, unit: PhysicalUnit) : QuantityVariableCombination4<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
 class DynQuantityURealVariable(name: String = "", shape: DynShape, unit: PhysicalUnit) : DynQuantityVariableCombination<Flt64, UContinuous>(UContinuous, name, Flt64, shape, unit)
-

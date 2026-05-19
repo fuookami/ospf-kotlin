@@ -32,14 +32,6 @@ import fuookami.ospf.kotlin.utils.functional.Ok
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractQuadraticMechanismModel
 import fuookami.ospf.kotlin.core.token.AbstractTokenList
-import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Quadratic linear function: wraps a QuadraticPolynomial as a quadratic intermediate symbol.
@@ -238,11 +230,5 @@ class QuadraticLinearFunction<V>(
             displayName: String? = null
         ): QuadraticLinearFunction<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> =
             QuadraticLinearFunction(polynomial, converter, name, displayName)
-
-        operator fun invoke(
-            polynomial: QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            name: String,
-            displayName: String? = null
-        ): QuadraticLinearFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = QuadraticLinearFunction(polynomial, flt64Converter, name, displayName)
     }
 }

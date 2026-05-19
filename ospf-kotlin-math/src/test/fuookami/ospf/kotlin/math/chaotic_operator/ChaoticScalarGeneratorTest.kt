@@ -40,4 +40,3 @@ class ChaoticScalarGeneratorTest {
         assertTrue(generator.x eq Flt64(-1.0))
     }
 }
-

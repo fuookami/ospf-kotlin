@@ -1,4 +1,4 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
@@ -9,18 +9,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.ok
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
-
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
 
 /**
  * Semi-continuous variable function.
@@ -67,19 +59,5 @@ class SemiFunction<V>(
             displayName: String? = null
         ): SemiFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             SemiFunction(lb, ub, converter, name, displayName)
-
-        @kotlin.Deprecated("Use the generic V-typed invoke with an IntoValue<V> converter.", level = DeprecationLevel.WARNING)
-        operator fun invoke(
-            lb: Flt64 = Flt64.zero,
-            ub: Flt64 = Flt64(1e6),
-            name: String = "semi",
-            displayName: String? = null
-        ): SemiFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = SemiFunction(
-            lb = lb,
-            ub = ub,
-            converter = flt64Converter,
-            name = name,
-            displayName = displayName
-        )
     }
 }

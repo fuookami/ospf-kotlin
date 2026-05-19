@@ -154,4 +154,3 @@ operator fun <M : Model<*>> PipelineList<M>.invoke(model: M): Try {
 typealias CGPipelineList<Args, Model, Map> = List<CGPipeline<Args, Model, Map>>
 typealias HAPipelineList<M> = List<HAPipeline<M>>
 
-

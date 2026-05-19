@@ -19,8 +19,6 @@ class GenericSolverOutputConversionTest {
         assertCase(GenericNumberCases.fltX)
         assertCase(GenericNumberCases.rtnX)
     }
-
-    @Suppress("DEPRECATION")
     private fun <V> assertCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
         val source = FeasibleSolverOutput(
@@ -42,8 +40,8 @@ class GenericSolverOutputConversionTest {
         assertEquals(expectedPossibleBestObjValue, converted.possibleBestObjValue, "${numberCase.name}: possibleBestObjValue mismatch")
         assertEquals(expectedBestBoundValue, converted.bestBoundValue, "${numberCase.name}: bestBoundValue mismatch")
         assertEquals(expectedSolution, converted.solution, "${numberCase.name}: solution conversion mismatch")
-        assertEquals(source.obj, converted.obj, "${numberCase.name}: legacy obj should stay Flt64")
-        assertEquals(source.possibleBestObj, converted.possibleBestObj, "${numberCase.name}: legacy possibleBestObj should stay Flt64")
-        assertEquals(source.bestBound, converted.bestBound, "${numberCase.name}: legacy bestBound should stay Flt64")
+        assertEquals(source.obj, converted.obj, "${numberCase.name}: solver-boundary obj should stay Flt64")
+        assertEquals(source.possibleBestObj, converted.possibleBestObj, "${numberCase.name}: solver-boundary possibleBestObj should stay Flt64")
+        assertEquals(source.bestBound, converted.bestBound, "${numberCase.name}: solver-boundary bestBound should stay Flt64")
     }
 }

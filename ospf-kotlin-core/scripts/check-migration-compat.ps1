@@ -133,13 +133,13 @@ if ($WithSolverIntegration) {
 }
 
 Invoke-GuardStep -Name "Static guards: P6 baseline mode" -GuardMode "P6"
-Invoke-GuardStep -Name "Static guards: P7 whitelist mode (includes P10/P11/P12/P14/P16 guards)" -GuardMode "P7"
+Invoke-GuardStep -Name "Static guards: P7 whitelist mode (includes P10/P11/P12/P14/P16/P17 guards)" -GuardMode "P7"
 
 Write-Host ""
 if ($failedSteps.Count -eq 0) {
-    Write-Host "All migration compatibility checks passed." -ForegroundColor Green
+    Write-Host "All migration compatibility-free checks passed." -ForegroundColor Green
 } else {
-    Write-Host "Migration compatibility checks failed in steps:" -ForegroundColor Red
+    Write-Host "Migration compatibility-free checks failed in steps:" -ForegroundColor Red
     foreach ($step in $failedSteps) {
         Write-Host "  - $step" -ForegroundColor Red
     }

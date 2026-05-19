@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -9,6 +9,8 @@ import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 import kotlin.test.assertTrue
 import kotlin.test.assertFalse
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.point3
 
 class TriangulationTest {
     // ============================================================================
@@ -359,4 +361,3 @@ class TriangulationTest {
         assertTrue(result.triangles.all { !it.illegal })
     }
 }
-

@@ -22,7 +22,7 @@ import kotlin.random.nextULong
  * The `resultFlt64` accessor provides the raw Flt64? view for solver-internal use.
  *
  * Dual-view pattern:
- *   - Flt64 view: `resultFlt64` (solver-compatible, internal)
+ *   - Flt64 view: `resultFlt64` (solver-boundary, internal)
  *   - V-typed view: `result` (type-safe, public API)
  */
 data class Token<V : RealNumber<V>>(
@@ -40,7 +40,7 @@ data class Token<V : RealNumber<V>>(
             refreshCallbacks.values.forEach { it(value != null) }
         }
 
-    /** Flt64 view of result (solver-compatible, internal). */
+    /** Flt64 view of result (solver-boundary, internal). */
     val resultFlt64: Flt64? by ::_result
     val doubleResult get() = _result?.toSolverDouble("token.result")
 
@@ -62,13 +62,13 @@ data class Token<V : RealNumber<V>>(
         _result = value.toFlt64()
     }
 
-    /** V-typed view of result via explicit IntoValue<V> conversion. Kept for backward compatibility. */
+    /** Explicit V-typed result conversion through the supplied IntoValue<V>. */
     fun resultAsV(converter: IntoValue<V>): V? = _result?.let { converter.intoValue(it) }
 
     val name by variable::name
     val type by variable::type
 
-    /** Flt64 view of range (solver-compatible). */
+    /** Flt64 view of range (solver-boundary). */
     val range: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?
         get() = if (lowerBound != null && upperBound != null) {
             ValueRange(
@@ -90,7 +90,7 @@ data class Token<V : RealNumber<V>>(
         return r.contains(converter.fromValue(value))
     }
 
-    /** Flt64 view of bounds (solver-compatible). */
+    /** Flt64 view of bounds (solver-boundary). */
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound
 
@@ -138,4 +138,3 @@ data class Token<V : RealNumber<V>>(
 
     override fun toString() = "$name: ${result ?: "?"}"
 }
-

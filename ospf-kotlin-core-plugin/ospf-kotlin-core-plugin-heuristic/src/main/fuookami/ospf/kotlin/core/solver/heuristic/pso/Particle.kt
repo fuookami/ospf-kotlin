@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.heuristic.pso
+package fuookami.ospf.kotlin.core.solver.heuristic.pso
 
 import fuookami.ospf.kotlin.core.solver.heuristic.AbstractHeuristicPolicy
 import fuookami.ospf.kotlin.core.solver.heuristic.Individual
@@ -90,6 +90,5 @@ data class Particle<V>(
         }
     }
 }
-
 
 

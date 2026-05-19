@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.core_demo
+package fuookami.ospf.kotlin.example.core_demo
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.utils.error.Error
 import fuookami.ospf.kotlin.multiarray.*
 import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -23,7 +23,10 @@ import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.config.*
 import fuookami.ospf.kotlin.core.solver.scip.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.geometry.Point as GeometryPoint
+import fuookami.ospf.kotlin.math.geometry.point2
 
 private val flt64Converter = object : IntoValue<Flt64> {
         override fun intoValue(value: Flt64) = value
@@ -38,7 +41,7 @@ private val flt64Converter = object : IntoValue<Flt64> {
 data object Demo17 {
     sealed interface Node : Indexed {
         val demand: UInt64 get() = UInt64.zero
-        val position: Point2
+        val position: GeometryPoint<Dim2, Flt64>
         val timeWindow: ValueRange<UInt64>
 
         fun distance(other: Node): Flt64 {
@@ -55,17 +58,17 @@ data object Demo17 {
     }
 
     data class OriginNode(
-        override val position: Point2,
+        override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
     ) : Node, AutoIndexed(Node::class)
 
     data class EndNode(
-        override val position: Point2,
+        override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>
     ) : Node, AutoIndexed(Node::class)
 
     data class DemandNode(
-        override val position: Point2,
+        override val position: GeometryPoint<Dim2, Flt64>,
         override val timeWindow: ValueRange<UInt64>,
         override val demand: UInt64,
         val serviceTime: UInt64
@@ -77,108 +80,108 @@ data object Demo17 {
     ) : AutoIndexed(Vehicle::class)
 
     val nodes: List<Node> = listOf(
-        OriginNode(Point2(Flt64(40), Flt64(50)), ValueRange(UInt64(0), UInt64(1236)).value!!),
-        DemandNode(Point2(Flt64(45), Flt64(68)), ValueRange(UInt64(912), UInt64(967)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(45), Flt64(70)), ValueRange(UInt64(825), UInt64(870)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(42), Flt64(66)), ValueRange(UInt64(65), UInt64(146)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(42), Flt64(68)), ValueRange(UInt64(727), UInt64(782)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(42), Flt64(65)), ValueRange(UInt64(15), UInt64(67)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(40), Flt64(69)), ValueRange(UInt64(621), UInt64(702)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(40), Flt64(66)), ValueRange(UInt64(170), UInt64(225)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(38), Flt64(68)), ValueRange(UInt64(255), UInt64(324)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(38), Flt64(70)), ValueRange(UInt64(534), UInt64(605)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(35), Flt64(66)), ValueRange(UInt64(357), UInt64(410)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(35), Flt64(69)), ValueRange(UInt64(448), UInt64(505)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(85)), ValueRange(UInt64(652), UInt64(721)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(22), Flt64(75)), ValueRange(UInt64(30), UInt64(92)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(22), Flt64(85)), ValueRange(UInt64(567), UInt64(620)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(20), Flt64(80)), ValueRange(UInt64(384), UInt64(429)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(20), Flt64(85)), ValueRange(UInt64(475), UInt64(528)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(18), Flt64(75)), ValueRange(UInt64(99), UInt64(148)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(15), Flt64(75)), ValueRange(UInt64(179), UInt64(254)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(15), Flt64(80)), ValueRange(UInt64(278), UInt64(345)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(30), Flt64(50)), ValueRange(UInt64(10), UInt64(73)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(30), Flt64(52)), ValueRange(UInt64(914), UInt64(965)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(28), Flt64(52)), ValueRange(UInt64(812), UInt64(883)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(28), Flt64(55)), ValueRange(UInt64(732), UInt64(777)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(50)), ValueRange(UInt64(65), UInt64(144)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(52)), ValueRange(UInt64(169), UInt64(224)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(55)), ValueRange(UInt64(622), UInt64(701)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(23), Flt64(52)), ValueRange(UInt64(261), UInt64(316)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(23), Flt64(55)), ValueRange(UInt64(546), UInt64(593)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(20), Flt64(50)), ValueRange(UInt64(358), UInt64(405)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(20), Flt64(55)), ValueRange(UInt64(449), UInt64(504)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(10), Flt64(35)), ValueRange(UInt64(200), UInt64(237)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(10), Flt64(40)), ValueRange(UInt64(31), UInt64(100)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(8), Flt64(40)), ValueRange(UInt64(87), UInt64(158)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(8), Flt64(45)), ValueRange(UInt64(751), UInt64(816)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(5), Flt64(35)), ValueRange(UInt64(283), UInt64(344)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(5), Flt64(45)), ValueRange(UInt64(665), UInt64(716)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(2), Flt64(40)), ValueRange(UInt64(383), UInt64(434)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(0), Flt64(40)), ValueRange(UInt64(479), UInt64(522)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(0), Flt64(45)), ValueRange(UInt64(567), UInt64(624)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(35), Flt64(30)), ValueRange(UInt64(264), UInt64(321)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(35), Flt64(32)), ValueRange(UInt64(166), UInt64(235)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(33), Flt64(32)), ValueRange(UInt64(68), UInt64(149)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(33), Flt64(35)), ValueRange(UInt64(16), UInt64(80)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(32), Flt64(30)), ValueRange(UInt64(359), UInt64(412)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(30), Flt64(30)), ValueRange(UInt64(541), UInt64(600)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(30), Flt64(32)), ValueRange(UInt64(448), UInt64(509)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(30), Flt64(35)), ValueRange(UInt64(1054), UInt64(1127)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(28), Flt64(30)), ValueRange(UInt64(632), UInt64(693)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(28), Flt64(35)), ValueRange(UInt64(1001), UInt64(1066)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(26), Flt64(32)), ValueRange(UInt64(815), UInt64(880)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(30)), ValueRange(UInt64(725), UInt64(786)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(25), Flt64(35)), ValueRange(UInt64(912), UInt64(969)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(44), Flt64(5)), ValueRange(UInt64(286), UInt64(347)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(42), Flt64(10)), ValueRange(UInt64(186), UInt64(257)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(42), Flt64(15)), ValueRange(UInt64(95), UInt64(158)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(40), Flt64(5)), ValueRange(UInt64(385), UInt64(436)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(40), Flt64(15)), ValueRange(UInt64(35), UInt64(87)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(38), Flt64(5)), ValueRange(UInt64(471), UInt64(534)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(38), Flt64(15)), ValueRange(UInt64(651), UInt64(740)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(35), Flt64(5)), ValueRange(UInt64(562), UInt64(629)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(50), Flt64(30)), ValueRange(UInt64(531), UInt64(610)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(50), Flt64(35)), ValueRange(UInt64(262), UInt64(317)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(50), Flt64(40)), ValueRange(UInt64(171), UInt64(218)).value!!, UInt64(50), UInt64(90)),
-        DemandNode(Point2(Flt64(48), Flt64(30)), ValueRange(UInt64(632), UInt64(693)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(48), Flt64(40)), ValueRange(UInt64(76), UInt64(129)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(47), Flt64(35)), ValueRange(UInt64(826), UInt64(875)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(47), Flt64(40)), ValueRange(UInt64(12), UInt64(77)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(45), Flt64(30)), ValueRange(UInt64(734), UInt64(777)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(45), Flt64(35)), ValueRange(UInt64(916), UInt64(969)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(95), Flt64(30)), ValueRange(UInt64(387), UInt64(456)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(95), Flt64(35)), ValueRange(UInt64(293), UInt64(360)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(53), Flt64(30)), ValueRange(UInt64(450), UInt64(505)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(92), Flt64(30)), ValueRange(UInt64(478), UInt64(551)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(53), Flt64(35)), ValueRange(UInt64(353), UInt64(412)).value!!, UInt64(50), UInt64(90)),
-        DemandNode(Point2(Flt64(45), Flt64(65)), ValueRange(UInt64(997), UInt64(1068)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(90), Flt64(35)), ValueRange(UInt64(203), UInt64(260)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(88), Flt64(30)), ValueRange(UInt64(574), UInt64(643)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(88), Flt64(35)), ValueRange(UInt64(109), UInt64(170)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(87), Flt64(30)), ValueRange(UInt64(668), UInt64(731)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(85), Flt64(25)), ValueRange(UInt64(769), UInt64(820)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(85), Flt64(35)), ValueRange(UInt64(47), UInt64(124)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(75), Flt64(55)), ValueRange(UInt64(369), UInt64(420)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(72), Flt64(55)), ValueRange(UInt64(265), UInt64(338)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(70), Flt64(58)), ValueRange(UInt64(458), UInt64(523)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(68), Flt64(60)), ValueRange(UInt64(555), UInt64(612)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(66), Flt64(55)), ValueRange(UInt64(173), UInt64(238)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(65), Flt64(55)), ValueRange(UInt64(85), UInt64(144)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(65), Flt64(60)), ValueRange(UInt64(645), UInt64(708)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(63), Flt64(58)), ValueRange(UInt64(737), UInt64(802)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(60), Flt64(55)), ValueRange(UInt64(20), UInt64(84)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(60), Flt64(60)), ValueRange(UInt64(836), UInt64(889)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(67), Flt64(85)), ValueRange(UInt64(368), UInt64(441)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(65), Flt64(85)), ValueRange(UInt64(475), UInt64(518)).value!!, UInt64(40), UInt64(90)),
-        DemandNode(Point2(Flt64(65), Flt64(82)), ValueRange(UInt64(285), UInt64(336)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(62), Flt64(80)), ValueRange(UInt64(196), UInt64(239)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(60), Flt64(80)), ValueRange(UInt64(95), UInt64(156)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(60), Flt64(85)), ValueRange(UInt64(561), UInt64(622)).value!!, UInt64(30), UInt64(90)),
-        DemandNode(Point2(Flt64(58), Flt64(75)), ValueRange(UInt64(30), UInt64(84)).value!!, UInt64(20), UInt64(90)),
-        DemandNode(Point2(Flt64(55), Flt64(80)), ValueRange(UInt64(743), UInt64(820)).value!!, UInt64(10), UInt64(90)),
-        DemandNode(Point2(Flt64(55), Flt64(85)), ValueRange(UInt64(647), UInt64(726)).value!!, UInt64(20), UInt64(90)),
-        EndNode(Point2(Flt64(40), Flt64(50)), ValueRange(UInt64(0), UInt64(1236)).value!!)
+        OriginNode(point2(Flt64(40), Flt64(50)), ValueRange(UInt64(0), UInt64(1236)).value!!),
+        DemandNode(point2(Flt64(45), Flt64(68)), ValueRange(UInt64(912), UInt64(967)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(45), Flt64(70)), ValueRange(UInt64(825), UInt64(870)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(42), Flt64(66)), ValueRange(UInt64(65), UInt64(146)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(42), Flt64(68)), ValueRange(UInt64(727), UInt64(782)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(42), Flt64(65)), ValueRange(UInt64(15), UInt64(67)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(40), Flt64(69)), ValueRange(UInt64(621), UInt64(702)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(40), Flt64(66)), ValueRange(UInt64(170), UInt64(225)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(38), Flt64(68)), ValueRange(UInt64(255), UInt64(324)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(38), Flt64(70)), ValueRange(UInt64(534), UInt64(605)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(35), Flt64(66)), ValueRange(UInt64(357), UInt64(410)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(35), Flt64(69)), ValueRange(UInt64(448), UInt64(505)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(85)), ValueRange(UInt64(652), UInt64(721)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(22), Flt64(75)), ValueRange(UInt64(30), UInt64(92)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(22), Flt64(85)), ValueRange(UInt64(567), UInt64(620)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(20), Flt64(80)), ValueRange(UInt64(384), UInt64(429)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(20), Flt64(85)), ValueRange(UInt64(475), UInt64(528)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(18), Flt64(75)), ValueRange(UInt64(99), UInt64(148)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(15), Flt64(75)), ValueRange(UInt64(179), UInt64(254)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(15), Flt64(80)), ValueRange(UInt64(278), UInt64(345)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(30), Flt64(50)), ValueRange(UInt64(10), UInt64(73)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(30), Flt64(52)), ValueRange(UInt64(914), UInt64(965)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(28), Flt64(52)), ValueRange(UInt64(812), UInt64(883)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(28), Flt64(55)), ValueRange(UInt64(732), UInt64(777)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(50)), ValueRange(UInt64(65), UInt64(144)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(52)), ValueRange(UInt64(169), UInt64(224)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(55)), ValueRange(UInt64(622), UInt64(701)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(23), Flt64(52)), ValueRange(UInt64(261), UInt64(316)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(23), Flt64(55)), ValueRange(UInt64(546), UInt64(593)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(20), Flt64(50)), ValueRange(UInt64(358), UInt64(405)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(20), Flt64(55)), ValueRange(UInt64(449), UInt64(504)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(10), Flt64(35)), ValueRange(UInt64(200), UInt64(237)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(10), Flt64(40)), ValueRange(UInt64(31), UInt64(100)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(8), Flt64(40)), ValueRange(UInt64(87), UInt64(158)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(8), Flt64(45)), ValueRange(UInt64(751), UInt64(816)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(5), Flt64(35)), ValueRange(UInt64(283), UInt64(344)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(5), Flt64(45)), ValueRange(UInt64(665), UInt64(716)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(2), Flt64(40)), ValueRange(UInt64(383), UInt64(434)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(0), Flt64(40)), ValueRange(UInt64(479), UInt64(522)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(0), Flt64(45)), ValueRange(UInt64(567), UInt64(624)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(35), Flt64(30)), ValueRange(UInt64(264), UInt64(321)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(35), Flt64(32)), ValueRange(UInt64(166), UInt64(235)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(33), Flt64(32)), ValueRange(UInt64(68), UInt64(149)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(33), Flt64(35)), ValueRange(UInt64(16), UInt64(80)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(32), Flt64(30)), ValueRange(UInt64(359), UInt64(412)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(30), Flt64(30)), ValueRange(UInt64(541), UInt64(600)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(30), Flt64(32)), ValueRange(UInt64(448), UInt64(509)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(30), Flt64(35)), ValueRange(UInt64(1054), UInt64(1127)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(28), Flt64(30)), ValueRange(UInt64(632), UInt64(693)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(28), Flt64(35)), ValueRange(UInt64(1001), UInt64(1066)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(26), Flt64(32)), ValueRange(UInt64(815), UInt64(880)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(30)), ValueRange(UInt64(725), UInt64(786)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(25), Flt64(35)), ValueRange(UInt64(912), UInt64(969)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(44), Flt64(5)), ValueRange(UInt64(286), UInt64(347)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(42), Flt64(10)), ValueRange(UInt64(186), UInt64(257)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(42), Flt64(15)), ValueRange(UInt64(95), UInt64(158)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(40), Flt64(5)), ValueRange(UInt64(385), UInt64(436)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(40), Flt64(15)), ValueRange(UInt64(35), UInt64(87)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(38), Flt64(5)), ValueRange(UInt64(471), UInt64(534)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(38), Flt64(15)), ValueRange(UInt64(651), UInt64(740)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(35), Flt64(5)), ValueRange(UInt64(562), UInt64(629)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(50), Flt64(30)), ValueRange(UInt64(531), UInt64(610)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(50), Flt64(35)), ValueRange(UInt64(262), UInt64(317)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(50), Flt64(40)), ValueRange(UInt64(171), UInt64(218)).value!!, UInt64(50), UInt64(90)),
+        DemandNode(point2(Flt64(48), Flt64(30)), ValueRange(UInt64(632), UInt64(693)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(48), Flt64(40)), ValueRange(UInt64(76), UInt64(129)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(47), Flt64(35)), ValueRange(UInt64(826), UInt64(875)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(47), Flt64(40)), ValueRange(UInt64(12), UInt64(77)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(45), Flt64(30)), ValueRange(UInt64(734), UInt64(777)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(45), Flt64(35)), ValueRange(UInt64(916), UInt64(969)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(95), Flt64(30)), ValueRange(UInt64(387), UInt64(456)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(95), Flt64(35)), ValueRange(UInt64(293), UInt64(360)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(53), Flt64(30)), ValueRange(UInt64(450), UInt64(505)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(92), Flt64(30)), ValueRange(UInt64(478), UInt64(551)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(53), Flt64(35)), ValueRange(UInt64(353), UInt64(412)).value!!, UInt64(50), UInt64(90)),
+        DemandNode(point2(Flt64(45), Flt64(65)), ValueRange(UInt64(997), UInt64(1068)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(90), Flt64(35)), ValueRange(UInt64(203), UInt64(260)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(88), Flt64(30)), ValueRange(UInt64(574), UInt64(643)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(88), Flt64(35)), ValueRange(UInt64(109), UInt64(170)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(87), Flt64(30)), ValueRange(UInt64(668), UInt64(731)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(85), Flt64(25)), ValueRange(UInt64(769), UInt64(820)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(85), Flt64(35)), ValueRange(UInt64(47), UInt64(124)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(75), Flt64(55)), ValueRange(UInt64(369), UInt64(420)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(72), Flt64(55)), ValueRange(UInt64(265), UInt64(338)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(70), Flt64(58)), ValueRange(UInt64(458), UInt64(523)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(68), Flt64(60)), ValueRange(UInt64(555), UInt64(612)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(66), Flt64(55)), ValueRange(UInt64(173), UInt64(238)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(65), Flt64(55)), ValueRange(UInt64(85), UInt64(144)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(65), Flt64(60)), ValueRange(UInt64(645), UInt64(708)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(63), Flt64(58)), ValueRange(UInt64(737), UInt64(802)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(60), Flt64(55)), ValueRange(UInt64(20), UInt64(84)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(60), Flt64(60)), ValueRange(UInt64(836), UInt64(889)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(67), Flt64(85)), ValueRange(UInt64(368), UInt64(441)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(65), Flt64(85)), ValueRange(UInt64(475), UInt64(518)).value!!, UInt64(40), UInt64(90)),
+        DemandNode(point2(Flt64(65), Flt64(82)), ValueRange(UInt64(285), UInt64(336)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(62), Flt64(80)), ValueRange(UInt64(196), UInt64(239)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(60), Flt64(80)), ValueRange(UInt64(95), UInt64(156)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(60), Flt64(85)), ValueRange(UInt64(561), UInt64(622)).value!!, UInt64(30), UInt64(90)),
+        DemandNode(point2(Flt64(58), Flt64(75)), ValueRange(UInt64(30), UInt64(84)).value!!, UInt64(20), UInt64(90)),
+        DemandNode(point2(Flt64(55), Flt64(80)), ValueRange(UInt64(743), UInt64(820)).value!!, UInt64(10), UInt64(90)),
+        DemandNode(point2(Flt64(55), Flt64(85)), ValueRange(UInt64(647), UInt64(726)).value!!, UInt64(20), UInt64(90)),
+        EndNode(point2(Flt64(40), Flt64(50)), ValueRange(UInt64(0), UInt64(1236)).value!!)
     )
 
     val vehicles = (0 until 25).map {
@@ -457,7 +460,7 @@ data object Demo17 {
 
     private suspend fun solve(): Try {
         val solver = ScipLinearSolver(config = SolverConfig(time = 300.seconds))
-        when (val ret = solver(metaModel)) {
+        when (val ret = solveLinearMetaModel(solver, metaModel)) {
             is Ok -> {
                 metaModel.tokens.setSolution(ret.value.solution)
             }
@@ -498,7 +501,6 @@ data object Demo17 {
         return ok
     }
 }
-
 
 
 

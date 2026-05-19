@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.core.model.callback
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -19,7 +20,8 @@ class MultiObjectCallBackModelTest {
         val location1 = MultiObjectLocation(priority = UInt64(10), weight = Flt64(2))
         val location2 = MultiObjectLocation(priority = UInt64(20), weight = Flt64(3))
         val model = MultiObjectCallBackModel(
-            objectiveLocation = listOf(location1, location2)
+            objectiveLocation = listOf(location1, location2),
+            converter = IntoValue.Identity
         )
 
         val value = model.objectiveValue(
@@ -40,7 +42,8 @@ class MultiObjectCallBackModelTest {
             objectiveLocation = listOf(
                 MultiObjectLocation(priority = UInt64.zero, weight = Flt64.one),
                 MultiObjectLocation(priority = UInt64.one, weight = Flt64.one)
-            )
+            ),
+            converter = IntoValue.Identity
         )
 
         assertTrue(model.compareObjective(listOf(Flt64.one, Flt64(100)), listOf(Flt64(2), Flt64.zero)) is Order.Less)
@@ -54,7 +57,8 @@ class MultiObjectCallBackModelTest {
             objectiveLocation = listOf(
                 MultiObjectLocation(priority = UInt64.zero, weight = Flt64.one),
                 MultiObjectLocation(priority = UInt64.one, weight = Flt64.one)
-            )
+            ),
+            converter = IntoValue.Identity
         )
 
         assertTrue(model.compareObjective(listOf(Flt64(10), Flt64.zero), listOf(Flt64(8), Flt64(100))) is Order.Less)
@@ -66,7 +70,8 @@ class MultiObjectCallBackModelTest {
         val location = MultiObjectLocation(priority = UInt64.zero, weight = Flt64.one)
         val model = MultiObjectCallBackModel(
             objectCategory = ObjectCategory.Minimum,
-            objectiveLocation = listOf(location)
+            objectiveLocation = listOf(location),
+            converter = IntoValue.Identity
         )
 
         model.addObject(
@@ -82,7 +87,10 @@ class MultiObjectCallBackModelTest {
 
     @Test
     fun addConstraintShouldAcceptTypedLinearConstraintInput() {
-        val model = MultiObjectCallBackModel()
+        val model = MultiObjectCallBackModel(
+            objectiveLocation = listOf(MultiObjectLocation(priority = UInt64.zero, weight = Flt64.one)),
+            converter = IntoValue.Identity
+        )
         val before = model.constraints.size
 
         model.addConstraint(

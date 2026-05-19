@@ -1,8 +1,10 @@
-﻿package fuookami.ospf.kotlin.math.geometry
+package fuookami.ospf.kotlin.math.geometry
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertTrue
+import fuookami.ospf.kotlin.math.geometry.point2
+import fuookami.ospf.kotlin.math.geometry.vector2
 
 class GeometryPrimitiveTest {
     @Test

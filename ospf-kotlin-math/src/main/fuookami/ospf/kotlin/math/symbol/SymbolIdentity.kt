@@ -180,4 +180,3 @@ val defaultStableSymbolComparator: Comparator<Symbol> = Comparator { lhs, rhs ->
         lhs.requireStableId().value.compareTo(rhs.requireStableId().value)
     }
 }
-

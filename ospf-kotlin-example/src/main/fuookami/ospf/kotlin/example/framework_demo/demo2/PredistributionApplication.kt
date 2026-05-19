@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.model.intermediate.*
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
+import fuookami.ospf.kotlin.example.solveLinearMetaModel
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.infrastructure.dto.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.*
@@ -385,8 +386,9 @@ private class PredistributionAlgorithmImpl {
             )
         )
         var gap: Flt64? = null
-        val modelSolution = when (val result = solver(
-            model = model,
+        val modelSolution = when (val result = solveLinearMetaModel(
+            solver = solver,
+            metaModel = model,
             registrationStatusCallBack = { status ->
                 runningHeartBeatCallBack?.let {
                     val runTime = kotlinx.datetime.Instant.fromEpochMilliseconds(System.currentTimeMillis()) - startTime
@@ -610,7 +612,6 @@ private class PredistributionAlgorithmImpl {
         TODO("not implemented yet")
     }
 }
-
 
 
 

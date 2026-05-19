@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
+package fuookami.ospf.kotlin.example.framework_demo.demo1.bandwidth_context
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -38,7 +38,6 @@ class Aggregation(
         return ok
     }
 }
-
 
 
 

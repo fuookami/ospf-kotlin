@@ -66,4 +66,3 @@ class GenericTokenBridgeTest {
         value: V
     ): Flt64 where V : RealNumber<V>, V : NumberField<V> = numberCase.converter.fromValue(value)
 }
-

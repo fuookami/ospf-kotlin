@@ -140,8 +140,6 @@ data object GenericNumberDemo {
                 constant = numberCase.converter.zero
             )
             check(model.minimize(objective) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismResult = LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             check(mechanismResult is Ok)
             val mechanismModel = mechanismResult.value
@@ -199,8 +197,6 @@ data object GenericNumberDemo {
                 constant = numberCase.converter.zero
             )
             check(model.minimize(objective) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismResult = QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false)
             check(mechanismResult is Ok)
             val mechanismModel = mechanismResult.value

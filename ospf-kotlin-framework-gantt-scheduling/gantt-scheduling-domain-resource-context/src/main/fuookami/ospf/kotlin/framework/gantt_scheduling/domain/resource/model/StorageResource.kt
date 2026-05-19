@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.resource.model
 
@@ -751,7 +751,6 @@ class BunchSchedulingStorageResourceUsage<
         return ok
     }
 }
-
 
 
 

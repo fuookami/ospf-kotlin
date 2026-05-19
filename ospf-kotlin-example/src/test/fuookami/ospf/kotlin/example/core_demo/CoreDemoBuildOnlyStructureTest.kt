@@ -6,9 +6,12 @@ import fuookami.ospf.kotlin.core.variable.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
+import fuookami.ospf.kotlin.example.exampleAbsoluteSlack
+import fuookami.ospf.kotlin.example.flt64Constant
+import fuookami.ospf.kotlin.example.flt64Linear
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
@@ -400,20 +403,20 @@ class CoreDemoBuildOnlyStructureTest {
             )
 
             val dx = LinearIntermediateSymbols1<Flt64>("dx", Shape1(settlements.size)) { i, _ ->
-                SlackFunction(
+                exampleAbsoluteSlack(
                     type = UInteger,
-                    x = x,
-                    y = settlements[i].first,
+                    x = flt64Linear(x),
+                    y = flt64Constant(settlements[i].first),
                     name = "dx_$i"
                 )
             }
             model.add(dx)
 
             val dy = LinearIntermediateSymbols1<Flt64>("dy", Shape1(settlements.size)) { i, _ ->
-                SlackFunction(
+                exampleAbsoluteSlack(
                     type = UInteger,
-                    x = y,
-                    y = settlements[i].second,
+                    x = flt64Linear(y),
+                    y = flt64Constant(settlements[i].second),
                     name = "dy_$i"
                 )
             }
@@ -497,9 +500,13 @@ class CoreDemoBuildOnlyStructureTest {
             assertTrue(model.add(x) is Ok)
 
             val assignment = LinearIntermediateSymbols1<Flt64>("assignment", Shape1(5)) { i, _ ->
-                BinaryzationFunction.fromLinearPolynomial(
-                    polynomial = LinearPolynomial(x[i]),
-                    name = "assignment_$i"
+                LinearFunctionSymbolAdapter(
+                    delegate = BinaryzationFunction(
+                        polynomial = LinearPolynomial(x[i]),
+                        converter = flt64Converter,
+                        name = "assignment_$i"
+                    ),
+                    converter = flt64Converter
                 )
             }
             model.add(assignment)

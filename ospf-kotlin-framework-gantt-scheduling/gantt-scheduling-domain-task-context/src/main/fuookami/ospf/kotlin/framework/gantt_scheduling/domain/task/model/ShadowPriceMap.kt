@@ -109,4 +109,3 @@ typealias GanttSchedulingCGPipelineList<E, A> = AbstractGanttSchedulingCGPipelin
         >
 
 
-

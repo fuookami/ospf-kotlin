@@ -9,16 +9,18 @@ import fuookami.ospf.kotlin.math.geometry.*
 import fuookami.ospf.kotlin.quantities.quantity.*
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.symbol.monomial.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.*
 import fuookami.ospf.kotlin.core.model.basic.*
 import fuookami.ospf.kotlin.core.model.mechanism.*
 import fuookami.ospf.kotlin.core.model.intermediate.*
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.aircraft.model.*
 import fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model.*
+import fuookami.ospf.kotlin.math.geometry.point2
 
 interface AbstractEnvelope {
     data class Point(
@@ -41,11 +43,12 @@ interface AbstractEnvelope {
             UnivariateLinearPiecewiseFunction.fromPoints(
                 x = LinearPolynomial(),
                 points = points.map {
-                    Point2(
+                    point2(
                         it.totalWeight.to(aircraftModel.weightUnit)!!.value,
                         it.index.to(aircraftModel.torqueUnit)!!.value
                     )
                 },
+                converter = IntoValue.Identity,
                 name = "${name}_${type.name.lowercase(Locale.getDefault())}"
             )
         }
@@ -390,7 +393,6 @@ class ConditionalEnvelope(
         return ok
     }
 }
-
 
 
 

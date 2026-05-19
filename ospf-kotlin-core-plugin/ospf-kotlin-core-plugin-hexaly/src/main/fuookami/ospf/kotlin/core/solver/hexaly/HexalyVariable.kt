@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.core.solver.hexaly
+package fuookami.ospf.kotlin.core.solver.hexaly
 
 import com.hexaly.optimizer.HxExpression
 import com.hexaly.optimizer.HxModel
@@ -44,6 +44,5 @@ sealed interface HexalyVariable {
         }
     }
 }
-
 
 

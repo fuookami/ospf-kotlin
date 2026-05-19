@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -16,4 +16,3 @@ class Solution(
 fun Solution.render(): RenderDTO {
     TODO("not implemented yet")
 }
-

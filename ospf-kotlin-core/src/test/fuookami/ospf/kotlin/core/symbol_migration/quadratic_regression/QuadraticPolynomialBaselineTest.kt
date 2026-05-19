@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.frontend.symbol_migration.quadratic_regression
+package fuookami.ospf.kotlin.core.symbol_migration.quadratic_regression
 
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol
@@ -9,9 +9,9 @@ import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluate
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MissingValuePolicy
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.MapValueProvider
+import fuookami.ospf.kotlin.math.symbol.operation.evaluate
+import fuookami.ospf.kotlin.math.symbol.operation.MissingValuePolicy
+import fuookami.ospf.kotlin.math.symbol.operation.MapValueProvider
 import org.junit.jupiter.api.Test
 import kotlin.test.assertNotNull
 import kotlin.test.assertNull

@@ -49,4 +49,3 @@ data object SumNormalization : ObjectiveNormalization<fuookami.ospf.kotlin.math.
 }
 
 
-

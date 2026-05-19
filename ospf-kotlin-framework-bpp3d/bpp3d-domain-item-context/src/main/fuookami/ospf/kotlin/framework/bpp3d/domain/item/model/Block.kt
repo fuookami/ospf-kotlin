@@ -7,8 +7,10 @@ import fuookami.ospf.kotlin.framework.bpp3d.infrastructure.*
 import fuookami.ospf.kotlin.math.functional.sumOf
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
-import fuookami.ospf.kotlin.math.geometry.point3
+import fuookami.ospf.kotlin.math.geometry.Point
+import fuookami.ospf.kotlin.math.geometry.Dim3
 import fuookami.ospf.kotlin.math.geometry.y
+import fuookami.ospf.kotlin.math.geometry.point3
 
 sealed class Block(
     // inherited from Container3<Block>
@@ -252,6 +254,5 @@ class ComplexBlock(
 typealias BlockView = CuboidView<Block>
 typealias BlockPlacement2<P> = Placement2<Block, P>
 typealias BlockPlacement3 = Placement3<Block>
-
 
 

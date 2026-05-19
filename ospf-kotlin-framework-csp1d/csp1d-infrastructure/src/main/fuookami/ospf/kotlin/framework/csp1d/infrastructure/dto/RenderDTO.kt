@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
+package fuookami.ospf.kotlin.framework.csp1d.infrastructure.dto
 
 import fuookami.ospf.kotlin.math.algebra.number.FltX
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -35,6 +35,5 @@ data class RenderSchemaDTO(
     val kpi: Map<String, String>,
     val cuttingPlans: List<RenderCuttingPlanDTO>,
 )
-
 
 

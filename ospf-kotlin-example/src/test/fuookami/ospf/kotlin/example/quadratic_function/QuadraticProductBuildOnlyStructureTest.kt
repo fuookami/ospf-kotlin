@@ -3,6 +3,7 @@ package fuookami.ospf.kotlin.example.quadratic_function
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMechanismModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.QuadraticMetaModel
+import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -33,6 +34,7 @@ class QuadraticProductBuildOnlyStructureTest {
         val function = fuookami.ospf.kotlin.core.intermediate_symbol.function.ProductFunction(
             left = left,
             right = right,
+            converter = IntoValue.Identity,
             name = "example_product_build"
         )
 
@@ -52,8 +54,6 @@ class QuadraticProductBuildOnlyStructureTest {
 
             // Structure assertions on MetaModel
             assertEquals(2, model.tokens.tokens.size, "MetaModel should have 2 tokens (x, y)")
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 QuadraticMechanismModel.invoke<Flt64>(metaModel = model)
             }

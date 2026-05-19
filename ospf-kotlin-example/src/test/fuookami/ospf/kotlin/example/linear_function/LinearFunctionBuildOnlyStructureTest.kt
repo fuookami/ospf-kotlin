@@ -32,6 +32,7 @@ class LinearFunctionBuildOnlyStructureTest {
         )
         val abs = fuookami.ospf.kotlin.core.intermediate_symbol.function.AbsFunction(
             polynomial = xPoly,
+            converter = flt64Converter,
             name = "example_abs_build"
         )
         val slackRange = fuookami.ospf.kotlin.core.intermediate_symbol.function.SlackRangeFunction(
@@ -52,8 +53,6 @@ class LinearFunctionBuildOnlyStructureTest {
             assertTrue(abs.registerAuxiliaryTokens(model.tokens) is Ok)
             assertTrue(slackRange.registerAuxiliaryTokens(model.tokens) is Ok)
             assertTrue(model.minimize(xPoly) is Ok)
-
-            @Suppress("DEPRECATION")
             val mechanismRet = runBlocking {
                 LinearMechanismModel.invoke<Flt64>(metaModel = model)
             }

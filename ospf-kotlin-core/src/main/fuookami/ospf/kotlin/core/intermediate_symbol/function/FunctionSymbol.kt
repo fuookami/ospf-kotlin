@@ -160,8 +160,8 @@ class LinearFunctionSymbolAdapter<V>(
             is SlackRangeFunction<V> -> {
                 val unit = converter.one
                 var result = LinearPolynomial(d.x.monomials.toMutableList(), d.x.constant)
-                d.negVar?.let { result = LinearPolynomial(result.monomials + LinearMonomial(unit, it), result.constant) }
-                d.posVar?.let { result = LinearPolynomial(result.monomials + LinearMonomial(-unit, it), result.constant) }
+                result = LinearPolynomial(result.monomials + LinearMonomial(unit, d.negVar), result.constant)
+                result = LinearPolynomial(result.monomials + LinearMonomial(-unit, d.posVar), result.constant)
                 result
             }
             else -> null

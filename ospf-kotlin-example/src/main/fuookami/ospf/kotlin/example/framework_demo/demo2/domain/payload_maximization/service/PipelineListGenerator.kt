@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization.service
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.payload_maximization.service
 
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -30,4 +30,3 @@ data class PipelineListGenerator(
         return Ok(pipelines)
     }
 }
-

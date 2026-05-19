@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
+package fuookami.ospf.kotlin.framework.csp1d.domain.material.model
 
 import fuookami.ospf.kotlin.utils.concept.ManualIndexed
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -77,6 +77,5 @@ open class Product(
         return "$name${width.joinToString("x")}"
     }
 }
-
 
 

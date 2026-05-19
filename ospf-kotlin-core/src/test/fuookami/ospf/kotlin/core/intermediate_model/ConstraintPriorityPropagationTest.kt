@@ -1,6 +1,13 @@
-﻿package fuookami.ospf.kotlin.core.intermediate_model
+package fuookami.ospf.kotlin.core.intermediate_model
 
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
+import fuookami.ospf.kotlin.core.model.basic.ConstraintSource
+import fuookami.ospf.kotlin.core.model.intermediate.LinearConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.QuadraticConstraintBatch
+import fuookami.ospf.kotlin.core.model.intermediate.SparseMatrix
+import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticMatrix
+import fuookami.ospf.kotlin.core.model.intermediate.SparseQuadraticVector
+import fuookami.ospf.kotlin.core.model.intermediate.SparseVector
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals

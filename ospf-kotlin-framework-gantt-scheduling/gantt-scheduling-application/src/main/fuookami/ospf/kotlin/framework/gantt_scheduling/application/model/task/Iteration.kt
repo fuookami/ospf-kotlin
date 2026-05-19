@@ -141,4 +141,3 @@ class Iteration<T : IterativeAbstractTask<E, A>, E : Executor, A : AssignmentPol
     }
 }
 
-

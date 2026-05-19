@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.heuristic.sca
 
@@ -347,6 +347,5 @@ class SineCosineAlgorithm<Obj, V>(
 
 typealias SCA = SineCosineAlgorithm<Flt64, Flt64>
 typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
-
 
 

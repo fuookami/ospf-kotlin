@@ -1,8 +1,22 @@
-# core API 易用性与原版兼容计划（2026-05-14 起）
+# core/math 符号运算迁移与兼容层删除记录（2026-05-14 起）
+
+## 最新结论：无兼容层收口（2026-05-19）
+
+当前路线已从“补齐原版兼容层、平滑迁移”调整为“删除兼容层，仅保留正式 math/core 设计”。因此验收重点不再是保留旧入口，而是确认符号运算能力已经落到正式 API，core 主链路保持泛型化，example/framework 使用显式替代链路。
+
+已完成的当前状态：
+
+1. `math.symbol.adapter.*` 源码目录、`FunctionCompat.kt`、`MetaModelFlt64Adapter.kt` 已删除，旧 `Bridged*` 命名不再作为源码入口使用。
+2. Flt64 快捷建模 DSL 落在正式 `math.symbol.operation.*` 下，不再通过 adapter 包提供。
+3. core/example/framework 默认源码不再依赖旧 `solver(metaModel)` 兼容调用；example 侧如需保持 demo 简洁，使用显式 `dump(metaModel) -> dump(mechanism) -> solver(triad)` helper。
+4. 旧无 converter 的 `SlackFunction(...)` / `AbsFunction.fromLinearPolynomial(...)` / `BinaryzationFunction.fromLinearPolynomial(...)` 测试残留已迁到正式泛型构造器与 `LinearFunctionSymbolAdapter`。
+5. P17 静态门禁已加入 `check-c8-guards.ps1`，禁止兼容层路径、旧符号/import、example 旧 solver 调用、旧无 converter Slack 调用回流。
+
+当前可确认结论：core 已在架构上完成符号运算能力向 math 正式符号体系的迁移，且不再保留兼容层作为公开或默认源码依赖。功能和接口的目标口径已更新为“按最佳设计还原建模能力”，而不是“逐项保留原 Kotlin 版本旧调用形态”。
 
 ## 目标
 
-本轮目标是对比原始 Kotlin 版本：
+本轮最初目标是对比原始 Kotlin 版本：
 
 - 原始 core：`E:/workspace/ospf-kotlin-main`
 - 原始示例：`E:/workspace/ospf/examples/ospf-kotlin-example`
@@ -17,20 +31,20 @@
 1. 符号运算能力从 core 自有表达式体系迁移至 `math.symbol`。
 2. core 主链路完成泛型化，数值类型主参数记为 `V`。
 
-除上述两项架构变化外，用户侧应尽量保留原始版本的接口名称、快捷接口、建模表达方式和示例组织方式。迁移后的示例和业务项目不应依赖大量样板代码才能表达原始模型。
+最新决策：不再为了平滑迁移保留兼容层。原始版本的建模能力、示例表达和业务覆盖仍作为功能基准，但旧包路径、旧构造器和旧 solver 入口应迁到正式 math/core API，而不是通过兼容层复刻。
 
 本轮新增四个完整原始业务项目作为真实迁移语料。它们不是简单示例，实际覆盖 starter、framework、Gantt scheduling、CSP1D、solver 插件、列生成、`Pipeline`/`PipelineList`、`AbstractLinearMetaModel`/`AbstractQuadraticMetaModel`、`LinearIntermediateSymbolsN`/`QuadraticIntermediateSymbolsN`、变量族和解分析链路。因此本轮计划需要从 core API 易用性扩展为“core + framework + starter + 业务项目编译链路”的兼容闭环。
 
 业务项目 APS/CSP1D/BOP/PSP 不需要纳入默认直接编译门禁。当前仓库默认门禁只要求 in-repo source-compat fixture、starter/framework 依赖闭包和 build-only 结构验证通过；外部仓库直接编译属于项目侧升级工作，不作为本仓库默认 release gate 的阻塞项。
 
-由于本次 core 已泛型化，凡是迁移后必须显式指定数值类型的易用入口，都不能只补 `Flt64`。默认兼容层至少提供 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四个版本；`Flt64` 继续作为原版业务项目的最小迁移路径，另外三种类型用于验证泛型能力没有退化为单类型适配。
+由于本次 core 已泛型化，凡是迁移后必须显式指定数值类型的易用入口，都不能只补 `Flt64`。正式 API 至少需要能支撑 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四类路径；`Flt64` 继续作为示例和业务项目的最小迁移路径，另外三种类型用于验证泛型能力没有退化为单类型适配。
 
 ## 总体原则
 
-1. 原始示例与四个业务项目共同作为功能与易用性的基准。若原代码中存在稳定公开用法，当前版本应提供同名接口、兼容包装或清晰的一步替代。
+1. 原始示例与四个业务项目共同作为功能与易用性的基准。若原代码中存在稳定公开用法，当前版本应提供正式 API 或清晰的一步替代，不再新增兼容包装。
 2. 架构变更只允许影响内部实现和必要类型参数，不应迫使 `Flt64/FltX/Rtn64/RtnX` 用户手写 converter、低层 flatten data 或冗长构造器。
 3. `Flt64` 默认路径必须足够顺手：`LinearMetaModel("name")`、`QuadraticMetaModel()`、常用函数符号和 solver 调用应保持接近原版体验。
-4. 泛型路径必须保持一等公民：新增兼容接口不能只服务 `Flt64`。凡是因为泛型化必须暴露类型选择的易用入口，至少提供 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四套入口或等价工厂。
+4. 泛型路径必须保持一等公民：新增正式入口不能只服务 `Flt64`。凡是因为泛型化必须暴露类型选择的易用入口，至少提供 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四套入口或等价工厂。
 5. 示例测试分层执行：默认回归使用 build-only 或结构化断言，不强依赖外部 solver；solver 存在时再跑 SCIP/Gurobi 集成验证。
 6. 功能迁移优先于包名完全复刻。`frontend/backend` 包拆平属于已接受架构演进，但应通过 import 聚合、别名或文档降低迁移成本。
 7. 快捷 DSL 必须有边界测试。`sum/qsum`、`eq/leq/geq/ls/gr/neq`、`partition`、`constraintsOfGroup`、函数符号别名等都要有编译级或结构级防回归。
@@ -44,6 +58,8 @@
 P16 已完成：`framework_demo/demo2` 与 `heuristic_demo` 已恢复到 `ospf-kotlin-example` 默认源码集，`src/non-default-main` / `src/non-default-test` 已移除，默认 `compile/test` 可直接通过。
 
 默认迁移门禁维持闭环：core source-compat、example 默认构建、core demo、function build-only、business source-compat、framework/starter compat 与 P6/P7（含 P16）静态门禁均已通过。
+
+P17 无兼容层收口已推进：兼容层目录与旧入口回流检查已加入静态门禁；当前源码目标从“兼容恢复”切换为“正式 API 替代”。
 
 ## 已完成事项
 
@@ -130,6 +146,18 @@ P16 已完成：`framework_demo/demo2` 与 `heuristic_demo` 已恢复到 `ospf-k
 以下命令已在 2026-05-19 复核通过：
 
 ```powershell
+pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-example -am -DskipTests compile"
+```
+
+结果：2026-05-19 18:41（Asia/Shanghai）默认 example 编译通过。JVM 输出过 CodeHeap full warning，但 Maven 结果为 `BUILD SUCCESS`。
+
+```powershell
+pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-example -am -DskipTests test-compile"
+```
+
+结果：2026-05-19 19:19（Asia/Shanghai）默认 example 测试编译通过。线性/二次函数测试已迁到正式泛型构造器、显式 converter 与 mechanism/triad 或 tetrad 求解链路。
+
+```powershell
 mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest -Dsurefire.failIfNoSpecifiedTests=false test
 ```
 
@@ -172,11 +200,11 @@ mvn --% -pl ospf-kotlin-example -am -Pframework-starter-compat -Dsurefire.failIf
 结果：5 个测试通过。
 
 ```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7
 ```
 
-结果：P6/P7 静态门禁均通过。
+结果：2026-05-19 19:20（Asia/Shanghai）P6/P7 静态门禁均通过，包含新增 P17 无兼容层回流检查。
 
 ## 剩余风险与注意事项
 
@@ -394,10 +422,39 @@ powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\c
 
 solver 集成通过可作为增强证据；失败时需要区分代码问题与本地 JNI/DLL 环境问题。
 
-## 后续建议（P17+）
+## P18：命名回归收口（进行中）
 
-1. 将 `check-migration-compat.ps1` 拆分为可并行 CI job（core source-compat、example default、profiles、static guards），缩短反馈时延。
-2. 在不破坏兼容层前提下，逐步消减 allowlist/baseline（converter 样板、deprecated 调用、whitelist 特例）。
-3. 对 `framework_demo/demo2` 增补更多结构断言，尤其是 `service/limits` 与 pipeline 组合层，降低后续 API 漂移回归风险。
-4. 保持 `check-c8-guards.ps1` 的 P14/P16 规则开启，禁止旧 import 与 non-default 目录回流。
+### P18 目标
+
+兼容层删除后，正式 API 已不需要继续用迁移期命名区分“原版本”与“泛型化版本”。P18 的目标是把因并存兼容层而产生的临时命名回归到正式 API 应有的原名，使代码语义从“迁移态”回到“唯一正式实现态”。
+
+优先处理以下命名：
+
+1. `Typed*` / `*Typed*`：若只是为了区分旧 adapter/bridged 版本，应回归原名。
+2. `*V` / `*VTyped*`：若只是为了区分泛型版与 Flt64 兼容版，应回归原名。
+3. `Type*` / `*Type*`：若不是领域语义，而是迁移期的类型化前缀/后缀，应回归原名。
+4. 测试、文档、门禁脚本中的迁移期命名也要同步更新，避免新 API 继续暴露“兼容迁移”痕迹。
+
+### P18 判定边界
+
+以下命名不应机械回滚：
+
+1. 类型参数 `V` 保留，它是 core 泛型主链路的一部分。
+2. `View`、`Input`、`Adapter`、`Converter` 等表达真实架构职责的后缀保留。
+3. Flt64 solver 边界、输出兼容字段、第三方 solver 插件中的真实 Flt64 语义保留。
+4. 若原名已被正式不同概念占用，先重命名迁移痕迹，再评估是否需要合并抽象，不能用简单替换制造歧义。
+
+### P18 初始验收
+
+1. 扫描 Kotlin 源码和测试中的 `Typed`、`Type[A-Z]`、`[A-Za-z0-9]V` 等迁移期命名候选，并形成清单。
+2. 第一批优先回归 math symbol operation 下由 bridged/adapter 迁移来的文件和测试命名。
+3. P6/P7/P17 静态门禁保持通过。
+4. `mvn -pl ospf-kotlin-math -am -DskipTests test-compile` 与 `mvn -pl ospf-kotlin-example -am -DskipTests test-compile` 至少通过相关受影响模块。
+
+## 后续建议（P18+）
+
+1. 保持 `check-c8-guards.ps1` 的 P17 规则开启，禁止 `math.symbol.adapter.*`、`FunctionCompat`、`MetaModelFlt64Adapter`、旧 solver 入口和旧 Slack 调用回流。
+2. 将 `check-migration-compat.ps1` 拆分为可并行 CI job（core source-compat、example default、profiles、static guards），缩短反馈时延。
+3. 在无兼容层前提下，逐步消减 allowlist/baseline（converter 样板、deprecated 调用、whitelist 特例）。
+4. 对 `framework_demo/demo2` 增补更多结构断言，尤其是 `service/limits` 与 pipeline 组合层，降低后续 API 漂移回归风险。
 5. 外部 APS/CSP1D/BOP/PSP 仓库继续按项目侧节奏迁移，不纳入当前仓库默认门禁。

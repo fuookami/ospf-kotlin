@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.core.solver.copt
 
@@ -469,5 +469,4 @@ private class CoptLinearSolverImpl(
         }
     }
 }
-
 

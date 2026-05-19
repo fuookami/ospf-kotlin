@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
+package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.stowage.model
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -81,4 +81,3 @@ data class CargoPriority(
 infix fun CargoPriority.ord(rhs: CargoPriority): Order {
     return orderOf(this.priority compareTo rhs.priority)
 }
-

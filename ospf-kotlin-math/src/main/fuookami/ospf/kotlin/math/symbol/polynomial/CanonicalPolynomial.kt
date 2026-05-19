@@ -272,4 +272,3 @@ operator fun <T : Ring<T>> CanonicalPolynomial<T>.minus(rhs: T): CanonicalPolyno
 operator fun <T : Ring<T>> T.minus(rhs: CanonicalPolynomial<T>): CanonicalPolynomial<T> {
     return CanonicalPolynomial(rhs.monomials.map { -it }, this - rhs.constant)
 }
-

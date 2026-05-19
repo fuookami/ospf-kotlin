@@ -10,6 +10,7 @@ import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.ordinary.minMax
 import fuookami.ospf.kotlin.math.algebra.value_range.Interval
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
+import fuookami.ospf.kotlin.math.geometry.point2
 
 data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
     val p1: P,
@@ -21,9 +22,9 @@ data class Rectangle<P : Point<D, V>, D : Dimension, V : FloatingNumber<V>>(
         operator fun invoke(leftUpperPoint: Point<Dim2, Flt64>, rightBottomPoint: Point<Dim2, Flt64>): Rectangle<Point<Dim2, Flt64>, Dim2, Flt64> {
             return Rectangle(
                 leftUpperPoint,
-                Point<Dim2, Flt64>(rightBottomPoint.x, leftUpperPoint.y),
+                point2(rightBottomPoint.x, leftUpperPoint.y),
                 rightBottomPoint,
-                Point<Dim2, Flt64>(leftUpperPoint.x, rightBottomPoint.y)
+                point2(leftUpperPoint.x, rightBottomPoint.y)
             )
         }
     }
@@ -112,4 +113,3 @@ fun Rectangle<Point<Dim2, Flt64>, Dim2, Flt64>.contains(
     }
     return xRange.contains(point.x) && yRange.contains(point.y)
 }
-

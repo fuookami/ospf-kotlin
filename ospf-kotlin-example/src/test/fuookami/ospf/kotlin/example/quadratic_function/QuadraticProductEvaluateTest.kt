@@ -26,7 +26,7 @@ class QuadraticProductEvaluateTest {
             monomials = listOf(LinearMonomial(Flt64.one, y)),
             constant = -Flt64.one
         )
-        val function = ProductFunction(left, right, name = "p12_eval_product")
+        val function = ProductFunction(left, right, converter = IntoValue.Identity, name = "p12_eval_product")
 
         val tokenTable = AutoTokenTable<Flt64>(Quadratic, false)
         tokenTable.add(listOf(x, y))

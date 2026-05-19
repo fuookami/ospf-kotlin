@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.example.framework_demo.demo2.domain.airworthiness_s
 
 import java.util.*
 import fuookami.ospf.kotlin.utils.functional.*
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.*
+import fuookami.ospf.kotlin.math.symbol.operation.*
 import fuookami.ospf.kotlin.math.symbol.polynomial.*
 import fuookami.ospf.kotlin.math.symbol.inequality.*
 import fuookami.ospf.kotlin.core.model.basic.*
@@ -39,7 +39,6 @@ class TotalWeightLimit(
         return ok
     }
 }
-
 
 
 

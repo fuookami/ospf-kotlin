@@ -218,8 +218,6 @@ class GenericSolveVBridgeTest {
 
         mechanism.close()
     }
-
-    @Suppress("DEPRECATION")
     private fun <V> assertFeasibleAndConverted(
         ret: Ret<FeasibleSolverOutput<V>>,
         expectedFlt64: List<Flt64>,
@@ -250,15 +248,13 @@ class GenericSolveVBridgeTest {
             )
         }
 
-        assertEquals(expectedObj, output.obj, "${converterCase.name}: legacy obj mismatch")
-        assertEquals(expectedPossibleBestObj, output.possibleBestObj, "${converterCase.name}: legacy possibleBestObj mismatch")
-        assertEquals(expectedBestBound, output.bestBound, "${converterCase.name}: legacy bestBound mismatch")
+            assertEquals(expectedObj, output.obj, "${converterCase.name}: solver-boundary obj mismatch")
+            assertEquals(expectedPossibleBestObj, output.possibleBestObj, "${converterCase.name}: solver-boundary possibleBestObj mismatch")
+            assertEquals(expectedBestBound, output.bestBound, "${converterCase.name}: solver-boundary bestBound mismatch")
         assertEquals(expectedObjValue, output.objValue, "${converterCase.name}: objValue mismatch")
         assertEquals(expectedPossibleBestObjValue, output.possibleBestObjValue, "${converterCase.name}: possibleBestObjValue mismatch")
         assertEquals(expectedBestBoundValue, output.bestBoundValue, "${converterCase.name}: bestBoundValue mismatch")
     }
-
-    @Suppress("DEPRECATION")
     private fun <V> assertPoolAndConverted(
         ret: Ret<Pair<FeasibleSolverOutput<V>, List<Solution<V>>>>,
         expectedPrimaryFlt64: List<Flt64>,
@@ -289,9 +285,9 @@ class GenericSolveVBridgeTest {
         val expectedObjValue = converterCase.converter.intoValue(expectedObj)
         val expectedPossibleBestObjValue = converterCase.converter.intoValue(expectedPossibleBestObj)
         val expectedBestBoundValue = expectedBestBound?.let { converterCase.converter.intoValue(it) }
-        assertEquals(expectedObj, primary.obj, "${converterCase.name}: pool legacy obj mismatch")
-        assertEquals(expectedPossibleBestObj, primary.possibleBestObj, "${converterCase.name}: pool legacy possibleBestObj mismatch")
-        assertEquals(expectedBestBound, primary.bestBound, "${converterCase.name}: pool legacy bestBound mismatch")
+            assertEquals(expectedObj, primary.obj, "${converterCase.name}: pool solver-boundary obj mismatch")
+            assertEquals(expectedPossibleBestObj, primary.possibleBestObj, "${converterCase.name}: pool solver-boundary possibleBestObj mismatch")
+            assertEquals(expectedBestBound, primary.bestBound, "${converterCase.name}: pool solver-boundary bestBound mismatch")
         assertEquals(expectedObjValue, primary.objValue, "${converterCase.name}: pool objValue mismatch")
         assertEquals(expectedPossibleBestObjValue, primary.possibleBestObjValue, "${converterCase.name}: pool possibleBestObjValue mismatch")
         assertEquals(expectedBestBoundValue, primary.bestBoundValue, "${converterCase.name}: pool bestBoundValue mismatch")
@@ -398,7 +394,6 @@ class GenericSolveVBridgeTest {
             comparison = Comparison.LE
         )
         assertTrue(model.addConstraint(relation = relation, name = "c_${name}") is Ok)
-        @Suppress("DEPRECATION")
         val mechanismRet = runBlocking { LinearMechanismModel.invoke<V>(metaModel = model, concurrent = false) }
         assertTrue(mechanismRet is Ok, "${numberCase.name}: linear mechanism dump should be Ok")
         return mechanismRet.value
@@ -424,7 +419,6 @@ class GenericSolveVBridgeTest {
             comparison = Comparison.LE
         )
         assertTrue(model.addConstraint(relation = relation, name = "qc_${name}") is Ok)
-        @Suppress("DEPRECATION")
         val mechanismRet = runBlocking { QuadraticMechanismModel.invoke<V>(metaModel = model, concurrent = false) }
         assertTrue(mechanismRet is Ok, "${numberCase.name}: quadratic mechanism dump should be Ok")
         return mechanismRet.value

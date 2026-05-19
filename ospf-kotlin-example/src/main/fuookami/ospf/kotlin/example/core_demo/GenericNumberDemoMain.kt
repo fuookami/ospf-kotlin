@@ -7,4 +7,3 @@ package fuookami.ospf.kotlin.example.core_demo
 fun main() {
     GenericNumberDemo.runBuildAndDump()
 }
-

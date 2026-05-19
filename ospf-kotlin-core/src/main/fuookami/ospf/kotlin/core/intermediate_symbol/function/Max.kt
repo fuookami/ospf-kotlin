@@ -2,7 +2,6 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMetaModel
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
 import fuookami.ospf.kotlin.core.variable.BinVar
@@ -23,13 +22,6 @@ import fuookami.ospf.kotlin.core.intermediate_symbol.LinearIntermediateSymbol
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractLinearMechanismModel
 import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 
-private val flt64Converter = object : IntoValue<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-        override fun intoValue(value: Flt64) = value
-        override val zero get() = Flt64.zero
-        override val one get() = Flt64.one
-        override fun fromValue(value: Flt64) = value
-    }
-
 // ========== Max Function ==========
 
 class MaxFunction<V>(
@@ -38,7 +30,7 @@ class MaxFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "max",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val n = polynomials.size
 
@@ -51,6 +43,9 @@ class MaxFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var maxVal: V? = null
@@ -116,30 +111,23 @@ class MaxFunction<V>(
         ): MaxFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MaxFunction(polynomials, bigM, converter, name, displayName)
 
-        operator fun invoke(
-            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String = "max",
-            displayName: String? = null
-        ): MaxFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MaxFunction(polynomials, bigM, flt64Converter, name, displayName)
-
         @JvmStatic
         @JvmName("fromSymbols")
-        operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
+        fun <V> fromSymbols(
+            polynomials: List<LinearIntermediateSymbol<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
             MaxFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
-                converter = flt64Converter,
+                converter = converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = flt64Converter
-        
+            converter = converter
         )
     }
 }
@@ -152,7 +140,7 @@ class MinFunction<V>(
     private val converter: IntoValue<V>,
     override var name: String = "min",
     override var displayName: String? = null
-) : MathFunctionSymbol<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MathFunctionSymbol<V>, HasResultPolynomial<V> where V : RealNumber<V>, V : NumberField<V> {
     private val bigM: V = bigM ?: converter.intoValue(Flt64(BIG_M_DEFAULT))
     private val n = polynomials.size
 
@@ -165,6 +153,9 @@ class MinFunction<V>(
 
     override val helperVariables: List<AbstractVariableItem<*, *>>
         get() = listOf(resultVar) + selectorVars
+
+    override val resultPolynomial: LinearPolynomial<V>
+        get() = LinearPolynomial(listOf(LinearMonomial(converter.one, resultVar)), converter.zero)
 
     override fun evaluate(values: Map<Symbol, V>): V? {
         var minVal: V? = null
@@ -230,29 +221,23 @@ class MinFunction<V>(
         ): MinFunction<V> where V : RealNumber<V>, V : NumberField<V> =
             MinFunction(polynomials, bigM, converter, name, displayName)
 
-        operator fun invoke(
-            polynomials: List<LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
-            name: String = "min",
-            displayName: String? = null
-        ): MinFunction<fuookami.ospf.kotlin.math.algebra.number.Flt64> = MinFunction(polynomials, bigM, flt64Converter, name, displayName)
-
         @JvmStatic
         @JvmName("fromSymbols")
-        operator fun invoke(
-            polynomials: List<LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
-            bigM: Flt64? = null,
+        fun <V> fromSymbols(
+            polynomials: List<LinearIntermediateSymbol<V>>,
+            bigM: V? = null,
+            converter: IntoValue<V>,
             name: String,
             displayName: String? = null
-        ): LinearFunctionSymbolAdapter<fuookami.ospf.kotlin.math.algebra.number.Flt64> = LinearFunctionSymbolAdapter(
+        ): LinearFunctionSymbolAdapter<V> where V : RealNumber<V>, V : NumberField<V> = LinearFunctionSymbolAdapter(
             MinFunction(
                 polynomials = polynomials.map { it.toLinearPolynomial() },
                 bigM = bigM,
+                converter = converter,
                 name = name,
                 displayName = displayName
             ),
-            converter = flt64Converter
-        
+            converter = converter
         )
     }
 }

@@ -1,6 +1,6 @@
-﻿@file:Suppress("unused")
+@file:Suppress("unused")
 
-package fuookami.ospf.kotlin.math.symbol.adapter.flt64
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
@@ -10,19 +10,6 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
 import fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
-
-/**
- * Flt64-specific convenience typealias for QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>.
- *
- * Prefer using [QuadraticInequalityOf] directly with your value type parameter.
- * This typealias will be removed in a future version.
- */
-@kotlin.Deprecated(
-    message = "Use QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64> directly. This typealias will be removed in a future version.",
-    replaceWith = ReplaceWith("QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>", "fuookami.ospf.kotlin.math.symbol.inequality.QuadraticInequalityOf"),
-    level = DeprecationLevel.WARNING
-)
-typealias QuadraticInequality = QuadraticInequalityOf<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 
 // ========== Comparison.satisfiedBy ==========
 

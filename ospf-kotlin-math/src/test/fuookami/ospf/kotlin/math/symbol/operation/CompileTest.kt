@@ -1,11 +1,11 @@
-﻿package fuookami.ospf.kotlin.math.symbol.operation
+package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileEval
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.compileGradient
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.evaluateOrdered
-import fuookami.ospf.kotlin.math.symbol.adapter.flt64.gradient
+import fuookami.ospf.kotlin.math.symbol.operation.compileEval
+import fuookami.ospf.kotlin.math.symbol.operation.compileGradient
+import fuookami.ospf.kotlin.math.symbol.operation.evaluateOrdered
+import fuookami.ospf.kotlin.math.symbol.operation.gradient
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -169,6 +169,5 @@ class CompileTest {
         }
     }
 }
-
 
 

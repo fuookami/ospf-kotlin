@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.example.framework_demo.demo4.domain.passenger.model
 
@@ -74,4 +74,3 @@ data class FlightPassenger(
 
     override fun toString() = "${flight.name}_${cls.toShortString()}_${passenger.amount}_${index}"
 }
-

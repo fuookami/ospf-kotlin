@@ -19,4 +19,3 @@ data class ModelBuildingStatus(
 }
 
 typealias ModelBuildingStatusCallBack = (ModelBuildingStatus) -> Try
-

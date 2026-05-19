@@ -1,4 +1,4 @@
-﻿package fuookami.ospf.kotlin.example.framework_demo.demo3
+package fuookami.ospf.kotlin.example.framework_demo.demo3
 
 
 import fuookami.ospf.kotlin.math.algebra.number.*
@@ -89,7 +89,6 @@ class CSP {
                 acc + shadowPrices(entry.key) * entry.value.toFlt64()
             }
 }
-
 
 
 

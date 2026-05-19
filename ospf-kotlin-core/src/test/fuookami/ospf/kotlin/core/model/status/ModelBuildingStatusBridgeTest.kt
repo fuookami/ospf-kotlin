@@ -75,4 +75,3 @@ class ModelBuildingStatusBridgeTest {
         assertEquals(UInt64(12), linearUnified.total)
     }
 }
-

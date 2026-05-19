@@ -17,4 +17,3 @@ import fuookami.ospf.kotlin.math.operator.Times
  * A multiplicative semigroup is a set equipped with an associative multiplication operation.
  */
 interface MultiplicativeSemigroup<Self> : Times<Self, Self>
-
