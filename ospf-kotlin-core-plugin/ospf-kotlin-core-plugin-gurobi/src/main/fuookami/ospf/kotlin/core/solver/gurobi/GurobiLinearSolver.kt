@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -29,26 +31,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-
-private fun computeConstraintSegmentSize(
-    constraintSize: Int,
-    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
-): Int {
-    if (constraintSize <= 0) {
-        return 10
-    }
-    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
-    var ratio = constraintSize / workerCount
-    if (ratio < 10) {
-        return 10
-    }
-    var segment = 1
-    while (ratio >= 10) {
-        ratio /= 10
-        segment *= 10
-    }
-    return segment
-}
 
 class GurobiLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -176,25 +158,25 @@ private class GurobiLinearSolverImpl(
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
 
+            val variableDumpingData = prepareVariableDumpingData(
+                variables = model.variables,
+                scopeName = "linear"
+            )
             val vars = ArrayList<GRBVar>(model.variables.size)
-            val initialResults = ArrayList<Pair<Int, Double>>()
-            for ((col, variable) in model.variables.withIndex()) {
+            for (col in model.variables.indices) {
                 vars.add(
                     grbModel.addVar(
-                    variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
-                    variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"),
-                    0.0,
-                    GurobiVariable(variable.type).toGurobiVar(),
-                    variable.name
+                        variableDumpingData.lowerBounds[col],
+                        variableDumpingData.upperBounds[col],
+                        0.0,
+                        GurobiVariable(model.variables[col].type).toGurobiVar(),
+                        variableDumpingData.names[col]
+                    )
                 )
-                )
-                variable.initialResult?.let {
-                    initialResults.add(col to it.toSolverDouble("linear.variables[$col].initialResult"))
-                }
             }
             grbVars = vars
 
-            for ((col, initialResult) in initialResults) {
+            for ((col, initialResult) in variableDumpingData.initialResults) {
                 grbVars[col].set(GRB.DoubleAttr.Start, initialResult)
             }
 

@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -34,26 +36,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-
-private fun computeConstraintSegmentSize(
-    constraintSize: Int,
-    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
-): Int {
-    if (constraintSize <= 0) {
-        return 10
-    }
-    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
-    var ratio = constraintSize / workerCount
-    if (ratio < 10) {
-        return 10
-    }
-    var segment = 1
-    while (ratio >= 10) {
-        ratio /= 10
-        segment *= 10
-    }
-    return segment
-}
 
 class CplexQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -168,26 +150,26 @@ private class CplexQuadraticSolverImpl(
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
 
-        val initialResults = ArrayList<Pair<Int, Double>>()
+        val variableDumpingData = prepareVariableDumpingData(
+            variables = model.variables,
+            scopeName = "quadratic"
+        )
         val vars = ArrayList<IloNumVar>(model.variables.size)
-        for ((col, variable) in model.variables.withIndex()) {
+        for (col in model.variables.indices) {
             vars.add(
                 cplex.numVar(
-                    variable.lowerBound.toSolverDouble("quadratic.variables[$col].lowerBound"),
-                    variable.upperBound.toSolverDouble("quadratic.variables[$col].upperBound"),
-                    CplexVariable(variable.type).toCplexVar()
+                    variableDumpingData.lowerBounds[col],
+                    variableDumpingData.upperBounds[col],
+                    CplexVariable(model.variables[col].type).toCplexVar()
                 )
             )
-            variable.initialResult?.let {
-                initialResults.add(col to it.toSolverDouble("quadratic.variables[$col].initialResult"))
-            }
         }
         cplexVars = vars
 
-        if (cplex.isMIP && initialResults.isNotEmpty()) {
-            val initialVars = ArrayList<IloNumVar>(initialResults.size)
-            val initialValues = DoubleArray(initialResults.size)
-            for ((i, pair) in initialResults.withIndex()) {
+        if (cplex.isMIP && variableDumpingData.initialResults.isNotEmpty()) {
+            val initialVars = ArrayList<IloNumVar>(variableDumpingData.initialResults.size)
+            val initialValues = DoubleArray(variableDumpingData.initialResults.size)
+            for ((i, pair) in variableDumpingData.initialResults.withIndex()) {
                 initialVars.add(cplexVars[pair.first])
                 initialValues[i] = pair.second
             }

@@ -10,6 +10,8 @@ import com.gurobi.gurobi.*
 import fuookami.ospf.kotlin.core.model.intermediate.QuadraticTetradModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.QuadraticSolver
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
 import fuookami.ospf.kotlin.core.solver.config.GurobiSolverConfig
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -29,26 +31,6 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-
-private fun computeConstraintSegmentSize(
-    constraintSize: Int,
-    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
-): Int {
-    if (constraintSize <= 0) {
-        return 10
-    }
-    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
-    var ratio = constraintSize / workerCount
-    if (ratio < 10) {
-        return 10
-    }
-    var segment = 1
-    while (ratio >= 10) {
-        ratio /= 10
-        segment *= 10
-    }
-    return segment
-}
 
 class GurobiQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -176,32 +158,26 @@ private class GurobiQuadraticSolverImpl(
         return try {
             warnIgnoredConstraintPriority("gurobi11", model.nonNullConstraintPriorityAmount())
 
+            val variableDumpingData = prepareVariableDumpingData(
+                variables = model.variables,
+                scopeName = "quadratic"
+            )
             val variableAmount = model.variables.size
-            val lowerBounds = DoubleArray(variableAmount)
-            val upperBounds = DoubleArray(variableAmount)
             val variableTypes = CharArray(variableAmount)
-            val variableNames = Array(variableAmount) { "" }
-            val initialResults = ArrayList<Pair<Int, Double>>()
-            for ((col, variable) in model.variables.withIndex()) {
-                lowerBounds[col] = variable.lowerBound.toSolverDouble("quadratic.variables[$col].lowerBound")
-                upperBounds[col] = variable.upperBound.toSolverDouble("quadratic.variables[$col].upperBound")
-                variableTypes[col] = GurobiVariable(variable.type).toGurobiVar()
-                variableNames[col] = variable.name
-                variable.initialResult?.let {
-                    initialResults.add(col to it.toSolverDouble("quadratic.variables[$col].initialResult"))
-                }
+            for (col in model.variables.indices) {
+                variableTypes[col] = GurobiVariable(model.variables[col].type).toGurobiVar()
             }
             grbVars = grbModel.addVars(
-                lowerBounds,
-                upperBounds,
+                variableDumpingData.lowerBounds,
+                variableDumpingData.upperBounds,
                 null,
                 variableTypes,
-                variableNames,
+                variableDumpingData.names,
                 0,
                 variableAmount
             ).toList()
 
-            for ((col, initialResult) in initialResults) {
+            for ((col, initialResult) in variableDumpingData.initialResults) {
                 grbVars[col].set(GRB.DoubleAttr.Start, initialResult)
             }
 

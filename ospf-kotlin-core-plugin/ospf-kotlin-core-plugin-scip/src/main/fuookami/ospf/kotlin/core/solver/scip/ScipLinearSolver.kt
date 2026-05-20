@@ -9,6 +9,8 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatusCallBack
 import fuookami.ospf.kotlin.core.model.intermediate.LinearTriadModelView
 import fuookami.ospf.kotlin.core.model.basic.nonNullConstraintPriorityAmount
 import fuookami.ospf.kotlin.core.solver.LinearSolver
+import fuookami.ospf.kotlin.core.solver.computeConstraintSegmentSize
+import fuookami.ospf.kotlin.core.solver.prepareVariableDumpingData
 import fuookami.ospf.kotlin.core.solver.config.SolverConfig
 import fuookami.ospf.kotlin.core.solver.gap
 import fuookami.ospf.kotlin.core.solver.warnIgnoredConstraintPriority
@@ -31,26 +33,6 @@ import java.util.UUID
 import kotlin.time.DurationUnit
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
-
-private fun computeConstraintSegmentSize(
-    constraintSize: Int,
-    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
-): Int {
-    if (constraintSize <= 0) {
-        return 10
-    }
-    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
-    var ratio = constraintSize / workerCount
-    if (ratio < 10) {
-        return 10
-    }
-    var segment = 1
-    while (ratio >= 10) {
-        ratio /= 10
-        segment *= 10
-    }
-    return segment
-}
 
 class ScipLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -184,33 +166,33 @@ private class ScipLinearSolverImpl(
     private suspend fun dump(model: LinearTriadModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
-        val initialResults = ArrayList<Pair<Int, Double>>()
+        val variableDumpingData = prepareVariableDumpingData(
+            variables = model.variables,
+            scopeName = "linear"
+        )
         val vars = ArrayList<jscip.Variable>(model.variables.size)
-        for ((col, variable) in model.variables.withIndex()) {
+        for (col in model.variables.indices) {
             vars.add(
                 scip.createVar(
-                    variable.name,
-                    variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
-                    variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"),
+                    variableDumpingData.names[col],
+                    variableDumpingData.lowerBounds[col],
+                    variableDumpingData.upperBounds[col],
                     0.0,
-                    ScipVariable(variable.type).toSCIPVar()
+                    ScipVariable(model.variables[col].type).toSCIPVar()
                 )
             )
-            variable.initialResult?.let {
-                initialResults.add(col to it.toSolverDouble("linear.variables[$col].initialResult"))
-            }
         }
         scipVars = vars
 
-        if (initialResults.size == model.variables.size) {
+        if (variableDumpingData.initialResults.size == model.variables.size) {
             val initialSolution = scip.createSol()
-            for ((col, initialResult) in initialResults) {
+            for ((col, initialResult) in variableDumpingData.initialResults) {
                 scip.setSolVal(initialSolution, scipVars[col], initialResult)
             }
             scip.addSolFree(initialSolution)
-        } else if (initialResults.isNotEmpty()) {
+        } else if (variableDumpingData.initialResults.isNotEmpty()) {
             val initialSolution = scip.createPartialSol()
-            for ((col, initialResult) in initialResults) {
+            for ((col, initialResult) in variableDumpingData.initialResults) {
                 scip.setSolVal(initialSolution, scipVars[col], initialResult)
             }
             scip.addSolFree(initialSolution)

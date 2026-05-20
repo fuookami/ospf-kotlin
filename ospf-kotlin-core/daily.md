@@ -191,7 +191,7 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 
 ### P20-3：solver 插件数据准备公共化
 
-状态：待执行。
+状态：已完成（第一批：变量边界/名称/初始解与约束分块大小公共化，保持 solver API 层独立）。
 
 目标：减少 Gurobi/Gurobi11/Cplex/SCIP solver dump 数据准备重复，同时保持各 solver API 调用层独立。
 
@@ -232,6 +232,38 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 3. 公共 helper 有结构断言测试或 compile-only fixture 覆盖。
 4. P6/P7 静态门禁通过。
 5. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. 新增 `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/ModelingPreparation.kt`：
+   - 抽取 solver 无关变量数据准备：`prepareVariableDumpingData(variables, scopeName)`。
+   - 抽取约束分块大小计算：`computeConstraintSegmentSize(constraintSize, availableProcessors)`。
+2. 新增 `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/solver/ModelingPreparationTest.kt`：
+   - 断言 lower/upper bounds、names、initialResults 的结构与值。
+   - 断言约束分块大小在边界规模下的行为。
+3. 更新 `ospf-kotlin-core-plugin-gurobi`：
+   - `GurobiLinearSolver.kt`、`GurobiQuadraticSolver.kt` 改为复用 `prepareVariableDumpingData`。
+   - 删除插件内重复 `computeConstraintSegmentSize` 私有实现，改为复用 core helper。
+4. 更新 `ospf-kotlin-core-plugin-gurobi11`：
+   - `GurobiLinearSolver.kt`、`GurobiQuadraticSolver.kt` 改为复用 `prepareVariableDumpingData`。
+   - 删除插件内重复 `computeConstraintSegmentSize` 私有实现，改为复用 core helper。
+5. 更新 `ospf-kotlin-core-plugin-cplex`：
+   - `CplexLinearSolver.kt`、`CplexQuadraticSolver.kt` 改为复用 `prepareVariableDumpingData`。
+   - 删除插件内重复 `computeConstraintSegmentSize` 私有实现，改为复用 core helper。
+6. 更新 `ospf-kotlin-core-plugin-scip`：
+   - `ScipLinearSolver.kt`、`ScipQuadraticSolver.kt` 改为复用 `prepareVariableDumpingData`。
+   - 删除插件内重复 `computeConstraintSegmentSize` 私有实现，改为复用 core helper。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am -DskipTests -Dgpg.skip=true compile`：通过。
+2. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests -Dgpg.skip=true compile`：通过。
+3. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex -am -DskipTests -Dgpg.skip=true compile`：通过。
+4. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests -Dgpg.skip=true compile`：通过。
+5. `mvn --% -pl ospf-kotlin-core -am -Dtest=ModelingPreparationTest -Dsurefire.failIfNoSpecifiedTests=false test`：通过（2 tests, 0 failure）。
+6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+7. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+8. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ### P20-4：后续技术债与文档边界
 
