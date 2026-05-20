@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
 import kotlinx.coroutines.coroutineScope
@@ -33,6 +32,26 @@ import kotlin.time.DurationUnit
 import kotlin.time.ExperimentalTime
 import kotlin.time.Duration.Companion.seconds
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+
+private fun computeConstraintSegmentSize(
+    constraintSize: Int,
+    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
+): Int {
+    if (constraintSize <= 0) {
+        return 10
+    }
+    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
+    var ratio = constraintSize / workerCount
+    if (ratio < 10) {
+        return 10
+    }
+    var segment = 1
+    while (ratio >= 10) {
+        ratio /= 10
+        segment *= 10
+    }
+    return segment
+}
 
 class ScipQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -173,42 +192,47 @@ private class ScipQuadraticSolverImpl(
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("scip", model.nonNullConstraintPriorityAmount())
 
-        scipVars = model.variables.map {
-            scip.createVar(
-                it.name,
-                it.lowerBound.toSolverDouble("quadratic.variables[${it.name}].lowerBound"),
-                it.upperBound.toSolverDouble("quadratic.variables[${it.name}].upperBound"),
-                0.0,
-                ScipVariable(it.type).toSCIPVar()
+        val initialResults = ArrayList<Pair<Int, Double>>()
+        val vars = ArrayList<jscip.Variable>(model.variables.size)
+        for ((col, variable) in model.variables.withIndex()) {
+            vars.add(
+                scip.createVar(
+                    variable.name,
+                    variable.lowerBound.toSolverDouble("quadratic.variables[$col].lowerBound"),
+                    variable.upperBound.toSolverDouble("quadratic.variables[$col].upperBound"),
+                    0.0,
+                    ScipVariable(variable.type).toSCIPVar()
+                )
             )
-        }.toList()
+            variable.initialResult?.let {
+                initialResults.add(col to it.toSolverDouble("quadratic.variables[$col].initialResult"))
+            }
+        }
+        scipVars = vars
 
-        val withResultAmount = model.variables.count { it.initialResult != null }
-        if (withResultAmount == model.variables.size) {
+        if (initialResults.size == model.variables.size) {
             val initialSolution = scip.createSol()
-            for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("quadratic.variables[$col].initialResult"))
+            for ((col, initialResult) in initialResults) {
+                scip.setSolVal(initialSolution, scipVars[col], initialResult)
             }
             scip.addSolFree(initialSolution)
-        } else if (withResultAmount > 0) {
+        } else if (initialResults.isNotEmpty()) {
             val initialSolution = scip.createPartialSol()
-            for ((col, variable) in model.variables.withIndex().filter { it.value.initialResult != null }) {
-                scip.setSolVal(initialSolution, scipVars[col], variable.initialResult!!.toSolverDouble("quadratic.variables[$col].initialResult"))
+            for ((col, initialResult) in initialResults) {
+                scip.setSolVal(initialSolution, scipVars[col], initialResult)
             }
             scip.addSolFree(initialSolution)
         }
 
         val constraints = coroutineScope {
             if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                val segment = if (factor >= 1) {
-                    pow(UInt64.ten, factor).toInt()
-                } else {
-                    10
-                }
-                val promises = (0..(model.constraints.size / segment)).map { i ->
+                val segment = computeConstraintSegmentSize(model.constraints.size)
+                val chunkAmount = (model.constraints.size + segment - 1) / segment
+                val promises = (0 until chunkAmount).map { i ->
                     async(Dispatchers.Default) {
-                        val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                        val from = i * segment
+                        val to = minOf(model.constraints.size, from + segment)
+                        val constraints = (from until to).map { ii ->
                             var lb = Flt64.negativeInfinity
                             var ub = Flt64.infinity
                             when (model.constraints.signs[ii]) {

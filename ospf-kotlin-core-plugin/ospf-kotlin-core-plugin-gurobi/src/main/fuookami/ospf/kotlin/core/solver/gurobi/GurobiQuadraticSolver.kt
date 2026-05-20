@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import gurobi.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -29,6 +28,26 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+
+private fun computeConstraintSegmentSize(
+    constraintSize: Int,
+    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
+): Int {
+    if (constraintSize <= 0) {
+        return 10
+    }
+    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
+    var ratio = constraintSize / workerCount
+    if (ratio < 10) {
+        return 10
+    }
+    var segment = 1
+    while (ratio >= 10) {
+        ratio /= 10
+        segment *= 10
+    }
+    return segment
+}
 
 class GurobiQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -156,33 +175,44 @@ private class GurobiQuadraticSolverImpl(
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
 
+            val variableAmount = model.variables.size
+            val lowerBounds = DoubleArray(variableAmount)
+            val upperBounds = DoubleArray(variableAmount)
+            val variableTypes = CharArray(variableAmount)
+            val variableNames = Array(variableAmount) { "" }
+            val initialResults = ArrayList<Pair<Int, Double>>()
+            for ((col, variable) in model.variables.withIndex()) {
+                lowerBounds[col] = variable.lowerBound.toSolverDouble("quadratic.variables[$col].lowerBound")
+                upperBounds[col] = variable.upperBound.toSolverDouble("quadratic.variables[$col].upperBound")
+                variableTypes[col] = GurobiVariable(variable.type).toGurobiVar()
+                variableNames[col] = variable.name
+                variable.initialResult?.let {
+                    initialResults.add(col to it.toSolverDouble("quadratic.variables[$col].initialResult"))
+                }
+            }
             grbVars = grbModel.addVars(
-                model.variables.mapIndexed { index, variable -> variable.lowerBound.toSolverDouble("quadratic.variables[$index].lowerBound") }.toDoubleArray(),
-                model.variables.mapIndexed { index, variable -> variable.upperBound.toSolverDouble("quadratic.variables[$index].upperBound") }.toDoubleArray(),
+                lowerBounds,
+                upperBounds,
                 null,
-                model.variables.map { GurobiVariable(it.type).toGurobiVar() }.toCharArray(),
-                model.variables.map { it.name }.toTypedArray(),
+                variableTypes,
+                variableNames,
                 0,
-                model.variables.size
+                variableAmount
             ).toList()
 
-            for ((col, variable) in model.variables.withIndex()) {
-                variable.initialResult?.let {
-                    grbVars[col].set(GRB.DoubleAttr.Start, it.toSolverDouble("quadratic.variables[$col].initialResult"))
-                }
+            for ((col, initialResult) in initialResults) {
+                grbVars[col].set(GRB.DoubleAttr.Start, initialResult)
             }
 
             val constraints = coroutineScope {
                 if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                    val segment = if (factor >= 1) {
-                        pow(UInt64.ten, factor).toInt()
-                    } else {
-                        10
-                    }
-                    val promises = (0..(model.constraints.size / segment)).map { i ->
+                    val segment = computeConstraintSegmentSize(model.constraints.size)
+                    val chunkAmount = (model.constraints.size + segment - 1) / segment
+                    val promises = (0 until chunkAmount).map { i ->
                         async(Dispatchers.Default) {
-                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val from = i * segment
+                            val to = minOf(model.constraints.size, from + segment)
+                            val constraints = (from until to).map { ii ->
                                 val lhs = GRBQuadExpr()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex1, colIndex2, coefficient ->
                                     if (colIndex2 == null) {

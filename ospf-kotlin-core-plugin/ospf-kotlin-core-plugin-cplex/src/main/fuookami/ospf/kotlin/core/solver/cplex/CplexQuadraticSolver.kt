@@ -21,7 +21,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import ilog.concert.IloException
 import ilog.concert.IloNumVar
 import ilog.concert.IloObjectiveSense
@@ -35,6 +34,26 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+
+private fun computeConstraintSegmentSize(
+    constraintSize: Int,
+    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
+): Int {
+    if (constraintSize <= 0) {
+        return 10
+    }
+    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
+    var ratio = constraintSize / workerCount
+    if (ratio < 10) {
+        return 10
+    }
+    var segment = 1
+    while (ratio >= 10) {
+        ratio /= 10
+        segment *= 10
+    }
+    return segment
+}
 
 class CplexQuadraticSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -149,35 +168,44 @@ private class CplexQuadraticSolverImpl(
     private suspend fun dump(model: QuadraticTetradModelView): Try {
         warnIgnoredConstraintPriority("cplex", model.nonNullConstraintPriorityAmount())
 
-        cplexVars = model.variables.map {
-            cplex.numVar(
-                it.lowerBound.toSolverDouble("quadratic.variables[${it.name}].lowerBound"),
-                it.upperBound.toSolverDouble("quadratic.variables[${it.name}].upperBound"),
-                CplexVariable(it.type).toCplexVar()
+        val initialResults = ArrayList<Pair<Int, Double>>()
+        val vars = ArrayList<IloNumVar>(model.variables.size)
+        for ((col, variable) in model.variables.withIndex()) {
+            vars.add(
+                cplex.numVar(
+                    variable.lowerBound.toSolverDouble("quadratic.variables[$col].lowerBound"),
+                    variable.upperBound.toSolverDouble("quadratic.variables[$col].upperBound"),
+                    CplexVariable(variable.type).toCplexVar()
+                )
             )
-        }.toList()
+            variable.initialResult?.let {
+                initialResults.add(col to it.toSolverDouble("quadratic.variables[$col].initialResult"))
+            }
+        }
+        cplexVars = vars
 
-        if (cplex.isMIP && model.variables.any { it.initialResult != null }) {
-            val initialSolution = model.variables.withIndex()
-                .filter { it.value.initialResult != null }
-                .map { Pair(cplexVars[it.index], it.value.initialResult!!.toSolverDouble("quadratic.variables[${it.index}].initialResult")) }
+        if (cplex.isMIP && initialResults.isNotEmpty()) {
+            val initialVars = ArrayList<IloNumVar>(initialResults.size)
+            val initialValues = DoubleArray(initialResults.size)
+            for ((i, pair) in initialResults.withIndex()) {
+                initialVars.add(cplexVars[pair.first])
+                initialValues[i] = pair.second
+            }
             cplex.addMIPStart(
-                initialSolution.map { it.first }.toTypedArray(),
-                initialSolution.map { it.second }.toDoubleArray()
+                initialVars.toTypedArray(),
+                initialValues
             )
         }
 
         val constraints = coroutineScope {
             if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                val segment = if (factor >= 1) {
-                    pow(UInt64.ten, factor).toInt()
-                } else {
-                    10
-                }
-                val promises = (0..(model.constraints.size / segment)).map { i ->
+                val segment = computeConstraintSegmentSize(model.constraints.size)
+                val chunkAmount = (model.constraints.size + segment - 1) / segment
+                val promises = (0 until chunkAmount).map { i ->
                     async(Dispatchers.Default) {
-                        val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                        val from = i * segment
+                        val to = minOf(model.constraints.size, from + segment)
+                        val constraints = (from until to).map { ii ->
                             var lb = Flt64.negativeInfinity
                             var ub = Flt64.infinity
                             when (model.constraints.signs[ii]) {

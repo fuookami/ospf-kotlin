@@ -20,7 +20,6 @@ import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.memoryUseOver
-import fuookami.ospf.kotlin.math.operator.pow
 import gurobi.*
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -30,6 +29,26 @@ import kotlin.time.Duration
 import kotlin.time.Duration.Companion.seconds
 import kotlin.time.DurationUnit
 import fuookami.ospf.kotlin.core.solver.output.FeasibleSolverOutput
+
+private fun computeConstraintSegmentSize(
+    constraintSize: Int,
+    availableProcessors: Int = Runtime.getRuntime().availableProcessors()
+): Int {
+    if (constraintSize <= 0) {
+        return 10
+    }
+    val workerCount = (availableProcessors - 1).coerceAtLeast(1)
+    var ratio = constraintSize / workerCount
+    if (ratio < 10) {
+        return 10
+    }
+    var segment = 1
+    while (ratio >= 10) {
+        ratio /= 10
+        segment *= 10
+    }
+    return segment
+}
 
 class GurobiLinearSolver(
     override val config: SolverConfig = SolverConfig(),
@@ -157,33 +176,37 @@ private class GurobiLinearSolverImpl(
         return try {
             warnIgnoredConstraintPriority("gurobi", model.nonNullConstraintPriorityAmount())
 
-            grbVars = model.variables.map {
-                grbModel.addVar(
-                    it.lowerBound.toSolverDouble("linear.variables[${it.name}].lowerBound"),
-                    it.upperBound.toSolverDouble("linear.variables[${it.name}].upperBound"),
-                    0.0,
-                    GurobiVariable(it.type).toGurobiVar(),
-                    it.name
-                )
-            }
-
+            val vars = ArrayList<GRBVar>(model.variables.size)
+            val initialResults = ArrayList<Pair<Int, Double>>()
             for ((col, variable) in model.variables.withIndex()) {
+                vars.add(
+                    grbModel.addVar(
+                    variable.lowerBound.toSolverDouble("linear.variables[$col].lowerBound"),
+                    variable.upperBound.toSolverDouble("linear.variables[$col].upperBound"),
+                    0.0,
+                    GurobiVariable(variable.type).toGurobiVar(),
+                    variable.name
+                )
+                )
                 variable.initialResult?.let {
-                    grbVars[col].set(GRB.DoubleAttr.Start, it.toSolverDouble("linear.variables[$col].initialResult"))
+                    initialResults.add(col to it.toSolverDouble("linear.variables[$col].initialResult"))
                 }
+            }
+            grbVars = vars
+
+            for ((col, initialResult) in initialResults) {
+                grbVars[col].set(GRB.DoubleAttr.Start, initialResult)
             }
 
             val constraints = coroutineScope {
                 if (Runtime.getRuntime().availableProcessors() > 2 && model.constraints.size > Runtime.getRuntime().availableProcessors()) {
-                    val factor = Flt64(model.constraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                    val segment = if (factor >= 1) {
-                        pow(UInt64.ten, factor).toInt()
-                    } else {
-                        10
-                    }
-                    val promises = (0..(model.constraints.size / segment)).map { i ->
+                    val segment = computeConstraintSegmentSize(model.constraints.size)
+                    val chunkAmount = (model.constraints.size + segment - 1) / segment
+                    val promises = (0 until chunkAmount).map { i ->
                         async(Dispatchers.Default) {
-                            val constraints = ((i * segment) until minOf(model.constraints.size, (i + 1) * segment)).map { ii ->
+                            val from = i * segment
+                            val to = minOf(model.constraints.size, from + segment)
+                            val constraints = (from until to).map { ii ->
                                 val lhs = GRBLinExpr()
                                 model.constraints.sparseLhs.forEachEntry(ii) { colIndex, coefficient ->
                                     lhs.addTerm(
