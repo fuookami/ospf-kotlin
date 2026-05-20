@@ -288,6 +288,31 @@ class BlockMultiArraySemanticTest {
         assertTrue(blockArray.contains(intArrayOf(1, 2)))
     }
 
+    @Test
+    fun testBlockMultiArrayPublicMapConstructor() {
+        // 测试公开 map 构造器保留 List<Int> 索引入口
+        // Test public map constructor keeps the List<Int> index entrypoint
+        val shape = Shape2(4, 4)
+        val mutableKey = mutableListOf(1, 2)
+        val sourceBlocks = mutableMapOf<List<Int>, Int>(
+            mutableKey to 42,
+            listOf(3, 0) to 7
+        )
+
+        val blockArray = BlockMultiArray(shape, sourceBlocks)
+
+        assertEquals(2, blockArray.size)
+        assertEquals(42, blockArray[1, 2])
+        assertEquals(7, blockArray[3, 0])
+
+        mutableKey[0] = 2
+        sourceBlocks[listOf(3, 0)] = 99
+
+        assertEquals(42, blockArray[1, 2])
+        assertEquals(7, blockArray[3, 0])
+        assertNull(blockArray[2, 2])
+    }
+
     // ========================================================================
     // 迭代和遍历测试
     // Iteration and traversal tests

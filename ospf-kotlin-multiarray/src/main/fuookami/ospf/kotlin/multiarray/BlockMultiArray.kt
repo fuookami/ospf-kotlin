@@ -77,6 +77,16 @@ private class IndexKey private constructor(
     override fun hashCode(): Int = hash
 }
 
+private object InternalIndexKeyBlocks
+
+private fun <T : Any> Map<List<Int>, T>.toIndexKeyBlocks(): MutableMap<IndexKey, T> {
+    val converted = LinkedHashMap<IndexKey, T>(size)
+    for ((indices, value) in this) {
+        converted[IndexKey.persistent(indices.toIntArray())] = value
+    }
+    return converted
+}
+
 /**
  * BlockMultiArray - 分块存储的多维数组
  * BlockMultiArray - Multi-dimensional array with block storage
@@ -87,9 +97,16 @@ private class IndexKey private constructor(
  */
 class BlockMultiArray<T : Any, S : Shape> private constructor(
     val shape: S,
-    private val blocks: MutableMap<IndexKey, T>
+    private val blocks: MutableMap<IndexKey, T>,
+    @Suppress("UNUSED_PARAMETER")
+    internalBlocks: InternalIndexKeyBlocks
 ) : Collection<T> {
-    constructor(shape: S) : this(shape, mutableMapOf())
+    constructor(shape: S) : this(shape, mutableMapOf(), InternalIndexKeyBlocks)
+
+    constructor(
+        shape: S,
+        blocks: Map<List<Int>, T>
+    ) : this(shape, blocks.toIndexKeyBlocks(), InternalIndexKeyBlocks)
 
     /**
      * 获取元素
@@ -207,7 +224,7 @@ class BlockMultiArray<T : Any, S : Shape> private constructor(
                     blocks[IndexKey.persistent(vector)] = value
                 }
             }
-            return BlockMultiArray(array.shape, blocks)
+            return BlockMultiArray(array.shape, blocks, InternalIndexKeyBlocks)
         }
 
         /**
