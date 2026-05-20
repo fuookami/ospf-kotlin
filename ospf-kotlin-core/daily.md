@@ -127,7 +127,7 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 
 ### P20-2：core 大文件局部拆分
 
-状态：待执行。
+状态：已完成（第一批：dump/export helper 职责拆分，行为保持）。
 
 目标：降低 `LinearTriadModel.kt` 与 `QuadraticTetradModel.kt` 的维护成本，保持公开 API 和行为不变。
 
@@ -160,6 +160,34 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 4. `mvn --% -pl ospf-kotlin-core -DskipTests test-compile` 通过。
 5. P6/P7 静态门禁通过。
 6. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. 新增 `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadDumpBuilders.kt`：
+   - 抽出 `LinearTriadModel` 的 dump helper：`dumpLinearTriadVariables`、`dumpLinearTriadConstraints`、`dumpLinearTriadConstraintsAsync`、`dumpLinearTriadObjectives`。
+   - 抽出 `buildLinearSparseLhs`，供模型内复用。
+2. 新增 `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradDumpBuilders.kt`：
+   - 抽出 `QuadraticTetradModel` 的 dump helper：`dumpQuadraticTetradVariables`、`dumpQuadraticTetradConstraints`、`dumpQuadraticTetradConstraintsAsync`、`dumpQuadraticTetradObjectives`。
+   - 抽出 `buildQuadraticSparseLhs`，供模型内复用。
+3. 更新 `LinearTriadModel.kt`：
+   - 删除类内重复的 dump helper 与旧 `buildSparseLhs`。
+   - `from(...)`/`invoke(...)` 等路径改为调用新 helper。
+   - 原先 `buildSparseLhs` 调用点改为 `buildLinearSparseLhs`。
+4. 更新 `QuadraticTetradModel.kt`：
+   - 删除类内重复的 dump helper 与旧 `buildSparseLhs`。
+   - `from(...)`/`invoke(...)` 等路径改为调用新 helper。
+   - 原先 `buildSparseLhs` 调用点改为 `buildQuadraticSparseLhs`。
+5. 更新 `ospf-kotlin-core/scripts/p7-whitelist.json`：
+   - 增加两个新 helper 文件在 P7 `<Flt64>` 与 `<*>` 白名单中的计数，保持 guard 口径一致。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SparseMatrixTransposeTest,FlattenUtilityTest -Dsurefire.failIfNoSpecifiedTests=false test`：通过（实际运行到 `FlattenUtilityTest`、`MathInequalityFlattenTest`、`SparseMatrixTransposeTest`）。
+2. `mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile`：通过。
+3. `mvn --% -pl ospf-kotlin-core -DskipTests test-compile`：本机单模块口径存在既有依赖解析差异；按聚合口径复现并通过：`mvn --% -pl ospf-kotlin-core -am -DskipTests -Dgpg.skip=true test-compile`。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过（已包含新 helper 文件 whitelist 更新）。
+6. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ### P20-3：solver 插件数据准备公共化
 

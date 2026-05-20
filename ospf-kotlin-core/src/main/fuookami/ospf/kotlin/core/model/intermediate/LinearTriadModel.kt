@@ -31,7 +31,6 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
-import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -43,18 +42,6 @@ import fuookami.ospf.kotlin.core.model.mechanism.Constraint
 import fuookami.ospf.kotlin.core.model.mechanism.Linear
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
-
-private fun buildSparseLhs(rows: List<List<LinearConstraintCell>>): SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val mat = SparseMatrix<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-    for (row in rows) {
-        val sv = SparseVector<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-        for (cell in row) {
-            sv.add(cell.colIndex, cell.coefficient)
-        }
-        mat.addRow(sv)
-    }
-    return mat
-}
 
 private fun LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>.isBound(): Boolean {
     return lhs.size == 1
@@ -251,105 +238,17 @@ class BasicLinearTriadModel(
             bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>> = emptyMap(),
             fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
         ): BasicLinearTriadModel {
-            val variables = dumpVariables(model, tokenIndexMap, bounds)
-            val constraints = dumpConstraints(model, tokenIndexMap, bounds, fixedVariables)
-            return BasicLinearTriadModel(variables, constraints, model.name)
-        }
-
-        private fun dumpVariables(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>
-        ): List<Variable> {
-            val variables = ArrayList<Variable?>()
-            for ((_, _) in tokenIndexes) {
-                variables.add(null)
-            }
-            for ((token, i) in tokenIndexes) {
-                val thisBounds = bounds[token] ?: emptyList()
-                val lb = thisBounds
-                    .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
-                    .maxOfOrNull { it.fourth }
-                val ub = thisBounds
-                    .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
-                    .minOfOrNull { it.fourth }
-                variables[i] = Variable(
-                    index = i,
-                    lowerBound = if (lb != null) {
-                        max(lb, token.lowerBound!!.value.unwrap())
-                    } else {
-                        token.lowerBound!!.value.unwrap()
-                    },
-                    upperBound = if (ub != null) {
-                        min(ub, token.upperBound!!.value.unwrap())
-                    } else {
-                        token.upperBound!!.value.unwrap()
-                    },
-                    type = token.variable.type,
-                    origin = token.variable,
-                    dualOrigin = null,
-                    slack = null,
-                    name = token.variable.name,
-                    initialResult = token.result
-                )
-            }
-            return variables.map { it!! }
-        }
-
-        private fun dumpConstraints(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
-        ): LinearConstraintBatch {
-            val boundConstraints = bounds.values.flatMap { thisBounds ->
-                thisBounds.map { it.first }
-            }.distinct().toSet()
-            val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
-
-            val lhs = ArrayList<List<LinearConstraintCell>>()
-            val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-            val names = ArrayList<String>()
-            val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-            val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
-            val priorities = ArrayList<Int?>()
-            for ((index, constraint) in notBoundConstraints.withIndex()) {
-                val constraintLhs = ArrayList<LinearConstraintCell>()
-                var constraintRhs = constraint.rhs
-                for (cell in constraint.lhs) {
-                    if (tokenIndexes.containsKey(cell.token)) {
-                        constraintLhs.add(
-                            LinearConstraintCell(
-                                rowIndex = index,
-                                colIndex = tokenIndexes[cell.token]!!,
-                                coefficient = cell.coefficient.clampCoefficient()
-                            )
-                        )
-                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                        constraintRhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
-                    }
-                }
-                lhs.add(constraintLhs)
-                signs.add(constraint.sign)
-                rhs.add(constraintRhs)
-                names.add(constraint.name)
-                sources.add(ConstraintSource.Origin)
-                origins.add(constraint)
-                froms.add(constraint.from)
-                priorities.add(constraint.origin?.priority)
-            }
-            return LinearConstraintBatch(
-                sparseLhs = buildSparseLhs(lhs),
-                signs = signs,
-                rhs = rhs,
-                names = names,
-                sources = sources,
-                origins = origins,
-                froms = froms,
-                priorities = priorities
+            val variables = dumpLinearTriadVariables(
+                tokenIndexes = tokenIndexMap,
+                bounds = bounds
             )
+            val constraints = dumpLinearTriadConstraints(
+                model = model,
+                tokenIndexes = tokenIndexMap,
+                bounds = bounds,
+                fixedVariables = fixedVariables
+            )
+            return BasicLinearTriadModel(variables, constraints, model.name)
         }
     }
     override fun copy() = BasicLinearTriadModel(
@@ -578,14 +477,13 @@ data class LinearTriadModel(
             val triadModel = if (concurrent ?: model.concurrent) {
                 coroutineScope {
                     val variablePromise = async(Dispatchers.Default) {
-                        dumpVariables(
-                            model = model,
+                        dumpLinearTriadVariables(
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds
                         )
                     }
                     val constraintPromise = async(Dispatchers.Default) {
-                        dumpConstraintsAsync(
+                        dumpLinearTriadConstraintsAsync(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
@@ -593,7 +491,7 @@ data class LinearTriadModel(
                         )
                     }
                     val objectivePromise = async(Dispatchers.Default) {
-                        dumpObjectives(
+                        dumpLinearTriadObjectives(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             fixedVariables = fixedVariables
@@ -613,12 +511,11 @@ data class LinearTriadModel(
             } else {
                 LinearTriadModel(
                     impl = BasicLinearTriadModel(
-                        variables = dumpVariables(
-                            model = model,
+                        variables = dumpLinearTriadVariables(
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds
                         ),
-                        constraints = dumpConstraints(
+                        constraints = dumpLinearTriadConstraints(
                             model = model,
                             tokenIndexes = tokenIndexMap,
                             bounds = bounds,
@@ -627,7 +524,7 @@ data class LinearTriadModel(
                         name = model.name
                     ),
                     tokensInSolver = tokensInSolver,
-                    objective = dumpObjectives(
+                    objective = dumpLinearTriadObjectives(
                         model = model,
                         tokenIndexes = tokenIndexMap,
                         fixedVariables = fixedVariables
@@ -638,282 +535,6 @@ data class LinearTriadModel(
             logger.trace("LinearTriadModel created for $model")
             MemoryCleanupPolicy.cleanupAfterModelBuilt()
             return triadModel
-        }
-
-        @Suppress("UNUSED_PARAMETER")
-        private fun dumpVariables(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>
-        ): List<Variable> {
-            val variables = ArrayList<Variable?>()
-            for ((_, _) in tokenIndexes) {
-                variables.add(null)
-            }
-            for ((token, i) in tokenIndexes) {
-                val thisBounds = bounds[token] ?: emptyList()
-                val lb = thisBounds
-                    .filter { it.third == ConstraintRelation.GreaterEqual || it.third == ConstraintRelation.Equal }
-                    .maxOfOrNull { it.fourth }
-                val ub = thisBounds
-                    .filter { it.third == ConstraintRelation.LessEqual || it.third == ConstraintRelation.Equal }
-                    .minOfOrNull { it.fourth }
-                variables[i] = Variable(
-                    index = i,
-                    lowerBound = if (lb != null) {
-                        max(lb, token.lowerBound!!.value.unwrap())
-                    } else {
-                        token.lowerBound!!.value.unwrap()
-                    },
-                    upperBound = if (ub != null) {
-                        min(ub, token.upperBound!!.value.unwrap())
-                    } else {
-                        token.upperBound!!.value.unwrap()
-                    },
-                    type = token.variable.type,
-                    origin = token.variable,
-                    dualOrigin = null,
-                    slack = null,
-                    name = token.variable.name,
-                    initialResult = token.result
-                )
-            }
-            return variables.map { it!! }
-        }
-
-        private fun dumpConstraints(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
-        ): LinearConstraintBatch {
-            val boundConstraints = bounds.values.flatMap { thisBounds ->
-                thisBounds.map { it.first }
-            }.distinct().toSet()
-            val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
-
-            val constraints = notBoundConstraints.withIndex().map { (index, constraint) ->
-                val lhs = ArrayList<LinearConstraintCell>()
-                var rhs = constraint.rhs
-                for (cell in constraint.lhs) {
-                    if (tokenIndexes.containsKey(cell.token)) {
-                        lhs.add(
-                            LinearConstraintCell(
-                                rowIndex = index,
-                                colIndex = tokenIndexes[cell.token]!!,
-                                coefficient = cell.coefficient.clampCoefficient()
-                            )
-                        )
-                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                        rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
-                    }
-                }
-                lhs to rhs
-            }
-
-            val lhs = ArrayList<List<LinearConstraintCell>>()
-            val signs = ArrayList<ConstraintRelation>()
-            val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-            val names = ArrayList<String>()
-            val sources = ArrayList<ConstraintSource>()
-            val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-            val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
-            val priorities = ArrayList<Int?>()
-            for ((index, constraint) in notBoundConstraints.withIndex()) {
-                lhs.add(constraints[index].first)
-                signs.add(constraint.sign)
-                rhs.add(constraints[index].second)
-                names.add(constraint.name)
-                sources.add(ConstraintSource.Origin)
-                origins.add(constraint)
-                froms.add(constraint.from)
-                priorities.add(constraint.origin?.priority)
-            }
-            return LinearConstraintBatch(
-                sparseLhs = buildSparseLhs(lhs),
-                signs = signs,
-                rhs = rhs,
-                names = names,
-                sources = sources,
-                origins = origins,
-                froms = froms,
-                priorities = priorities
-            )
-        }
-
-        private suspend fun dumpConstraintsAsync(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            bounds: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, List<Quadruple<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ConstraintRelation, Flt64>>>,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
-        ): LinearConstraintBatch {
-            val boundConstraints = bounds.values.flatMap { thisBounds ->
-                thisBounds.map { it.first }
-            }.distinct().toSet()
-            val notBoundConstraints = model.linearConstraints.filter { !boundConstraints.contains(it) }
-
-            return if (Runtime.getRuntime().availableProcessors() > 2 && notBoundConstraints.size > Runtime.getRuntime().availableProcessors()) {
-                val factor = Flt64(notBoundConstraints.size / (Runtime.getRuntime().availableProcessors() - 1)).lg()!!.floor().toUInt64().toInt()
-                val segment = if (factor >= 1) {
-                    pow(UInt64.ten, factor).toInt()
-                } else {
-                    10
-                }
-                coroutineScope {
-                    val constraintPromises = (0..(notBoundConstraints.size / segment)).map {
-                        async(Dispatchers.Default) {
-                            val constraints = ArrayList<Pair<List<LinearConstraintCell>, Flt64>>()
-                            for (i in (it * segment) until minOf(notBoundConstraints.size, (it + 1) * segment)) {
-                                val constraint = notBoundConstraints[i]
-                                val lhs = ArrayList<LinearConstraintCell>()
-                                var rhs = constraint.rhs
-                                for (cell in constraint.lhs) {
-                                    if (tokenIndexes.containsKey(cell.token)) {
-                                        lhs.add(
-                                            LinearConstraintCell(
-                                                rowIndex = i,
-                                                colIndex = tokenIndexes[cell.token]!!,
-                                                coefficient = cell.coefficient.clampCoefficient()
-                                            )
-                                        )
-                                    } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                                        rhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
-                                    }
-                                }
-                                constraints.add(lhs to rhs)
-                            }
-                            MemoryCleanupPolicy.cleanupOnPressure()
-                            constraints
-                        }
-                    }
-
-                    val lhs = ArrayList<List<LinearConstraintCell>>()
-                    val signs = ArrayList<ConstraintRelation>()
-                    val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-                    val names = ArrayList<String>()
-                    val sources = ArrayList<ConstraintSource>()
-                    val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-                    val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
-                    val priorities = ArrayList<Int?>()
-                    for ((index, constraint) in notBoundConstraints.withIndex()) {
-                        val (thisLhs, thisRhs) = constraintPromises[index / segment].await()[index % segment]
-                        lhs.add(thisLhs)
-                        signs.add(constraint.sign)
-                        rhs.add(thisRhs)
-                        names.add(constraint.name)
-                        sources.add(ConstraintSource.Origin)
-                        origins.add(constraint)
-                        froms.add(constraint.from)
-                        priorities.add(constraint.origin?.priority)
-                    }
-                    LinearConstraintBatch(
-                        sparseLhs = buildSparseLhs(lhs),
-                        signs = signs,
-                        rhs = rhs,
-                        names = names,
-                        sources = sources,
-                        origins = origins,
-                        froms = froms,
-                        priorities = priorities
-                    )
-                }
-            } else {
-                val lhs = ArrayList<List<LinearConstraintCell>>()
-                val signs = ArrayList<ConstraintRelation>()
-                val rhs = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>()
-                val names = ArrayList<String>()
-                val sources = ArrayList<ConstraintSource>()
-                val origins = ArrayList<LinearConstraintImpl<fuookami.ospf.kotlin.math.algebra.number.Flt64>>()
-                val froms = ArrayList<Pair<IntermediateSymbol<*>, Boolean>?>()
-                val priorities = ArrayList<Int?>()
-                for ((index, constraint) in notBoundConstraints.withIndex()) {
-                    val thisLhs = ArrayList<LinearConstraintCell>()
-                    var thisRhs = constraint.rhs
-                    for (cell in constraint.lhs) {
-                        if (tokenIndexes.containsKey(cell.token)) {
-                            thisLhs.add(
-                                LinearConstraintCell(
-                                    rowIndex = index,
-                                    colIndex = tokenIndexes[cell.token]!!,
-                                    coefficient = cell.coefficient.clampCoefficient()
-                                )
-                            )
-                        } else if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                            thisRhs -= cell.coefficient * fixedVariables[cell.token.variable]!!
-                        }
-                    }
-                    lhs.add(thisLhs)
-                    signs.add(constraint.sign)
-                    rhs.add(thisRhs)
-                    names.add(constraint.name)
-                    sources.add(ConstraintSource.Origin)
-                    origins.add(constraint)
-                    froms.add(constraint.from)
-                    priorities.add(constraint.origin?.priority)
-                }
-                MemoryCleanupPolicy.cleanupAfterBatch()
-                LinearConstraintBatch(
-                    sparseLhs = buildSparseLhs(lhs),
-                    signs = signs,
-                    rhs = rhs,
-                    names = names,
-                    sources = sources,
-                    origins = origins,
-                    froms = froms,
-                    priorities = priorities
-                )
-            }
-        }
-
-        private fun dumpObjectives(
-            model: LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-            tokenIndexes: Map<Token<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Int>,
-            fixedVariables: Map<AbstractVariableItem<*, *>, Flt64>? = null
-        ): LinearObjective {
-            val objectiveCategory = if (model.objectFunction.subObjects.size == 1) {
-                model.objectFunction.subObjects.first().category
-            } else {
-                model.objectFunction.category
-            }
-            val coefficient = (0 until tokenIndexes.size).map { Flt64.zero }.toMutableList()
-            var constant = Flt64.zero
-            for (subObject in model.objectFunction.subObjects) {
-                if (subObject.category == objectiveCategory) {
-                    for (cell in subObject.cells) {
-                        if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                            constant += cell.coefficient * fixedVariables[cell.token.variable]!!
-                        } else {
-                            val index = tokenIndexes[cell.token] ?: continue
-                            coefficient[index] = coefficient[index] + cell.coefficient
-                        }
-                    }
-                    constant += subObject.constant
-                } else {
-                    for (cell in subObject.cells) {
-                        if (fixedVariables?.containsKey(cell.token.variable) == true) {
-                            constant -= cell.coefficient * fixedVariables[cell.token.variable]!!
-                        } else {
-                            val index = tokenIndexes[cell.token] ?: continue
-                            coefficient[index] = coefficient[index] - cell.coefficient
-                        }
-                    }
-                    constant -= subObject.constant
-                }
-            }
-            val objective = ArrayList<LinearObjectiveCell>()
-            for ((_, i) in tokenIndexes) {
-                objective.add(
-                    LinearObjectiveCell(
-                        colIndex = i,
-                        coefficient = coefficient[i].clampCoefficient()
-                    )
-                )
-            }
-            return LinearObjective(
-                category = objectiveCategory,
-                objective = objective,
-                constant = constant
-            )
         }
     }
 
@@ -1213,7 +834,7 @@ data class LinearTriadModel(
             impl = BasicLinearTriadModel(
                 variables = (dualVariables + boundDualVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
                 constraints = LinearConstraintBatch(
-                    sparseLhs = buildSparseLhs(lhs),
+                    sparseLhs = buildLinearSparseLhs(lhs),
                     signs = signs,
                     rhs = rhs,
                     names = names,
@@ -1531,7 +1152,7 @@ data class LinearTriadModel(
             impl = BasicLinearTriadModel(
                 variables = (farkasVariables + slackVariables + boundVariables.flatMapNotNull { listOf(it.first, it.second) }).sortedBy { it.index },
                 constraints = LinearConstraintBatch(
-                    sparseLhs = buildSparseLhs(lhs),
+                    sparseLhs = buildLinearSparseLhs(lhs),
                     signs = signs,
                     rhs = rhs,
                     names = names,
@@ -1664,7 +1285,7 @@ data class LinearTriadModel(
                 }
             }
         val constraints = LinearConstraintBatch(
-            sparseLhs = buildSparseLhs(lhs),
+            sparseLhs = buildLinearSparseLhs(lhs),
             signs = this.constraints.indices.map {
                 ConstraintRelation.Equal
             },
@@ -2030,7 +1651,7 @@ data class LinearTriadModel(
                 emptyList()
             }
         val constraints = LinearConstraintBatch(
-            sparseLhs = buildSparseLhs(lhs),
+            sparseLhs = buildLinearSparseLhs(lhs),
             signs = this.constraints.signs + this.variables.indices.flatMap { j ->
                 val jp = this.constraints.size + j
                 val thisConstraintRelations = ArrayList<ConstraintRelation>()
@@ -2362,5 +1983,3 @@ suspend fun solveFarkasDual(
         }
     }
 }
-
-
