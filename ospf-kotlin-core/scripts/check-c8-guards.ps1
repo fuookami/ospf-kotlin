@@ -884,6 +884,37 @@ if (($Verbose -or $p18HeuristicOldGenericViolations.Count -gt 0) -and $p18Heuris
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 
+$p18SymbolCombinationViolations = @()
+$p18SymbolCombinationFile = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/SymbolCombination.kt"
+if (Test-Path $p18SymbolCombinationFile) {
+    $currentObject = ""
+    $lineNumber = 0
+    Get-Content $p18SymbolCombinationFile | ForEach-Object {
+        $lineNumber++
+        $trimmed = $_.Trim()
+        if ($trimmed -match "^data object\s+([A-Za-z_][A-Za-z0-9_]*)") {
+            $currentObject = $Matches[1]
+        }
+        if ($trimmed -notmatch "^(//|\*|/\*\*)") {
+            if ($currentObject -in @("LinearIntermediateSymbols", "QuadraticIntermediateSymbols") -and
+                $trimmed -match "<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -match "ctor:\s*\([^)]*\)\s*->\s*LinearPolynomial<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -match "l4\[v\[4\]\]") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-6: SymbolCombination factories stay generic outside explicit Flt64 boundary" ($p18SymbolCombinationViolations.Count -eq 0) "Found $($p18SymbolCombinationViolations.Count) violations"
+if (($Verbose -or $p18SymbolCombinationViolations.Count -gt 0) -and $p18SymbolCombinationViolations.Count -gt 0) {
+    $preview = ($p18SymbolCombinationViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
 $exampleSolverCallViolations = @()
 foreach ($root in $defaultExampleSourceRoots) {
     if (-not (Test-Path $root)) {

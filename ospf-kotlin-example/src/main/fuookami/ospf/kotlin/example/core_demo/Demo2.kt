@@ -130,7 +130,7 @@ data object Demo2 {
         )
         metaModel.add(cost)
 
-        assignmentCompany = LinearIntermediateSymbols(
+        assignmentCompany = Flt64LinearIntermediateSymbols(
             "assignment_company",
             Shape1(companies.size)
         )
