@@ -88,14 +88,18 @@ class SparseMatrix<V : RealNumber<V>>(
      */
     fun transpose(): SparseMatrix<V> {
         val result = SparseMatrix<V>()
-        // First pass: determine column count
-        val maxCol = rows.flatMap { it.entries }.maxOfOrNull { it.index } ?: -1
+        var maxCol = -1
+        for (row in rows) {
+            for (entry in row.entries) {
+                if (entry.index > maxCol) {
+                    maxCol = entry.index
+                }
+            }
+        }
         if (maxCol < 0) return result
-        // Pre-allocate rows in result
         for (c in 0..maxCol) {
             result.addRow(SparseVector())
         }
-        // Fill
         for ((r, row) in rows.withIndex()) {
             for (entry in row.entries) {
                 result.rows[entry.index].add(r, entry.value)

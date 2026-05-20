@@ -5,6 +5,7 @@ import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 import fuookami.ospf.kotlin.core.intermediate_symbol.flatten.*
 import fuookami.ospf.kotlin.core.variable.RealVar
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import org.junit.jupiter.api.Test
@@ -83,6 +84,36 @@ class FlattenUtilityTest {
         val xMonomial = result.monomials.find { it.symbol == x }
         assertNotNull(xMonomial, "x monomial should exist")
         assertTrue(xMonomial.coefficient eq Flt64(5.0), "x coefficient should be 2.0 + 3.0 = 5.0")
+    }
+
+    @Test
+    fun mergeLinearFlattenData_shouldIgnoreNonVariableSymbolsWithoutBreakingConstant() {
+        data class AliasSymbol(
+            override val name: String,
+            override val displayName: String? = null
+        ) : Symbol
+
+        val x = RealVar("x")
+        val alias = AliasSymbol("alias")
+
+        val data1 = LinearFlattenData<Flt64>(
+            monomials = listOf(
+                LinearMonomial(Flt64(2.0), x),
+                LinearMonomial(Flt64(3.0), alias)
+            ),
+            constant = Flt64(1.0)
+        )
+        val data2 = LinearFlattenData<Flt64>(
+            monomials = listOf(LinearMonomial(Flt64(4.0), x)),
+            constant = Flt64(2.0)
+        )
+
+        val result = mergeLinearFlattenDataFlt64(listOf(data1, data2))
+
+        assertEquals(1, result.monomials.size)
+        assertTrue(result.constant eq Flt64(3.0))
+        assertTrue(result.monomials[0].symbol == x)
+        assertTrue(result.monomials[0].coefficient eq Flt64(6.0))
     }
 
     // ========== Quadratic Merge Tests ==========

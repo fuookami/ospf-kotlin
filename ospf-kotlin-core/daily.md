@@ -1,733 +1,405 @@
-# core/math 符号运算迁移与兼容层删除记录（2026-05-14 起）
+# core/math P18+ 后续简化与性能优化交接（2026-05-20）
 
-## 最新结论：无兼容层收口（2026-05-19）
+## 最新结论
 
-当前路线已从“补齐原版兼容层、平滑迁移”调整为“删除兼容层，仅保留正式 math/core 设计”。因此验收重点不再是保留旧入口，而是确认符号运算能力已经落到正式 API，core 主链路保持泛型化，example/framework 使用显式替代链路。
+P18 已完成无兼容层收口：core 已在架构上把符号运算能力迁移到正式 `math.symbol` 体系，core 主链路保持泛型化，旧兼容层、旧桥接命名和默认 Flt64 特化工厂已移除或边界化。
 
-已完成的当前状态：
+接下来进入 P19：不再围绕“兼容原旧入口”继续补平滑层，而是在 P18+ 基础上做全面简化、性能优化和技术债清理。优化范围覆盖：
 
-1. `math.symbol.adapter.*` 源码目录、`FunctionCompat.kt`、`MetaModelFlt64Adapter.kt` 已删除，旧 `Bridged*` 命名不再作为源码入口使用。
-2. Flt64 快捷建模 DSL 落在正式 `math.symbol.operation.*` 下，不再通过 adapter 包提供。
-3. core/example/framework 默认源码不再依赖旧 `solver(metaModel)` 兼容调用；example 侧如需保持 demo 简洁，使用显式 `dump(metaModel) -> dump(mechanism) -> solver(triad)` helper。
-4. 旧无 converter 的 `SlackFunction(...)` / `AbsFunction.fromLinearPolynomial(...)` / `BinaryzationFunction.fromLinearPolynomial(...)` 测试残留已迁到正式泛型构造器与 `LinearFunctionSymbolAdapter`。
-5. P17 静态门禁已加入 `check-c8-guards.ps1`，禁止兼容层路径、旧符号/import、example 旧 solver 调用、旧无 converter Slack 调用回流。
-
-当前可确认结论：core 已在架构上完成符号运算能力向 math 正式符号体系的迁移，且不再保留兼容层作为公开或默认源码依赖。功能和接口的目标口径已更新为“按最佳设计还原建模能力”，而不是“逐项保留原 Kotlin 版本旧调用形态”。
+- `ospf-kotlin-multiarray`
+- `ospf-kotlin-math`
+- `ospf-kotlin-core`
+- `ospf-kotlin-core-plugin`
+- `ospf-kotlin-framework-*`
 
 ## 目标
 
-本轮最初目标是对比原始 Kotlin 版本：
+P19 的目标是让 P18+ 后的正式设计更干净、更快、更容易维护：
 
-- 原始 core：`E:/workspace/ospf-kotlin-main`
-- 原始示例：`E:/workspace/ospf/examples/ospf-kotlin-example`
-- 原始业务项目：`E:/workspace/poit/aps`
-- 原始业务项目：`E:/workspace/poit/csp1d`
-- 原始业务项目：`E:/workspace/poit/bop`
-- 原始业务项目：`E:/workspace/poit/psp`
-- 当前迁移仓库：`E:/workspace/ospf-kotlin`
-
-在保留两项既定架构变更的前提下，让当前版本与原始版本在功能和易用性上保持一致：
-
-1. 符号运算能力从 core 自有表达式体系迁移至 `math.symbol`。
-2. core 主链路完成泛型化，数值类型主参数记为 `V`。
-
-最新决策：不再为了平滑迁移保留兼容层。原始版本的建模能力、示例表达和业务覆盖仍作为功能基准，但旧包路径、旧构造器和旧 solver 入口应迁到正式 math/core API，而不是通过兼容层复刻。
-
-本轮新增四个完整原始业务项目作为真实迁移语料。它们不是简单示例，实际覆盖 starter、framework、Gantt scheduling、CSP1D、solver 插件、列生成、`Pipeline`/`PipelineList`、`AbstractLinearMetaModel`/`AbstractQuadraticMetaModel`、`LinearIntermediateSymbolsN`/`QuadraticIntermediateSymbolsN`、变量族和解分析链路。因此本轮计划需要从 core API 易用性扩展为“core + framework + starter + 业务项目编译链路”的兼容闭环。
-
-业务项目 APS/CSP1D/BOP/PSP 不需要纳入默认直接编译门禁。当前仓库默认门禁只要求 in-repo source-compat fixture、starter/framework 依赖闭包和 build-only 结构验证通过；外部仓库直接编译属于项目侧升级工作，不作为本仓库默认 release gate 的阻塞项。
-
-由于本次 core 已泛型化，凡是迁移后必须显式指定数值类型的易用入口，都不能只补 `Flt64`。正式 API 至少需要能支撑 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四类路径；`Flt64` 继续作为示例和业务项目的最小迁移路径，另外三种类型用于验证泛型能力没有退化为单类型适配。
+1. 降低热点路径的临时对象分配，尤其是 multiarray 索引、符号合并、模型 dump、solver dump、时间区间扫描。
+2. 消除 P18 迁移后剩余的重复实现，例如 Flt64 专用逻辑与泛型正式逻辑的重复。
+3. 把仍然散落的 Flt64 快捷层、solver double 边界、泛型核心层边界写清楚，并用静态门禁防止回流。
+4. 简化 core 中大型 builder/dump 代码，降低 `LinearTriadModel` / `QuadraticTetradModel` 的维护成本。
+5. 对 framework 中真实未实现路径和长尾风险做归档、门禁或实现计划，不让 `TODO("not implemented yet")` 隐性进入关键路径。
 
 ## 总体原则
 
-1. 原始示例与四个业务项目共同作为功能与易用性的基准。若原代码中存在稳定公开用法，当前版本应提供正式 API 或清晰的一步替代，不再新增兼容包装。
-2. 架构变更只允许影响内部实现和必要类型参数，不应迫使 `Flt64/FltX/Rtn64/RtnX` 用户手写 converter、低层 flatten data 或冗长构造器。
-3. `Flt64` 默认路径必须足够顺手：`LinearMetaModel("name")`、`QuadraticMetaModel()`、常用函数符号和 solver 调用应保持接近原版体验。
-4. 泛型路径必须保持一等公民：新增正式入口不能只服务 `Flt64`。凡是因为泛型化必须暴露类型选择的易用入口，至少提供 `Flt64`、`FltX`、`Rtn64`、`RtnX` 四套入口或等价工厂。
-5. 示例测试分层执行：默认回归使用 build-only 或结构化断言，不强依赖外部 solver；solver 存在时再跑 SCIP/Gurobi 集成验证。
-6. 功能迁移优先于包名完全复刻。`frontend/backend` 包拆平属于已接受架构演进，但应通过 import 聚合、别名或文档降低迁移成本。
-7. 快捷 DSL 必须有边界测试。`sum/qsum`、`eq/leq/geq/ls/gr/neq`、`partition`、`constraintsOfGroup`、函数符号别名等都要有编译级或结构级防回归。
-8. 不以空 smoke 作为验收。所有新增或恢复测试必须断言可观察结构、约束数量、目标项、符号注册、求解结果或错误状态。
-9. 业务项目迁移优先做编译与 build-only 结构闭环，不把真实 solver 可用性、外部数据服务或 POIT 父 POM 作为默认阻塞项；solver 相关路径用 profile 或条件跳过验证。
-10. starter 与 framework 是兼容面的一部分。`ospf-kotlin-starter-gantt-scheduling`、`ospf-kotlin-starter-csp1d`、`framework.model`、`framework.solver`、`framework.gantt_scheduling` 的公开入口要跟随原版业务用法检查。
-11. math 层可新增 companion-provider 转换接口，统一表达 `Flt64 <-> V` 的转换能力，避免 core/framework 为四种数值类型散落硬编码 converter。
+1. 继续坚持无兼容层：不要新增 `compat`、`bridge`、旧包路径或仅为平滑迁移存在的包装。
+2. 泛型正式 API 使用原名；Flt64 快捷层和 solver 边界必须显式命名并隔离。
+3. 优先优化已确认的热点和结构性重复，不做无证据的全局机械替换。
+4. 性能优化不能牺牲泛型能力；至少用 `Flt64` 与一个非 Flt64 类型（优先 `Rtn64`）做回归验证。
+5. 低层集合链式调用只有在 dump、flatten、solver 转换、multiarray 迭代、framework 时间扫描等热点路径中优先处理。
+6. 不默认强制真实外部 solver 参与验收；solver 插件默认以编译、结构和边界转换验证为主，真实 solver 用 profile 或条件集成测试。
+7. 不用空 smoke 验收。新增测试必须断言结构、数量、边界值、类型保持、异常信息或求解器边界转换结果。
+8. 写注释时遵守项目规则：中英双语；不添加版权声明。
+9. README / README_ch 如涉及用户入口变更，需保持互链和同步说明。
 
-## 当前阶段结论（2026-05-19）
+## 已完成事项摘要
 
-P16 已完成：`framework_demo/demo2` 与 `heuristic_demo` 已恢复到 `ospf-kotlin-example` 默认源码集，`src/non-default-main` / `src/non-default-test` 已移除，默认 `compile/test` 可直接通过。
+以下为 P0-P18 已完成内容的高层摘要，不再保留逐批流水账：
 
-默认迁移门禁维持闭环：core source-compat、example 默认构建、core demo、function build-only、business source-compat、framework/starter compat 与 P6/P7（含 P16）静态门禁均已通过。
+1. 已完成从 core 自有表达式体系到 `math.symbol` 正式符号体系的迁移。
+2. 已删除兼容层目录与旧入口，移除 `math.symbol.adapter.*`、`FunctionCompat`、`MetaModelFlt64Adapter` 等旧兼容面。
+3. 已把 core 主链路泛型化，并验证 `Flt64`、`FltX`、`Rtn64`、`RtnX` 等数值路径不会退化为单 Flt64 适配。
+4. 已恢复 example 默认构建，把曾经的 non-default demo 迁回默认源码集。
+5. 已恢复并增强 core demo、function build-only、business source-compat、framework/starter compat 等验收 profile。
+6. 已建立并扩展 `check-c8-guards.ps1` 与 `check-migration-compat.ps1`，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等静态风险。
+7. 已清理 P18 迁移期命名，公开声明级 `Type*` / `*V` 迁移命名已清零；保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
+8. 已把 `IntermediateSymbol`、`SymbolCombination` 等工厂从默认 Flt64 特化改为显式 `RealNumberConstants<V>` 泛型入口。
+9. 已把 callback/heuristic 等多目标路径拆清 `ObjValue` 与 `SolutionValue`，避免目标值类型和解变量值类型混淆。
+10. P18 结束时工作区已提交，最新相关提交为 `98790ce6 chore(core): 收口符号工厂泛型入口`。
 
-P17 无兼容层收口已推进：兼容层目录与旧入口回流检查已加入静态门禁；当前源码目标从“兼容恢复”切换为“正式 API 替代”。
+## P19 扫描结论
 
-## 已完成事项
+2026-05-20 已完成一次静态扫描和抽样阅读。结论如下。
 
-### P0：兼容矩阵与迁移范围识别
+### 高优先级
 
-1. 已把原始 core、原始 example、APS/CSP1D/BOP/PSP 作为迁移语料。
-2. 已确认高频迁移触点覆盖 core、framework、starter、solver 插件、变量族、函数符号、pipeline、列生成和 mechanism model 链路。
-3. 已建立业务 source-compat fixture，用于替代外部仓库默认直接编译门禁。
+1. `multiarray` 索引路径分配偏高：
+   - `BlockMultiArray` 每次 `get/set/getOrSet` 都把 `IntArray` 转成 `List<Int>` 作为 map key。
+   - `MultiIndexIterator.hasNext()` 每次复制当前位置并试探推进。
+   - 固定维 `Shape` 的 column-major `vector()` 使用 `reversedArray()`，存在可避免的小额分配。
+2. `math` 符号合并存在重复实现：
+   - Flt64 专用 `combineTerms()` 与泛型 `combineLinearTerms` / `combineQuadraticTerms` 逻辑重复。
+   - quadratic 合并使用 `Pair<Symbol, Symbol?>` 作为 key，热点下会产生大量临时对象。
+3. `core` 模型 dump 与 elastic builder 代码体量大、重复多：
+   - `LinearTriadModel.kt` 与 `QuadraticTetradModel.kt` 均超过 2k 行。
+   - elastic 构造中大量 `flatMap + listOf + +` 拼接会产生中间 List。
+   - 多处 `System.gc()` 应改为可配置内存策略，默认不主动触发。
+4. `core-plugin` solver dump 重复明显：
+   - Gurobi/Gurobi11/Cplex/Scip 等插件变量数组、约束分段、初始解、边界 double 转换逻辑相似。
+   - 部分路径对变量多次 `map`，可以单趟填充 primitive/object 数组。
+   - 约束 chunk 大小用 `Flt64.lg()/pow()` 计算，适合改成纯整数策略。
+5. `framework-gantt-scheduling` 时间扫描可优化：
+   - `WorkingCalendar` 多处对有序时间段做线性扫描。
+   - `TimeRange` / `TimeWindow` 有 `filter + map`、`withIndex().indexOfFirst/Last` 等可单趟或二分优化的路径。
 
-### P1：四类数值易用入口
+### 中优先级
 
-1. 已恢复 `Flt64` 默认建模路径，并补齐 `FltX`、`Rtn64`、`RtnX` 相关入口验证。
-2. 已把常见 converter 入口收敛到库侧能力，例如 `IntoValue.Identity`、`FltX.toIntoValue()`、`Rtn64.toIntoValue()`、`RtnX.toIntoValue()`。
-3. 已通过 source-compat 和泛型测试防止新 API 退化为单 `Flt64` 适配。
+1. `!!` 密度偏高，尤其在 core、math、core-plugin、gantt framework 中。建议逐步改成 `requireNotNull`、局部不变量 helper 或领域异常，提升错误信息。
+2. `TODO("not implemented yet")` 需要归档或门禁，主要集中在 framework-gantt、bpp3d layer assignment、Mosek plugin、framework-plugin persistence。
+3. Flt64 快捷层边界仍需文档化：`Flt64QuickDsl`、`Flt64QuickOps`、`Flt64MatrixForm` 可以保留，但应明确它们不是泛型核心层。
+4. solver 插件重复代码短期不阻塞，但后续修改一个 solver 时容易漏另一个。
+5. core 大文件需要拆分或抽 helper，尤其是 dump、elastic、export、normalize/copy 相关逻辑。
 
-### P2/P3/P4：模型 DSL、函数符号与快捷算术
+### 低优先级
 
-1. 已恢复核心建模 DSL、函数符号构造和常用表达式入口的主要兼容路径。
-2. 已补充 build-only 函数测试，覆盖线性函数、条件函数、二次函数、ProductFunction、QuadraticLinearFunction 等结构注册路径。
-3. 已修复 `MathInequalityFlatten.kt` 中 `toLinearFlattenData` 对非变量符号的危险硬转，改为 `as?` 与明确失败信息，避免 ClassCast 回流。
+1. 固定维 `Shape` 的 `lazy` 和 `reversedArray()` 属于小额性能优化，低于 sparse key 和 iterator 优先级。
+2. 非热点 builder 中的 `map/filter/flatMap + toList` 不必机械改。
+3. 少量注释和文案有乱码或迁移叙事残留，可顺手修复。
+4. framework-bpp1d、bpp2d、csp2d、network-scheduling 当前没有明显 Kotlin 热点，暂不优先投入。
+5. README/daily 可补一张“泛型核心层 / Flt64 快捷层 / solver 边界层”边界表，避免后续误用。
 
-### P5：示例回归覆盖
+## P19 计划
 
-1. `core_demo Demo1-17` 已进入 build-only 结构测试。
-2. 函数示例测试已从空 smoke 转为带结构断言的 build-only 测试。
-3. 二次示例已拆分为 build-only 结构测试和 solver-gated 结果测试。
-4. solver 不可用时，solver-gated 测试通过条件跳过，不阻塞默认门禁。
+### P19-1：multiarray 索引与迭代优化
 
-### P6/P7：API 边界门禁与业务 source-compat
+状态（2026-05-20）：已完成第一批落地并通过模块回归。
 
-1. 已扩展 `check-c8-guards.ps1`，新增 P10/P11/P12/P14/P16 静态检查。
-2. 已覆盖空断言、converter 样板回流、solver-gated 空测试、危险 flatten hard-cast、默认 example 旧 `core.frontend.*` import 回流等风险。
-3. `business-source-compat` profile 已覆盖 APS、CSP1D、BOP、PSP 四类业务高频用法的 in-repo fixture。
-4. `framework-starter-compat` profile 已覆盖 starter/framework 依赖闭包和常用入口。
+本批实际修改清单：
 
-### P8/P9：framework/starter 与 math 转换桥
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/BlockMultiArray.kt`
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/AccessOrder.kt`
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/Shape.kt`
+- `ospf-kotlin-multiarray/src/test/fuookami/ospf/kotlin/multiarray/BlockMultiArraySemanticTest.kt`
+- `ospf-kotlin-multiarray/src/test/fuookami/ospf/kotlin/multiarray/AccessOrderIteratorContractTest.kt`
 
-1. framework/starter 已纳入兼容验收面。
-2. math 层数值转换桥已用于减少 core/example 中的手写 converter 需求。
-3. README 与 README_ch 已补充迁移入口、四类 converter 推荐入口和门禁命令。
+本批验收命令与结果：
 
-### P10/P11/P12：二次模型与 solver-gated 分层
+1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="..."; mvn --% -pl ospf-kotlin-multiarray -am test'`：通过。
+2. `git diff --check`：通过（仅行尾符提示，无空白错误）。
 
-1. 已修复 `QuadraticProductBuildOnlyStructureTest` 的既有断言问题。
-2. 已新增或增强二次函数 build-only 测试、evaluate 测试和 solver-gated 测试。
-3. BOP 风格业务 fixture 已增强二次约束与 `QuadraticMechanismModel` 验证。
+目标：优先处理低风险、高收益的分配热点。
 
-### P13：外部业务仓库直接编译
+详细步骤：
 
-1. 已扫描 APS/CSP1D/BOP/PSP 的旧 import 与迁移触点。
-2. 已形成迁移映射与扫描脚本，供外部项目侧升级使用。
-3. 明确结论：外部业务仓库直接编译不纳入默认门禁，本仓库以 source-compat fixture 作为 release gate 证据。
+1. 为 `BlockMultiArray` 设计专用 key：
+   - 可选方案 A：内部 `data class IndexKey(private val indices: IntArray)`，构造时 copy，重写 `equals/hashCode`。
+   - 可选方案 B：1-4 维 packed key + DynShape fallback。
+   - 先选风险较低的方案 A，保留外部 `indices(): Set<List<Int>>` 行为。
+2. 将 `get/set/getOrSet/contains/remove/fromMultiArray/toMultiArray` 内部切到新 key。
+3. 优化 `MultiIndexIterator`：
+   - 用 `count < shape.size` 或预计算 total size 判断 `hasNext()`。
+   - 避免 `hasNext()` copy + `advance(temp)`。
+4. 优化 `MultiArray.fromList`：
+   - 避免先用 `list[0]` 全量初始化再覆盖。
+   - 对 storage order 等于 shape order 的路径可直接构建。
+5. 对 `Shape3/Shape4/DynShape` 的 column-major `vector()` 去掉 `reversedArray()` 临时分配。
 
-### P14：example 默认构建恢复
+预计修改清单：
 
-1. 已确认默认 example 编译阻塞主要来自 `framework_demo/demo2` 与 `heuristic_demo`。
-2. 已将这两组尚未迁移完成的 demo 临时移出默认源码集：
-   - `ospf-kotlin-example/src/non-default-main/.../framework_demo/demo2`
-   - `ospf-kotlin-example/src/non-default-main/.../heuristic_demo`
-   - `ospf-kotlin-example/src/non-default-test/.../framework_demo/demo2`
-   - `ospf-kotlin-example/src/non-default-test/.../linear_function/SemiTest.kt`
-   - `ospf-kotlin-example/src/non-default-test/.../linear_function/ULPTest.kt`
-   - `ospf-kotlin-example/src/non-default-test/.../linear_function/XorTest.kt`
-3. 已修复默认测试中的 `SlackRangeFunction` 旧 `threshold` 调用漂移。
-4. 默认 `ospf-kotlin-example` 的 `compile/test` 已恢复。
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/BlockMultiArray.kt`
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/AccessOrder.kt`
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/MultiArray.kt`
+- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/Shape.kt`
+- 相关 multiarray tests
 
-### P15：统一 release gate 与文档收口
+验收标准：
 
-1. 已新增 `ospf-kotlin-core/scripts/check-migration-compat.ps1`。
-2. 已把默认迁移门禁串联为 core source-compat、math bridge/DSL、example 默认 compile/test、核心 demo、函数 build-only、业务 source-compat、framework/starter 和 P6/P7 静态门禁。
-3. 已更新 README、README_ch、`docs/p7-business-compat-matrix.md`。
-4. 已确认统一脚本覆盖面正确，但串行执行耗时较长，不适合作为唯一快速反馈入口。
+1. `mvn --% -pl ospf-kotlin-multiarray -am test` 通过。
+2. 新增或增强测试覆盖：
+   - `BlockMultiArray` key 防外部数组 mutation。
+   - row-major / column-major iterator hasNext/next 契约。
+   - `fromList` 与 `flatten` 在两种 access order 下结果不变。
+   - fixed shape 与 dyn shape column-major inverse index/vector。
+3. `git diff --check` 通过。
 
-### P16：非默认 demo 迁回默认构建
+### P19-2：math 符号合并路径统一与降分配
 
-1. `framework_demo/demo2` 与 `heuristic_demo` 已从 `src/non-default-*` 迁回默认 `src/main` / `src/test` 源码集。
-2. `ospf-kotlin-example/src/non-default-main` 与 `ospf-kotlin-example/src/non-default-test` 已删除，不再作为默认构建旁路。
-3. 新增并启用 P16 静态门禁：检查 non-default 残留目录，以及默认源码集旧 `core.frontend.*` / `core.backend.*` / `utils.math.*` import 回流。
-4. `FrameworkDemoTest`、`HeuristicDemoTest`、`framework_demo/demo2` 相关测试与线性函数回迁测试在默认 `example test` 下可执行并通过。
-5. README、README_ch 与迁移脚本文案已更新到 P16 状态。
+状态（2026-05-20）：已完成第一批落地并通过目标回归与 P6/P7 门禁。
 
-## 已验证命令与结果
+本批实际修改清单：
 
-以下命令已在 2026-05-19 复核通过：
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/LinearQuadraticOps.kt`
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/CombineTerms.kt`
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/MutableCombineOps.kt`
+- `ospf-kotlin-math/src/test/fuookami/ospf/kotlin/math/symbol/operation/CombineTermsTest.kt`
+
+本批验收命令与结果：
+
+1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="..."; mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest,CombineTermsTest,MutableCombineTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过。
+2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+
+目标：把 Flt64 专用合并逻辑变成薄入口，核心合并统一走泛型实现，并减少 quadratic key 分配。
+
+详细步骤：
+
+1. 调整 `CombineTerms.kt`：
+   - Flt64 `combineTerms()` 只转发到泛型 `combineLinearTerms` / `combineQuadraticTerms`。
+   - 删除重复的 Flt64 本地合并循环。
+2. 引入 quadratic term key：
+   - 用专用 key class 或 value holder 代替 `Pair<Symbol, Symbol?>`。
+   - 确保对称项 `x*y` 与 `y*x` 仍归一。
+3. 同步 `MutableCombineOps.kt` 与 `LinearQuadraticOps.kt`。
+4. 检查 `PowerVectorKey` 与 canonical 合并是否可复用，不做过度抽象。
+5. 对 `evaluateLinearOrdered` / `evaluateQuadraticOrdered` 的 `order.toSet()` + `associate` 做一次性校验 helper，减少重复。
+
+预计修改清单：
+
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/CombineTerms.kt`
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/LinearQuadraticOps.kt`
+- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/MutableCombineOps.kt`
+- 相关 math symbol operation tests
+
+验收标准：
+
+1. `mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过。
+2. 新增或增强测试覆盖：
+   - Flt64 与 Rtn64 的 linear/quadratic combine 同类项合并一致。
+   - quadratic 对称 key 不回归。
+   - 零系数过滤不回归。
+3. P6/P7 静态门禁通过。
+
+### P19-3：core flatten / dump / elastic builder 简化
+
+状态（2026-05-20）：已完成第一批落地并通过目标回归与 P6/P7 门禁。
+
+本批实际修改清单：
+
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/flatten/FlattenUtility.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/SparseMatrix.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/MemoryCleanupPolicy.kt`（新增）
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadModel.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradModel.kt`
+- `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/expression/flatten/FlattenUtilityTest.kt`
+- `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/intermediate_model/SparseMatrixTransposeTest.kt`（新增）
+
+本批验收命令与结果：
+
+1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过。
+2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1536m -XX:NonProfiledCodeHeapSize=512m -XX:ProfiledCodeHeapSize=512m"; mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile'`：通过。
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+5. `git diff --check`：通过（仅行尾符提示，无空白错误）。
+
+目标：减少 core 热路径中间集合，拆出重复 builder，降低大文件维护成本。
+
+详细步骤：
+
+1. 优化 `FlattenUtility.kt`：
+   - `mergeLinearFlattenDataFlt64` / `mergeQuadraticFlattenDataFlt64` 不再 `flatMap` 出全量 monomial list。
+   - 直接单趟累积 monomials 和 constant。
+2. 优化 `SparseMatrix.transpose()`：
+   - 避免 `rows.flatMap { it.entries }.maxOfOrNull`。
+   - 单趟扫描 maxCol，再填充 transpose。
+3. 抽出 linear/quadratic elastic builder 公共结构：
+   - 先抽小 helper，避免一次性大重构。
+   - 目标是减少 repeated signs/rhs/names/sources/origins/froms/priorities 构造逻辑。
+4. 把 `System.gc()` 替换为统一策略：
+   - 新增轻量 memory cleanup policy 或复用现有 `memoryUseOver()`。
+   - 默认不强制 GC；必要时由配置或 guard 触发。
+5. 对 `LinearTriadModel.kt` / `QuadraticTetradModel.kt` 做文件级拆分时要保持 package 和 public API 不变。
+
+预计修改清单：
+
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/flatten/FlattenUtility.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/SparseMatrix.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadModel.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradModel.kt`
+- 可能新增 `*Builder.kt` / `*Elastic.kt` helper 文件
+- 相关 core tests
+
+验收标准：
+
+1. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过。
+2. core `-DskipTests test-compile` 通过。
+3. 新增或增强测试覆盖：
+   - flatten merge 不额外丢失 non-variable 符号的错误语义。
+   - transpose 空矩阵、单行、多行、最大列推断。
+   - elastic model 的变量数、约束数、objective 项、slack 命名不回归。
+4. P6/P7 静态门禁通过。
+
+### P19-4：core-plugin solver dump 公共化与边界数组优化
+
+目标：减少 solver 插件重复代码和数组构建分配，保持 solver boundary 明确。
+
+详细步骤：
+
+1. 先从 Gurobi11 或 SCIP 选一个插件做样板。
+2. 将变量 lower/upper/type/name 数组改成单趟填充。
+3. 将初始解收集改成单趟 builder，避免 filter + map + map。
+4. 将 constraint chunk 计算改成纯整数函数，例如 `chunkSize(rowCount, processors)`。
+5. 识别 Gurobi/Gurobi11/Cplex/Scip 可共享的 solver dump helper，但不要把 vendor API 包装得过度抽象。
+6. 保留 `toSolverDouble(...)` 作为 solver boundary，不把 `.toDouble()` 扩散回 core。
+
+预计修改清单：
+
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11/...`
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi/...`
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/...`
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/...`
+- 可能新增 solver dump utility 文件
+
+验收标准：
+
+1. 至少以下编译通过：
+   - `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests compile`
+   - `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile`
+2. 若改动多个 solver，相关 solver plugin 均需 `-DskipTests compile` 通过。
+3. core 的 `.toDouble()` conversion guard 不新增违规。
+4. P6/P7 静态门禁通过。
+
+### P19-5：framework 时间区间与日历扫描优化
+
+目标：优化 gantt scheduling 中时间区间和工作日历的长链路扫描。
+
+详细步骤：
+
+1. 梳理 `TimeRange`、`TimeWindow`、`WorkingCalendar` 的有序性假设。
+2. 对连续扫描查找前后边界的路径引入 helper：
+   - 若数据始终有序，优先二分。
+   - 若数据可能无序，先集中排序或明确要求。
+3. 将 `filter + map`、`map + max`、`withIndex().indexOfFirst/Last` 热点改成单趟。
+4. 保持现有公开 API 不变。
+5. 对 TODO 路径做归档：能安全实现的实现；暂不能实现的加明确错误信息和测试。
+
+预计修改清单：
+
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../TimeRange.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../TimeWindow.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../WorkingCalendar.kt`
+- 相关 infrastructure tests
+
+验收标准：
+
+1. `mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am test` 通过。
+2. 重点测试覆盖：
+   - TimeRange difference/intersection/merge 边界。
+   - TimeWindow interval / instant 转换。
+   - WorkingCalendar 空日历、连续区间、break time、connection time。
+3. 不新增 `TODO("not implemented yet")`。
+
+### P19-6：中低优先级技术债清理
+
+目标：整理风险但不阻塞主链路的问题。
+
+详细步骤：
+
+1. `!!` 清理：
+   - 只处理 main 源码中能明确替代的 `!!`。
+   - 用 `requireNotNull(value) { "..." }` 或领域 helper 表达不变量。
+   - 优先处理 core dump、solver plugin、framework task/gantt。
+2. TODO 归档：
+   - 列出所有 `TODO("not implemented yet")`。
+   - 对关键路径 TODO 改为明确异常类型和说明，或补实现。
+   - 非关键路径 TODO 记录到 daily.md 后续风险。
+3. 文档边界表：
+   - README / README_ch 如需要，补充“泛型核心层 / Flt64 快捷层 / solver 边界层”。
+4. 注释乱码与迁移叙事：
+   - 修正明显乱码。
+   - 删除不再适用的 bridge/compat/migration 叙事。
+5. 低优先级 shape / builder 小优化可穿插处理，但不要扩大改动面。
+
+预计修改清单：
+
+- 视扫描结果决定，优先：
+  - core main
+  - math symbol operation
+  - core-plugin solver boundary
+  - gantt framework
+  - README / README_ch（如涉及用户入口说明）
+
+验收标准：
+
+1. 修改到的模块至少 `test-compile` 或 `compile` 通过。
+2. 涉及用户入口说明时 README 与 README_ch 同步。
+3. P6/P7 静态门禁通过。
+4. `git diff --check` 通过。
+
+## 建议执行顺序
+
+1. P19-1 multiarray：低耦合、高收益，最适合作为第一批。
+2. P19-2 math combine：统一符号合并核心，给 core flatten 后续优化打基础。
+3. P19-3 core flatten/dump：收益最大，但需要更严格测试。
+4. P19-4 core-plugin solver dump：建议在 core dump 稳定后执行。
+5. P19-5 framework gantt：结合已有 infrastructure tests 做。
+6. P19-6 中低优先级清理：穿插执行，不要和大重构混在同一个 commit。
+
+## 推荐验收命令
+
+按改动范围选择，不要求每批都完整执行全部命令。
 
 ```powershell
-pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-example -am -DskipTests compile"
+pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-multiarray -am test'
 ```
-
-结果：2026-05-19 18:41（Asia/Shanghai）默认 example 编译通过。JVM 输出过 CodeHeap full warning，但 Maven 结果为 `BUILD SUCCESS`。
 
 ```powershell
-pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-example -am -DskipTests test-compile"
+pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test'
 ```
-
-结果：2026-05-19 19:19（Asia/Shanghai）默认 example 测试编译通过。线性/二次函数测试已迁到正式泛型构造器、显式 converter 与 mechanism/triad 或 tetrad 求解链路。
 
 ```powershell
-mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest -Dsurefire.failIfNoSpecifiedTests=false test
+pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test'
 ```
-
-结果：`SourceCompatTest` 与 `MathInequalityFlattenTest` 共 32 个测试通过。
 
 ```powershell
-mvn --% -pl ospf-kotlin-example -am -DskipTests compile
+pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-example -am -DskipTests compile'
 ```
-
-结果：默认 example 编译通过。
 
 ```powershell
-mvn --% -pl ospf-kotlin-example -am -Dsurefire.failIfNoSpecifiedTests=false test
+pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-heuristic -am -DskipTests compile'
 ```
-
-结果：默认 example 测试通过，example 模块 97 个测试，0 失败，0 错误，6 个 solver-gated 测试按条件跳过。
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pcore-demo-only -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-结果：19 个测试通过。
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pbuild-only-function-tests -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-结果：9 个测试通过。
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pbusiness-source-compat -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-结果：4 个测试通过。
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pframework-starter-compat -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-结果：5 个测试通过。
 
 ```powershell
 pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6
 pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7
 ```
 
-结果：2026-05-19 19:20（Asia/Shanghai）P6/P7 静态门禁均通过，包含新增 P17 无兼容层回流检查。
-
-## 剩余风险与注意事项
-
-1. 默认门禁仍不覆盖真实 SCIP/JNI solver 集成。需要 solver 验证时使用 `-Psolver-integration-tests` 或 `check-migration-compat.ps1 -WithSolverIntegration`。
-2. `check-migration-compat.ps1` 目前串行执行耗时较长，一次完整运行通常超过 20 分钟，建议后续拆分为 CI 子步骤并配置单步超时。
-3. 仍存在基线内手写 converter 与 deprecated 调用。当前门禁目标是防回流，不是一次性清零历史技术债。
-4. P7 whitelist 仍需与后续重构保持同步；若新增 `<*>` 使用文件，需要同步更新 `p7-whitelist.json` 并给出变更理由。
-5. 外部 APS/CSP1D/BOP/PSP 仓库直接编译依旧不是默认门禁；其升级状态在文档跟踪即可，不阻塞当前仓库 release gate。
-
-## P16 执行记录（已完成）
-
-### P16 目标
-
-恢复 `framework_demo/demo2` 与 `heuristic_demo` 到 `ospf-kotlin-example` 默认源码集，使默认 `compile/test` 不再依赖临时隔离目录即可通过。
-
-P16 完成后，`src/non-default-main` 与 `src/non-default-test` 应清空、删除，或仅保留明确不可自动化且有 profile 说明的外部环境样例。当前这两个目录中的 demo 不应继续作为默认构建之外的长期遗留。
-
-### P16 优先级
-
-1. 优先恢复 `heuristic_demo`。体量较小，主要阻塞点是 `CallBackModel` 构造入口从公开构造方式变化为当前 internal/受限入口。
-2. 再恢复 `framework_demo/demo2`。该 demo 体量大，应按模块拆解迁移，不要一次性大改。
-3. 每迁回一块都补测试，测试必须有结构断言或最小行为断言，不能只做空 smoke。
-
-### P16 详细步骤
-
-#### 步骤 1：建立 non-default 独立编译 profile
-
-1. 在 `ospf-kotlin-example/pom.xml` 中新增 profile，例如 `non-default-demo-compat`。
-2. 将 `src/non-default-main` 加入该 profile 的 main source roots。
-3. 将 `src/non-default-test` 加入该 profile 的 test source roots。
-4. 先只要求 test-compile 或 compile，避免一开始运行未迁移测试。
-5. 执行：
-
 ```powershell
-mvn --% -pl ospf-kotlin-example -am -Pnon-default-demo-compat -DskipTests test-compile
+git diff --check
 ```
 
-6. 记录完整错误清单，按 `heuristic_demo` 与 `framework_demo/demo2` 分组。
-
-#### 步骤 2：恢复 `heuristic_demo`
-
-1. 检查 `src/non-default-main/.../heuristic_demo/Demo1.kt` 与 `Demo2.kt`。
-2. 定位 `CallBackModel` 当前公开替代入口。
-3. 若缺少合理公开入口，优先在库侧增加小而明确的兼容工厂或 adapter，不要在 demo 中复制内部构造逻辑。
-4. 将可编译的 `heuristic_demo` 迁回：
-   - `src/non-default-main/.../heuristic_demo` -> `src/main/.../heuristic_demo`
-5. 恢复或新增对应测试到默认 `src/test`。
-6. 测试断言至少覆盖：
-   - callback model 能构建。
-   - mechanism 或核心求解上下文能完成最小注册链路。
-   - 不依赖真实外部 solver 时也能 build-only 验证。
-
-#### 步骤 3：拆分恢复 `framework_demo/demo2`
-
-按以下顺序迁移，保证每一层都能单独编译或测试：
-
-1. DTO 与基础工具层：
-   - `infrastructure/dto`
-   - `Diagnostics.kt`
-   - `FeasibilityDiagnostics.kt`
-   - `TryHelpers.kt`
-2. 纯 domain model：
-   - `domain/*/model`
-   - 避免先迁移 solver 或 pipeline 入口。
-3. aggregation 与 context：
-   - `Aggregation.kt`
-   - `*Context.kt`
-   - 检查 `AbstractLinearMetaModel`、变量族、符号容器和 `PipelineList` 新 API。
-4. service 与 limits：
-   - `service/limits`
-   - 优先处理 `register`、`addConstraint`、`addObject`、`sum/qsum`、`SlackRangeFunction`、函数符号注册等签名漂移。
-5. pipeline 与 solver infrastructure：
-   - `DomainPipeline.kt`
-   - `Solver.kt`
-   - `BendersSolver.kt`
-   - `BendersStrategy.kt`
-   - 对真实 solver 依赖进行 profile-gated 或 build-only 替代。
-6. 应用入口：
-   - `FullLoadApplication.kt`
-   - `LoadingOrderApplication.kt`
-   - `PredistributionApplication.kt`
-   - `WeightRecommendationApplication.kt`
-   - 默认构建只要求编译和结构化注册，不默认运行真实优化任务。
-7. 测试：
-   - `BendersStrategyTest.kt`
-   - `DiagnosticsTest.kt`
-   - `FeasibilityDiagnosticsTest.kt`
-   - `RequestDTOTest.kt`
-   - 将测试改为结构断言或纯函数断言，solver 相关路径用 profile 或条件跳过。
-
-#### 步骤 4：迁回默认源码集
-
-1. 每完成一个模块，优先用 `git mv` 从 `src/non-default-*` 迁回 `src/main` 或 `src/test` 对应路径。
-2. 避免复制后删除导致历史不清。
-3. 迁回后执行默认编译：
+完整 release gate 仍可用：
 
 ```powershell
-mvn --% -pl ospf-kotlin-example -am -DskipTests compile
+pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1
 ```
 
-4. 对测试迁回执行：
+说明：完整脚本耗时较长，建议只在阶段性收口时执行。
 
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Dsurefire.failIfNoSpecifiedTests=false test
-```
+## 交接注意事项
 
-#### 步骤 5：更新门禁与文档
-
-1. 在 `check-c8-guards.ps1` 中新增 P16 guard：
-   - 禁止 `framework_demo/demo2` 与 `heuristic_demo` 长期留在 `src/non-default-*`。
-   - 默认源码集禁止旧 `core.frontend.*`、`core.backend.*`、`utils.math.*` import 回流。
-2. 在 `check-migration-compat.ps1` 中纳入 P16 检查。
-3. 更新 README/README_ch，说明 `framework_demo/demo2` 与 `heuristic_demo` 已恢复默认构建。
-4. 更新本文件的 P16 状态。
-
-## P16 预计修改清单
-
-### 需要修改或新增
-
-1. `ospf-kotlin-example/pom.xml`
-   - 新增 `non-default-demo-compat` profile。
-   - P16 结束时视情况删除该临时 profile，或保留为历史迁移检查 profile。
-2. `ospf-kotlin-example/src/non-default-main/.../heuristic_demo/*`
-   - 迁移并最终迁回 `src/main`。
-3. `ospf-kotlin-example/src/non-default-main/.../framework_demo/demo2/**`
-   - 分模块迁移并最终迁回 `src/main`。
-4. `ospf-kotlin-example/src/non-default-test/**`
-   - 迁移可恢复测试并最终迁回 `src/test`。
-5. `ospf-kotlin-core/scripts/check-c8-guards.ps1`
-   - 新增 P16 防回归检查。
-6. `ospf-kotlin-core/scripts/check-migration-compat.ps1`
-   - 纳入 P16 门禁。
-7. `README.md`
-   - 更新迁移门禁说明。
-8. `README_ch.md`
-   - 更新迁移门禁说明。
-9. `ospf-kotlin-core/daily.md`
-   - 记录 P16 迁移结果、命令和结论。
-
-### 可能需要修改
-
-1. `ospf-kotlin-core/src/main/**`
-   - 如果 `heuristic_demo` 或 `framework_demo/demo2` 暴露出缺失的公开兼容入口，优先在库侧补薄入口。
-2. `ospf-kotlin-framework/src/main/**`
-   - 如果 `Pipeline`、`PipelineList`、framework solver 或 Benders 入口存在签名漂移，按原业务用法补兼容包装。
-3. `ospf-kotlin-framework-gantt-scheduling/**`
-   - 如果 demo2 的航空装载上下文依赖 gantt scheduling 旧入口，需要补 framework 层薄适配。
-
-### 不应修改
-
-1. 不要把外部 APS/CSP1D/BOP/PSP 仓库直接编译加入默认门禁。
-2. 不要为了通过编译删除 demo 逻辑或改成空实现。
-3. 不要新增空 `assertTrue(true)`、`assertThat(true).isTrue()` 或无条件 `assumeTrue(true)`。
-4. 不要把真实 SCIP/Gurobi/JNI 环境作为默认门禁依赖。
-
-## P16 验收标准
-
-### 必须通过
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -DskipTests compile
-```
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pcore-demo-only -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pbuild-only-function-tests -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pbusiness-source-compat -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Pframework-starter-compat -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7
-```
-
-### P16 新增验收
-
-1. `framework_demo/demo2` 不再位于 `src/non-default-main` 或 `src/non-default-test`。
-2. `heuristic_demo` 不再位于 `src/non-default-main`。
-3. 默认 `src/main` 与 `src/test` 中不出现旧 `core.frontend.*` import。
-4. 默认 `src/main` 与 `src/test` 中不出现旧 `core.backend.*` import。
-5. 默认 `src/main` 与 `src/test` 中不出现旧 `utils.math.*` import。
-6. 迁回的 demo 测试必须有可观察断言：
-   - DTO/诊断类测试断言字段、状态或错误消息。
-   - build-only 模型测试断言变量数量、约束数量、目标项、符号注册或 mechanism model 结构。
-   - solver 相关测试在默认门禁中不强依赖真实 solver。
-7. `check-migration-compat.ps1` 可继续作为完整门禁入口；若耗时过长，必须至少保证拆分后的子命令在文档中可复现。
-
-### 可选验收
-
-具备 SCIP/JNI 环境时执行：
-
-```powershell
-mvn --% -pl ospf-kotlin-example -am -Psolver-integration-tests -Dsurefire.failIfNoSpecifiedTests=false test
-```
-
-或：
-
-```powershell
-powershell -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1 -WithSolverIntegration
-```
-
-solver 集成通过可作为增强证据；失败时需要区分代码问题与本地 JNI/DLL 环境问题。
-
-## P18：命名回归收口（进行中）
-
-### P18 目标
-
-兼容层删除后，正式 API 已不需要继续用迁移期命名区分“原版本”与“泛型化版本”。P18 的目标是把因并存兼容层而产生的临时命名回归到正式 API 应有的原名，使代码语义从“迁移态”回到“唯一正式实现态”。
-
-优先处理以下命名：
-
-1. `Typed*` / `*Typed*`：若只是为了区分旧 adapter/bridged 版本，应回归原名。
-2. `*V` / `*VTyped*`：若只是为了区分泛型版与 Flt64 兼容版，应回归原名。
-3. `Type*` / `*Type*`：若不是领域语义，而是迁移期的类型化前缀/后缀，应回归原名。
-4. 测试、文档、门禁脚本中的迁移期命名也要同步更新，避免新 API 继续暴露“兼容迁移”痕迹。
-
-### P18 判定边界
-
-以下命名不应机械回滚：
-
-1. 类型参数 `V` 保留，它是 core 泛型主链路的一部分。
-2. `View`、`Input`、`Adapter`、`Converter` 等表达真实架构职责的后缀保留。
-3. Flt64 solver 边界、输出兼容字段、第三方 solver 插件中的真实 Flt64 语义保留。
-4. 若原名已被正式不同概念占用，先重命名迁移痕迹，再评估是否需要合并抽象，不能用简单替换制造歧义。
-
-### P18 初始验收
-
-1. 扫描 Kotlin 源码和测试中的 `Typed`、`Type[A-Z]`、`[A-Za-z0-9]V` 等迁移期命名候选，并形成清单。
-2. 第一批优先回归 math symbol operation 下由 bridged/adapter 迁移来的文件和测试命名。
-3. P6/P7/P17 静态门禁保持通过。
-4. `mvn -pl ospf-kotlin-math -am -DskipTests test-compile` 与 `mvn -pl ospf-kotlin-example -am -DskipTests test-compile` 至少通过相关受影响模块。
-
-### P18 第一批执行记录（2026-05-19）
-
-1. 已提交无兼容层迁移 checkpoint：`0358d2d1 Remove compatibility layer and start P18 naming cleanup`。
-2. math symbol operation 第一批命名回归：
-   - `TypedQuickDsl` -> `QuickDsl`
-   - `TypedQuickOps` -> `QuickOps`
-   - `TypedInequalityDsl` -> `InequalityDsl`
-   - `TypedLinearMatrixForm` -> `LinearMatrixForm`
-   - `TypedQuadraticMatrixForm` -> `QuadraticMatrixForm`
-   - `toTypedMatrixForm` -> `toMatrixForm`
-   - `typedLinearPolynomialFromMatrixForm` -> `linearPolynomialFromMatrixForm`
-   - `typedQuadraticPolynomialFromMatrixForm` -> `quadraticPolynomialFromMatrixForm`
-3. 为避免 Flt64 专用快捷层继续占用泛型正式 API 名，已将 Flt64 专用文件/API 显式命名：
-   - `Flt64QuickDsl.kt`
-   - `Flt64QuickOps.kt`
-   - `Flt64MatrixForm.kt`
-   - `toFlt64MatrixForm`
-   - `flt64LinearPolynomialFromMatrixForm`
-   - `flt64QuadraticPolynomialFromMatrixForm`
-4. 已新增 P18 静态门禁：
-   - `check-c8-guards.ps1` 禁止 `math.symbol.operation` 正式 API 中回流 `TypedQuickDsl`、`TypedQuickOps`、`TypedInequalityDsl`、`Typed*MatrixForm`、`toTypedMatrixForm` 与 `typed*PolynomialFromMatrixForm`。
-5. 当前已通过：
-   - `pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-math -am -DskipTests test-compile"`：通过。存在 JVM CodeHeap warning，但 Maven `BUILD SUCCESS`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含新增 `P18-1`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含新增 `P18-1` 与更新后的 Flt64 whitelist。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test"`：31/31 通过。
-   - `pwsh.exe -NoProfile -Command "mvn -pl ospf-kotlin-example -am -DskipTests test-compile"`：通过。第一次执行因 6 分钟工具超时留下 Maven/Java 进程；已只清理该验证链路后重跑，第二次 Maven `BUILD SUCCESS`。日志仍出现 JVM CodeHeap warning。
-
-### P18 第二批执行记录（2026-05-19）
-
-core 与 solver 边界命名已按“泛型正式 API 使用原名，Flt64 求解器边界显式命名”的原则继续收口：
-
-1. core 机制层与函数符号迁移期命名回归：
-   - `LinearConstraintInputV` -> `LinearConstraintInput`
-   - 旧 Flt64 边界输入 -> `Flt64LinearConstraintInput`
-   - `AbstractCallBackModelInterfaceV` -> `AbstractCallBackModelInterface`
-   - `CallBackModelInterfaceV` -> `CallBackModelInterface`
-   - `MultiObjectiveModelInterfaceV` -> `MultiObjectiveModelInterface`
-   - `nonzeroIndicatorConstraintsV` -> `nonzeroIndicatorConstraints`
-   - `simpleIndicatorConstraintsV` -> `simpleIndicatorConstraints`
-   - `linearInequalityAsV` / `quadraticInequalityAsV` -> `linearInequalityAs` / `quadraticInequalityAs`
-   - `mapValuesToV` -> `mapValues`
-   - `dependencyAsIntermediateV` -> `dependencyAsIntermediate`
-   - `expressionRangeVFromFlt64` -> `expressionRangeFromFlt64`
-   - `fullExpressionRangeV` -> `fullExpressionRange`
-   - `flattenedMonomialsAsV` -> `flattenedMonomials`
-   - `IfFunction.typed(...)`、`IfThenFunction.typed(...)`、`SatisfiedAmountInequalityFunction.typed(...)` 等工厂 -> `from(...)`
-2. Benders cut API 已完成分层命名：
-   - 泛型正式 API 使用原名：`generateOptimalCut`、`generateFeasibleCut`、`generateOptimalCutById`、`generateFeasibleCutById`。
-   - 求解器 Flt64 raw dual 边界显式命名：`generateFlt64OptimalCut`、`generateFlt64FeasibleCut`。
-   - copt/cplex/gurobi/gurobi11/mindopt/scip Benders solver 插件已同步使用 `generateFlt64*Cut`。
-   - `BendersCutTypedByIdApiTest` 已回归为 `BendersCutByIdApiTest`。
-3. P18 静态门禁已扩展：
-   - `P18-2` 禁止 core 中 `LinearConstraintInputV`、callback `*V`、函数符号 `typed(...)`、Benders `generate*CutV` / `generate*CutByIdV`、`TypedById` 等迁移期命名回流。
-   - `P18-3` 禁止 core-plugin Benders solver 继续用泛型原名调用 raw Flt64 dual 边界，要求使用 `generateFlt64*Cut`。
-4. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=FunctionSymbolConstraintInputFactoryTest,FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest,SatisfiedAmountFunctionsGenericEvaluateTest,MultiObjectCallBackModelTest,ExpressionRangeSolverBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test"`：15/15 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=BendersCutApiTest,BendersCutByIdApiTest,GenericBendersCutRegressionTest,QuadraticMechanismModelCutTest -Dsurefire.failIfNoSpecifiedTests=false test"`：14/14 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-copt,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-mindopt,ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile"`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含 `P18-1/P18-2/P18-3`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含 `P18-1/P18-2/P18-3`。
-
-注意：上述 Maven 验证仍会输出 JVM CodeHeap warning，但 Maven 结果均为 `BUILD SUCCESS`。
-
-### P18 第三批执行记录（2026-05-19）
-
-继续按“泛型正式 API 回归原名，Flt64 求解器边界显式命名”的原则处理剩余高信号迁移命名：
-
-1. solver 泛型入口已从迁移期 `solveV(...)` 回归为正式 `solve(...)`：
-   - `AbstractLinearSolver.solveV(...)` -> `AbstractLinearSolver.solve(...)`
-   - `AbstractQuadraticSolver.solveV(...)` -> `AbstractQuadraticSolver.solve(...)`
-   - 原 `SolverExt.kt` 中只负责转发到 `solveV(...)` 的泛型扩展已移除，避免正式 API 再经过迁移期桥接名。
-   - `GenericSolveVBridgeTest` 已回归为 `GenericSolveTest`，测试用例与测试桩命名同步去除 `SolveV/Bridge` 痕迹。
-2. token 泛型结果访问命名已回归：
-   - `setResultFromV(...)` -> `setResult(...)`
-   - `resultAsV(...)` -> `result(converter)`
-   - `lowerBoundAsV(...)` / `upperBoundAsV(...)` -> `lowerBound(converter)` / `upperBound(converter)`
-   - `resultFlt64` 保留，继续表达真实求解器边界视图。
-3. 已删除 math 测试中的临时探针文件：
-   - `TmpDefaultTypeArgCheck.kt`
-4. P18 静态门禁已扩展：
-   - `P18-2` 额外禁止 `solveV`、`GenericSolveVBridgeTest`、`Recording*SolveVBridgeSolver`、`setResultFromV`、`resultAsV`、`lowerBoundAsV`、`upperBoundAsV` 回流。
-5. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=GenericSolveTest,GenericTokenConversionTest -Dsurefire.failIfNoSpecifiedTests=false test"`：3/3 通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含扩展后的 `P18-2`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含扩展后的 `P18-2`。
-
-### P18 第四批执行记录（2026-05-19）
-
-继续清理测试、包名与叙事层面的 `Bridge` / `Migration` 命名，只保留真实边界职责：
-
-1. 测试命名已从迁移叙事回归为行为回归或转换语义：
-   - `FunctionSymbolMigrationTest` -> `FunctionSymbolRegressionTest`
-   - `GenericTokenBridgeTest` -> `GenericTokenConversionTest`
-   - `MatrixFormBridgeTest` -> `MatrixFormConversionTest`
-   - `core.symbol_migration.*` 测试包 -> `core.symbol_regression.*`
-2. 已修正 `FunctionSymbolRegressionTest` 中过期断言：`LinearFunctionSymbolAdapter.flattenedMonomials` 对 `SlackFunction` 这类 `HasResultPolynomial` delegate 会暴露结果多项式，而不是返回空集合。
-3. 已确认以下命名表达真实边界或领域职责，暂不机械回滚：
-   - `Flt64Bridge` 与 `IntoValue.fromBridge(...)`：表达 Flt64/value 桥接边界。
-   - solver boundary 与 `.toDouble()` conversion guard：表达求解器边界防线。
-   - `SolveValue*`、`TypedValueRange`、`ParserTypedEntryTest` / `parseTyped*`、`VariableTypeKind`、`typeName`、`toTypedArray()`：属于领域、解析或标准库语义。
-4. P18 静态门禁已扩展：
-   - `P18-2` 额外禁止 `FunctionSymbolMigrationTest`、`GenericTokenBridgeTest`、`MatrixFormBridgeTest`、`runBridgeCase`、`token_bridge`、`bridgedResult`、`matrixBridge`、`symbol_migration` 回流。
-5. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-math -Dtest=MatrixFormConversionTest,MatrixFormTest,QuickDslTest -Dsurefire.failIfNoSpecifiedTests=false test"`：31/31 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=FunctionSymbolRegressionTest,GenericTokenConversionTest,PrepareCacheKeyRegressionTest,LinearPolynomialBaselineTest,QuadraticPolynomialBaselineTest -Dsurefire.failIfNoSpecifiedTests=false clean test"`：20/20 通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-
-### P18 第五批执行记录（2026-05-19）
-
-继续清理测试名中的历史 `Bridge` 叙事，仅保留真实 `Flt64Bridge` 转换接口：
-
-1. 测试命名已按实际职责回归：
-   - `ExpressionRangeBridgeTest` -> `ExpressionRangeSolverBoundaryTest`
-   - `ModelBuildingStatusBridgeTest` -> `ModelBuildingStatusMappingTest`
-   - `ProductFunctionSolverBridgeEvaluationTest` -> `ProductFunctionSolverBoundaryEvaluationTest`
-   - `FunctionSymbolToDoubleBridgeGuardTest` -> `FunctionSymbolToDoubleConversionGuardTest`
-   - `CoreToDoubleBridgeGuardTest` -> `CoreToDoubleConversionGuardTest`
-2. 测试内部 `solver_bridge` / `solverBridge` 叙事已改为 `solver_boundary` / `solverBoundary`。
-3. P18 静态门禁已扩展，禁止以上旧测试名与旧测试变量名回流。
-
-### P18 第六批执行记录（2026-05-19）
-
-继续清理 `Typed` helper 命名，按“泛型正式路径使用原名，Flt64 边界显式命名”的原则处理 JVM 擦除冲突：
-
-1. 泛型 flatten-data evaluation helper 已回归正式原名：
-   - `evaluateTypedFlattenDataWithResults` -> `evaluateFlattenDataWithResults`
-   - `evaluateTypedQuadraticFlattenDataWithResults` -> `evaluateQuadraticFlattenDataWithResults`
-2. 原 Flt64 helper 已显式标注边界：
-   - `evaluateFlattenDataWithResults` -> `evaluateFlt64FlattenDataWithResults`
-   - `evaluateQuadraticFlattenDataWithResults` -> `evaluateFlt64QuadraticFlattenDataWithResults`
-3. P18 静态门禁已扩展，禁止 `evaluateTypedFlattenDataWithResults` 与 `evaluateTypedQuadraticFlattenDataWithResults` 回流。
-4. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=FunctionSymbolRegressionTest,ExpressionRangeSolverBoundaryTest,ModelBuildingStatusMappingTest,ProductFunctionSolverBoundaryEvaluationTest,FunctionSymbolToDoubleConversionGuardTest,CoreToDoubleConversionGuardTest -Dsurefire.failIfNoSpecifiedTests=false test"`：22/22 通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-5. `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile"` 曾因 5 分钟工具超时中断；已确认无后台 Maven/Java 残留，随后用上述 `-am` 目标测试完成编译链路验证。日志仍出现 JVM CodeHeap warning，但 Maven 结果为 `BUILD SUCCESS`。
-
-### P18 第七批执行记录（2026-05-20）
-
-继续清理 main 源码中只用于区分“泛型值”的局部 `*V` 命名，不改变领域 API：
-
-1. 函数符号局部变量已回归普通语义名：
-   - `posV` / `negV` -> `posVar` / `negVar`
-   - `mV` -> `bigMValue`
-   - `epsV` -> `toleranceValue`
-   - `rhsV` -> `rhsValue`
-   - `lowerV` / `upperV` -> `lowerValue` / `upperValue`
-   - `amountV` -> `amountValue`
-2. Benders Flt64 边界局部变量已回归边界语义名：
-   - `dualAsV` -> `dualByConstraint`
-   - `cutsV` -> `cuts`
-   - “适配器边界 / Adapter boundary” 注释已改为“求解器边界 / Solver boundary”。
-3. math geometry 局部 `pV` 已回归为 `exponentValue`。
-4. P18 静态门禁已扩展，禁止上述 core 侧局部旧名回流。
-5. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=BendersCutApiTest,BendersCutByIdApiTest,GenericBendersCutRegressionTest,QuadraticMechanismModelCutTest,FunctionSymbolRegressionTest -Dsurefire.failIfNoSpecifiedTests=false test"`：23/23 通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-
-### P18 第八批执行记录（2026-05-20）
-
-继续清理测试与注释中的迁移期局部命名和 `bridge` 叙事，避免正式实现继续呈现“兼容桥接”语义：
-
-1. 泛型数值转换测试局部变量已回归普通转换语义：
-   - `intoV` -> `convertedValue`
-   - `backToV` -> `roundTripValue`
-2. 求解器边界注释已从 `bridge` 叙事改为 `conversion` 叙事：
-   - `MechanismModel.kt`
-   - `TokenTable.kt`
-   - `SolverBoundaryCasts.kt`
-   - `FunctionSymbol.kt`
-3. P18 静态门禁已扩展，禁止 `intoV` / `backToV` 回流。
-4. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=GenericNumberConverterTest,GenericTokenConversionTest,ExpressionRangeSolverBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test"`：9/9 通过。日志仍出现 JVM CodeHeap warning，但 Maven 结果为 `BUILD SUCCESS`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-
-残留扫描结论：剩余 `Bridge`、`Typed`、`Type*`、`*V` 命名需要按语义判定。真实 Flt64 边界、solver 边界、解析 typed entry、value range、变量类型枚举、标准库调用与普通局部变量 `v` 等不构成公开 API 迁移痕迹；`mV`、`rhsV`、`dualAsV`、`intoV`、`backToV` 等迁移期风格局部名已纳入 P18 防回流规则。
-
-### P18 第九批执行记录（2026-05-20）
-
-继续把“兼容桥接”叙事从正式 API 中移除，并修复 example 全链路编译暴露出的 heuristic 插件泛型形状问题：
-
-1. math/core 数值转换接口已从 `Bridge` 命名回归为正式转换语义：
-   - `Flt64Bridge` -> `Flt64ValueConverter`
-   - `Flt64BridgeTest` -> `Flt64ValueConverterTest`
-   - `resolveFlt64Bridge` -> `resolveFlt64ValueConverter`
-   - `IntoValue.fromBridge(...)` -> `IntoValue.fromConverter(...)`
-   - `Flt64BridgeAdapter` -> `Flt64ValueConverterAdapter`
-2. math 快捷 DSL 与文档已同步去除 `bridge` 叙事：
-   - `QuickDsl` / `QuickOps` / `InequalityDsl` 使用 `converter` 参数与局部名。
-   - math expression README/README_ch 将 PathSymbol 相关说明改为 adapter/legacy AST 语义。
-3. heuristic 公共模型已拆分 `ObjValue` 与 `V`：
-   - `Individual<ObjValue, V>`
-   - `Population<T, ObjValue, V>`
-   - `SolutionWithFitness<ObjValue, V>`
-   - `refreshGoodIndividuals(..., model: AbstractCallBackModelInterface<*, ObjValue, V>)`
-4. core 与 heuristic 插件算法已同步三参 callback 形状，避免多目标别名把目标值类型误当成解变量类型：
-   - core `ParticleSwarmHeuristicSolver`、`Particle`、`HeuristicResult` 已拆为 `ObjValue, V`。
-   - GA/GWO/MVO/PSO/SAA/SCA 的 policy、population、individual、running callback 与 `MulObj*` typealias 均改为 `Obj, ObjValue, V`。
-   - `MulObjGA`、`MulObjGWO`、`MulObjMVO`、`MulObjPSO`、`MulObjSAA`、`MulObjSCA` 现在使用 `List<Flt64>` 作为 objective value，`Flt64` 作为 solution value。
-5. P18 静态门禁已扩展：
-   - `P18-4` 禁止 `Flt64Bridge`、`Flt64BridgeTest`、`resolveFlt64Bridge`、`fromBridge` 回流。
-   - `P18-5` 禁止 heuristic API 回退到旧两参 callback、单泛型 `Individual/SolutionWithFitness/Chromosome/Wolf/Universe/Particle` 与旧多目标 typealias 形状。
-6. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-math -Dtest=Flt64ValueConverterTest,ConceptCompileTest,QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test"`：41/41 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=MathInequalityFlattenTest,GenericNumberConverterTest,GenericTokenConversionTest,ExpressionRangeSolverBoundaryTest -Dsurefire.failIfNoSpecifiedTests=false test"`：18/18 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=ParticleSwarmHeuristicSolverTest -Dsurefire.failIfNoSpecifiedTests=false test"`：1/1 通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -DskipTests compile"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-heuristic -am -DskipTests compile"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-example -am -DskipTests test-compile"`：通过。第一次 6 分钟工具超时，第二次 8 分钟 03 秒完成并 `BUILD SUCCESS`。
-  - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含 `P18-4/P18-5`。
-  - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含 `P18-4/P18-5`。
-
-说明：上述 Maven 验证统一使用 `MAVEN_OPTS='-XX:ReservedCodeCacheSize=512m -XX:NonProfiledCodeHeapSize=256m'` 降低 CodeHeap full 对长链路编译的影响；example 长链路末尾仍有 JVM CodeHeap warning，但 Maven 结果为 `BUILD SUCCESS`。
-
-### P18 第十批执行记录（2026-05-20）
-
-继续收口 `SymbolCombination` 的迁移期工厂命名，把仍然固定为 `Flt64` 的空符号工厂改成显式泛型入口，并把默认 `Flt64` 入口迁到前缀化边界名：
-
-1. `LinearIntermediateSymbols` / `QuadraticIntermediateSymbols` 现在要求显式传入 `zero`，用于构造 `V` 版本的空符号组合。
-2. 新增 `Flt64LinearIntermediateSymbols` / `Flt64QuadraticIntermediateSymbols` 作为显式 Flt64 边界入口。
-3. `map` / `flatMap` 统一改为 `LinearPolynomial<V>` 泛型签名，不再固定 `Flt64`。
-4. 修复四维 `map` / `flatMap` 的下标错误，`l4[v[4]]` 已回归为 `l4[v[3]]`。
-5. 新增门禁 `P18-6`，禁止 `SymbolCombination` 再出现迁移期 Flt64 特化工厂签名。
-6. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=SymbolCombinationGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-example -am -DskipTests compile"`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含 `P18-6`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含 `P18-6`。
-
-### P18 第十一批执行记录（2026-05-20）
-
-继续扫描后发现 `IntermediateSymbol.kt` 的 companion 工厂仍有“正式泛型类型名，但默认构造为 `Flt64`”的残留。已收口为显式数值域设计：
-
-1. `LinearIntermediateSymbol.empty` / `QuadraticIntermediateSymbol.empty` 改为接收 `RealNumberConstants<V>`，按调用方给定的数值域构造空符号；`QuadraticIntermediateSymbol.empty` 显式保持 `Quadratic` 分类。
-2. `LinearExpressionSymbol` 的变量项、已有 symbol、`LinearPolynomial`、`LinearMonomial`、`MutableLinearPolynomial`、typed constant、empty 工厂全部改为 `V` 泛型入口；无类型来源的入口要求显式传入 `Flt64` / `Rtn64` 等 constants。
-3. `QuadraticExpressionSymbol` 同步改为 `V` 泛型入口，并补齐 `LinearPolynomial`、`LinearMonomial`、`QuadraticPolynomial`、`QuadraticMonomial`、`MutableQuadraticPolynomial` 工厂。
-4. 仓库内 Flt64 模型的空表达式/空中间符号调用已改为显式 `LinearExpressionSymbol(Flt64, ...)` 或 `LinearIntermediateSymbol.empty(Flt64, ...)`；变量直接包裹的测试入口已改为 `LinearExpressionSymbol(x, Flt64, ...)` / `QuadraticExpressionSymbol(x, Flt64, ...)`。
-5. 新增 `IntermediateSymbolGenericFactoryTest`，覆盖 Rtn64 的空符号、变量项、symbol 包装、单项式、多项式、mutable polynomial 与 constant 工厂。
-6. 新增门禁 `P18-7`，禁止 `IntermediateSymbol.kt` 的 companion 工厂回退到 Flt64 特化签名、typed constant 转 Flt64、无 constants 的空工厂。
-7. 已验证命令：
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -DskipTests compile"`：通过。
-   - `pwsh.exe -NoProfile -Command "mvn --% -pl ospf-kotlin-core -am -Dtest=IntermediateSymbolGenericFactoryTest,SymbolCombinationGenericFactoryTest,MinimizeMaximizeSymbolTest -Dsurefire.failIfNoSpecifiedTests=false test"`：通过，13/13。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过，含 `P18-7`。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过，含 `P18-7`。
-   - `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=768m -XX:NonProfiledCodeHeapSize=256m -XX:ProfiledCodeHeapSize=256m"; & mvn -pl ospf-kotlin-example -am -DskipTests compile'`：通过。
-   - 验证中默认 JVM CodeHeap 较小会拖慢或触发 warning；增大 CodeHeap 后完整 example 编译通过。
-
-### P18 第十二批执行记录（2026-05-20）
-
-继续按“不要平滑兼容层，只保留正式设计”扫描后，进一步清理 `SymbolCombination` 与 callback 模型公开面：
-
-1. 删除 `Flt64LinearIntermediateSymbols` / `Flt64QuadraticIntermediateSymbols` 特化对象；`LinearIntermediateSymbols` / `QuadraticIntermediateSymbols` 改为接收 `RealNumberConstants<V>`，由调用点显式选择 `Flt64` / `Rtn64` 等数值域。
-2. `QuantityLinearIntermediateSymbol` 从固定 `Quantity<LinearIntermediateSymbol<Flt64>>` 改为泛型别名 `QuantityLinearIntermediateSymbol<V>`；demo2 业务模型显式标注 `QuantityLinearIntermediateSymbol<Flt64>`。
-3. `AbstractCallBackModelInterface<Obj, V, TV>` 的迁移期类型参数命名改为正式语义：`AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue>`，区分目标值类型与解变量值类型。
-4. `SymbolCombinationGenericFactoryTest` 增补 `QuantityLinearIntermediateSymbol<Rtn64>` 覆盖，证明单数物理量别名不再绑定 Flt64。
-5. `P18-5` / `P18-6` 门禁扩展：
-   - 禁止 callback 接口回退到 `Obj, V, TV` 形状。
-   - 禁止 `Flt64*IntermediateSymbols` 特化对象与旧固定 Flt64 单数物理量别名回流。
-6. 扫描结论：公开声明级 `Type*` / `*V` 迁移命名已清零；剩余 `Flt64NumberParser` 属于 math 解析器的显式 Flt64 实现，不是兼容层残留。
-7. 已验证命令：
-   - `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=768m -XX:NonProfiledCodeHeapSize=256m -XX:ProfiledCodeHeapSize=256m"; mvn --% -pl ospf-kotlin-core -am -Dtest=SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest,MinimizeMaximizeSymbolTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过，14/14。
-   - `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-example -am -DskipTests compile'`：通过。
-   - `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-heuristic -am -DskipTests compile'`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-   - `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-
-## 后续建议（P18+）
-
-1. 保持 `check-c8-guards.ps1` 的 P17 规则开启，禁止 `math.symbol.adapter.*`、`FunctionCompat`、`MetaModelFlt64Adapter`、旧 solver 入口和旧 Slack 调用回流。
-2. 将 `check-migration-compat.ps1` 拆分为可并行 CI job（core source-compat、example default、profiles、static guards），缩短反馈时延。
-3. 在无兼容层前提下，逐步消减 allowlist/baseline（converter 样板、deprecated 调用、whitelist 特例）。
-4. 对 `framework_demo/demo2` 增补更多结构断言，尤其是 `service/limits` 与 pipeline 组合层，降低后续 API 漂移回归风险。
-5. 继续扫描剩余 `Type*` / `*V` 候选，优先处理只为迁移并存而产生的命名；真实领域语义、类型参数 `V`、View/Input/Converter/Adapter 等职责命名不机械回滚。
-6. 外部 APS/CSP1D/BOP/PSP 仓库继续按项目侧节奏迁移，不纳入当前仓库默认门禁。
+1. 当前文档是给下一个会话执行 P19 的交接入口。下一会话应先从 P19-1 开始，不要重新打开兼容层目标。
+2. 不要把外部 APS/CSP1D/BOP/PSP 直接编译作为默认阻塞项；本仓库继续以 in-repo fixture 和 profile 作为默认门禁。
+3. 如果引入新的静态门禁，优先加到 `check-c8-guards.ps1` 的 P18/P19 段落，保持 P6/P7 模式都可覆盖。
+4. 每个 P19 子任务完成后，更新本文件对应小节的状态、实际修改清单、验收命令和结果，再提交独立 commit。

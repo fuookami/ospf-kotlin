@@ -32,7 +32,6 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.operator.pow
-import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -637,7 +636,7 @@ data class LinearTriadModel(
             }
 
             logger.trace("LinearTriadModel created for $model")
-            System.gc()
+            MemoryCleanupPolicy.cleanupAfterModelBuilt()
             return triadModel
         }
 
@@ -783,9 +782,7 @@ data class LinearTriadModel(
                                 }
                                 constraints.add(lhs to rhs)
                             }
-                            if (memoryUseOver()) {
-                                System.gc()
-                            }
+                            MemoryCleanupPolicy.cleanupOnPressure()
                             constraints
                         }
                     }
@@ -854,7 +851,7 @@ data class LinearTriadModel(
                     froms.add(constraint.from)
                     priorities.add(constraint.origin?.priority)
                 }
-                System.gc()
+                MemoryCleanupPolicy.cleanupAfterBatch()
                 LinearConstraintBatch(
                     sparseLhs = buildSparseLhs(lhs),
                     signs = signs,

@@ -31,7 +31,6 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.ordinary.min
 import fuookami.ospf.kotlin.math.operator.pow
-import fuookami.ospf.kotlin.utils.memoryUseOver
 import fuookami.ospf.kotlin.math.operator.abs
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.async
@@ -646,7 +645,7 @@ data class QuadraticTetradModel(
             }
 
             logger.trace("QuadraticTetradModel created for $model")
-            System.gc()
+            MemoryCleanupPolicy.cleanupAfterModelBuilt()
             return tetradModel
         }
 
@@ -836,9 +835,7 @@ data class QuadraticTetradModel(
                                 }
                                 constraints.add(lhs to rhs)
                             }
-                            if (memoryUseOver()) {
-                                System.gc()
-                            }
+                            MemoryCleanupPolicy.cleanupOnPressure()
                             constraints
                         }
                     }
@@ -862,7 +859,7 @@ data class QuadraticTetradModel(
                         froms.add(constraint.from)
                         priorities.add(constraint.origin?.priority)
                     }
-                    System.gc()
+                    MemoryCleanupPolicy.cleanupAfterBatch()
                     QuadraticConstraintBatch(
                         sparseLhs = buildSparseLhs(lhs),
                         signs = signs,
@@ -930,7 +927,7 @@ data class QuadraticTetradModel(
                     froms.add(constraint.from)
                     priorities.add(constraint.origin?.priority)
                 }
-                System.gc()
+                MemoryCleanupPolicy.cleanupAfterBatch()
                 QuadraticConstraintBatch(
                     sparseLhs = buildSparseLhs(lhs),
                     signs = signs,

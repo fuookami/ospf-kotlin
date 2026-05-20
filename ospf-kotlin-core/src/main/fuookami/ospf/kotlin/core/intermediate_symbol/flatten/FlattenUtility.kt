@@ -30,7 +30,6 @@ internal fun mergeLinearMonomials(
     constant: Flt64
 ): LinearFlattenData<Flt64> {
     val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
-    var totalConstant = constant
 
     for (m in monomials) {
         val variable = m.symbol as? AbstractVariableItem<*, *> ?: continue
@@ -39,11 +38,16 @@ internal fun mergeLinearMonomials(
         }
     }
 
+    val normalizedMonomials = ArrayList<LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>>(mergedMonomials.size)
+    for ((variable, coefficient) in mergedMonomials) {
+        if (coefficient neq Flt64.zero) {
+            normalizedMonomials.add(LinearMonomial(coefficient, variable))
+        }
+    }
+
     return LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        monomials = mergedMonomials
-            .filter { it.value neq Flt64.zero }
-            .map { LinearMonomial(it.value, it.key) },
-        constant = totalConstant
+        monomials = normalizedMonomials,
+        constant = constant
     )
 }
 
@@ -54,9 +58,29 @@ internal fun mergeLinearFlattenDataFlt64(
     flattenDataList: List<LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     initialConstant: Flt64 = Flt64.zero
 ): LinearFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val allMonomials = flattenDataList.flatMap { it.monomials }
-    val totalConstant = flattenDataList.fold(initialConstant) { acc, data -> acc + data.constant }
-    return mergeLinearMonomials(allMonomials, totalConstant)
+    val mergedMonomials = HashMap<AbstractVariableItem<*, *>, Flt64>()
+    var totalConstant = initialConstant
+    for (flattenData in flattenDataList) {
+        totalConstant += flattenData.constant
+        for (monomial in flattenData.monomials) {
+            val variable = monomial.symbol as? AbstractVariableItem<*, *> ?: continue
+            if (monomial.coefficient neq Flt64.zero) {
+                mergedMonomials[variable] = (mergedMonomials[variable] ?: Flt64.zero) + monomial.coefficient
+            }
+        }
+    }
+
+    val normalizedMonomials = ArrayList<LinearMonomial<Flt64>>(mergedMonomials.size)
+    for ((variable, coefficient) in mergedMonomials) {
+        if (coefficient neq Flt64.zero) {
+            normalizedMonomials.add(LinearMonomial(coefficient, variable))
+        }
+    }
+
+    return LinearFlattenData(
+        monomials = normalizedMonomials,
+        constant = totalConstant
+    )
 }
 
 /**
@@ -72,7 +96,6 @@ internal fun mergeQuadraticMonomials(
     constant: Flt64
 ): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
     val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
-    var totalConstant = constant
 
     for (m in monomials) {
         val v1 = m.symbol1 as? AbstractVariableItem<*, *> ?: continue
@@ -95,11 +118,16 @@ internal fun mergeQuadraticMonomials(
         }
     }
 
+    val normalizedMonomials = ArrayList<QuadraticMonomial<Flt64>>(mergedMonomials.size)
+    for ((key, coefficient) in mergedMonomials) {
+        if (coefficient neq Flt64.zero) {
+            normalizedMonomials.add(QuadraticMonomial(coefficient, key.first, key.second))
+        }
+    }
+
     return QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-        monomials = mergedMonomials
-            .filter { it.value neq Flt64.zero }
-            .map { QuadraticMonomial(it.value, it.key.first, it.key.second) },
-        constant = totalConstant
+        monomials = normalizedMonomials,
+        constant = constant
     )
 }
 
@@ -110,9 +138,39 @@ internal fun mergeQuadraticFlattenDataFlt64(
     flattenDataList: List<QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64>>,
     initialConstant: Flt64 = Flt64.zero
 ): QuadraticFlattenData<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    val allMonomials = flattenDataList.flatMap { it.monomials }
-    val totalConstant = flattenDataList.fold(initialConstant) { acc, data -> acc + data.constant }
-    return mergeQuadraticMonomials(allMonomials, totalConstant)
+    val mergedMonomials = HashMap<Pair<AbstractVariableItem<*, *>, AbstractVariableItem<*, *>?>, Flt64>()
+    var totalConstant = initialConstant
+    for (flattenData in flattenDataList) {
+        totalConstant += flattenData.constant
+        for (monomial in flattenData.monomials) {
+            val v1 = monomial.symbol1 as? AbstractVariableItem<*, *> ?: continue
+            val v2 = monomial.symbol2 as? AbstractVariableItem<*, *>?
+            val key = if (v2 != null) {
+                if (v1.identifier < v2.identifier) {
+                    v1 to v2
+                } else {
+                    v2 to v1
+                }
+            } else {
+                v1 to null
+            }
+            if (monomial.coefficient neq Flt64.zero) {
+                mergedMonomials[key] = (mergedMonomials[key] ?: Flt64.zero) + monomial.coefficient
+            }
+        }
+    }
+
+    val normalizedMonomials = ArrayList<QuadraticMonomial<Flt64>>(mergedMonomials.size)
+    for ((key, coefficient) in mergedMonomials) {
+        if (coefficient neq Flt64.zero) {
+            normalizedMonomials.add(QuadraticMonomial(coefficient, key.first, key.second))
+        }
+    }
+
+    return QuadraticFlattenData(
+        monomials = normalizedMonomials,
+        constant = totalConstant
+    )
 }
 
 // ========== Multiply Operations ==========
