@@ -13,6 +13,7 @@
         <module>ospf-kotlin-math</module>
         <module>ospf-kotlin-quantities</module>
         <module>ospf-kotlin-core</module>
+        <module>ospf-kotlin-benchmark</module>
         <module>ospf-kotlin-framework</module>
         <module>ospf-kotlin-core-plugin</module>
         <module>ospf-kotlin-framework-plugin</module>

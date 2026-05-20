@@ -169,6 +169,24 @@ Example generic demo verification (isolated profile):
 mvn --% -pl ospf-kotlin-example -Pcore-demo-only -Dtest=CoreDemoTest,GenericNumberDemoTest -Dsurefire.failIfNoSpecifiedTests=false clean test
 ```
 
+## Benchmark Baseline
+
+Benchmark baseline module: `ospf-kotlin-benchmark` (JMH 1.37), currently covering `multiarray` / `math` / `core` hot paths.
+
+Compile benchmark module:
+
+```bash
+mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
+```
+
+Run a `small` smoke benchmark (example):
+
+```bash
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+```
+
+The `small`/`medium` dataset parameter is currently available, and benchmark numbers are used for same-machine trend comparison instead of CI hard gates.
+
 ## Migration Release Gate (Compatibility-Free Core/Math)
 
 Use one command to run the default migration acceptance gate:

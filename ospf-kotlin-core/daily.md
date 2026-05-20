@@ -1,510 +1,271 @@
-# core/math P18+ 后续简化与性能优化交接（2026-05-20）
+# P20 性能基准与工程深化交接（2026-05-20）
 
 ## 最新结论
 
-P18 已完成无兼容层收口：core 已在架构上把符号运算能力迁移到正式 `math.symbol` 体系，core 主链路保持泛型化，旧兼容层、旧桥接命名和默认 Flt64 特化工厂已移除或边界化。
+`math`、`multiarray`、`quantities`、`core` 已按 P18/P19 目标完成架构收口：符号运算能力已迁移到正式 `math.symbol` 泛型体系，core 主链路保持泛型化，旧兼容迁移层、旧 adapter/bridge、迁移期命名和默认 Flt64 特化工厂已删除或边界化。
 
-P19-1 至 P19-6 已完成第一轮落地；2026-05-20 复核修复已恢复 `BlockMultiArray(shape, Map<List<Int>, T>)` 公开构造入口，并确认当前分支 P19-6 最新提交为 `7c845618 chore(framework-gantt): harden task time conflict null checks`。
+当前可以按项目内验收口径判定：功能与接口已恢复到原 Kotlin 版本预期；后续不再追求平滑迁移，不新增兼容层，只按正式 API、正式命名和正式边界继续做工程深化。
 
-P19 后续不再围绕“兼容原旧入口”继续补平滑层，而是在 P18+ 基础上做全面简化、性能优化和技术债清理。优化范围覆盖：
+P19-1 至 P19-6 已完成第一轮简化与性能优化。最新相关提交：
 
-- `ospf-kotlin-multiarray`
-- `ospf-kotlin-math`
-- `ospf-kotlin-core`
-- `ospf-kotlin-core-plugin`
-- `ospf-kotlin-framework-*`
-
-## 目标
-
-P19 的目标是让 P18+ 后的正式设计更干净、更快、更容易维护：
-
-1. 降低热点路径的临时对象分配，尤其是 multiarray 索引、符号合并、模型 dump、solver dump、时间区间扫描。
-2. 消除 P18 迁移后剩余的重复实现，例如 Flt64 专用逻辑与泛型正式逻辑的重复。
-3. 把仍然散落的 Flt64 快捷层、solver double 边界、泛型核心层边界写清楚，并用静态门禁防止回流。
-4. 简化 core 中大型 builder/dump 代码，降低 `LinearTriadModel` / `QuadraticTetradModel` 的维护成本。
-5. 对 framework 中真实未实现路径和长尾风险做归档、门禁或实现计划，不让 `TODO("not implemented yet")` 隐性进入关键路径。
-
-## 总体原则
-
-1. 继续坚持无兼容层：不要新增 `compat`、`bridge`、旧包路径或仅为平滑迁移存在的包装。
-2. 泛型正式 API 使用原名；Flt64 快捷层和 solver 边界必须显式命名并隔离。
-3. 优先优化已确认的热点和结构性重复，不做无证据的全局机械替换。
-4. 性能优化不能牺牲泛型能力；至少用 `Flt64` 与一个非 Flt64 类型（优先 `Rtn64`）做回归验证。
-5. 低层集合链式调用只有在 dump、flatten、solver 转换、multiarray 迭代、framework 时间扫描等热点路径中优先处理。
-6. 不默认强制真实外部 solver 参与验收；solver 插件默认以编译、结构和边界转换验证为主，真实 solver 用 profile 或条件集成测试。
-7. 不用空 smoke 验收。新增测试必须断言结构、数量、边界值、类型保持、异常信息或求解器边界转换结果。
-8. 写注释时遵守项目规则：中英双语；不添加版权声明。
-9. README / README_ch 如涉及用户入口变更，需保持互链和同步说明。
+1. `0c75425e fix(multiarray): restore BlockMultiArray map constructor`
+2. `7c845618 chore(framework-gantt): harden task time conflict null checks`
+3. `c766658e chore(framework-gantt): refine task limit null-guards in P19-6`
+4. `38cb5460 chore(framework-gantt): harden P19-6 todo and null-safety paths`
+5. `d3f87825 chore(gantt): 完成 P19-5 时间区间与日历扫描优化`
+6. `2bf56808 chore(core-plugin): 批量优化 solver dump 数组与分块构建`
+7. `cedc9e27 chore(core): 完成 P19-3 flatten dump 优化与内存清理策略`
 
 ## 已完成事项摘要
 
-以下为 P0-P18 已完成内容的高层摘要，不再保留逐批流水账：
+以下只保留 P18/P19 已完成结论，不再保留逐批流水账。
 
 1. 已完成从 core 自有表达式体系到 `math.symbol` 正式符号体系的迁移。
-2. 已删除兼容层目录与旧入口，移除 `math.symbol.adapter.*`、`FunctionCompat`、`MetaModelFlt64Adapter` 等旧兼容面。
+2. 已删除旧兼容面：`math.symbol.adapter.*`、`FunctionCompat`、`MetaModelFlt64Adapter`、旧 bridge/compat 入口等。
 3. 已把 core 主链路泛型化，并验证 `Flt64`、`FltX`、`Rtn64`、`RtnX` 等数值路径不会退化为单 Flt64 适配。
-4. 已恢复 example 默认构建，把曾经的 non-default demo 迁回默认源码集。
-5. 已恢复并增强 core demo、function build-only、business source-compat、framework/starter compat 等验收 profile。
-6. 已建立并扩展 `check-c8-guards.ps1` 与 `check-migration-compat.ps1`，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等静态风险。
-7. 已清理 P18 迁移期命名，公开声明级 `Type*` / `*V` 迁移命名已清零；保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
-8. 已把 `IntermediateSymbol`、`SymbolCombination` 等工厂从默认 Flt64 特化改为显式 `RealNumberConstants<V>` 泛型入口。
-9. 已把 callback/heuristic 等多目标路径拆清 `ObjValue` 与 `SolutionValue`，避免目标值类型和解变量值类型混淆。
-10. P18 结束时工作区已提交，最新相关提交为 `98790ce6 chore(core): 收口符号工厂泛型入口`。
+4. 已清理 P18 迁移期命名，公开声明级 `Type*` / `*V` 迁移命名已清零；保留的 Flt64 命名仅表达真实快捷层、解析器或 solver 边界职责。
+5. 已把 `IntermediateSymbol`、`SymbolCombination` 等工厂从默认 Flt64 特化改为显式 `RealNumberConstants<V>` 泛型入口。
+6. 已恢复 example 默认构建，把曾经的 non-default demo 迁回默认源码集，并增强 core demo、function build-only、business source-compat、framework/starter compat 等验收 profile。
+7. 已建立并扩展 `check-c8-guards.ps1` 与 `check-migration-compat.ps1`，覆盖兼容层回流、旧命名回流、旧 import 回流、危险 hard-cast、空测试等静态风险。
+8. 已完成 P19 第一轮性能与结构优化：multiarray 索引/迭代、math 符号合并、core flatten/dump/sparse transpose、solver dump 数组构建、framework 时间扫描。
+9. 已完成 P19 第一轮中低优先级技术债清理：部分关键 TODO 语义化、部分 `!!` 改为显式不变量检查。
+10. 已修复 P19 复核发现的 `BlockMultiArray(shape, Map<List<Int>, T>)` 公开构造入口回归，内部仍保留 `IndexKey` 优化路径。
 
-## P19 扫描结论
+## P20 目标
 
-2026-05-20 已完成一次静态扫描和抽样阅读。结论如下。
+P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19 的“结构上更干净、热点上更快”推进到可量化、可维护、可持续演进。
 
-### 高优先级
+1. 建立可重复运行的 benchmark baseline，用数据验证 multiarray、math、core、core-plugin 的关键路径。
+2. 在不改变公开 API 的前提下拆分局部大文件，优先降低 `LinearTriadModel` / `QuadraticTetradModel` 的维护成本。
+3. 抽取 solver 插件中 solver 无关的数据准备逻辑，减少 Gurobi/Gurobi11/Cplex/SCIP 重复代码。
+4. 继续保持无兼容层原则：不新增 `compat`、`bridge`、旧包路径或仅为平滑迁移存在的包装。
+5. 保持泛型核心与边界层清晰：core/math 主链路泛型化；Flt64 快捷层和 solver double 转换只允许出现在显式边界。
 
-1. `multiarray` 索引路径分配偏高：
-   - `BlockMultiArray` 每次 `get/set/getOrSet` 都把 `IntArray` 转成 `List<Int>` 作为 map key。
-   - `MultiIndexIterator.hasNext()` 每次复制当前位置并试探推进。
-   - 固定维 `Shape` 的 column-major `vector()` 使用 `reversedArray()`，存在可避免的小额分配。
-2. `math` 符号合并存在重复实现：
-   - Flt64 专用 `combineTerms()` 与泛型 `combineLinearTerms` / `combineQuadraticTerms` 逻辑重复。
-   - quadratic 合并使用 `Pair<Symbol, Symbol?>` 作为 key，热点下会产生大量临时对象。
-3. `core` 模型 dump 与 elastic builder 代码体量大、重复多：
-   - `LinearTriadModel.kt` 与 `QuadraticTetradModel.kt` 均超过 2k 行。
-   - elastic 构造中大量 `flatMap + listOf + +` 拼接会产生中间 List。
-   - 多处 `System.gc()` 应改为可配置内存策略，默认不主动触发。
-4. `core-plugin` solver dump 重复明显：
-   - Gurobi/Gurobi11/Cplex/Scip 等插件变量数组、约束分段、初始解、边界 double 转换逻辑相似。
-   - 部分路径对变量多次 `map`，可以单趟填充 primitive/object 数组。
-   - 约束 chunk 大小用 `Flt64.lg()/pow()` 计算，适合改成纯整数策略。
-5. `framework-gantt-scheduling` 时间扫描可优化：
-   - `WorkingCalendar` 多处对有序时间段做线性扫描。
-   - `TimeRange` / `TimeWindow` 有 `filter + map`、`withIndex().indexOfFirst/Last` 等可单趟或二分优化的路径。
+## 总体原则
 
-### 中优先级
+1. 先基准，后优化。没有 baseline 的性能改动只能做低风险整理，不做大规模重写。
+2. P20 默认不改变公开 API；如必须调整公开入口，先在 `daily.md` 记录理由、影响范围和验收方式。
+3. 不新增迁移兼容层。恢复公开 API 回归可以做，但不能为了平滑迁移保留旧实现分支。
+4. 大文件拆分以行为保持为第一目标，只移动内聚逻辑，不混入语义变化。
+5. solver 公共化只抽 solver 无关的数据准备层，不抽真实 solver API 调用层。
+6. solver 的 `.toDouble()`、Flt64 转换和外部 solver 类型适配必须留在 solver 边界，不能回流到 core 泛型主链路。
+7. 新增测试不能是空 smoke。必须断言结构、数量、边界值、类型保持、异常信息、dump 结果或 benchmark 可运行性。
+8. 写注释时遵守项目规则：中英双语；不添加版权声明。
+9. README / README_ch 如涉及用户入口或 benchmark 使用方式变更，必须保持互链和同步说明。
+10. 每个 P20 子任务独立提交，完成后更新本文件对应小节的状态、实际修改清单、验收命令和结果。
 
-1. `!!` 密度偏高，尤其在 core、math、core-plugin、gantt framework 中。建议逐步改成 `requireNotNull`、局部不变量 helper 或领域异常，提升错误信息。
-2. `TODO("not implemented yet")` 需要归档或门禁，主要集中在 framework-gantt、bpp3d layer assignment、Mosek plugin、framework-plugin persistence。
-3. Flt64 快捷层边界仍需文档化：`Flt64QuickDsl`、`Flt64QuickOps`、`Flt64MatrixForm` 可以保留，但应明确它们不是泛型核心层。
-4. solver 插件重复代码短期不阻塞，但后续修改一个 solver 时容易漏另一个。
-5. core 大文件需要拆分或抽 helper，尤其是 dump、elastic、export、normalize/copy 相关逻辑。
+## P20 计划
 
-### 低优先级
+### P20-1：性能基准 baseline
 
-1. 固定维 `Shape` 的 `lazy` 和 `reversedArray()` 属于小额性能优化，低于 sparse key 和 iterator 优先级。
-2. 非热点 builder 中的 `map/filter/flatMap + toList` 不必机械改。
-3. 少量注释和文案有乱码或迁移叙事残留，可顺手修复。
-4. framework-bpp1d、bpp2d、csp2d、network-scheduling 当前没有明显 Kotlin 热点，暂不优先投入。
-5. README/daily 可补一张“泛型核心层 / Flt64 快捷层 / solver 边界层”边界表，避免后续误用。
+状态：已完成（第一批 baseline，覆盖 `multiarray`/`math`/`core`）。
 
-## P19 计划
-
-### P19-1：multiarray 索引与迭代优化
-
-状态（2026-05-20）：已完成第一批落地并通过模块回归。
-
-本批实际修改清单：
-
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/BlockMultiArray.kt`
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/AccessOrder.kt`
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/Shape.kt`
-- `ospf-kotlin-multiarray/src/test/fuookami/ospf/kotlin/multiarray/BlockMultiArraySemanticTest.kt`
-- `ospf-kotlin-multiarray/src/test/fuookami/ospf/kotlin/multiarray/AccessOrderIteratorContractTest.kt`
-
-本批验收命令与结果：
-
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="..."; mvn --% -pl ospf-kotlin-multiarray -am test'`：通过。
-2. `git diff --check`：通过（仅行尾符提示，无空白错误）。
-
-复核修复（2026-05-20）：
-
-- 结论：P19-1 的内部 `IndexKey` 优化不应移除既有公开构造入口；这不是新增迁移兼容层，而是修复一次公开 API 回归。
-- 修改：恢复 `BlockMultiArray(shape, Map<List<Int>, T>)` 构造器，内部仍转换为 `IndexKey` 存储；新增测试覆盖初始 blocks、外部 key mutation 与外部 map mutation 不影响内部状态。
-- 验收：
-  1. `mvn -pl ospf-kotlin-multiarray -Dtest=BlockMultiArraySemanticTest test`：通过（18 tests, 0 failures）。
-  2. `mvn -pl ospf-kotlin-multiarray -am test`：通过（utils 61 tests；multiarray 308 tests；0 failures）。
-  3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-  4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-  5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
-
-目标：优先处理低风险、高收益的分配热点。
+目标：建立可重复运行的性能基准，覆盖 P19 已优化和 P20 计划继续深化的热点路径。
 
 详细步骤：
 
-1. 为 `BlockMultiArray` 设计专用 key：
-   - 可选方案 A：内部 `data class IndexKey(private val indices: IntArray)`，构造时 copy，重写 `equals/hashCode`。
-   - 可选方案 B：1-4 维 packed key + DynShape fallback。
-   - 先选风险较低的方案 A，保留外部 `indices(): Set<List<Int>>` 行为。
-2. 将 `get/set/getOrSet/contains/remove/fromMultiArray/toMultiArray` 内部切到新 key。
-3. 优化 `MultiIndexIterator`：
-   - 用 `count < shape.size` 或预计算 total size 判断 `hasNext()`。
-   - 避免 `hasNext()` copy + `advance(temp)`。
-4. 优化 `MultiArray.fromList`：
-   - 避免先用 `list[0]` 全量初始化再覆盖。
-   - 对 storage order 等于 shape order 的路径可直接构建。
-5. 对 `Shape3/Shape4/DynShape` 的 column-major `vector()` 去掉 `reversedArray()` 临时分配。
+1. 先调查现有 benchmark 基础：
+   - `ospf-kotlin-utils` 已有 JMH 依赖和 `src/benchmark` 配置，可作为参考。
+   - 目标模块目前未发现独立 benchmark 文件，优先选择最小侵入方案。
+2. 设计 benchmark 承载方式：
+   - 优先方案 A：新增专用 benchmark module，例如 `ospf-kotlin-benchmark`，依赖目标模块并集中放置 JMH。
+   - 备选方案 B：在目标模块增加 `src/benchmark` 和 profile，但要避免默认构建变重。
+3. 建立第一批 benchmark：
+   - `multiarray`：`BlockMultiArray.get/set/getOrSet/contains/remove`、`AccessOrder` iterator、`Shape.index/vector`、`MultiArray.fromList/flatten`。
+   - `math`：linear/quadratic combine、mutable combine、matrix form conversion、symbol evaluate / ordered evaluate。
+   - `core`：flatten、model dump、`SparseMatrix.transpose`、`LinearTriadModel` / `QuadraticTetradModel` 构建与导出。
+   - `core-plugin`：变量数组构建、边界转换、初始解收集、约束分块构建；默认不调用真实 solver。
+4. 设计输入规模：
+   - small：用于快速 CI 验证 benchmark 可运行。
+   - medium：用于本地趋势对比。
+   - large：只作为手动 profile，不进入默认验收。
+5. 固化 baseline 输出：
+   - 记录 JVM、Maven 命令、样本规模、关键指标。
+   - 不把机器相关的绝对性能数值作为 CI 硬门禁，先用 baseline 文档和可运行性验收。
 
 预计修改清单：
 
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/BlockMultiArray.kt`
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/AccessOrder.kt`
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/MultiArray.kt`
-- `ospf-kotlin-multiarray/src/main/fuookami/ospf/kotlin/multiarray/Shape.kt`
-- 相关 multiarray tests
+- 新增 benchmark module 或目标模块 benchmark profile。
+- 新增 benchmark 源码目录。
+- 新增或更新 Maven profile。
+- 如涉及使用方式，更新 `README.md` 与 `README_ch.md`。
+- 更新 `ospf-kotlin-core/daily.md` 的 P20-1 状态与结果。
 
 验收标准：
 
-1. `mvn --% -pl ospf-kotlin-multiarray -am test` 通过。
-2. 新增或增强测试覆盖：
-   - `BlockMultiArray` key 防外部数组 mutation。
-   - row-major / column-major iterator hasNext/next 契约。
-   - `fromList` 与 `flatten` 在两种 access order 下结果不变。
-   - fixed shape 与 dyn shape column-major inverse index/vector。
-3. `git diff --check` 通过。
-
-### P19-2：math 符号合并路径统一与降分配
-
-状态（2026-05-20）：已完成第一批落地并通过目标回归与 P6/P7 门禁。
+1. benchmark 代码能编译并能通过指定 profile 运行 small 规模。
+2. 至少覆盖 `multiarray`、`math`、`core` 三类热点；`core-plugin` 可作为同批或紧随其后的补充。
+3. 默认 `mvn test` 不因 benchmark 变慢。
+4. `mvn --% -pl ospf-kotlin-multiarray -am test`、相关 math/core 目标测试通过。
+5. P6/P7 静态门禁通过。
+6. `git diff --check` 通过。
 
 本批实际修改清单：
 
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/LinearQuadraticOps.kt`
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/CombineTerms.kt`
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/MutableCombineOps.kt`
-- `ospf-kotlin-math/src/test/fuookami/ospf/kotlin/math/symbol/operation/CombineTermsTest.kt`
+1. 根聚合 `pom.xml` 增加 module：`ospf-kotlin-benchmark`。
+2. 新增 `ospf-kotlin-benchmark/pom.xml`：
+   - 依赖 `multiarray`/`math`/`core` 与 `jmh-core:1.37`。
+   - 引入 JMH bytecode generator 流程（`JmhBytecodeGenerator` + generated sources 编译）。
+   - 保留 `bench` profile，默认构建不跑 benchmark。
+3. 新增 benchmark 入口：
+   - `ospf-kotlin-benchmark/src/main/fuookami/ospf/kotlin/benchmark/BenchmarkRunner.kt`
+4. 新增第一批 benchmark：
+   - `.../multiarray/MultiArrayHotPathBenchmark.kt`
+   - `.../math/SymbolCombineBenchmark.kt`
+   - `.../core/CoreHotPathBenchmark.kt`
 
 本批验收命令与结果：
 
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="..."; mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest,CombineTermsTest,MutableCombineTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过。
-2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+1. `mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile`：通过。
+2. `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"`：通过（small 烟测可运行）。
+3. `mvn --% -pl ospf-kotlin-multiarray -am test`：通过。
+4. `mvn --% -pl ospf-kotlin-math -Dtest=CombineTermsTest,QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test`：通过。
+5. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SparseMatrixTransposeTest,FlattenUtilityTest -Dsurefire.failIfNoSpecifiedTests=false test`：通过（本轮实际运行到 `MathInequalityFlattenTest`、`SparseMatrixTransposeTest`、`FlattenUtilityTest`）。
+6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+7. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+8. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
-目标：把 Flt64 专用合并逻辑变成薄入口，核心合并统一走泛型实现，并减少 quadratic key 分配。
+### P20-2：core 大文件局部拆分
 
-详细步骤：
+状态：待执行。
 
-1. 调整 `CombineTerms.kt`：
-   - Flt64 `combineTerms()` 只转发到泛型 `combineLinearTerms` / `combineQuadraticTerms`。
-   - 删除重复的 Flt64 本地合并循环。
-2. 引入 quadratic term key：
-   - 用专用 key class 或 value holder 代替 `Pair<Symbol, Symbol?>`。
-   - 确保对称项 `x*y` 与 `y*x` 仍归一。
-3. 同步 `MutableCombineOps.kt` 与 `LinearQuadraticOps.kt`。
-4. 检查 `PowerVectorKey` 与 canonical 合并是否可复用，不做过度抽象。
-5. 对 `evaluateLinearOrdered` / `evaluateQuadraticOrdered` 的 `order.toSet()` + `associate` 做一次性校验 helper，减少重复。
-
-预计修改清单：
-
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/CombineTerms.kt`
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/LinearQuadraticOps.kt`
-- `ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation/MutableCombineOps.kt`
-- 相关 math symbol operation tests
-
-验收标准：
-
-1. `mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过。
-2. 新增或增强测试覆盖：
-   - Flt64 与 Rtn64 的 linear/quadratic combine 同类项合并一致。
-   - quadratic 对称 key 不回归。
-   - 零系数过滤不回归。
-3. P6/P7 静态门禁通过。
-
-### P19-3：core flatten / dump / elastic builder 简化
-
-状态（2026-05-20）：已完成第一批落地并通过目标回归与 P6/P7 门禁。
-
-本批实际修改清单：
-
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/flatten/FlattenUtility.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/SparseMatrix.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/MemoryCleanupPolicy.kt`（新增）
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadModel.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradModel.kt`
-- `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/expression/flatten/FlattenUtilityTest.kt`
-- `ospf-kotlin-core/src/test/fuookami/ospf/kotlin/core/intermediate_model/SparseMatrixTransposeTest.kt`（新增）
-
-本批验收命令与结果：
-
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过。
-2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1536m -XX:NonProfiledCodeHeapSize=512m -XX:ProfiledCodeHeapSize=512m"; mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile'`：通过。
-3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-5. `git diff --check`：通过（仅行尾符提示，无空白错误）。
-
-目标：减少 core 热路径中间集合，拆出重复 builder，降低大文件维护成本。
+目标：降低 `LinearTriadModel.kt` 与 `QuadraticTetradModel.kt` 的维护成本，保持公开 API 和行为不变。
 
 详细步骤：
 
-1. 优化 `FlattenUtility.kt`：
-   - `mergeLinearFlattenDataFlt64` / `mergeQuadraticFlattenDataFlt64` 不再 `flatMap` 出全量 monomial list。
-   - 直接单趟累积 monomials 和 constant。
-2. 优化 `SparseMatrix.transpose()`：
-   - 避免 `rows.flatMap { it.entries }.maxOfOrNull`。
-   - 单趟扫描 maxCol，再填充 transpose。
-3. 抽出 linear/quadratic elastic builder 公共结构：
-   - 先抽小 helper，避免一次性大重构。
-   - 目标是减少 repeated signs/rhs/names/sources/origins/froms/priorities 构造逻辑。
-4. 把 `System.gc()` 替换为统一策略：
-   - 新增轻量 memory cleanup policy 或复用现有 `memoryUseOver()`。
-   - 默认不强制 GC；必要时由配置或 guard 触发。
-5. 对 `LinearTriadModel.kt` / `QuadraticTetradModel.kt` 做文件级拆分时要保持 package 和 public API 不变。
+1. 先用 `git diff --stat`、文件行数和函数分布确认拆分范围。
+2. 优先拆分内聚且边界清晰的逻辑：
+   - dump / export helper。
+   - elastic constraint builder。
+   - normalize / copy / clone helper。
+   - expression flatten / constraint flatten helper。
+   - memory cleanup policy 使用点整理。
+3. 每批只拆一个职责，禁止在同一 commit 中混入行为优化。
+4. 新 helper 默认使用 `internal` 或文件级 `private`，避免扩大 API 面。
+5. 拆分后对比关键 dump / flatten / copy 测试，确保输出结构、变量数量、约束数量和类型保持不变。
 
 预计修改清单：
 
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/flatten/FlattenUtility.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/SparseMatrix.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/LinearTriadModel.kt`
-- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/intermediate/QuadraticTetradModel.kt`
-- 可能新增 `*Builder.kt` / `*Elastic.kt` helper 文件
-- 相关 core tests
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/LinearTriadModel.kt`
+- `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/frontend/model/QuadraticTetradModel.kt`
+- 新增 core internal helper 文件，具体名称由执行会话按职责决定。
+- 相关 core tests。
+- `ospf-kotlin-core/daily.md`
 
 验收标准：
 
-1. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过。
-2. core `-DskipTests test-compile` 通过。
-3. 新增或增强测试覆盖：
-   - flatten merge 不额外丢失 non-variable 符号的错误语义。
-   - transpose 空矩阵、单行、多行、最大列推断。
-   - elastic model 的变量数、约束数、objective 项、slack 命名不回归。
+1. 公开 API 不变；如不可避免，必须先记录理由并补 source-compat 验收。
+2. 目标测试通过，至少覆盖 flatten、dump、copy/clone、elastic builder 相关路径。
+3. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SparseMatrixTransposeTest,FlattenUtilityTest -Dsurefire.failIfNoSpecifiedTests=false test` 通过；如测试名不存在，记录实际运行到的测试。
+4. `mvn --% -pl ospf-kotlin-core -DskipTests test-compile` 通过。
+5. P6/P7 静态门禁通过。
+6. `git diff --check` 通过。
+
+### P20-3：solver 插件数据准备公共化
+
+状态：待执行。
+
+目标：减少 Gurobi/Gurobi11/Cplex/SCIP solver dump 数据准备重复，同时保持各 solver API 调用层独立。
+
+详细步骤：
+
+1. 对比以下插件的变量数组、边界数组、目标系数、初始解、约束 chunk 构建路径：
+   - `ospf-kotlin-core-plugin-gurobi`
+   - `ospf-kotlin-core-plugin-gurobi11`
+   - `ospf-kotlin-core-plugin-cplex`
+   - `ospf-kotlin-core-plugin-scip`
+2. 抽取 solver 无关的数据准备结构：
+   - variable index/name map。
+   - lower / upper bound 数组。
+   - objective coefficient 数组。
+   - initial solution 数组。
+   - sparse row / chunk 数据。
+3. 保留 solver API 层差异：
+   - 不抽 `GRBModel`、`IloCplex`、SCIP 原生对象调用。
+   - 不把 solver 特定异常和参数强行统一。
+4. 保持 Flt64 / Double 边界显式：
+   - `.toDouble()` 只允许留在 solver dump/solve 边界或既有白名单。
+   - 不把 Double 渗透到 core 泛型模型。
+5. 为公共数据准备层补结构测试，不依赖真实 solver license。
+
+预计修改清单：
+
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi*/src/main/...`
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/src/main/...`
+- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/src/main/...`
+- 新增 solver dump 公共 helper，位置由执行会话根据现有模块边界决定。
+- 相关 plugin tests 或 compile-only fixture。
+- `ospf-kotlin-core/daily.md`
+
+验收标准：
+
+1. 相关插件 `-DskipTests compile` 通过。
+2. 不要求真实外部 solver 参与默认验收；如本机有 license，可额外运行条件集成测试并记录。
+3. 公共 helper 有结构断言测试或 compile-only fixture 覆盖。
 4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
 
-### P19-4：core-plugin solver dump 公共化与边界数组优化
+### P20-4：后续技术债与文档边界
 
-状态（2026-05-20）：已完成第二批落地（Gurobi/Gurobi11/Cplex/SCIP）并通过目标编译与 P6/P7 门禁。
+状态：待执行，可穿插在 P20-1 至 P20-3 之间。
 
-本批实际修改清单：
-
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11/src/main/fuookami/ospf/kotlin/core/solver/gurobi11/GurobiLinearSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11/src/main/fuookami/ospf/kotlin/core/solver/gurobi11/GurobiQuadraticSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi/src/main/fuookami/ospf/kotlin/core/solver/gurobi/GurobiLinearSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi/src/main/fuookami/ospf/kotlin/core/solver/gurobi/GurobiQuadraticSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/src/main/fuookami/ospf/kotlin/core/solver/cplex/CplexLinearSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/src/main/fuookami/ospf/kotlin/core/solver/cplex/CplexQuadraticSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/src/main/fuookami/ospf/kotlin/core/solver/scip/ScipLinearSolver.kt`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/src/main/fuookami/ospf/kotlin/core/solver/scip/ScipQuadraticSolver.kt`
-
-本批验收命令与结果：
-
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests compile'`：通过。
-2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile'`：通过。
-3. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am -DskipTests compile'`：通过。
-4. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex -am -DskipTests compile'`：通过。
-5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-7. `git diff --check`：通过（仅行尾符提示，无空白错误）。
-
-目标：减少 solver 插件重复代码和数组构建分配，保持 solver boundary 明确。
+目标：把 P19 后剩余的中低优先级技术债纳入持续清理，不阻塞主线。
 
 详细步骤：
 
-1. 先从 Gurobi11 或 SCIP 选一个插件做样板。
-2. 将变量 lower/upper/type/name 数组改成单趟填充。
-3. 将初始解收集改成单趟 builder，避免 filter + map + map。
-4. 将 constraint chunk 计算改成纯整数函数，例如 `chunkSize(rowCount, processors)`。
-5. 识别 Gurobi/Gurobi11/Cplex/Scip 可共享的 solver dump helper，但不要把 vendor API 包装得过度抽象。
-6. 保留 `toSolverDouble(...)` 作为 solver boundary，不把 `.toDouble()` 扩散回 core。
+1. 继续扫描 main 源码中的 `!!`，只处理能明确表达不变量的路径。
+2. 继续归档或语义化 `TODO("not implemented yet")`，优先处理关键路径。
+3. 检查 README / README_ch 中泛型核心层、Flt64 快捷层、solver 边界层的说明是否需要更新。
+4. 修正明显乱码、过期迁移叙事和已失效命令。
 
 预计修改清单：
 
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11/...`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi/...`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex/...`
-- `ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip/...`
-- 可能新增 solver dump utility 文件
-
-验收标准：
-
-1. 至少以下编译通过：
-   - `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests compile`
-   - `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile`
-2. 若改动多个 solver，相关 solver plugin 均需 `-DskipTests compile` 通过。
-3. core 的 `.toDouble()` conversion guard 不新增违规。
-4. P6/P7 静态门禁通过。
-
-### P19-5：framework 时间区间与日历扫描优化
-
-状态（2026-05-20）：已完成第一批落地（TimeRange/TimeWindow/WorkingCalendar 热点降分配）并通过目标回归与 P6/P7 门禁。
-
-本批实际修改清单：
-
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeRange.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeWindow.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/WorkingCalendar.kt`
-
-本批验收命令与结果：
-
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="..."; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am test'`：未通过（被上游既有失败 `ospf-kotlin-math` 的 `Flt64BridgeTest` 阻塞，非本批改动引入）。
-2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1536m -XX:NonProfiledCodeHeapSize=512m -XX:ProfiledCodeHeapSize=512m"; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am -Dtest=TimeRangeDifferenceTest,TimeRangeFindTest,TimeWindowTest,WorkingCalendarTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过。
-3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
-
-目标：优化 gantt scheduling 中时间区间和工作日历的长链路扫描。
-
-详细步骤：
-
-1. 梳理 `TimeRange`、`TimeWindow`、`WorkingCalendar` 的有序性假设。
-2. 对连续扫描查找前后边界的路径引入 helper：
-   - 若数据始终有序，优先二分。
-   - 若数据可能无序，先集中排序或明确要求。
-3. 将 `filter + map`、`map + max`、`withIndex().indexOfFirst/Last` 热点改成单趟。
-4. 保持现有公开 API 不变。
-5. 对 TODO 路径做归档：能安全实现的实现；暂不能实现的加明确错误信息和测试。
-
-预计修改清单：
-
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../TimeRange.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../TimeWindow.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/.../WorkingCalendar.kt`
-- 相关 infrastructure tests
-
-验收标准：
-
-1. `mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am test` 通过。
-2. 重点测试覆盖：
-   - TimeRange difference/intersection/merge 边界。
-   - TimeWindow interval / instant 转换。
-   - WorkingCalendar 空日历、连续区间、break time、connection time。
-3. 不新增 `TODO("not implemented yet")`。
-
-### P19-6：中低优先级技术债清理
-
-状态（2026-05-20）：已完成第一批落地（framework-gantt 的 `!!` 与关键路径 TODO 语义化）并通过目标回归、目标编译与 P6/P7 门禁。
-
-本批实际修改清单：
-
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeRange.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeWindow.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/test/kotlin/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeRangeDifferenceTest.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/test/kotlin/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeWindowTest.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/Consumption.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/Produce.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/ConnectionResource.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/ExecutionResource.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/StorageResource.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/model/TaskTime.kt`
-- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskStepConflictConstraint.kt`
-
-本批验收命令与结果：
-
-1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1536m -XX:NonProfiledCodeHeapSize=512m -XX:ProfiledCodeHeapSize=512m"; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am -Dtest=TimeRangeDifferenceTest,TimeRangeFindTest,TimeWindowTest,WorkingCalendarTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过（30 tests, 0 failures）。
-2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am -DskipTests compile'`：通过。
-3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
-
-小批次 2（2026-05-20）补充：
-
-- 目的：继续清理 `domain-task-compilation-context` 关键路径中的 `!!`，将可确定不变量改为显式 `requireNotNull(...)`，并统一 shadow price extractor 的空任务分支。
-- 修改文件：
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskAdvanceEarliestEndTimeConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskAdvanceTimeConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskCompilationConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskDelayLastEndTimeConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskDelayTimeConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskOverMaxAdvanceTimeConstraint.kt`
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskOverMaxDelayTimeConstraint.kt`
-- 验收命令与结果：
-  1. `mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am -DskipTests compile`：通过。
-  2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-  3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-  4. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
-
-小批次 3（2026-05-20）补充：
-
-- 目的：继续清理 `TaskTimeConflictConstraint` 中 `time!!` 路径，改为显式 `requireNotNull(...)` 并保留原有冲突约束逻辑。
-- 修改文件：
-  - `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskTimeConflictConstraint.kt`
-- 复核说明：当前分支实际提交为 `7c845618 chore(framework-gantt): harden task time conflict null checks`；若外部交接文本引用 `0c789f36`，该对象不在当前分支祖先链，后续以当前分支提交和本复核记录为准。
-- 验收命令与结果：
-  1. `mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context -am -DskipTests compile`：通过。
-  2. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
-  3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
-  4. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
-
-目标：整理风险但不阻塞主链路的问题。
-
-详细步骤：
-
-1. `!!` 清理：
-   - 只处理 main 源码中能明确替代的 `!!`。
-   - 用 `requireNotNull(value) { "..." }` 或领域 helper 表达不变量。
-   - 优先处理 core dump、solver plugin、framework task/gantt。
-2. TODO 归档：
-   - 列出所有 `TODO("not implemented yet")`。
-   - 对关键路径 TODO 改为明确异常类型和说明，或补实现。
-   - 非关键路径 TODO 记录到 daily.md 后续风险。
-3. 文档边界表：
-   - README / README_ch 如需要，补充“泛型核心层 / Flt64 快捷层 / solver 边界层”。
-4. 注释乱码与迁移叙事：
-   - 修正明显乱码。
-   - 删除不再适用的 bridge/compat/migration 叙事。
-5. 低优先级 shape / builder 小优化可穿插处理，但不要扩大改动面。
-
-预计修改清单：
-
-- 视扫描结果决定，优先：
-  - core main
-  - math symbol operation
-  - core-plugin solver boundary
-  - gantt framework
-  - README / README_ch（如涉及用户入口说明）
+- 视扫描结果决定，优先 core、math、core-plugin、framework 关键路径。
+- README / README_ch（仅当用户入口或说明变化）。
+- `ospf-kotlin-core/daily.md`
 
 验收标准：
 
 1. 修改到的模块至少 `test-compile` 或 `compile` 通过。
-2. 涉及用户入口说明时 README 与 README_ch 同步。
-3. P6/P7 静态门禁通过。
-4. `git diff --check` 通过。
+2. 新增异常信息必须可定位具体不变量。
+3. README / README_ch 如有一方修改，另一方同步并保持互链。
+4. P6/P7 静态门禁通过。
+5. `git diff --check` 通过。
 
-## 建议执行顺序
+## 推荐执行顺序
 
-1. P19-1 multiarray：低耦合、高收益，最适合作为第一批。
-2. P19-2 math combine：统一符号合并核心，给 core flatten 后续优化打基础。
-3. P19-3 core flatten/dump：收益最大，但需要更严格测试。
-4. P19-4 core-plugin solver dump：建议在 core dump 稳定后执行。
-5. P19-5 framework gantt：结合已有 infrastructure tests 做。
-6. P19-6 中低优先级清理：穿插执行，不要和大重构混在同一个 commit。
+1. P20-1 benchmark baseline：先建立数据口径，避免盲目优化。
+2. P20-2 core 大文件拆分：拆结构，不改行为。
+3. P20-3 solver 插件公共化：在 benchmark 和 core dump 结构稳定后做。
+4. P20-4 技术债与文档边界：穿插执行，每批保持小改动。
 
 ## 推荐验收命令
 
 按改动范围选择，不要求每批都完整执行全部命令。
 
-```powershell
-pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-multiarray -am test'
-```
+1. `mvn --% -pl ospf-kotlin-multiarray -am test`
+2. `mvn --% -pl ospf-kotlin-math -Dtest=CombineTermsTest,QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test`
+3. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SparseMatrixTransposeTest,FlattenUtilityTest -Dsurefire.failIfNoSpecifiedTests=false test`
+4. `mvn --% -pl ospf-kotlin-core -DskipTests test-compile`
+5. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am -DskipTests compile`
+6. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests compile`
+7. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex -am -DskipTests compile`
+8. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests compile`
+9. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`
+10. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`
+11. `git diff --check`
 
-```powershell
-pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-math -Dtest=QuickDslTest,MatrixFormConversionTest,MatrixFormTest -Dsurefire.failIfNoSpecifiedTests=false test'
-```
+12. `mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile`
+13. `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"`
+14. `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*SymbolCombineBenchmark.combineLinearPolynomialGeneric.* small 1 1 1"`
+15. `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*CoreHotPathBenchmark.sparseMatrixTranspose.* small 1 1 1"`
 
-```powershell
-pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SymbolCombinationGenericFactoryTest,IntermediateSymbolGenericFactoryTest -Dsurefire.failIfNoSpecifiedTests=false test'
-```
-
-```powershell
-pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-example -am -DskipTests compile'
-```
-
-```powershell
-pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-heuristic -am -DskipTests compile'
-```
-
-```powershell
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7
-```
-
-```powershell
-git diff --check
-```
-
-完整 release gate 仍可用：
-
-```powershell
-pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-migration-compat.ps1
-```
-
-说明：完整脚本耗时较长，建议只在阶段性收口时执行。
+benchmark 数值只用于同机趋势对比与回归观察，不作为跨机器硬门禁。
 
 ## 交接注意事项
 
-1. 当前文档是给下一个会话执行 P19 的交接入口。下一会话应先从 P19-1 开始，不要重新打开兼容层目标。
-2. 不要把外部 APS/CSP1D/BOP/PSP 直接编译作为默认阻塞项；本仓库继续以 in-repo fixture 和 profile 作为默认门禁。
-3. 如果引入新的静态门禁，优先加到 `check-c8-guards.ps1` 的 P18/P19 段落，保持 P6/P7 模式都可覆盖。
-4. 每个 P19 子任务完成后，更新本文件对应小节的状态、实际修改清单、验收命令和结果，再提交独立 commit。
+1. 下一个会话从 P20-1 开始，不要重新打开 P18/P19 迁移目标。
+2. 不要新增兼容层；P20 的默认姿态是正式 API 继续深化。
+3. 不要把真实外部 solver 作为默认阻塞项；默认以编译、结构测试和边界转换测试为主。
+4. 大文件拆分必须小步提交，避免行为变化和移动代码混在一起。
+5. 每个子任务完成后，更新本文件对应小节的状态、实际修改清单、验收命令和结果，再提交独立 commit。
