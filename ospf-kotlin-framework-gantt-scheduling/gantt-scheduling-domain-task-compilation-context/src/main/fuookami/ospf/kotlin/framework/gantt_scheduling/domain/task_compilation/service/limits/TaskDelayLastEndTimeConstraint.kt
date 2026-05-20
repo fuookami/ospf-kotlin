@@ -39,8 +39,11 @@ class TaskDelayLastEndTimeConstraint<
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
+            val lastEndTime = requireNotNull(task.lastEndTime) {
+                "TaskDelayLastEndTimeConstraint.invoke 要求 task.lastEndTime 非空: $task"
+            }
             when (val result = model.addConstraint(
-                taskTime.estimateEndTime[task] leq with(timeWindow) { task.lastEndTime!!.value },
+                taskTime.estimateEndTime[task] leq with(timeWindow) { lastEndTime.value },
                 name = "${name}_${task}",
                 args = TaskDelayLastEndTimeShadowPriceKey(task)
             )) {
@@ -63,19 +66,15 @@ class TaskDelayLastEndTimeConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskDelayLastEndTimeShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskDelayLastEndTimeShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskDelayLastEndTimeShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskDelayLastEndTimeShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 else -> {

@@ -39,8 +39,11 @@ class TaskOverMaxAdvanceTimeConstraint<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
+            val maxAdvance = requireNotNull(task.maxAdvance) {
+                "TaskOverMaxAdvanceTimeConstraint.invoke 要求 task.maxAdvance 非空: $task"
+            }
             when (val result = model.addConstraint(
-                taskTime.advanceTime[task] leq with(timeWindow) { task.maxAdvance!!.value },
+                taskTime.advanceTime[task] leq with(timeWindow) { maxAdvance.value },
                 name = "${name}_${task}",
                 args = TaskOverMaxAdvanceShadowPriceKey(task)
             )) {
@@ -63,19 +66,15 @@ class TaskOverMaxAdvanceTimeConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskOverMaxAdvanceShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskOverMaxAdvanceShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskOverMaxAdvanceShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskOverMaxAdvanceShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 else -> {

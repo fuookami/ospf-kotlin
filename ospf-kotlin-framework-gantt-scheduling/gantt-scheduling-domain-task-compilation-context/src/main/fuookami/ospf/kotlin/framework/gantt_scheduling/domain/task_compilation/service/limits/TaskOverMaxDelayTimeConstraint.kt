@@ -39,8 +39,11 @@ class TaskOverMaxDelayTimeConstraint<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
+            val maxDelay = requireNotNull(task.maxDelay) {
+                "TaskOverMaxDelayTimeConstraint.invoke 要求 task.maxDelay 非空: $task"
+            }
             when (val result = model.addConstraint(
-                taskTime.delayTime[task] leq with(timeWindow) { task.maxDelay!!.value },
+                taskTime.delayTime[task] leq with(timeWindow) { maxDelay.value },
                 name = "${name}_${task}",
                 args = TaskOverMaxDelayShadowPriceKey(task)
             )) {
@@ -63,19 +66,15 @@ class TaskOverMaxDelayTimeConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskOverMaxDelayShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskOverMaxDelayShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskOverMaxDelayShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskOverMaxDelayShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 else -> {

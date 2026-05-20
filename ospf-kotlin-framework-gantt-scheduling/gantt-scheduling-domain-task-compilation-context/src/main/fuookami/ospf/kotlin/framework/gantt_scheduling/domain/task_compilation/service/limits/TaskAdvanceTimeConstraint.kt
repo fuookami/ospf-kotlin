@@ -39,8 +39,11 @@ class TaskAdvanceTimeConstraint<
 
     override fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for (task in tasks) {
+            val scheduledTime = requireNotNull(task.scheduledTime) {
+                "TaskAdvanceTimeConstraint.invoke 要求 task.scheduledTime 非空: $task"
+            }
             when (val result = model.addConstraint(
-                taskTime.estimateStartTime[task] geq with(timeWindow) { task.scheduledTime!!.start.value },
+                taskTime.estimateStartTime[task] geq with(timeWindow) { scheduledTime.start.value },
                 name = "${name}_${task}",
                 args = TaskAdvanceTimeShadowPriceKey(task)
             )) {
@@ -63,19 +66,15 @@ class TaskAdvanceTimeConstraint<
         return { map, args ->
             shadowPriceExtractor?.invoke(args) ?: when (args) {
                 is TaskGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskAdvanceTimeShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskAdvanceTimeShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 is BunchGanttSchedulingShadowPriceArguments<*, *> -> {
-                    if (args.task != null) {
-                        map.map[TaskAdvanceTimeShadowPriceKey(args.task!!)]?.price ?: Flt64.zero
-                    } else {
-                        Flt64.zero
-                    }
+                    args.task?.let { task ->
+                        map.map[TaskAdvanceTimeShadowPriceKey(task)]?.price ?: Flt64.zero
+                    } ?: Flt64.zero
                 }
 
                 else -> {
