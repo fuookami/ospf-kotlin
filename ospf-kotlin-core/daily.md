@@ -267,7 +267,7 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 
 ### P20-4：后续技术债与文档边界
 
-状态：待执行，可穿插在 P20-1 至 P20-3 之间。
+状态：已完成（第一批：solver 热路径可证明不变量 `!!` 清理，行为保持）。
 
 目标：把 P19 后剩余的中低优先级技术债纳入持续清理，不阻塞主线。
 
@@ -291,6 +291,31 @@ P20 是性能基准与工程深化阶段，不是迁移阶段。目标是把 P19
 3. README / README_ch 如有一方修改，另一方同步并保持互链。
 4. P6/P7 静态门禁通过。
 5. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. 更新 `ospf-kotlin-core-plugin-gurobi`：
+   - `GurobiLinearSolver.kt`、`GurobiQuadraticSolver.kt`：
+   - 把 `config.notImprovementTime` 分支内的 `bestObj!!`/`bestBound!!` 改为局部非空快照变量。
+   - 把 `config.notImprovementTime!!` 改为 `notImprovementTime` 局部变量。
+   - 把 `Failed(Err(status.errCode!!))` 改为带兜底错误码的 `Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))`。
+2. 更新 `ospf-kotlin-core-plugin-gurobi11`：
+   - `GurobiLinearSolver.kt`、`GurobiQuadraticSolver.kt` 做与 gurobi 同口径 `!!` 清理与错误码兜底。
+3. 更新 `ospf-kotlin-core-plugin-cplex`：
+   - `CplexLinearSolver.kt`、`CplexQuadraticSolver.kt` 做同口径 `config.notImprovementTime` 分支 `!!` 清理与错误码兜底。
+4. 更新 `ospf-kotlin-core-plugin-scip`：
+   - `ScipLinearSolver.kt`、`ScipQuadraticSolver.kt` 做同口径 `config.notImprovementTime` 分支 `!!` 清理与错误码兜底。
+   - 补充 `ErrorCode` import 以支持失败兜底路径。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi -am -DskipTests -Dgpg.skip=true compile`：通过。
+2. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-gurobi11 -am -DskipTests -Dgpg.skip=true compile`：通过。
+3. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-cplex -am -DskipTests -Dgpg.skip=true compile`：通过。
+4. `mvn --% -pl ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-scip -am -DskipTests -Dgpg.skip=true compile`：通过。
+5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+6. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+7. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ## 推荐执行顺序
 

@@ -18,6 +18,7 @@ import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.utils.concept.copyIfNotNullOr
 import fuookami.ospf.kotlin.utils.error.Err
+import fuookami.ospf.kotlin.utils.error.ErrorCode
 import fuookami.ospf.kotlin.utils.functional.*
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
@@ -423,16 +424,18 @@ private class ScipQuadraticSolverImpl(
                         initialBestObj = currentObj
                     }
 
-                    if (config.notImprovementTime != null) {
-                        if (bestObj == null
-                            || bestBound == null
-                            || (currentObj - bestObj!!).abs() geq config.improveThreshold
-                            || (currentBound - bestBound!!).abs() geq config.improveThreshold
+                    config.notImprovementTime?.let { notImprovementTime ->
+                        val previousBestObj = bestObj
+                        val previousBestBound = bestBound
+                        if (previousBestObj == null
+                            || previousBestBound == null
+                            || (currentObj - previousBestObj).abs() geq config.improveThreshold
+                            || (currentBound - previousBestBound).abs() geq config.improveThreshold
                         ) {
                             bestObj = currentObj
                             bestBound = currentBound
                             bestTime = currentTime
-                        } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                        } else if (currentTime - bestTime >= notImprovementTime) {
                             solverModel.interruptSolve()
                             return
                         }
@@ -554,7 +557,7 @@ private class ScipQuadraticSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.errCode!!))
+            Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
         }
     }
 }

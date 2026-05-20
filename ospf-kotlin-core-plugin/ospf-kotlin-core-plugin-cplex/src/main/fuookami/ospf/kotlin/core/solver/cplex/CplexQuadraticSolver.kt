@@ -342,16 +342,18 @@ private class CplexQuadraticSolverImpl(
                         initialBestObj = currentObj
                     }
 
-                    if (config.notImprovementTime != null) {
-                        if (bestObj == null
-                            || bestBound == null
-                            || (currentObj - bestObj!!).abs() geq config.improveThreshold
-                            || (currentBound - bestBound!!).abs() geq config.improveThreshold
+                    config.notImprovementTime?.let { notImprovementTime ->
+                        val previousBestObj = bestObj
+                        val previousBestBound = bestBound
+                        if (previousBestObj == null
+                            || previousBestBound == null
+                            || (currentObj - previousBestObj).abs() geq config.improveThreshold
+                            || (currentBound - previousBestBound).abs() geq config.improveThreshold
                         ) {
                             bestObj = currentObj
                             bestBound = currentBound
                             bestTime = currentTime
-                        } else if (currentTime - bestTime >= config.notImprovementTime!!) {
+                        } else if (currentTime - bestTime >= notImprovementTime) {
                             abort()
                         }
                     }
@@ -505,7 +507,7 @@ private class CplexQuadraticSolverImpl(
 
                 else -> {}
             }
-            Failed(Err(status.errCode!!))
+            Failed(Err(status.errCode ?: ErrorCode.OREngineSolvingException))
         }
     }
 }
