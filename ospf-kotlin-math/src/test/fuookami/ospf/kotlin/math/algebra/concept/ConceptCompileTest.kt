@@ -39,7 +39,7 @@ class ConceptCompileTest {
     }
 
     @Test
-    fun arithmeticBridgeShouldCompile() {
+    fun arithmeticConceptsShouldCompile() {
         requireSemigroup<TestPlusSemigroup>()
         requireAbelianGroup<TestPlusGroup>()
         requireRing<TestNumberRing>()

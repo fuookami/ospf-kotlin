@@ -174,11 +174,11 @@ class MathInequalityFlattenTest {
     @Test
     fun rtn64TypeShouldExpandCorrectly() {
         val x = RealVar("x")
-        val bridge = fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64Bridge<Rtn64>("MathInequalityFlattenTest")
-        val two = bridge.intoValue(Flt64(2.0))
-        val one = bridge.intoValue(Flt64.one)
-        val five = bridge.intoValue(Flt64(5.0))
-        val zero = bridge.intoValue(Flt64.zero)
+        val converter = fuookami.ospf.kotlin.math.algebra.concept.resolveFlt64ValueConverter<Rtn64>("MathInequalityFlattenTest")
+        val two = converter.intoValue(Flt64(2.0))
+        val one = converter.intoValue(Flt64.one)
+        val five = converter.intoValue(Flt64(5.0))
+        val zero = converter.intoValue(Flt64.zero)
 
         val symbol = LinearExpressionSymbol<Rtn64>(
             _utilsPolynomial = MutableLinearPolynomial(

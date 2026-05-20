@@ -26,9 +26,9 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-typealias Universe<V> = SolutionWithFitness<V>
+typealias Universe<ObjValue, V> = SolutionWithFitness<ObjValue, V>
 
-interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractMVOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     /**
      * calculate WEP (Wormhole Existence Probability)
      */
@@ -40,15 +40,15 @@ interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf
     fun tdr(iteration: Iteration): Flt64
 
     fun whiteHoleRates(
-        model: AbstractCallBackModelInterface<*, V>,
-        objs: List<V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        objs: List<ObjValue>
     ): List<Flt64>
 
     fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution<V>,
-        solutions: List<Universe<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        solutions: List<Universe<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         wep: Flt64,
         tdr: Flt64
     ): List<Solution<V>>
@@ -60,11 +60,11 @@ interface AbstractMVOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf
  * @property minWEP         minimum wormhole existence probability
  * @property maxWEP         maximum wormhole existence probability
  */
-open class MVOPolicy<V>(
+open class MVOPolicy<ObjValue, V>(
     val minWEP: Flt64 = Flt64(0.2),
     val maxWEP: Flt64 = Flt64(1.0),
     val whiteHoleSelector: Selection,
-    val whiteHoleRateCalculator: ObjectiveNormalization<V>,
+    val whiteHoleRateCalculator: ObjectiveNormalization<ObjValue, V>,
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
@@ -74,7 +74,7 @@ open class MVOPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractMVOPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractMVOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             minWEP: Flt64 = Flt64(0.2),
@@ -83,7 +83,7 @@ open class MVOPolicy<V>(
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): MVOPolicy<Flt64> {
+        ): MVOPolicy<Flt64, Flt64> {
             return MVOPolicy(
                 minWEP = minWEP,
                 maxWEP = maxWEP,
@@ -113,8 +113,8 @@ open class MVOPolicy<V>(
     }
 
     override fun whiteHoleRates(
-        model: AbstractCallBackModelInterface<*, V>,
-        objs: List<V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        objs: List<ObjValue>
     ): List<Flt64> {
         return whiteHoleRateCalculator(model, objs)
     }
@@ -122,8 +122,8 @@ open class MVOPolicy<V>(
     override fun transformUniverses(
         iteration: Iteration,
         bestSolution: Solution<V>,
-        solutions: List<Universe<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        solutions: List<Universe<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         wep: Flt64,
         tdr: Flt64
     ): List<Solution<V>> {
@@ -180,15 +180,15 @@ open class MVOPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class MultiVerseOptimizer<Obj, V>(
+class MultiVerseOptimizer<Obj, ObjValue, V>(
     val universeAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractMVOPolicy<V>
+    val policy: AbstractMVOPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Universe<V>, List<Universe<V>>) -> Try)? = null
-    ): List<Individual<V>> {
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
+        runningCallBack: ((Iteration, Universe<ObjValue, V>, List<Universe<ObjValue, V>>) -> Try)? = null
+    ): List<Individual<ObjValue, V>> {
         val iteration = Iteration()
         var universes = model.initialSolutions(universeAmount)
             .map {
@@ -262,6 +262,6 @@ class MultiVerseOptimizer<Obj, V>(
     }
 }
 
-typealias MVO = MultiVerseOptimizer<Flt64, Flt64>
-typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias MVO = MultiVerseOptimizer<Flt64, Flt64, Flt64>
+typealias MulObjMVO = MultiVerseOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 

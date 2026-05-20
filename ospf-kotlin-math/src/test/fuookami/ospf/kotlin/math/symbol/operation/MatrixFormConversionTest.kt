@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.Int64
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.operation.hessian
-import fuookami.ospf.kotlin.math.symbol.operation.toMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.toFlt64MatrixForm
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
@@ -15,14 +15,14 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertFailsWith
 
-class MatrixFormBridgeTest {
+class MatrixFormConversionTest {
     private data class TestSymbol(
         override val name: String,
         override val displayName: String? = null
     ) : Symbol
 
     @Test
-    fun typedLinearMatrixBridgeShouldRoundTrip() {
+    fun linearMatrixFormShouldRoundTrip() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val polynomial = LinearPolynomial<Int64>(
@@ -34,11 +34,11 @@ class MatrixFormBridgeTest {
             constant = Int64(5L)
         )
 
-        val form = polynomial.toTypedMatrixForm(
+        val form = polynomial.toMatrixForm(
             order = listOf(y, x),
             zero = Int64.zero
         )
-        val rebuilt = typedLinearPolynomialFromMatrixForm(
+        val rebuilt = linearPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
         )
@@ -51,7 +51,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun typedQuadraticMatrixBridgeShouldRoundTrip() {
+    fun quadraticMatrixFormShouldRoundTrip() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val polynomial = QuadraticPolynomial<Int64>(
@@ -64,7 +64,7 @@ class MatrixFormBridgeTest {
             constant = Int64(7L)
         )
 
-        val form = polynomial.toTypedMatrixForm(
+        val form = polynomial.toMatrixForm(
             order = listOf(x, y),
             zero = Int64.zero,
             splitOffDiagonal = { coefficient ->
@@ -72,7 +72,7 @@ class MatrixFormBridgeTest {
                 half to half
             }
         )
-        val rebuilt = typedQuadraticPolynomialFromMatrixForm(
+        val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
         )
@@ -89,7 +89,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun flt64QuickPathShouldMatchTypedBridgePath() {
+    fun flt64QuickPathShouldMatchMatrixFormPath() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val order = listOf(x, y)
@@ -102,8 +102,8 @@ class MatrixFormBridgeTest {
             constant = Flt64(5.0)
         )
 
-        val quickPath = polynomial.toMatrixForm(order = order)
-        val typedPath = polynomial.toTypedMatrixForm(
+        val quickPath = polynomial.toFlt64MatrixForm(order = order)
+        val matrixPath = polynomial.toMatrixForm(
             order = order,
             zero = Flt64.zero,
             splitOffDiagonal = { coefficient ->
@@ -114,19 +114,19 @@ class MatrixFormBridgeTest {
 
         for (i in order.indices) {
             for (j in order.indices) {
-                assertEquals(typedPath.q[i][j].toDouble(), quickPath.q[i][j], 1e-10)
+                assertEquals(matrixPath.q[i][j].toDouble(), quickPath.q[i][j], 1e-10)
             }
-            assertEquals(typedPath.c[i].toDouble(), quickPath.c[i], 1e-10)
+            assertEquals(matrixPath.c[i].toDouble(), quickPath.c[i], 1e-10)
         }
-        assertEquals(typedPath.d, quickPath.d)
+        assertEquals(matrixPath.d, quickPath.d)
     }
 
     @Test
-    fun typedQuadraticMatrixBridgeShouldValidateDimensions() {
+    fun quadraticMatrixFormShouldValidateDimensions() {
         val x = TestSymbol("x")
 
         assertFailsWith<IllegalArgumentException> {
-            typedQuadraticPolynomialFromMatrixForm(
+            quadraticPolynomialFromMatrixForm(
                 q = listOf(listOf(Int64.one)),
                 c = listOf(Int64.one, Int64.two),
                 d = Int64.zero,
@@ -137,11 +137,11 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun typedLinearMatrixBridgeShouldValidateDimensions() {
+    fun linearMatrixFormShouldValidateDimensions() {
         val x = TestSymbol("x")
 
         assertFailsWith<IllegalArgumentException> {
-            typedLinearPolynomialFromMatrixForm(
+            linearPolynomialFromMatrixForm(
                 c = listOf(Int64.one, Int64.two),
                 d = Int64.zero,
                 order = listOf(x),
@@ -151,7 +151,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun matrixBridgeShouldRejectDuplicatedOrder() {
+    fun matrixFormShouldRejectDuplicatedOrder() {
         val x = TestSymbol("x")
         val polynomial = LinearPolynomial<Int64>(
             monomials = listOf(
@@ -161,7 +161,7 @@ class MatrixFormBridgeTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            polynomial.toTypedMatrixForm(
+            polynomial.toMatrixForm(
                 order = listOf(x, x),
                 zero = Int64.zero
             )
@@ -169,7 +169,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun typedQuadraticBridgeRoundTripShouldPreserveEvaluation() {
+    fun quadraticMatrixFormRoundTripShouldPreserveEvaluation() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val z = TestSymbol("z")
@@ -186,7 +186,7 @@ class MatrixFormBridgeTest {
             constant = Flt64(11.0)
         ).combineQuadraticTerms(Flt64.zero)
 
-        val form = polynomial.toTypedMatrixForm(
+        val form = polynomial.toMatrixForm(
             order = order,
             zero = Flt64.zero,
             splitOffDiagonal = { coefficient ->
@@ -194,7 +194,7 @@ class MatrixFormBridgeTest {
                 half to half
             }
         )
-        val rebuilt = typedQuadraticPolynomialFromMatrixForm(
+        val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Flt64.zero
         )
@@ -207,7 +207,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun typedAndFlt64HessianShouldMatchTwiceMatrixQ() {
+    fun matrixFormAndFlt64HessianShouldMatchTwiceMatrixQ() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val z = TestSymbol("z")
@@ -223,8 +223,8 @@ class MatrixFormBridgeTest {
             constant = Flt64(11.0)
         )
 
-        val typed = polynomial.combineQuadraticTerms(Flt64.zero)
-        val typedForm = typed.toTypedMatrixForm(
+        val matrix = polynomial.combineQuadraticTerms(Flt64.zero)
+        val matrixForm = matrix.toMatrixForm(
             order = order,
             zero = Flt64.zero,
             splitOffDiagonal = { coefficient ->
@@ -236,14 +236,14 @@ class MatrixFormBridgeTest {
 
         for (i in order.indices) {
             for (j in order.indices) {
-                val expected = 2.0 * typedForm.q[i][j].toDouble()
+                val expected = 2.0 * matrixForm.q[i][j].toDouble()
                 assertEquals(expected, hessianFromFlt64[i][j], 1e-10)
             }
         }
     }
 
     @Test
-    fun typedCanonicalMatrixBridgeShouldRoundTripThroughQuadratic() {
+    fun canonicalMatrixFormShouldRoundTripThroughQuadratic() {
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val canonical = CanonicalPolynomial<Int64>(
@@ -255,7 +255,7 @@ class MatrixFormBridgeTest {
             constant = Int64(7L)
         )
 
-        val form = canonical.toTypedMatrixForm(
+        val form = canonical.toMatrixForm(
             order = listOf(x, y),
             zero = Int64.zero,
             splitOffDiagonal = { coefficient ->
@@ -263,7 +263,7 @@ class MatrixFormBridgeTest {
                 half to half
             }
         )
-        val rebuilt = typedQuadraticPolynomialFromMatrixForm(
+        val rebuilt = quadraticPolynomialFromMatrixForm(
             form = form,
             zero = Int64.zero
         )
@@ -278,7 +278,7 @@ class MatrixFormBridgeTest {
     }
 
     @Test
-    fun typedCanonicalMatrixBridgeShouldRejectHigherDegreeTerm() {
+    fun canonicalMatrixFormShouldRejectHigherDegreeTerm() {
         val x = TestSymbol("x")
         val cubicCanonical = CanonicalPolynomial<Int64>(
             monomials = listOf(
@@ -288,7 +288,7 @@ class MatrixFormBridgeTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            cubicCanonical.toTypedMatrixForm(
+            cubicCanonical.toMatrixForm(
                 order = listOf(x),
                 zero = Int64.zero,
                 splitOffDiagonal = { coefficient ->

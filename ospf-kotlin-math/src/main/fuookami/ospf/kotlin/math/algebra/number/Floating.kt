@@ -573,7 +573,7 @@ value class Flt64(internal val value: Double) : Flt64Interface, FloatingImpl<fuo
      * 提供常用的数值常量，包括数学常数（pi、e）、特殊值（nan、infinity）等。
      * Provides common numeric constants, including mathematical constants (pi, e), special values (nan, infinity), etc.
      */
-    companion object : FloatingNumberConstants<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Flt64Bridge<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+    companion object : FloatingNumberConstants<fuookami.ospf.kotlin.math.algebra.number.Flt64>, Flt64ValueConverter<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         @JvmStatic
         override val zero: Flt64 get() = Flt64(0.0)
 
@@ -948,7 +948,7 @@ value class FltX(internal val value: BigDecimal) :
      * 提供常用的数值常量，包括数学常数（pi、e）等。
      * Provides common numeric constants, including mathematical constants (pi, e), etc.
      */
-    companion object : FloatingNumberConstants<FltX>, Flt64Bridge<FltX> {
+    companion object : FloatingNumberConstants<FltX>, Flt64ValueConverter<FltX> {
         @JvmStatic
         override val zero: FltX get() = FltX(BigDecimal.ZERO)
 

@@ -84,7 +84,7 @@ class UnivariateLinearPiecewiseFunction<V>(
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
         val zero = converter.zero
         val one = converter.one
-        val mV = m
+        val bigMValue = m
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Exactly one segment must be active: sum(s[i]) = 1
@@ -103,28 +103,28 @@ class UnivariateLinearPiecewiseFunction<V>(
             // Lower bound: x >= bpLow - M*(1 - s[i]) => x + M*s[i] >= bpLow - M... => x + M - M*s >= bpLow
             allConstraints += LinearInequality(
                 LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    LinearMonomial(-mV, sVar), x.constant + mV),
+                    LinearMonomial(-bigMValue, sVar), x.constant + bigMValue),
                 LinearPolynomial(emptyList(), bpLow), Comparison.GE, "${name}_seg_${i}_lb")
 
             // Upper bound: x <= bpHigh + M*(1 - s[i]) => x + M*s[i] <= bpHigh + M
             allConstraints += LinearInequality(
                 LinearPolynomial(x.monomials.map { LinearMonomial(it.coefficient, it.symbol) } +
-                    LinearMonomial(mV, sVar), x.constant),
-                LinearPolynomial(emptyList(), bpHigh + mV), Comparison.LE, "${name}_seg_${i}_ub")
+                    LinearMonomial(bigMValue, sVar), x.constant),
+                LinearPolynomial(emptyList(), bpHigh + bigMValue), Comparison.LE, "${name}_seg_${i}_ub")
 
             // y = slope*x + intercept when s[i]=1
             // y - slope*x - intercept <= M*(1 - s[i]) => y - slope*x - intercept + M*s[i] <= M
             val negSlopeXMonos = x.monomials.map { LinearMonomial(-it.coefficient * slope, it.symbol) }
             allConstraints += LinearInequality(
                 LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
-                    negSlopeXMonos + LinearMonomial(mV, sVar), -intercept),
-                LinearPolynomial(emptyList(), mV), Comparison.LE, "${name}_seg_${i}_eq_ub")
+                    negSlopeXMonos + LinearMonomial(bigMValue, sVar), -intercept),
+                LinearPolynomial(emptyList(), bigMValue), Comparison.LE, "${name}_seg_${i}_eq_ub")
 
             // y - slope*x - intercept >= -M*(1 - s[i]) => y - slope*x - intercept - M*s[i] >= -M
             allConstraints += LinearInequality(
                 LinearPolynomial(listOf(LinearMonomial(one, resultVar)) +
-                    negSlopeXMonos + LinearMonomial(-mV, sVar), -intercept),
-                LinearPolynomial(emptyList(), -mV), Comparison.GE, "${name}_seg_${i}_eq_lb")
+                    negSlopeXMonos + LinearMonomial(-bigMValue, sVar), -intercept),
+                LinearPolynomial(emptyList(), -bigMValue), Comparison.GE, "${name}_seg_${i}_eq_lb")
         }
 
         addConstraints(model, allConstraints)?.let { return it }

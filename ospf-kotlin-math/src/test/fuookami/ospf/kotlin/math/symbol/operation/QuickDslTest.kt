@@ -13,15 +13,15 @@ import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class TypedQuickDslTest {
+class QuickDslTest {
     private data class TestSymbol(
         override val name: String,
         override val displayName: String? = null
     ) : Symbol
 
     @Test
-    fun fltXTypedQuickDslShouldWork() {
-        val dsl = TypedQuickDsl(FltX)
+    fun fltXQuickDslShouldWork() {
+        val dsl = QuickDsl(FltX)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<FltX> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -29,8 +29,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun rtn64TypedQuickDslShouldWork() {
-        val dsl = TypedQuickDsl(Rtn64)
+    fun rtn64QuickDslShouldWork() {
+        val dsl = QuickDsl(Rtn64)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<Rtn64> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -38,8 +38,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun rtnXTypedQuickDslShouldWork() {
-        val dsl = TypedQuickDsl(RtnX)
+    fun rtnXQuickDslShouldWork() {
+        val dsl = QuickDsl(RtnX)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<RtnX> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -47,8 +47,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun flt64TypedQuickDslShouldWork() {
-        val dsl = TypedQuickDsl(Flt64)
+    fun flt64QuickDslShouldWork() {
+        val dsl = QuickDsl(Flt64)
         val x = TestSymbol("x")
         val poly: LinearPolynomial<Flt64> = dsl.LinearPolynomial(x)
         assertNotNull(poly)
@@ -56,8 +56,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedSumVarsShouldWork() {
-        val dsl = TypedQuickDsl(FltX)
+    fun sumVarsShouldWork() {
+        val dsl = QuickDsl(FltX)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val items = listOf(x, y)
@@ -67,8 +67,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedQSumVarsShouldWork() {
-        val dsl = TypedQuickDsl(Rtn64)
+    fun qSumVarsShouldWork() {
+        val dsl = QuickDsl(Rtn64)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val items = listOf(x, y)
@@ -78,8 +78,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedQuadraticPolynomialShouldWork() {
-        val dsl = TypedQuickDsl(FltX)
+    fun quadraticPolynomialShouldWork() {
+        val dsl = QuickDsl(FltX)
         val x = TestSymbol("x")
         val poly: QuadraticPolynomial<FltX> = dsl.QuadraticPolynomial(x)
         assertNotNull(poly)
@@ -87,8 +87,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedQuickOpsShouldWork() {
-        val ops = TypedQuickOps(FltX)
+    fun quickOpsShouldWork() {
+        val ops = QuickOps(FltX)
         val x = TestSymbol("x")
         val y = TestSymbol("y")
         val result: LinearPolynomial<FltX> = with(ops) { x + y }
@@ -97,8 +97,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedInequalityShouldWork() {
-        val ineq = TypedInequalityDsl(FltX)
+    fun inequalityShouldWork() {
+        val ineq = InequalityDsl(FltX)
         val x = TestSymbol("x")
         val result = with(ineq) { x le Flt64(10.0) }
         assertNotNull(result)
@@ -106,8 +106,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedInequalityAliasNamesShouldWork() {
-        val ineq = TypedInequalityDsl(Rtn64)
+    fun inequalityAliasNamesShouldWork() {
+        val ineq = InequalityDsl(Rtn64)
         val x = TestSymbol("x")
         val leqResult = with(ineq) { x leq Flt64(10.0) }
         val geqResult = with(ineq) { x geq Flt64(0.0) }
@@ -121,8 +121,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedInequalityIntComparisonShouldWork() {
-        val ineq = TypedInequalityDsl(FltX)
+    fun inequalityIntComparisonShouldWork() {
+        val ineq = InequalityDsl(FltX)
         val x = TestSymbol("x")
         val result = with(ineq) { x le 10 }
         assertNotNull(result)
@@ -130,8 +130,8 @@ class TypedQuickDslTest {
     }
 
     @Test
-    fun typedInequalityDoubleComparisonShouldWork() {
-        val ineq = TypedInequalityDsl(Rtn64)
+    fun inequalityDoubleComparisonShouldWork() {
+        val ineq = InequalityDsl(Rtn64)
         val x = TestSymbol("x")
         val result = with(ineq) { x le 10.0 }
         assertNotNull(result)

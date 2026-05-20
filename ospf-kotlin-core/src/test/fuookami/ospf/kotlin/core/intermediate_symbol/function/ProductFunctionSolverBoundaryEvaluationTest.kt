@@ -15,9 +15,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
 
-class ProductFunctionSolverBridgeEvaluationTest {
+class ProductFunctionSolverBoundaryEvaluationTest {
     @Test
-    fun solverBridgeEvaluateByResultsAndValuesShouldWorkForFourNumberTypes() {
+    fun solverBoundaryEvaluateByResultsAndValuesShouldWorkForFourNumberTypes() {
         runCase(GenericNumberCases.flt64)
         runCase(GenericNumberCases.fltX)
         runCase(GenericNumberCases.rtn64)
@@ -26,8 +26,8 @@ class ProductFunctionSolverBridgeEvaluationTest {
 
     private fun <V> runCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
-        val x = RealVar("${numberCase.name.lowercase()}_solver_bridge_x")
-        val y = RealVar("${numberCase.name.lowercase()}_solver_bridge_y")
+        val x = RealVar("${numberCase.name.lowercase()}_solver_boundary_x")
+        val y = RealVar("${numberCase.name.lowercase()}_solver_boundary_y")
         val left = LinearPolynomial(
             monomials = listOf(LinearMonomial(numberCase.one, x)),
             constant = numberCase.two
@@ -40,7 +40,7 @@ class ProductFunctionSolverBridgeEvaluationTest {
             left = left,
             right = right,
             converter = numberCase.converter,
-            name = "product_solver_bridge_${numberCase.name.lowercase()}"
+            name = "product_solver_boundary_${numberCase.name.lowercase()}"
         )
 
         val tokenTable = AutoTokenTable<V>(Quadratic, false)
@@ -53,11 +53,11 @@ class ProductFunctionSolverBridgeEvaluationTest {
         val expected = Flt64(16.0)
 
         val evalByResults = function.evaluate(results, tokenTable, numberCase.converter, zeroIfNone = false)
-        assertNotNull(evalByResults, "${numberCase.name}: solver-bridge evaluate(results) should not be null")
+        assertNotNull(evalByResults, "${numberCase.name}: solver-boundary evaluate(results) should not be null")
         assertEquals(expected, numberCase.converter.fromValue(evalByResults))
 
         val evalByValues = function.evaluate(values, tokenTable, numberCase.converter, zeroIfNone = false)
-        assertNotNull(evalByValues, "${numberCase.name}: solver-bridge evaluate(values) should not be null")
+        assertNotNull(evalByValues, "${numberCase.name}: solver-boundary evaluate(values) should not be null")
         assertEquals(expected, numberCase.converter.fromValue(evalByValues))
     }
 }

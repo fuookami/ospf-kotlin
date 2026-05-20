@@ -64,7 +64,7 @@ class SigmoidFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator: indicator = 1 iff condition != 0
-        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_sig_nz")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_sig_nz")
 
         // indicator serves as the result: indicator = 1 when condition > 0
 

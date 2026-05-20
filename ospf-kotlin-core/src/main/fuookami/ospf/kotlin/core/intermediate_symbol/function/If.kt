@@ -12,7 +12,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -79,7 +79,7 @@ class IfFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_if_nz")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_if_nz")
 
         // result = indicator (if condition > 0, result = 1)
         allConstraints += LinearInequality(
@@ -110,11 +110,11 @@ class IfFunction<V>(
             IfFunction(condition, converter, bigM, name = name, displayName = displayName)
 
         /**
-         * 类型化工厂：从约束输入提取条件多项式。
-         * Typed factory: extracts the condition polynomial from the constraint input.
+         * 约束输入工厂：从约束输入提取条件多项式。
+         * Constraint-input factory: extracts the condition polynomial from the constraint input.
          */
-        fun <V> typed(
-            inequality: LinearConstraintInputV<V>,
+        fun <V> from(
+            inequality: LinearConstraintInput<V>,
             converter: IntoValue<V>,
             bigM: V? = null,
             tolerance: V? = null,

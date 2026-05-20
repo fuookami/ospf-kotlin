@@ -232,7 +232,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         ) {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency).evaluate(
+                    SolverBoundaryCasts.dependencyAsIntermediate<V>(dependency).evaluate(
                         tokenTable = tokenTable,
                         converter = converter,
                         zeroIfNone = zeroIfNone
@@ -260,7 +260,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, results, {
             for (dependency in dependencies) {
                 if (tokenTable.cachedSolution) {
-                    val dep = SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency)
+                    val dep = SolverBoundaryCasts.dependencyAsIntermediate<V>(dependency)
                     when (dep) {
                         is LinearExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
                         is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(results, tokenTable, converter, zeroIfNone)
@@ -295,7 +295,7 @@ private fun <V> IntermediateSymbol<V>.evaluateWithCachedTokenTable(
         tokenTable.cacheSolverIfNotCached(this, values, {
             for (dependency in dependencies) {
                 if (values.isNotEmpty() || tokenTable.cachedSolution) {
-                    val dep = SolverBoundaryCasts.dependencyAsIntermediateV<V>(dependency)
+                    val dep = SolverBoundaryCasts.dependencyAsIntermediate<V>(dependency)
                     when (dep) {
                         is LinearExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
                         is QuadraticExpressionSymbol<V> -> dep.evaluateSolver(values, tokenTable, converter, zeroIfNone)
@@ -552,7 +552,7 @@ class LinearExpressionSymbol<V>(
     // polynomial property returns immutable version
     override val polynomial: LinearPolynomial<V> get() = _utilsPolynomial.toLinearPolynomial()
 
-    val flattenedMonomialsAsV: LinearFlattenData<V>
+    val flattenedMonomials: LinearFlattenData<V>
         get() = LinearFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
@@ -671,7 +671,7 @@ class LinearExpressionSymbol<V>(
     }
 
     override val range: ExpressionRange<V>
-        get() = SolverBoundaryCasts.expressionRangeVFromFlt64(calculateRange())
+        get() = SolverBoundaryCasts.expressionRangeFromFlt64(calculateRange())
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
@@ -725,7 +725,7 @@ class LinearExpressionSymbol<V>(
     // prepare: V-typed primary path (P4-5)
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flatten view creation before solver-evaluation path.
-        flattenedMonomialsAsV
+        flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant
@@ -1098,7 +1098,7 @@ class QuadraticExpressionSymbol<V>(
     // polynomial property returns immutable version
     override val polynomial: QuadraticPolynomial<V> get() = _utilsPolynomial.toQuadraticPolynomial()
 
-    val flattenedMonomialsAsV: QuadraticFlattenData<V>
+    val flattenedMonomials: QuadraticFlattenData<V>
         get() = QuadraticFlattenData(
             monomials = _utilsPolynomial.monomials,
             constant = _utilsPolynomial.constant
@@ -1248,7 +1248,7 @@ class QuadraticExpressionSymbol<V>(
     }
 
     override val range: ExpressionRange<V>
-        get() = SolverBoundaryCasts.expressionRangeVFromFlt64(calculateRange())
+        get() = SolverBoundaryCasts.expressionRangeFromFlt64(calculateRange())
 
     // discrete: check if all monomials are discrete and constant is integral
     override val discrete: Boolean
@@ -1312,7 +1312,7 @@ class QuadraticExpressionSymbol<V>(
     // prepare: V-typed primary path (P4-5)
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         // Trigger flatten view creation before solver-evaluation path.
-        flattenedMonomialsAsV
+        flattenedMonomials
 
         return if (values.isNullOrEmpty()) {
             var ret = _polyFlt64.constant

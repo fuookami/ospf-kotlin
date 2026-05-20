@@ -93,31 +93,35 @@ class GenericBendersCutRegressionTest {
 
         try {
             val fixedVars: Map<AbstractVariableItem<*, *>, V> = mapOf(x to numberCase.two)
-            @Suppress("UNCHECKED_CAST")
-            val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+            val dualSolution: Map<Constraint<V, MechanismLinear>, V> = mapOf(constraint to numberCase.one)
             val dualById = mapOf(constraint.name to numberCase.one)
 
             val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-            val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
+            val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
             assertEquals(1, direct.size, "${numberCase.name}: direct cut size should be one")
             assertEquals(direct.size, byId.size, "${numberCase.name}: by-id cut size mismatch")
-            assertLinearInequalityEquals(direct.first(), toFlt64LinearInequality(byId.first(), numberCase), numberCase.name)
+            assertLinearInequalityEquals(
+                toFlt64LinearInequality(direct.first(), numberCase),
+                toFlt64LinearInequality(byId.first(), numberCase),
+                numberCase.name
+            )
             assertTrue(
-                direct.first().flattenData.getOrThrow().monomials.any { it.symbol == theta },
+                direct.first().toLinearFlattenData().getOrThrow().monomials.any { it.symbol == theta },
                 "${numberCase.name}: optimal cut should contain theta"
             )
 
-            @Suppress("UNCHECKED_CAST")
-            val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+            val farkasDual: Map<Constraint<V, MechanismLinear>, V> = mapOf(constraint to numberCase.one)
             val farkasById = mapOf(constraint.name to numberCase.one)
 
             val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-            val byIdFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasById)
+            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, farkasById)
             assertEquals(1, directFeasible.size, "${numberCase.name}: direct feasible cut size should be one")
             assertEquals(directFeasible.size, byIdFeasible.size, "${numberCase.name}: by-id feasible cut size mismatch")
-            assertLinearInequalityEquals(directFeasible.first(), toFlt64LinearInequality(byIdFeasible.first(), numberCase), numberCase.name)
+            assertLinearInequalityEquals(
+                toFlt64LinearInequality(directFeasible.first(), numberCase),
+                toFlt64LinearInequality(byIdFeasible.first(), numberCase),
+                numberCase.name
+            )
         } finally {
             mechanismModel.close()
         }
@@ -165,30 +169,24 @@ class GenericBendersCutRegressionTest {
                 x to numberCase.one,
                 y to numberCase.two
             )
-            @Suppress("UNCHECKED_CAST")
-            val dualSolution: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
+            val dualSolution: Map<Constraint<V, MechanismQuadratic>, V> = mapOf(constraint to numberCase.one)
             val dualById = mapOf(constraint.name to numberCase.one)
 
             val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-            val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
-            assertTrue(direct is Ok, "${numberCase.name}: direct quadratic optimal cut should succeed")
-            assertEquals(direct.value.size, byId.size, "${numberCase.name}: by-id quadratic optimal cut size mismatch")
-            for (i in direct.value.indices) {
-                assertCutEquals(direct.value[i], toFlt64Cut(byId[i], numberCase), numberCase.name)
+            val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+            assertEquals(direct.size, byId.size, "${numberCase.name}: by-id quadratic optimal cut size mismatch")
+            for (i in direct.indices) {
+                assertCutEquals(toFlt64Cut(direct[i], numberCase), toFlt64Cut(byId[i], numberCase), numberCase.name)
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val farkasDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
+            val farkasDual: Map<Constraint<V, MechanismQuadratic>, V> = mapOf(constraint to numberCase.one)
             val farkasById = mapOf(constraint.name to numberCase.one)
 
             val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-            val byIdFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasById)
-            assertTrue(directFeasible is Ok, "${numberCase.name}: direct quadratic feasible cut should succeed")
-            assertEquals(directFeasible.value.size, byIdFeasible.size, "${numberCase.name}: by-id quadratic feasible cut size mismatch")
-            for (i in directFeasible.value.indices) {
-                assertCutEquals(directFeasible.value[i], toFlt64Cut(byIdFeasible[i], numberCase), numberCase.name)
+            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, farkasById)
+            assertEquals(directFeasible.size, byIdFeasible.size, "${numberCase.name}: by-id quadratic feasible cut size mismatch")
+            for (i in directFeasible.indices) {
+                assertCutEquals(toFlt64Cut(directFeasible[i], numberCase), toFlt64Cut(byIdFeasible[i], numberCase), numberCase.name)
             }
         } finally {
             mechanismModel.close()

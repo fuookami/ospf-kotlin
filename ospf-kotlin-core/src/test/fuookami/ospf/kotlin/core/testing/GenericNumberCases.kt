@@ -32,7 +32,7 @@ object GenericNumberCases {
         twoProvider = { Flt64.two },
         fiveProvider = { Flt64.five },
         tenProvider = { Flt64.ten },
-        converter = IntoValue.fromBridge(Flt64)
+        converter = IntoValue.fromConverter(Flt64)
     )
 
     val rtn64 = GenericNumberCase(
@@ -42,7 +42,7 @@ object GenericNumberCases {
         twoProvider = { Rtn64(Flt64.two.toInt64(), Flt64.one.toInt64()) },
         fiveProvider = { Rtn64(Flt64.five.toInt64(), Flt64.one.toInt64()) },
         tenProvider = { Rtn64(Flt64.ten.toInt64(), Flt64.one.toInt64()) },
-        converter = IntoValue.fromBridge(Rtn64)
+        converter = IntoValue.fromConverter(Rtn64)
     )
 
     val fltX = GenericNumberCase(
@@ -52,7 +52,7 @@ object GenericNumberCases {
         twoProvider = { FltX.two },
         fiveProvider = { FltX.five },
         tenProvider = { FltX.ten },
-        converter = IntoValue.fromBridge(FltX)
+        converter = IntoValue.fromConverter(FltX)
     )
 
     val rtnX = GenericNumberCase(
@@ -62,6 +62,6 @@ object GenericNumberCases {
         twoProvider = { RtnX(2, 1) },
         fiveProvider = { RtnX(5, 1) },
         tenProvider = { RtnX(10, 1) },
-        converter = IntoValue.fromBridge(RtnX)
+        converter = IntoValue.fromConverter(RtnX)
     )
 }

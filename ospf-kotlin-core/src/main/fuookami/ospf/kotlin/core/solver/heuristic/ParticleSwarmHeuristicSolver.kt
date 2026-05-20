@@ -21,12 +21,12 @@ enum class HeuristicSolutionStatus {
     Infeasible
 }
 
-data class HeuristicResult<V>(
+data class HeuristicResult<ObjValue, V>(
     val bestSolution: Solution<V>?,
-    val bestObjective: V?,
+    val bestObjective: ObjValue?,
     val status: HeuristicSolutionStatus,
     val iteration: Iteration
-)
+) where V : RealNumber<V>, V : NumberField<V>
 
 class BasicHeuristicPolicy(
     iterationLimit: UInt64 = UInt64.maximum,
@@ -38,15 +38,15 @@ class BasicHeuristicPolicy(
     timeLimit = timeLimit
 )
 
-data class Particle<V>(
-    val fitness: V,
+data class Particle<ObjValue, V>(
+    val fitness: ObjValue,
     val solution: Solution<V>,
     val velocity: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
     val bestPosition: Solution<V>? = null,
-    val bestFitness: V? = null
+    val bestFitness: ObjValue? = null
 ) where V : RealNumber<V>, V : NumberField<V>
 
-class ParticleSwarmHeuristicSolver<V>(
+class ParticleSwarmHeuristicSolver<ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100),
     val solutionAmount: UInt64 = UInt64.one,
     val w: Flt64 = Flt64(0.4),
@@ -60,7 +60,7 @@ class ParticleSwarmHeuristicSolver<V>(
 ) where V : RealNumber<V>, V : NumberField<V> {
     val name: String get() = "pso"
 
-    fun withRandomGenerator(randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>): ParticleSwarmHeuristicSolver<V> {
+    fun withRandomGenerator(randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
@@ -77,7 +77,7 @@ class ParticleSwarmHeuristicSolver<V>(
 
     fun withInitialVelocityGenerator(
         initialVelocityGenerator: (index: Int) -> Flt64
-    ): ParticleSwarmHeuristicSolver<V> {
+    ): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
@@ -92,7 +92,7 @@ class ParticleSwarmHeuristicSolver<V>(
         )
     }
 
-    fun withSolveOnObjectiveMiss(enabled: Boolean): ParticleSwarmHeuristicSolver<V> {
+    fun withSolveOnObjectiveMiss(enabled: Boolean): ParticleSwarmHeuristicSolver<ObjValue, V> {
         return ParticleSwarmHeuristicSolver(
             particleAmount = particleAmount,
             solutionAmount = solutionAmount,
@@ -119,7 +119,7 @@ class ParticleSwarmHeuristicSolver<V>(
         }
     }
 
-    private fun toIndividual(particle: Particle<V>): SolutionWithFitness<V> {
+    private fun toIndividual(particle: Particle<ObjValue, V>): SolutionWithFitness<ObjValue, V> {
         return SolutionWithFitness(
             solution = particle.solution,
             fitness = particle.fitness
@@ -127,9 +127,9 @@ class ParticleSwarmHeuristicSolver<V>(
     }
 
     private fun evaluateFitness(
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
-    ): V? {
+    ): ObjValue? {
         return when (model.constraintSatisfied(solution)) {
             false -> null
             else -> model.objective(solution) ?: if (solveOnObjectiveMiss) {
@@ -141,9 +141,9 @@ class ParticleSwarmHeuristicSolver<V>(
     }
 
     private fun buildParticle(
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         solution: Solution<V>
-    ): Particle<V>? {
+    ): Particle<ObjValue, V>? {
         val fitness = evaluateFitness(model, solution) ?: return null
         return Particle(
             fitness = fitness,
@@ -153,17 +153,17 @@ class ParticleSwarmHeuristicSolver<V>(
     }
 
     private fun better(
-        model: AbstractCallBackModelInterface<*, V>,
-        lhs: V,
-        rhs: V
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        lhs: ObjValue,
+        rhs: ObjValue
     ): Boolean {
         return model.compareObjective(lhs, rhs) is Order.Less
     }
 
     private fun sortedParticles(
-        model: AbstractCallBackModelInterface<*, V>,
-        particles: List<Particle<V>>
-    ): List<Particle<V>> {
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        particles: List<Particle<ObjValue, V>>
+    ): List<Particle<ObjValue, V>> {
         return particles.sortedWith { lhs, rhs ->
             when (model.compareObjective(lhs.fitness, rhs.fitness)) {
                 is Order.Less -> -1
@@ -175,11 +175,11 @@ class ParticleSwarmHeuristicSolver<V>(
 
     private fun accelerate(
         iteration: Iteration,
-        particle: Particle<V>,
-        bestParticle: Particle<V>,
-        model: AbstractCallBackModelInterface<*, V>,
+        particle: Particle<ObjValue, V>,
+        bestParticle: Particle<ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         policy: AbstractHeuristicPolicy
-    ): Particle<V> {
+    ): Particle<ObjValue, V> {
         val localBest = particle.bestPosition ?: particle.solution
         val newSolution = ArrayList<V>(particle.solution.size)
         val newVelocity = ArrayList<fuookami.ospf.kotlin.math.algebra.number.Flt64>(particle.solution.size)
@@ -208,7 +208,7 @@ class ParticleSwarmHeuristicSolver<V>(
 
         val newFitness = evaluateFitness(model, newSolution) ?: particle.fitness
         val retainedBestPosition: Solution<V>
-        val retainedBestFitness: V
+        val retainedBestFitness: ObjValue
         val baselineFitness = particle.bestFitness ?: particle.fitness
         if (better(model, newFitness, baselineFitness)) {
             retainedBestPosition = newSolution
@@ -228,9 +228,9 @@ class ParticleSwarmHeuristicSolver<V>(
     }
 
     suspend operator fun invoke(
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         policy: AbstractHeuristicPolicy = BasicHeuristicPolicy()
-    ): Ret<HeuristicResult<V>> {
+    ): Ret<HeuristicResult<ObjValue, V>> {
         val iteration = Iteration()
         val keepAmount = if (solutionAmount leq UInt64.zero) UInt64.one else solutionAmount
         var particles = sortedParticles(

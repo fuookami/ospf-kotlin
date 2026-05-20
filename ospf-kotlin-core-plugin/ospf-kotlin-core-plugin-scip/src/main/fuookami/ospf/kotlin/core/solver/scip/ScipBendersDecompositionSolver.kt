@@ -239,7 +239,7 @@ class ScipLinearBendersDecompositionSolver(
                             LinearBendersDecompositionSolver.LinearFeasibleResult(
                                 result = result.value,
                                 dualSolution = dualSolution,
-                                cuts = mechanismModel.generateOptimalCut(
+                                cuts = mechanismModel.generateFlt64OptimalCut(
                                     objectVariable = objectVariable,
                                     fixedVariables = fixedVariables,
                                     dualSolution = dualSolution
@@ -254,7 +254,7 @@ class ScipLinearBendersDecompositionSolver(
                             Ok(
                                 LinearBendersDecompositionSolver.LinearInfeasibleResult(
                                     farkasDualSolution = farkasSolution,
-                                    cuts = mechanismModel.generateFeasibleCut(
+                                    cuts = mechanismModel.generateFlt64FeasibleCut(
                                         fixedVariables = fixedVariables,
                                         farkasDualSolution = farkasSolution
                                     )
@@ -520,7 +520,7 @@ class ScipQuadraticBendersDecompositionSolver(
                             }
                         }
                         jobs.joinAll()
-                        val cuts = when (val result = mechanismModel.generateOptimalCut(
+                        val cuts = when (val result = mechanismModel.generateFlt64OptimalCut(
                             objectVariable = objectVariable,
                             fixedVariables = fixedVariables,
                             dualSolution = dualSolution
@@ -558,7 +558,7 @@ class ScipQuadraticBendersDecompositionSolver(
                     is Failed -> {
                         jobs.joinAll()
                         if (result.error.code == ErrorCode.ORModelInfeasible) {
-                            val cuts = when (val result = mechanismModel.generateFeasibleCut(
+                            val cuts = when (val result = mechanismModel.generateFlt64FeasibleCut(
                                 fixedVariables = fixedVariables,
                                 farkasDualSolution = farkasSolution
                             )) {

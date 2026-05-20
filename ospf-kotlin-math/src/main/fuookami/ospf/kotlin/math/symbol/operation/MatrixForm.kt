@@ -1,137 +1,248 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
-import fuookami.ospf.kotlin.math.algebra.number.*
+import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.symbol.Symbol
+import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
+import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.CanonicalPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
-import fuookami.ospf.kotlin.math.symbol.operation.toTypedMatrixForm
-import fuookami.ospf.kotlin.math.symbol.operation.typedLinearPolynomialFromMatrixForm
-import fuookami.ospf.kotlin.math.symbol.operation.typedQuadraticPolynomialFromMatrixForm
 
-data class LinearMatrixForm(
-    val c: DoubleArray,
-    val d: Flt64,
+data class LinearMatrixForm<T>(
+    val c: List<T>,
+    val d: T,
     val order: List<Symbol>
-)
+) where T : Ring<T>
 
-data class QuadraticMatrixForm(
-    val q: Array<DoubleArray>,
-    val c: DoubleArray,
-    val d: Flt64,
+data class QuadraticMatrixForm<T>(
+    val q: List<List<T>>,
+    val c: List<T>,
+    val d: T,
     val order: List<Symbol>
-)
+) where T : Ring<T>
 
-fun LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
+private fun validateOrder(order: List<Symbol>) {
+    require(order.toSet().size == order.size) {
+        "Symbol order contains duplicated symbols."
+    }
+}
+
+private fun <T> validateLinearMatrixDimensions(c: List<T>, order: List<Symbol>) {
+    require(c.size == order.size) {
+        "Linear matrix form dimension mismatch: c.size=${c.size}, order.size=${order.size}."
+    }
+}
+
+private fun <T> validateQuadraticMatrixDimensions(q: List<List<T>>, c: List<T>, order: List<Symbol>) {
+    val n = order.size
+    require(q.size == n) {
+        "Quadratic matrix form dimension mismatch: q.size=${q.size}, order.size=$n."
+    }
+    require(q.all { it.size == n }) {
+        "Quadratic matrix form requires square q with size order.size=$n."
+    }
+    require(c.size == n) {
+        "Quadratic matrix form dimension mismatch: c.size=${c.size}, order.size=$n."
+    }
+}
+
+fun <T> LinearPolynomial<T>.toMatrixForm(
     order: List<Symbol>,
-    combineTerms: Boolean = true
-): LinearMatrixForm {
-    val form = toTypedMatrixForm(
-        order = order,
-        zero = Flt64.zero,
-        combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
-    )
-
-    return LinearMatrixForm(
-        c = form.c.map { it.toDouble() }.toDoubleArray(),
-        d = form.d,
-        order = form.order
-    )
+    zero: T,
+    combineTerms: Boolean = true,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearMatrixForm<T> where T : Ring<T> {
+    validateOrder(order)
+    val source = if (combineTerms) {
+        this.combineLinearTerms(zero = zero, isZero = isZero)
+    } else {
+        this
+    }
+    val c = MutableList(order.size) { zero }
+    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
+    for (monomial in source.monomials) {
+        val i = indexOfSymbol[monomial.symbol]
+            ?: throw IllegalArgumentException("Symbol ${monomial.symbol.name} not found in order.")
+        c[i] = c[i] + monomial.coefficient
+    }
+    return LinearMatrixForm(c = c, d = source.constant, order = order)
 }
 
-fun linearPolynomialFromMatrixForm(
-    c: DoubleArray,
-    d: Flt64,
-    order: List<Symbol>
-): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return typedLinearPolynomialFromMatrixForm(
-        c = c.map { Flt64(it) },
-        d = d,
-        order = order,
-        zero = Flt64.zero,
-        isZero = { it == Flt64.zero }
-    )
+fun <T> linearPolynomialFromMatrixForm(
+    c: List<T>,
+    d: T,
+    order: List<Symbol>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearPolynomial<T> where T : Ring<T> {
+    validateOrder(order)
+    validateLinearMatrixDimensions(c, order)
+    val monomials = ArrayList<LinearMonomial<T>>(order.size)
+    for (i in order.indices) {
+        if (!isZero(c[i])) {
+            monomials.add(LinearMonomial(coefficient = c[i], symbol = order[i]))
+        }
+    }
+    return LinearPolynomial(
+        monomials = monomials,
+        constant = d
+    ).combineLinearTerms(zero, isZero)
 }
 
-fun linearPolynomialFromMatrixForm(form: LinearMatrixForm): LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun <T> linearPolynomialFromMatrixForm(
+    form: LinearMatrixForm<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero }
+): LinearPolynomial<T> where T : Ring<T> {
     return linearPolynomialFromMatrixForm(
         c = form.c,
         d = form.d,
-        order = form.order
+        order = form.order,
+        zero = zero,
+        isZero = isZero
     )
 }
 
-fun QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
+fun <T> QuadraticPolynomial<T>.toMatrixForm(
     order: List<Symbol>,
-    combineTerms: Boolean = true
-): QuadraticMatrixForm {
-    val form = toTypedMatrixForm(
-        order = order,
-        zero = Flt64.zero,
-        splitOffDiagonal = { coefficient ->
-            val half = coefficient / Flt64.two
-            half to half
-        },
-        combineTerms = combineTerms,
-        isZero = { it == Flt64.zero }
-    )
-
-    return QuadraticMatrixForm(
-        q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
-        c = form.c.map { it.toDouble() }.toDoubleArray(),
-        d = form.d,
-        order = form.order
-    )
-}
-
-fun CanonicalPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>.toMatrixForm(
-    order: List<Symbol>,
+    zero: T,
+    splitOffDiagonal: (T) -> Pair<T, T>,
     combineTerms: Boolean = true,
-    symbolComparator: java.util.Comparator<Symbol>? = null
-): QuadraticMatrixForm {
-    val form = toTypedMatrixForm(
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticMatrixForm<T> where T : Ring<T> {
+    validateOrder(order)
+    val source = if (combineTerms) {
+        this.combineQuadraticTerms(zero = zero, isZero = isZero, symbolComparator = symbolComparator)
+    } else {
+        this
+    }
+    val n = order.size
+    val q = MutableList(n) { MutableList(n) { zero } }
+    val c = MutableList(n) { zero }
+    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
+    for (monomial in source.monomials) {
+        if (monomial.isQuadratic) {
+            val symbol2 = monomial.symbol2!!
+            val i = indexOfSymbol[monomial.symbol1]
+                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
+            val j = indexOfSymbol[symbol2]
+                ?: throw IllegalArgumentException("Symbol ${symbol2.name} not found in order.")
+            if (i == j) {
+                q[i][j] = q[i][j] + monomial.coefficient
+            } else {
+                val (left, right) = splitOffDiagonal(monomial.coefficient)
+                q[i][j] = q[i][j] + left
+                q[j][i] = q[j][i] + right
+            }
+        } else {
+            val i = indexOfSymbol[monomial.symbol1]
+                ?: throw IllegalArgumentException("Symbol ${monomial.symbol1.name} not found in order.")
+            c[i] = c[i] + monomial.coefficient
+        }
+    }
+    return QuadraticMatrixForm(q = q, c = c, d = source.constant, order = order)
+}
+
+fun <T> CanonicalPolynomial<T>.toMatrixForm(
+    order: List<Symbol>,
+    zero: T,
+    splitOffDiagonal: (T) -> Pair<T, T>,
+    combineTerms: Boolean = true,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticMatrixForm<T> where T : Ring<T> {
+    validateOrder(order)
+    val source = if (combineTerms) {
+        this.combineCanonicalPolynomialTerms(zero, isZero, symbolComparator)
+    } else {
+        this
+    }
+    val quadratic = source.toQuadraticPolynomialOrNull(
+        zero = zero,
+        isZero = isZero,
+        symbolComparator = symbolComparator
+    ) ?: throw IllegalArgumentException("Canonical polynomial is not quadratic.")
+    return quadratic.toMatrixForm(
         order = order,
-        zero = Flt64.zero,
-        splitOffDiagonal = { coefficient ->
-            val half = coefficient / Flt64.two
-            half to half
-        },
-        combineTerms = combineTerms,
-        isZero = { it == Flt64.zero },
+        zero = zero,
+        splitOffDiagonal = splitOffDiagonal,
+        combineTerms = false,
+        isZero = isZero,
         symbolComparator = symbolComparator
     )
+}
 
-    return QuadraticMatrixForm(
-        q = form.q.map { row -> row.map { it.toDouble() }.toDoubleArray() }.toTypedArray(),
-        c = form.c.map { it.toDouble() }.toDoubleArray(),
-        d = form.d,
-        order = form.order
+fun <T> quadraticPolynomialFromMatrixForm(
+    q: List<List<T>>,
+    c: List<T>,
+    d: T,
+    order: List<Symbol>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    mergeOffDiagonal: (T, T) -> T = { lhs, rhs -> lhs + rhs },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<T> where T : Ring<T> {
+    validateOrder(order)
+    validateQuadraticMatrixDimensions(q, c, order)
+    val monomials = ArrayList<QuadraticMonomial<T>>(order.size * (order.size + 1) / 2 + order.size)
+    for (i in order.indices) {
+        if (!isZero(q[i][i])) {
+            monomials.add(
+                QuadraticMonomial(
+                    coefficient = q[i][i],
+                    symbol1 = order[i],
+                    symbol2 = order[i]
+                )
+            )
+        }
+        if (!isZero(c[i])) {
+            monomials.add(
+                QuadraticMonomial(
+                    coefficient = c[i],
+                    symbol1 = order[i],
+                    symbol2 = null
+                )
+            )
+        }
+        for (j in (i + 1) until order.size) {
+            val coefficient = mergeOffDiagonal(q[i][j], q[j][i])
+            if (!isZero(coefficient)) {
+                monomials.add(
+                    QuadraticMonomial(
+                        coefficient = coefficient,
+                        symbol1 = order[i],
+                        symbol2 = order[j]
+                    )
+                )
+            }
+        }
+    }
+    return QuadraticPolynomial(
+        monomials = monomials,
+        constant = d
+    ).combineQuadraticTerms(
+        zero = zero,
+        isZero = isZero,
+        symbolComparator = symbolComparator
     )
 }
 
-fun quadraticPolynomialFromMatrixForm(
-    q: Array<DoubleArray>,
-    c: DoubleArray,
-    d: Flt64,
-    order: List<Symbol>
-): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    return typedQuadraticPolynomialFromMatrixForm(
-        q = q.map { row -> row.map { Flt64(it) } },
-        c = c.map { Flt64(it) },
-        d = d,
-        order = order,
-        zero = Flt64.zero,
-        isZero = { it == Flt64.zero },
-        mergeOffDiagonal = { lhs, rhs -> lhs + rhs }
-    )
-}
-
-fun quadraticPolynomialFromMatrixForm(form: QuadraticMatrixForm): QuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+fun <T> quadraticPolynomialFromMatrixForm(
+    form: QuadraticMatrixForm<T>,
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    mergeOffDiagonal: (T, T) -> T = { lhs, rhs -> lhs + rhs },
+    symbolComparator: Comparator<Symbol>? = null
+): QuadraticPolynomial<T> where T : Ring<T> {
     return quadraticPolynomialFromMatrixForm(
         q = form.q,
         c = form.c,
         d = form.d,
-        order = form.order
+        order = form.order,
+        zero = zero,
+        isZero = isZero,
+        mergeOffDiagonal = mergeOffDiagonal,
+        symbolComparator = symbolComparator
     )
 }

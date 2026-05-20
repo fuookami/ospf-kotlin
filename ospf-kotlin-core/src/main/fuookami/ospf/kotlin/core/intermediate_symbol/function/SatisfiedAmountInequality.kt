@@ -2,7 +2,7 @@
 
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.compare
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.variable.AbstractVariableItem
@@ -47,7 +47,7 @@ import fuookami.ospf.kotlin.math.symbol.inequality.LinearInequality
  * @param displayName optional human-readable display name
  */
 open class SatisfiedAmountInequalityFunction<V>(
-    val inputs: List<LinearConstraintInputV<V>>,
+    val inputs: List<LinearConstraintInput<V>>,
     open val amount: ValueRange<UInt64>? = null,
     val epsilon: V,
     val converter: IntoValue<V>,
@@ -111,7 +111,7 @@ open class SatisfiedAmountInequalityFunction<V>(
      * Check whether a single input constraint is satisfied given the current values.
      */
     private fun checkInputSatisfied(
-        input: LinearConstraintInputV<V>,
+        input: LinearConstraintInput<V>,
         values: Map<Symbol, V>
     ): Boolean? {
         var lhsValue = input.flattenData.constant
@@ -239,8 +239,8 @@ open class SatisfiedAmountInequalityFunction<V>(
         return addConstraints(model, constraints) ?: ok
     }
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             amount: ValueRange<UInt64>? = null,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
@@ -264,7 +264,7 @@ open class SatisfiedAmountInequalityFunction<V>(
  * Alias: `amount = [1, n]`
  */
 class AnyFunction<V>(
-    inputs: List<LinearConstraintInputV<V>>,
+    inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "any",
@@ -278,8 +278,8 @@ class AnyFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -300,7 +300,7 @@ class AnyFunction<V>(
  * Alias: `amount = [n, n]`
  */
 class AllFunction<V>(
-    inputs: List<LinearConstraintInputV<V>>,
+    inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "all",
@@ -314,8 +314,8 @@ class AllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -336,7 +336,7 @@ class AllFunction<V>(
  * Alias: `amount = [k, n]`
  */
 class AtLeastInequalityFunction<V>(
-    inputs: List<LinearConstraintInputV<V>>,
+    inputs: List<LinearConstraintInput<V>>,
     val k: UInt64,
     epsilon: V,
     converter: IntoValue<V>,
@@ -356,8 +356,8 @@ class AtLeastInequalityFunction<V>(
     }
 
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             k: UInt64,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
@@ -380,7 +380,7 @@ class AtLeastInequalityFunction<V>(
  * Alias: `amount = [1, n-1]`
  */
 class NotAllFunction<V>(
-    inputs: List<LinearConstraintInputV<V>>,
+    inputs: List<LinearConstraintInput<V>>,
     epsilon: V,
     converter: IntoValue<V>,
     override var name: String = "not_all",
@@ -394,8 +394,8 @@ class NotAllFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,
             name: String,
@@ -414,7 +414,7 @@ class NotAllFunction<V>(
  * NumerableFunction: the count of satisfied inequalities must be within a specified range.
  */
 class NumerableFunction<V>(
-    inputs: List<LinearConstraintInputV<V>>,
+    inputs: List<LinearConstraintInput<V>>,
     override val amount: ValueRange<UInt64>,
     epsilon: V,
     converter: IntoValue<V>,
@@ -429,8 +429,8 @@ class NumerableFunction<V>(
     displayName = displayName
 ) where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        fun <V> typed(
-            inputs: List<LinearConstraintInputV<V>>,
+        fun <V> from(
+            inputs: List<LinearConstraintInput<V>>,
             amount: ValueRange<UInt64>,
             epsilon: Flt64 = Flt64(1e-6),
             converter: IntoValue<V>,

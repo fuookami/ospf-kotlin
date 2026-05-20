@@ -170,7 +170,7 @@ val restoredIneq = linearInequalityFromJson(ineqJson)
 ### 矩阵形式
 
 ```kotlin
-val form = canonical.toMatrixForm(order)
+val form = canonical.toFlt64MatrixForm(order)
 // form.q: 二次系数矩阵（稀疏）
 // form.c: 线性系数向量
 // form.constant: 常数项
@@ -295,7 +295,8 @@ val sumQ = quadraticEquations.sumAxis(
 | `differentiate` | `operation/Differentiate.kt` | 符号求导 |
 | `integrate` | `operation/IntegrateOps.kt` | 符号积分 |
 | `factorize` | `operation/Factorization.kt` | 二次因式分解 |
-| `toMatrixForm` | `operation/MatrixForm.kt` | 二次型提取 |
+| `toMatrixForm` | `operation/MatrixForm.kt` | 泛型矩阵形式提取 |
+| `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 矩阵形式提取 |
 | `toLatex` | `operation/Latex.kt` | LaTeX 渲染 |
 | `convert` | `operation/Convert.kt` | 类型转换 |
 

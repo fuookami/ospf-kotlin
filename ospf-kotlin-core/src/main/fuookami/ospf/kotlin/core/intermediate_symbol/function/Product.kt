@@ -70,7 +70,7 @@ class ProductFunction<V>(
         }
 
     override val cached: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) {
@@ -78,19 +78,19 @@ class ProductFunction<V>(
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): V? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable.find(symbol)?.result ?: if (zeroIfNone) converter.zero else null
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -102,12 +102,12 @@ class ProductFunction<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) converter.zero else null
             }
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
         tokenTable: AbstractTokenTable<V>?,
@@ -115,25 +115,25 @@ class ProductFunction<V>(
     ): V? {
         return values[symbol] ?: when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable?.find(symbol)?.result
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
             else -> null
         } ?: if (zeroIfNone) converter.zero else null
     }
 
-    private fun evaluateLinearV(
+    private fun evaluateLinear(
         poly: LinearPolynomial<V>,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): V? {
         var value = poly.constant
         for (monomial in poly.monomials) {
-            val symbolValue = evaluateSymbolV(monomial.symbol, tokenTable, zeroIfNone) ?: return null
+            val symbolValue = evaluateSymbol(monomial.symbol, tokenTable, zeroIfNone) ?: return null
             value += monomial.coefficient * symbolValue
         }
         return value
     }
 
-    private fun evaluateLinearFromResultsV(
+    private fun evaluateLinearFromResults(
         poly: LinearPolynomial<V>,
         results: List<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -141,13 +141,13 @@ class ProductFunction<V>(
     ): V? {
         var value = poly.constant
         for (monomial in poly.monomials) {
-            val symbolValue = evaluateSymbolV(monomial.symbol, results, tokenTable, zeroIfNone) ?: return null
+            val symbolValue = evaluateSymbol(monomial.symbol, results, tokenTable, zeroIfNone) ?: return null
             value += monomial.coefficient * symbolValue
         }
         return value
     }
 
-    private fun evaluateLinearFromValuesV(
+    private fun evaluateLinearFromValues(
         poly: LinearPolynomial<V>,
         values: Map<Symbol, V>,
         tokenTable: AbstractTokenTable<V>?,
@@ -155,24 +155,24 @@ class ProductFunction<V>(
     ): V? {
         var value = poly.constant
         for (monomial in poly.monomials) {
-            val symbolValue = evaluateSymbolV(monomial.symbol, values, tokenTable, zeroIfNone) ?: return null
+            val symbolValue = evaluateSymbol(monomial.symbol, values, tokenTable, zeroIfNone) ?: return null
             value += monomial.coefficient * symbolValue
         }
         return value
     }
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         val leftValue = if (typedValues.isNullOrEmpty()) {
-            evaluateLinearV(left, tokenTable, false)
+            evaluateLinear(left, tokenTable, false)
         } else {
-            evaluateLinearFromValuesV(left, typedValues, tokenTable, false)
+            evaluateLinearFromValues(left, typedValues, tokenTable, false)
         } ?: return null
 
         val rightValue = if (typedValues.isNullOrEmpty()) {
-            evaluateLinearV(right, tokenTable, false)
+            evaluateLinear(right, tokenTable, false)
         } else {
-            evaluateLinearFromValuesV(right, typedValues, tokenTable, false)
+            evaluateLinearFromValues(right, typedValues, tokenTable, false)
         } ?: return null
 
         return leftValue * rightValue
@@ -181,7 +181,7 @@ class ProductFunction<V>(
     /**
      * Expand left * right into a V-typed quadratic polynomial.
      */
-    private fun expandedQuadraticPolyV(): QuadraticPolynomial<V> {
+    private fun expandedQuadraticPoly(): QuadraticPolynomial<V> {
         val leftC = left
         val rightC = right
         val leftConst = leftC.constant
@@ -217,38 +217,38 @@ class ProductFunction<V>(
 
 
     override val polynomial: QuadraticPolynomial<V>
-        get() = expandedQuadraticPolyV()
+        get() = expandedQuadraticPoly()
 
     override fun asMutable(): MutableQuadraticPolynomial<V> = MutableQuadraticPolynomial(emptyList(), converter.zero)
 
     override fun prepare(values: Map<Symbol, V>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
         val leftValue = if (values.isNullOrEmpty()) {
-            evaluateLinearV(left, tokenTable, false)
+            evaluateLinear(left, tokenTable, false)
         } else {
-            evaluateLinearFromValuesV(left, values, tokenTable, false)
+            evaluateLinearFromValues(left, values, tokenTable, false)
         } ?: return null
 
         val rightValue = if (values.isNullOrEmpty()) {
-            evaluateLinearV(right, tokenTable, false)
+            evaluateLinear(right, tokenTable, false)
         } else {
-            evaluateLinearFromValuesV(right, values, tokenTable, false)
+            evaluateLinearFromValues(right, values, tokenTable, false)
         } ?: return null
 
         return leftValue * rightValue
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val leftValue = evaluateLinearV(left, tokenTable, zeroIfNone) ?: return null
-        val rightValue = evaluateLinearV(right, tokenTable, zeroIfNone) ?: return null
+        val leftValue = evaluateLinear(left, tokenTable, zeroIfNone) ?: return null
+        val rightValue = evaluateLinear(right, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val leftValue = evaluateLinearFromResultsV(left, results, tokenTable, zeroIfNone) ?: return null
-        val rightValue = evaluateLinearFromResultsV(right, results, tokenTable, zeroIfNone) ?: return null
+        val leftValue = evaluateLinearFromResults(left, results, tokenTable, zeroIfNone) ?: return null
+        val rightValue = evaluateLinearFromResults(right, results, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val leftValue = evaluateLinearFromValuesV(left, values, tokenTable, zeroIfNone) ?: return null
-        val rightValue = evaluateLinearFromValuesV(right, values, tokenTable, zeroIfNone) ?: return null
+        val leftValue = evaluateLinearFromValues(left, values, tokenTable, zeroIfNone) ?: return null
+        val rightValue = evaluateLinearFromValues(right, values, tokenTable, zeroIfNone) ?: return null
         return leftValue * rightValue
     }
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
@@ -256,7 +256,7 @@ class ProductFunction<V>(
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedValues = SolverBoundaryCasts.mapValuesToV(values, converter)
+        val typedValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(typedValues, tokenTable, converter, zeroIfNone)
     }
 

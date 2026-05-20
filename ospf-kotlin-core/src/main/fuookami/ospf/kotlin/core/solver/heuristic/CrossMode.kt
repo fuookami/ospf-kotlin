@@ -8,7 +8,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 
-interface CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
+interface CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     enum class Method {
         WeightedRing,
         WeightedBidirectional,
@@ -16,35 +16,35 @@ interface CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
         RandomBidirectional
     }
 
-    operator fun <T : Individual<V>> invoke(
+    operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>>
 }
 
-class OneParentCrossMode<V> : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
-    override fun <T : Individual<V>> invoke(
+class OneParentCrossMode<ObjValue, V> : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
         return population.map { listOf(it) }
     }
 }
 
-class TwoParentCrossMode<V>(
+class TwoParentCrossMode<ObjValue, V>(
     val method: CrossMode.Method
-) : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
-    override fun <T : Individual<V>> invoke(
+) : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
         return when (method) {
@@ -91,15 +91,15 @@ class TwoParentCrossMode<V>(
     }
 }
 
-class MultiParentCrossMode<V>(
+class MultiParentCrossMode<ObjValue, V>(
     val method: CrossMode.Method,
     val parentAmountCalculator: (Iteration, List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, ValueRange<UInt64>) -> UInt64
-) : CrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
+) : CrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
-        operator fun <V> invoke(
+        operator fun <ObjValue, V> invoke(
             method: CrossMode.Method,
             randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>
-        ): MultiParentCrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
+        ): MultiParentCrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
             return MultiParentCrossMode(method) { _, _, range ->
                 range.fixedValue
                     ?: (range.lowerBound.value.unwrap() + (randomGenerator()!! * range.diff.unwrap().toFlt64()).round().toUInt64())
@@ -107,16 +107,16 @@ class MultiParentCrossMode<V>(
         }
     }
 
-    override fun <T : Individual<V>> invoke(
+    override fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
         population: List<T>,
         weights: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
     ): List<List<T>> {
         val parentAmount = parentAmountCalculator(iteration, weights, parentAmountRange)
         return if (parentAmount == UInt64.zero) {
-            OneParentCrossMode<V>()(
+            OneParentCrossMode<ObjValue, V>()(
                 iteration = iteration,
                 population = population,
                 weights = weights,
@@ -190,9 +190,9 @@ class MultiParentCrossMode<V>(
 }
 
 data object AdaptiveMultiParentCrossMode {
-    operator fun <V> invoke(
+    operator fun <ObjValue, V> invoke(
         method: CrossMode.Method
-    ): MultiParentCrossMode<V> where V : RealNumber<V>, V : NumberField<V> {
+    ): MultiParentCrossMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
         return MultiParentCrossMode(method) { _, weights, range ->
             if (range.fixedValue != null) {
                 return@MultiParentCrossMode range.fixedValue!!

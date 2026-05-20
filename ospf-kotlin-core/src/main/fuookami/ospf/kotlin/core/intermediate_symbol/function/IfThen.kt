@@ -13,7 +13,7 @@ import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.inequality.Comparison
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.utils.functional.Try
 import fuookami.ospf.kotlin.utils.functional.Failed
 import fuookami.ospf.kotlin.utils.functional.Fatal
@@ -84,25 +84,25 @@ class IfThenFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mV = bigM
+        val bigMValue = bigM
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicator for condition
-        allConstraints += nonzeroIndicatorConstraintsV(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
+        allConstraints += nonzeroIndicatorConstraints(condition, indicatorVar, sideVar, bigM, tolerance, strictBoundary, "${name}_cond")
 
         // y - thenPoly <= M*(1 - indicator)  =>  y - thenPoly + M*indicator <= M
         val yMono = LinearMonomial(converter.one, resultVar)
         val negThenMonos = thenPoly.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }
         allConstraints += LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(mV, indicatorVar), -thenPoly.constant),
-            LinearPolynomial(emptyList(), mV),
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(bigMValue, indicatorVar), -thenPoly.constant),
+            LinearPolynomial(emptyList(), bigMValue),
             Comparison.LE, "${name}_then_ub"
         )
 
         // y - thenPoly >= -M*(1 - indicator)  =>  y - thenPoly - M*indicator >= -M
         allConstraints += LinearInequality(
-            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-mV, indicatorVar), -thenPoly.constant),
-            LinearPolynomial(emptyList(), -mV),
+            LinearPolynomial(listOf(yMono) + negThenMonos + LinearMonomial(-bigMValue, indicatorVar), -thenPoly.constant),
+            LinearPolynomial(emptyList(), -bigMValue),
             Comparison.GE, "${name}_then_lb"
         )
 
@@ -121,11 +121,11 @@ class IfThenFunction<V>(
             IfThenFunction(condition, thenPoly, converter, bigM, name = name, displayName = displayName)
 
         /**
-         * 类型化工厂：从约束输入提取条件多项式，默认 then 多项式为一。
-         * Typed factory: extracts the condition polynomial and defaults thenPoly to one.
+         * 约束输入工厂：从约束输入提取条件多项式，默认 then 多项式为一。
+         * Constraint-input factory: extracts the condition polynomial and defaults thenPoly to one.
          */
-        fun <V> typed(
-            inequality: LinearConstraintInputV<V>,
+        fun <V> from(
+            inequality: LinearConstraintInput<V>,
             converter: IntoValue<V>,
             thenPoly: LinearPolynomial<V> = LinearPolynomial(emptyList(), converter.one),
             bigM: V? = null,

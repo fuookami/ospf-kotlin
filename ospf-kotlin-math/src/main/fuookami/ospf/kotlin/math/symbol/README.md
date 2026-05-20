@@ -169,7 +169,7 @@ val restoredIneq = linearInequalityFromJson(ineqJson)
 ### Matrix Form
 
 ```kotlin
-val form = canonical.toMatrixForm(order)
+val form = canonical.toFlt64MatrixForm(order)
 // form.q: Quadratic coefficient matrix (sparse)
 // form.c: Linear coefficient vector
 // form.constant: Constant term
@@ -294,7 +294,8 @@ val sumQ = quadraticEquations.sumAxis(
 | `differentiate` | `operation/Differentiate.kt` | Symbolic differentiation |
 | `integrate` | `operation/IntegrateOps.kt` | Symbolic integration |
 | `factorize` | `operation/Factorization.kt` | Quadratic factorization |
-| `toMatrixForm` | `operation/MatrixForm.kt` | Quadratic form extraction |
+| `toMatrixForm` | `operation/MatrixForm.kt` | Generic matrix form extraction |
+| `toFlt64MatrixForm` | `operation/Flt64MatrixForm.kt` | Flt64 matrix form extraction |
 | `toLatex` | `operation/Latex.kt` | LaTeX rendering |
 | `convert` | `operation/Convert.kt` | Type conversion |
 

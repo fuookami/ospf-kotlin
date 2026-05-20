@@ -10,29 +10,29 @@ import fuookami.ospf.kotlin.math.ordinary.max
 import fuookami.ospf.kotlin.math.operator.pow
 import fuookami.ospf.kotlin.math.operator.abs
 
-interface SelectionMode<V> where V : RealNumber<V>, V : NumberField<V> {
-    operator fun <T : Individual<V>> invoke(
+interface SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        population: Population<T, V>,
-        model: AbstractCallBackModelInterface<*, V>
+        population: Population<T, ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): UInt64
 }
 
-class StaticSelectionMode<V>() : SelectionMode<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+class StaticSelectionMode<ObjValue, V>() : SelectionMode<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        population: Population<T, V>,
-        model: AbstractCallBackModelInterface<*, V>
+        population: Population<T, ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): UInt64 {
         return population.densityRange.lowerBound.value.unwrap()
     }
 }
 
-data object AdaptiveDynamicSelectionMode : SelectionMode<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    override operator fun <T : Individual<fuookami.ospf.kotlin.math.algebra.number.Flt64>> invoke(
+data object AdaptiveDynamicSelectionMode : SelectionMode<Flt64, Flt64> {
+    override operator fun <T : Individual<Flt64, Flt64>> invoke(
         iteration: Iteration,
-        population: Population<T, Flt64>,
-        model: AbstractCallBackModelInterface<*, Flt64>
+        population: Population<T, Flt64, Flt64>,
+        model: AbstractCallBackModelInterface<*, Flt64, Flt64>
     ): UInt64 {
         val fitnessParameter = calculateFitnessParameter(population, model)
             ?: return population.densityRange.lowerBound.value.unwrap()
@@ -48,9 +48,9 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<fuookami.ospf.kotlin.ma
         }
     }
 
-    private fun <T : Individual<fuookami.ospf.kotlin.math.algebra.number.Flt64>> calculateFitnessParameter(
-        population: Population<T, Flt64>,
-        model: AbstractCallBackModelInterface<*, Flt64>
+    private fun <T : Individual<Flt64, Flt64>> calculateFitnessParameter(
+        population: Population<T, Flt64, Flt64>,
+        model: AbstractCallBackModelInterface<*, Flt64, Flt64>
     ): Flt64? {
         val a = Flt64(0.1)
         val b = Flt64(0.6)
@@ -70,7 +70,7 @@ data object AdaptiveDynamicSelectionMode : SelectionMode<fuookami.ospf.kotlin.ma
         }
     }
 
-    private fun <T : Individual<fuookami.ospf.kotlin.math.algebra.number.Flt64>> calculateDensityParameter(population: Population<T, Flt64>): Flt64 {
+    private fun <T : Individual<Flt64, Flt64>> calculateDensityParameter(population: Population<T, Flt64, Flt64>): Flt64 {
         val a = population.densityRange.upperBound.value.unwrap().toFlt64()
         val b = population.densityRange.lowerBound.value.unwrap().toFlt64()
         return if (UInt64(population.density) < ((b + Flt64.three * a) / Flt64(4)).ceil().toUInt64()) {

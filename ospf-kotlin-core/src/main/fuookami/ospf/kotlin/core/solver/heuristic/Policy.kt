@@ -16,7 +16,7 @@ interface AbstractHeuristicPolicy {
         iteration: Iteration,
         index: Int,
         value: Flt64,
-        model: AbstractCallBackModelInterface<*, *>
+        model: AbstractCallBackModelInterface<*, *, *>
     ): Flt64 {
         val token = model.tokens[index]
         return value.coerceIn(token.lowerBound!!.value.unwrap(), token.upperBound!!.value.unwrap())
@@ -26,7 +26,7 @@ interface AbstractHeuristicPolicy {
         iteration: Iteration,
         index: Int,
         value: V,
-        model: AbstractCallBackModelInterface<*, *>,
+        model: AbstractCallBackModelInterface<*, *, *>,
         converter: IntoValue<V>
     ): V where V : RealNumber<V>, V : NumberField<V> {
         val flt64Value = converter.fromValue(value)
@@ -37,10 +37,10 @@ interface AbstractHeuristicPolicy {
     fun update(
         iteration: Iteration,
         better: Boolean,
-        bestIndividual: Individual<*>,
-        goodIndividuals: List<Individual<*>>,
-        populations: List<List<Individual<*>>>,
-        model: AbstractCallBackModelInterface<*, *>
+        bestIndividual: Individual<*, *>,
+        goodIndividuals: List<Individual<*, *>>,
+        populations: List<List<Individual<*, *>>>,
+        model: AbstractCallBackModelInterface<*, *, *>
     ) {
     }
 

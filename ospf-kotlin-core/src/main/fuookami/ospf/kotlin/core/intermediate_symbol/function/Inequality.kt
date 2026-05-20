@@ -83,9 +83,9 @@ class InequalityFunction<V>(
     }
 
     override fun registerConstraints(model: AbstractLinearMechanismModel<V>): Try {
-        val mV = bigM
-        val epsV = tolerance
-        val rhsV = rhs
+        val bigMValue = bigM
+        val toleranceValue = tolerance
+        val rhsValue = rhs
         val lhsMonos = lhs.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
@@ -93,15 +93,15 @@ class InequalityFunction<V>(
             Comparison.LE, Comparison.LT -> {
                 // lhs <= rhs + M*(1-flag)  =>  lhs + M*flag <= rhs + M
                 allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mV, flagVar), lhs.constant),
-                    LinearPolynomial(emptyList(), rhsV + mV),
+                    LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
+                    LinearPolynomial(emptyList(), rhsValue + bigMValue),
                     Comparison.LE, "${name}_satisfied"
                 )
 
                 // lhs + M*(1-flag) >= rhs + eps  =>  lhs + M - M*flag >= rhs + eps
                 allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mV, flagVar), lhs.constant + mV),
-                    LinearPolynomial(emptyList(), rhsV + epsV),
+                    LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
+                    LinearPolynomial(emptyList(), rhsValue + toleranceValue),
                     Comparison.GE, "${name}_violated"
                 )
             }
@@ -109,34 +109,34 @@ class InequalityFunction<V>(
             Comparison.GE, Comparison.GT -> {
                 // lhs >= rhs - M*(1-flag) => lhs + M - M*flag >= rhs
                 allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(-mV, flagVar), lhs.constant + mV),
-                    LinearPolynomial(emptyList(), rhsV),
+                    LinearPolynomial(lhsMonos + LinearMonomial(-bigMValue, flagVar), lhs.constant + bigMValue),
+                    LinearPolynomial(emptyList(), rhsValue),
                     Comparison.GE, "${name}_satisfied"
                 )
 
                 // lhs <= rhs - eps + M*flag => lhs - M*flag <= rhs - eps
                 allConstraints += LinearInequality(
-                    LinearPolynomial(lhsMonos + LinearMonomial(mV, flagVar), lhs.constant),
-                    LinearPolynomial(emptyList(), rhsV - epsV + mV),
+                    LinearPolynomial(lhsMonos + LinearMonomial(bigMValue, flagVar), lhs.constant),
+                    LinearPolynomial(emptyList(), rhsValue - toleranceValue + bigMValue),
                     Comparison.LE, "${name}_violated"
                 )
             }
 
             Comparison.EQ -> {
                 val diffMonos = lhsMonos
-                val diffConst = lhs.constant - rhsV
+                val diffConst = lhs.constant - rhsValue
 
                 // diff <= M*(1-flag) + eps => diff + M*flag <= M + eps
                 allConstraints += LinearInequality(
-                    LinearPolynomial(diffMonos + LinearMonomial(mV, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), mV + epsV),
+                    LinearPolynomial(diffMonos + LinearMonomial(bigMValue, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), bigMValue + toleranceValue),
                     Comparison.LE, "${name}_eq_upper"
                 )
 
                 // diff >= -M*(1-flag) - eps => diff - M*flag >= -M - eps
                 allConstraints += LinearInequality(
-                    LinearPolynomial(diffMonos + LinearMonomial(-mV, flagVar), diffConst),
-                    LinearPolynomial(emptyList(), -mV - epsV),
+                    LinearPolynomial(diffMonos + LinearMonomial(-bigMValue, flagVar), diffConst),
+                    LinearPolynomial(emptyList(), -bigMValue - toleranceValue),
                     Comparison.GE, "${name}_eq_lower"
                 )
             }

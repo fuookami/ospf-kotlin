@@ -92,7 +92,7 @@ class BendersCutApiTest {
         val dualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-        val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
+        val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
 
         assertEquals(direct.size, byId.size)
         for (i in direct.indices) {
@@ -133,7 +133,7 @@ class BendersCutApiTest {
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-        val byId = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasDualById)
+        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
 
         assertEquals(direct.size, byId.size)
         for (i in direct.indices) {
@@ -184,12 +184,11 @@ class BendersCutApiTest {
         val dualById = mapOf(constraint.name to Flt64(2.0))
 
         val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
-        val byId = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, dualById)
+        val byId = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
 
-        assertTrue(direct is Ok)
-        assertEquals(direct.value.size, byId.size)
-        for (i in direct.value.indices) {
-            assertCutEquals(direct.value[i], byId[i])
+        assertEquals(direct.size, byId.size)
+        for (i in direct.indices) {
+            assertCutEquals(direct[i], byId[i])
         }
 
         mechanismModel.close()
@@ -230,12 +229,11 @@ class BendersCutApiTest {
         val farkasDualById = mapOf(constraint.name to Flt64.one)
 
         val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
-        val byId = mechanismModel.generateFeasibleCutByIdV(fixedVars, farkasDualById)
+        val byId = mechanismModel.generateFeasibleCutById(fixedVars, farkasDualById)
 
-        assertTrue(direct is Ok)
-        assertEquals(direct.value.size, byId.size)
-        for (i in direct.value.indices) {
-            assertCutEquals(direct.value[i], byId[i])
+        assertEquals(direct.size, byId.size)
+        for (i in direct.indices) {
+            assertCutEquals(direct[i], byId[i])
         }
 
         mechanismModel.close()
@@ -378,7 +376,7 @@ class BendersCutApiTest {
 
         val tetradModel = RecordingQuadraticTetradModelView(dualSolution)
 
-        val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+        val direct = mechanismModel.generateFlt64OptimalCut(theta, fixedVars, dualSolution)
         val fromOutput = mechanismModel.generateOptimalCutFromOutput(Flt64.zero, theta, fixedVars, dualValues, tetradModel)
 
         // Verify the stub received the exact dualValues we passed
@@ -430,7 +428,7 @@ class BendersCutApiTest {
 
         val tetradModel = RecordingQuadraticTetradModelView(farkasDual)
 
-        val direct = mechanismModel.generateFeasibleCut(fixedVars, farkasDual)
+        val direct = mechanismModel.generateFlt64FeasibleCut(fixedVars, farkasDual)
         val fromOutput = mechanismModel.generateFeasibleCutFromOutput(fixedVars, farkasDualValues, tetradModel)
 
         // Verify the stub received the exact farkasDualValues we passed

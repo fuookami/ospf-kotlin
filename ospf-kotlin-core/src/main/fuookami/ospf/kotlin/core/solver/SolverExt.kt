@@ -13,14 +13,9 @@ import fuookami.ospf.kotlin.core.solver.output.SolvingStatus
 import fuookami.ospf.kotlin.core.solver.value.validateLinearModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.validateQuadraticModelValueConversion
 import fuookami.ospf.kotlin.core.solver.value.withSolveValueConversionPolicy
-import fuookami.ospf.kotlin.core.solver.value.IntoValue
-import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
-import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
-import fuookami.ospf.kotlin.core.model.mechanism.MechanismModel
 import fuookami.ospf.kotlin.core.model.intermediate.MechanismModelDumpingStatusCallBack
 import fuookami.ospf.kotlin.core.model.basic.RegistrationStatusCallBack
-import fuookami.ospf.kotlin.core.model.mechanism.convertMechanismModelToFlt64
 import fuookami.ospf.kotlin.core.model.basic.toModelBuildingStatus
 import fuookami.ospf.kotlin.core.model.intermediate.toModelBuildingStatus
 import fuookami.ospf.kotlin.utils.error.ErrorCode
@@ -440,34 +435,3 @@ fun AbstractQuadraticSolver.solveAsync(
     }
 }
 
-// ========== V-generic primary solve extensions ==========
-// These are the recommended V-generic entry points. They delegate to solveV which
-// contains the full pipeline (validate -> dump -> solve -> convert).
-
-suspend fun <V> AbstractLinearSolver.solve(
-    model: LinearTriadModelView,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}
-
-suspend fun <V> AbstractLinearSolver.solve(
-    model: MechanismModel<V>,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}
-
-suspend fun <V> AbstractQuadraticSolver.solve(
-    model: QuadraticTetradModelView,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}
-
-suspend fun <V> AbstractQuadraticSolver.solve(
-    model: MechanismModel<V>,
-    converter: IntoValue<V>
-): Ret<FeasibleSolverOutput<V>> where V : RealNumber<V>, V : NumberField<V> {
-    return solveV(model, converter)
-}

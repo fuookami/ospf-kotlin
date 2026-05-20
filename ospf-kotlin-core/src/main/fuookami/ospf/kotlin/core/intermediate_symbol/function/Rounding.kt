@@ -61,7 +61,7 @@ class RoundingFunction<V>(
         val one = converter.one
         val half = converter.intoValue(Flt64(0.5))
         val eps = converter.intoValue(Flt64(NONZERO_TOLERANCE))
-        val mV = bigM
+        val bigMValue = bigM
         val allConstraints = mutableListOf<LinearInequality<V>>()
         val xMonos = x.monomials.map { LinearMonomial(it.coefficient, it.symbol) }
 
@@ -102,17 +102,17 @@ class RoundingFunction<V>(
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, bVar),
-                LinearMonomial(mV, rVar)
+                LinearMonomial(bigMValue, rVar)
             ), zero),
-            LinearPolynomial(emptyList(), mV + half), Comparison.LE, "${name}_round_r_ub")
+            LinearPolynomial(emptyList(), bigMValue + half), Comparison.LE, "${name}_round_r_ub")
 
         // b >= 0.5 - M*(1-r) => b - M*r >= 0.5 - M
         allConstraints += LinearInequality(
             LinearPolynomial(listOf(
                 LinearMonomial(one, bVar),
-                LinearMonomial(-mV, rVar)
+                LinearMonomial(-bigMValue, rVar)
             ), zero),
-            LinearPolynomial(emptyList(), half - mV), Comparison.GE, "${name}_round_r_lb2")
+            LinearPolynomial(emptyList(), half - bigMValue), Comparison.GE, "${name}_round_r_lb2")
 
         // result = k + r
         allConstraints += LinearInequality(

@@ -7,15 +7,15 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface ObjectiveNormalization<V> where V : RealNumber<V>, V : NumberField<V> {
+interface ObjectiveNormalization<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     operator fun invoke(
-        model: AbstractCallBackModelInterface<*, V>,
-        objs: List<V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
+        objs: List<ObjValue>
     ): List<fuookami.ospf.kotlin.math.algebra.number.Flt64>
 }
 
-data object MinMaxNormalization : ObjectiveNormalization<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+data object MinMaxNormalization : ObjectiveNormalization<Flt64, Flt64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         return if (model.compareObjective(minObj, maxObj) is Order.Less) {
@@ -26,8 +26,8 @@ data object MinMaxNormalization : ObjectiveNormalization<fuookami.ospf.kotlin.ma
     }
 }
 
-data object SumNormalization : ObjectiveNormalization<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
+data object SumNormalization : ObjectiveNormalization<Flt64, Flt64> {
+    override fun invoke(model: AbstractCallBackModelInterface<*, Flt64, Flt64>, objs: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>): List<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
         val minObj = objs.min()
         val maxObj = objs.max()
         val minMaxObjs = objs.map { (it - minObj) / (maxObj - minObj) }

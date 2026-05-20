@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.intermediate_symbol.function
 
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -110,19 +110,19 @@ class SatisfiedAmountFunctionsGenericEvaluateTest {
         ).value!!
 
         val inputs = listOf(
-            LinearConstraintInputV.from(
+            LinearConstraintInput.from(
                 relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_ineq_x_le_1"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.one
             ),
-            LinearConstraintInputV.from(
+            LinearConstraintInput.from(
                 relation = LinearInequality(yPoly, zeroPoly, Comparison.GE, "${numberCase.name.lowercase()}_ineq_y_ge_0"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.zero
             )
         )
 
-        val countFunction = SatisfiedAmountInequalityFunction.typed(
+        val countFunction = SatisfiedAmountInequalityFunction.from(
             inputs = inputs,
             amount = null,
             converter = numberCase.converter,
@@ -143,7 +143,7 @@ class SatisfiedAmountFunctionsGenericEvaluateTest {
         assertTrue(count eq numberCase.two, "${numberCase.name}: expected inequality satisfied count = 2")
 
         val amountRange = ValueRange(UInt64.one, UInt64.two).value!!
-        val amountFunction = SatisfiedAmountInequalityFunction.typed(
+        val amountFunction = SatisfiedAmountInequalityFunction.from(
             inputs = inputs,
             amount = amountRange,
             converter = numberCase.converter,

@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -64,24 +64,24 @@ class FunctionSymbolSatisfiedAmountInequalityGenericRegistrationTest {
                 constants = numberCase.zero.constants
             ).value!!
             val inputs = listOf(
-                LinearConstraintInputV.from(
+                LinearConstraintInput.from(
                     relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_ineq_x_le_1"),
                     lhsRange = lhsRange,
                     rhsConstant = numberCase.one
                 ),
-                LinearConstraintInputV.from(
+                LinearConstraintInput.from(
                     relation = LinearInequality(yPoly, zeroPoly, Comparison.GE, "${numberCase.name.lowercase()}_ineq_y_ge_0"),
                     lhsRange = lhsRange,
                     rhsConstant = numberCase.zero
                 )
             )
 
-            val any = AnyFunction.typed(
+            val any = AnyFunction.from(
                 inputs = inputs,
                 converter = numberCase.converter,
                 name = "any_${numberCase.name.lowercase()}"
             )
-            val all = AllFunction.typed(
+            val all = AllFunction.from(
                 inputs = inputs,
                 converter = numberCase.converter,
                 name = "all_${numberCase.name.lowercase()}"

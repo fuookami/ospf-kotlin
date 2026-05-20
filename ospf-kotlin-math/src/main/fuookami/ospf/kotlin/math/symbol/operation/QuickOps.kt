@@ -1,3 +1,10 @@
+/**
+ * 泛型快捷运算
+ * Quick Ops
+ *
+ * 提供基于 Flt64ValueConverter 的泛型算术运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
+ * Provides generic arithmetic operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
+ */
 @file:Suppress("unused")
 
 package fuookami.ospf.kotlin.math.symbol.operation
@@ -6,79 +13,63 @@ import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
-// ========== Flt64 arithmetic ==========
+/**
+ * 泛型快捷运算
+ * Quick Ops
+ *
+ * 通过 Flt64ValueConverter 提供泛型算术运算符重载。
+ * Provides generic arithmetic operator overloads via Flt64ValueConverter.
+ *
+ * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
+ * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
+ */
+class QuickOps<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
+    // ========== Flt64 arithmetic ==========
 
-operator fun Flt64.times(rhs: Symbol): LinearMonomial<Flt64> {
-    return LinearMonomial(this, rhs)
-}
+    operator fun Flt64.times(rhs: Symbol): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(this), rhs)
 
-operator fun Symbol.times(rhs: Flt64): LinearMonomial<Flt64> {
-    return LinearMonomial(rhs, this)
-}
+    operator fun Symbol.times(rhs: Flt64): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(rhs), this)
 
-operator fun Flt64.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
-    return LinearMonomial(this * rhs.coefficient, rhs.symbol)
-}
+    // ========== Int arithmetic ==========
 
-operator fun LinearMonomial<Flt64>.times(rhs: Flt64): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient * rhs, symbol)
-}
+    operator fun Int.times(rhs: Symbol): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(Flt64(this.toDouble())), rhs)
 
-operator fun LinearMonomial<Flt64>.times(rhs: Symbol): QuadraticMonomial<Flt64> {
-    return QuadraticMonomial(coefficient, symbol, rhs)
-}
+    operator fun Symbol.times(rhs: Int): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(Flt64(rhs.toDouble())), this)
 
-operator fun Symbol.times(rhs: LinearMonomial<Flt64>): QuadraticMonomial<Flt64> {
-    return QuadraticMonomial(rhs.coefficient, this, rhs.symbol)
-}
+    operator fun Int.minus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(-converter.one, rhs)), converter.intoValue(Flt64(this.toDouble())))
 
-operator fun LinearMonomial<Flt64>.div(rhs: Flt64): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient / rhs, symbol)
-}
+    operator fun Int.plus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(converter.one, rhs)), converter.intoValue(Flt64(this.toDouble())))
 
-// ========== Int arithmetic ==========
+    // ========== Double arithmetic ==========
 
-operator fun Int.times(rhs: Symbol): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(this.toDouble()), rhs)
-}
+    operator fun Double.times(rhs: Symbol): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(Flt64(this)), rhs)
 
-operator fun Symbol.times(rhs: Int): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(rhs.toDouble()), this)
-}
+    operator fun Symbol.times(rhs: Double): LinearMonomial<V> =
+        LinearMonomial(converter.intoValue(Flt64(rhs)), this)
 
-operator fun Int.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(this.toDouble()) * rhs.coefficient, rhs.symbol)
-}
+    operator fun Double.minus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(-converter.one, rhs)), converter.intoValue(Flt64(this)))
 
-operator fun LinearMonomial<Flt64>.times(rhs: Int): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient * Flt64(rhs.toDouble()), symbol)
-}
+    operator fun Double.plus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(converter.one, rhs)), converter.intoValue(Flt64(this)))
 
-operator fun LinearMonomial<Flt64>.div(rhs: Int): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient / Flt64(rhs.toDouble()), symbol)
-}
+    // ========== Symbol arithmetic ==========
 
-// ========== Double arithmetic ==========
+    operator fun Symbol.unaryMinus(): LinearMonomial<V> =
+        LinearMonomial(-converter.one, this)
 
-operator fun Double.times(rhs: Symbol): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(this), rhs)
-}
+    operator fun Symbol.plus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(converter.one, this), LinearMonomial(converter.one, rhs)), converter.zero)
 
-operator fun Symbol.times(rhs: Double): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(rhs), this)
-}
-
-operator fun Double.times(rhs: LinearMonomial<Flt64>): LinearMonomial<Flt64> {
-    return LinearMonomial(Flt64(this) * rhs.coefficient, rhs.symbol)
-}
-
-operator fun LinearMonomial<Flt64>.times(rhs: Double): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient * Flt64(rhs), symbol)
-}
-
-operator fun LinearMonomial<Flt64>.div(rhs: Double): LinearMonomial<Flt64> {
-    return LinearMonomial(coefficient / Flt64(rhs), symbol)
+    operator fun Symbol.minus(rhs: Symbol): LinearPolynomial<V> =
+        LinearPolynomial(listOf(LinearMonomial(converter.one, this), LinearMonomial(-converter.one, rhs)), converter.zero)
 }

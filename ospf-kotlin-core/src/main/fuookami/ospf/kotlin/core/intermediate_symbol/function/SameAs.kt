@@ -103,7 +103,7 @@ class SameAsFunction<V>(
 
         // Register each inequality with its satisfaction flag using simple indicator constraints
         for (i in inequalities.indices) {
-            allConstraints += simpleIndicatorConstraintsV(
+            allConstraints += simpleIndicatorConstraints(
                 inequalities[i], satisfactionFlags[i], m, epsilon, epsilon, "${name}_ineq_${i}")
         }
 

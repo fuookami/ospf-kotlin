@@ -101,7 +101,7 @@ internal fun <V> addQuadraticConstraints(model: AbstractQuadraticMechanismModel<
  * This avoids the V -> Flt64 -> V conversion round-trip and keeps
  * intermediate-symbol constraints typed as V inside generic paths.
  */
-fun <V> nonzeroIndicatorConstraintsV(
+fun <V> nonzeroIndicatorConstraints(
     poly: LinearPolynomial<V>,
     indVar: AbstractVariableItem<*, *>,
     sideVar: AbstractVariableItem<*, *>,
@@ -148,7 +148,7 @@ fun <V> nonzeroIndicatorConstraintsV(
  * For LE: when indicator=1, poly <= rhs is enforced.
  * For GE: when indicator=1, poly >= rhs is enforced.
  */
-fun <V> simpleIndicatorConstraintsV(
+fun <V> simpleIndicatorConstraints(
     ineq: LinearInequality<V>,
     indicator: AbstractVariableItem<*, *>,
     bigM: V,
@@ -185,7 +185,7 @@ fun <V> simpleIndicatorConstraintsV(
         }
         Comparison.EQ -> {
             val sideVar = BinVar("${namePrefix}_side")
-            constraints += nonzeroIndicatorConstraintsV(
+            constraints += nonzeroIndicatorConstraints(
                 LinearPolynomial(diffMonos, shiftedConst),
                 indicator, sideVar, bigM, tolerance, strictBoundary, namePrefix
             )

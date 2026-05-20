@@ -168,10 +168,10 @@ class SatisfiedAmountFunction<V>(
         // If amount is set: sum(u[i]) >= amount
         if (amount != null) {
             val sumMonos = _uVars.map { LinearMonomial(one, it) }
-            val amountV = repeatAdd(one, amount.toInt())
+            val amountValue = repeatAdd(one, amount.toInt())
             allConstraints += LinearInequality(
                 LinearPolynomial(sumMonos, zero),
-                LinearPolynomial(emptyList(), amountV),
+                LinearPolynomial(emptyList(), amountValue),
                 Comparison.GE, "${name}_amount"
             )
         }

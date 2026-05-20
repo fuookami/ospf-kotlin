@@ -88,25 +88,25 @@ class QuadraticInStepRangeFunction<V>(
         }
 
     override val cached: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) dep.flush(force)
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): V? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable.find(symbol)?.result ?: if (zeroIfNone) converter.zero else null
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -118,12 +118,12 @@ class QuadraticInStepRangeFunction<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) converter.zero else null
             }
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
         tokenTable: AbstractTokenTable<V>?,
@@ -131,12 +131,12 @@ class QuadraticInStepRangeFunction<V>(
     ): V? {
         return values[symbol] ?: when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable?.find(symbol)?.result
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
             else -> null
         } ?: if (zeroIfNone) converter.zero else null
     }
 
-    private fun evaluateQuadraticV(
+    private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
     ): V? {
@@ -153,10 +153,10 @@ class QuadraticInStepRangeFunction<V>(
         return value
     }
 
-    private fun evaluateStepRangeV(
+    private fun evaluateStepRange(
         resolve: (Symbol) -> V?
     ): V? {
-        val xValue = evaluateQuadraticV(x, resolve) ?: return null
+        val xValue = evaluateQuadratic(x, resolve) ?: return null
         val inLower = xValue gr lower || xValue eq lower
         val inUpper = xValue ls upper || xValue eq upper
         return if (inLower && inUpper) {
@@ -167,7 +167,7 @@ class QuadraticInStepRangeFunction<V>(
     }
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
@@ -193,18 +193,18 @@ class QuadraticInStepRangeFunction<V>(
         }
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateStepRangeV { symbol ->
-            evaluateSymbolV(symbol, tokenTable, zeroIfNone)
+        return evaluateStepRange { symbol ->
+            evaluateSymbol(symbol, tokenTable, zeroIfNone)
         }
     }
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateStepRangeV { symbol ->
-            evaluateSymbolV(symbol, results, tokenTable, zeroIfNone)
+        return evaluateStepRange { symbol ->
+            evaluateSymbol(symbol, results, tokenTable, zeroIfNone)
         }
     }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateStepRangeV { symbol ->
-            evaluateSymbolV(symbol, values, tokenTable, zeroIfNone)
+        return evaluateStepRange { symbol ->
+            evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
@@ -212,7 +212,7 @@ class QuadraticInStepRangeFunction<V>(
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedValues = SolverBoundaryCasts.mapValuesToV(values, converter)
+        val typedValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(typedValues, tokenTable, converter, zeroIfNone)
     }
 

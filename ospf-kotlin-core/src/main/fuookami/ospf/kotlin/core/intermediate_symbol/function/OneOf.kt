@@ -90,7 +90,7 @@ class OneOfFunction<V>(
 
         // Nonzero indicators for each polynomial
         for (i in polynomials.indices) {
-            allConstraints += nonzeroIndicatorConstraintsV(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
+            allConstraints += nonzeroIndicatorConstraints(polynomials[i], indicatorVars[i], sideVars[i], mD, tolerance, strictBoundary, "${name}_oneof_nz_${i}")
         }
 
         // Exactly one indicator must be 1: sum(indicators) = 1

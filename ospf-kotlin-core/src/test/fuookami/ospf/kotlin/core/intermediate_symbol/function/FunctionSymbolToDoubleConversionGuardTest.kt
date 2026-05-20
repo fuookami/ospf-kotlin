@@ -4,7 +4,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
 
-class FunctionSymbolToDoubleBridgeGuardTest {
+class FunctionSymbolToDoubleConversionGuardTest {
     private val root = File("src/main/fuookami/ospf/kotlin/core/intermediate_symbol/function")
 
     @Test

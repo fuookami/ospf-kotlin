@@ -4,7 +4,7 @@ import java.io.File
 import kotlin.test.Test
 import kotlin.test.fail
 
-class CoreToDoubleBridgeGuardTest {
+class CoreToDoubleConversionGuardTest {
     private val scanRoot = File("src/main")
     private val pathPrefix = "fuookami/ospf/kotlin/core/"
 
@@ -55,7 +55,7 @@ class CoreToDoubleBridgeGuardTest {
         }
 
         if (allowedHits.size != 1) {
-            fail("Expected exactly 1 allowed .toDouble() bridge in $allowedPath, but found ${allowedHits.size}.")
+            fail("Expected exactly 1 allowed .toDouble() conversion boundary in $allowedPath, but found ${allowedHits.size}.")
         }
     }
 }

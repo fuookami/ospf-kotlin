@@ -4,8 +4,8 @@ import fuookami.ospf.kotlin.core.token.AbstractMutableTokenTable
 import fuookami.ospf.kotlin.core.token.TokenTable
 import fuookami.ospf.kotlin.core.token.ManualTokenTable
 import fuookami.ospf.kotlin.core.token.ConcurrentManualAddTokenTable
+import fuookami.ospf.kotlin.core.model.mechanism.Flt64LinearConstraintInput
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
 import fuookami.ospf.kotlin.core.model.mechanism.AbstractMetaModel
 import fuookami.ospf.kotlin.core.model.mechanism.ConstraintImpl
 import fuookami.ospf.kotlin.core.model.mechanism.SubObject
@@ -97,7 +97,7 @@ class CallBackModel<V> internal constructor(
     private val _objectiveFunctions: MutableList<Pair<Extractor<V?, Solution<V>>, String>> = ArrayList(),
     private val policy: CallBackModelPolicy<V>,
     private val _converter: IntoValue<V>
-) : CallBackModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
+) : CallBackModelInterface<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         private fun <V> dumpObjectiveComparator(
             category: ObjectCategory,
@@ -256,7 +256,7 @@ class CallBackModel<V> internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: LinearConstraintInput,
+        inequality: Flt64LinearConstraintInput,
         name: String?,
         displayName: String?
     ) {
@@ -270,7 +270,7 @@ class CallBackModel<V> internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: LinearConstraintInputV<V>,
+        inequality: LinearConstraintInput<V>,
         name: String?,
         displayName: String?
     ) {
@@ -385,7 +385,7 @@ class MultiObjectCallBackModel<V> internal constructor(
     private val _objectiveFunctions: MutableList<Pair<Extractor<List<Pair<MultiObjectLocation<V>, V>>?, Solution<V>>, String>> = ArrayList(),
     private val _initialSolutionsGenerator: Extractor<V, Pair<UInt64, UInt64>>? = null,
     private val _converter: IntoValue<V>
-) : MultiObjectiveModelInterfaceV<V> where V : RealNumber<V>, V : NumberField<V> {
+) : MultiObjectiveModelInterface<V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun <V> invoke(
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
@@ -494,7 +494,7 @@ class MultiObjectCallBackModel<V> internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: LinearConstraintInput,
+        inequality: Flt64LinearConstraintInput,
         name: String? = null,
         displayName: String? = null
     ) {
@@ -508,7 +508,7 @@ class MultiObjectCallBackModel<V> internal constructor(
 
     @Suppress("UNUSED_PARAMETER")
     fun addConstraint(
-        inequality: LinearConstraintInputV<V>,
+        inequality: LinearConstraintInput<V>,
         name: String? = null,
         displayName: String? = null
     ) {

@@ -16,7 +16,7 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
+interface AbstractCallBackModelInterface<Obj, V, TV> : Model<TV>, AutoCloseable
         where TV : RealNumber<TV>, TV : NumberField<TV> {
     val defaultObjective: V
 
@@ -68,10 +68,7 @@ interface AbstractCallBackModelInterfaceV<Obj, V, TV> : Model<TV>, AutoCloseable
     }
 }
 
-/** Generic callback interface where objective and token value types are both V. */
-typealias AbstractCallBackModelInterface<Obj, V> = AbstractCallBackModelInterfaceV<Obj, V, V>
-
-interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> where V : RealNumber<V>, V : NumberField<V> {
+interface CallBackModelInterface<V> : AbstractCallBackModelInterface<V, V, V> where V : RealNumber<V>, V : NumberField<V> {
     override val defaultObjective: V
         get() = if (objectCategory == ObjectCategory.Minimum) {
             negativeInfinity()
@@ -119,7 +116,7 @@ interface CallBackModelInterfaceV<V> : AbstractCallBackModelInterfaceV<V, V, V> 
     fun infinity(): V
 }
 
-interface MultiObjectiveModelInterfaceV<V> : AbstractCallBackModelInterfaceV<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
+interface MultiObjectiveModelInterface<V> : AbstractCallBackModelInterface<List<Pair<MultiObjectLocation<V>, V>>, List<V>, V> where V : RealNumber<V>, V : NumberField<V> {
     val objectiveLocation: List<MultiObjectLocation<V>>
     val objectiveSize get() = objectiveLocation.size
 

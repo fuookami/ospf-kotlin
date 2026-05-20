@@ -2,12 +2,11 @@ package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.operation.QuadraticMatrixForm
 import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.operation.hessian
-import fuookami.ospf.kotlin.math.symbol.operation.toMatrixForm
-import fuookami.ospf.kotlin.math.symbol.operation.linearPolynomialFromMatrixForm
-import fuookami.ospf.kotlin.math.symbol.operation.quadraticPolynomialFromMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.toFlt64MatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.flt64LinearPolynomialFromMatrixForm
+import fuookami.ospf.kotlin.math.symbol.operation.flt64QuadraticPolynomialFromMatrixForm
 import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
@@ -37,7 +36,7 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toMatrixForm(order = listOf(x, y))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
 
         assertEquals(3.0, matrixForm.q[0][0])
         assertEquals(1.0, matrixForm.q[0][1])
@@ -60,8 +59,8 @@ class MatrixFormTest {
             constant = Flt64(7.0)
         )
 
-        val matrixForm = polynomial.toMatrixForm(order = listOf(y, x))
-        val rebuilt = linearPolynomialFromMatrixForm(matrixForm).combineTerms()
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(y, x))
+        val rebuilt = flt64LinearPolynomialFromMatrixForm(matrixForm).combineTerms()
 
         assertEquals(-3.0, matrixForm.c[0])
         assertEquals(2.0, matrixForm.c[1])
@@ -84,8 +83,8 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toMatrixForm(order = listOf(x, y))
-        val rebuilt = quadraticPolynomialFromMatrixForm(matrixForm).combineTerms()
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
+        val rebuilt = flt64QuadraticPolynomialFromMatrixForm(matrixForm).combineTerms()
 
         assertEquals(polynomial.constant, rebuilt.constant)
         assertEquals(polynomial.monomials.toSet(), rebuilt.monomials.toSet())
@@ -103,7 +102,7 @@ class MatrixFormTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            polynomial.toMatrixForm(order = listOf(x))
+            polynomial.toFlt64MatrixForm(order = listOf(x))
         }
     }
 
@@ -116,7 +115,7 @@ class MatrixFormTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            polynomial.toMatrixForm(order = listOf(x, x))
+            polynomial.toFlt64MatrixForm(order = listOf(x, x))
         }
     }
 
@@ -125,7 +124,7 @@ class MatrixFormTest {
         val x = TestSymbol("x")
 
         assertFailsWith<IllegalArgumentException> {
-            quadraticPolynomialFromMatrixForm(
+            flt64QuadraticPolynomialFromMatrixForm(
                 q = arrayOf(doubleArrayOf(1.0, 2.0)),
                 c = doubleArrayOf(1.0),
                 d = Flt64.zero,
@@ -147,7 +146,7 @@ class MatrixFormTest {
             constant = Flt64(5.0)
         )
 
-        val matrixForm = polynomial.toMatrixForm(order = listOf(x, y))
+        val matrixForm = polynomial.toFlt64MatrixForm(order = listOf(x, y))
 
         assertEquals(3.0, matrixForm.q[0][0])
         assertEquals(1.0, matrixForm.q[0][1])
@@ -175,7 +174,7 @@ class MatrixFormTest {
             constant = Flt64(6.0)
         )
 
-        val matrixForm = polynomial.toMatrixForm(order = order)
+        val matrixForm = polynomial.toFlt64MatrixForm(order = order)
         val hessian = polynomial.hessian(order = order)
 
         for (i in order.indices) {
@@ -198,7 +197,7 @@ class MatrixFormTest {
         )
 
         assertFailsWith<IllegalArgumentException> {
-            polynomial.toMatrixForm(order = listOf(x, y, z))
+            polynomial.toFlt64MatrixForm(order = listOf(x, y, z))
         }
     }
 }

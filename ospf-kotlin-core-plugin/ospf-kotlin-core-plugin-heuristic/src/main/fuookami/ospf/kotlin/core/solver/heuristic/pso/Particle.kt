@@ -16,21 +16,21 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-data class Particle<V>(
-    override val fitness: V,
+data class Particle<ObjValue, V>(
+    override val fitness: ObjValue,
     override val solution: List<V>,
     val velocity: List<Flt64>,
-    val currentBest: Particle<V>? = null,
+    val currentBest: Particle<ObjValue, V>? = null,
     // converter must be provided explicitly; use Particle.Flt64 companion for V=Flt64 convenience
     private val converter: IntoValue<V>
-) : Individual<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+) : Individual<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             fitness: Flt64,
             solution: List<Flt64>,
             velocity: List<Flt64>,
-            currentBest: Particle<Flt64>? = null
-        ): Particle<Flt64> {
+            currentBest: Particle<Flt64, Flt64>? = null
+        ): Particle<Flt64, Flt64> {
             return Particle(
                 fitness = fitness,
                 solution = solution,
@@ -50,8 +50,8 @@ data class Particle<V>(
         newVelocity: List<Flt64>,
         iteration: Iteration,
         policy: AbstractHeuristicPolicy,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Particle<V> {
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): Particle<ObjValue, V> {
         val newPosition = (0..<size).map {
             val posFlt64 = converter.fromValue(solution[it])
             val newFlt64 = posFlt64 + velocity[it]

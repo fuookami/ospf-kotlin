@@ -7,10 +7,10 @@ import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
 interface Mutation<V> where V : RealNumber<V>, V : NumberField<V> {
-    operator fun <T : Individual<V>> invoke(
+    operator fun <T : Individual<*, V>> invoke(
         iteration: Iteration,
         individual: T,
-        model: AbstractCallBackModelInterface<*, V>,
+        model: AbstractCallBackModelInterface<*, *, V>,
         mutationRate: Flt64
     ): Solution<V>
 }

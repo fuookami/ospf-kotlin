@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.symbol_migration.linear_regression
+package fuookami.ospf.kotlin.core.symbol_regression.linear_regression
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.LinearExpressionSymbol
 import fuookami.ospf.kotlin.core.token.AutoTokenTable

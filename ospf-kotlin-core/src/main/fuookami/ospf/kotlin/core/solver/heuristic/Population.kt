@@ -10,9 +10,9 @@ import fuookami.ospf.kotlin.math.usize
 import fuookami.ospf.kotlin.math.algebra.value_range.ValueRange
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface Individual<V> {
+interface Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     val solution: Solution<V>
-    val fitness: V
+    val fitness: ObjValue
 }
 
 data class PopulationBuilder(
@@ -22,7 +22,7 @@ data class PopulationBuilder(
     val parentAmountRange: ValueRange<UInt64>
 )
 
-data class Population<T : Individual<V>, V>(
+data class Population<T : Individual<ObjValue, V>, ObjValue, V>(
     val individuals: List<T>,
     val elites: List<T>,
     val best: T,
@@ -34,15 +34,15 @@ data class Population<T : Individual<V>, V>(
     val density by individuals::size
 }
 
-data class SolutionWithFitness<V>(
+data class SolutionWithFitness<ObjValue, V>(
     override val solution: Solution<V>,
-    override val fitness: V
-) : Individual<V>
+    override val fitness: ObjValue
+) : Individual<ObjValue, V> where V : RealNumber<V>, V : NumberField<V>
 
-fun <T : Individual<V>, V> refreshGoodIndividuals(
+fun <T : Individual<ObjValue, V>, ObjValue, V> refreshGoodIndividuals(
     goodIndividuals: MutableList<T>,
     newIndividuals: List<T>,
-    model: AbstractCallBackModelInterface<*, V>,
+    model: AbstractCallBackModelInterface<*, ObjValue, V>,
     solutionAmount: UInt64 = goodIndividuals.usize
 ) where V : RealNumber<V>, V : NumberField<V> {
     var i = 0

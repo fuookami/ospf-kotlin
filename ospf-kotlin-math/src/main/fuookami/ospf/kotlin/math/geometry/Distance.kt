@@ -24,12 +24,12 @@ sealed interface Distance {
         override operator fun <D : Dimension, V : FloatingNumber<V>> invoke(lhs: Point<D, V>, rhs: Point<D, V>): V {
             val v = lhs[0]
             val sum = lhs.indices.sumOf(v.constants) { (lhs[it] - rhs[it]).abs().pow(p) }
-            val pV = run {
+            val exponentValue = run {
                 var result = v.constants.zero
                 for (i in 0 until p) { result += v.constants.one }
                 result
             }
-            return sum.pow(v.constants.one / pV) as V
+            return sum.pow(v.constants.one / exponentValue) as V
         }
     }
 

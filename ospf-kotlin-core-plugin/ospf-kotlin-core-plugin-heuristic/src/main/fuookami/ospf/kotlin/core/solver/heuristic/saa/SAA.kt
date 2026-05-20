@@ -32,19 +32,19 @@ private val flt64Converter = object : IntoValue<Flt64> {
  *
  * @property markovLength               the length of the markov chain
  */
-interface AbstractSAAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractSAAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     val markovLength: UInt64
 
     fun transformSolution(
         iteration: Iteration,
         solution: Solution<V>,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): Solution<V>
 
     fun accept(
         iteration: Iteration,
-        currentObjective: V,
-        newObjective: V
+        currentObjective: ObjValue,
+        newObjective: ObjValue
     ): Boolean
 
     fun improve()
@@ -62,14 +62,14 @@ interface AbstractSAAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf
  * @property distance                   the distance rate function between two objectives
  * @property randomGenerator
  */
-open class SAAPolicy<V>(
+open class SAAPolicy<ObjValue, V>(
     val initialTemperature: Flt64 = Flt64(100.0),
     val finalTemperature: Flt64 = Flt64(1.0),
     val temperatureGradiant: Flt64 = Flt64(0.98),
     override val markovLength: UInt64 = UInt64(100),
     step: Flt64 = Flt64(0.5),
     val disturbanceAmount: UInt64 = UInt64(1),
-    val distance: (V, V) -> Flt64,
+    val distance: (ObjValue, ObjValue) -> Flt64,
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
@@ -79,7 +79,7 @@ open class SAAPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSAAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractSAAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             initialTemperature: Flt64 = Flt64(100.0),
@@ -92,7 +92,7 @@ open class SAAPolicy<V>(
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): SAAPolicy<Flt64> {
+        ): SAAPolicy<Flt64, Flt64> {
             return SAAPolicy(
                 initialTemperature = initialTemperature,
                 finalTemperature = finalTemperature,
@@ -118,7 +118,7 @@ open class SAAPolicy<V>(
     override fun transformSolution(
         iteration: Iteration,
         solution: Solution<V>,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): Solution<V> {
         val flt64Solution = solution.map { converter.fromValue(it) }.toMutableList()
         val disturbancePoints: MutableSet<Int> = HashSet()
@@ -139,7 +139,7 @@ open class SAAPolicy<V>(
         return flt64Solution.map { converter.intoValue(it) }
     }
 
-    override fun accept(iteration: Iteration, currentObjective: V, newObjective: V): Boolean {
+    override fun accept(iteration: Iteration, currentObjective: ObjValue, newObjective: ObjValue): Boolean {
         val delta = distance(currentObjective, newObjective)
         val acceptPercentage = (-delta / currentTemperature(iteration)).exp()
         return acceptPercentage gr randomGenerator()!!
@@ -164,19 +164,19 @@ open class SAAPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class SimulatedAnnealingAlgorithm<Obj, V>(
-    val policy: AbstractSAAPolicy<V>
+class SimulatedAnnealingAlgorithm<Obj, ObjValue, V>(
+    val policy: AbstractSAAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
-        operator fun invoke(): SimulatedAnnealingAlgorithm<Flt64, Flt64> {
+        operator fun invoke(): SimulatedAnnealingAlgorithm<Flt64, Flt64, Flt64> {
             return SimulatedAnnealingAlgorithm(SAAPolicy())
         }
     }
 
     operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, SolutionWithFitness<V>) -> Try)? = null
-    ): List<Individual<V>> {
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
+        runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
+    ): List<Individual<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolution = model.initialSolutions()
             .map {
@@ -253,7 +253,7 @@ class SimulatedAnnealingAlgorithm<Obj, V>(
     }
 }
 
-typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64>
-typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias SAA = SimulatedAnnealingAlgorithm<Flt64, Flt64, Flt64>
+typealias MulObjSAA = SimulatedAnnealingAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 
 

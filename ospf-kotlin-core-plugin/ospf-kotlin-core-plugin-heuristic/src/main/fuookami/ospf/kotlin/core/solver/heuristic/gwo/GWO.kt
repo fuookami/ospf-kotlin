@@ -33,26 +33,26 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-interface AbstractGWOPolicy<V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
+interface AbstractGWOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : RealNumber<V>, V : NumberField<V> {
     fun a(iteration: Iteration): List<Flt64>
 
     fun perturb(
         iteration: Iteration,
-        leaders: List<Wolf<V>>,
+        leaders: List<Wolf<ObjValue, V>>,
         a: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Wolf<V>>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Wolf<ObjValue, V>>
 
     fun move(
         iteration: Iteration,
-        wolf: Wolf<V>,
-        leaders: List<Wolf<V>>,
+        wolf: Wolf<ObjValue, V>,
+        leaders: List<Wolf<ObjValue, V>>,
         a: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Wolf<V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): Wolf<ObjValue, V>
 }
 
-class GWOPolicy<V>(
+class GWOPolicy<ObjValue, V>(
     val minA: Flt64 = Flt64(0.02),
     val maxA: Flt64 = Flt64(2.2),
     val b: Flt64 = Flt64(1.0),
@@ -68,7 +68,7 @@ class GWOPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractGWOPolicy<V> where V : RealNumber<V>, V : NumberField<V> {
+), AbstractGWOPolicy<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
     companion object {
         operator fun invoke(
             minA: Flt64 = Flt64(0.02),
@@ -80,7 +80,7 @@ class GWOPolicy<V>(
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): GWOPolicy<Flt64> {
+        ): GWOPolicy<Flt64, Flt64> {
             return GWOPolicy(
                 minA = minA,
                 maxA = maxA,
@@ -109,11 +109,11 @@ class GWOPolicy<V>(
 
     override fun perturb(
         iteration: Iteration,
-        leaders: List<Wolf<V>>,
+        leaders: List<Wolf<ObjValue, V>>,
         a: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Wolf<V>> {
-        fun Wolf<V>.randomWalk(): Wolf<V> {
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Wolf<ObjValue, V>> {
+        fun Wolf<ObjValue, V>.randomWalk(): Wolf<ObjValue, V> {
             val newSolution = solution.mapIndexed { i, position ->
                 val posFlt64 = converter.fromValue(position)
                 val newPosFlt64 = coerceIn(
@@ -139,11 +139,11 @@ class GWOPolicy<V>(
 
     override fun move(
         iteration: Iteration,
-        wolf: Wolf<V>,
-        leaders: List<Wolf<V>>,
+        wolf: Wolf<ObjValue, V>,
+        leaders: List<Wolf<ObjValue, V>>,
         a: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Wolf<V> {
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): Wolf<ObjValue, V> {
         val newSolution = wolf.solution.mapIndexed { i, position ->
             val posFlt64 = converter.fromValue(position)
             val alphaFlt64 = converter.fromValue(leaders.alpha.solution[i])
@@ -174,15 +174,15 @@ class GWOPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class GreyWolfOptimizer<Obj, V>(
+class GreyWolfOptimizer<Obj, ObjValue, V>(
     val population: List<PopulationBuilder>,
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractGWOPolicy<V>,
+    val policy: AbstractGWOPolicy<ObjValue, V>,
 ) where V : RealNumber<V>, V : NumberField<V> {
     suspend operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Wolf<V>, List<Wolf<V>>, List<AbstractPopulation<V>>) -> Try)? = null
-    ): List<Wolf<V>> {
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
+        runningCallBack: ((Iteration, Wolf<ObjValue, V>, List<Wolf<ObjValue, V>>, List<AbstractPopulation<ObjValue, V>>) -> Try)? = null
+    ): List<Wolf<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model
             .initialSolutions(population.sumOf { it.densityRange.lowerBound.value.unwrap() })
@@ -309,6 +309,6 @@ class GreyWolfOptimizer<Obj, V>(
     }
 }
 
-typealias GWO = GreyWolfOptimizer<Flt64, Flt64>
-typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias GWO = GreyWolfOptimizer<Flt64, Flt64, Flt64>
+typealias MulObjGWO = GreyWolfOptimizer<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 

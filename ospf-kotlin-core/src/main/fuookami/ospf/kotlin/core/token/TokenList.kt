@@ -55,13 +55,13 @@ sealed class AbstractTokenList<T : RealNumber<T>> : AutoCloseable {
     open fun setSolution(solution: List<T>) {
         assert(solution.size >= tokens.size)
         for ((index, token) in tokensInSolver.withIndex()) {
-            token.setResultFromV(solution[index])
+            token.setResult(solution[index])
         }
     }
 
     open fun setSolution(solution: Map<AbstractVariableItem<*, *>, T>) {
         for ((variable, value) in solution) {
-            find(variable)?.setResultFromV(value)
+            find(variable)?.setResult(value)
         }
     }
 
@@ -131,7 +131,7 @@ class TokenList<T : RealNumber<T>>(
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
-                token.setResultFromV(solution[index])
+                token.setResult(solution[index])
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -140,7 +140,7 @@ class TokenList<T : RealNumber<T>>(
     override fun setSolution(solution: Map<AbstractVariableItem<*, *>, T>) {
         synchronized(lock) {
             for ((variable, value) in solution) {
-                find(variable)?.setResultFromV(value)
+                find(variable)?.setResult(value)
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }
@@ -269,7 +269,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
         synchronized(lock) {
             assert(solution.size >= tokensInSolver.size)
             for ((index, token) in tokensInSolver.withIndex()) {
-                token.setResultFromV(solution[index])
+                token.setResult(solution[index])
                 _cachedSolution = tokens.any { it.resultFlt64 != null }
             }
         }
@@ -278,7 +278,7 @@ sealed class MutableTokenList<T : RealNumber<T>>(
     override fun setSolution(solution: Map<AbstractVariableItem<*, *>, T>) {
         synchronized(lock) {
             for ((variable, value) in solution) {
-                find(variable)?.setResultFromV(value)
+                find(variable)?.setResult(value)
             }
             _cachedSolution = tokens.any { it.resultFlt64 != null }
         }

@@ -36,9 +36,10 @@ import fuookami.ospf.kotlin.utils.functional.Try
 /**
  * Centralized solver-boundary type casts.
  *
- * At runtime, all V-typed instances use V=Flt64. These casts bridge
- * star-projected (V=*) references back to Flt64 so that V-typed methods
- * can be called. The casts are safe but unchecked due to JVM type erasure.
+ * 运行时所有求解器边界实例都使用 V=Flt64；这里把星投影引用转换回 Flt64，以便调用泛型方法。
+ * At runtime, all solver-boundary instances use V=Flt64. These casts convert
+ * star-projected (V=*) references back to Flt64 so that generic methods can be called.
+ * The casts are safe but unchecked due to JVM type erasure.
  *
  * This object is the single location for all UNCHECKED_CAST suppressions
  * in the framework. Do not add @Suppress("UNCHECKED_CAST") elsewhere.
@@ -126,12 +127,12 @@ internal object SolverBoundaryCasts {
         return constraints as List<Constraint<fuookami.ospf.kotlin.math.algebra.number.Flt64, Quadratic>>
     }
 
-    fun <V> linearInequalityAsV(cut: Any): LinearInequality<V>?
+    fun <V> linearInequalityAs(cut: Any): LinearInequality<V>?
         where V : RealNumber<V>, V : NumberField<V> {
         return cut as? LinearInequality<V>
     }
 
-    fun <V> quadraticInequalityAsV(cut: Any): QuadraticInequalityOf<V>?
+    fun <V> quadraticInequalityAs(cut: Any): QuadraticInequalityOf<V>?
         where V : RealNumber<V>, V : NumberField<V> {
         return cut as? QuadraticInequalityOf<V>
     }
@@ -146,12 +147,12 @@ internal object SolverBoundaryCasts {
         return tokenTable?.let { tokenListAsFlt64(it) }
     }
 
-    fun <V> mapValuesToV(values: Map<Symbol, Flt64>, converter: IntoValue<V>): Map<Symbol, V>
+    fun <V> mapValues(values: Map<Symbol, Flt64>, converter: IntoValue<V>): Map<Symbol, V>
         where V : RealNumber<V>, V : NumberField<V> {
         return values.mapValues { converter.intoValue(it.value) }
     }
 
-    fun <V> dependencyAsIntermediateV(dependency: IntermediateSymbol<*>): IntermediateSymbol<V>
+    fun <V> dependencyAsIntermediate(dependency: IntermediateSymbol<*>): IntermediateSymbol<V>
         where V : RealNumber<V>, V : NumberField<V> {
         return dependency as IntermediateSymbol<V>
     }
@@ -186,13 +187,13 @@ internal object SolverBoundaryCasts {
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <V> expressionRangeVFromFlt64(rangeFlt64: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?): ExpressionRange<V>
+    fun <V> expressionRangeFromFlt64(rangeFlt64: ValueRange<fuookami.ospf.kotlin.math.algebra.number.Flt64>?): ExpressionRange<V>
         where V : RealNumber<V>, V : NumberField<V> {
         return ExpressionRange(rangeFlt64 as ValueRange<V>?, Flt64 as RealNumberConstants<V>)
     }
 
     @Suppress("UNCHECKED_CAST")
-    fun <V> fullExpressionRangeV(): ExpressionRange<V>
+    fun <V> fullExpressionRange(): ExpressionRange<V>
         where V : RealNumber<V>, V : NumberField<V> {
         return ExpressionRange(Flt64 as RealNumberConstants<V>) as ExpressionRange<V>
     }

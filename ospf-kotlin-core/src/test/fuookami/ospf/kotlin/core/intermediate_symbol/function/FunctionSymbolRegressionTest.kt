@@ -27,9 +27,10 @@ private val flt64Converter = object : IntoValue<Flt64> {
     }
 
 /**
- * Regression tests for P4-1 Phase A2: MathFunctionSymbol migration.
+ * MathFunctionSymbol 行为回归测试。
+ * Regression tests for MathFunctionSymbol behavior.
  */
-class FunctionSymbolMigrationTest {
+class FunctionSymbolRegressionTest {
 
     @Test
     fun `LinearFunctionSymbolAdapter has correct default properties`() {
@@ -158,7 +159,7 @@ class FunctionSymbolMigrationTest {
     }
 
     @Test
-    fun `LinearFunctionSymbolAdapter flattenedMonomials is empty by design`() {
+    fun `LinearFunctionSymbolAdapter flattenedMonomials expose delegate result polynomial`() {
         val x = LinearPolynomial(
             monomials = listOf(LinearMonomial(Flt64.one, RealVar("x"))),
             constant = Flt64.zero
@@ -170,8 +171,9 @@ class FunctionSymbolMigrationTest {
         )
         val adapter = LinearFunctionSymbolAdapter(slack, flt64Converter)
 
-        assertTrue(adapter.flattenedMonomialsAsV.monomials.isEmpty())
-        assertEquals(Flt64.zero, adapter.flattenedMonomialsAsV.constant)
+        assertEquals(2, adapter.flattenedMonomials.monomials.size)
+        assertEquals(setOf(slack.negVar, slack.posVar), adapter.flattenedMonomials.monomials.map { it.symbol }.toSet())
+        assertEquals(Flt64.zero, adapter.flattenedMonomials.constant)
     }
 
     @Test

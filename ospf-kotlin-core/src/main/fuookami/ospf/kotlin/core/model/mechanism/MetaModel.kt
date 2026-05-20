@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.model.mechanism
 
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
-import fuookami.ospf.kotlin.math.algebra.concept.Flt64Bridge
+import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -53,7 +53,7 @@ import kotlin.io.path.isDirectory
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.core.token.QuadraticFlattenData
 
-private val solverValueConverter = IntoValue.fromBridge(fuookami.ospf.kotlin.math.algebra.number.Flt64)
+private val solverValueConverter = IntoValue.fromConverter(fuookami.ospf.kotlin.math.algebra.number.Flt64)
 
 /**
  * Factory function to create the appropriate [AbstractMutableTokenTable<V>]
@@ -955,14 +955,14 @@ class LinearMetaModel<V>(
 
         operator fun <V> invoke(
             name: String,
-            bridge: Flt64Bridge<V>,
+            converter: Flt64ValueConverter<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
         ): LinearMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = LinearMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(bridge)
+            converter = IntoValue.fromConverter(converter)
         )
     }
 }
@@ -1182,14 +1182,14 @@ class QuadraticMetaModel<V>(
 
         operator fun <V> invoke(
             name: String,
-            bridge: Flt64Bridge<V>,
+            converter: Flt64ValueConverter<V>,
             objectCategory: ObjectCategory = ObjectCategory.Minimum,
             configuration: MetaModelConfiguration = MetaModelConfiguration()
         ): QuadraticMetaModel<V> where V : RealNumber<V>, V : NumberField<V> = QuadraticMetaModel(
             name = name,
             objectCategory = objectCategory,
             configuration = configuration,
-            converter = IntoValue.fromBridge(bridge)
+            converter = IntoValue.fromConverter(converter)
         )
     }
 }

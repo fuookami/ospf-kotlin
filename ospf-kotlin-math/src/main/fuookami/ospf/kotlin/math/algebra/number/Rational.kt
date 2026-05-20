@@ -448,7 +448,7 @@ data class Rtn64 internal constructor(
     override val num: Int64,
     override val den: Int64
 ) : Rational<Rtn64, Int64>(Rtn64::invoke, Int64), Copyable<Rtn64> {
-    companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64Bridge<Rtn64> {
+    companion object : RationalConstants<Rtn64, Int64>(Rtn64::invoke, Int64), Flt64ValueConverter<Rtn64> {
         operator fun invoke(num: Int64, den: Int64): Rtn64 {
             ensureNonZeroDenominator(den)
             val divisor = gcd(num.abs(), den.abs())
@@ -503,7 +503,7 @@ data class RtnX internal constructor(
     override val num: IntX,
     override val den: IntX
 ) : Rational<RtnX, IntX>(RtnX::invoke, IntX), Copyable<RtnX> {
-    companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64Bridge<RtnX> {
+    companion object : RationalConstants<RtnX, IntX>(RtnX::invoke, IntX), Flt64ValueConverter<RtnX> {
         operator fun invoke(num: Int, den: Int): RtnX {
             return RtnX(IntX(num.toLong()), IntX(den.toLong()))
         }

@@ -11,7 +11,7 @@ Generic expression AST for SQL-like boolean and scalar expressions. Provides a p
 | Component | Purpose |
 |-----------|---------|
 | `PropertyPath` | Unified path abstraction for field/property references (`a.b.c`) |
-| `PathSymbol` | Bridge between `PropertyPath` and `Symbol` interface |
+| `PathSymbol` | Adapter between `PropertyPath` and the `Symbol` interface |
 | `ScalarExpression` | AST for scalar values (Constant, Reference, Unary, Binary, Function) |
 | `BooleanExpression` | AST for boolean logic (And, Or, Not, Comparison, In, PatternMatch, NullCheck) |
 | `ExpressionOperator` | Operator definitions (unary, binary, comparison, pattern match) |
@@ -21,7 +21,7 @@ Generic expression AST for SQL-like boolean and scalar expressions. Provides a p
 ```
 expression/
 ├── PropertyPath.kt       # Path abstraction
-├── PathSymbol.kt         # Path-Symbol bridge
+├── PathSymbol.kt         # Path-Symbol adapter
 ├── ScalarExpression.kt   # Scalar expression AST
 ├── BooleanExpression.kt  # Boolean expression AST
 ├── ExpressionOperator.kt # Operator definitions
@@ -84,7 +84,7 @@ val json = expr.toJsonString()
 val restored = booleanExpressionFromJson(json)
 ```
 
-### Legacy Bridge
+### Legacy AST
 
 The legacy `Expr` AST and `LegacyExprBridge` have been removed. Use `BooleanExpression` directly for SQL-like expressions, and `symbol.parse` functions for polynomial/inequality parsing.
 

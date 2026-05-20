@@ -335,7 +335,7 @@ $flt64TokenSigMatches = Get-ChildItem -Path $modelMain -Recurse -Filter "*.kt" |
 $flt64TokenSigBaseline = 0  # Updated 2026-04-29 after P6-2b (was 18 after P5 full closure)
 Write-Baseline "P5-3-1: No new Flt64-fixed token-table signatures under core/model" $flt64TokenSigMatches.Count $flt64TokenSigBaseline "Found $($flt64TokenSigMatches.Count) total (baseline=$flt64TokenSigBaseline)"
 
-# Guard 13: No increase in deprecated ToMathLinearPolynomial bridge references
+# Guard 13: No increase in deprecated ToMathLinearPolynomial conversion-boundary references
 # across core/framework during migration window.
 $toMathLinearPolyMatches = @()
 $bridgeRoots = @("ospf-kotlin-core/src/main", "ospf-kotlin-framework/src/main")
@@ -347,9 +347,9 @@ foreach ($root in $bridgeRoots) {
     }
 }
 $toMathLinearPolyBaseline = 13  # Updated 2026-04-29 after P6-2a (was 23 after P5 full closure)
-Write-Baseline "P5-4-1: No new ToMathLinearPolynomial bridge references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
+Write-Baseline "P5-4-1: No new ToMathLinearPolynomial conversion-boundary references (core/framework)" $toMathLinearPolyMatches.Count $toMathLinearPolyBaseline "Found $($toMathLinearPolyMatches.Count) total (baseline=$toMathLinearPolyBaseline)"
 
-# Guard 14: No new .toDouble() bridge outside SolveValueConversionContext allowlist in core/src/main.
+# Guard 14: No new .toDouble() conversion boundary outside SolveValueConversionContext allowlist in core/src/main.
 $toDoubleAllowedPath = "fuookami/ospf/kotlin/core/solver/value/SolveValueConversionContext.kt"
 $toDoubleAllowedLine = "val converted = this.toDouble()"
 $toDoubleViolations = @()
@@ -378,7 +378,7 @@ if (($Verbose -or $toDoubleViolations.Count -gt 0) -and $toDoubleViolations.Coun
     $preview = ($toDoubleViolations | Select-Object -First 8) -join "; "
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
-Write-Result "P5-5-2: Exactly one allowlisted .toDouble() bridge in SolveValueConversionContext" ($toDoubleAllowedHits.Count -eq 1) "Found $($toDoubleAllowedHits.Count) allowlisted hits"
+Write-Result "P5-5-2: Exactly one allowlisted .toDouble() conversion boundary in SolveValueConversionContext" ($toDoubleAllowedHits.Count -eq 1) "Found $($toDoubleAllowedHits.Count) allowlisted hits"
 
 # Guard 15: No isClosedForSend usage in primary modules (zero-tolerance)
 $coroutineGuardRoots = @(
@@ -733,6 +733,154 @@ foreach ($root in $compatScanRoots) {
 Write-Result "P17-2: No compatibility-layer symbols/imports in Kotlin sources" ($compatForbiddenViolations.Count -eq 0) "Found $($compatForbiddenViolations.Count) violations"
 if (($Verbose -or $compatForbiddenViolations.Count -gt 0) -and $compatForbiddenViolations.Count -gt 0) {
     $preview = ($compatForbiddenViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18MigrationNamePattern = "\b(TypedQuickDsl|TypedQuickOps|TypedInequalityDsl|TypedLinearMatrixForm|TypedQuadraticMatrixForm|toTypedMatrixForm|typedLinearPolynomialFromMatrixForm|typedQuadraticPolynomialFromMatrixForm)\b"
+$p18MigrationNameViolations = @()
+$p18OperationRoot = "ospf-kotlin-math/src/main/fuookami/ospf/kotlin/math/symbol/operation"
+if (Test-Path $p18OperationRoot) {
+    Get-ChildItem -Path $p18OperationRoot -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match $p18MigrationNamePattern) {
+                $p18MigrationNameViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-1: No migration-era Typed names in math symbol operation API" ($p18MigrationNameViolations.Count -eq 0) "Found $($p18MigrationNameViolations.Count) violations"
+if (($Verbose -or $p18MigrationNameViolations.Count -gt 0) -and $p18MigrationNameViolations.Count -gt 0) {
+    $preview = ($p18MigrationNameViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18CoreMigrationNamePattern = "\b(LinearConstraintInputV|AbstractCallBackModelInterfaceV|CallBackModelInterfaceV|MultiObjectiveModelInterfaceV|nonzeroIndicatorConstraintsV|simpleIndicatorConstraintsV|linearInequalityAsV|quadraticInequalityAsV|mapValuesToV|dependencyAsIntermediateV|expressionRangeVFromFlt64|fullExpressionRangeV|flattenedMonomialsAsV|fromTyped|toTypedRange|evaluateSymbolV|evaluateLinearV|evaluateLinearFromResultsV|evaluateLinearFromValuesV|expandedQuadraticPolyV|evaluateQuadraticV|evaluateStepRangeV|evaluateMaskingV|generateOptimalCutV|generateFeasibleCutV|generateOptimalCutByIdV|generateFeasibleCutByIdV|BendersCutTypedByIdApiTest|linearTypedById|quadraticTypedById|typed-by-id|typedDual|typedOptimal|typedFeasible|solveV|GenericSolveVBridgeTest|RecordingLinearSolveVBridgeSolver|RecordingQuadraticSolveVBridgeSolver|setResultFromV|resultAsV|lowerBoundAsV|upperBoundAsV|FunctionSymbolMigrationTest|GenericTokenBridgeTest|MatrixFormBridgeTest|runBridgeCase|token_bridge|bridgedResult|matrixBridge|ExpressionRangeBridgeTest|ModelBuildingStatusBridgeTest|ProductFunctionSolverBridgeEvaluationTest|FunctionSymbolToDoubleBridgeGuardTest|CoreToDoubleBridgeGuardTest|solverBridge|solver_bridge|evaluateTypedFlattenDataWithResults|evaluateTypedQuadraticFlattenDataWithResults|posV|negV|mV|epsV|rhsV|lowerV|upperV|amountV|dualAsV|cutsV|intoV|backToV)\b|\bsymbol_migration\b|\b(IfFunction|IfThenFunction|SatisfiedAmountInequalityFunction|AnyFunction|AllFunction|AtLeastInequalityFunction|NotAllFunction|NumerableFunction)\.typed\s*\("
+$p18CoreMigrationNameViolations = @()
+$p18CoreScanRoots = @(
+    "ospf-kotlin-core/src/main",
+    "ospf-kotlin-core/src/test",
+    "ospf-kotlin-framework-gantt-scheduling"
+)
+foreach ($root in $p18CoreScanRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match $p18CoreMigrationNamePattern) {
+                $p18CoreMigrationNameViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-2: No migration-era Typed/*V names in core symbol API" ($p18CoreMigrationNameViolations.Count -eq 0) "Found $($p18CoreMigrationNameViolations.Count) violations"
+if (($Verbose -or $p18CoreMigrationNameViolations.Count -gt 0) -and $p18CoreMigrationNameViolations.Count -gt 0) {
+    $preview = ($p18CoreMigrationNameViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18BendersSolverBoundaryViolations = @()
+$p18BendersSolverRoots = @(
+    "ospf-kotlin-core-plugin"
+)
+foreach ($root in $p18BendersSolverRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*BendersDecompositionSolver.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match "mechanismModel\.generate(Optimal|Feasible)Cut\s*\(") {
+                $p18BendersSolverBoundaryViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-3: Benders solver-boundary calls use explicit Flt64 cut API" ($p18BendersSolverBoundaryViolations.Count -eq 0) "Found $($p18BendersSolverBoundaryViolations.Count) violations"
+if (($Verbose -or $p18BendersSolverBoundaryViolations.Count -gt 0) -and $p18BendersSolverBoundaryViolations.Count -gt 0) {
+    $preview = ($p18BendersSolverBoundaryViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18Flt64ConverterOldNamePattern = "\b(Flt64Bridge|Flt64BridgeTest|resolveFlt64Bridge|fromBridge)\b"
+$p18Flt64ConverterOldNameViolations = @()
+$p18Flt64ConverterScanRoots = @(
+    "ospf-kotlin-core/src",
+    "ospf-kotlin-math/src"
+)
+foreach ($root in $p18Flt64ConverterScanRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Include "*.kt", "*.md" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -match $p18Flt64ConverterOldNamePattern) {
+                $p18Flt64ConverterOldNameViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-4: Flt64 converter uses formal naming, not Bridge naming" ($p18Flt64ConverterOldNameViolations.Count -eq 0) "Found $($p18Flt64ConverterOldNameViolations.Count) violations"
+if (($Verbose -or $p18Flt64ConverterOldNameViolations.Count -gt 0) -and $p18Flt64ConverterOldNameViolations.Count -gt 0) {
+    $preview = ($p18Flt64ConverterOldNameViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18HeuristicOldGenericPattern = "AbstractCallBackModelInterface<\s*(\*|Obj)\s*,\s*V\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*\*\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*V\s*>|\bAbstract(GA|GWO|MVO|PSO|SAA|SCA)Policy<\s*V\s*>|\b(GeneAlgorithm|GreyWolfOptimizer|MultiVerseOptimizer|ParticleSwarmOptimizationAlgorithm|SimulatedAnnealingAlgorithm|SineCosineAlgorithm)<\s*Obj\s*,\s*V\s*>|typealias\s+MulObj(GA|GWO|MVO|PSO|SAA|SCA)\s*=\s*\w+<List<Pair<MultiObjectLocation<Flt64>, Flt64>>,\s*List<Flt64>>"
+$p18HeuristicOldGenericViolations = @()
+$p18HeuristicScanRoots = @(
+    "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic",
+    "ospf-kotlin-core-plugin/ospf-kotlin-core-plugin-heuristic/src/main"
+)
+foreach ($root in $p18HeuristicScanRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $filePath = $_.FullName
+        $relativePath = Get-RelativePath -Root "." -FilePath $filePath
+        $lineNumber = 0
+        Get-Content $filePath | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and $trimmed -match $p18HeuristicOldGenericPattern) {
+                $p18HeuristicOldGenericViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-5: Heuristic APIs split objective value and solution value generics" ($p18HeuristicOldGenericViolations.Count -eq 0) "Found $($p18HeuristicOldGenericViolations.Count) violations"
+if (($Verbose -or $p18HeuristicOldGenericViolations.Count -gt 0) -and $p18HeuristicOldGenericViolations.Count -gt 0) {
+    $preview = ($p18HeuristicOldGenericViolations | Select-Object -First 8) -join "; "
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 

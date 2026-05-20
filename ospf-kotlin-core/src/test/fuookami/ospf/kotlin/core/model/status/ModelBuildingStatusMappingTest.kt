@@ -11,7 +11,7 @@ import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
-class ModelBuildingStatusBridgeTest {
+class ModelBuildingStatusMappingTest {
     @Test
     fun registrationStatusShouldMapToRegisterTokens() {
         val status = RegistrationStatus(

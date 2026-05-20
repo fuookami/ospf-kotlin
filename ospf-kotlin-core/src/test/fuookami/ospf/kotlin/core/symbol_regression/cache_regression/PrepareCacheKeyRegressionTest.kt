@@ -1,5 +1,5 @@
 
-package fuookami.ospf.kotlin.core.symbol_migration.cache_regression
+package fuookami.ospf.kotlin.core.symbol_regression.cache_regression
 
 import fuookami.ospf.kotlin.core.intermediate_symbol.*
 import fuookami.ospf.kotlin.core.token.AutoTokenTable

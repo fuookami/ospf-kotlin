@@ -24,13 +24,13 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractPSOPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun accelerate(
         iteration: Iteration,
-        particle: Particle<V>,
-        bestParticle: Particle<V>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Particle<V>
+        particle: Particle<ObjValue, V>,
+        bestParticle: Particle<ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): Particle<ObjValue, V>
 }
 
 /**
@@ -38,7 +38,7 @@ interface AbstractPSOPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf
  * @property c1         local learning factor
  * @property c2         global learning factor
  */
-open class PSOPolicy<V>(
+open class PSOPolicy<ObjValue, V>(
     val w: Flt64 = Flt64(0.4),
     val c1: Flt64 = Flt64.two,
     val c2: Flt64 = Flt64.two,
@@ -52,7 +52,7 @@ open class PSOPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractPSOPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractPSOPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             w: Flt64 = Flt64(0.4),
@@ -63,7 +63,7 @@ open class PSOPolicy<V>(
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): PSOPolicy<Flt64> {
+        ): PSOPolicy<Flt64, Flt64> {
             return PSOPolicy(
                 w = w,
                 c1 = c1,
@@ -79,10 +79,10 @@ open class PSOPolicy<V>(
     }
     override fun accelerate(
         iteration: Iteration,
-        particle: Particle<V>,
-        bestParticle: Particle<V>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): Particle<V> {
+        particle: Particle<ObjValue, V>,
+        bestParticle: Particle<ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): Particle<ObjValue, V> {
         return particle.new(
             newVelocity = (0 until particle.size).map {
                 val posFlt64 = converter.fromValue(particle.solution[it])
@@ -108,10 +108,10 @@ open class PSOPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class ParticleSwarmOptimizationAlgorithm<Obj, V>(
+class ParticleSwarmOptimizationAlgorithm<Obj, ObjValue, V>(
     val particleAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractPSOPolicy<V>,
+    val policy: AbstractPSOPolicy<ObjValue, V>,
     // converter must be provided explicitly; use PSOPolicy.Flt64 companion for V=Flt64 convenience
     private val converter: IntoValue<V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
@@ -119,8 +119,8 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
         operator fun invoke(
             particleAmount: UInt64 = UInt64(100UL),
             solutionAmount: UInt64 = UInt64.one,
-            policy: AbstractPSOPolicy<Flt64> = PSOPolicy()
-        ): ParticleSwarmOptimizationAlgorithm<Flt64, Flt64> {
+            policy: AbstractPSOPolicy<Flt64, Flt64> = PSOPolicy()
+        ): ParticleSwarmOptimizationAlgorithm<Flt64, Flt64, Flt64> {
             return ParticleSwarmOptimizationAlgorithm(
                 particleAmount = particleAmount,
                 solutionAmount = solutionAmount,
@@ -130,10 +130,10 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
         }
     }
     operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
         initialVelocityGenerator: Extractor<Flt64, UInt64> = { Random.nextFlt64(Flt64.two) - Flt64.one },
-        runningCallBack: ((Iteration, Particle<V>, List<Particle<V>>) -> Try)? = null
-    ): List<Individual<V>> {
+        runningCallBack: ((Iteration, Particle<ObjValue, V>, List<Particle<ObjValue, V>>) -> Try)? = null
+    ): List<Individual<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model.initialSolutions(particleAmount)
         var particles = initialSolutions
@@ -207,6 +207,6 @@ class ParticleSwarmOptimizationAlgorithm<Obj, V>(
     }
 }
 
-typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64>
-typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias PSO = ParticleSwarmOptimizationAlgorithm<Flt64, Flt64, Flt64>
+typealias MulObjPSO = ParticleSwarmOptimizationAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 

@@ -34,11 +34,20 @@ import fuookami.ospf.kotlin.core.token.LinearFlattenData
 
 
 /**
+ * 函数符号注册生命周期的 V 泛型基类。
  * V-generic base for function symbol registration lifecycle.
  *
+ * [registerAuxiliaryTokens] 与 [registerConstraints] 都在 V 类型边界上工作。
+ * 实现会通过 [IntoValue]<V> 转换器，在内部构造约束时完成 V 与 Flt64 之间的转换。
+ *
  * Both [registerAuxiliaryTokens] and [registerConstraints] operate on V-typed
- * boundaries. Implementations use their [IntoValue]<V> converter to bridge
- * V-typed data to Flt64 when constructing constraints internally.
+ * boundaries. Implementations use their [IntoValue]<V> converter to convert
+ * between V-typed data and Flt64 when constructing constraints internally.
+ *
+ * 运行时 token 集合与机制模型仍位于 Flt64 求解器边界，因此调用点会传入
+ * `AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>` 与
+ * `AbstractLinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>`，
+ * 它们也是 V 类型接口的子类型。
  *
  * At runtime, the token collection and mechanism model are always Flt64-based
  * (solver boundary), so call sites pass `AddableTokenCollection<fuookami.ospf.kotlin.math.algebra.number.Flt64>` and
@@ -123,8 +132,8 @@ class LinearFunctionSymbolAdapter<V>(
     val pos: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V>
         val slackRange = delegate as? SlackRangeFunction<V>
-        val posV = slack?.posVar ?: slackRange?.posVar
-        posV?.let { v ->
+        val posVar = slack?.posVar ?: slackRange?.posVar
+        posVar?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
                 constant = converter.zero
@@ -135,8 +144,8 @@ class LinearFunctionSymbolAdapter<V>(
     val neg: LinearPolynomial<V>? by lazy {
         val slack = delegate as? SlackFunction<V>
         val slackRange = delegate as? SlackRangeFunction<V>
-        val negV = slack?.negVar ?: slackRange?.negVar
-        negV?.let { v ->
+        val negVar = slack?.negVar ?: slackRange?.negVar
+        negVar?.let { v ->
             LinearPolynomial(
                 monomials = listOf(LinearMonomial(converter.one, v)),
                 constant = converter.zero
@@ -180,11 +189,11 @@ class LinearFunctionSymbolAdapter<V>(
     override val cached: Boolean get() = false
     override val dependencies: Set<fuookami.ospf.kotlin.core.intermediate_symbol.IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {}
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
@@ -193,7 +202,7 @@ class LinearFunctionSymbolAdapter<V>(
     }
     override fun toRawString(unfold: UInt64): String = name
 
-    internal val flattenedMonomialsAsV: LinearFlattenData<V> get() {
+    internal val flattenedMonomials: LinearFlattenData<V> get() {
         val poly = (delegate as? HasResultPolynomial<V>)?.resultPolynomial
             ?: LinearPolynomial(emptyList(), converter.zero)
         return LinearFlattenData(poly.monomials, poly.constant)
@@ -214,7 +223,7 @@ class LinearFunctionSymbolAdapter<V>(
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
-        val v = delegate.evaluate(SolverBoundaryCasts.mapValuesToV(values, converter)) ?: return null
+        val v = delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.fromValue(v)
     }
 
@@ -257,7 +266,7 @@ class LinearFunctionSymbolAdapter<V>(
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return delegate.evaluate(SolverBoundaryCasts.mapValuesToV(values, converter))
+        return delegate.evaluate(SolverBoundaryCasts.mapValues(values, converter))
     }
 }
 

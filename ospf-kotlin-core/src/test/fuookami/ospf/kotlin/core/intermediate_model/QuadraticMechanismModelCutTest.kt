@@ -66,7 +66,7 @@ class QuadraticMechanismModelCutTest {
             tokens = tokens
         )
 
-        val result = mechanismModel.generateOptimalCut(
+        val result = mechanismModel.generateFlt64OptimalCut(
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64.one, y to Flt64(2.0)),
             dualSolution = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64(2.0))
@@ -109,7 +109,7 @@ class QuadraticMechanismModelCutTest {
             tokens = tokens
         )
 
-        val result = mechanismModel.generateOptimalCut(
+        val result = mechanismModel.generateFlt64OptimalCut(
             objectVariable = theta,
             fixedVariables = mapOf(x to Flt64(2.0)),
             dualSolution = mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)

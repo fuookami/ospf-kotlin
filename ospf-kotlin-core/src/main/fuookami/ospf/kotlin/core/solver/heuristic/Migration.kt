@@ -8,22 +8,22 @@ import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
-interface Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    operator fun <T : Individual<V>> invoke(
+interface Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>>
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>>
 }
 
-data class RandomMigration<V>(
+data class RandomMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val migrants = populations.map { population ->
             val migrateCount = maxOf(1, (Flt64(population.individuals.size) * Flt64(0.1)).round().toUInt64().toInt())
@@ -37,14 +37,14 @@ data class RandomMigration<V>(
     }
 }
 
-data class BetterToWorseMigration<V>(
+data class BetterToWorseMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val bestFromEach = populations.map { pop ->
             pop.individuals.minMaxWithPartialThreeWayComparatorOrNull { lhs, rhs ->
@@ -58,14 +58,14 @@ data class BetterToWorseMigration<V>(
     }
 }
 
-data class MoreToLessMigration<V>(
+data class MoreToLessMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val sorted = populations.sortedByDescending { it.individuals.size }
         val donors = sorted.first().individuals.take(maxOf(1, sorted.first().individuals.size / populations.size))
@@ -75,14 +75,14 @@ data class MoreToLessMigration<V>(
     }
 }
 
-data class MigrationMigration<V>(
+data class MigrationMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val migrationRate = Flt64(0.1)
         val migrants = populations.map { population ->
@@ -96,14 +96,14 @@ data class MigrationMigration<V>(
     }
 }
 
-data class RingExchangeMigration<V>(
+data class RingExchangeMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val exchangeProb = Flt64(0.5)
         return populations.mapIndexed { index, population ->
@@ -115,14 +115,14 @@ data class RingExchangeMigration<V>(
     }
 }
 
-data class RandomDiffusionMigration<V>(
+data class RandomDiffusionMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val diffusionRate = Flt64(0.1)
         val allIndividuals = populations.flatMap { it.individuals }.shuffled()
@@ -134,14 +134,14 @@ data class RandomDiffusionMigration<V>(
     }
 }
 
-data class ElitistMigrationMigration<V>(
+data class ElitistMigrationMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val eliteCount = maxOf(1, populations.first().individuals.size / 10)
         val elites = populations.map { pop ->
@@ -158,14 +158,14 @@ data class ElitistMigrationMigration<V>(
     }
 }
 
-data class PopulationMergeMigration<V>(
+data class PopulationMergeMigration<ObjValue, V>(
     private val randomGenerator: Generator<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
-) : Migration<V> where V : RealNumber<V>, V : NumberField<V> {
-    override operator fun <T : Individual<V>> invoke(
+) : Migration<ObjValue, V> where V : RealNumber<V>, V : NumberField<V> {
+    override operator fun <T : Individual<ObjValue, V>> invoke(
         iteration: Iteration,
-        populations: List<Population<T, V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Pair<Population<T, V>, List<T>>> {
+        populations: List<Population<T, ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Pair<Population<T, ObjValue, V>, List<T>>> {
         if (populations.size < 2) return populations.map { it to emptyList() }
         val merged = populations.flatMap { it.individuals }.shuffled()
         val chunkSize = maxOf(1, merged.size / populations.size)

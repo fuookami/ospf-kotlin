@@ -33,28 +33,28 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-interface AbstractSCAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractSCAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     fun r1(iteration: Iteration): Flt64
 
     fun r2(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64>
 
     fun r3(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64>
 
     fun move(
         iteration: Iteration,
-        solution: SolutionWithFitness<V>,
-        bestSolution: SolutionWithFitness<V>,
+        solution: SolutionWithFitness<ObjValue, V>,
+        bestSolution: SolutionWithFitness<ObjValue, V>,
         r1: Flt64,
         r2: List<Flt64>,
         r3: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): SolutionWithFitness<V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): SolutionWithFitness<ObjValue, V>
 }
 
 data class QLearningState(
@@ -80,7 +80,7 @@ data class QLearningState(
     }
 }
 
-class SCAPolicy<V>(
+class SCAPolicy<ObjValue, V>(
     private val alpha: Flt64 = Flt64(0.1),
     private val gamma: Flt64 = Flt64(0.9),
     iterationLimit: UInt64 = UInt64.maximum,
@@ -92,7 +92,7 @@ class SCAPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractSCAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractSCAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
             alpha: Flt64 = Flt64(0.1),
@@ -101,7 +101,7 @@ class SCAPolicy<V>(
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): SCAPolicy<Flt64> {
+        ): SCAPolicy<Flt64, Flt64> {
             return SCAPolicy(
                 alpha = alpha,
                 gamma = gamma,
@@ -138,7 +138,7 @@ class SCAPolicy<V>(
 
     override fun r2(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64> {
         return model.tokens.tokens.indices.map {
             Flt64.two * Flt64.pi * randomGenerator()!!
@@ -156,7 +156,7 @@ class SCAPolicy<V>(
 
     override fun r3(
         iteration: Iteration,
-        model: AbstractCallBackModelInterface<*, V>
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
     ): List<Flt64> {
         val (minR3, maxR3) = r3Range
         return model.tokens.tokens.indices.map {
@@ -166,13 +166,13 @@ class SCAPolicy<V>(
 
     override fun move(
         iteration: Iteration,
-        solution: SolutionWithFitness<V>,
-        bestSolution: SolutionWithFitness<V>,
+        solution: SolutionWithFitness<ObjValue, V>,
+        bestSolution: SolutionWithFitness<ObjValue, V>,
         r1: Flt64,
         r2: List<Flt64>,
         r3: List<Flt64>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): SolutionWithFitness<V> {
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): SolutionWithFitness<ObjValue, V> {
         val newSolution = solution.solution.mapIndexed { index, position ->
             val posFlt64 = converter.fromValue(position)
             val bestFlt64 = converter.fromValue(bestSolution.solution[index])
@@ -193,10 +193,10 @@ class SCAPolicy<V>(
     override fun update(
         iteration: Iteration,
         better: Boolean,
-        bestIndividual: Individual<*>,
-        goodIndividuals: List<Individual<*>>,
-        populations: List<List<Individual<*>>>,
-        model: AbstractCallBackModelInterface<*, *>
+        bestIndividual: Individual<*, *>,
+        goodIndividuals: List<Individual<*, *>>,
+        populations: List<List<Individual<*, *>>>,
+        model: AbstractCallBackModelInterface<*, *, *>
     ) {
         if (better) {
             updateQTable(Flt64.one)
@@ -211,9 +211,9 @@ class SCAPolicy<V>(
     }
 
     private fun updateState(
-        population: List<Individual<*>>,
-        best: Individual<*>,
-        model: AbstractCallBackModelInterface<*, *>
+        population: List<Individual<*, *>>,
+        best: Individual<*, *>,
+        model: AbstractCallBackModelInterface<*, *, *>
     ) {
         val density = calculateDensity(population)
         val distance = calculateDistance(
@@ -231,9 +231,9 @@ class SCAPolicy<V>(
         actions[bestAction] += alpha * (reward + gamma * maxNextQ - actions[bestAction])
     }
     private fun calculateDensity(
-        population: List<Individual<*>>
+        population: List<Individual<*, *>>
     ): Flt64 {
-        val typedPopulation = population as List<Individual<V>>
+        val typedPopulation = population as List<Individual<ObjValue, V>>
         val flt64Solutions = typedPopulation.map { ind -> ind.solution.map { converter.fromValue(it) } }
         val center = flt64Solutions.flatMap { it }.average()
         return flt64Solutions.sumOf { solution ->
@@ -243,16 +243,18 @@ class SCAPolicy<V>(
         } / Flt64(population.size * flt64Solutions.first().size)
     }
     private fun calculateDistance(
-        population: List<Individual<*>>,
-        best: Individual<*>,
-        model: AbstractCallBackModelInterface<*, *>
+        population: List<Individual<*, *>>,
+        best: Individual<*, *>,
+        model: AbstractCallBackModelInterface<*, *, *>
     ): Flt64 {
-        val typedBest = best as Individual<V>
+        val typedBest = best as Individual<ObjValue, V>
         val bestFlt64 = typedBest.solution.map { converter.fromValue(it) }
         val maxDistance = model.tokens.tokens.sumOf {
-            (it.upperBound!!.value.unwrap() - it.lowerBound!!.value.unwrap()).sqr()
+            val upper = converter.fromValue(it.upperBound!!.value.unwrap() as V)
+            val lower = converter.fromValue(it.lowerBound!!.value.unwrap() as V)
+            (upper - lower).sqr()
         }.sqrt()
-        return (population as List<Individual<V>>).sumOf { individual ->
+        return (population as List<Individual<ObjValue, V>>).sumOf { individual ->
             val solFlt64 = individual.solution.map { converter.fromValue(it) }
             solFlt64.withIndex().sumOf { (index, position) ->
                 (position - bestFlt64[index]).sqr()
@@ -262,15 +264,15 @@ class SCAPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class SineCosineAlgorithm<Obj, V>(
+class SineCosineAlgorithm<Obj, ObjValue, V>(
     val populationAmount: UInt64 = UInt64(100UL),
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractSCAPolicy<V>
+    val policy: AbstractSCAPolicy<ObjValue, V>
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, SolutionWithFitness<V>) -> Try)? = null
-    ): List<Individual<V>> {
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
+        runningCallBack: ((Iteration, SolutionWithFitness<ObjValue, V>) -> Try)? = null
+    ): List<Individual<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model.initialSolutions(populationAmount)
         var population = initialSolutions
@@ -345,7 +347,7 @@ class SineCosineAlgorithm<Obj, V>(
     }
 }
 
-typealias SCA = SineCosineAlgorithm<Flt64, Flt64>
-typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias SCA = SineCosineAlgorithm<Flt64, Flt64, Flt64>
+typealias MulObjSCA = SineCosineAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 
 

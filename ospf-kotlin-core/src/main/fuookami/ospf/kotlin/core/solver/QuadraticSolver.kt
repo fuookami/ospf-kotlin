@@ -141,10 +141,10 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    // ========== V-generic primary interface ==========
-    // solveV is the primary V-generic entry point; tetrad solve calls remain the solver boundary.
+    // ========== 泛型主接口 / Generic primary interface ==========
+    // solve 是泛型主入口；tetrad solve 调用仍是求解器边界。 / solve is the primary generic entry point; tetrad solve calls remain the solver boundary.
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: QuadraticTetradModelView,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -156,7 +156,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: QuadraticTetradModelView,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
@@ -172,8 +172,8 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    // V-generic solveV for generic MechanismModel<V>: full pipeline (dump -> solve -> convert)
-    suspend fun <V> solveV(
+    // MechanismModel<V> 的泛型 solve 全链路：dump -> solve -> convert。 / Generic solve for MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -182,7 +182,7 @@ interface AbstractQuadraticSolver {
             is Ok -> {
                 val quadraticModel = converted.value as? QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Quadratic solver requires QuadraticMechanismModel, but got ${converted.value::class.simpleName}"))
-                dump(quadraticModel).use { solveV(it, converter, solvingStatusCallBack) }
+                dump(quadraticModel).use { solve(it, converter, solvingStatusCallBack) }
             }
 
             is Failed -> {
@@ -195,7 +195,7 @@ interface AbstractQuadraticSolver {
         }
     }
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
@@ -205,7 +205,7 @@ interface AbstractQuadraticSolver {
             is Ok -> {
                 val quadraticModel = converted.value as? QuadraticMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Quadratic solver requires QuadraticMechanismModel, but got ${converted.value::class.simpleName}"))
-                dump(quadraticModel).use { solveV(it, solutionAmount, converter, solvingStatusCallBack) }
+                dump(quadraticModel).use { solve(it, solutionAmount, converter, solvingStatusCallBack) }
             }
 
             is Failed -> {

@@ -1,9 +1,9 @@
 /**
  * 泛型不等式 DSL
- * Typed Inequality DSL
+ * Inequality DSL
  *
- * 提供基于 Flt64Bridge 的泛型比较运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
- * Provides generic comparison operator overloads based on Flt64Bridge, supporting Flt64/FltX/Rtn64/RtnX numeric types.
+ * 提供基于 Flt64ValueConverter 的泛型比较运算符重载，支持 Flt64/FltX/Rtn64/RtnX 四种数值类型。
+ * Provides generic comparison operator overloads based on Flt64ValueConverter, supporting Flt64/FltX/Rtn64/RtnX numeric types.
  */
 @file:Suppress("unused")
 
@@ -19,20 +19,20 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 
 /**
  * 泛型不等式 DSL
- * Typed Inequality DSL
+ * Inequality DSL
  *
- * 通过 Flt64Bridge 提供泛型比较运算符重载。
- * Provides generic comparison operator overloads via Flt64Bridge.
+ * 通过 Flt64ValueConverter 提供泛型比较运算符重载。
+ * Provides generic comparison operator overloads via Flt64ValueConverter.
  *
  * @param V 数值类型，同时满足 NumberField 和 RealNumber 约束 / Numeric type satisfying both NumberField and RealNumber constraints
- * @param bridge Flt64 到 V 的桥接转换器 / Flt64 to V bridge converter
+ * @param converter Flt64 到 V 的转换器 / Flt64 to V converter
  */
-class TypedInequalityDsl<V>(private val bridge: Flt64Bridge<V>) where V : NumberField<V>, V : RealNumber<V> {
+class InequalityDsl<V>(private val converter: Flt64ValueConverter<V>) where V : NumberField<V>, V : RealNumber<V> {
     private fun Symbol.asLinearPolynomial(): LinearPolynomial<V> =
-        LinearPolynomial(listOf(LinearMonomial(bridge.one, this)), bridge.zero)
+        LinearPolynomial(listOf(LinearMonomial(converter.one, this)), converter.zero)
 
     private fun Flt64.asLinearPolynomial(): LinearPolynomial<V> =
-        LinearPolynomial(emptyList(), bridge.intoValue(this))
+        LinearPolynomial(emptyList(), converter.intoValue(this))
 
     private fun Boolean.asFlt64(): Flt64 = if (this) Flt64.one else Flt64.zero
 

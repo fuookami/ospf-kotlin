@@ -11,7 +11,7 @@
 | 组件 | 用途 |
 |------|------|
 | `PropertyPath` | 统一的路径抽象，用于字段/属性引用（`a.b.c`） |
-| `PathSymbol` | `PropertyPath` 与 `Symbol` 接口之间的桥接 |
+| `PathSymbol` | `PropertyPath` 与 `Symbol` 接口之间的适配器 |
 | `ScalarExpression` | 标量值 AST（Constant、Reference、Unary、Binary、Function） |
 | `BooleanExpression` | 布尔逻辑 AST（And、Or、Not、Comparison、In、PatternMatch、NullCheck） |
 | `ExpressionOperator` | 操作符定义（一元、二元、比较、模式匹配） |
@@ -21,7 +21,7 @@
 ```
 expression/
 ├── PropertyPath.kt       # 路径抽象
-├── PathSymbol.kt         # 路径-符号桥接
+├── PathSymbol.kt         # 路径-符号适配器
 ├── ScalarExpression.kt   # 标量表达式 AST
 ├── BooleanExpression.kt  # 布尔表达式 AST
 ├── ExpressionOperator.kt # 操作符定义
@@ -84,7 +84,7 @@ val json = expr.toJsonString()
 val restored = booleanExpressionFromJson(json)
 ```
 
-### 旧版桥接
+### 旧版 AST
 
 旧版 `Expr` AST 和 `LegacyExprBridge` 已移除。SQL 风格表达式请直接使用 `BooleanExpression`，多项式/不等式解析请使用 `symbol.parse` 函数。
 

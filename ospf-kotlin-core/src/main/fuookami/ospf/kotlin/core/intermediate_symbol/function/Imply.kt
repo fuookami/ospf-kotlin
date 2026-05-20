@@ -86,8 +86,8 @@ class ImplyFunction<V>(
         val allConstraints = mutableListOf<LinearInequality<V>>()
 
         // Nonzero indicators
-        allConstraints += nonzeroIndicatorConstraintsV(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
-        allConstraints += nonzeroIndicatorConstraintsV(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
+        allConstraints += nonzeroIndicatorConstraints(antecedent, antecedentIndicatorVar, antecedentSideVar, mVal, tolerance, strictBoundary, "${name}_ant")
+        allConstraints += nonzeroIndicatorConstraints(consequent, consequentIndicatorVar, consequentSideVar, mVal, tolerance, strictBoundary, "${name}_con")
 
         // Implication: antecedent_indicator <= consequent_indicator
         // If antecedent is nonzero, consequent must also be nonzero

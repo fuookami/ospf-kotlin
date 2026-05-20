@@ -38,14 +38,14 @@ class GenericNumberConverterTest {
         )
 
         for (sample in finiteSamples) {
-            val intoV = numberCase.converter.intoValue(sample)
-            val backToFlt64 = numberCase.converter.fromValue(intoV)
+            val convertedValue = numberCase.converter.intoValue(sample)
+            val backToFlt64 = numberCase.converter.fromValue(convertedValue)
             assertEquals(sample, backToFlt64, "${numberCase.name}: Flt64 -> V -> Flt64 round-trip mismatch for $sample")
 
-            val backToV = numberCase.converter.intoValue(backToFlt64)
+            val roundTripValue = numberCase.converter.intoValue(backToFlt64)
             assertEquals(
                 backToFlt64,
-                numberCase.converter.fromValue(backToV),
+                numberCase.converter.fromValue(roundTripValue),
                 "${numberCase.name}: V -> Flt64 -> V -> Flt64 round-trip mismatch for $sample"
             )
         }

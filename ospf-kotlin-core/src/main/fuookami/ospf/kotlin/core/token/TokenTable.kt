@@ -30,12 +30,12 @@ import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.joinAll
 import kotlinx.coroutines.launch
 
-// Solver-boundary bridge: delegates to centralized SolverBoundaryCasts
+// 求解器边界转换：委托给集中的 SolverBoundaryCasts。 / Solver-boundary conversion: delegates to centralized SolverBoundaryCasts.
 private fun IntermediateSymbol<*>.registerAuxTokensStar(tokens: AddableTokenCollection<*>): Try {
     return SolverBoundaryCasts.registerAuxiliaryTokensStar(this, tokens)
 }
 
-// Solver-boundary bridge: delegates to centralized SolverBoundaryCasts
+// 求解器边界转换：委托给集中的 SolverBoundaryCasts。 / Solver-boundary conversion: delegates to centralized SolverBoundaryCasts.
 private fun IntermediateSymbol<*>.prepareStar(
     fixedValues: Map<Symbol, Flt64>?,
     tokenTable: AbstractTokenTable<fuookami.ospf.kotlin.math.algebra.number.Flt64>

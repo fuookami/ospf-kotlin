@@ -11,15 +11,21 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 
 /**
- * Regression tests for ExpressionRange<V> bridge safety.
+ * ExpressionRange<V> 求解器边界安全回归测试。
+ * Regression tests for ExpressionRange<V> solver-boundary safety.
  *
- * SolverBoundaryCasts.expressionRangeVFromFlt64() casts ValueRange<Flt64> to
+ * SolverBoundaryCasts.expressionRangeFromFlt64() 会把 ValueRange<Flt64> 转为
+ * ValueRange<V>，并把 Flt64 常量转为 V。运行时 V=Flt64 时该转换安全；若 V!=Flt64
+ * 且用户读取 range/lowerBound/upperBound，则存在运行时类型污染风险。本测试固定当前行为，
+ * 并记录求解器边界技术债。
+ *
+ * SolverBoundaryCasts.expressionRangeFromFlt64() casts ValueRange<Flt64> to
  * ValueRange<V> and Flt64 constants to V. At runtime V=Flt64 so the cast is
  * safe, but if V!=Flt64 users read range/lowerBound/upperBound, there is a
  * runtime type pollution risk. These tests lock down the current behavior and
  * document the solver-boundary tech debt.
  */
-class ExpressionRangeBridgeTest {
+class ExpressionRangeSolverBoundaryTest {
 
     private fun Bound<Flt64>.flt64Value(): Flt64 = (this.value as ValueWrapper.Value).value
 
@@ -62,7 +68,7 @@ class ExpressionRangeBridgeTest {
     }
 
     @Test
-    fun `SolverBoundaryCasts expressionRangeVFromFlt64 preserves Flt64 range`() {
+    fun `SolverBoundaryCasts expressionRangeFromFlt64 preserves Flt64 range`() {
         val vr = ValueRange(
             Flt64(2.0),
             Flt64(20.0),
@@ -70,23 +76,23 @@ class ExpressionRangeBridgeTest {
             Interval.Closed,
             Flt64 as RealNumberConstants<Flt64>
         ).value!!
-        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.expressionRangeVFromFlt64(vr)
+        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.expressionRangeFromFlt64(vr)
         assertNotNull(range.range)
         assertEquals(Flt64(2.0), range.lowerBound!!.flt64Value())
         assertEquals(Flt64(20.0), range.upperBound!!.flt64Value())
     }
 
     @Test
-    fun `SolverBoundaryCasts fullExpressionRangeV gives full Flt64 range`() {
-        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.fullExpressionRangeV()
+    fun `SolverBoundaryCasts fullExpressionRange gives full Flt64 range`() {
+        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.fullExpressionRange()
         assertNotNull(range.range)
         assertEquals(Flt64.minimum, range.lowerBound!!.flt64Value())
         assertEquals(Flt64.maximum, range.upperBound!!.flt64Value())
     }
 
     @Test
-    fun `SolverBoundaryCasts expressionRangeVFromFlt64 null returns empty range`() {
-        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.expressionRangeVFromFlt64(null)
+    fun `SolverBoundaryCasts expressionRangeFromFlt64 null returns empty range`() {
+        val range: ExpressionRange<Flt64> = SolverBoundaryCasts.expressionRangeFromFlt64(null)
         assertNull(range.range)
         assertTrue(range.empty)
     }

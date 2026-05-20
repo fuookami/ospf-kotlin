@@ -41,9 +41,9 @@ import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
 
-class BendersCutTypedByIdApiTest {
+class BendersCutByIdApiTest {
     @Test
-    fun linearTypedByIdShouldGenerateCutsForFourNumberTypes() {
+    fun linearByIdShouldGenerateCutsForFourNumberTypes() {
         runLinearCase(GenericNumberCases.flt64)
         runLinearCase(GenericNumberCases.fltX)
         runLinearCase(GenericNumberCases.rtn64)
@@ -51,7 +51,7 @@ class BendersCutTypedByIdApiTest {
     }
 
     @Test
-    fun quadraticTypedByIdShouldGenerateCutsForFourNumberTypes() {
+    fun quadraticByIdShouldGenerateCutsForFourNumberTypes() {
         runQuadraticCase(GenericNumberCases.flt64)
         runQuadraticCase(GenericNumberCases.fltX)
         runQuadraticCase(GenericNumberCases.rtn64)
@@ -82,10 +82,10 @@ class BendersCutTypedByIdApiTest {
         )
         val mechanismModel = LinearMechanismModel(
             parent = LinearMetaModel<V>(
-                name = "typed-by-id-linear-${numberCase.name.lowercase()}",
+                name = "by-id-linear-${numberCase.name.lowercase()}",
                 converter = numberCase.converter
             ),
-            name = "typed-by-id-linear-model-${numberCase.name.lowercase()}",
+            name = "by-id-linear-model-${numberCase.name.lowercase()}",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<LinearSubObject<V>>()),
             tokens = tokens
@@ -93,38 +93,33 @@ class BendersCutTypedByIdApiTest {
 
         try {
             val fixedVars: Map<AbstractVariableItem<*, *>, V> = mapOf(x to numberCase.two)
-            val typedDualById = mapOf(constraint.name to numberCase.one)
-            @Suppress("UNCHECKED_CAST")
-            val directDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
+            val dualSolution: Map<Constraint<V, MechanismLinear>, V> = mapOf(constraint to numberCase.one)
+            val dualById = mapOf(constraint.name to numberCase.one)
 
-            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, directDual)
-            val typedOptimal = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, typedDualById)
-            assertEquals(direct.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+            val byIdOptimal = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+            assertEquals(direct.size, byIdOptimal.size, "${numberCase.name}: optimal cut size mismatch")
             for (i in direct.indices) {
                 assertLinearInequalityEquals(
-                    direct[i],
-                    toFlt64LinearInequality(typedOptimal[i], numberCase),
+                    toFlt64LinearInequality(direct[i], numberCase),
+                    toFlt64LinearInequality(byIdOptimal[i], numberCase),
                     "${numberCase.name}: optimal[$i]"
                 )
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val directFeasibleDual: kotlin.collections.Map<Constraint<Flt64, MechanismLinear>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismLinear> to Flt64.one)
-            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, directFeasibleDual)
-            assertEquals(1, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, dualSolution)
+            assertEquals(1, byIdOptimal.size, "${numberCase.name}: optimal cut size mismatch")
             assertTrue(
-                typedOptimal.first().toLinearFlattenData().getOrThrow().monomials.any { it.symbol == theta },
+                byIdOptimal.first().toLinearFlattenData().getOrThrow().monomials.any { it.symbol == theta },
                 "${numberCase.name}: optimal cut should contain theta"
             )
 
-            val typedFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, typedDualById)
-            assertEquals(directFeasible.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
+            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, dualById)
+            assertEquals(directFeasible.size, byIdFeasible.size, "${numberCase.name}: feasible cut size mismatch")
             for (i in directFeasible.indices) {
                 assertLinearInequalityEquals(
-                    directFeasible[i],
-                    toFlt64LinearInequality(typedFeasible[i], numberCase),
+                    toFlt64LinearInequality(directFeasible[i], numberCase),
+                    toFlt64LinearInequality(byIdFeasible[i], numberCase),
                     "${numberCase.name}: feasible[$i]"
                 )
             }
@@ -161,10 +156,10 @@ class BendersCutTypedByIdApiTest {
         )
         val mechanismModel = QuadraticMechanismModel(
             parent = QuadraticMetaModel<V>(
-                name = "typed-by-id-quadratic-${numberCase.name.lowercase()}",
+                name = "by-id-quadratic-${numberCase.name.lowercase()}",
                 converter = numberCase.converter
             ),
-            name = "typed-by-id-quadratic-model-${numberCase.name.lowercase()}",
+            name = "by-id-quadratic-model-${numberCase.name.lowercase()}",
             constraints = listOf(constraint),
             objectFunction = SingleObject(ObjectCategory.Minimum, emptyList<QuadraticSubObject<V>>()),
             tokens = tokens
@@ -175,34 +170,27 @@ class BendersCutTypedByIdApiTest {
                 x to numberCase.one,
                 y to numberCase.two
             )
-            val typedDualById = mapOf(constraint.name to numberCase.one)
-            @Suppress("UNCHECKED_CAST")
-            val directDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
+            val dualSolution: Map<Constraint<V, MechanismQuadratic>, V> = mapOf(constraint to numberCase.one)
+            val dualById = mapOf(constraint.name to numberCase.one)
 
-            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, directDual)
-            val typedOptimal = mechanismModel.generateOptimalCutByIdV(theta, fixedVars, typedDualById)
-            assertTrue(direct is Ok, "${numberCase.name}: direct optimal cut should succeed")
-            assertEquals(direct.value.size, typedOptimal.size, "${numberCase.name}: optimal cut size mismatch")
-            for (i in direct.value.indices) {
+            val direct = mechanismModel.generateOptimalCut(theta, fixedVars, dualSolution)
+            val byIdOptimal = mechanismModel.generateOptimalCutById(theta, fixedVars, dualById)
+            assertEquals(direct.size, byIdOptimal.size, "${numberCase.name}: optimal cut size mismatch")
+            for (i in direct.indices) {
                 assertCutEquals(
-                    direct.value[i],
-                    toFlt64Cut(typedOptimal[i], numberCase),
+                    toFlt64Cut(direct[i], numberCase),
+                    toFlt64Cut(byIdOptimal[i], numberCase),
                     "${numberCase.name}: optimal[$i]"
                 )
             }
 
-            @Suppress("UNCHECKED_CAST")
-            val directFeasibleDual: kotlin.collections.Map<Constraint<Flt64, MechanismQuadratic>, Flt64> =
-                mapOf(constraint as Constraint<Flt64, MechanismQuadratic> to Flt64.one)
-            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, directFeasibleDual)
-            val typedFeasible = mechanismModel.generateFeasibleCutByIdV(fixedVars, typedDualById)
-            assertTrue(directFeasible is Ok, "${numberCase.name}: direct feasible cut should succeed")
-            assertEquals(directFeasible.value.size, typedFeasible.size, "${numberCase.name}: feasible cut size mismatch")
-            for (i in directFeasible.value.indices) {
+            val directFeasible = mechanismModel.generateFeasibleCut(fixedVars, dualSolution)
+            val byIdFeasible = mechanismModel.generateFeasibleCutById(fixedVars, dualById)
+            assertEquals(directFeasible.size, byIdFeasible.size, "${numberCase.name}: feasible cut size mismatch")
+            for (i in directFeasible.indices) {
                 assertCutEquals(
-                    directFeasible.value[i],
-                    toFlt64Cut(typedFeasible[i], numberCase),
+                    toFlt64Cut(directFeasible[i], numberCase),
+                    toFlt64Cut(byIdFeasible[i], numberCase),
                     "${numberCase.name}: feasible[$i]"
                 )
             }

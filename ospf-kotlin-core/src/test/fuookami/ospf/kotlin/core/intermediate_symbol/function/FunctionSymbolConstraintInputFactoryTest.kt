@@ -4,7 +4,7 @@ import fuookami.ospf.kotlin.core.model.mechanism.LinearMechanismModel
 import fuookami.ospf.kotlin.core.model.mechanism.LinearMetaModel
 import fuookami.ospf.kotlin.core.model.basic.ConstraintRelation
 import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintImpl
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.testing.GenericNumberCase
 import fuookami.ospf.kotlin.core.testing.GenericNumberCases
 import fuookami.ospf.kotlin.core.variable.RealVar
@@ -23,9 +23,9 @@ import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertTrue
 
-class FunctionSymbolConstraintInputVFactoryTest {
+class FunctionSymbolConstraintInputFactoryTest {
     @Test
-    fun ifAndIfThenTypedFactoryShouldRegisterConstraintsForFourNumberTypes() {
+    fun ifAndIfThenFactoryShouldRegisterConstraintsForFourNumberTypes() {
         runCase(GenericNumberCases.flt64)
         runCase(GenericNumberCases.fltX)
         runCase(GenericNumberCases.rtn64)
@@ -34,11 +34,11 @@ class FunctionSymbolConstraintInputVFactoryTest {
 
     private fun <V> runCase(numberCase: GenericNumberCase<V>)
             where V : RealNumber<V>, V : NumberField<V> {
-        val x = RealVar("${numberCase.name.lowercase()}_if_inputv_x")
-        val y = RealVar("${numberCase.name.lowercase()}_if_inputv_y")
+        val x = RealVar("${numberCase.name.lowercase()}_if_input_x")
+        val y = RealVar("${numberCase.name.lowercase()}_if_input_y")
 
         val model = LinearMetaModel<V>(
-            name = "generic-if-inputv-${numberCase.name.lowercase()}",
+            name = "generic-if-input-${numberCase.name.lowercase()}",
             converter = numberCase.converter
         )
 
@@ -62,28 +62,28 @@ class FunctionSymbolConstraintInputVFactoryTest {
                 ubInterval = Interval.Closed,
                 constants = numberCase.zero.constants
             ).value!!
-            val input = LinearConstraintInputV.from(
-                relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_if_inputv_ineq"),
+            val input = LinearConstraintInput.from(
+                relation = LinearInequality(xPoly, onePoly, Comparison.LE, "${numberCase.name.lowercase()}_if_input_ineq"),
                 lhsRange = lhsRange,
                 rhsConstant = numberCase.one
             )
 
-            val ifFunc = IfFunction.typed(
+            val ifFunc = IfFunction.from(
                 inequality = input,
                 converter = numberCase.converter,
                 bigM = numberCase.ten,
                 tolerance = numberCase.one,
                 strictBoundary = numberCase.one,
-                name = "if_inputv_${numberCase.name.lowercase()}"
+                name = "if_input_${numberCase.name.lowercase()}"
             )
-            val ifThenFunc = IfThenFunction.typed(
+            val ifThenFunc = IfThenFunction.from(
                 inequality = input,
                 converter = numberCase.converter,
                 thenPoly = yPoly,
                 bigM = numberCase.ten,
                 tolerance = numberCase.one,
                 strictBoundary = numberCase.one,
-                name = "ifthen_inputv_${numberCase.name.lowercase()}"
+                name = "ifthen_input_${numberCase.name.lowercase()}"
             )
 
             assertTrue(ifFunc.registerAuxiliaryTokens(model.tokens) is Ok, "${numberCase.name}: IfFunction auxiliary tokens should succeed")

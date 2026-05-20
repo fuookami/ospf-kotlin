@@ -1,6 +1,6 @@
 package fuookami.ospf.kotlin.core.solver.value
 
-import fuookami.ospf.kotlin.math.algebra.concept.Flt64Bridge
+import fuookami.ospf.kotlin.math.algebra.concept.Flt64ValueConverter
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
 
@@ -38,8 +38,8 @@ interface IntoValue<V : RealNumber<V>> {
         }
 
         /**
-         * 从 Flt64Bridge<V> 适配为 IntoValue<V>
-         * Adapt Flt64Bridge<V> to IntoValue<V>
+         * 从 Flt64ValueConverter<V> 适配为 IntoValue<V>
+         * Adapt Flt64ValueConverter<V> to IntoValue<V>
          *
          * 允许直接使用数值类型的 companion 对象（如 Flt64、FltX、Rtn64、RtnX）
          * 作为 IntoValue<V> 的提供者，消除重复的 flt64Converter 样板代码。
@@ -47,36 +47,36 @@ interface IntoValue<V : RealNumber<V>> {
          * Allows using numeric type companion objects (e.g., Flt64, FltX, Rtn64, RtnX)
          * directly as IntoValue<V> providers, eliminating repetitive flt64Converter boilerplate.
          *
-         * @param bridge Flt64Bridge 提供者
-         * @param bridge The Flt64Bridge provider
+         * @param converter Flt64ValueConverter 提供者
+         * @param converter The Flt64ValueConverter provider
          * @return IntoValue 适配器
          * @return The IntoValue adapter
          */
-        fun <V : RealNumber<V>> fromBridge(bridge: Flt64Bridge<V>): IntoValue<V> = Flt64BridgeAdapter(bridge)
+        fun <V : RealNumber<V>> fromConverter(converter: Flt64ValueConverter<V>): IntoValue<V> = Flt64ValueConverterAdapter(converter)
     }
 }
 
 /**
- * Flt64Bridge 到 IntoValue 的适配器
- * Adapter from Flt64Bridge to IntoValue
+ * Flt64ValueConverter 到 IntoValue 的适配器
+ * Adapter from Flt64ValueConverter to IntoValue
  *
- * 将 math 层的 Flt64Bridge<V> 接口适配为 core 层的 IntoValue<V> 接口。
- * Adapts the math layer's Flt64Bridge<V> interface to the core layer's IntoValue<V> interface.
+ * 将 math 层的 Flt64ValueConverter<V> 接口适配为 core 层的 IntoValue<V> 接口。
+ * Adapts the math layer's Flt64ValueConverter<V> interface to the core layer's IntoValue<V> interface.
  */
-private class Flt64BridgeAdapter<V : RealNumber<V>>(
-    private val bridge: Flt64Bridge<V>
+private class Flt64ValueConverterAdapter<V : RealNumber<V>>(
+    private val converter: Flt64ValueConverter<V>
 ) : IntoValue<V> {
-    override fun intoValue(value: Flt64): V = bridge.intoValue(value)
-    override val zero: V get() = bridge.zero
-    override val one: V get() = bridge.one
-    override fun fromValue(value: V): Flt64 = bridge.fromValue(value)
+    override fun intoValue(value: Flt64): V = converter.intoValue(value)
+    override val zero: V get() = converter.zero
+    override val one: V get() = converter.one
+    override fun fromValue(value: V): Flt64 = converter.fromValue(value)
 }
 
 /**
- * 将 Flt64Bridge<V> 转换为 IntoValue<V>
- * Convert Flt64Bridge<V> to IntoValue<V>
+ * 将 Flt64ValueConverter<V> 转换为 IntoValue<V>
+ * Convert Flt64ValueConverter<V> to IntoValue<V>
  *
  * 扩展函数，允许直接写 `Flt64.intoValue()` 或 `FltX.intoValue()` 等。
  * Extension function allowing direct usage like `Flt64.intoValue()` or `FltX.intoValue()`.
  */
-fun <V : RealNumber<V>> Flt64Bridge<V>.toIntoValue(): IntoValue<V> = IntoValue.fromBridge(this)
+fun <V : RealNumber<V>> Flt64ValueConverter<V>.toIntoValue(): IntoValue<V> = IntoValue.fromConverter(this)

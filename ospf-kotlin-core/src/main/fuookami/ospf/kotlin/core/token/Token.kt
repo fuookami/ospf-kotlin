@@ -57,13 +57,13 @@ data class Token<V : RealNumber<V>>(
             _result as V?
         }
 
-    /** Set result from generic type V. Converts V to Flt64 via RealNumber.toFlt64(). */
-    fun setResultFromV(value: V) {
+    /** 设置泛型结果值。 / Set result from the generic value. */
+    fun setResult(value: V) {
         _result = value.toFlt64()
     }
 
-    /** Explicit V-typed result conversion through the supplied IntoValue<V>. */
-    fun resultAsV(converter: IntoValue<V>): V? = _result?.let { converter.intoValue(it) }
+    /** 通过给定转换器显式获取类型化结果。 / Explicit typed result conversion through the supplied converter. */
+    fun result(converter: IntoValue<V>): V? = _result?.let { converter.intoValue(it) }
 
     val name by variable::name
     val type by variable::type
@@ -94,11 +94,11 @@ data class Token<V : RealNumber<V>>(
     val lowerBound by variable::lowerBound
     val upperBound by variable::upperBound
 
-    /** V-typed view of lower bound. */
-    fun lowerBoundAsV(converter: IntoValue<V>): V? = lowerBound?.value?.toFlt64()?.let { converter.intoValue(it) }
+    /** 下界的类型化视图。 / Typed view of lower bound. */
+    fun lowerBound(converter: IntoValue<V>): V? = lowerBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
-    /** V-typed view of upper bound. */
-    fun upperBoundAsV(converter: IntoValue<V>): V? = upperBound?.value?.toFlt64()?.let { converter.intoValue(it) }
+    /** 上界的类型化视图。 / Typed view of upper bound. */
+    fun upperBound(converter: IntoValue<V>): V? = upperBound?.value?.toFlt64()?.let { converter.intoValue(it) }
 
     infix fun belongsTo(item: AbstractVariableItem<*, *>): Boolean {
         return variable.belongsTo(item)

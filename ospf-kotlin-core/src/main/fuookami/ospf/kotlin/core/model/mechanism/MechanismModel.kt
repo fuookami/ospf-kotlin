@@ -54,8 +54,8 @@ import fuookami.ospf.kotlin.core.token.Token
 import fuookami.ospf.kotlin.core.token.TokenList
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 
-// Solver-boundary bridge: registerConstraints on star-projected function symbols
-// Delegates to SolverBoundaryCasts (single UNCHECKED_CAST location)
+// 求解器边界转换：在星投影函数符号上注册约束。 / Solver-boundary conversion: register constraints on star-projected function symbols.
+// 委托给 SolverBoundaryCasts，集中唯一的 UNCHECKED_CAST 位置。 / Delegates to SolverBoundaryCasts as the single UNCHECKED_CAST location.
 private fun MathFunctionSymbolBase<*>.registerConstraintsUnchecked(model: AbstractLinearMechanismModel<*>): Try {
     return SolverBoundaryCasts.registerConstraintsLinearStar(this, model)
 }
@@ -837,7 +837,7 @@ class LinearMechanismModel<V>(
         return ok
     }
 
-    private fun generateOptimalCutV(
+    fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
@@ -880,7 +880,7 @@ class LinearMechanismModel<V>(
         }
     }
 
-    private fun generateFeasibleCutV(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<V, Linear>, V>
     ): List<LinearInequality<V>> {
@@ -936,7 +936,7 @@ class LinearMechanismModel<V>(
         ).normalize()
     }
 
-    internal fun generateOptimalCutByIdV(
+    internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolutionById: Map<String, V>
@@ -951,10 +951,10 @@ class LinearMechanismModel<V>(
                 }
             }
         }
-        return generateOptimalCutV(objectVariable, fixedVariables, dualSolution)
+        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
-    internal fun generateFeasibleCutByIdV(
+    internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>
     ): List<LinearInequality<V>> {
@@ -968,58 +968,60 @@ class LinearMechanismModel<V>(
                 }
             }
         }
-        return generateFeasibleCutV(fixedVariables, dualSolution)
+        return generateFeasibleCut(fixedVariables, dualSolution)
     }
 
-    fun generateOptimalCut(
+    fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // 适配器边界：对偶解来自求解器原生类型 / Adapter boundary: dual solution from solver raw type
-        val dualAsV: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
+        // 求解器边界：对偶解来自求解器原生类型。 / Solver boundary: dual solution from solver raw type.
+        val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
             val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
             val dual = dualSolution[typed] ?: continue
             if (dual neq Flt64.zero) {
-                dualAsV[constraint] = parent.converter.intoValue(dual)
+                dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
         }
 
-        return generateOptimalCutV(
+        return generateOptimalCut(
             objectVariable = objectVariable,
             fixedVariables = fixedVariables,
-            dualSolution = dualAsV
+            dualSolution = dualByConstraint
         ).map { toFlt64LinearCut(it) }
     }
 
-    fun generateFeasibleCut(
+    fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Linear>, Flt64>
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
-        // 适配器边界：Farkas 对偶解来自求解器原生类型 / Adapter boundary: Farkas dual solution from solver raw type
-        val dualAsV: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
+        // 求解器边界：Farkas 对偶解来自求解器原生类型。 / Solver boundary: Farkas dual solution from solver raw type.
+        val dualByConstraint: MutableMap<Constraint<V, Linear>, V> = LinkedHashMap()
         for (constraint in linearConstraints) {
             val typed = SolverBoundaryCasts.linearConstraintAsFlt64(constraint)
             val dual = farkasDualSolution[typed] ?: continue
             if (dual neq Flt64.zero) {
-                dualAsV[constraint] = parent.converter.intoValue(dual)
+                dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
         }
 
-        return generateFeasibleCutV(
+        return generateFeasibleCut(
             fixedVariables = fixedVariables,
-            farkasDualSolution = dualAsV
+            farkasDualSolution = dualByConstraint
         ).map { toFlt64LinearCut(it) }
     }
 
     /**
+     * 从求解器原始对偶输出生成最优 Benders cut。
      * Generate optimal Benders cut from raw solver dual output.
      *
-     * Convenience overload that accepts raw dual values ([Solution]) and a
-     * [LinearTriadModelView] for origin resolution, delegating to
-     * [LinearTriadModelView.tidyDualSolution] to map raw values back to
-     * Constraint objects, then calling [generateOptimalCut].
+     * 该求解器边界入口接收原始对偶值，并通过 [LinearTriadModelView.tidyDualSolution]
+     * 映射回约束对象，随后委托给 [generateFlt64OptimalCut]。
+     * This solver-boundary entry accepts raw dual values, maps them back to
+     * Constraint objects through [LinearTriadModelView.tidyDualSolution], then
+     * delegates to [generateFlt64OptimalCut].
      *
      * @param objectVariable  the objective variable (theta) to project onto
      * @param fixedVariables  variables fixed in the sub-problem and their values
@@ -1027,8 +1029,8 @@ class LinearMechanismModel<V>(
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
      *
-     * Solver boundary: dualValues and return type are Flt64 because they represent
-     * raw solver output. The V-typed model delegates to these for solver integration.
+     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
+     * Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
      */
     internal fun generateOptimalCutFromOutput(
         objectVariable: AbstractVariableItem<*, *>,
@@ -1037,24 +1039,26 @@ class LinearMechanismModel<V>(
         triadModel: LinearTriadModelView
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         val dualSolution = triadModel.tidyDualSolution(dualValues)
-        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
+        return generateFlt64OptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
     /**
+     * 从求解器原始 Farkas 对偶输出生成可行 Benders cut。
      * Generate feasible Benders cut from raw solver Farkas dual output.
      *
-     * Convenience overload that accepts raw Farkas dual values ([Solution]) and a
-     * [LinearTriadModelView] for origin resolution, delegating to
-     * [LinearTriadModelView.tidyDualSolution] to map raw values back to
-     * Constraint objects, then calling [generateFeasibleCut].
+     * 该求解器边界入口接收原始 Farkas 对偶值，并通过 [LinearTriadModelView.tidyDualSolution]
+     * 映射回约束对象，随后委托给 [generateFlt64FeasibleCut]。
+     * This solver-boundary entry accepts raw Farkas dual values, maps them back
+     * to Constraint objects through [LinearTriadModelView.tidyDualSolution], then
+     * delegates to [generateFlt64FeasibleCut].
      *
      * @param fixedVariables  variables fixed in the sub-problem and their values
      * @param farkasDualValues raw Farkas dual values from the solver output
      * @param triadModel      the LinearTriadModel containing origin mapping
      * @return list of linear cuts
      *
-     * Solver boundary: farkasDualValues and return type are Flt64 because they represent
-     * raw solver output. The V-typed model delegates to these for solver integration.
+     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
+     * Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
      */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1062,7 +1066,7 @@ class LinearMechanismModel<V>(
         triadModel: LinearTriadModelView
     ): List<LinearInequality<fuookami.ospf.kotlin.math.algebra.number.Flt64>> {
         val farkasDualSolution = triadModel.tidyDualSolution(farkasDualValues)
-        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+        return generateFlt64FeasibleCut(fixedVariables, farkasDualSolution)
     }
 
     val numConstraints: Int get() = _constraints.size
@@ -1349,7 +1353,7 @@ class QuadraticMechanismModel<V>(
         return ok
     }
 
-    private fun generateOptimalCutV(
+    fun generateOptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
@@ -1436,7 +1440,7 @@ class QuadraticMechanismModel<V>(
         return listOf(cut)
     }
 
-    private fun generateFeasibleCutV(
+    fun generateFeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<V, Quadratic>, V>
     ): List<Any> {
@@ -1507,7 +1511,7 @@ class QuadraticMechanismModel<V>(
     }
 
     private fun toFlt64Cut(cut: Any): Any {
-        val linearCut = SolverBoundaryCasts.linearInequalityAsV<V>(cut)
+        val linearCut = SolverBoundaryCasts.linearInequalityAs<V>(cut)
         if (linearCut != null) {
             return (LinearInequality(
                 lhs = LinearPolynomial(
@@ -1524,7 +1528,7 @@ class QuadraticMechanismModel<V>(
             ) as LinearInequality<Flt64>).normalize()
         }
 
-        val quadraticCut = SolverBoundaryCasts.quadraticInequalityAsV<V>(cut)
+        val quadraticCut = SolverBoundaryCasts.quadraticInequalityAs<V>(cut)
         if (quadraticCut != null) {
             val flt64Cut = QuadraticInequalityOf(
                 lhs = QuadraticPolynomial(
@@ -1545,7 +1549,7 @@ class QuadraticMechanismModel<V>(
         return cut
     }
 
-    internal fun generateOptimalCutByIdV(
+    internal fun generateOptimalCutById(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolutionById: Map<String, V>
@@ -1560,10 +1564,10 @@ class QuadraticMechanismModel<V>(
                 }
             }
         }
-        return generateOptimalCutV(objectVariable, fixedVariables, dualSolution)
+        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
-    internal fun generateFeasibleCutByIdV(
+    internal fun generateFeasibleCutById(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolutionById: Map<String, V>
     ): List<Any> {
@@ -1577,58 +1581,60 @@ class QuadraticMechanismModel<V>(
                 }
             }
         }
-        return generateFeasibleCutV(fixedVariables, dualSolution)
+        return generateFeasibleCut(fixedVariables, dualSolution)
     }
 
-    fun generateOptimalCut(
+    fun generateFlt64OptimalCut(
         objectVariable: AbstractVariableItem<*, *>,
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         dualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
-        val dualAsV: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
+        val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
             val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
             val dual = dualSolution[typed] ?: continue
             if (dual neq Flt64.zero) {
-                dualAsV[constraint] = parent.converter.intoValue(dual)
+                dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
         }
-        val cutsV = generateOptimalCutV(
+        val cuts = generateOptimalCut(
             objectVariable = objectVariable,
             fixedVariables = fixedVariables,
-            dualSolution = dualAsV
+            dualSolution = dualByConstraint
         )
-        val cutsFlt64 = cutsV.map { cut -> toFlt64Cut(cut) }
+        val cutsFlt64 = cuts.map { cut -> toFlt64Cut(cut) }
         return Ok(cutsFlt64)
     }
 
-    fun generateFeasibleCut(
+    fun generateFlt64FeasibleCut(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
         farkasDualSolution: kotlin.collections.Map<Constraint<Flt64, Quadratic>, Flt64>,
     ): Ret<List<Any>> {
-        val dualAsV: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
+        val dualByConstraint: MutableMap<Constraint<V, Quadratic>, V> = LinkedHashMap()
         for (constraint in quadraticConstraints) {
             val typed = SolverBoundaryCasts.quadraticConstraintAsFlt64(constraint)
             val dual = farkasDualSolution[typed] ?: continue
             if (dual neq Flt64.zero) {
-                dualAsV[constraint] = parent.converter.intoValue(dual)
+                dualByConstraint[constraint] = parent.converter.intoValue(dual)
             }
         }
-        val cutsV = generateFeasibleCutV(
+        val cuts = generateFeasibleCut(
             fixedVariables = fixedVariables,
-            farkasDualSolution = dualAsV
+            farkasDualSolution = dualByConstraint
         )
-        val cutsFlt64 = cutsV.map { cut -> toFlt64Cut(cut) }
+        val cutsFlt64 = cuts.map { cut -> toFlt64Cut(cut) }
         return Ok(cutsFlt64)
     }
 
     /**
+     * 从求解器原始对偶输出生成最优 Benders cut。
      * Generate optimal Benders cut from raw solver dual output.
      *
-     * Convenience overload that accepts raw dual values ([Solution]) and a
-     * [QuadraticTetradModelView] for origin resolution, delegating to
-     * [QuadraticTetradModelView.tidyDualSolution] to map raw values back to
-     * Constraint objects, then calling [generateOptimalCut].
+     * 该求解器边界入口接收原始对偶值，并通过 [QuadraticTetradModelView.tidyDualSolution]
+     * 映射回约束对象，随后委托给 [generateFlt64OptimalCut]。
+     * This solver-boundary entry accepts raw dual values, maps them back to
+     * Constraint objects through [QuadraticTetradModelView.tidyDualSolution], then
+     * delegates to [generateFlt64OptimalCut].
      *
      * @param objective       the objective value of the sub-problem solution
      * @param objectVariable  the objective variable (theta) to project onto
@@ -1637,8 +1643,8 @@ class QuadraticMechanismModel<V>(
      * @param tetradModel     the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
      *
-     * Solver boundary: dualValues and return type are Flt64 because they represent
-     * raw solver output. The V-typed model delegates to these for solver integration.
+     * 求解器边界：dualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
+     * Solver boundary: dualValues and return type are Flt64 because they represent raw solver output.
      */
     internal fun generateOptimalCutFromOutput(
         objective: Flt64,
@@ -1648,24 +1654,26 @@ class QuadraticMechanismModel<V>(
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val dualSolution = tetradModel.tidyDualSolution(dualValues)
-        return generateOptimalCut(objectVariable, fixedVariables, dualSolution)
+        return generateFlt64OptimalCut(objectVariable, fixedVariables, dualSolution)
     }
 
     /**
+     * 从求解器原始 Farkas 对偶输出生成可行 Benders cut。
      * Generate feasible Benders cut from raw solver Farkas dual output.
      *
-     * Convenience overload that accepts raw Farkas dual values ([Solution]) and a
-     * [QuadraticTetradModelView] for origin resolution, delegating to
-     * [QuadraticTetradModelView.tidyDualSolution] to map raw values back to
-     * Constraint objects, then calling [generateFeasibleCut].
+     * 该求解器边界入口接收原始 Farkas 对偶值，并通过 [QuadraticTetradModelView.tidyDualSolution]
+     * 映射回约束对象，随后委托给 [generateFlt64FeasibleCut]。
+     * This solver-boundary entry accepts raw Farkas dual values, maps them back
+     * to Constraint objects through [QuadraticTetradModelView.tidyDualSolution], then
+     * delegates to [generateFlt64FeasibleCut].
      *
      * @param fixedVariables    variables fixed in the sub-problem and their values
      * @param farkasDualValues  raw Farkas dual values from the solver output
      * @param tetradModel       the QuadraticTetradModel containing origin mapping
      * @return list of cuts (linear or quadratic inequalities)
      *
-     * Solver boundary: farkasDualValues and return type are Flt64 because they represent
-     * raw solver output. The V-typed model delegates to these for solver integration.
+     * 求解器边界：farkasDualValues 与返回值使用 Flt64，因为它们表示求解器原始输出。
+     * Solver boundary: farkasDualValues and return type are Flt64 because they represent raw solver output.
      */
     internal fun generateFeasibleCutFromOutput(
         fixedVariables: Map<AbstractVariableItem<*, *>, V>,
@@ -1673,7 +1681,7 @@ class QuadraticMechanismModel<V>(
         tetradModel: QuadraticTetradModelView
     ): Ret<List<Any>> {
         val farkasDualSolution = tetradModel.tidyDualSolution(farkasDualValues)
-        return generateFeasibleCut(fixedVariables, farkasDualSolution)
+        return generateFlt64FeasibleCut(fixedVariables, farkasDualSolution)
     }
 
     val numConstraints: Int get() = _constraints.size

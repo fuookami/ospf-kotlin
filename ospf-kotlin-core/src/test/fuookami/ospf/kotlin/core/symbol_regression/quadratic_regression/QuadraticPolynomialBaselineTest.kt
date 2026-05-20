@@ -1,4 +1,4 @@
-package fuookami.ospf.kotlin.core.symbol_migration.quadratic_regression
+package fuookami.ospf.kotlin.core.symbol_regression.quadratic_regression
 
 import fuookami.ospf.kotlin.core.token.AutoTokenTable
 import fuookami.ospf.kotlin.core.intermediate_symbol.QuadraticExpressionSymbol

@@ -73,25 +73,25 @@ class QuadraticMaskingRangeFunction<V>(
         }
 
     override val cached: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {
         for (dep in dependencies) dep.flush(force)
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         tokenTable: AbstractTokenTable<V>,
         zeroIfNone: Boolean
     ): V? {
         return when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable.find(symbol)?.result ?: if (zeroIfNone) converter.zero else null
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         results: List<V>,
         tokenTable: AbstractTokenTable<V>,
@@ -103,12 +103,12 @@ class QuadraticMaskingRangeFunction<V>(
                 if (index != null && index >= 0 && index < results.size) results[index]
                 else if (zeroIfNone) converter.zero else null
             }
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(results, tokenTable, converter, zeroIfNone)
             else -> if (zeroIfNone) converter.zero else null
         }
     }
 
-    private fun evaluateSymbolV(
+    private fun evaluateSymbol(
         symbol: Symbol,
         values: Map<Symbol, V>,
         tokenTable: AbstractTokenTable<V>?,
@@ -116,12 +116,12 @@ class QuadraticMaskingRangeFunction<V>(
     ): V? {
         return values[symbol] ?: when (symbol) {
             is AbstractVariableItem<*, *> -> tokenTable?.find(symbol)?.result
-            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediateV<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
+            is IntermediateSymbol<*> -> SolverBoundaryCasts.dependencyAsIntermediate<V>(symbol).evaluate(values, tokenTable, converter, zeroIfNone)
             else -> null
         } ?: if (zeroIfNone) converter.zero else null
     }
 
-    private fun evaluateQuadraticV(
+    private fun evaluateQuadratic(
         poly: QuadraticPolynomial<V>,
         resolve: (Symbol) -> V?
     ): V? {
@@ -138,18 +138,18 @@ class QuadraticMaskingRangeFunction<V>(
         return value
     }
 
-    private fun evaluateMaskingV(
+    private fun evaluateMasking(
         resolve: (Symbol) -> V?
     ): V? {
         val zValue = resolve(z) ?: return converter.zero
         if (zValue eq converter.zero) {
             return converter.zero
         }
-        return evaluateQuadraticV(_polynomial, resolve)
+        return evaluateQuadratic(_polynomial, resolve)
     }
 
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
@@ -175,18 +175,18 @@ class QuadraticMaskingRangeFunction<V>(
         }
     }
     override fun evaluate(tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateMaskingV { symbol ->
-            evaluateSymbolV(symbol, tokenTable, zeroIfNone)
+        return evaluateMasking { symbol ->
+            evaluateSymbol(symbol, tokenTable, zeroIfNone)
         }
     }
     override fun evaluate(results: List<V>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateMaskingV { symbol ->
-            evaluateSymbolV(symbol, results, tokenTable, zeroIfNone)
+        return evaluateMasking { symbol ->
+            evaluateSymbol(symbol, results, tokenTable, zeroIfNone)
         }
     }
     override fun evaluate(values: Map<Symbol, V>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        return evaluateMaskingV { symbol ->
-            evaluateSymbolV(symbol, values, tokenTable, zeroIfNone)
+        return evaluateMasking { symbol ->
+            evaluateSymbol(symbol, values, tokenTable, zeroIfNone)
         }
     }
     internal fun evaluateSolver(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
@@ -194,7 +194,7 @@ class QuadraticMaskingRangeFunction<V>(
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val typedValues = SolverBoundaryCasts.mapValuesToV(values, converter)
+        val typedValues = SolverBoundaryCasts.mapValues(values, converter)
         return evaluate(typedValues, tokenTable, converter, zeroIfNone)
     }
 

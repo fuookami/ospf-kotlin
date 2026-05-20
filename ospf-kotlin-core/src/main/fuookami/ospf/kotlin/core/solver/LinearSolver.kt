@@ -141,10 +141,10 @@ interface AbstractLinearSolver {
         }
     }
 
-    // ========== V-generic primary interface ==========
-    // solveV is the primary V-generic entry point; triad solve calls remain the solver boundary.
+    // ========== 泛型主接口 / Generic primary interface ==========
+    // solve 是泛型主入口；triad solve 调用仍是求解器边界。 / solve is the primary generic entry point; triad solve calls remain the solver boundary.
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: LinearTriadModelView,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -156,7 +156,7 @@ interface AbstractLinearSolver {
         }
     }
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: LinearTriadModelView,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
@@ -172,8 +172,8 @@ interface AbstractLinearSolver {
         }
     }
 
-    // V-generic solveV for generic MechanismModel<V>: full pipeline (dump -> solve -> convert)
-    suspend fun <V> solveV(
+    // MechanismModel<V> 的泛型 solve 全链路：dump -> solve -> convert。 / Generic solve for MechanismModel<V>: full pipeline (dump -> solve -> convert)
+    suspend fun <V> solve(
         model: MechanismModel<V>,
         converter: IntoValue<V>,
         solvingStatusCallBack: SolvingStatusCallBack? = null
@@ -182,7 +182,7 @@ interface AbstractLinearSolver {
             is Ok -> {
                 val linearModel = converted.value as? LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Linear solver requires LinearMechanismModel, but got ${converted.value::class.simpleName}"))
-                dump(linearModel).use { solveV(it, converter, solvingStatusCallBack) }
+                dump(linearModel).use { solve(it, converter, solvingStatusCallBack) }
             }
 
             is Failed -> {
@@ -195,7 +195,7 @@ interface AbstractLinearSolver {
         }
     }
 
-    suspend fun <V> solveV(
+    suspend fun <V> solve(
         model: MechanismModel<V>,
         solutionAmount: UInt64,
         converter: IntoValue<V>,
@@ -205,7 +205,7 @@ interface AbstractLinearSolver {
             is Ok -> {
                 val linearModel = converted.value as? LinearMechanismModel<fuookami.ospf.kotlin.math.algebra.number.Flt64>
                     ?: return Failed(Err(ErrorCode.IllegalArgument, "Linear solver requires LinearMechanismModel, but got ${converted.value::class.simpleName}"))
-                dump(linearModel).use { solveV(it, solutionAmount, converter, solvingStatusCallBack) }
+                dump(linearModel).use { solve(it, solutionAmount, converter, solvingStatusCallBack) }
             }
 
             is Failed -> {

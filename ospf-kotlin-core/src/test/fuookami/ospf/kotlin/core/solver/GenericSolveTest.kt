@@ -48,9 +48,9 @@ import kotlin.test.assertNotNull
 import kotlin.test.assertTrue
 import kotlin.time.Duration.Companion.seconds
 
-class GenericSolveVBridgeTest {
+class GenericSolveTest {
     @Test
-    fun linearSolveVShouldBridgeAllNumberTypesForTriadAndMechanismAndPool() = runBlocking {
+    fun linearSolveShouldConvertAllNumberTypesForTriadAndMechanismAndPool() = runBlocking {
         runLinearCase(GenericNumberCases.flt64)
         runLinearCase(GenericNumberCases.rtn64)
         runLinearCase(GenericNumberCases.fltX)
@@ -58,7 +58,7 @@ class GenericSolveVBridgeTest {
     }
 
     @Test
-    fun quadraticSolveVShouldBridgeAllNumberTypesForTetradAndMechanismAndPool() = runBlocking {
+    fun quadraticSolveShouldConvertAllNumberTypesForTetradAndMechanismAndPool() = runBlocking {
         runQuadraticCase(GenericNumberCases.flt64)
         runQuadraticCase(GenericNumberCases.rtn64)
         runQuadraticCase(GenericNumberCases.fltX)
@@ -69,7 +69,7 @@ class GenericSolveVBridgeTest {
             where V : RealNumber<V>, V : NumberField<V> {
         val triad = linearTriadModel("lin_${numberCase.name.lowercase()}")
         val mechanism = linearMechanismModel(numberCase, "lin_${numberCase.name.lowercase()}")
-        val solver = RecordingLinearSolveVBridgeSolver()
+        val solver = RecordingLinearSolveSolver()
 
         var callbackCount = 0
         val callback: SolvingStatusCallBack = {
@@ -77,7 +77,7 @@ class GenericSolveVBridgeTest {
             ok
         }
 
-        val triadRet = solver.solveV(
+        val triadRet = solver.solve(
             model = triad,
             converter = numberCase.converter,
             solvingStatusCallBack = callback
@@ -91,7 +91,7 @@ class GenericSolveVBridgeTest {
             converterCase = numberCase,
         )
 
-        val mechanismRet = solver.solveV(
+        val mechanismRet = solver.solve(
             model = mechanism as MechanismModel<V>,
             converter = numberCase.converter,
             solvingStatusCallBack = callback
@@ -106,7 +106,7 @@ class GenericSolveVBridgeTest {
         )
 
         val amount = UInt64(2)
-        val triadPoolRet = solver.solveV(
+        val triadPoolRet = solver.solve(
             model = triad,
             solutionAmount = amount,
             converter = numberCase.converter,
@@ -122,7 +122,7 @@ class GenericSolveVBridgeTest {
             converterCase = numberCase,
         )
 
-        val mechanismPoolRet = solver.solveV(
+        val mechanismPoolRet = solver.solve(
             model = mechanism as MechanismModel<V>,
             solutionAmount = amount,
             converter = numberCase.converter,
@@ -146,7 +146,7 @@ class GenericSolveVBridgeTest {
             where V : RealNumber<V>, V : NumberField<V> {
         val tetrad = quadraticTetradModel("quad_${numberCase.name.lowercase()}")
         val mechanism = quadraticMechanismModel(numberCase, "quad_${numberCase.name.lowercase()}")
-        val solver = RecordingQuadraticSolveVBridgeSolver()
+        val solver = RecordingQuadraticSolveSolver()
 
         var callbackCount = 0
         val callback: SolvingStatusCallBack = {
@@ -154,7 +154,7 @@ class GenericSolveVBridgeTest {
             ok
         }
 
-        val tetradRet = solver.solveV(
+        val tetradRet = solver.solve(
             model = tetrad,
             converter = numberCase.converter,
             solvingStatusCallBack = callback
@@ -168,7 +168,7 @@ class GenericSolveVBridgeTest {
             converterCase = numberCase,
         )
 
-        val mechanismRet = solver.solveV(
+        val mechanismRet = solver.solve(
             model = mechanism as MechanismModel<V>,
             converter = numberCase.converter,
             solvingStatusCallBack = callback
@@ -183,7 +183,7 @@ class GenericSolveVBridgeTest {
         )
 
         val amount = UInt64(2)
-        val tetradPoolRet = solver.solveV(
+        val tetradPoolRet = solver.solve(
             model = tetrad,
             solutionAmount = amount,
             converter = numberCase.converter,
@@ -199,7 +199,7 @@ class GenericSolveVBridgeTest {
             converterCase = numberCase,
         )
 
-        val mechanismPoolRet = solver.solveV(
+        val mechanismPoolRet = solver.solve(
             model = mechanism as MechanismModel<V>,
             solutionAmount = amount,
             converter = numberCase.converter,
@@ -226,7 +226,7 @@ class GenericSolveVBridgeTest {
         expectedBestBound: Flt64?,
         converterCase: GenericNumberCase<V>,
     ) where V : RealNumber<V>, V : NumberField<V> {
-        assertTrue(ret is Ok, "${converterCase.name}: solveV should return Ok")
+        assertTrue(ret is Ok, "${converterCase.name}: solve should return Ok")
         val output = (ret as Ok).value
         val expected = expectedFlt64.map { converterCase.converter.intoValue(it) }
         val expectedObjValue = converterCase.converter.intoValue(expectedObj)
@@ -264,7 +264,7 @@ class GenericSolveVBridgeTest {
         expectedBestBound: Flt64?,
         converterCase: GenericNumberCase<V>,
     ) where V : RealNumber<V>, V : NumberField<V> {
-        assertTrue(ret is Ok, "${converterCase.name}: solveV(pool) should return Ok")
+        assertTrue(ret is Ok, "${converterCase.name}: solve(pool) should return Ok")
         val (primary, pool) = (ret as Ok).value
 
         val expectedPrimary = expectedPrimaryFlt64.map { converterCase.converter.intoValue(it) }
@@ -425,8 +425,8 @@ class GenericSolveVBridgeTest {
     }
 }
 
-private class RecordingLinearSolveVBridgeSolver : AbstractLinearSolver {
-    override val name: String = "recording-linear-solvev-bridge"
+private class RecordingLinearSolveSolver : AbstractLinearSolver {
+    override val name: String = "recording-linear-solve"
 
     val singleObj = Flt64(10.0)
     val singlePossibleBestObj = Flt64(9.5)
@@ -477,8 +477,8 @@ private class RecordingLinearSolveVBridgeSolver : AbstractLinearSolver {
     }
 }
 
-private class RecordingQuadraticSolveVBridgeSolver : AbstractQuadraticSolver {
-    override val name: String = "recording-quadratic-solvev-bridge"
+private class RecordingQuadraticSolveSolver : AbstractQuadraticSolver {
+    override val name: String = "recording-quadratic-solve"
 
     val singleObj = Flt64(-5.0)
     val singlePossibleBestObj = Flt64(-4.5)

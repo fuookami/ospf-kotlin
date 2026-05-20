@@ -214,11 +214,11 @@ class MaskingWithPolyMaskFunction<V>(
     override val cached: Boolean get() = false
     override val dependencies: Set<IntermediateSymbol<*>> get() = emptySet()
     override val discrete: Boolean get() = false
-    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRangeV()
+    override val range: ExpressionRange<V> get() = SolverBoundaryCasts.fullExpressionRange()
 
     override fun flush(force: Boolean) {}
     internal fun prepareSolver(values: Map<Symbol, Flt64>?, tokenTable: AbstractTokenTable<V>, converter: IntoValue<V>): V? {
-        val typedValues = values?.let { SolverBoundaryCasts.mapValuesToV(it, converter) }
+        val typedValues = values?.let { SolverBoundaryCasts.mapValues(it, converter) }
         return if (typedValues.isNullOrEmpty()) {
             evaluate(tokenTable, converter, false)
         } else {
@@ -235,7 +235,7 @@ class MaskingWithPolyMaskFunction<V>(
     internal fun evaluate(tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(results: List<fuookami.ospf.kotlin.math.algebra.number.Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>, zeroIfNone: Boolean): Flt64? = null
     internal fun evaluate(values: Map<Symbol, Flt64>, tokenList: AbstractTokenList<fuookami.ospf.kotlin.math.algebra.number.Flt64>?, zeroIfNone: Boolean): Flt64? {
-        return delegate().evaluate(SolverBoundaryCasts.mapValuesToV(values, converter))?.let { converter.fromValue(it) }
+        return delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter))?.let { converter.fromValue(it) }
     }
 
     // V-typed evaluate overrides
@@ -277,7 +277,7 @@ class MaskingWithPolyMaskFunction<V>(
         return evaluate(typedResults, tokenTable, converter, zeroIfNone)
     }
     internal fun evaluateSolver(values: Map<Symbol, Flt64>, tokenTable: AbstractTokenTable<V>?, converter: IntoValue<V>, zeroIfNone: Boolean): V? {
-        val v = delegate().evaluate(SolverBoundaryCasts.mapValuesToV(values, converter)) ?: return null
+        val v = delegate().evaluate(SolverBoundaryCasts.mapValues(values, converter)) ?: return null
         return converter.intoValue(converter.fromValue(v))
     }
 
@@ -403,22 +403,22 @@ class MaskingRangeFunction<V>(
         val zero = converter.zero
         val resultMon = LinearMonomial(one, resultVar)
         val maskPoly = mask
-        val lowerV = lower
-        val upperV = upper
+        val lowerValue = lower
+        val upperValue = upper
 
         val constraints = mutableListOf<LinearInequality<V>>()
 
         // Upper: y - upper*mask <= 0
         val upperMonos = listOf(resultMon) +
-            maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperV, it.symbol) }
-        val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperV)
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -upperValue, it.symbol) }
+        val upperLhs = LinearPolynomial(upperMonos, maskPoly.constant * -upperValue)
         val upperRhs = LinearPolynomial(emptyList(), zero)
         constraints += LinearInequality(upperLhs, upperRhs, Comparison.LE, "${name}_masking_range_ub")
 
         // Lower: y - lower*mask >= 0
         val lowerMonos = listOf(resultMon) +
-            maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerV, it.symbol) }
-        val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerV)
+            maskPoly.monomials.map { LinearMonomial(it.coefficient * -lowerValue, it.symbol) }
+        val lowerLhs = LinearPolynomial(lowerMonos, maskPoly.constant * -lowerValue)
         val lowerRhs = LinearPolynomial(emptyList(), zero)
         constraints += LinearInequality(lowerLhs, lowerRhs, Comparison.GE, "${name}_masking_range_lb")
 

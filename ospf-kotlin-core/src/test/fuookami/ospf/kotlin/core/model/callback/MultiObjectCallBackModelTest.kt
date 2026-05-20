@@ -2,7 +2,7 @@ package fuookami.ospf.kotlin.core.model.callback
 
 import fuookami.ospf.kotlin.core.model.basic.MultiObjectLocation
 import fuookami.ospf.kotlin.core.model.basic.ObjectCategory
-import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInputV
+import fuookami.ospf.kotlin.core.model.mechanism.LinearConstraintInput
 import fuookami.ospf.kotlin.core.solver.value.IntoValue
 import fuookami.ospf.kotlin.core.token.LinearFlattenData
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
@@ -86,7 +86,7 @@ class MultiObjectCallBackModelTest {
     }
 
     @Test
-    fun addConstraintShouldAcceptTypedLinearConstraintInput() {
+    fun addConstraintShouldAcceptLinearConstraintInput() {
         val model = MultiObjectCallBackModel(
             objectiveLocation = listOf(MultiObjectLocation(priority = UInt64.zero, weight = Flt64.one)),
             converter = IntoValue.Identity
@@ -94,13 +94,13 @@ class MultiObjectCallBackModelTest {
         val before = model.constraints.size
 
         model.addConstraint(
-            inequality = LinearConstraintInputV(
+            inequality = LinearConstraintInput(
                 flattenData = LinearFlattenData(emptyList(), Flt64(-1.0)),
                 sign = Comparison.LE,
                 lhsRange = ValueRange(Flt64(-10.0), Flt64(10.0)).value!!,
                 rhsConstant = Flt64.zero
             ),
-            name = "typed_constraint"
+            name = "constraint"
         )
 
         assertEquals(before + 1, model.constraints.size)

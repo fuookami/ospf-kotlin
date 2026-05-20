@@ -85,11 +85,11 @@ class IfInFunction<V>(
 
         // x - lower >= 0 indicator (x >= lower)
         val xMinusLower = LinearPolynomial(x.monomials, x.constant - lower)
-        allConstraints += nonzeroIndicatorConstraintsV(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
+        allConstraints += nonzeroIndicatorConstraints(xMinusLower, geVar, geSideVar, mVal, tolerance, strictBoundary, "${name}_ge")
 
         // upper - x >= 0 indicator (x <= upper)
         val upperMinusX = LinearPolynomial(x.monomials.map { LinearMonomial(-it.coefficient, it.symbol) }, -x.constant + upper)
-        allConstraints += nonzeroIndicatorConstraintsV(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
+        allConstraints += nonzeroIndicatorConstraints(upperMinusX, leVar, leSideVar, mVal, tolerance, strictBoundary, "${name}_le")
 
         // result = ge AND le: result <= ge, result <= le, result >= ge + le - 1
         allConstraints += LinearInequality(

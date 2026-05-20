@@ -30,43 +30,43 @@ private val flt64Converter = object : IntoValue<Flt64> {
         override fun fromValue(value: Flt64) = value
     }
 
-interface AbstractGAPolicy<V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+interface AbstractGAPolicy<ObjValue, V> : AbstractHeuristicPolicy where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend fun migrate(
         iteration: Iteration,
-        populations: List<AbstractPopulation<V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<AbstractPopulation<V>>
+        populations: List<AbstractPopulation<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<AbstractPopulation<ObjValue, V>>
 
     suspend fun select(
         iteration: Iteration,
-        population: AbstractPopulation<V>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Chromosome<V>>
+        population: AbstractPopulation<ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Chromosome<ObjValue, V>>
 
     suspend fun cross(
         iteration: Iteration,
-        population: List<Chromosome<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        population: List<Chromosome<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
-    ): List<Chromosome<V>>
+    ): List<Chromosome<ObjValue, V>>
 
     suspend fun mutate(
         iteration: Iteration,
-        population: List<Chromosome<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        population: List<Chromosome<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         mutationRateRange: ValueRange<Flt64>
-    ): List<Chromosome<V>>
+    ): List<Chromosome<ObjValue, V>>
 }
 
-class GAPolicy<V>(
-    val migration: Migration<V>,
-    val selectionMode: SelectionMode<V>,
+class GAPolicy<ObjValue, V>(
+    val migration: Migration<ObjValue, V>,
+    val selectionMode: SelectionMode<ObjValue, V>,
     val selection: Selection,
-    val crossMode: CrossMode<V>,
+    val crossMode: CrossMode<ObjValue, V>,
     val cross: Cross<V>,
-    val mutationMode: MutationMode<V>,
+    val mutationMode: MutationMode<ObjValue, V>,
     val mutation: Mutation<V>,
-    val normalization: ObjectiveNormalization<V>,
+    val normalization: ObjectiveNormalization<ObjValue, V>,
     iterationLimit: UInt64 = UInt64.maximum,
     notBetterIterationLimit: UInt64 = UInt64.maximum,
     timeLimit: Duration = 30.minutes,
@@ -76,22 +76,22 @@ class GAPolicy<V>(
     iterationLimit = iterationLimit,
     notBetterIterationLimit = notBetterIterationLimit,
     timeLimit = timeLimit
-), AbstractGAPolicy<V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
+), AbstractGAPolicy<ObjValue, V> where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     companion object {
         operator fun invoke(
-            migration: Migration<Flt64>,
-            selectionMode: SelectionMode<Flt64>,
+            migration: Migration<Flt64, Flt64>,
+            selectionMode: SelectionMode<Flt64, Flt64>,
             selection: Selection,
-            crossMode: CrossMode<Flt64>,
+            crossMode: CrossMode<Flt64, Flt64>,
             cross: Cross<Flt64>,
-            mutationMode: MutationMode<Flt64>,
+            mutationMode: MutationMode<Flt64, Flt64>,
             mutation: Mutation<Flt64>,
-            normalization: ObjectiveNormalization<Flt64>,
+            normalization: ObjectiveNormalization<Flt64, Flt64>,
             iterationLimit: UInt64 = UInt64.maximum,
             notBetterIterationLimit: UInt64 = UInt64.maximum,
             timeLimit: Duration = 30.minutes,
             randomGenerator: Generator<Flt64> = { Random.nextFlt64() }
-        ): GAPolicy<Flt64> {
+        ): GAPolicy<Flt64, Flt64> {
             return GAPolicy(
                 migration = migration,
                 selectionMode = selectionMode,
@@ -111,9 +111,9 @@ class GAPolicy<V>(
     }
     override suspend fun migrate(
         iteration: Iteration,
-        populations: List<AbstractPopulation<V>>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<AbstractPopulation<V>> {
+        populations: List<AbstractPopulation<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<AbstractPopulation<ObjValue, V>> {
         return migration(
             iteration = iteration,
             populations = populations,
@@ -138,9 +138,9 @@ class GAPolicy<V>(
 
     override suspend fun select(
         iteration: Iteration,
-        population: AbstractPopulation<V>,
-        model: AbstractCallBackModelInterface<*, V>
-    ): List<Chromosome<V>> {
+        population: AbstractPopulation<ObjValue, V>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>
+    ): List<Chromosome<ObjValue, V>> {
         val amount = selectionMode(
             iteration = iteration,
             population = population,
@@ -163,10 +163,10 @@ class GAPolicy<V>(
 
     override suspend fun cross(
         iteration: Iteration,
-        population: List<Chromosome<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        population: List<Chromosome<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         parentAmountRange: ValueRange<UInt64>
-    ): List<Chromosome<V>> {
+    ): List<Chromosome<ObjValue, V>> {
         val weights = normalization(model, population.map { it.fitness })
         val parentGroups = crossMode(
             iteration = iteration,
@@ -205,10 +205,10 @@ class GAPolicy<V>(
 
     override suspend fun mutate(
         iteration: Iteration,
-        population: List<Chromosome<V>>,
-        model: AbstractCallBackModelInterface<*, V>,
+        population: List<Chromosome<ObjValue, V>>,
+        model: AbstractCallBackModelInterface<*, ObjValue, V>,
         mutationRateRange: ValueRange<Flt64>
-    ): List<Chromosome<V>> {
+    ): List<Chromosome<ObjValue, V>> {
         val weights = normalization(model, population.map { it.fitness })
         val mutationRate = mutationMode(
             iteration = iteration,
@@ -251,16 +251,16 @@ class GAPolicy<V>(
 }
 
 @OptIn(ExperimentalTime::class)
-class GeneAlgorithm<Obj, V>(
+class GeneAlgorithm<Obj, ObjValue, V>(
     val population: List<PopulationBuilder>,
     val migrationPeriod: UInt64,
     val solutionAmount: UInt64 = UInt64.one,
-    val policy: AbstractGAPolicy<V>,
+    val policy: AbstractGAPolicy<ObjValue, V>,
 ) where V : fuookami.ospf.kotlin.math.algebra.concept.RealNumber<V>, V : fuookami.ospf.kotlin.math.algebra.concept.NumberField<V> {
     suspend operator fun invoke(
-        model: AbstractCallBackModelInterface<Obj, V>,
-        runningCallBack: ((Iteration, Chromosome<V>, List<Chromosome<V>>, List<AbstractPopulation<V>>) -> Try)? = null
-    ): List<Chromosome<V>> {
+        model: AbstractCallBackModelInterface<Obj, ObjValue, V>,
+        runningCallBack: ((Iteration, Chromosome<ObjValue, V>, List<Chromosome<ObjValue, V>>, List<AbstractPopulation<ObjValue, V>>) -> Try)? = null
+    ): List<Chromosome<ObjValue, V>> {
         val iteration = Iteration()
         val initialSolutions = model
             .initialSolutions(population.sumOf { it.densityRange.lowerBound.value.unwrap() })
@@ -389,7 +389,7 @@ class GeneAlgorithm<Obj, V>(
     }
 }
 
-typealias GA = GeneAlgorithm<Flt64, Flt64>
-typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>>
+typealias GA = GeneAlgorithm<Flt64, Flt64, Flt64>
+typealias MulObjGA = GeneAlgorithm<List<Pair<MultiObjectLocation<Flt64>, Flt64>>, List<Flt64>, Flt64>
 
 
