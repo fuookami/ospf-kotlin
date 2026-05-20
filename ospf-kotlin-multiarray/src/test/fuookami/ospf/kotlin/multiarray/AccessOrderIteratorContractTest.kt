@@ -45,6 +45,25 @@ class AccessOrderIteratorContractTest {
     }
 
     @Test
+    fun `iterator contract in ColumnMajor`() {
+        val shape = Shape2(2, 2)
+        val iterator = MultiIndexIterator(shape, AccessOrder.ColumnMajor)
+
+        val visited = mutableListOf<IntArray>()
+        while (iterator.hasNext()) {
+            visited.add(iterator.next())
+        }
+
+        assertEquals(4, visited.size)
+        assertTrue(intArrayOf(0, 0).contentEquals(visited[0]))
+        assertTrue(intArrayOf(1, 0).contentEquals(visited[1]))
+        assertTrue(intArrayOf(0, 1).contentEquals(visited[2]))
+        assertTrue(intArrayOf(1, 1).contentEquals(visited[3]))
+        assertFalse(iterator.hasNext())
+        assertThrows<NoSuchElementException> { iterator.next() }
+    }
+
+    @Test
     fun `RowMajor iteration order`() {
         val shape = Shape2(2, 3)
         val indices = shape.indices(AccessOrder.RowMajor).toList()
@@ -98,5 +117,19 @@ class AccessOrderIteratorContractTest {
         assertEquals(listOf(0, 1, 2, 3, 4, 5), mutable.flatten(AccessOrder.RowMajor))
         assertEquals(listOf(0, 3, 1, 4, 2, 5), immutable.flatten(AccessOrder.ColumnMajor))
         assertEquals(listOf(0, 3, 1, 4, 2, 5), mutable.flatten(AccessOrder.ColumnMajor))
+    }
+
+    @Test
+    fun `fromList fast path with ColumnMajor storage`() {
+        val shape = Shape2.withOrder(2, 3, StorageOrder.ColumnMajor)
+        val columnMajorList = listOf(0, 3, 1, 4, 2, 5)
+
+        val immutable = MultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+        val mutable = MutableMultiArray.fromList(shape, columnMajorList, AccessOrder.ColumnMajor)
+
+        assertEquals(listOf(0, 3, 1, 4, 2, 5), immutable.flatten(AccessOrder.ColumnMajor))
+        assertEquals(listOf(0, 3, 1, 4, 2, 5), mutable.flatten(AccessOrder.ColumnMajor))
+        assertEquals(listOf(0, 1, 2, 3, 4, 5), immutable.flatten(AccessOrder.RowMajor))
+        assertEquals(listOf(0, 1, 2, 3, 4, 5), mutable.flatten(AccessOrder.RowMajor))
     }
 }

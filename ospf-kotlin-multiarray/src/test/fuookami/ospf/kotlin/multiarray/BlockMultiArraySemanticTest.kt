@@ -271,6 +271,23 @@ class BlockMultiArraySemanticTest {
         assertEquals(1, blockArray.size)  // still only 1 block
     }
 
+    @Test
+    fun testBlockMultiArrayKeyDefensiveCopy() {
+        // 测试 key 防御性拷贝，外部数组修改不影响已存储索引
+        // Test key defensive copy: external array mutation does not affect stored index
+        val shape = Shape2(4, 4)
+        val blockArray = BlockMultiArray.empty<Int, Shape2>(shape)
+        val key = intArrayOf(1, 2)
+
+        blockArray[key] = 42
+        key[0] = 3
+        key[1] = 1
+
+        assertEquals(42, blockArray[1, 2])
+        assertNull(blockArray[3, 1])
+        assertTrue(blockArray.contains(intArrayOf(1, 2)))
+    }
+
     // ========================================================================
     // 迭代和遍历测试
     // Iteration and traversal tests

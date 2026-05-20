@@ -21,6 +21,104 @@ import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 
+internal class QuadraticTermKey private constructor(
+    val symbol1: Symbol,
+    val symbol2: Symbol?,
+    private val hash: Int
+) {
+    companion object {
+        fun normalized(
+            symbol1: Symbol,
+            symbol2: Symbol?,
+            comparator: Comparator<Symbol>
+        ): QuadraticTermKey {
+            if (symbol2 == null) {
+                return QuadraticTermKey(symbol1, null, hashOf(symbol1, null))
+            }
+            return if (comparator.compare(symbol1, symbol2) <= 0) {
+                QuadraticTermKey(symbol1, symbol2, hashOf(symbol1, symbol2))
+            } else {
+                QuadraticTermKey(symbol2, symbol1, hashOf(symbol2, symbol1))
+            }
+        }
+
+        private fun hashOf(symbol1: Symbol, symbol2: Symbol?): Int {
+            var result = symbol1.hashCode()
+            result = 31 * result + (symbol2?.hashCode() ?: 0)
+            return result
+        }
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+        if (other !is QuadraticTermKey) {
+            return false
+        }
+        return symbol1 == other.symbol1 && symbol2 == other.symbol2
+    }
+
+    override fun hashCode(): Int = hash
+}
+
+internal fun <T> Iterable<LinearMonomial<T>>.combineLinearMonomials(
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero }
+): List<LinearMonomial<T>> where T : Ring<T> {
+    val coefficientOfSymbol = LinkedHashMap<Symbol, T>()
+    for (monomial in this) {
+        coefficientOfSymbol[monomial.symbol] =
+            (coefficientOfSymbol[monomial.symbol] ?: zero) + monomial.coefficient
+    }
+    val combinedMonomials = ArrayList<LinearMonomial<T>>(coefficientOfSymbol.size)
+    for ((symbol, coefficient) in coefficientOfSymbol) {
+        if (!isZero(coefficient)) {
+            combinedMonomials.add(LinearMonomial(coefficient = coefficient, symbol = symbol))
+        }
+    }
+    return combinedMonomials
+}
+
+internal fun <T> Iterable<QuadraticMonomial<T>>.combineQuadraticMonomials(
+    zero: T,
+    isZero: (T) -> Boolean = { it == zero },
+    symbolComparator: Comparator<Symbol>? = null
+): List<QuadraticMonomial<T>> where T : Ring<T> {
+    val comparator = symbolComparator ?: defaultSymbolComparator
+    val coefficientOfKey = LinkedHashMap<QuadraticTermKey, T>()
+    for (monomial in this) {
+        val key = QuadraticTermKey.normalized(monomial.symbol1, monomial.symbol2, comparator)
+        coefficientOfKey[key] = (coefficientOfKey[key] ?: zero) + monomial.coefficient
+    }
+    val combinedMonomials = ArrayList<QuadraticMonomial<T>>(coefficientOfKey.size)
+    for ((key, coefficient) in coefficientOfKey) {
+        if (!isZero(coefficient)) {
+            combinedMonomials.add(
+                QuadraticMonomial(
+                    coefficient = coefficient,
+                    symbol1 = key.symbol1,
+                    symbol2 = key.symbol2
+                )
+            )
+        }
+    }
+    return combinedMonomials
+}
+
+private fun buildOrderedSymbolIndex(order: List<Symbol>, valuesSize: Int): Map<Symbol, Int> {
+    require(order.size == valuesSize) {
+        "Order and values size mismatch: order.size=${order.size}, values.size=$valuesSize."
+    }
+    val indexOfSymbol = LinkedHashMap<Symbol, Int>(order.size)
+    for ((index, symbol) in order.withIndex()) {
+        require(indexOfSymbol.put(symbol, index) == null) {
+            "Symbol order contains duplicated symbols."
+        }
+    }
+    return indexOfSymbol
+}
+
 // ============================================================================
 // Linear Polynomial Operations (Ring-based, no Generic conversion)
 // ============================================================================
@@ -32,16 +130,7 @@ fun <T> LinearPolynomial<T>.combineLinearTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ): LinearPolynomial<T> where T : Ring<T> {
-    val coefficientOfSymbol = LinkedHashMap<Symbol, T>()
-    for (monomial in monomials) {
-        coefficientOfSymbol[monomial.symbol] =
-            (coefficientOfSymbol[monomial.symbol] ?: zero) + monomial.coefficient
-    }
-    val newMonomials = coefficientOfSymbol
-        .asSequence()
-        .filter { !isZero(it.value) }
-        .map { LinearMonomial(coefficient = it.value, symbol = it.key) }
-        .toList()
+    val newMonomials = monomials.combineLinearMonomials(zero, isZero)
     return LinearPolynomial(monomials = newMonomials, constant = constant)
 }
 
@@ -69,13 +158,7 @@ fun <T> LinearPolynomial<T>.evaluateLinearOrdered(
     order: List<Symbol>,
     values: List<T>
 ): T where T : Ring<T> {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
-    }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
-    }
-    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
+    val indexOfSymbol = buildOrderedSymbolIndex(order, values.size)
     var value = constant
     for (monomial in monomials) {
         val index = indexOfSymbol[monomial.symbol]
@@ -121,24 +204,11 @@ fun <T> QuadraticPolynomial<T>.combineQuadraticTerms(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ): QuadraticPolynomial<T> where T : Ring<T> {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    val coefficientOfKey = LinkedHashMap<Pair<Symbol, Symbol?>, T>()
-
-    fun normalizeKey(s1: Symbol, s2: Symbol?): Pair<Symbol, Symbol?> {
-        if (s2 == null) return s1 to null
-        return if (comparator.compare(s1, s2) <= 0) s1 to s2 else s2 to s1
-    }
-
-    for (monomial in monomials) {
-        val key = normalizeKey(monomial.symbol1, monomial.symbol2)
-        coefficientOfKey[key] = (coefficientOfKey[key] ?: zero) + monomial.coefficient
-    }
-
-    val newMonomials = coefficientOfKey
-        .asSequence()
-        .filter { !isZero(it.value) }
-        .map { QuadraticMonomial(coefficient = it.value, symbol1 = it.key.first, symbol2 = it.key.second) }
-        .toList()
+    val newMonomials = monomials.combineQuadraticMonomials(
+        zero = zero,
+        isZero = isZero,
+        symbolComparator = symbolComparator
+    )
     return QuadraticPolynomial(monomials = newMonomials, constant = constant)
 }
 
@@ -169,13 +239,7 @@ fun <T> QuadraticPolynomial<T>.evaluateQuadraticOrdered(
     order: List<Symbol>,
     values: List<T>
 ): T where T : Ring<T> {
-    require(order.toSet().size == order.size) {
-        "Symbol order contains duplicated symbols."
-    }
-    require(order.size == values.size) {
-        "Order and values size mismatch: order.size=${order.size}, values.size=${values.size}."
-    }
-    val indexOfSymbol = order.withIndex().associate { it.value to it.index }
+    val indexOfSymbol = buildOrderedSymbolIndex(order, values.size)
     var value = constant
     for (monomial in monomials) {
         val i1 = indexOfSymbol[monomial.symbol1]

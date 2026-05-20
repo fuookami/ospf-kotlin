@@ -12,10 +12,6 @@ package fuookami.ospf.kotlin.math.symbol.operation
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.concept.*
 import fuookami.ospf.kotlin.math.symbol.Symbol
-import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
-import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.QuadraticMonomial
-import fuookami.ospf.kotlin.math.symbol.monomial.CanonicalMonomial
 import fuookami.ospf.kotlin.math.symbol.monomial.unaryMinus
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableLinearPolynomial
 import fuookami.ospf.kotlin.math.symbol.polynomial.MutableQuadraticPolynomial
@@ -40,18 +36,9 @@ fun <T : NumberField<T>> MutableLinearPolynomial<T>.combineTerms(
     zero: T,
     isZero: (T) -> Boolean = { it == zero }
 ) {
-    val coefficientOfSymbol = LinkedHashMap<Symbol, T>()
-    for (monomial in _monomials) {
-        coefficientOfSymbol[monomial.symbol] =
-            (coefficientOfSymbol[monomial.symbol] ?: zero) + monomial.coefficient
-    }
-
+    val combinedMonomials = _monomials.combineLinearMonomials(zero, isZero)
     _monomials.clear()
-    for ((symbol, coefficient) in coefficientOfSymbol) {
-        if (!isZero(coefficient)) {
-            _monomials.add(LinearMonomial(coefficient = coefficient, symbol = symbol))
-        }
-    }
+    _monomials.addAll(combinedMonomials)
 }
 
 /**
@@ -100,29 +87,9 @@ fun <T : NumberField<T>> MutableQuadraticPolynomial<T>.combineTerms(
     isZero: (T) -> Boolean = { it == zero },
     symbolComparator: Comparator<Symbol>? = null
 ) {
-    val comparator = symbolComparator ?: defaultSymbolComparator
-    val coefficientOfKey = LinkedHashMap<Pair<Symbol, Symbol?>, T>()
-
-    fun normalizeKey(s1: Symbol, s2: Symbol?): Pair<Symbol, Symbol?> {
-        if (s2 == null) return s1 to null
-        return if (comparator.compare(s1, s2) <= 0) s1 to s2 else s2 to s1
-    }
-
-    for (monomial in _monomials) {
-        val key = normalizeKey(monomial.symbol1, monomial.symbol2)
-        coefficientOfKey[key] = (coefficientOfKey[key] ?: zero) + monomial.coefficient
-    }
-
+    val combinedMonomials = _monomials.combineQuadraticMonomials(zero, isZero, symbolComparator)
     _monomials.clear()
-    for ((key, coefficient) in coefficientOfKey) {
-        if (!isZero(coefficient)) {
-            _monomials.add(QuadraticMonomial(
-                coefficient = coefficient,
-                symbol1 = key.first,
-                symbol2 = key.second
-            ))
-        }
-    }
+    _monomials.addAll(combinedMonomials)
 }
 
 /**

@@ -26,7 +26,11 @@ class TaskTimeConflictConstraint<
 ) : Pipeline<AbstractLinearMetaModel<Flt64>> {
     val tasks = tasks
         .filter { it.time != null && !it.advanceEnabled && !it.delayEnabled }
-        .sortedBy { it.time!!.start }
+        .sortedBy {
+            requireNotNull(it.time) {
+                "TaskTimeConflictConstraint 初始化失败：任务时间为空: $it"
+            }.start
+        }
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         val x = compilation.x
@@ -34,7 +38,13 @@ class TaskTimeConflictConstraint<
         for (executor in executors) {
             for (i in tasks.indices) {
                 for (j in (i + 1) until tasks.size) {
-                    if (tasks[i].time!!.withIntersection(tasks[j].time!!)) {
+                    val leftTime = requireNotNull(tasks[i].time) {
+                        "TaskTimeConflictConstraint.invoke 要求 tasks[$i].time 非空: ${tasks[i]}"
+                    }
+                    val rightTime = requireNotNull(tasks[j].time) {
+                        "TaskTimeConflictConstraint.invoke 要求 tasks[$j].time 非空: ${tasks[j]}"
+                    }
+                    if (leftTime.withIntersection(rightTime)) {
                         when (val result = model.addConstraint(
                             (LinearPolynomial(x[tasks[i], executor]) + LinearPolynomial(x[tasks[j], executor])) leq Flt64.one,
                             name = "${name}_${tasks[i]}_${tasks[j]}"

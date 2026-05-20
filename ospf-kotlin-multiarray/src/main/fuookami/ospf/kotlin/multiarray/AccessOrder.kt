@@ -106,26 +106,16 @@ class MultiIndexIterator(
     private val accessOrder: AccessOrder = AccessOrder.Default
 ) : Iterator<IntArray> {
 
+    private val totalSize = shape.size
     private var current: IntArray? = null
-    private var exhausted = false
     private var count = 0
 
     override fun hasNext(): Boolean {
-        if (exhausted || shape.size == 0) {
-            return false
-        }
-
-        // If not started yet, we have at least one element
-        val current = this.current ?: return true
-
-        // Check if we can advance from current position
-        val temp = current.copyOf()
-        val canAdvance = advance(temp) != null
-        return canAdvance
+        return count < totalSize
     }
 
     override fun next(): IntArray {
-        if (exhausted) {
+        if (!hasNext()) {
             throw NoSuchElementException("Iterator has no more elements")
         }
 
@@ -144,7 +134,7 @@ class MultiIndexIterator(
         // Advance to next element
         val next = advance(current)
         if (next == null) {
-            exhausted = true
+            count = totalSize
             throw NoSuchElementException("Iterator has no more elements")
         }
 
@@ -201,9 +191,28 @@ class MultiIndexIterator(
      */
     fun reset() {
         current = null
-        exhausted = false
         count = 0
     }
+}
+
+private fun StorageOrder.toAccessOrder(): AccessOrder {
+    return when (this) {
+        StorageOrder.RowMajor -> AccessOrder.RowMajor
+        StorageOrder.ColumnMajor -> AccessOrder.ColumnMajor
+    }
+}
+
+private fun <T : Any, S : Shape> reorderToStorageOrder(
+    shape: S,
+    list: List<T>,
+    accessOrder: AccessOrder
+): Array<Any?> {
+    val reordered = arrayOfNulls<Any>(shape.size)
+    var inputIndex = 0
+    for (vector in shape.iterate(accessOrder)) {
+        reordered[shape.index(vector)] = list[inputIndex++]
+    }
+    return reordered
 }
 
 /**
@@ -363,12 +372,15 @@ fun <T : Any, S : Shape> MultiArray.Companion.fromList(
         "List size (${list.size}) must match shape size (${shape.size})"
     }
 
-    val array = MutableMultiArray(shape) { _, _ -> list[0] }
-    var index = 0
-    for (vec in shape.iterate(accessOrder)) {
-        array[vec] = list[index++]
+    if (accessOrder == shape.storageOrder.toAccessOrder()) {
+        return MultiArray(shape) { i, _ -> list[i] }
     }
-    return array.toImmutable()
+
+    val reordered = reorderToStorageOrder(shape, list, accessOrder)
+    return MultiArray(shape) { i, _ ->
+        @Suppress("UNCHECKED_CAST")
+        reordered[i] as T
+    }
 }
 
 /**
@@ -384,10 +396,13 @@ fun <T : Any, S : Shape> MutableMultiArray.Companion.fromList(
         "List size (${list.size}) must match shape size (${shape.size})"
     }
 
-    val array = MutableMultiArray(shape) { _, _ -> list[0] }
-    var index = 0
-    for (vec in shape.iterate(accessOrder)) {
-        array[vec] = list[index++]
+    if (accessOrder == shape.storageOrder.toAccessOrder()) {
+        return MutableMultiArray(shape) { i, _ -> list[i] }
     }
-    return array
+
+    val reordered = reorderToStorageOrder(shape, list, accessOrder)
+    return MutableMultiArray(shape) { i, _ ->
+        @Suppress("UNCHECKED_CAST")
+        reordered[i] as T
+    }
 }

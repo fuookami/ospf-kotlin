@@ -46,6 +46,37 @@
  */
 package fuookami.ospf.kotlin.multiarray
 
+private class IndexKey private constructor(
+    private val indices: IntArray,
+    private val hash: Int
+) {
+    companion object {
+        fun persistent(indices: IntArray): IndexKey {
+            return IndexKey(indices.copyOf(), indices.contentHashCode())
+        }
+
+        fun transient(indices: IntArray): IndexKey {
+            return IndexKey(indices, indices.contentHashCode())
+        }
+    }
+
+    fun asIntArray(): IntArray = indices
+
+    fun toListKey(): List<Int> = indices.toList()
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) {
+            return true
+        }
+        if (other !is IndexKey) {
+            return false
+        }
+        return indices.contentEquals(other.indices)
+    }
+
+    override fun hashCode(): Int = hash
+}
+
 /**
  * BlockMultiArray - 分块存储的多维数组
  * BlockMultiArray - Multi-dimensional array with block storage
@@ -54,16 +85,17 @@ package fuookami.ospf.kotlin.multiarray
  * @param S 形状类型
  * @param blocks 分块列表
  */
-class BlockMultiArray<T : Any, S : Shape>(
+class BlockMultiArray<T : Any, S : Shape> private constructor(
     val shape: S,
-    private val blocks: MutableMap<List<Int>, T> = mutableMapOf()
+    private val blocks: MutableMap<IndexKey, T>
 ) : Collection<T> {
+    constructor(shape: S) : this(shape, mutableMapOf())
 
     /**
      * 获取元素
      */
     operator fun get(vararg indices: Int): T? {
-        return blocks[indices.toList()]
+        return blocks[IndexKey.transient(indices)]
     }
 
     /**
@@ -71,28 +103,35 @@ class BlockMultiArray<T : Any, S : Shape>(
      * Set element
      */
     operator fun set(indices: IntArray, value: T) {
-        blocks[indices.toList()] = value
+        blocks[IndexKey.persistent(indices)] = value
     }
 
     /**
      * 获取或设置默认值
      */
     fun getOrSet(indices: IntArray, defaultValue: () -> T): T {
-        return blocks.getOrPut(indices.toList()) { defaultValue() }
+        val key = IndexKey.transient(indices)
+        val existed = blocks[key]
+        if (existed != null) {
+            return existed
+        }
+        val value = defaultValue()
+        blocks[IndexKey.persistent(indices)] = value
+        return value
     }
 
     /**
      * 检查是否包含值
      */
     fun contains(indices: IntArray): Boolean {
-        return blocks.containsKey(indices.toList())
+        return blocks.containsKey(IndexKey.transient(indices))
     }
 
     /**
      * 移除元素
      */
     fun remove(indices: IntArray): T? {
-        return blocks.remove(indices.toList())
+        return blocks.remove(IndexKey.transient(indices))
     }
 
     /**
@@ -135,6 +174,7 @@ class BlockMultiArray<T : Any, S : Shape>(
      * 获取所有已存储的索引
      */
     fun indices(): Set<List<Int>> = blocks.keys
+        .mapTo(LinkedHashSet(blocks.size)) { it.toListKey() }
 
     /**
      * 转换为 MultiArray
@@ -144,8 +184,8 @@ class BlockMultiArray<T : Any, S : Shape>(
         val array = MutableMultiArray.newWith(shape, defaultValue)
 
         // Override with stored values
-        for ((indices, value) in blocks) {
-            array[indices.toIntArray()] = value
+        for ((key, value) in blocks) {
+            array[key.asIntArray()] = value
         }
 
         return array.toImmutable()
@@ -159,12 +199,12 @@ class BlockMultiArray<T : Any, S : Shape>(
             array: MultiArray<T, S>,
             filter: (T) -> Boolean = { true }
         ): BlockMultiArray<T, S> {
-            val blocks = mutableMapOf<List<Int>, T>()
+            val blocks = mutableMapOf<IndexKey, T>()
             for (i in 0 until array.shape.size) {
                 val vector = array.shape.vector(i)
                 val value = array[vector]
                 if (filter(value)) {
-                    blocks[vector.toList()] = value
+                    blocks[IndexKey.persistent(vector)] = value
                 }
             }
             return BlockMultiArray(array.shape, blocks)

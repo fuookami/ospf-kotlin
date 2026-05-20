@@ -1,6 +1,8 @@
 package fuookami.ospf.kotlin.math.symbol.operation
 
 import fuookami.ospf.kotlin.math.algebra.number.Flt64
+import fuookami.ospf.kotlin.math.algebra.number.Int64
+import fuookami.ospf.kotlin.math.algebra.number.Rtn64
 import fuookami.ospf.kotlin.math.symbol.IdentifiedSymbol
 import fuookami.ospf.kotlin.math.symbol.Symbol
 import fuookami.ospf.kotlin.math.symbol.monomial.LinearMonomial
@@ -9,6 +11,7 @@ import fuookami.ospf.kotlin.math.symbol.operation.combineTerms
 import fuookami.ospf.kotlin.math.symbol.operation.combineCanonicalTerms
 import fuookami.ospf.kotlin.math.symbol.defaultSymbolComparator
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
+import fuookami.ospf.kotlin.math.symbol.polynomial.QuadraticPolynomial
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
@@ -75,6 +78,64 @@ class CombineTermsTest {
         assertTrue(only.symbol1 == x || only.symbol1 == y)
         assertTrue(only.symbol2 == x || only.symbol2 == y)
         assertTrue(only.coefficient == Flt64(5.0))
+    }
+
+    @Test
+    fun combineLinearTermsShouldBeConsistentBetweenFlt64AndRtn64() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+
+        val fltResult = listOf(
+            LinearMonomial(Flt64.two, x),
+            LinearMonomial(Flt64(3.0), x),
+            LinearMonomial(-Flt64.one, y),
+            LinearMonomial(Flt64.one, y)
+        ).combineTerms()
+
+        val rtnResult = LinearPolynomial(
+            monomials = listOf(
+                LinearMonomial(Rtn64(Int64(2L), Int64.one), x),
+                LinearMonomial(Rtn64(Int64(3L), Int64.one), x),
+                LinearMonomial(Rtn64(Int64(-1L), Int64.one), y),
+                LinearMonomial(Rtn64(Int64.one, Int64.one), y)
+            ),
+            constant = Rtn64.zero
+        ).combineLinearTerms(zero = Rtn64.zero)
+
+        assertEquals(1, fltResult.size)
+        assertEquals(1, rtnResult.monomials.size)
+        assertEquals(fltResult[0].symbol, rtnResult.monomials[0].symbol)
+        assertTrue(fltResult[0].coefficient == Flt64(5.0))
+        assertEquals(Rtn64(Int64(5L), Int64.one), rtnResult.monomials[0].coefficient)
+    }
+
+    @Test
+    fun combineQuadraticTermsShouldBeConsistentBetweenFlt64AndRtn64() {
+        val x = TestSymbol("x")
+        val y = TestSymbol("y")
+
+        val fltResult = listOf(
+            QuadraticMonomial(Flt64.two, x, y),
+            QuadraticMonomial(Flt64(3.0), y, x),
+            QuadraticMonomial(Flt64.one, x, null),
+            QuadraticMonomial(-Flt64.one, x, null)
+        ).combineTerms()
+
+        val rtnResult = QuadraticPolynomial(
+            monomials = listOf(
+                QuadraticMonomial(Rtn64(Int64(2L), Int64.one), x, y),
+                QuadraticMonomial(Rtn64(Int64(3L), Int64.one), y, x),
+                QuadraticMonomial(Rtn64(Int64.one, Int64.one), x, null),
+                QuadraticMonomial(Rtn64(Int64(-1L), Int64.one), x, null)
+            ),
+            constant = Rtn64.zero
+        ).combineQuadraticTerms(zero = Rtn64.zero)
+
+        assertEquals(1, fltResult.size)
+        assertEquals(1, rtnResult.monomials.size)
+        assertEquals(setOf(fltResult[0].symbol1, fltResult[0].symbol2), setOf(rtnResult.monomials[0].symbol1, rtnResult.monomials[0].symbol2))
+        assertTrue(fltResult[0].coefficient == Flt64(5.0))
+        assertEquals(Rtn64(Int64(5L), Int64.one), rtnResult.monomials[0].coefficient)
     }
 
     @Test

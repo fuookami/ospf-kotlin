@@ -568,16 +568,12 @@ data class Shape3 private constructor(
                 }
 
                 StorageOrder.ColumnMajor -> {
-                    // ColumnMajor: iterate dimensions in REVERSE order
-                    // Reference: ospf-rust-multiarray/src/shape.rs:204-210
                     var currentIndex = index
-                    IntArray(dimension) { i ->
-                        val dimIndex = dimension - 1 - i
-                        val offset = offsets[dimIndex]
-                        val result = currentIndex / offset
-                        currentIndex %= offset
-                        result
-                    }.reversedArray()  // Reverse to get correct order
+                    val v0 = currentIndex % d1
+                    currentIndex /= d1
+                    val v1 = currentIndex % d2
+                    currentIndex /= d2
+                    intArrayOf(v0, v1, currentIndex)
                 }
             }
         }
@@ -684,15 +680,14 @@ data class Shape4 private constructor(
                 }
 
                 StorageOrder.ColumnMajor -> {
-                    // ColumnMajor: iterate dimensions in REVERSE order
                     var currentIndex = index
-                    IntArray(dimension) { i ->
-                        val dimIndex = dimension - 1 - i
-                        val offset = offsets[dimIndex]
-                        val result = currentIndex / offset
-                        currentIndex %= offset
-                        result
-                    }.reversedArray()
+                    val v0 = currentIndex % d1
+                    currentIndex /= d1
+                    val v1 = currentIndex % d2
+                    currentIndex /= d2
+                    val v2 = currentIndex % d3
+                    currentIndex /= d3
+                    intArrayOf(v0, v1, v2, currentIndex)
                 }
             }
         }
@@ -815,15 +810,16 @@ data class DynShape private constructor(
                 }
 
                 StorageOrder.ColumnMajor -> {
-                    // ColumnMajor: iterate dimensions in REVERSE order
                     var currentIndex = index
                     IntArray(dimension) { i ->
-                        val dimIndex = dimension - 1 - i
-                        val offset = offsets[dimIndex]
-                        val result = currentIndex / offset
-                        currentIndex %= offset
-                        result
-                    }.reversedArray()
+                        if (i == dimension - 1) {
+                            currentIndex
+                        } else {
+                            val result = currentIndex % shape[i]
+                            currentIndex /= shape[i]
+                            result
+                        }
+                    }
                 }
             }
         }
