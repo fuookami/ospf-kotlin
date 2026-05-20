@@ -865,4 +865,24 @@ class TimeWindowTest {
             "Total duration should be 2 hours (4 - 2 excluded)"
         }
     }
+
+    /**
+     * Test unsupported duration unit gives explicit exception.
+     * 测试不支持的时间单位会抛出明确异常。
+     */
+    @Test
+    fun testUpperIntervalUnsupportedDurationUnitThrowsReadableError() {
+        val timeWindow = TimeWindow(
+            window = TimeRange(
+                start = Instant.parse("2020-08-30T08:00:00Z"),
+                end = Instant.parse("2020-08-30T10:00:00Z")
+            ),
+            durationUnit = DurationUnit.MILLISECONDS,
+            interval = 1.toDuration(DurationUnit.MILLISECONDS)
+        )
+
+        val exception = runCatching { timeWindow.upperInterval }.exceptionOrNull()
+        assert(exception is UnsupportedOperationException)
+        assert(exception!!.message!!.contains("TimeWindow.upper/upperInterval"))
+    }
 }

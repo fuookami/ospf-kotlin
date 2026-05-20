@@ -222,7 +222,9 @@ class TaskSchedulingConnectionResourceUsage<
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: MetaModel<Flt64>): Try {
-        TODO("NOT IMPLEMENT YET")
+        throw UnsupportedOperationException(
+            "TaskSchedulingConnectionResourceUsage.register 暂未实现，请使用 BunchSchedulingConnectionResourceUsage 或补充任务级连接资源建模。"
+        )
     }
 }
 

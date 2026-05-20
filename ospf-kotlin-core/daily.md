@@ -351,6 +351,30 @@ P19 的目标是让 P18+ 后的正式设计更干净、更快、更容易维护�
 
 ### P19-6：中低优先级技术债清理
 
+状态（2026-05-20）：已完成第一批落地（framework-gantt 的 `!!` 与关键路径 TODO 语义化）并通过目标回归、目标编译与 P6/P7 门禁。
+
+本批实际修改清单：
+
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeRange.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeWindow.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/test/kotlin/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeRangeDifferenceTest.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure/src/test/kotlin/fuookami/ospf/kotlin/framework/gantt_scheduling/infrastructure/TimeWindowTest.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/Consumption.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/produce/model/Produce.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/ConnectionResource.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/ExecutionResource.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-resource-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/resource/model/StorageResource.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/model/TaskTime.kt`
+- `ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-task-compilation-context/src/main/fuookami/ospf/kotlin/framework/gantt_scheduling/domain/task_compilation/service/limits/TaskStepConflictConstraint.kt`
+
+本批验收命令与结果：
+
+1. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1536m -XX:NonProfiledCodeHeapSize=512m -XX:ProfiledCodeHeapSize=512m"; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-infrastructure -am -Dtest=TimeRangeDifferenceTest,TimeRangeFindTest,TimeWindowTest,WorkingCalendarTest -Dsurefire.failIfNoSpecifiedTests=false test'`：通过（30 tests, 0 failures）。
+2. `pwsh.exe -NoProfile -Command '$env:MAVEN_OPTS="-XX:ReservedCodeCacheSize=1024m -XX:NonProfiledCodeHeapSize=384m -XX:ProfiledCodeHeapSize=384m"; mvn --% -pl ospf-kotlin-framework-gantt-scheduling/gantt-scheduling-domain-produce-context -am -DskipTests compile'`：通过。
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
+
 目标：整理风险但不阻塞主链路的问题。
 
 详细步骤：

@@ -225,7 +225,9 @@ class TaskSchedulingConsumption<
     override lateinit var quantity: LinearIntermediateSymbols1<Flt64>
 
     override fun register(model: AbstractLinearMetaModel<Flt64>): Try {
-        TODO("NOT IMPLEMENT YET")
+        throw UnsupportedOperationException(
+            "TaskSchedulingConsumption.register 暂未实现，请使用 BunchSchedulingConsumption 或补充任务级消费建模。"
+        )
     }
 }
 

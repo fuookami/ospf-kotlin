@@ -27,6 +27,12 @@ data class TimeWindow(
     val dateOffset: Duration = Duration.ZERO,
     val interval: Duration = 1.toDuration(durationUnit)
 ) {
+    private fun unsupportedUpperDurationUnit(): Nothing {
+        throw UnsupportedOperationException(
+            "TimeWindow.upper/upperInterval 暂不支持 durationUnit=$durationUnit，仅支持 SECONDS/MINUTES/HOURS。"
+        )
+    }
+
     companion object {
         fun seconds(
             timeWindow: TimeRange,
@@ -129,7 +135,7 @@ data class TimeWindow(
             }
 
             else -> {
-                TODO("NOT IMPLEMENT YET")
+                unsupportedUpperDurationUnit()
             }
         }
     }
@@ -152,7 +158,7 @@ data class TimeWindow(
                 }
 
                 else -> {
-                    TODO("NOT IMPLEMENT YET")
+                    unsupportedUpperDurationUnit()
                 }
             },
             upperInterval

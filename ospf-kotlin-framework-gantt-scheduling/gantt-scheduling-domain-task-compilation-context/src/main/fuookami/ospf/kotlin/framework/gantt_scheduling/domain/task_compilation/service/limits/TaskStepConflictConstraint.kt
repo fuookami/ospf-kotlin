@@ -21,7 +21,9 @@ class TaskStepConflictConstraint<
     private val shadowPriceExtractor: ((Args) -> Flt64?)? = null,
     override val name: String = "task_step_conflict"
 ) : AbstractGanttSchedulingCGPipeline<Args, E, A> {
-    private val conflictTaskGroup: List<List<T>> = TODO("not implement yet")
+    private val conflictTaskGroup: List<List<T>> = throw UnsupportedOperationException(
+        "TaskStepConflictConstraint 暂未实现 conflictTaskGroup 推导逻辑。"
+    )
 
     override operator fun invoke(model: AbstractLinearMetaModel<Flt64>): Try {
         for ((i, tasks) in conflictTaskGroup.withIndex()) {
@@ -45,7 +47,9 @@ class TaskStepConflictConstraint<
     }
 
     override fun extractor(): AbstractGanttSchedulingShadowPriceExtractor<Args, E, A> {
-        TODO("not implement yet")
+        throw UnsupportedOperationException(
+            "TaskStepConflictConstraint.extractor 暂未实现 shadow price 提取逻辑。"
+        )
     }
 
     override fun refresh(
@@ -53,7 +57,9 @@ class TaskStepConflictConstraint<
         model: AbstractLinearMetaModel<Flt64>,
         shadowPrices: MetaDualSolution
     ): Try {
-        TODO("not implement yet")
+        throw UnsupportedOperationException(
+            "TaskStepConflictConstraint.refresh 暂未实现 shadow price 回填逻辑。"
+        )
     }
 }
 

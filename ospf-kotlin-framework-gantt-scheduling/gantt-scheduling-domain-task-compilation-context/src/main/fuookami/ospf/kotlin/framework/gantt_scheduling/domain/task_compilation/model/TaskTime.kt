@@ -1155,7 +1155,9 @@ open class IterativeTaskSchedulingTaskTime<
 
     override fun register(model: MetaModel<Flt64>): Try {
         if (withRedundancy) {
-            TODO("NOT IMPLEMENT YET")
+            throw UnsupportedOperationException(
+                "IterativeTaskTime.register 暂未实现 withRedundancy 路径，请先关闭 redundancyRange 或补充冗余建模逻辑。"
+            )
         }
 
         if (!::estimateStartTime.isInitialized) {

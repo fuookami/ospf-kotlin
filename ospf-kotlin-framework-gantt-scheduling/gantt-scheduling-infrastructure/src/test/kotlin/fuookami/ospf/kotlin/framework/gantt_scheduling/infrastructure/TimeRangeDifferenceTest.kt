@@ -6,6 +6,7 @@ package fuookami.ospf.kotlin.framework.gantt_scheduling.infrastructure
 
 import kotlinx.datetime.Instant
 import org.junit.jupiter.api.Test
+import kotlin.time.Duration.Companion.hours
 
 class TimeRangeDifferenceTest {
     @Test
@@ -300,5 +301,44 @@ class TimeRangeDifferenceTest {
                 )
             )
         )
+    }
+
+    @Test
+    fun testFrontAtAndBackAtRequireMeaningfulMessage() {
+        val frontUnavailable = listOf(
+            TimeRange(
+                start = Instant.DISTANT_PAST,
+                end = Instant.parse("2020-08-30T10:00:00Z")
+            )
+        )
+        val frontException = runCatching { frontUnavailable.frontAt(0) }.exceptionOrNull()
+        assert(frontException is IllegalArgumentException)
+        assert(frontException!!.message!!.contains("frontAt(0)"))
+
+        val backUnavailable = listOf(
+            TimeRange(
+                start = Instant.parse("2020-08-30T10:00:00Z"),
+                end = Instant.DISTANT_FUTURE
+            )
+        )
+        val backException = runCatching { backUnavailable.backAt(0) }.exceptionOrNull()
+        assert(backException is IllegalArgumentException)
+        assert(backException!!.message!!.contains("backAt(0)"))
+    }
+
+    @Test
+    fun testRsplitRejectsUnsupportedMaxDuration() {
+        val calendar = TimeRange(
+            start = Instant.parse("2020-08-30T08:00:00Z"),
+            end = Instant.parse("2020-08-30T10:00:00Z")
+        )
+        val exception = runCatching {
+            calendar.rsplit(
+                unit = DurationRange(1.hours, 2.hours),
+                maxDuration = 3.hours
+            )
+        }.exceptionOrNull()
+        assert(exception is UnsupportedOperationException)
+        assert(exception!!.message!!.contains("TimeRange.rsplit"))
     }
 }

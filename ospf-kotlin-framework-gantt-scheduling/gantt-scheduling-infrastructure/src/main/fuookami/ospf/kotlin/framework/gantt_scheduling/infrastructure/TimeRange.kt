@@ -26,6 +26,12 @@ data class TimeRange(
     override val start: Instant = Instant.DISTANT_PAST,
     override val end: Instant = Instant.DISTANT_FUTURE
 ) : TimeSlot {
+    private fun unsupportedReverseSplit(maxDuration: Duration): Nothing {
+        throw UnsupportedOperationException(
+            "TimeRange.rsplit 暂不支持 maxDuration($maxDuration) 大于区间时长($duration)。"
+        )
+    }
+
     companion object {
         operator fun invoke(date: LocalDate): TimeRange {
             val start = date.atStartOfDayIn(TimeZone.currentSystemDefault())
@@ -372,7 +378,7 @@ data class TimeRange(
             )
         }
 
-        TODO("not implemented yet")
+        return unsupportedReverseSplit(maxDuration)
     }
 
     fun continuousBefore(time: TimeRange): Boolean {
@@ -421,17 +427,25 @@ fun List<TimeRange>.merge(): List<TimeRange> {
 
 fun List<TimeRange>.frontAt(i: Int): TimeRange {
     return if (i == 0) {
-        this[i].front!!
+        requireNotNull(this[i].front) {
+            "frontAt($i) 失败：首个时间段的 start 为 DISTANT_PAST，不存在前置区间。"
+        }
     } else {
-        this[i].frontBetween(this[i - 1])!!
+        requireNotNull(this[i].frontBetween(this[i - 1])) {
+            "frontAt($i) 失败：time[$i] 与 time[${i - 1}] 不存在可用前置间隙。"
+        }
     }
 }
 
 fun List<TimeRange>.backAt(i: Int): TimeRange {
     return if (i == this.lastIndex) {
-        this[i].back!!
+        requireNotNull(this[i].back) {
+            "backAt($i) 失败：末个时间段的 end 为 DISTANT_FUTURE，不存在后置区间。"
+        }
     } else {
-        this[i].backBetween(this[i + 1])!!
+        requireNotNull(this[i].backBetween(this[i + 1])) {
+            "backAt($i) 失败：time[$i] 与 time[${i + 1}] 不存在可用后置间隙。"
+        }
     }
 }
 
