@@ -198,12 +198,14 @@ open class BunchSchedulingTaskTime<
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
                     LinearIntermediateSymbol.empty(
+                        Flt64,
                         name = "est_slack_${task}"
                     )
                 } else {
                     when (val time = task.time) {
                         null -> {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "est_slack_${task}"
                             )
                         }

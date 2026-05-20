@@ -141,6 +141,7 @@ abstract class AbstractResourceUsage<
                             slack
                         } else {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "${name}_over_quantity_$slot"
                             )
                         }
@@ -182,6 +183,7 @@ abstract class AbstractResourceUsage<
                             slack
                         } else {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "${name}_less_quantity_$slot"
                             )
                         }

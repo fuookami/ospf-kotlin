@@ -36,8 +36,8 @@ class Ballast(
         }
     }
 
-    lateinit var ballastWeight: QuantityLinearIntermediateSymbol
-    lateinit var adaptiveMinBallastWeight: QuantityLinearIntermediateSymbol
+    lateinit var ballastWeight: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var adaptiveMinBallastWeight: QuantityLinearIntermediateSymbol<Flt64>
 
     fun register(
         stowageMode: StowageMode,

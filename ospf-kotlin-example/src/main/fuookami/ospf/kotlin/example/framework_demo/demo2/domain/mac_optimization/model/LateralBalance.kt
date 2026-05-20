@@ -22,14 +22,14 @@ class LateralBalance(
     private val aircraftModel: AircraftModel,
     private val torque: Torque
 ) {
-    lateinit var slack: QuantityLinearIntermediateSymbol
+    lateinit var slack: QuantityLinearIntermediateSymbol<Flt64>
 
     fun register(
         model: AbstractLinearMetaModel<Flt64>
     ): Try {
         if (!::slack.isInitialized) {
             slack = Quantity(
-                LinearExpressionSymbol(name = "lateral_balance_slack"),
+                LinearExpressionSymbol(Flt64, name = "lateral_balance_slack"),
                 aircraftModel.torqueUnit
             )
         }

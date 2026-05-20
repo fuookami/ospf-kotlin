@@ -24,15 +24,15 @@ class ExperimentalLongitudinalBalance(
     private val payload: Payload,
     private val redundancy: Redundancy
 ) {
-    lateinit var mainActualLongitudinalTorque: QuantityLinearIntermediateSymbol
-    lateinit var predicateLongitudinalTorque: QuantityLinearIntermediateSymbol
-    lateinit var longitudinalTorqueSlack: QuantityLinearIntermediateSymbol
+    lateinit var mainActualLongitudinalTorque: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var predicateLongitudinalTorque: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var longitudinalTorqueSlack: QuantityLinearIntermediateSymbol<Flt64>
 
-    val minLongitudinalTorque: QuantityLinearIntermediateSymbol by lazy {
+    val minLongitudinalTorque: QuantityLinearIntermediateSymbol<Flt64> by lazy {
         TODO("not implemented yet")
     }
 
-    val maxLongitudinalTorque: QuantityLinearIntermediateSymbol by lazy {
+    val maxLongitudinalTorque: QuantityLinearIntermediateSymbol<Flt64> by lazy {
         TODO("not implemented yet")
     }
 
@@ -84,7 +84,7 @@ class ExperimentalLongitudinalBalance(
 
         if (!::longitudinalTorqueSlack.isInitialized) {
             longitudinalTorqueSlack = Quantity(
-                LinearExpressionSymbol(name = "longitudinal_torque_slack"),
+                LinearExpressionSymbol(Flt64, name = "longitudinal_torque_slack"),
                 aircraftModel.torqueUnit
             )
         }

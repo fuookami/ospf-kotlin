@@ -48,6 +48,7 @@ abstract class CapacitySchedulingProduce<
     ) { p, _ ->
         val (product, _) = products[p]
         LinearExpressionSymbol(
+            Flt64,
             name = "produce_quantity_${product}"
         )
     }

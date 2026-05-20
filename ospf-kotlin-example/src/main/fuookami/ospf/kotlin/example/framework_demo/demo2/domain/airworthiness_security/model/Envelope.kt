@@ -53,7 +53,7 @@ interface AbstractEnvelope {
             )
         }
 
-        fun piecewise(totalWeight: QuantityLinearIntermediateSymbol): QuantityLinearIntermediateSymbol {
+        fun piecewise(totalWeight: QuantityLinearIntermediateSymbol<Flt64>): QuantityLinearIntermediateSymbol<Flt64> {
             return Quantity(
                 LinearExpressionSymbol(
                     Flt64.zero,
@@ -73,8 +73,8 @@ interface AbstractEnvelope {
 
     val phase: FlightPhase
     val name: String
-    val minIndex: QuantityLinearIntermediateSymbol
-    val maxIndex: QuantityLinearIntermediateSymbol
+    val minIndex: QuantityLinearIntermediateSymbol<Flt64>
+    val maxIndex: QuantityLinearIntermediateSymbol<Flt64>
 
     fun register(model: AbstractLinearMetaModel<Flt64>): Try
 }
@@ -95,8 +95,8 @@ class Envelope(
         return rhsSide(totalWeight)
     }
 
-    override lateinit var minIndex: QuantityLinearIntermediateSymbol
-    override lateinit var maxIndex: QuantityLinearIntermediateSymbol
+    override lateinit var minIndex: QuantityLinearIntermediateSymbol<Flt64>
+    override lateinit var maxIndex: QuantityLinearIntermediateSymbol<Flt64>
 
     override fun register(
         model: AbstractLinearMetaModel<Flt64>
@@ -170,8 +170,8 @@ class ConditionalEnvelope(
     private val totalWeight: TotalWeight
 ) : AbstractEnvelope {
     lateinit var condition: LinearIntermediateSymbol<Flt64>
-    override lateinit var minIndex: QuantityLinearIntermediateSymbol
-    override lateinit var maxIndex: QuantityLinearIntermediateSymbol
+    override lateinit var minIndex: QuantityLinearIntermediateSymbol<Flt64>
+    override lateinit var maxIndex: QuantityLinearIntermediateSymbol<Flt64>
 
     override fun register(
         model: AbstractLinearMetaModel<Flt64>

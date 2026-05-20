@@ -16,25 +16,25 @@ import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.utils.functional.Order
 
-interface AbstractCallBackModelInterface<Obj, V, TV> : Model<TV>, AutoCloseable
-        where TV : RealNumber<TV>, TV : NumberField<TV> {
-    val defaultObjective: V
+interface AbstractCallBackModelInterface<Obj, ObjValue, SolutionValue> : Model<SolutionValue>, AutoCloseable
+        where SolutionValue : RealNumber<SolutionValue>, SolutionValue : NumberField<SolutionValue> {
+    val defaultObjective: ObjValue
 
-    val tokens: AbstractMutableTokenTable<TV>
-    val constraints: List<Pair<Extractor<Boolean?, Solution<TV>>, String>>
+    val tokens: AbstractMutableTokenTable<SolutionValue>
+    val constraints: List<Pair<Extractor<Boolean?, Solution<SolutionValue>>, String>>
 
-    val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<TV>>, String>>
+    val objectiveFunctions: List<Pair<Extractor<Obj?, Solution<SolutionValue>>, String>>
 
-    fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<TV>> {
+    fun initialSolutions(initialSolutionAmount: UInt64 = UInt64.one): List<Solution<SolutionValue>> {
         return emptyList()
     }
 
-    fun operation(lhs: V, rhs: V): V
+    fun operation(lhs: ObjValue, rhs: ObjValue): ObjValue
 
-    fun objectiveValue(): V
-    fun objectiveValue(obj: Obj): V
+    fun objectiveValue(): ObjValue
+    fun objectiveValue(obj: Obj): ObjValue
 
-    fun objective(solution: Solution<TV>): V? {
+    fun objective(solution: Solution<SolutionValue>): ObjValue? {
         var obj = objectiveValue()
         for ((objectiveFunction, _) in objectiveFunctions) {
             val thisObj = objectiveFunction(solution) ?: return null
@@ -43,11 +43,11 @@ interface AbstractCallBackModelInterface<Obj, V, TV> : Model<TV>, AutoCloseable
         return obj
     }
 
-    fun compareObjective(lhs: V, rhs: V): Order?
+    fun compareObjective(lhs: ObjValue, rhs: ObjValue): Order?
 
     @Suppress("INAPPLICABLE_JVM_NAME")
     @JvmName("comparePartialObjective")
-    fun compareObjective(lhs: V?, rhs: V?): Order? {
+    fun compareObjective(lhs: ObjValue?, rhs: ObjValue?): Order? {
         return if (lhs != null && rhs == null) {
             Order.Less()
         } else if (lhs == null && rhs != null) {
@@ -59,7 +59,7 @@ interface AbstractCallBackModelInterface<Obj, V, TV> : Model<TV>, AutoCloseable
         }
     }
 
-    fun constraintSatisfied(solution: Solution<TV>): Boolean?
+    fun constraintSatisfied(solution: Solution<SolutionValue>): Boolean?
 
     fun flush()
 

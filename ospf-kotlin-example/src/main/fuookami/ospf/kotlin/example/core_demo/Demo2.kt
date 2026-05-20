@@ -130,9 +130,10 @@ data object Demo2 {
         )
         metaModel.add(cost)
 
-        assignmentCompany = Flt64LinearIntermediateSymbols(
+        assignmentCompany = LinearIntermediateSymbols(
             "assignment_company",
-            Shape1(companies.size)
+            Shape1(companies.size),
+            Flt64
         )
         for (c in companies) {
             assignmentCompany[c].asMutable() += sumVars(products) { p -> c.cost[p]?.let { x[c, p] } }

@@ -134,16 +134,16 @@ class CoreDemoBuildOnlyStructureTest {
             )
             model.add(cost)
 
-            val assignmentCompany = Flt64LinearIntermediateSymbols(
-                "assignment_company", Shape1(d2Companies.size)
+            val assignmentCompany = LinearIntermediateSymbols(
+                "assignment_company", Shape1(d2Companies.size), Flt64
             )
             for (c in d2Companies) {
                 assignmentCompany[c].asMutable() += sum(d2Products.mapNotNull { p -> c.cost[p]?.let { x[c, p] } })
             }
             model.add(assignmentCompany)
 
-            val assignmentProduct = Flt64LinearIntermediateSymbols(
-                "assignment_product", Shape1(d2Products.size)
+            val assignmentProduct = LinearIntermediateSymbols(
+                "assignment_product", Shape1(d2Products.size), Flt64
             )
             for (p in d2Products) {
                 assignmentProduct[p].asMutable() += sum(d2Companies.mapNotNull { c -> c.cost[p]?.let { x[c, p] } })
@@ -182,7 +182,7 @@ class CoreDemoBuildOnlyStructureTest {
             val cost = LinearExpressionSymbol(sum(d3Materials) { it.cost * x[it] }, name = "cost")
             model.add(cost)
 
-            val yield_ = Flt64LinearIntermediateSymbols("yield", Shape1(d3Products.size))
+            val yield_ = LinearIntermediateSymbols("yield", Shape1(d3Products.size), Flt64)
             for (p in d3Products) {
                 yield_[p].asMutable() += sum(d3Materials.filter { it.yieldQuantity.contains(p) }) { m -> m.yieldQuantity[p]!! * x[m] }
             }
@@ -217,7 +217,7 @@ class CoreDemoBuildOnlyStructureTest {
 
             val profit = LinearExpressionSymbol(sum(d4Products) { p -> p.profit * x[p] }, name = "profit")
             model.add(profit)
-            val use = Flt64LinearIntermediateSymbols("use", Shape1(d4Materials.size))
+            val use = LinearIntermediateSymbols("use", Shape1(d4Materials.size), Flt64)
             for (m in d4Materials) {
                 use[m].asMutable() += sum(d4Products) { p -> p.use[m]!! * x[p] }
             }
@@ -323,13 +323,13 @@ class CoreDemoBuildOnlyStructureTest {
             )
             model.add(cost)
 
-            val shipment = Flt64LinearIntermediateSymbols("shipment", Shape1(d7Warehouses.size))
+            val shipment = LinearIntermediateSymbols("shipment", Shape1(d7Warehouses.size), Flt64)
             for (w in d7Warehouses) {
                 shipment[w].asMutable() += sum(d7Stores.filter { w.cost.contains(it) }.map { s -> x[w, s] })
             }
             model.add(shipment)
 
-            val purchase = Flt64LinearIntermediateSymbols("purchase", Shape1(d7Stores.size))
+            val purchase = LinearIntermediateSymbols("purchase", Shape1(d7Stores.size), Flt64)
             for (s in d7Stores) {
                 purchase[s].asMutable() += sum(d7Warehouses.filter { w -> w.cost.contains(s) }.map { w -> x[w, s] })
             }

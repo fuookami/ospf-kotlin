@@ -58,6 +58,7 @@ abstract class CapacitySchedulingResourceUsage<
         ) { s, _ ->
             val slot = timeSlots[s]
             LinearExpressionSymbol(
+                Flt64,
                 name = "${name}_quantity_${slot}"
             )
         }

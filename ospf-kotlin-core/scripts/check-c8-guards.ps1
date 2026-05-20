@@ -853,7 +853,7 @@ if (($Verbose -or $p18Flt64ConverterOldNameViolations.Count -gt 0) -and $p18Flt6
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 
-$p18HeuristicOldGenericPattern = "AbstractCallBackModelInterface<\s*(\*|Obj)\s*,\s*V\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*\*\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*V\s*>|\bAbstract(GA|GWO|MVO|PSO|SAA|SCA)Policy<\s*V\s*>|\b(GeneAlgorithm|GreyWolfOptimizer|MultiVerseOptimizer|ParticleSwarmOptimizationAlgorithm|SimulatedAnnealingAlgorithm|SineCosineAlgorithm)<\s*Obj\s*,\s*V\s*>|typealias\s+MulObj(GA|GWO|MVO|PSO|SAA|SCA)\s*=\s*\w+<List<Pair<MultiObjectLocation<Flt64>, Flt64>>,\s*List<Flt64>>"
+$p18HeuristicOldGenericPattern = "AbstractCallBackModelInterface<\s*Obj\s*,\s*V\s*,\s*TV\s*>|where\s+TV\s*:\s*RealNumber<TV>\s*,\s*TV\s*:\s*NumberField<TV>|AbstractCallBackModelInterface<\s*(\*|Obj)\s*,\s*V\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*\*\s*>|\b(Individual|SolutionWithFitness|Chromosome|Wolf|Universe|Particle)<\s*V\s*>|\bAbstract(GA|GWO|MVO|PSO|SAA|SCA)Policy<\s*V\s*>|\b(GeneAlgorithm|GreyWolfOptimizer|MultiVerseOptimizer|ParticleSwarmOptimizationAlgorithm|SimulatedAnnealingAlgorithm|SineCosineAlgorithm)<\s*Obj\s*,\s*V\s*>|typealias\s+MulObj(GA|GWO|MVO|PSO|SAA|SCA)\s*=\s*\w+<List<Pair<MultiObjectLocation<Flt64>, Flt64>>,\s*List<Flt64>>"
 $p18HeuristicOldGenericViolations = @()
 $p18HeuristicScanRoots = @(
     "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/solver/heuristic",
@@ -896,8 +896,18 @@ if (Test-Path $p18SymbolCombinationFile) {
             $currentObject = $Matches[1]
         }
         if ($trimmed -notmatch "^(//|\*|/\*\*)") {
+            if ($trimmed -match "^data object\s+Flt64(Linear|Quadratic)IntermediateSymbols\b") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -match "^typealias\s+QuantityLinearIntermediateSymbol\s*=\s*Quantity<\s*LinearIntermediateSymbol<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>\s*>") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
             if ($currentObject -in @("LinearIntermediateSymbols", "QuadraticIntermediateSymbols") -and
                 $trimmed -match "<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
+            }
+            if ($currentObject -in @("LinearIntermediateSymbols", "QuadraticIntermediateSymbols") -and
+                $trimmed -match "^zero\s*:\s*[A-Za-z_][A-Za-z0-9_]*\s*,?$") {
                 $p18SymbolCombinationViolations += "${p18SymbolCombinationFile}:${lineNumber}: $trimmed"
             }
             if ($trimmed -match "ctor:\s*\([^)]*\)\s*->\s*LinearPolynomial<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
@@ -909,9 +919,67 @@ if (Test-Path $p18SymbolCombinationFile) {
         }
     }
 }
-Write-Result "P18-6: SymbolCombination factories stay generic outside explicit Flt64 boundary" ($p18SymbolCombinationViolations.Count -eq 0) "Found $($p18SymbolCombinationViolations.Count) violations"
+$p18SymbolCombinationCallRoots = @(
+    "ospf-kotlin-core/src",
+    "ospf-kotlin-example/src",
+    "ospf-kotlin-framework-bpp3d",
+    "ospf-kotlin-framework-gantt-scheduling"
+)
+foreach ($root in $p18SymbolCombinationCallRoots) {
+    if (-not (Test-Path $root)) {
+        continue
+    }
+    Get-ChildItem -Path $root -Recurse -Filter "*.kt" | Where-Object {
+        $_.FullName -notmatch "[/\\](target|build)[/\\]"
+    } | ForEach-Object {
+        $relativePath = Get-RelativePath -Root "." -FilePath $_.FullName
+        $lineNumber = 0
+        Get-Content $_.FullName | ForEach-Object {
+            $lineNumber++
+            $trimmed = $_.Trim()
+            if ($trimmed -notmatch "^(//|\*|/\*\*)" -and
+                $trimmed -match "\bFlt64(Linear|Quadratic)IntermediateSymbols\b") {
+                $p18SymbolCombinationViolations += "${relativePath}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-6: SymbolCombination factories use generic constants, no Flt64 special objects" ($p18SymbolCombinationViolations.Count -eq 0) "Found $($p18SymbolCombinationViolations.Count) violations"
 if (($Verbose -or $p18SymbolCombinationViolations.Count -gt 0) -and $p18SymbolCombinationViolations.Count -gt 0) {
     $preview = ($p18SymbolCombinationViolations | Select-Object -First 8) -join "; "
+    Write-Host "      Violations: $preview" -ForegroundColor DarkGray
+}
+
+$p18IntermediateSymbolFactoryViolations = @()
+$p18IntermediateSymbolFile = "ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/intermediate_symbol/IntermediateSymbol.kt"
+if (Test-Path $p18IntermediateSymbolFile) {
+    $lineNumber = 0
+    Get-Content $p18IntermediateSymbolFile | ForEach-Object {
+        $lineNumber++
+        $trimmed = $_.Trim()
+        if ($trimmed -notmatch "^(//|\*|/\*\*)") {
+            if ($trimmed -match "\b(Linear|Quadratic)ExpressionSymbol<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18IntermediateSymbolFactoryViolations += "${p18IntermediateSymbolFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -notmatch "_polyFlt64|SolverBoundaryCasts" -and
+                $trimmed -match "\b(Mutable)?(Linear|Quadratic)Polynomial<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18IntermediateSymbolFactoryViolations += "${p18IntermediateSymbolFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -match "\b(Linear|Quadratic)Monomial<\s*(fuookami\.ospf\.kotlin\.math\.algebra\.number\.)?Flt64\s*>") {
+                $p18IntermediateSymbolFactoryViolations += "${p18IntermediateSymbolFile}:${lineNumber}: $trimmed"
+            }
+            if ($trimmed -match "operator fun <T : RealNumber<T>> invoke\s*\(" -or
+                $trimmed -match "constant\.toFlt64\s*\(\)" -or
+                $trimmed -match "fun empty\s*\(\s*$" -or
+                $trimmed -match "operator fun invoke\s*\(\s*$") {
+                $p18IntermediateSymbolFactoryViolations += "${p18IntermediateSymbolFile}:${lineNumber}: $trimmed"
+            }
+        }
+    }
+}
+Write-Result "P18-7: IntermediateSymbol factories stay generic outside explicit Flt64 boundary" ($p18IntermediateSymbolFactoryViolations.Count -eq 0) "Found $($p18IntermediateSymbolFactoryViolations.Count) violations"
+if (($Verbose -or $p18IntermediateSymbolFactoryViolations.Count -gt 0) -and $p18IntermediateSymbolFactoryViolations.Count -gt 0) {
+    $preview = ($p18IntermediateSymbolFactoryViolations | Select-Object -First 8) -join "; "
     Write-Host "      Violations: $preview" -ForegroundColor DarkGray
 }
 

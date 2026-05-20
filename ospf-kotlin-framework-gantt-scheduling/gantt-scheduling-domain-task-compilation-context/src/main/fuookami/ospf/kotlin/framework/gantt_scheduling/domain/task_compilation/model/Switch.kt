@@ -62,6 +62,7 @@ class TaskSchedulingSwitch<
                     val task2 = tasks[v[1]]
                     val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "front_of_${task1}_${task2}"
                         )
                     } else {
@@ -103,6 +104,7 @@ class TaskSchedulingSwitch<
                     val task3 = tasks[v[3]]
                     val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2 || task1 == task3 || task2 == task3) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "between_in_${task3}_${task1}_${task2}"
                         )
                     } else {
@@ -141,6 +143,7 @@ class TaskSchedulingSwitch<
                 val task2 = tasks[v[2]]
                 val result: LinearIntermediateSymbol<Flt64> = if (task1 == task2) {
                     LinearIntermediateSymbol.empty(
+                        Flt64,
                         name = "front_of_${task1}_${task2}"
                     )
                 } else if (taskTime != null) {
@@ -177,6 +180,7 @@ class TaskSchedulingSwitch<
                         )
                     } else {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "switch_${executor}_${task1}_${task2}"
                         )
                     }

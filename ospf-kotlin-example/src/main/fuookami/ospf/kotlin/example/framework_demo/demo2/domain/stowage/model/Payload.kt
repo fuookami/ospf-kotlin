@@ -26,13 +26,13 @@ class Payload(
     private val positions: List<Position>,
     private val load: Load
 ) {
-    lateinit var mainEstimatePayload: QuantityLinearIntermediateSymbol
-    lateinit var lowEstimatePayload: QuantityLinearIntermediateSymbol
-    lateinit var estimatePayload: QuantityLinearIntermediateSymbol
+    lateinit var mainEstimatePayload: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var lowEstimatePayload: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var estimatePayload: QuantityLinearIntermediateSymbol<Flt64>
 
-    lateinit var mainActualPayload: QuantityLinearIntermediateSymbol
-    lateinit var lowActualPayload: QuantityLinearIntermediateSymbol
-    lateinit var actualPayload: QuantityLinearIntermediateSymbol
+    lateinit var mainActualPayload: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var lowActualPayload: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var actualPayload: QuantityLinearIntermediateSymbol<Flt64>
 
     fun register(
         stowageMode: StowageMode,

@@ -46,7 +46,7 @@ class ImpreciseAssignment(
 
     fun register(model: MetaModel<Flt64>): Try {
         if (!::volume.isInitialized) {
-            volume = LinearExpressionSymbol(name = "volume")
+            volume = LinearExpressionSymbol(Flt64, name = "volume")
         }
         when (val result = model.add(volume)) {
             is Ok -> {}

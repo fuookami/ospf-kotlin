@@ -455,6 +455,7 @@ class IterativeTaskSchedulingStorageResourceUsage<
                 val resource = resources[r]
                 val timeSlot = timeWindow.timeSlots[s]
                 LinearExpressionSymbol(
+                    Flt64,
                     name = "${name}_executor_supply_${executor}_${resource}_${timeSlot}"
                 )
             }
@@ -632,6 +633,7 @@ class BunchSchedulingStorageResourceUsage<
                 val resource = resources[r]
                 val slot = timeWindow.timeSlots[s]
                 LinearExpressionSymbol(
+                    Flt64,
                     name = "${name}_executor_supply_${executor}_${resource}_${slot}"
                 )
             }

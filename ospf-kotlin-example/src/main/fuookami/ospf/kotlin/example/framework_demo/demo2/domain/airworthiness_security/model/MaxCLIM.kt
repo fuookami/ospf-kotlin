@@ -49,7 +49,7 @@ class MaxCLIM(
         return Quantity(yn, aircraftModel.torqueUnit)
     }
 
-    lateinit var maxCLIM: QuantityLinearIntermediateSymbol
+    lateinit var maxCLIM: QuantityLinearIntermediateSymbol<Flt64>
 
     fun register(
         model: AbstractLinearMetaModel<Flt64>

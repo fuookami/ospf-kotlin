@@ -21,7 +21,7 @@ class LongitudinalBalance(
     private val macRange: MACRange,
     private val torque: Torque
 ) {
-    lateinit var slack: Map<MACRange.Type, QuantityLinearIntermediateSymbol>
+    lateinit var slack: Map<MACRange.Type, QuantityLinearIntermediateSymbol<Flt64>>
 
     fun register(
         stowageMode: StowageMode,
@@ -38,7 +38,7 @@ class LongitudinalBalance(
 
                             else -> {
                                 Quantity(
-                                    LinearExpressionSymbol(name = "longitudinal_balance_slack_${type.name}"),
+                                    LinearExpressionSymbol(Flt64, name = "longitudinal_balance_slack_${type.name}"),
                                     aircraftModel.torqueUnit
                                 )
                             }
@@ -49,7 +49,7 @@ class LongitudinalBalance(
                 StowageMode.Predistribution -> {
                     mapOf(
                         MACRange.Type.OPT to Quantity(
-                            LinearExpressionSymbol(name = "longitudinal_balance_slack_opt"),
+                            LinearExpressionSymbol(Flt64, name = "longitudinal_balance_slack_opt"),
                             aircraftModel.torqueUnit
                         )
                     )

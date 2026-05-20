@@ -48,7 +48,7 @@ class ImpreciseLoad(
                 "load",
                 Shape1(items.size)
             ) { i, _ ->
-                LinearExpressionSymbol(name = "load_$i")
+                LinearExpressionSymbol(Flt64, name = "load_$i")
             }
         }
         when (val result = model.add(load)) {

@@ -30,7 +30,7 @@ class MinLowPayload(
         val zfw: Quantity<Flt64>
     )
 
-    lateinit var minLowPayload: QuantityLinearIntermediateSymbol
+    lateinit var minLowPayload: QuantityLinearIntermediateSymbol<Flt64>
 
     operator fun invoke(zfw: Quantity<Flt64>): Quantity<Flt64> {
         return Quantity(

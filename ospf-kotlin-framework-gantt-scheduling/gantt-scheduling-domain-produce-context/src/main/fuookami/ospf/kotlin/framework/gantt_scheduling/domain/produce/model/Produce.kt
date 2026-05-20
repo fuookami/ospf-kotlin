@@ -1,4 +1,4 @@
-﻿@file:OptIn(kotlin.time.ExperimentalTime::class)
+@file:OptIn(kotlin.time.ExperimentalTime::class)
 
 package fuookami.ospf.kotlin.framework.gantt_scheduling.domain.produce.model
 
@@ -73,6 +73,7 @@ abstract class AbstractProduce<
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "produce_over_quantity_${product}"
                         )
                     }
@@ -123,6 +124,7 @@ abstract class AbstractProduce<
                         slack
                     } else {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "produce_less_quantity_${product}"
                         )
                     }
@@ -250,6 +252,7 @@ class BunchSchedulingProduce<
                 ) { p, _ ->
                     val (product, _) = products[p]
                     LinearExpressionSymbol(
+                        Flt64,
                         name = "produce_quantity_${product}"
                     )
                 }

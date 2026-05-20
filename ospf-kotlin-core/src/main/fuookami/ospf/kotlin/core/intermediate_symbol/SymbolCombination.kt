@@ -9,8 +9,8 @@ import fuookami.ospf.kotlin.core.variable.IdentifierGenerator
 import fuookami.ospf.kotlin.core.intermediate_symbol.function.LinearFunctionSymbolAdapter
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
-import fuookami.ospf.kotlin.math.algebra.number.Flt64
 import fuookami.ospf.kotlin.math.algebra.number.UInt64
 import fuookami.ospf.kotlin.math.symbol.Quadratic
 import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
@@ -100,7 +100,7 @@ typealias QuantityLinearIntermediateSymbols2<V> = QuantitySymbolCombination<Line
 typealias QuantityLinearIntermediateSymbols3<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape3>
 typealias QuantityLinearIntermediateSymbols4<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, Shape4>
 typealias DynQuantityLinearIntermediateSymbols<V> = QuantitySymbolCombination<LinearIntermediateSymbol<V>, DynShape>
-typealias QuantityLinearIntermediateSymbol = Quantity<LinearIntermediateSymbol<Flt64>>
+typealias QuantityLinearIntermediateSymbol<V> = Quantity<LinearIntermediateSymbol<V>>
 
 typealias QuadraticExpressionSymbols1<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape1>
 typealias QuadraticExpressionSymbols2<V> = SymbolCombination<QuadraticExpressionSymbol<V>, Shape2>
@@ -162,88 +162,66 @@ data object LinearIntermediateSymbols {
     operator fun <V> invoke(
         name: String,
         shape: Shape1,
-        zero: V
+        constants: RealNumberConstants<V>
     ): LinearExpressionSymbols1<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyLinearExpressionSymbol(symbolName(name, v), zero)
+            emptyLinearExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape2,
-        zero: V
+        constants: RealNumberConstants<V>
     ): LinearExpressionSymbols2<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyLinearExpressionSymbol(symbolName(name, v), zero)
+            emptyLinearExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape3,
-        zero: V
+        constants: RealNumberConstants<V>
     ): LinearExpressionSymbols3<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyLinearExpressionSymbol(symbolName(name, v), zero)
+            emptyLinearExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape4,
-        zero: V
+        constants: RealNumberConstants<V>
     ): LinearExpressionSymbols4<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyLinearExpressionSymbol(symbolName(name, v), zero)
+            emptyLinearExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: DynShape,
-        zero: V
+        constants: RealNumberConstants<V>
     ): DynLinearExpressionSymbols<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyLinearExpressionSymbol(symbolName(name, v), zero)
+            emptyLinearExpressionSymbol(symbolName(name, v), constants.zero)
         }
-    }
-}
-
-data object Flt64LinearIntermediateSymbols {
-    operator fun invoke(name: String, shape: Shape1): LinearExpressionSymbols1<Flt64> {
-        return LinearIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape2): LinearExpressionSymbols2<Flt64> {
-        return LinearIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape3): LinearExpressionSymbols3<Flt64> {
-        return LinearIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape4): LinearExpressionSymbols4<Flt64> {
-        return LinearIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: DynShape): DynLinearExpressionSymbols<Flt64> {
-        return LinearIntermediateSymbols(name, shape, Flt64.zero)
     }
 }
 
@@ -251,88 +229,66 @@ data object QuadraticIntermediateSymbols {
     operator fun <V> invoke(
         name: String,
         shape: Shape1,
-        zero: V
+        constants: RealNumberConstants<V>
     ): QuadraticExpressionSymbols1<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyQuadraticExpressionSymbol(symbolName(name, v), zero)
+            emptyQuadraticExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape2,
-        zero: V
+        constants: RealNumberConstants<V>
     ): QuadraticExpressionSymbols2<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyQuadraticExpressionSymbol(symbolName(name, v), zero)
+            emptyQuadraticExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape3,
-        zero: V
+        constants: RealNumberConstants<V>
     ): QuadraticExpressionSymbols3<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyQuadraticExpressionSymbol(symbolName(name, v), zero)
+            emptyQuadraticExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: Shape4,
-        zero: V
+        constants: RealNumberConstants<V>
     ): QuadraticExpressionSymbols4<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyQuadraticExpressionSymbol(symbolName(name, v), zero)
+            emptyQuadraticExpressionSymbol(symbolName(name, v), constants.zero)
         }
     }
 
     operator fun <V> invoke(
         name: String,
         shape: DynShape,
-        zero: V
+        constants: RealNumberConstants<V>
     ): DynQuadraticExpressionSymbols<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
         return SymbolCombination(
             name = name,
             shape = shape
         ) { _, v ->
-            emptyQuadraticExpressionSymbol(symbolName(name, v), zero)
+            emptyQuadraticExpressionSymbol(symbolName(name, v), constants.zero)
         }
-    }
-}
-
-data object Flt64QuadraticIntermediateSymbols {
-    operator fun invoke(name: String, shape: Shape1): QuadraticExpressionSymbols1<Flt64> {
-        return QuadraticIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape2): QuadraticExpressionSymbols2<Flt64> {
-        return QuadraticIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape3): QuadraticExpressionSymbols3<Flt64> {
-        return QuadraticIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: Shape4): QuadraticExpressionSymbols4<Flt64> {
-        return QuadraticIntermediateSymbols(name, shape, Flt64.zero)
-    }
-
-    operator fun invoke(name: String, shape: DynShape): DynQuadraticExpressionSymbols<Flt64> {
-        return QuadraticIntermediateSymbols(name, shape, Flt64.zero)
     }
 }
 

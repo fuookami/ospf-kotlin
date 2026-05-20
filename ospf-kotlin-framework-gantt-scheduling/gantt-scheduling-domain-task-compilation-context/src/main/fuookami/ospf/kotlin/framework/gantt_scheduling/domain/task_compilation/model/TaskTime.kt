@@ -256,12 +256,14 @@ abstract class TaskTimeImpl<
                         val task = tasks[i]
                         if (!task.delayEnabled) {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "over_max_delay_time_${task}"
                             )
                         } else {
                             when (val maxDelayTime = task.maxDelay) {
                                 null -> {
                                     LinearExpressionSymbol(
+                                        Flt64,
                                         name = "over_max_delay_time_${task}"
                                     )
                                 }
@@ -349,12 +351,14 @@ abstract class TaskTimeImpl<
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "over_max_advance_time_${task}"
                             )
                         } else {
                             when (val maxAdvanceTime = task.maxAdvance) {
                                 null -> {
                                     LinearIntermediateSymbol.empty(
+                                        Flt64,
                                         name = "over_max_advance_time_${task}"
                                     )
                                 }
@@ -442,12 +446,14 @@ abstract class TaskTimeImpl<
                         val task = tasks[i]
                         if (!task.delayEnabled) {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "delay_last_end_time_${task}"
                             )
                         } else {
                             when (val lastEndTime = task.lastEndTime) {
                                 null -> {
                                     LinearIntermediateSymbol.empty(
+                                        Flt64,
                                         name = "delay_last_end_time_${task}"
                                     )
                                 }
@@ -531,12 +537,14 @@ abstract class TaskTimeImpl<
                         val task = tasks[i]
                         if (!task.advanceEnabled) {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "advance_earliest_end_time_${task}"
                             )
                         } else {
                             when (val earliestEndTime = task.earliestEndTime) {
                                 null -> {
                                     LinearIntermediateSymbol.empty(
+                                        Flt64,
                                         name = "advance_earliest_end_time_${task}"
                                     )
                                 }
@@ -623,12 +631,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.delayEnabled) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "on_last_end_time_${task}"
                         )
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
                                 LinearIntermediateSymbol.empty(
+                                    Flt64,
                                     name = "on_last_end_time_${task}"
                                 )
                             }
@@ -671,12 +681,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "on_earliest_end_time_${task}"
                         )
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
                                 LinearIntermediateSymbol.empty(
+                                    Flt64,
                                     name = "on_earliest_end_time_${task}"
                                 )
                             }
@@ -753,12 +765,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.delayEnabled) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "not_on_last_end_time_${task}"
                         )
                     } else {
                         when (val lastEndTime = task.lastEndTime) {
                             null -> {
                                 LinearIntermediateSymbol.empty(
+                                    Flt64,
                                     name = "not_on_last_end_time_${task}"
                                 )
                             }
@@ -801,12 +815,14 @@ abstract class TaskTimeImpl<
                     val task = tasks[i]
                     if (!task.advanceEnabled) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "not_on_earliest_end_time_${task}"
                         )
                     } else {
                         when (val earliestEndTime = task.earliestEndTime) {
                             null -> {
                                 LinearIntermediateSymbol.empty(
+                                    Flt64,
                                     name = "not_on_earliest_end_time_${task}"
                                 )
                             }
@@ -967,12 +983,14 @@ class TaskSchedulingTaskTime<
                     val task = tasks[i]
                     if (!task.delayEnabled && !task.advanceEnabled) {
                         LinearIntermediateSymbol.empty(
+                            Flt64,
                             name = "est_slack_${task}"
                         )
                     } else {
                         when (val time = task.time) {
                             null -> {
                                 LinearIntermediateSymbol.empty(
+                                    Flt64,
                                     name = "est_slack_${task}"
                                 )
                             }
@@ -1204,12 +1222,14 @@ open class IterativeTaskSchedulingTaskTime<
                 val task = tasks[i]
                 if (!task.delayEnabled && !task.advanceEnabled) {
                     LinearIntermediateSymbol.empty(
+                        Flt64,
                         name = "est_slack_${task}"
                     )
                 } else {
                     when (val time = task.time) {
                         null -> {
                             LinearIntermediateSymbol.empty(
+                                Flt64,
                                 name = "est_slack_${task}"
                             )
                         }

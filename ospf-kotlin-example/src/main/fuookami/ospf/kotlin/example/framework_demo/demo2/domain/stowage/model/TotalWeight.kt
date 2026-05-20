@@ -24,8 +24,8 @@ class TotalWeight(
     private val fuel: Map<FlightPhase, FuelConstant>,
     private val payload: Payload
 ) {
-    lateinit var estimateTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol>
-    lateinit var actualTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol>
+    lateinit var estimateTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
+    lateinit var actualTotalWeight: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
 
     fun register(
         model: AbstractLinearMetaModel<Flt64>

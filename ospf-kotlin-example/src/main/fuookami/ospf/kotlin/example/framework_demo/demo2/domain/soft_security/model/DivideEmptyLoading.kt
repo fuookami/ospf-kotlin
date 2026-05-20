@@ -71,6 +71,7 @@ class DivideEmptyLoading(
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,
+                        Flt64,
                         name = "empty_between_cargo_${position1}_${position2}"
                     )
                 } else {
@@ -122,6 +123,7 @@ class DivideEmptyLoading(
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,
+                        Flt64,
                         name = "empty_cargo_between_cargo_${position1}_${position2}"
                     )
                 } else {
@@ -171,6 +173,7 @@ class DivideEmptyLoading(
                 } else if (loadAmount2.range.fixedValue?.let { it eq Flt64.zero } == true) {
                     LinearExpressionSymbol(
                         loadAmount1,
+                        Flt64,
                         name = "empty_between_empty_cargo_${position1}_${position2}"
                     )
                 } else {

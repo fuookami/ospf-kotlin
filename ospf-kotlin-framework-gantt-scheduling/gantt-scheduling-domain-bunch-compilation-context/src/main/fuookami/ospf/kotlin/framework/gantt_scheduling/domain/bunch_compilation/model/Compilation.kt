@@ -92,7 +92,7 @@ open class BunchCompilation<
         }
 
         if (!::bunchCost.isInitialized) {
-            bunchCost = LinearExpressionSymbol(name = "bunch_cost")
+            bunchCost = LinearExpressionSymbol(Flt64, name = "bunch_cost")
         }
         when (val result = model.add(bunchCost)) {
             is Ok -> {}
@@ -114,6 +114,7 @@ open class BunchCompilation<
                 val task = tasks[t]
                 val executor = executors[e]
                 LinearExpressionSymbol(
+                    Flt64,
                     name = "task_assignment_${task}_${executor}"
                 )
             }
@@ -137,7 +138,8 @@ open class BunchCompilation<
             ) { i, _ ->
                 val task = tasks[i]
                 LinearExpressionSymbol(
-                    item = y[i],
+                    y[i],
+                    Flt64,
                     name = "task_compilation_${task}"
                 )
             }

@@ -133,7 +133,7 @@ class IterativeCapacityCompilation<E : Executor, A : ProductionAction>(
         // Register cost expression
         // 注册成本表达式
         if (_cost == null) {
-            _cost = LinearExpressionSymbol(name = "cost")
+            _cost = LinearExpressionSymbol(Flt64, name = "cost")
         }
         when (val result = model.add(_cost!!)) {
             is Ok -> {}

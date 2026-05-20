@@ -215,6 +215,7 @@ class Load(
                     if (position.mla eq UInt64.one) {
                         LinearExpressionSymbol(
                             loadAmount[j],
+                            Flt64,
                             name = "full_${position}"
                         )
                     } else {
@@ -321,6 +322,7 @@ class Load(
                     val loadedItem: LinearIntermediateSymbol<Flt64> = if (position.mla eq UInt64.one) {
                         LinearExpressionSymbol(
                             loadAmount[j],
+                            Flt64,
                             name = "estimate_loaded_item_${position}"
                         )
                     } else {
@@ -405,6 +407,7 @@ class Load(
                     if (position.mla eq UInt64.one) {
                         LinearExpressionSymbol(
                             loadAmount[j],
+                            Flt64,
                             name = "actual_loaded_${position}"
                         )
                     } else {

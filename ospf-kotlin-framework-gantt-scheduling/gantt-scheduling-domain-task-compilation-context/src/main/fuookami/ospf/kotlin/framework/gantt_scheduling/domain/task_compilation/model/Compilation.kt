@@ -112,7 +112,8 @@ class TaskCompilation<
                 shape = Shape2(tasks.size, executors.size)
             ) { _, v ->
                 LinearExpressionSymbol(
-                    item = x[v],
+                    x[v],
+                    Flt64,
                     name = "task_assignment_${v.joinToString("_")}"
                 )
             }
@@ -342,6 +343,7 @@ open class IterativeTaskCompilation<
 
         if (!::taskCost.isInitialized) {
             taskCost = LinearExpressionSymbol(
+                Flt64,
                 name = "bunch_cost"
             )
         }
@@ -363,6 +365,7 @@ open class IterativeTaskCompilation<
                 Shape2(tasks.size, executors.size)
             ) { _, v ->
                 LinearExpressionSymbol(
+                    Flt64,
                     name = "task_assignment_${v.joinToString("_")}"
                 )
             }
@@ -385,7 +388,8 @@ open class IterativeTaskCompilation<
                 Shape1(tasks.size)
             ) { t, _ ->
                 LinearExpressionSymbol(
-                    item = y[t],
+                    y[t],
+                    Flt64,
                     name = "task_compilation_${t}"
                 )
             }

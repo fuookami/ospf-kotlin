@@ -7,6 +7,8 @@ import fuookami.ospf.kotlin.math.symbol.polynomial.LinearPolynomial
 import fuookami.ospf.kotlin.multiarray.Shape1
 import fuookami.ospf.kotlin.multiarray.Shape2
 import fuookami.ospf.kotlin.multiarray.Shape4
+import fuookami.ospf.kotlin.quantities.quantity.Quantity
+import fuookami.ospf.kotlin.quantities.unit.Meter
 import org.junit.jupiter.api.Test
 import kotlin.test.assertEquals
 
@@ -16,7 +18,7 @@ class SymbolCombinationGenericFactoryTest {
         val numberCase = GenericNumberCases.rtn64
 
         val symbols: LinearExpressionSymbols1<Rtn64> =
-            LinearIntermediateSymbols("linear", Shape1(2), numberCase.zero)
+            LinearIntermediateSymbols("linear", Shape1(2), Rtn64)
 
         assertEquals("linear_0", symbols[0].name)
         assertEquals(numberCase.zero, symbols[0].polynomial.constant)
@@ -27,7 +29,7 @@ class SymbolCombinationGenericFactoryTest {
         val numberCase = GenericNumberCases.rtn64
 
         val symbols: QuadraticExpressionSymbols2<Rtn64> =
-            QuadraticIntermediateSymbols("quadratic", Shape2(1, 1), numberCase.zero)
+            QuadraticIntermediateSymbols("quadratic", Shape2(1, 1), Rtn64)
 
         assertEquals("quadratic_0_0", symbols.first().name)
         assertEquals(Quadratic, symbols.first().category)
@@ -49,5 +51,16 @@ class SymbolCombinationGenericFactoryTest {
 
         assertEquals("mapped_0_0_0_0", symbols.first().name)
         assertEquals(numberCase.five, symbols.first().polynomial.constant)
+    }
+
+    @Test
+    fun quantityLinearIntermediateSymbolAliasShouldStayGeneric() {
+        val numberCase = GenericNumberCases.rtn64
+        val symbol = LinearIntermediateSymbol.empty(Rtn64, name = "quantity")
+
+        val quantity: QuantityLinearIntermediateSymbol<Rtn64> = Quantity(symbol, Meter)
+
+        assertEquals(Meter, quantity.unit)
+        assertEquals(numberCase.zero, quantity.value.polynomial.constant)
     }
 }

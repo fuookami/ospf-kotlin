@@ -26,10 +26,10 @@ class Torque(
     private val positions: List<Position>,
     private val load: Load
 ) {
-    lateinit var longitudinalTorque: Map<FlightPhase, QuantityLinearIntermediateSymbol>
-    lateinit var lateralTorque: QuantityLinearIntermediateSymbol
-    lateinit var clim: QuantityLinearIntermediateSymbol
-    lateinit var index: Map<FlightPhase, QuantityLinearIntermediateSymbol>
+    lateinit var longitudinalTorque: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
+    lateinit var lateralTorque: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var clim: QuantityLinearIntermediateSymbol<Flt64>
+    lateinit var index: Map<FlightPhase, QuantityLinearIntermediateSymbol<Flt64>>
 
     fun register(
         model: AbstractLinearMetaModel<Flt64>

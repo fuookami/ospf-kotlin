@@ -40,9 +40,9 @@ class RMP(
 ) {
     private val cuttingPlans: MutableList<CuttingPlan> = ArrayList()
     private val x: MutableList<UIntVar> = ArrayList()
-    private val rest = LinearExpressionSymbol(name = "rest")
+    private val rest = LinearExpressionSymbol(Flt64, name = "rest")
     private val yield = LinearExpressionSymbols1<Flt64>("output", Shape1(products.size)) { _, v ->
-        LinearExpressionSymbol(name = "output_${v[0]}")
+        LinearExpressionSymbol(Flt64, name = "output_${v[0]}")
     }
     private val metaModel = LinearMetaModel<Flt64>("demo3", converter = flt64Converter)
     private val solver: ColumnGenerationSolver = ScipColumnGenerationSolver()

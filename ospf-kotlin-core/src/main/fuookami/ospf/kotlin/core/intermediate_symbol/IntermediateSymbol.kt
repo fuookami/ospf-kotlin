@@ -13,6 +13,7 @@ import fuookami.ospf.kotlin.utils.functional.Variant3
 import fuookami.ospf.kotlin.math.*
 import fuookami.ospf.kotlin.math.algebra.concept.NumberField
 import fuookami.ospf.kotlin.math.algebra.concept.RealNumber
+import fuookami.ospf.kotlin.math.algebra.concept.RealNumberConstants
 import fuookami.ospf.kotlin.math.algebra.concept.Ring
 import fuookami.ospf.kotlin.math.algebra.number.*
 import fuookami.ospf.kotlin.math.algebra.value_range.*
@@ -91,15 +92,16 @@ interface IntermediateSymbol<V> : Symbol where V : RealNumber<V>, V : NumberFiel
 
 interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
-        fun empty(
+        fun <V> empty(
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64.zero
+                    constant = constants.zero
                 ),
                 parent = parent,
                 name = name,
@@ -117,16 +119,18 @@ interface LinearIntermediateSymbol<V> : IntermediateSymbol<V>, ToLinearPolynomia
 
 interface QuadraticIntermediateSymbol<V> : IntermediateSymbol<V>, ToQuadraticPolynomial<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
     companion object {
-        fun empty(
+        fun <V> empty(
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticIntermediateSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticIntermediateSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64.zero
+                    constant = constants.zero
                 ),
+                category = Quadratic,
                 parent = parent,
                 name = name,
                 displayName = displayName
@@ -333,16 +337,17 @@ class LinearExpressionSymbol<V>(
     override val operationCategory: Category = Linear
 
     companion object {
-        operator fun invoke(
+        operator fun <V> invoke(
             item: AbstractVariableItem<*, *>,
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = listOf(LinearMonomial(Flt64.one, item)),
-                    constant = Flt64.zero
+                    monomials = listOf(LinearMonomial(constants.one, item)),
+                    constant = constants.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -351,16 +356,17 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
+        operator fun <V> invoke(
             symbol: LinearIntermediateSymbol<*>,
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = listOf(LinearMonomial(Flt64.one, symbol)),
-                    constant = Flt64.zero
+                    monomials = listOf(LinearMonomial(constants.one, symbol)),
+                    constant = constants.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -369,13 +375,13 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            polynomial: LinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        operator fun <V> invoke(
+            polynomial: LinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = polynomial.monomials,
                     constant = polynomial.constant
@@ -387,16 +393,16 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            monomial: LinearMonomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        operator fun <V> invoke(
+            monomial: LinearMonomial<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = listOf(monomial),
-                    constant = Flt64.zero
+                    constant = monomial.coefficient - monomial.coefficient
                 ),
                 category = Linear,
                 parent = parent,
@@ -405,13 +411,13 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            polynomial: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64>,
+        operator fun <V> invoke(
+            polynomial: MutableLinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = polynomial,
                 category = Linear,
                 parent = parent,
@@ -420,16 +426,16 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            constant: Int,
+        operator fun <V> invoke(
+            constant: V,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64(constant)
+                    constant = constant
                 ),
                 category = Linear,
                 parent = parent,
@@ -438,105 +444,16 @@ class LinearExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            constant: Double,
+        operator fun <V> invoke(
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): LinearExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return LinearExpressionSymbol(
                 _utilsPolynomial = MutableLinearPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64(constant)
-                ),
-                category = Linear,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: Boolean,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = emptyList(),
-                    constant = if (constant) Flt64.one else Flt64.zero
-                ),
-                category = Linear,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: Trivalent,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.value.toFlt64()
-                ),
-                category = Linear,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: BalancedTrivalent,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.value.toFlt64()
-                ),
-                category = Linear,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun <T : RealNumber<T>> invoke(
-            constant: T,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.toFlt64()
-                ),
-                category = Linear,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return LinearExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableLinearPolynomial(
-                    monomials = emptyList(),
-                    constant = Flt64.zero
+                    constant = constants.zero
                 ),
                 category = Linear,
                 parent = parent,
@@ -546,7 +463,8 @@ class LinearExpressionSymbol<V>(
         }
     }
 
-    // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
+    // 求解器边界使用的 Flt64 视图。
+    // Flt64 view used at the solver boundary.
     private val _polyFlt64: MutableLinearPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.linearPolynomialAsFlt64(_utilsPolynomial)
 
     // polynomial property returns immutable version
@@ -912,16 +830,17 @@ class QuadraticExpressionSymbol<V>(
     override val operationCategory: Category = Quadratic
 
     companion object {
-        operator fun invoke(
+        operator fun <V> invoke(
             item: AbstractVariableItem<*, *>,
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, item)),
-                    constant = Flt64.zero
+                    monomials = listOf(QuadraticMonomial.linear(constants.one, item)),
+                    constant = constants.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -930,16 +849,17 @@ class QuadraticExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
+        operator fun <V> invoke(
             symbol: LinearIntermediateSymbol<*>,
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
-                    constant = Flt64.zero
+                    monomials = listOf(QuadraticMonomial.linear(constants.one, symbol)),
+                    constant = constants.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -948,16 +868,17 @@ class QuadraticExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
+        operator fun <V> invoke(
             symbol: QuadraticIntermediateSymbol<*>,
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = listOf(QuadraticMonomial.linear(Flt64.one, symbol)),
-                    constant = Flt64.zero
+                    monomials = listOf(QuadraticMonomial.linear(constants.one, symbol)),
+                    constant = constants.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -966,16 +887,105 @@ class QuadraticExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            constant: Int,
+        operator fun <V> invoke(
+            polynomial: LinearPolynomial<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            val quadraticPolynomial = polynomial.toQuadraticPolynomial()
+            return QuadraticExpressionSymbol(
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = quadraticPolynomial.monomials,
+                    constant = quadraticPolynomial.constant
+                ),
+                category = quadraticPolynomial.category,
+                parent = parent,
+                name = name.ifEmpty { polynomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun <V> invoke(
+            monomial: LinearMonomial<V>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            val quadraticMonomial = QuadraticMonomial.linear(monomial.coefficient, monomial.symbol)
+            return QuadraticExpressionSymbol(
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = listOf(quadraticMonomial),
+                    constant = monomial.coefficient - monomial.coefficient
+                ),
+                category = quadraticMonomial.category,
+                parent = parent,
+                name = name.ifEmpty { monomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun <V> invoke(
+            polynomial: QuadraticPolynomial<V>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = polynomial.monomials,
+                    constant = polynomial.constant
+                ),
+                category = polynomial.category,
+                parent = parent,
+                name = name.ifEmpty { polynomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun <V> invoke(
+            monomial: QuadraticMonomial<V>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
+                _utilsPolynomial = MutableQuadraticPolynomial(
+                    monomials = listOf(monomial),
+                    constant = monomial.coefficient - monomial.coefficient
+                ),
+                category = monomial.category,
+                parent = parent,
+                name = name.ifEmpty { monomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun <V> invoke(
+            polynomial: MutableQuadraticPolynomial<V>,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
+                _utilsPolynomial = polynomial,
+                category = polynomial.category,
+                parent = parent,
+                name = name.ifEmpty { polynomial.toString() },
+                displayName = displayName
+            )
+        }
+
+        operator fun <V> invoke(
+            constant: V,
+            parent: IntermediateSymbol<*>? = null,
+            name: String = "",
+            displayName: String? = null
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64(constant)
+                    constant = constant
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -984,105 +994,16 @@ class QuadraticExpressionSymbol<V>(
             )
         }
 
-        operator fun invoke(
-            constant: Double,
+        operator fun <V> invoke(
+            constants: RealNumberConstants<V>,
             parent: IntermediateSymbol<*>? = null,
             name: String = "",
             displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
+        ): QuadraticExpressionSymbol<V> where V : RealNumber<V>, V : Ring<V>, V : NumberField<V> {
+            return QuadraticExpressionSymbol(
                 _utilsPolynomial = MutableQuadraticPolynomial(
                     monomials = emptyList(),
-                    constant = Flt64(constant)
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: Boolean,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = emptyList(),
-                    constant = if (constant) Flt64.one else Flt64.zero
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: Trivalent,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.value.toFlt64()
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            constant: BalancedTrivalent,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.value.toFlt64()
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun <T : RealNumber<T>> invoke(
-            constant: T,
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = emptyList(),
-                    constant = constant.toFlt64()
-                ),
-                category = Quadratic,
-                parent = parent,
-                name = name,
-                displayName = displayName
-            )
-        }
-
-        operator fun invoke(
-            parent: IntermediateSymbol<*>? = null,
-            name: String = "",
-            displayName: String? = null
-        ): QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64> {
-            return QuadraticExpressionSymbol<fuookami.ospf.kotlin.math.algebra.number.Flt64>(
-                _utilsPolynomial = MutableQuadraticPolynomial(
-                    monomials = emptyList(),
-                    constant = Flt64.zero
+                    constant = constants.zero
                 ),
                 category = Quadratic,
                 parent = parent,
@@ -1092,7 +1013,8 @@ class QuadraticExpressionSymbol<V>(
         }
     }
 
-    // Flt64 view of internal polynomial (all runtime instances are V=Flt64)
+    // 求解器边界使用的 Flt64 视图。
+    // Flt64 view used at the solver boundary.
     private val _polyFlt64: MutableQuadraticPolynomial<fuookami.ospf.kotlin.math.algebra.number.Flt64> get() = SolverBoundaryCasts.quadraticPolynomialAsFlt64(_utilsPolynomial)
 
     // polynomial property returns immutable version

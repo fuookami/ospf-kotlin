@@ -34,7 +34,7 @@ class MinimizeMaximizeSymbolTest {
         val x = RealVar("x")
         model.add(x)
 
-        val symbol = LinearExpressionSymbol(x, name = "obj_x")
+        val symbol = LinearExpressionSymbol(x, Flt64, name = "obj_x")
         val result = model.minimize(symbol = symbol, name = "min_x")
 
         assertTrue(result is Ok)
@@ -49,7 +49,7 @@ class MinimizeMaximizeSymbolTest {
         val x = RealVar("x")
         model.add(x)
 
-        val symbol = LinearExpressionSymbol(x, name = "obj_x")
+        val symbol = LinearExpressionSymbol(x, Flt64, name = "obj_x")
         val result = model.maximize(symbol = symbol, name = "max_x")
 
         assertTrue(result is Ok)
@@ -89,7 +89,7 @@ class MinimizeMaximizeSymbolTest {
         val x = RealVar("x")
         model.add(x)
 
-        val symbol = QuadraticExpressionSymbol(x, name = "obj_x")
+        val symbol = QuadraticExpressionSymbol(x, Flt64, name = "obj_x")
         val result = model.minimize(symbol = symbol, name = "min_x")
 
         assertTrue(result is Ok)
@@ -104,7 +104,7 @@ class MinimizeMaximizeSymbolTest {
         val x = RealVar("x")
         model.add(x)
 
-        val symbol = QuadraticExpressionSymbol(x, name = "obj_x")
+        val symbol = QuadraticExpressionSymbol(x, Flt64, name = "obj_x")
         val result = model.maximize(symbol = symbol, name = "max_x")
 
         assertTrue(result is Ok)
