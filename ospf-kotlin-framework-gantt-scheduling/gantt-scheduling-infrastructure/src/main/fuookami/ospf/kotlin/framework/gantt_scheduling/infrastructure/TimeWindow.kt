@@ -241,12 +241,21 @@ data class TimeWindow(
         excludedTimes: List<TimeRange> = emptyList()
     ): List<TimeRange> {
         val timeSlots = ArrayList<TimeRange>()
-        val slotIntervals = ArrayList<Duration>()
+        val defaultInterval = intervals[null] ?: upperInterval
+        val specificIntervals = ArrayList<Pair<TimeRange, Duration>>(intervals.size)
+        for ((timeRange, thisInterval) in intervals) {
+            if (timeRange != null) {
+                specificIntervals.add(timeRange to thisInterval)
+            }
+        }
         var current = start
         fun intervalAt(time: Instant): Duration {
-            return intervals.entries.firstOrNull { it.key != null && it.key!!.contains(time) }?.value
-                ?: intervals[null]
-                ?: upperInterval
+            for ((timeRange, thisInterval) in specificIntervals) {
+                if (timeRange.contains(time)) {
+                    return thisInterval
+                }
+            }
+            return defaultInterval
         }
         var currentInterval = intervalAt(start)
         val end1 = (start.truncatedTo(upper.durationUnit) + currentInterval * kotlin.math.ceil(upper.interval / currentInterval).toInt())
@@ -278,7 +287,6 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
-            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervalAt(current)
         }
@@ -294,7 +302,6 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
-            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervalAt(current)
         }
@@ -309,30 +316,35 @@ data class TimeWindow(
                     end = current + duration
                 )
             )
-            slotIntervals.add(currentInterval)
             current += duration
             currentInterval = intervalAt(current)
         }
         if (excludedTimes.isEmpty()) {
             return timeSlots
         }
-        val normalizedExcludedTimes = excludedTimes
-            .filter { it.withIntersection(window) }
-            .map {
+        val clippedExcludedTimes = ArrayList<TimeRange>(excludedTimes.size)
+        for (excludedTime in excludedTimes) {
+            if (!excludedTime.withIntersection(window)) {
+                continue
+            }
+            clippedExcludedTimes.add(
                 TimeRange(
-                    start = max(it.start, start),
-                    end = min(it.end, end)
+                    start = max(excludedTime.start, start),
+                    end = min(excludedTime.end, end)
                 )
-            }.merge()
+            )
+        }
+        if (clippedExcludedTimes.isEmpty()) {
+            return timeSlots
+        }
+        val normalizedExcludedTimes = clippedExcludedTimes.merge()
         if (normalizedExcludedTimes.isEmpty()) {
             return timeSlots
         }
 
         val pieces = ArrayList<TimeRange>()
-        for (i in timeSlots.indices) {
-            val slot = timeSlots[i]
-            val availablePieces = slot.differenceWith(normalizedExcludedTimes)
-            pieces.addAll(availablePieces)
+        for (slot in timeSlots) {
+            pieces.addAll(slot.differenceWith(normalizedExcludedTimes))
         }
         return pieces
     }

@@ -143,40 +143,43 @@ data class TimeRange(
     }
 
     fun differenceWith(ano: List<TimeRange>): List<TimeRange> {
-        val mergedTimes = ano
-            .filter { it.withIntersection(this) }
-            .map {
+        val intersections = ArrayList<TimeRange>(ano.size)
+        for (time in ano) {
+            if (!time.withIntersection(this)) {
+                continue
+            }
+            intersections.add(
                 TimeRange(
-                    max(it.start, start),
-                    min(it.end, end)
+                    max(time.start, start),
+                    min(time.end, end)
                 )
-            }.merge()
+            )
+        }
+        val mergedTimes = intersections.merge()
         if (mergedTimes.isEmpty()) {
             return listOf(this)
         }
 
         val result = ArrayList<TimeRange>()
         var currentTime = start
-        for (i in mergedTimes.indices) {
-            if (currentTime < mergedTimes[i].start) {
+        for (mergedTime in mergedTimes) {
+            if (currentTime < mergedTime.start) {
                 result.add(
                     TimeRange(
                         currentTime,
-                        mergedTimes[i].start
+                        mergedTime.start
                     )
                 )
             }
-            currentTime = mergedTimes[i].end
-            if (i == mergedTimes.lastIndex) {
-                if (currentTime < end) {
-                    result.add(
-                        TimeRange(
-                            currentTime,
-                            end
-                        )
-                    )
-                }
-            }
+            currentTime = mergedTime.end
+        }
+        if (currentTime < end) {
+            result.add(
+                TimeRange(
+                    currentTime,
+                    end
+                )
+            )
         }
         return result
     }
@@ -192,23 +195,23 @@ data class TimeRange(
     fun split(
         times: List<Instant>
     ): List<TimeRange> {
-        val result = ArrayList<TimeRange>()
-        val containsTimes = times
-            .filter { it != start && contains(it) }
-            .sorted()
-            .distinct()
-        if (containsTimes.isEmpty()) {
+        val splitPoints = java.util.TreeSet<Instant>()
+        for (time in times) {
+            if (time != start && contains(time)) {
+                splitPoints.add(time)
+            }
+        }
+        if (splitPoints.isEmpty()) {
             return listOf(this)
         }
-        for (i in containsTimes.indices) {
-            if (i == 0) {
-                result.add(TimeRange(start, containsTimes[i]))
-            }
-            if (i == containsTimes.lastIndex) {
-                result.add(TimeRange(containsTimes[i], end))
-            } else {
-                result.add(TimeRange(containsTimes[i], containsTimes[i + 1]))
-            }
+        val result = ArrayList<TimeRange>(splitPoints.size + 1)
+        var current = start
+        for (splitPoint in splitPoints) {
+            result.add(TimeRange(current, splitPoint))
+            current = splitPoint
+        }
+        if (current < end) {
+            result.add(TimeRange(current, end))
         }
         return result
     }
@@ -750,8 +753,7 @@ inline fun <T> List<T>.find(
     time: TimeRange,
     crossinline extractor: Extractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findImpl(time) { it }
+    return this.findImpl(time) { extractor(it) }
         ?.let { this@find.subList(it.first, it.second) }
         ?: emptyList()
 }
@@ -760,8 +762,7 @@ suspend inline fun <T> List<T>.findParallelly(
     time: TimeRange,
     crossinline extractor: SuspendExtractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findParallellyImpl(time) { it }
+    return this.findParallellyImpl(time) { extractor(it) }
         ?.let { this@findParallelly.subList(it.first, it.second) }
         ?: emptyList()
 }
@@ -770,8 +771,7 @@ inline fun <T> List<T>.findFrom(
     time: Instant,
     crossinline extractor: Extractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findFromImpl(time) { it }
+    return this.findFromImpl(time) { extractor(it) }
         ?.let { this@findFrom.subList(it.first, it.second) }
         ?: emptyList()
 }
@@ -780,8 +780,7 @@ suspend inline fun <T> List<T>.findFromParallelly(
     time: Instant,
     crossinline extractor: SuspendExtractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findFromParallellyImpl(time) { it }
+    return this.findFromParallellyImpl(time) { extractor(it) }
         ?.let { this@findFromParallelly.subList(it.first, it.second) }
         ?: emptyList()
 }
@@ -790,8 +789,7 @@ inline fun <T> List<T>.findUntil(
     time: Instant,
     crossinline extractor: Extractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findUntilImpl(time) { it }
+    return this.findUntilImpl(time) { extractor(it) }
         ?.let { this@findUntil.subList(it.first, it.second) }
         ?: emptyList()
 }
@@ -800,8 +798,7 @@ suspend inline fun <T> List<T>.findUntilParallelly(
     time: Instant,
     crossinline extractor: SuspendExtractor<TimeRange, T>
 ): List<T> {
-    val timeRanges = this.map { extractor(it) }
-    return timeRanges.findUntilParallellyImpl(time) { it }
+    return this.findUntilParallellyImpl(time) { extractor(it) }
         ?.let { this@findUntilParallelly.subList(it.first, it.second) }
         ?: emptyList()
 }

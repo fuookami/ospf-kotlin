@@ -63,6 +63,78 @@ open class WorkingCalendar(
     )
 
     companion object {
+        internal fun indexOfLastEndedBeforeOrAt(
+            times: List<TimeRange>,
+            time: Instant
+        ): Int {
+            for (i in times.lastIndex downTo 0) {
+                if (time >= times[i].end) {
+                    return i
+                }
+            }
+            return -1
+        }
+
+        internal fun indexOfFirstStartedAfterOrAt(
+            times: List<TimeRange>,
+            time: Instant
+        ): Int {
+            for (i in times.indices) {
+                if (time <= times[i].start) {
+                    return i
+                }
+            }
+            return -1
+        }
+
+        internal fun maxEndTime(
+            times: List<TimeRange>,
+            breakTimes: List<TimeRange>,
+            connectionTimes: List<TimeRange>
+        ): Instant {
+            var maximum = Instant.DISTANT_PAST
+            for (time in times) {
+                if (time.end > maximum) {
+                    maximum = time.end
+                }
+            }
+            for (time in breakTimes) {
+                if (time.end > maximum) {
+                    maximum = time.end
+                }
+            }
+            for (time in connectionTimes) {
+                if (time.end > maximum) {
+                    maximum = time.end
+                }
+            }
+            return maximum
+        }
+
+        internal fun minStartTime(
+            times: List<TimeRange>,
+            breakTimes: List<TimeRange>,
+            connectionTimes: List<TimeRange>
+        ): Instant {
+            var minimum = Instant.DISTANT_FUTURE
+            for (time in times) {
+                if (time.start < minimum) {
+                    minimum = time.start
+                }
+            }
+            for (time in breakTimes) {
+                if (time.start < minimum) {
+                    minimum = time.start
+                }
+            }
+            for (time in connectionTimes) {
+                if (time.start < minimum) {
+                    minimum = time.start
+                }
+            }
+            return minimum
+        }
+
         protected fun actualTime(
             time: Instant,
             unavailableTimes: List<TimeRange> = emptyList(),
@@ -163,9 +235,7 @@ open class WorkingCalendar(
                 val workingTimes = ArrayList<TimeRange>()
                 val breakTimes = ArrayList<TimeRange>()
                 val connectionTimes = ArrayList<TimeRange>()
-                var i = mergedTimes.withIndex().indexOfLast {
-                    currentTime >= it.value.end
-                }
+                var i = indexOfLastEndedBeforeOrAt(mergedTimes, currentTime)
                 while (totalDuration != time.duration) {
                     if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
                         break
@@ -277,7 +347,7 @@ open class WorkingCalendar(
                         }
                         workingTimes.addAll(thisValidTimes)
                         breakTimes.addAll(thisBreakTimes)
-                        (thisValidTimes.map { it.end } + thisBreakTimes.map { it.end }).max()
+                        maxEndTime(thisValidTimes, thisBreakTimes, emptyList())
                     } else {
                         val duration = min(
                             baseTime.duration,
@@ -366,9 +436,7 @@ open class WorkingCalendar(
                 val breakTimes = ArrayList<TimeRange>()
                 val connectionTimes = ArrayList<TimeRange>()
                 var currentTime = time.start
-                var i = mergedTimes.withIndex().indexOfLast {
-                    currentTime >= it.value.end
-                }
+                var i = indexOfLastEndedBeforeOrAt(mergedTimes, currentTime)
                 var totalDuration = Duration.ZERO
                 while (currentTime < time.end) {
                     if (i == mergedTimes.lastIndex && currentTime == Instant.DISTANT_FUTURE) {
@@ -643,9 +711,7 @@ open class WorkingCalendar(
                 val breakTimes = ArrayList<TimeRange>()
                 val connectionTimes = ArrayList<TimeRange>()
                 var currentTime = time.end
-                var i = mergedTimes.withIndex().indexOfFirst {
-                    currentTime <= it.value.start
-                }
+                var i = indexOfFirstStartedAfterOrAt(mergedTimes, currentTime)
                 if (i == -1) {
                     i = mergedTimes.size
                 }
@@ -1203,11 +1269,11 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                     return produceTime.start
                 }
             }
-            currentTime = (
-                    validTimes.times.map { it.end } +
-                            validTimes.breakTimes.map { it.end } +
-                            validTimes.connectionTimes.map { it.end }
-                    ).max()
+            currentTime = maxEndTime(
+                validTimes.times,
+                validTimes.breakTimes,
+                validTimes.connectionTimes
+            )
         }
 
         return Instant.DISTANT_FUTURE
@@ -1671,11 +1737,11 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                     thisQuantity.toFlt64()
                 )
             }
-            currentTime = (
-                    validTimes.times.map { it.end } +
-                            validTimes.breakTimes.map { it.end } +
-                            validTimes.connectionTimes.map { it.end }
-                    ).max()
+            currentTime = maxEndTime(
+                validTimes.times,
+                validTimes.breakTimes,
+                validTimes.connectionTimes
+            )
 
             if (produceQuantity eq quantity.toFlt64()) {
                 break
@@ -1757,11 +1823,11 @@ sealed class ProductivityCalendar<Q, P, T, U>(
                     thisQuantity.toFlt64()
                 )
             }
-            currentTime = (
-                    validTimes.times.map { it.start } +
-                            validTimes.breakTimes.map { it.start } +
-                            validTimes.connectionTimes.map { it.start }
-                    ).min()
+            currentTime = minStartTime(
+                validTimes.times,
+                validTimes.breakTimes,
+                validTimes.connectionTimes
+            )
 
             if (produceQuantity eq quantity.toFlt64()) {
                 break
