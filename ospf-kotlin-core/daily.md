@@ -104,7 +104,7 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 
 ### P24-2：core 剩余大文件职责拆分
 
-状态：待执行。
+状态：已完成（第一批：MechanismModel dump/objective 辅助职责拆分）。
 
 目标：继续降低 core 大文件维护成本，优先拆分纯辅助逻辑，不改变模型行为。
 
@@ -129,6 +129,29 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 2. 与拆分目标相关的核心测试通过；若只做职责搬移，至少执行现有 core 目标测试集。
 3. P6/P7 静态门禁通过。
 4. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. 新增 `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModelDumpSupport.kt`：
+   - 承载并发 dump 相关 helper：
+     - `dumpItemsAsync(...)`
+     - `dumpMechanismPartsAsync(...)`
+     - dumping status flow 辅助（进度回调构造与完成态通知）
+2. 新增 `ospf-kotlin-core/src/main/fuookami/ospf/kotlin/core/model/mechanism/MechanismModelObjectiveSupport.kt`：
+   - 承载 objective 构建相关 helper：
+     - `buildLinearObjectiveSubObjects(...)`
+     - `buildQuadraticObjectiveSubObjects(...)`
+3. 更新 `MechanismModel.kt`：
+   - 删除上述已迁移 helper 的本地实现，仅保留模型构建编排和行为入口。
+   - 公开签名、返回类型、错误分支与日志语义保持不变。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-core -am -DskipTests test-compile`：通过。
+2. `mvn --% -pl ospf-kotlin-core -am -Dtest=SourceCompatTest,MathInequalityFlattenTest,SparseMatrixTransposeTest,FlattenUtilityTest,ModelingPreparationTest,SolverStatusSupportTest -Dsurefire.failIfNoSpecifiedTests=false test`：通过（实际执行 28 tests，0 失败）。
+3. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+5. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ### P24-3：solver 插件公共化第三批
 
