@@ -16,6 +16,9 @@
 
     <properties>
         <jmh.version>1.37</jmh.version>
+        <maven.install.skip>true</maven.install.skip>
+        <maven.deploy.skip>true</maven.deploy.skip>
+        <skipPublishing>true</skipPublishing>
     </properties>
 
     <dependencies>
@@ -46,49 +49,19 @@
         <testSourceDirectory>src/test</testSourceDirectory>
         <plugins>
             <plugin>
-                <groupId>org.jetbrains.kotlin</groupId>
-                <artifactId>kotlin-maven-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>compile</id>
-                        <phase>generate-sources</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
-                            <sourceDirs>
-                                <sourceDir>${project.basedir}/src/main</sourceDir>
-                            </sourceDirs>
-                        </configuration>
-                    </execution>
-                    <execution>
-                        <id>test-compile</id>
-                        <phase>test-compile</phase>
-                        <goals>
-                            <goal>test-compile</goal>
-                        </goals>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-install-plugin</artifactId>
+                <version>3.1.2</version>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
-                <groupId>org.codehaus.mojo</groupId>
-                <artifactId>build-helper-maven-plugin</artifactId>
-                <version>3.5.0</version>
-                <executions>
-                    <execution>
-                        <id>add-jmh-generated-sources</id>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>add-source</goal>
-                        </goals>
-                        <configuration>
-                            <sources>
-                                <source>${project.basedir}/target/generated-sources/jmh</source>
-                            </sources>
-                        </configuration>
-                    </execution>
-                </executions>
+                <groupId>org.apache.maven.plugins</groupId>
+                <artifactId>maven-deploy-plugin</artifactId>
+                <configuration>
+                    <skip>true</skip>
+                </configuration>
             </plugin>
             <plugin>
                 <groupId>org.codehaus.mojo</groupId>
@@ -96,54 +69,10 @@
                 <version>3.5.0</version>
                 <executions>
                     <execution>
-                        <id>generate-jmh-bytecode-bridge</id>
-                        <phase>process-sources</phase>
-                        <goals>
-                            <goal>java</goal>
-                        </goals>
-                        <configuration>
-                            <includePluginDependencies>true</includePluginDependencies>
-                            <mainClass>org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator</mainClass>
-                            <arguments>
-                                <argument>${project.basedir}/target/classes/</argument>
-                                <argument>${project.basedir}/target/generated-sources/jmh/</argument>
-                                <argument>${project.basedir}/target/classes/</argument>
-                                <argument>default</argument>
-                            </arguments>
-                        </configuration>
-                    </execution>
-                    <execution>
                         <id>default-cli</id>
                         <configuration>
                             <mainClass>fuookami.ospf.kotlin.benchmark.BenchmarkRunnerKt</mainClass>
                             <classpathScope>runtime</classpathScope>
-                        </configuration>
-                    </execution>
-                </executions>
-                <dependencies>
-                    <dependency>
-                        <groupId>org.openjdk.jmh</groupId>
-                        <artifactId>jmh-generator-bytecode</artifactId>
-                        <version>${jmh.version}</version>
-                    </dependency>
-                </dependencies>
-            </plugin>
-            <plugin>
-                <groupId>org.apache.maven.plugins</groupId>
-                <artifactId>maven-compiler-plugin</artifactId>
-                <executions>
-                    <execution>
-                        <id>default-compile</id>
-                        <phase>none</phase>
-                    </execution>
-                    <execution>
-                        <id>java-compile</id>
-                        <phase>compile</phase>
-                        <goals>
-                            <goal>compile</goal>
-                        </goals>
-                        <configuration>
-                            <compilerArgument>-proc:none</compilerArgument>
                         </configuration>
                     </execution>
                 </executions>
@@ -157,6 +86,106 @@
             <properties>
                 <skipTests>true</skipTests>
             </properties>
+            <build>
+                <plugins>
+                    <plugin>
+                        <groupId>org.jetbrains.kotlin</groupId>
+                        <artifactId>kotlin-maven-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>compile</id>
+                                <phase>generate-sources</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <jvmTarget>${kotlin.compiler.jvmTarget}</jvmTarget>
+                                    <sourceDirs>
+                                        <sourceDir>${project.basedir}/src/main</sourceDir>
+                                    </sourceDirs>
+                                </configuration>
+                            </execution>
+                            <execution>
+                                <id>test-compile</id>
+                                <phase>test-compile</phase>
+                                <goals>
+                                    <goal>test-compile</goal>
+                                </goals>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>build-helper-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>add-jmh-generated-sources</id>
+                                <phase>process-sources</phase>
+                                <goals>
+                                    <goal>add-source</goal>
+                                </goals>
+                                <configuration>
+                                    <sources>
+                                        <source>${project.basedir}/target/generated-sources/jmh</source>
+                                    </sources>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.codehaus.mojo</groupId>
+                        <artifactId>exec-maven-plugin</artifactId>
+                        <version>3.5.0</version>
+                        <executions>
+                            <execution>
+                                <id>generate-jmh-bytecode-bridge</id>
+                                <phase>process-sources</phase>
+                                <goals>
+                                    <goal>java</goal>
+                                </goals>
+                                <configuration>
+                                    <includePluginDependencies>true</includePluginDependencies>
+                                    <mainClass>org.openjdk.jmh.generators.bytecode.JmhBytecodeGenerator</mainClass>
+                                    <arguments>
+                                        <argument>${project.basedir}/target/classes/</argument>
+                                        <argument>${project.basedir}/target/generated-sources/jmh/</argument>
+                                        <argument>${project.basedir}/target/classes/</argument>
+                                        <argument>default</argument>
+                                    </arguments>
+                                </configuration>
+                            </execution>
+                        </executions>
+                        <dependencies>
+                            <dependency>
+                                <groupId>org.openjdk.jmh</groupId>
+                                <artifactId>jmh-generator-bytecode</artifactId>
+                                <version>${jmh.version}</version>
+                            </dependency>
+                        </dependencies>
+                    </plugin>
+                    <plugin>
+                        <groupId>org.apache.maven.plugins</groupId>
+                        <artifactId>maven-compiler-plugin</artifactId>
+                        <executions>
+                            <execution>
+                                <id>default-compile</id>
+                                <phase>none</phase>
+                            </execution>
+                            <execution>
+                                <id>java-compile</id>
+                                <phase>compile</phase>
+                                <goals>
+                                    <goal>compile</goal>
+                                </goals>
+                                <configuration>
+                                    <compilerArgument>-proc:none</compilerArgument>
+                                </configuration>
+                            </execution>
+                        </executions>
+                    </plugin>
+                </plugins>
+            </build>
         </profile>
     </profiles>
 </project>
