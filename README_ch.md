@@ -182,7 +182,7 @@ mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
 执行 `small` 烟测（示例）：
 
 ```bash
-mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
 ```
 
 执行 `core-plugin dump` 烟测（示例）：
@@ -198,11 +198,13 @@ benchmark 结果文件默认输出到：
 1. 默认路径：`ospf-kotlin-benchmark/target/benchmark-results/*.json`
 2. 可选自定义路径：`-Dexec.args="... json target/benchmark-results/custom.json"`
 
+CI 会上传 `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` 作为 artifact，仅用于结果留存，不作为性能硬门禁。
+
 benchmark 轻量 CI smoke 口径（只验证可运行，不比较绝对数值）：
 
 ```powershell
 mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
-mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
 ```
 
 P21-1 基线运行环境：

@@ -101,4 +101,11 @@ jobs:
       - name: Run Benchmark Smoke
         shell: pwsh
         run: |
-          mvn -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java "-Dexec.args=.*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+          mvn -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java "-Dexec.args=.*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
+
+      - name: Upload Benchmark Smoke Artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: benchmark-smoke-results
+          path: ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json
+          if-no-files-found: error

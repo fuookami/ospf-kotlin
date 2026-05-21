@@ -182,7 +182,7 @@ mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
 Run a `small` smoke benchmark (example):
 
 ```bash
-mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
 ```
 
 Run a `core-plugin dump` smoke benchmark (example):
@@ -198,11 +198,13 @@ Benchmark result files are written to:
 1. default path: `ospf-kotlin-benchmark/target/benchmark-results/*.json`
 2. custom path (optional): `-Dexec.args="... json target/benchmark-results/custom.json"`
 
+CI uploads `ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json` as an artifact for retention only; it is not a performance gate.
+
 Lightweight CI smoke for benchmark runnable validation (without comparing absolute scores):
 
 ```powershell
 mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile
-mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1"
+mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/ci-smoke.json"
 ```
 
 Baseline environment used in P21-1:
