@@ -204,12 +204,22 @@ Compare two JMH JSON result files and write a Markdown trend report:
 
 ```powershell
 pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
-  -Baseline .\ospf-kotlin-benchmark\target\benchmark-results\baseline.json `
-  -Current .\ospf-kotlin-benchmark\target\benchmark-results\current.json `
-  -Output .\ospf-kotlin-benchmark\target\benchmark-results\trend.md
+  -Baseline .\ospf-kotlin-benchmark\target\benchmark-results\baseline-small.json `
+  -Current .\ospf-kotlin-benchmark\target\benchmark-results\current-small.json
 ```
 
-The comparison script is report-only. It always avoids performance hard-gating because JMH scores are machine-sensitive.
+If `-Output` is omitted and file naming follows `baseline-<dataset>.json` / `current-<dataset>.json`, the script writes `trend-<dataset>.md` to the same directory by default.
+
+You can still pass explicit output path when needed:
+
+```powershell
+pwsh.exe -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 `
+  -Baseline .\ospf-kotlin-benchmark\target\benchmark-results\baseline-small.json `
+  -Current .\ospf-kotlin-benchmark\target\benchmark-results\current-small.json `
+  -Output .\ospf-kotlin-benchmark\target\benchmark-results\trend-small.md
+```
+
+The comparison script is report-only. It avoids performance hard-gating because JMH scores are machine-sensitive.
 
 Lightweight CI smoke for benchmark runnable validation (without comparing absolute scores):
 

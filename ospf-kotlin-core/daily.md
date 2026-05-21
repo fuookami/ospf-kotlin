@@ -213,7 +213,7 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 
 ### P24-4：benchmark 趋势沉淀完善
 
-状态：待执行。
+状态：已完成（脚本报告字段增强 + 默认输出命名推断 + README 双语流程同步）。
 
 目标：让 benchmark 趋势比较更适合长期使用，但继续只做报告和 artifact 留存。
 
@@ -239,6 +239,37 @@ P24 的目标是在不改变公开 API、不重启迁移目标、不增加兼容
 3. 比较脚本可对两份 JSON 生成可读 Markdown 报告。
 4. 如修改 CI，workflow 语法应保持可解析，artifact 路径明确。
 5. `git diff --check` 通过。
+
+本批实际修改清单：
+
+1. `ospf-kotlin-benchmark/scripts/compare-benchmark-results.ps1`
+   - 新增命名推断：
+     - 识别 `baseline-<dataset>.json` 与 `current-<dataset>.json`。
+     - 省略 `-Output` 时，自动默认输出 `trend-<dataset>.md`（同目录）。
+   - 增强报告字段：
+     - baseline/current 显示 `score ± error`。
+     - 新增 `Samples (B/C)` 列（优先统计 `primaryMetric.rawData`，回退 `measurementIterations`）。
+     - 新增 `Notes` 列，提示 `unit changed`、`error unavailable`、`new benchmark in current`、`missing in current`。
+     - 报告头补充命名约定、dataset 检测结果和 `report only (no hard performance gate)` 口径。
+   - 写入文件时输出 `Trend report written to: ...` 便于 CI/本地追踪。
+2. `README.md`
+   - benchmark 对比示例改为 `baseline-small.json` / `current-small.json`。
+   - 补充“省略 `-Output` 自动生成 `trend-small.md`”与显式 `-Output` 示例。
+3. `README_ch.md`
+   - 与英文文档同步同一流程与命名约定。
+4. `.github/workflows/core-refactor-guards.yml`
+   - 本批未改动（维持可运行 smoke + artifact 留存，不引入性能硬门禁）。
+
+本批验收命令与结果：
+
+1. `mvn --% -pl ospf-kotlin-benchmark -am -Pbench -DskipTests compile`：通过。
+2. `mvn --% -pl ospf-kotlin-benchmark -Pbench -DskipTests exec:java -Dexec.args=".*MultiArrayHotPathBenchmark.blockGetAndContains.* small 1 1 1 json ospf-kotlin-benchmark/target/benchmark-results/current-small.json"`：通过（生成 `current-small.json`）。
+3. `Copy-Item current-small.json -> baseline-small.json` 后执行：
+   - `pwsh -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 -Baseline ...\baseline-small.json -Current ...\current-small.json`：通过（自动输出 `trend-small.md`）。
+   - `pwsh -File .\ospf-kotlin-benchmark\scripts\compare-benchmark-results.ps1 -Baseline ...\baseline-small.json -Current ...\current-small.json -Output ...\trend-small-explicit.md`：通过（显式输出路径生效）。
+4. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P6`：通过。
+5. `pwsh.exe -NoProfile -ExecutionPolicy Bypass -File .\ospf-kotlin-core\scripts\check-c8-guards.ps1 -GuardMode P7`：通过。
+6. `git diff --check`：通过（仅 LF/CRLF 提示，无空白错误）。
 
 ## P24 建议执行顺序
 
